@@ -25,19 +25,19 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Equipment;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.ClientboundSetEquipmentPacket;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Equipment;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetEquipmentPacket;
 
 @Translator(packet = ClientboundSetEquipmentPacket.class)
 public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetEquipmentPacket> {
@@ -49,8 +49,8 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
             return;
 
         if (!(entity instanceof LivingEntity livingEntity)) {
-            session.getGeyser().getLogger().debug("Attempted to add armor to a non-living entity type (" +
-                    entity.getDefinition().entityType().name() + ").");
+            session.getGeyser().getLogger().debug("Attempted to add armor to a non-living entity (" +
+                    entity.getDefinition().identifier() + ").");
             return;
         }
 
@@ -58,53 +58,59 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
         boolean mainHandUpdated = false;
         boolean offHandUpdated = false;
         for (Equipment equipment : packet.getEquipment()) {
-            ItemData item = ItemTranslator.translateToBedrock(session, equipment.getItem());
+            GeyserItemStack stack = GeyserItemStack.from(equipment.getItem());
             switch (equipment.getSlot()) {
                 case HELMET -> {
-                    ItemStack javaItem = equipment.getItem();
-                    if (livingEntity instanceof PlayerEntity
-                            && javaItem != null
-                            && javaItem.getId() == Items.PLAYER_HEAD.javaId()
-                            && javaItem.getNbt() != null) {
-                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, javaItem.getNbt().get("SkullOwner"));
+                    ResolvableProfile profile = stack.getComponent(DataComponentTypes.PROFILE);
+                    if (livingEntity instanceof PlayerEntity && stack.is(Items.PLAYER_HEAD) && profile != null) {
+                        FakeHeadProvider.setHead(session, (PlayerEntity) livingEntity, profile);
                     } else {
                         FakeHeadProvider.restoreOriginalSkin(session, livingEntity);
                     }
 
-                    livingEntity.setHelmet(item);
+                    livingEntity.setHelmet(stack);
                     armorUpdated = true;
                 }
                 case CHESTPLATE -> {
-                    livingEntity.setChestplate(item);
+                    livingEntity.setChestplate(stack);
+                    armorUpdated = true;
+                }
+                case BODY -> {
+                    // BODY is sent for llamas with a carpet equipped, as of 1.20.5
+                    // and for wolves
+                    livingEntity.setBody(stack);
                     armorUpdated = true;
                 }
                 case LEGGINGS -> {
-                    livingEntity.setLeggings(item);
+                    livingEntity.setLeggings(stack);
                     armorUpdated = true;
                 }
                 case BOOTS -> {
-                    livingEntity.setBoots(item);
+                    livingEntity.setBoots(stack);
                     armorUpdated = true;
                 }
+                case SADDLE -> {
+                    livingEntity.setSaddle(stack);
+                }
                 case MAIN_HAND -> {
-                    livingEntity.setHand(item);
+                    livingEntity.setHand(stack);
                     mainHandUpdated = true;
                 }
                 case OFF_HAND -> {
-                    livingEntity.setOffHand(item);
+                    livingEntity.setOffhand(stack);
                     offHandUpdated = true;
                 }
             }
         }
 
         if (armorUpdated) {
-            livingEntity.updateArmor(session);
+            livingEntity.updateArmor();
         }
         if (mainHandUpdated) {
-            livingEntity.updateMainHand(session);
+            livingEntity.updateMainHand();
         }
         if (offHandUpdated) {
-            livingEntity.updateOffHand(session);
+            livingEntity.updateOffHand();
         }
     }
 }

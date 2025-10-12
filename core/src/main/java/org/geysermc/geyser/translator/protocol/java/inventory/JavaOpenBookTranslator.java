@@ -25,19 +25,17 @@
 
 package org.geysermc.geyser.translator.protocol.java.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.inventory.ClientboundOpenBookPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundOpenBookPacket;
 
 import java.util.Objects;
 
@@ -61,28 +59,25 @@ public class JavaOpenBookTranslator extends PacketTranslator<ClientboundOpenBook
             return;
         }
 
-        // Only post 1.20.60 is it possible to tell the client to open a lectern.
-        if (!GameProtocol.is1_20_60orHigher(session.getUpstream().getProtocolVersion())) {
-            return;
-        }
-
-        if (stack.asItem().equals(Items.WRITTEN_BOOK)) {
-            Inventory openInventory = session.getOpenInventory();
+        // The item doesn't need to be a book; just needs to have either of these components.
+        if (stack.getComponent(DataComponentTypes.WRITABLE_BOOK_CONTENT) != null ||
+            stack.getComponent(DataComponentTypes.WRITTEN_BOOK_CONTENT) != null) {
+            InventoryHolder<?> openInventory = session.getInventoryHolder();
             if (openInventory != null) {
-                InventoryUtils.closeInventory(session, openInventory.getJavaId(), true);
-
-                ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(openInventory.getJavaId());
-                session.sendDownstreamGamePacket(closeWindowPacket);
+                InventoryUtils.sendJavaContainerClose(openInventory);
+                InventoryUtils.closeInventory(session, openInventory, true);
             }
 
-            InventoryTranslator translator = InventoryTranslator.inventoryTranslator(ContainerType.LECTERN);
-            session.setInventoryTranslator(translator);
+            if (session.hasFormOpen()) {
+                session.closeForm();
+            }
 
-            // Should never be null
-            Objects.requireNonNull(translator, "lectern translator must exist");
-            Inventory inventory = translator.createInventory("", FAKE_LECTERN_WINDOW_ID, ContainerType.LECTERN, session.getPlayerInventory());
-            ((LecternContainer) inventory).setFakeLecternBook(stack, session);
-            InventoryUtils.openInventory(session, inventory);
+            //noinspection unchecked
+            InventoryTranslator<LecternContainer> translator = (InventoryTranslator<LecternContainer>) InventoryTranslator.inventoryTranslator(ContainerType.LECTERN);
+            Objects.requireNonNull(translator, "could not find lectern inventory translator!");
+            LecternContainer container = translator.createInventory(session, "", FAKE_LECTERN_WINDOW_ID, ContainerType.LECTERN);
+            container.setVirtualLecternBook(stack, session);
+            InventoryUtils.openInventory(new InventoryHolder<>(session, container, translator));
         }
     }
 }

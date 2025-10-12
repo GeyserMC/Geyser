@@ -25,16 +25,17 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.statistic.*;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
+import org.geysermc.mcprotocollib.protocol.data.game.statistic.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,10 +94,10 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof BreakBlockStatistic statistic) {
-                                            String identifier = BlockRegistries.CLEAN_JAVA_IDENTIFIERS.get(statistic.getId());
-                                            if (identifier != null) {
-                                                String block = identifier.replace("minecraft:", "block.minecraft.");
-                                                content.add(block + ": " + entry.getIntValue());
+                                            Block block = BlockRegistries.JAVA_BLOCKS.get(statistic.getId());
+                                            if (block != null) {
+                                                String identifier = "block.minecraft." + block.javaIdentifier().value();
+                                                content.add(identifier + ": " + entry.getIntValue());
                                             }
                                         }
                                     }
@@ -106,7 +107,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof BreakItemStatistic statistic) {
-                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
+                                            Item item = itemRegistry.get(statistic.getId());
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
@@ -116,7 +117,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof CraftItemStatistic statistic) {
-                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
+                                            Item item = itemRegistry.get(statistic.getId());
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
@@ -126,7 +127,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof UseItemStatistic statistic) {
-                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
+                                            Item item = itemRegistry.get(statistic.getId());
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
@@ -136,7 +137,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof PickupItemStatistic statistic) {
-                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
+                                            Item item = itemRegistry.get(statistic.getId());
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
@@ -146,7 +147,7 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof DropItemStatistic statistic) {
-                                            String item = itemRegistry.get(statistic.getId()).javaIdentifier();
+                                            Item item = itemRegistry.get(statistic.getId());
                                             content.add(getItemTranslateKey(item, language) + ": " + entry.getIntValue());
                                         }
                                     }
@@ -207,14 +208,8 @@ public class StatisticsUtils {
      * @param language the language to search in
      * @return the full name of the item
      */
-    private static String getItemTranslateKey(String item, String language) {
-        item = item.replace("minecraft:", "item.minecraft.");
-        String translatedItem = MinecraftLocale.getLocaleString(item, language);
-        if (translatedItem.equals(item)) {
-            // Didn't translate; must be a block
-            translatedItem = MinecraftLocale.getLocaleString(item.replace("item.", "block."), language);
-        }
-        return translatedItem;
+    private static String getItemTranslateKey(Item item, String language) {
+        return MinecraftLocale.getLocaleString(item.translationKey(), language);
     }
 
     private static String translate(String keys, String locale) {

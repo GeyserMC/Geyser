@@ -44,7 +44,6 @@ import java.util.concurrent.CompletableFuture;
 public class GeyserEntityData implements EntityData {
 
     private final GeyserSession session;
-
     private final Set<UUID> movementLockOwners = new HashSet<>();
 
     public GeyserEntityData(GeyserSession session) {
@@ -95,5 +94,10 @@ public class GeyserEntityData implements EntityData {
     @Override
     public boolean isMovementLocked() {
         return !movementLockOwners.isEmpty();
+    }
+
+    @Override
+    public void switchHands() {
+        session.requestOffhandSwap();
     }
 }

@@ -25,12 +25,13 @@
 
 package org.geysermc.geyser.inventory.holder;
 
-import org.geysermc.geyser.inventory.Inventory;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 
 public abstract class InventoryHolder {
-    public abstract boolean prepareInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory);
-    public abstract void openInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory);
-    public abstract void closeInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory);
+    public abstract boolean canReuseContainer(GeyserSession session, Container container, Container oldInventory);
+    public abstract boolean prepareInventory(GeyserSession session, Container container);
+    public abstract void openInventory(GeyserSession session, Container container);
+    public abstract void closeInventory(GeyserSession session, Container container, ContainerType containerType);
 }

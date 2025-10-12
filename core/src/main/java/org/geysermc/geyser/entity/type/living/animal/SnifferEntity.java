@@ -25,9 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living.animal;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.SnifferState;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -39,6 +37,11 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.SnifferState;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 
 import java.util.UUID;
 
@@ -61,18 +64,19 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
     }
 
     @Override
-    protected void setDimensions(Pose pose) {
+    protected void setDimensionsFromPose(Pose pose) {
         if (getFlag(EntityFlag.DIGGING)) {
             setBoundingBoxHeight(DIGGING_HEIGHT);
             setBoundingBoxWidth(definition.width());
         } else {
-            super.setDimensions(pose);
+            super.setDimensionsFromPose(pose);
         }
     }
 
     @Override
-    public boolean canEat(Item item) {
-        return session.getTagCache().isSnifferFood(item);
+    @Nullable
+    protected Tag<Item> getFoodTag() {
+        return ItemTag.SNIFFER_FOOD;
     }
 
     public void setSnifferState(ObjectEntityMetadata<SnifferState> entityMetadata) {
@@ -86,7 +90,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
         setFlag(EntityFlag.DIGGING, snifferState == SnifferState.DIGGING);
         setFlag(EntityFlag.RISING, snifferState == SnifferState.RISING);
 
-        setDimensions(pose);
+        setDimensionsFromPose(pose);
 
         if (getFlag(EntityFlag.DIGGING)) {
             digTicks = DIG_END;

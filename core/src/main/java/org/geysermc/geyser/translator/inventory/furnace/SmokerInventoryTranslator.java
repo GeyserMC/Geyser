@@ -25,20 +25,28 @@
 
 package org.geysermc.geyser.translator.inventory.furnace;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Container;
+import org.geysermc.geyser.level.block.Blocks;
 
 public class SmokerInventoryTranslator extends AbstractFurnaceInventoryTranslator {
     public SmokerInventoryTranslator() {
-        super("minecraft:smoker[facing=north,lit=false]", ContainerType.SMOKER);
+        super(Blocks.SMOKER, ContainerType.SMOKER);
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         if (slot == 0) {
             return new BedrockContainerSlot(ContainerSlotType.SMOKER_INGREDIENT, javaSlotToBedrock(slot));
         }
-        return super.javaSlotToBedrockContainer(slot);
+        return super.javaSlotToBedrockContainer(slot, container);
+    }
+
+    @Override
+    public @Nullable ContainerType closeContainerType(Container container) {
+        return ContainerType.SMOKER;
     }
 }

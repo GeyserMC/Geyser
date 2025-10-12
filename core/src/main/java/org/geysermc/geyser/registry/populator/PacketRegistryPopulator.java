@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.registry.populator;
 
-import com.github.steveice10.packetlib.packet.Packet;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.mcprotocollib.network.packet.Packet;
 
 public class PacketRegistryPopulator {
 

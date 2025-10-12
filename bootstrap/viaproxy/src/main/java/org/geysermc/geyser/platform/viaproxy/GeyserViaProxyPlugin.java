@@ -24,48 +24,56 @@
  */
 package org.geysermc.geyser.platform.viaproxy;
 
+import io.netty.channel.AbstractChannel;
 import net.lenni0451.lambdaevents.EventHandler;
+import net.lenni0451.reflect.stream.RStream;
 import net.raphimc.vialegacy.api.LegacyProtocolVersion;
 import net.raphimc.viaproxy.ViaProxy;
-import net.raphimc.viaproxy.cli.options.Options;
 import net.raphimc.viaproxy.plugins.PluginManager;
 import net.raphimc.viaproxy.plugins.ViaProxyPlugin;
+import net.raphimc.viaproxy.plugins.events.Client2ProxyChannelInitializeEvent;
 import net.raphimc.viaproxy.plugins.events.ConsoleCommandEvent;
 import net.raphimc.viaproxy.plugins.events.ProxyStartEvent;
 import net.raphimc.viaproxy.plugins.events.ProxyStopEvent;
 import net.raphimc.viaproxy.plugins.events.ShouldVerifyOnlineModeEvent;
+import net.raphimc.viaproxy.plugins.events.types.ITyped;
 import org.apache.logging.log4j.LogManager;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.util.PlatformType;
-import org.geysermc.geyser.command.GeyserCommandManager;
+import org.geysermc.geyser.command.CommandRegistry;
+import org.geysermc.geyser.command.standalone.StandaloneCloudCommandManager;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.geysermc.geyser.platform.viaproxy.listener.GeyserServerTransferListener;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.LoopbackUtil;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 
-public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootstrap {
+public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootstrap, EventRegistrar {
 
     public static final File ROOT_FOLDER = new File(PluginManager.PLUGINS_DIR, "Geyser");
 
     private final GeyserViaProxyLogger logger = new GeyserViaProxyLogger(LogManager.getLogger("Geyser"));
     private GeyserViaProxyConfiguration config;
     private GeyserImpl geyser;
-    private GeyserCommandManager commandManager;
+    private StandaloneCloudCommandManager cloud;
+    private CommandRegistry commandRegistry;
     private IGeyserPingPassthrough pingPassthrough;
 
     @Override
@@ -86,7 +94,9 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     @EventHandler
     private void onConsoleCommand(final ConsoleCommandEvent event) {
         final String command = event.getCommand().startsWith("/") ? event.getCommand().substring(1) : event.getCommand();
-        if (this.getGeyserCommandManager().runCommand(this.getGeyserLogger(), command + " " + String.join(" ", event.getArgs()))) {
+        CommandRegistry registry = this.getCommandRegistry();
+        if (registry.rootCommands().contains(command)) {
+            registry.runCommand(this.getGeyserLogger(), command + " " + String.join(" ", event.getArgs()));
             event.setCancelled(true);
         }
     }
@@ -101,6 +111,27 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
         if (connection.javaUsername().equals(event.getProxyConnection().getGameProfile().getName())) {
             event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    private void onClient2ProxyChannelInitialize(Client2ProxyChannelInitializeEvent event) {
+        if (event.getType() != ITyped.Type.POST || event.isLegacyPassthrough()) {
+            return;
+        }
+        if (System.getProperty("geyser.viaproxy.disableIpPassthrough") != null) { // Temporary until Configurate branch is merged
+            return;
+        }
+
+        final GeyserSession session = GeyserImpl.getInstance().onlineConnections().stream()
+            .filter(c -> c.getDownstream() != null)
+            .filter(c -> c.getDownstream().getSession().getLocalAddress().equals(event.getChannel().remoteAddress()))
+            .findAny().orElse(null);
+        if (session != null) {
+            final SocketAddress realAddress = session.getSocketAddress();
+            if (event.getChannel() instanceof AbstractChannel) {
+                RStream.of(AbstractChannel.class, event.getChannel()).fields().by("remoteAddress").set(realAddress);
+            }
         }
     }
 
@@ -121,25 +152,41 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
         }
 
         this.geyser = GeyserImpl.load(PlatformType.VIAPROXY, this);
+        this.geyser.eventBus().register(this, new GeyserServerTransferListener());
         LoopbackUtil.checkAndApplyLoopback(this.logger);
     }
 
     @Override
     public void onGeyserEnable() {
-        if (GeyserImpl.getInstance().isReloading()) {
+        // If e.g. the config failed to load, GeyserImpl was not loaded and we cannot start
+        if (geyser == null) {
+            return;
+        }
+        boolean reloading = geyser.isReloading();
+        if (reloading) {
             if (!this.loadConfig()) {
                 return;
             }
+        } else {
+            // Only initialized once - documented in the Geyser-Standalone bootstrap
+            this.cloud = new StandaloneCloudCommandManager(geyser);
+            this.commandRegistry = new CommandRegistry(geyser, cloud);
         }
-
-        this.commandManager = new GeyserCommandManager(this.geyser);
-        this.commandManager.init();
 
         GeyserImpl.start();
 
-        if (Options.PROTOCOL_VERSION != null && Options.PROTOCOL_VERSION.newerThanOrEqualTo(LegacyProtocolVersion.b1_8tob1_8_1)) {
+        if (!reloading) {
+            // Event must be fired after CommandRegistry has subscribed its listener.
+            // Also, the subscription for the Permissions class is created when Geyser is initialized (by GeyserImpl#start)
+            this.cloud.fireRegisterPermissionsEvent();
+        }
+
+        if (ViaProxy.getConfig().getTargetVersion() != null && ViaProxy.getConfig().getTargetVersion().newerThanOrEqualTo(LegacyProtocolVersion.b1_8tob1_8_1)) {
             // Only initialize the ping passthrough if the protocol version is above beta 1.7.3, as that's when the status protocol was added
             this.pingPassthrough = GeyserLegacyPingPassthrough.init(this.geyser);
+        }
+        if (this.config.getRemote().authType() == AuthType.FLOODGATE) {
+            ViaProxy.getConfig().setPassthroughBungeecordPlayerInfo(true);
         }
     }
 
@@ -164,8 +211,8 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     }
 
     @Override
-    public GeyserCommandManager getGeyserCommandManager() {
-        return this.commandManager;
+    public CommandRegistry getCommandRegistry() {
+        return this.commandRegistry;
     }
 
     @Override
@@ -183,22 +230,27 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
         return new GeyserViaProxyDumpInfo();
     }
 
-    @NotNull
+    @Override
+    public @NonNull String getServerPlatform() {
+        return PlatformType.VIAPROXY.platformName();
+    }
+
+    @NonNull
     @Override
     public String getServerBindAddress() {
-        if (Options.BIND_ADDRESS instanceof InetSocketAddress socketAddress) {
+        if (ViaProxy.getConfig().getBindAddress() instanceof InetSocketAddress socketAddress) {
             return socketAddress.getHostString();
         } else {
-            throw new IllegalStateException("Unsupported bind address type: " + Options.BIND_ADDRESS.getClass().getName());
+            throw new IllegalStateException("Unsupported bind address type: " + ViaProxy.getConfig().getBindAddress().getClass().getName());
         }
     }
 
     @Override
     public int getServerPort() {
-        if (Options.BIND_ADDRESS instanceof InetSocketAddress socketAddress) {
+        if (ViaProxy.getConfig().getBindAddress() instanceof InetSocketAddress socketAddress) {
             return socketAddress.getPort();
         } else {
-            throw new IllegalStateException("Unsupported bind address type: " + Options.BIND_ADDRESS.getClass().getName());
+            throw new IllegalStateException("Unsupported bind address type: " + ViaProxy.getConfig().getBindAddress().getClass().getName());
         }
     }
 
@@ -207,6 +259,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
         return false;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {
         try {
             final File configFile = FileUtils.fileOrCopiedFromResource(new File(ROOT_FOLDER, "config.yml"), "config.yml", s -> s.replaceAll("generateduuid", UUID.randomUUID().toString()), this);

@@ -46,8 +46,8 @@ public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorl
 
     private final Int2IntMap oldToNewBlockId;
 
-    public GeyserSpigotLegacyNativeWorldManager(GeyserSpigotPlugin plugin) {
-        super(plugin);
+    public GeyserSpigotLegacyNativeWorldManager(GeyserSpigotPlugin plugin, boolean isPaper) {
+        super(plugin, isPaper);
         IntList allBlockStates = adapter.getAllBlockStates();
         oldToNewBlockId = new Int2IntOpenHashMap(allBlockStates.size());
         ProtocolVersion serverVersion = plugin.getServerProtocolVersion();
@@ -58,7 +58,7 @@ public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorl
             int newBlockId = oldBlockId;
             // protocolList should *not* be null; we checked for that before initializing this class
             for (int i = protocolList.size() - 1; i >= 0; i--) {
-                MappingData mappingData = protocolList.get(i).getProtocol().getMappingData();
+                MappingData mappingData = protocolList.get(i).protocol().getMappingData();
                 if (mappingData != null) {
                     newBlockId = mappingData.getNewBlockStateId(newBlockId);
                 }

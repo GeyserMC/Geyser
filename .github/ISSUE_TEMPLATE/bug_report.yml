@@ -1,11 +1,12 @@
 name: Bug report
 description: Create a report to help us improve
+type: Bug
 body:
 - type: markdown
   attributes:
     value: |
       Thanks for taking the time to fill out this bug report for Geyser! Fill out the following form to your best ability to help us fix the problem.
-      Only use this if you're absolutely sure that you found a bug and can reproduce it. For anything else, use: [our Discord server](https://discord.gg/geysermc), [the FAQ](https://github.com/GeyserMC/Geyser/wiki/FAQ) or the [Common Issues](https://github.com/GeyserMC/Geyser/wiki/Common-Issues).
+      Only use this if you're absolutely sure that you found a bug and can reproduce it. For anything else, use: [our Discord server](https://discord.gg/geysermc), [the FAQ](https://geysermc.org/wiki/geyser/faq) or the [Common Issues](https://geysermc.org/wiki/geyser/common-issues).
 - type: textarea
   attributes:
     label: Describe the bug

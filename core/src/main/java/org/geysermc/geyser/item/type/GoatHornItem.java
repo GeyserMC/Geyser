@@ -25,66 +25,70 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.inventory.item.GeyserInstrument;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
-
-import java.util.List;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
 
 public class GoatHornItem extends Item {
-    private static final List<String> INSTRUMENTS = List.of(
-            "ponder_goat_horn",
-            "sing_goat_horn",
-            "seek_goat_horn",
-            "feel_goat_horn",
-            "admire_goat_horn",
-            "call_goat_horn",
-            "yearn_goat_horn",
-            "dream_goat_horn" // Called "Resist" on Bedrock 1.19.0 due to https://bugs.mojang.com/browse/MCPE-155059
-    );
-
     public GoatHornItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
     }
 
     @Override
-    public ItemData.Builder translateToBedrock(ItemStack itemStack, ItemMapping mapping, ItemMappings mappings) {
-        ItemData.Builder builder = super.translateToBedrock(itemStack, mapping, mappings);
-        if (itemStack.getNbt() != null && itemStack.getNbt().get("instrument") instanceof StringTag instrumentTag) {
-            String instrument = instrumentTag.getValue();
-            // Drop the Minecraft namespace if applicable
-            if (instrument.startsWith("minecraft:")) {
-                instrument = instrument.substring("minecraft:".length());
-            }
-
-            int damage = INSTRUMENTS.indexOf(instrument);
-            if (damage == -1) {
-                damage = 0;
-                GeyserImpl.getInstance().getLogger().debug("Unknown goat horn instrument: " + instrumentTag.getValue());
-            }
-            builder.damage(damage);
+    public ItemData.Builder translateToBedrock(GeyserSession session, int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
+        ItemData.Builder builder = super.translateToBedrock(session, count, components, mapping, mappings);
+        if (components == null) {
+            return builder;
         }
+
+        InstrumentComponent instrumentComponent = components.get(DataComponentTypes.INSTRUMENT);
+        if (instrumentComponent != null) {
+            GeyserInstrument instrument = GeyserInstrument.fromComponent(session, instrumentComponent);
+            int bedrockId = instrument.bedrockId();
+            if (bedrockId >= 0) {
+                builder.damage(bedrockId);
+            }
+        }
+
         return builder;
     }
 
     @Override
-    public @NonNull ItemStack translateToJava(@NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
-        ItemStack itemStack = super.translateToJava(itemData, mapping, mappings);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, tooltip, builder);
+
+        InstrumentComponent component = components.get(DataComponentTypes.INSTRUMENT);
+        if (component != null && tooltip.showInTooltip(DataComponentTypes.INSTRUMENT)) {
+            GeyserInstrument instrument = GeyserInstrument.fromComponent(session, component);
+            if (instrument.bedrockInstrument() == null) {
+                builder.getOrCreateLore().add(instrument.description());
+            }
+        }
+    }
+
+    @Override
+    public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
+        GeyserItemStack itemStack = super.translateToJava(session, itemData, mapping, mappings);
 
         int damage = itemData.getDamage();
-        if (damage < 0 || damage >= INSTRUMENTS.size()) {
-            GeyserImpl.getInstance().getLogger().debug("Unknown goat horn instrument for damage: " + damage);
-            damage = 0;
-        }
-
-        String instrument = INSTRUMENTS.get(damage);
-        StringTag instrumentTag = new StringTag("instrument", "minecraft:" + instrument);
-        itemStack.getNbt().put(instrumentTag);
+        // This could cause an issue since -1 is returned for non-vanilla goat horns
+        itemStack.getOrCreateComponents().put(DataComponentTypes.INSTRUMENT, new InstrumentComponent(Holder.ofId(GeyserInstrument.bedrockIdToJava(session, damage)), null));
 
         return itemStack;
+    }
+
+    @Override
+    public boolean ignoreDamage() {
+        return true;
     }
 }

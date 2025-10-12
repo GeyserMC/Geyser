@@ -59,7 +59,9 @@ public interface JavaBlockState {
      * Gets the pick item of the block state
      * 
      * @return the pick item of the block state
+     * @deprecated the pick item is sent by the Java server
      */
+    @Deprecated
     @Nullable String pickItem();
 
     /**
@@ -70,10 +72,13 @@ public interface JavaBlockState {
     @Nullable String pistonBehavior();
 
     /**
-     * Gets whether the block state has block entity
+     * Gets whether the block state has a block entity
      * 
      * @return whether the block state has block entity
+     * @deprecated Does not have an effect. If you were using this to
+     * set piston behavior, use {@link #pistonBehavior()} instead.
      */
+    @Deprecated(forRemoval = true)
     boolean hasBlockEntity();
 
     /**
@@ -100,10 +105,16 @@ public interface JavaBlockState {
 
         Builder canBreakWithHand(boolean canBreakWithHand);
 
+        @Deprecated
         Builder pickItem(@Nullable String pickItem);
 
         Builder pistonBehavior(@Nullable String pistonBehavior);
 
+        /**
+         * @deprecated Does not have an effect. If you were using this to
+         *      * set piston behavior, use {@link #pistonBehavior(String)} instead.
+         */
+        @Deprecated(forRemoval = true)
         Builder hasBlockEntity(boolean hasBlockEntity);
 
         JavaBlockState build();

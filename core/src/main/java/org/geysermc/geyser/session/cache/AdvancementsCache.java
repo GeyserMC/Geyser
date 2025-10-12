@@ -25,10 +25,9 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.github.steveice10.mc.protocol.data.game.advancement.Advancement;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundSeenAdvancementsPacket;
+import org.geysermc.mcprotocollib.protocol.data.game.advancement.Advancement;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSeenAdvancementsPacket;
 import lombok.Getter;
-import lombok.Setter;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.level.GeyserAdvancement;
 import org.geysermc.geyser.session.GeyserSession;
@@ -41,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class AdvancementsCache {
     /**
@@ -58,13 +58,37 @@ public class AdvancementsCache {
     /**
      * Stores player's chosen advancement's ID and title for use in form creators.
      */
-    @Setter
     private String currentAdvancementCategoryId = null;
+
+    /**
+     * Stores if the player is currently viewing advancements.
+     */
+    private boolean formOpen = false;
 
     private final GeyserSession session;
 
     public AdvancementsCache(GeyserSession session) {
         this.session = session;
+    }
+
+    public void setCurrentAdvancementCategoryId(String categoryId) {
+        if (!Objects.equals(currentAdvancementCategoryId, categoryId)) {
+            // Only open and show list form if we're going to a different category
+            currentAdvancementCategoryId = categoryId;
+            if (formOpen) {
+                session.closeForm();
+                buildAndShowForm();
+                formOpen = true;
+            }
+        }
+    }
+
+    public void buildAndShowForm() {
+        if (currentAdvancementCategoryId == null) {
+            buildAndShowMenuForm();
+        } else {
+            buildAndShowListForm();
+        }
     }
 
     /**
@@ -88,21 +112,20 @@ public class AdvancementsCache {
             builder.content("advancements.empty");
         }
 
-        builder.validResultHandler((response) -> {
+        builder.closedResultHandler(() -> {
+            formOpen = false;
+        }).validResultHandler((response) -> {
             String id = rootAdvancementIds.get(response.clickedButtonId());
-            if (!id.equals("")) {
-                if (id.equals(currentAdvancementCategoryId)) {
-                    // The server thinks we are already on this tab
-                    buildAndShowListForm();
-                } else {
-                    // Send a packet indicating that we intend to open this particular advancement window
-                    ServerboundSeenAdvancementsPacket packet = new ServerboundSeenAdvancementsPacket(id);
-                    session.sendDownstreamGamePacket(packet);
-                    // Wait for a response there
-                }
+            if (!id.isEmpty()) {
+                // Send a packet indicating that we are opening this particular advancement window
+                ServerboundSeenAdvancementsPacket packet = new ServerboundSeenAdvancementsPacket(id);
+                session.sendDownstreamGamePacket(packet);
+                currentAdvancementCategoryId = id;
+                buildAndShowListForm();
             }
         });
 
+        formOpen = true;
         session.sendForm(builder);
     }
 
@@ -137,6 +160,9 @@ public class AdvancementsCache {
 
         builder.closedResultHandler(() -> {
             // Indicate that we have closed the current advancement tab
+            // Don't set currentAdvancementCategoryId to null here, so that when the advancements form is shown again (buildAndShowForm),
+            // the tab that was last open is opened again, which matches Java behaviour
+            formOpen = false;
             session.sendDownstreamGamePacket(new ServerboundSeenAdvancementsPacket());
 
         }).validResultHandler((response) -> {
@@ -146,6 +172,7 @@ public class AdvancementsCache {
             } else {
                 buildAndShowMenuForm();
                 // Indicate that we have closed the current advancement tab
+                currentAdvancementCategoryId = null;
                 session.sendDownstreamGamePacket(new ServerboundSeenAdvancementsPacket());
             }
         });
@@ -162,7 +189,15 @@ public class AdvancementsCache {
         // Cache language for easier access
         String language = session.locale();
 
-        String earned = isEarned(advancement) ? "yes" : "no";
+        boolean advancementHasProgress = advancement.getRequirements().size() > 1;
+
+        int advancementProgress = getProgress(advancement);
+        int advancementRequirements = advancement.getRequirements().size();
+
+        boolean advancementEarned = advancementRequirements > 0
+                && advancementProgress >= advancementRequirements;
+
+        String earned = advancementEarned ? "yes" : "no";
 
         String description = getColorFromAdvancementFrameType(advancement) + MessageTranslator.convertMessage(advancement.getDisplayData().getDescription(), language);
         String earnedString = GeyserLocale.getPlayerLocaleString("geyser.advancements.earned", language, MinecraftLocale.getLocaleString("gui." + earned, language));
@@ -175,10 +210,20 @@ public class AdvancementsCache {
         (Description) Mine stone with your new pickaxe
 
         Earned: Yes
+        Progress: 1/4 // When advancement has multiple requirements
         Parent Advancement: Minecraft // If relevant
          */
 
         String content = description + "\n\n§f" + earnedString + "\n";
+
+        if (advancementHasProgress) {
+            // Only display progress with multiple requirements
+            String progress = MinecraftLocale.getLocaleString("advancements.progress", language)
+                    .replaceFirst("%s", String.valueOf(advancementProgress))
+                    .replaceFirst("%s", String.valueOf(advancementRequirements));
+            content += GeyserLocale.getPlayerLocaleString("geyser.advancements.progress", language, progress) + "\n";
+        }
+
         if (!currentAdvancementCategoryId.equals(advancement.getParentId())) {
             // Only display the parent if it is not the category
             content += GeyserLocale.getPlayerLocaleString("geyser.advancements.parentid", language, MessageTranslator.convertMessage(storedAdvancements.get(advancement.getParentId()).getDisplayData().getTitle(), language));
@@ -190,6 +235,11 @@ public class AdvancementsCache {
                         .content(content)
                         .button(GeyserLocale.getPlayerLocaleString("gui.back", language))
                         .validResultHandler((response) -> buildAndShowListForm())
+                        .closedResultHandler(() -> {
+                            // Indicate that we have closed the current advancement tab
+                            formOpen = false;
+                            session.sendDownstreamGamePacket(new ServerboundSeenAdvancementsPacket());
+                        })
         );
     }
 
@@ -200,34 +250,44 @@ public class AdvancementsCache {
      * @return true if the advancement has been earned.
      */
     public boolean isEarned(GeyserAdvancement advancement) {
-        boolean earned = false;
-        if (advancement.getRequirements().size() == 0) {
+        if (advancement.getRequirements().isEmpty()) {
             // Minecraft handles this case, so we better as well
             return false;
         }
-        Map<String, Long> progress = storedAdvancementProgress.get(advancement.getId());
-        if (progress != null) {
+        // Progress should never be above requirements count, but you never know
+        return getProgress(advancement) >= advancement.getRequirements().size();
+    }
+
+    /**
+     * Determine the progress on an advancement.
+     *
+     * @param advancement the advancement to determine
+     * @return the progress on the advancement.
+     */
+    public int getProgress(GeyserAdvancement advancement) {
+        if (advancement.getRequirements().isEmpty()) {
+            // Minecraft handles this case
+            return 0;
+        }
+        int progress = 0;
+        Map<String, Long> progressMap = storedAdvancementProgress.get(advancement.getId());
+        if (progressMap != null) {
             // Each advancement's requirement must be fulfilled
             // For example, [[zombie, blaze, skeleton]] means that one of those three categories must be achieved
             // But [[zombie], [blaze], [skeleton]] means that all three requirements must be completed
             for (List<String> requirements : advancement.getRequirements()) {
-                boolean requirementsDone = false;
                 for (String requirement : requirements) {
-                    Long obtained = progress.get(requirement);
+                    Long obtained = progressMap.get(requirement);
                     // -1 means that this particular component required for completing the advancement
                     // has yet to be fulfilled
                     if (obtained != null && !obtained.equals(-1L)) {
-                        requirementsDone = true;
-                        break;
+                        progress++;
                     }
                 }
-                if (!requirementsDone) {
-                    return false;
-                }
             }
-            earned = true;
         }
-        return earned;
+
+        return progress;
     }
 
     public String getColorFromAdvancementFrameType(GeyserAdvancement advancement) {

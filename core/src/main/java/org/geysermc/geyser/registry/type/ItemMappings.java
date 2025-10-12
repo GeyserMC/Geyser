@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.registry.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.Builder;
@@ -33,15 +32,17 @@ import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.item.type.PotionItem;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.List;
 import java.util.Map;
@@ -60,8 +61,10 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
      * A unique exception as this is an item in Bedrock, but not in Java.
      */
     ItemMapping lodestoneCompass;
+    Int2ObjectMap<ItemMapping> lightBlocks;
 
-    ItemData[] creativeItems;
+    List<CreativeItemGroup> creativeItemGroups;
+    List<CreativeItemData> creativeItems;
     Int2ObjectMap<ItemDefinition> itemDefinitions;
 
     StoredItemMappings storedItems;
@@ -69,18 +72,25 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
 
     List<ItemDefinition> buckets;
     List<ItemDefinition> boats;
-    List<ItemData> carpets;
-
-    List<ComponentItemData> componentItemData;
     Int2ObjectMap<String> customIdMappings;
 
     Object2ObjectMap<CustomBlockData, ItemDefinition> customBlockItemDefinitions;
 
     /**
+     * Gets an {@link ItemMapping} from the given {@link GeyserItemStack}.
+     *
+     * @param itemStack the itemstack
+     * @return an item entry from the given item stack
+     */
+    public ItemMapping getMapping(@NonNull GeyserItemStack itemStack) {
+        return this.getMapping(itemStack.getJavaId());
+    }
+
+    /**
      * Gets an {@link ItemMapping} from the given {@link ItemStack}.
      *
      * @param itemStack the itemstack
-     * @return an item entry from the given java edition identifier
+     * @return an item entry from the given java edition item stack
      */
     @NonNull
     public ItemMapping getMapping(@NonNull ItemStack itemStack) {
@@ -99,9 +109,9 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
         return javaId >= 0 && javaId < this.items.length ? this.items[javaId] : ItemMapping.AIR;
     }
 
-    @Nullable
+    @NonNull
     public ItemMapping getMapping(Item javaItem) {
-        return getMapping(javaItem.javaIdentifier());
+        return getMapping(javaItem.javaId());
     }
 
     /**
@@ -138,6 +148,11 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
             return lodestoneCompass;
         }
 
+        ItemMapping lightBlock = lightBlocks.get(definition.getRuntimeId());
+        if (lightBlock != null) {
+            return lightBlock;
+        }
+
         boolean isBlock = data.getBlockDefinition() != null;
         boolean hasDamage = data.getDamage() != 0;
 
@@ -149,9 +164,8 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
                     }
                 } else {
                     if (!(mapping.getBedrockData() == data.getDamage() ||
-                            // Make exceptions for potions, tipped arrows, firework stars, and goat horns, whose damage values can vary
-                            (mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() == Items.ARROW
-                                    || mapping.getJavaItem() == Items.FIREWORK_STAR || mapping.getJavaItem() == Items.GOAT_HORN))) {
+                            // Make exceptions for items whose damage values can vary
+                            (mapping.getJavaItem().ignoreDamage() || mapping.getJavaItem() == Items.SUSPICIOUS_STEW))) {
                         continue;
                     }
                 }

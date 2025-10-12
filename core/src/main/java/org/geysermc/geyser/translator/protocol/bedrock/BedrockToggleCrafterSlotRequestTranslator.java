@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerSlotStateChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ToggleCrafterSlotRequestPacket;
 import org.geysermc.geyser.inventory.CrafterContainer;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerSlotStateChangedPacket;
 
 @Translator(packet = ToggleCrafterSlotRequestPacket.class)
 public class BedrockToggleCrafterSlotRequestTranslator extends PacketTranslator<ToggleCrafterSlotRequestPacket> {

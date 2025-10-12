@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,10 +25,9 @@
 
 package org.geysermc.geyser.util;
 
-import com.github.steveice10.mc.protocol.data.game.entity.Effect;
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
+import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
@@ -40,17 +39,30 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserEntityIdentifier;
 import org.geysermc.geyser.entity.type.BoatEntity;
+import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.TextDisplayEntity;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
+import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
+import org.geysermc.geyser.text.MinecraftLocale;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.geyser.registry.Registries;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 public final class EntityUtils {
     /**
@@ -85,11 +97,21 @@ public final class EntityUtils {
             case BAD_OMEN -> 28;
             case HERO_OF_THE_VILLAGE -> 29;
             case DARKNESS -> 30;
+            case TRIAL_OMEN -> 31;
+            case WIND_CHARGED -> 32;
+            case WEAVING -> 33;
+            case OOZING -> 34;
+            case INFESTED -> 35;
+            case RAID_OMEN -> 36;
             default -> effect.ordinal() + 1;
         };
     }
 
     private static float getMountedHeightOffset(Entity mount) {
+        if (mount instanceof BoatEntity boat && boat.getVariant() != BoatEntity.BoatVariant.BAMBOO) {
+            return -0.1f;
+        }
+
         float height = mount.getBoundingBoxHeight();
         float mountedHeightOffset = height * 0.75f;
         switch (mount.getDefinition().entityType()) {
@@ -102,10 +124,7 @@ public final class EntityUtils {
             case TRADER_LLAMA, LLAMA -> mountedHeightOffset = height * 0.6f;
             case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
                     COMMAND_BLOCK_MINECART -> mountedHeightOffset = 0;
-            case BOAT, CHEST_BOAT -> {
-                boolean isBamboo = ((BoatEntity) mount).getVariant() == 8;
-                mountedHeightOffset = isBamboo ? 0.25f : -0.1f;
-            }
+            case BAMBOO_RAFT, BAMBOO_CHEST_RAFT -> mountedHeightOffset = 0.25f;
             case HOGLIN, ZOGLIN -> {
                 boolean isBaby = mount.getFlag(EntityFlag.BABY);
                 mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
@@ -160,7 +179,7 @@ public final class EntityUtils {
     /**
      * Adjust an entity's height if they have mounted/dismounted an entity.
      */
-    public static void updateMountOffset(Entity passenger, Entity mount, boolean rider, boolean riding, boolean moreThanOneEntity) {
+    public static void updateMountOffset(Entity passenger, Entity mount, boolean rider, boolean riding, int index, int passengers) {
         passenger.setFlag(EntityFlag.RIDING, riding);
         if (riding) {
             // Without the Y offset, Bedrock players will find themselves in the floor when mounting
@@ -171,22 +190,9 @@ public final class EntityUtils {
             float yOffset = mountedHeightOffset + heightOffset;
             float zOffset = 0;
             switch (mount.getDefinition().entityType()) {
-                case BOAT -> {
-                    // Without the X offset, more than one entity on a boat is stacked on top of each other
-                    if (moreThanOneEntity) {
-                        if (rider) {
-                            xOffset = 0.2f;
-                        } else {
-                            xOffset = -0.6f;
-                        }
-                        if (passenger instanceof AnimalEntity) {
-                            xOffset += 0.2f;
-                        }
-                    }
-                }
                 case CAMEL -> {
                     zOffset = 0.5f;
-                    if (moreThanOneEntity) {
+                    if (passengers > 1) {
                         if (!rider) {
                             zOffset = -0.7f;
                         }
@@ -202,9 +208,49 @@ public final class EntityUtils {
                         }
                     }
                 }
-                case CHEST_BOAT -> xOffset = 0.15F;
                 case CHICKEN -> zOffset = -0.1f;
                 case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
+                case TEXT_DISPLAY -> {
+                    if (passenger instanceof TextDisplayEntity textDisplay) {
+                        Vector3f displayTranslation = textDisplay.getTranslation();
+                        if (displayTranslation == null) {
+                            return;
+                        }
+
+                        xOffset = displayTranslation.getX();
+                        yOffset = displayTranslation.getY() + 0.2f;
+                        zOffset = displayTranslation.getZ();
+                    }
+                }
+                case PLAYER -> {
+                    if (passenger instanceof TextDisplayEntity textDisplay) {
+                        Vector3f displayTranslation = textDisplay.getTranslation();
+                        int lines = textDisplay.getLineCount();
+                        if (displayTranslation != null && lines != 0) {
+                            float multiplier = .1414f;
+                            xOffset = displayTranslation.getX();
+                            yOffset += displayTranslation.getY() + multiplier * lines;
+                            zOffset = displayTranslation.getZ();
+                        }
+                    }
+                }
+                case HAPPY_GHAST -> {
+                    int seatingIndex = Math.min(index, 4);
+                    xOffset = HappyGhastEntity.X_OFFSETS[seatingIndex];
+                    yOffset = 3.4f;
+                    zOffset = HappyGhastEntity.Z_OFFSETS[seatingIndex];
+                }
+            }
+            if (mount instanceof ChestBoatEntity) {
+                xOffset = 0.15F;
+            } else if (mount instanceof BoatEntity) {
+                // Without the X offset, more than one entity on a boat is stacked on top of each other
+                if (passengers > 1) {
+                    xOffset = rider ? 0.2f : -0.6f;
+                    if (passenger instanceof AnimalEntity) {
+                        xOffset += 0.2f;
+                    }
+                }
             }
             /*
              * Bedrock Differences
@@ -220,18 +266,23 @@ public final class EntityUtils {
             }
             switch (mount.getDefinition().entityType()) {
                 case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
-                        COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset -= mount.getDefinition().height() * 0.5f;
+                        COMMAND_BLOCK_MINECART -> yOffset -= mount.getDefinition().height() * 0.5f;
             }
             switch (passenger.getDefinition().entityType()) {
                 case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
-                        COMMAND_BLOCK_MINECART, BOAT, CHEST_BOAT -> yOffset += passenger.getDefinition().height() * 0.5f;
-                case FALLING_BLOCK -> yOffset += 0.5f;
+                     COMMAND_BLOCK_MINECART, SHULKER -> yOffset += passenger.getDefinition().height() * 0.5f;
+                case FALLING_BLOCK -> yOffset += 0.995f;
+            }
+            if (mount instanceof BoatEntity) {
+                yOffset -= mount.getDefinition().height() * 0.5f;
+            }
+            if (passenger instanceof BoatEntity) {
+                yOffset += passenger.getDefinition().height() * 0.5f;
             }
             if (mount instanceof ArmorStandEntity armorStand) {
                 yOffset -= armorStand.getYOffset();
             }
-            Vector3f offset = Vector3f.from(xOffset, yOffset, zOffset);
-            passenger.setRiderSeatPosition(offset);
+            passenger.setRiderSeatPosition(Vector3f.from(xOffset, yOffset, zOffset));
         }
     }
 
@@ -254,14 +305,14 @@ public final class EntityUtils {
      * Determine if an action would result in a successful bucketing of the given entity.
      */
     public static boolean attemptToBucket(GeyserItemStack itemInHand) {
-        return itemInHand.asItem() == Items.WATER_BUCKET;
+        return itemInHand.is(Items.WATER_BUCKET);
     }
 
     /**
      * Attempt to determine the result of saddling the given entity.
      */
     public static InteractionResult attemptToSaddle(Entity entityToSaddle, GeyserItemStack itemInHand) {
-        if (itemInHand.asItem() == Items.SADDLE) {
+        if (itemInHand.is(Items.SADDLE)) {
             if (!entityToSaddle.getFlag(EntityFlag.SADDLED) && !entityToSaddle.getFlag(EntityFlag.BABY)) {
                 // Saddle
                 return InteractionResult.SUCCESS;
@@ -282,6 +333,51 @@ public final class EntityUtils {
             case SPECTATOR -> GameType.SURVIVAL_VIEWER;
             default -> GameType.SURVIVAL;
         };
+    }
+
+    private static String translatedEntityName(@NonNull String namespace, @NonNull String name, @NonNull GeyserSession session) {
+        // MinecraftLocale would otherwise invoke getBootstrap (which doesn't exist) and create some folders,
+        // so use the default fallback value as used in Minecraft Java
+        if (EnvironmentUtils.IS_UNIT_TESTING) {
+            return "entity." + namespace + "." + name;
+        }
+        return MinecraftLocale.getLocaleString("entity." + namespace + "." + name, session.locale());
+    }
+
+    public static String translatedEntityName(@NonNull Key type, @NonNull GeyserSession session) {
+        return translatedEntityName(type.namespace(), type.value(), session);
+    }
+
+    public static String translatedEntityName(@Nullable EntityType type, @NonNull GeyserSession session) {
+        if (type == EntityType.PLAYER) {
+            return "Player"; // the player's name is always shown instead
+        }
+        // default fallback value as used in Minecraft Java
+        if (type == null) {
+            return "entity.unregistered_sadface";
+        }
+        // this works at least with all 1.20.5 entities, except the killer bunny since that's not an entity type.
+        String typeName = type.name().toLowerCase(Locale.ROOT);
+        return translatedEntityName("minecraft", typeName, session);
+    }
+
+    public static boolean equipmentUsableByEntity(GeyserSession session, Equippable equippable, EntityType entity) {
+        if (equippable.allowedEntities() == null) {
+            return true;
+        }
+
+        GeyserHolderSet<EntityType> holderSet = GeyserHolderSet.fromHolderSet(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
+        return holderSet.contains(session, entity);
+    }
+
+    // From ViaVersion! thank u!!
+    public static UUID uuidFromIntArray(int[] uuid) {
+        if (uuid != null && uuid.length == 4) {
+            // thank u viaversion
+            return new UUID((long) uuid[0] << 32 | ((long) uuid[1] & 0xFFFFFFFFL),
+                (long) uuid[2] << 32 | ((long) uuid[3] & 0xFFFFFFFFL));
+        }
+        return null;
     }
 
     public static void registerEntity(String identifier, EntityDefinition<?> definition) {

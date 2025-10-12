@@ -29,16 +29,18 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
+import org.geysermc.geyser.level.block.Blocks;
 
-public class GrindstoneInventoryTranslator extends AbstractBlockInventoryTranslator {
+public class GrindstoneInventoryTranslator extends AbstractBlockInventoryTranslator<Container> {
     public GrindstoneInventoryTranslator() {
-        super(3, "minecraft:grindstone[face=floor,facing=north]", ContainerType.GRINDSTONE, UIInventoryUpdater.INSTANCE);
+        super(3, Blocks.GRINDSTONE, ContainerType.GRINDSTONE, UIInventoryUpdater.INSTANCE);
     }
 
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        return switch (slotInfoData.getContainer()) {
+        return switch (slotInfoData.getContainerName().getContainer()) {
             case GRINDSTONE_INPUT -> 0;
             case GRINDSTONE_ADDITIONAL -> 1;
             case GRINDSTONE_RESULT, CREATED_OUTPUT -> 2;
@@ -47,12 +49,12 @@ public class GrindstoneInventoryTranslator extends AbstractBlockInventoryTransla
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         return switch (slot) {
             case 0 -> new BedrockContainerSlot(ContainerSlotType.GRINDSTONE_INPUT, 16);
             case 1 -> new BedrockContainerSlot(ContainerSlotType.GRINDSTONE_ADDITIONAL, 17);
             case 2 -> new BedrockContainerSlot(ContainerSlotType.GRINDSTONE_RESULT, 50);
-            default -> super.javaSlotToBedrockContainer(slot);
+            default -> super.javaSlotToBedrockContainer(slot, container);
         };
     }
 
@@ -64,5 +66,10 @@ public class GrindstoneInventoryTranslator extends AbstractBlockInventoryTransla
             case 2 -> 50;
             default -> super.javaSlotToBedrock(slot);
         };
+    }
+
+    @Override
+    public ContainerType closeContainerType(Container container) {
+        return null;
     }
 }

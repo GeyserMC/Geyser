@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,11 +42,14 @@ import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.pack.PathPackCodec;
-import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.GeyserEntityIdentifier;
-import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.api.pack.UrlPackCodec;
+import org.geysermc.geyser.api.pack.option.PriorityOption;
+import org.geysermc.geyser.api.pack.option.SubpackOption;
+import org.geysermc.geyser.api.pack.option.UrlFallbackOption;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
+import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.impl.camera.GeyserCameraFade;
 import org.geysermc.geyser.impl.camera.GeyserCameraPosition;
 import org.geysermc.geyser.item.GeyserCustomItemData;
@@ -58,7 +61,11 @@ import org.geysermc.geyser.level.block.GeyserGeometryComponent;
 import org.geysermc.geyser.level.block.GeyserJavaBlockState;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 import org.geysermc.geyser.level.block.GeyserNonVanillaCustomBlockData;
+import org.geysermc.geyser.pack.option.GeyserPriorityOption;
+import org.geysermc.geyser.pack.option.GeyserSubpackOption;
+import org.geysermc.geyser.pack.option.GeyserUrlFallbackOption;
 import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
+import org.geysermc.geyser.pack.url.GeyserUrlPackCodec;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 
 import java.nio.file.Path;
@@ -72,8 +79,12 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
     @Override
     public Map<Class<?>, ProviderSupplier> load(Map<Class<?>, ProviderSupplier> providers) {
         // misc
-        providers.put(Command.Builder.class, args -> new GeyserCommandManager.CommandBuilder<>((Extension) args[0]));
+        providers.put(Identifier.class, args -> IdentifierImpl.of((String) args[0], (String) args[1]));
 
+        // commands
+        providers.put(Command.Builder.class, args -> new GeyserExtensionCommand.Builder<>((Extension) args[0]));
+
+        // custom blocks
         providers.put(CustomBlockComponents.Builder.class, args -> new GeyserCustomBlockComponents.Builder());
         providers.put(CustomBlockData.Builder.class, args -> new GeyserCustomBlockData.Builder());
         providers.put(JavaBlockState.Builder.class, args -> new GeyserJavaBlockState.Builder());
@@ -81,8 +92,15 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(MaterialInstance.Builder.class, args -> new GeyserMaterialInstance.Builder());
         providers.put(GeometryComponent.Builder.class, args -> new GeyserGeometryComponent.Builder());
 
+        // misc
         providers.put(EventRegistrar.class, args -> new GeyserEventRegistrar(args[0]));
+
+        // packs
         providers.put(PathPackCodec.class, args -> new GeyserPathPackCodec((Path) args[0]));
+        providers.put(UrlPackCodec.class, args -> new GeyserUrlPackCodec((String) args[0]));
+        providers.put(PriorityOption.class, args -> new GeyserPriorityOption((int) args[0]));
+        providers.put(SubpackOption.class, args -> new GeyserSubpackOption((String) args[0]));
+        providers.put(UrlFallbackOption.class, args -> new GeyserUrlFallbackOption((Boolean) args[0]));
 
         // items
         providers.put(CustomItemData.Builder.class, args -> new GeyserCustomItemData.Builder());

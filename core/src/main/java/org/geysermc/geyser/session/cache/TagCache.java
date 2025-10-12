@@ -25,186 +25,164 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.github.steveice10.mc.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.ints.IntLists;
+import it.unimi.dsi.fastutil.ints.IntArrays;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.registry.type.BlockMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
+import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
+import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
- * will remain empty, matching Java Edition behavior.
+ * will remain empty, matching Java Edition behavior. Looking up a tag that wasn't listed in that packet will return an empty array.
+ * Only tags from registries in {@link JavaRegistries} are stored. Read {@link JavaRegistryKey} for more information.
+ *
+ * <p>To simply check if an element is in a tag, it's preferred to use the element's "{@code is}" method, if available. For example:</p>
+ *
+ * <ul>
+ *     <li>{@link org.geysermc.geyser.level.block.type.Block#is(GeyserSession, Tag)}</li>
+ *     <li>{@link org.geysermc.geyser.level.block.type.Block#is(GeyserSession, HolderSet)}</li>
+ *     <li>{@link org.geysermc.geyser.item.type.Item#is(GeyserSession, Tag)}</li>
+ *     <li>{@link org.geysermc.geyser.item.type.Item#is(GeyserSession, HolderSet)}</li>
+ *     <li>{@link org.geysermc.geyser.inventory.GeyserItemStack#is(GeyserSession, Tag)}</li>
+ *     <li>{@link org.geysermc.geyser.inventory.GeyserItemStack#is(GeyserSession, HolderSet)}</li>
+ *     <li>{@link GeyserHolderSet#contains(GeyserSession, Object)}</li>
+ * </ul>
  */
-@ParametersAreNonnullByDefault
-public class TagCache {
-    /* Blocks */
-    private IntList leaves;
-    private IntList wool;
+public final class TagCache {
+    private final GeyserSession session;
+    private final Map<Tag<?>, int[]> tags = new Object2ObjectOpenHashMap<>();
 
-    private IntList axeEffective;
-    private IntList hoeEffective;
-    private IntList pickaxeEffective;
-    private IntList shovelEffective;
-
-    private IntList requiresStoneTool;
-    private IntList requiresIronTool;
-    private IntList requiresDiamondTool;
-
-    /* Items */
-    private IntList axolotlTemptItems;
-    private IntList creeperIgniters;
-    private IntList fishes;
-    private IntList flowers;
-    private IntList foxFood;
-    private IntList piglinLoved;
-    private IntList smallFlowers;
-    private IntList snifferFood;
-
-    public TagCache() {
-        // Ensure all lists are non-null
-        clear();
+    public TagCache(GeyserSession session) {
+        this.session = session;
     }
 
-    public void loadPacket(GeyserSession session, ClientboundUpdateTagsPacket packet) {
-        Map<String, int[]> blockTags = packet.getTags().get("minecraft:block");
-        this.leaves = IntList.of(blockTags.get("minecraft:leaves"));
-        this.wool = IntList.of(blockTags.get("minecraft:wool"));
-
-        this.axeEffective = IntList.of(blockTags.get("minecraft:mineable/axe"));
-        this.hoeEffective = IntList.of(blockTags.get("minecraft:mineable/hoe"));
-        this.pickaxeEffective = IntList.of(blockTags.get("minecraft:mineable/pickaxe"));
-        this.shovelEffective = IntList.of(blockTags.get("minecraft:mineable/shovel"));
-
-        this.requiresStoneTool = IntList.of(blockTags.get("minecraft:needs_stone_tool"));
-        this.requiresIronTool = IntList.of(blockTags.get("minecraft:needs_iron_tool"));
-        this.requiresDiamondTool = IntList.of(blockTags.get("minecraft:needs_diamond_tool"));
-
-        // Hack btw
+    public void loadPacket(ClientboundUpdateTagsPacket packet) {
+        Map<Key, Map<Key, int[]>> allTags = packet.getTags();
         GeyserLogger logger = session.getGeyser().getLogger();
-        int[] convertableToMud = blockTags.get("minecraft:convertable_to_mud");
-        boolean emulatePost1_18Logic = convertableToMud != null && convertableToMud.length != 0;
-        session.setEmulatePost1_18Logic(emulatePost1_18Logic);
-        if (logger.isDebug()) {
-            logger.debug("Emulating post 1.18 block predication logic for " + session.bedrockUsername() + "? " + emulatePost1_18Logic);
+
+        this.tags.clear();
+
+        for (Key registryKey : allTags.keySet()) {
+            JavaRegistryKey<?> registry = JavaRegistries.fromKey(registryKey);
+            if (registry == null) {
+                logger.debug("Not loading tags for registry " + registryKey + " (registry not listed in JavaRegistries)");
+                continue;
+            }
+
+            Map<Key, int[]> registryTags = allTags.get(registryKey);
+
+            if (registry == JavaRegistries.BLOCK) {
+                // Hack btw
+                int[] convertableToMud = registryTags.get(MinecraftKey.key("convertable_to_mud"));
+                boolean emulatePost1_18Logic = convertableToMud != null && convertableToMud.length != 0;
+                session.setEmulatePost1_18Logic(emulatePost1_18Logic);
+                if (logger.isDebug()) {
+                    logger.debug("Emulating post 1.18 block predication logic for " + session.bedrockUsername() + "? " + emulatePost1_18Logic);
+                }
+            } else if (registry == JavaRegistries.ITEM) {
+                // Hack btw
+                boolean emulatePost1_13Logic = registryTags.get(MinecraftKey.key("signs")).length > 1;
+                session.setEmulatePost1_13Logic(emulatePost1_13Logic);
+                if (logger.isDebug()) {
+                    logger.debug("Emulating post 1.13 villager logic for " + session.bedrockUsername() + "? " + emulatePost1_13Logic);
+                }
+            }
+
+            loadTags(registryTags, registry, registry == JavaRegistries.ITEM);
+        }
+    }
+
+    private void loadTags(Map<Key, int[]> packetTags, JavaRegistryKey<?> registry, boolean sort) {
+        for (Map.Entry<Key, int[]> tag : packetTags.entrySet()) {
+            int[] value = tag.getValue();
+            if (sort) {
+                // Used in RecipeBookAddTranslator
+                Arrays.sort(value);
+            }
+            this.tags.put(new Tag<>(registry, tag.getKey()), value);
+        }
+    }
+
+    /**
+     * Should only be used when the network ID of an element is already known. If not, prefer using the {@link TagCache#is(Tag, Object)} shorthand method.
+     */
+    public boolean is(@NonNull Tag<?> tag, int id) {
+        return contains(getRaw(tag), id);
+    }
+
+    public <T> boolean is(@NonNull Tag<T> tag, @NonNull T object) {
+        return contains(getRaw(tag), tag.registry().networkId(session, object));
+    }
+
+    /**
+     * Prefer using {@link GeyserHolderSet#contains(GeyserSession, Object)}.
+     *
+     * @return true if the specified network ID is in the given {@link GeyserHolderSet}.
+     */
+    public <T> boolean is(@NonNull GeyserHolderSet<T> holderSet, @Nullable T object) {
+        if (object == null) {
+            return false;
+        }
+        return contains(holderSet.resolveRaw(this), holderSet.getRegistry().networkId(session, object));
+    }
+
+    /**
+     * @return true if the specified network ID is in the given {@link HolderSet} set.
+     */
+    public <T> boolean is(@Nullable HolderSet holderSet, @NonNull JavaRegistryKey<T> registry, int id) {
+        if (holderSet == null) {
+            return false;
         }
 
-        Map<String, int[]> itemTags = packet.getTags().get("minecraft:item");
-        this.axolotlTemptItems = IntList.of(itemTags.get("minecraft:axolotl_tempt_items"));
-        this.creeperIgniters = load(itemTags.get("minecraft:creeper_igniters"));
-        this.fishes = IntList.of(itemTags.get("minecraft:fishes"));
-        this.flowers = IntList.of(itemTags.get("minecraft:flowers"));
-        this.foxFood = IntList.of(itemTags.get("minecraft:fox_food"));
-        this.piglinLoved = IntList.of(itemTags.get("minecraft:piglin_loved"));
-        this.smallFlowers = IntList.of(itemTags.get("minecraft:small_flowers"));
-        this.snifferFood = load(itemTags.get("minecraft:sniffer_food"));
+        int[] entries = holderSet.resolve(key -> {
+            // This should never happen, since a key in a HolderSet is always a tag
+            // We check for it anyway
+            if (key.value().startsWith("#")) {
+                key = Key.key(key.namespace(), key.value().substring(1));
+            }
+            return getRaw(new Tag<>(registry, key));
+        });
 
-        // Hack btw
-        boolean emulatePost1_13Logic = itemTags.get("minecraft:signs").length > 1;
-        session.setEmulatePost1_13Logic(emulatePost1_13Logic);
-        if (logger.isDebug()) {
-            logger.debug("Emulating post 1.13 villager logic for " + session.bedrockUsername() + "? " + emulatePost1_13Logic);
+        return contains(entries, id);
+    }
+
+    public <T> List<T> get(@NonNull Tag<T> tag) {
+        return mapRawArray(session, getRaw(tag), tag.registry());
+    }
+
+    /**
+     * @return the network IDs in the given tag. This can be an empty array.
+     */
+    public int[] getRaw(@NonNull Tag<?> tag) {
+        return this.tags.getOrDefault(tag, IntArrays.EMPTY_ARRAY);
+    }
+
+    /**
+     * Maps a raw array of network IDs to their respective objects.
+     */
+    public static <T> List<T> mapRawArray(GeyserSession session, int[] array, JavaRegistryKey<T> registry) {
+        return Arrays.stream(array).mapToObj(i -> registry.value(session, i)).toList();
+    }
+
+    private static boolean contains(int[] array, int i) {
+        for (int item : array) {
+            if (item == i) {
+                return true;
+            }
         }
-    }
-
-    private IntList load(int @Nullable[] tags) {
-        if (tags == null) {
-            return IntLists.EMPTY_LIST;
-        }
-        return IntList.of(tags);
-    }
-
-    public void clear() {
-        this.leaves = IntLists.emptyList();
-        this.wool = IntLists.emptyList();
-
-        this.axeEffective = IntLists.emptyList();
-        this.hoeEffective = IntLists.emptyList();
-        this.pickaxeEffective = IntLists.emptyList();
-        this.shovelEffective = IntLists.emptyList();
-
-        this.requiresStoneTool = IntLists.emptyList();
-        this.requiresIronTool = IntLists.emptyList();
-        this.requiresDiamondTool = IntLists.emptyList();
-
-        this.axolotlTemptItems = IntLists.emptyList();
-        this.creeperIgniters = IntLists.emptyList();
-        this.fishes = IntLists.emptyList();
-        this.flowers = IntLists.emptyList();
-        this.foxFood = IntLists.emptyList();
-        this.piglinLoved = IntLists.emptyList();
-        this.smallFlowers = IntLists.emptyList();
-        this.snifferFood = IntLists.emptyList();
-    }
-
-    public boolean isAxolotlTemptItem(Item item) {
-        return axolotlTemptItems.contains(item.javaId());
-    }
-
-    public boolean isCreeperIgniter(Item item) {
-        return creeperIgniters.contains(item.javaId());
-    }
-
-    public boolean isFish(GeyserItemStack itemStack) {
-        return fishes.contains(itemStack.getJavaId());
-    }
-
-    public boolean isFlower(Item item) {
-        return flowers.contains(item.javaId());
-    }
-
-    public boolean isFoxFood(Item item) {
-        return foxFood.contains(item.javaId());
-    }
-
-    public boolean shouldPiglinAdmire(Item item) {
-        return piglinLoved.contains(item.javaId());
-    }
-
-    public boolean isSmallFlower(GeyserItemStack itemStack) {
-        return smallFlowers.contains(itemStack.getJavaId());
-    }
-
-    public boolean isSnifferFood(Item item) {
-        return snifferFood.contains(item.javaId());
-    }
-
-    public boolean isAxeEffective(BlockMapping blockMapping) {
-        return axeEffective.contains(blockMapping.getJavaBlockId());
-    }
-
-    public boolean isHoeEffective(BlockMapping blockMapping) {
-        return hoeEffective.contains(blockMapping.getJavaBlockId());
-    }
-
-    public boolean isPickaxeEffective(BlockMapping blockMapping) {
-        return pickaxeEffective.contains(blockMapping.getJavaBlockId());
-    }
-
-    public boolean isShovelEffective(BlockMapping blockMapping) {
-        return shovelEffective.contains(blockMapping.getJavaBlockId());
-    }
-
-    public boolean isShearsEffective(BlockMapping blockMapping) {
-        int javaBlockId = blockMapping.getJavaBlockId();
-        return leaves.contains(javaBlockId) || wool.contains(javaBlockId);
-    }
-
-    public boolean requiresStoneTool(BlockMapping blockMapping) {
-        return requiresStoneTool.contains(blockMapping.getJavaBlockId());
-    }
-
-    public boolean requiresIronTool(BlockMapping blockMapping) {
-        return requiresIronTool.contains(blockMapping.getJavaBlockId());
-    }
-
-    public boolean requiresDiamondTool(BlockMapping blockMapping) {
-        return requiresDiamondTool.contains(blockMapping.getJavaBlockId());
+        return false;
     }
 }

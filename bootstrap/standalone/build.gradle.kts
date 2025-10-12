@@ -1,7 +1,9 @@
 import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
 
-val terminalConsoleVersion = "1.2.0"
-val jlineVersion = "3.21.0"
+plugins {
+    application
+    id("geyser.platform-conventions")
+}
 
 dependencies {
     api(projects.core)
@@ -12,7 +14,6 @@ dependencies {
     }
 
     implementation(libs.bundles.jline)
-
     implementation(libs.bundles.log4j)
 }
 
@@ -38,4 +39,6 @@ tasks.named<JavaExec>("run") {
     dir.mkdirs()
     jvmArgs("-Dio.netty.leakDetection.level=PARANOID")
     workingDir = dir
+
+    standardInput = System.`in`
 }

@@ -26,31 +26,38 @@
 package org.geysermc.geyser.level.physics;
 
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.geysermc.geyser.GeyserImpl;
+
+import java.util.function.ToIntFunction;
 
 public enum Direction {
-    DOWN(1, Vector3i.from(0, -1, 0), Axis.Y, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.DOWN),
-    UP(0, Vector3i.UNIT_Y, Axis.Y, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.UP),
-    NORTH(3, Vector3i.from(0, 0, -1), Axis.Z, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.NORTH),
-    SOUTH(2, Vector3i.UNIT_Z, Axis.Z, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.SOUTH),
-    WEST(5, Vector3i.from(-1, 0, 0), Axis.X, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.WEST),
-    EAST(4, Vector3i.UNIT_X, Axis.X, com.github.steveice10.mc.protocol.data.game.entity.object.Direction.EAST);
+    DOWN(1, Vector3i.from(0, -1, 0), Axis.Y, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.DOWN),
+    UP(0, Vector3i.UNIT_Y, Axis.Y, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.UP),
+    NORTH(3, Vector3i.from(0, 0, -1), Axis.Z, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.NORTH),
+    SOUTH(2, Vector3i.UNIT_Z, Axis.Z, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.SOUTH),
+    WEST(5, Vector3i.from(-1, 0, 0), Axis.X, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.WEST),
+    EAST(4, Vector3i.UNIT_X, Axis.X, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.EAST);
 
     public static final Direction[] VALUES = values();
+    public static final Direction[] HORIZONTAL = new Direction[]{Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
 
     private final int reversedId;
     @Getter
     private final Vector3i unitVector;
     @Getter
     private final Axis axis;
-    private final com.github.steveice10.mc.protocol.data.game.entity.object.Direction pistonValue;
+    @Getter
+    @Accessors(fluent = true)
+    private final org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction mcpl;
 
-    Direction(int reversedId, Vector3i unitVector, Axis axis, com.github.steveice10.mc.protocol.data.game.entity.object.Direction pistonValue) {
+    Direction(int reversedId, Vector3i unitVector, Axis axis, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction mcpl) {
         this.reversedId = reversedId;
         this.unitVector = unitVector;
         this.axis = axis;
-        this.pistonValue = pistonValue;
+        this.mcpl = mcpl;
     }
 
     public Direction reversed() {
@@ -65,12 +72,21 @@ public enum Direction {
         return axis == Axis.X || axis == Axis.Z;
     }
 
-    public static @NonNull Direction fromPistonValue(com.github.steveice10.mc.protocol.data.game.entity.object.Direction pistonValue) {
+    public static @NonNull Direction fromMCPL(org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction mcpl) {
         for (Direction direction : VALUES) {
-            if (direction.pistonValue == pistonValue) {
+            if (direction.mcpl == mcpl) {
                 return direction;
             }
         }
         throw new IllegalStateException();
+    }
+
+    public static <T> Direction getUntrusted(T source, ToIntFunction<T> idExtractor) {
+        int id = idExtractor.applyAsInt(source);
+        if (id < 0 || id >= VALUES.length) {
+            GeyserImpl.getInstance().getLogger().warning("Received invalid direction from " + source + " (ID was " + id + ")");
+            return DOWN; // Default to DOWN when receiving an invalid ID
+        }
+        return Direction.VALUES[id];
     }
 }

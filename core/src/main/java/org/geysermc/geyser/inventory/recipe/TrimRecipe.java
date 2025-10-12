@@ -25,24 +25,31 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.text.ChatColor;
+import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ProvidesTrimMaterial;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Hardcoded recipe information about armor trims until further improvements can be made. This information was scraped
- * from BDS 1.19.81 with a world with the next_major_update and sniffer features enabled, using ProxyPass.
+ * Stores information on trim materials and patterns, including smithing armor hacks for pre-1.20.
  */
-public class TrimRecipe {
-
-    // For TrimDataPacket, which BDS sends just before the CraftingDataPacket
-    public static final List<TrimPattern> PATTERNS;
-    public static final List<TrimMaterial> MATERIALS;
+public final class TrimRecipe {
+    private static final Map<ProvidesTrimMaterial, Item> trimMaterialProviders = new HashMap<>();
 
     // For CraftingDataPacket
     public static final String ID = "minecraft:smithing_armor_trim";
@@ -50,42 +57,63 @@ public class TrimRecipe {
     public static final ItemDescriptorWithCount ADDITION = tagDescriptor("minecraft:trim_materials");
     public static final ItemDescriptorWithCount TEMPLATE = tagDescriptor("minecraft:trim_templates");
 
-    static {
-        List<TrimPattern> patterns = new ArrayList<>(16);
-        patterns.add(new TrimPattern("minecraft:ward_armor_trim_smithing_template", "ward"));
-        patterns.add(new TrimPattern("minecraft:sentry_armor_trim_smithing_template", "sentry"));
-        patterns.add(new TrimPattern("minecraft:snout_armor_trim_smithing_template", "snout"));
-        patterns.add(new TrimPattern("minecraft:dune_armor_trim_smithing_template", "dune"));
-        patterns.add(new TrimPattern("minecraft:spire_armor_trim_smithing_template", "spire"));
-        patterns.add(new TrimPattern("minecraft:tide_armor_trim_smithing_template", "tide"));
-        patterns.add(new TrimPattern("minecraft:wild_armor_trim_smithing_template", "wild"));
-        patterns.add(new TrimPattern("minecraft:rib_armor_trim_smithing_template", "rib"));
-        patterns.add(new TrimPattern("minecraft:coast_armor_trim_smithing_template", "coast"));
-        patterns.add(new TrimPattern("minecraft:shaper_armor_trim_smithing_template", "shaper"));
-        patterns.add(new TrimPattern("minecraft:eye_armor_trim_smithing_template", "eye"));
-        patterns.add(new TrimPattern("minecraft:vex_armor_trim_smithing_template", "vex"));
-        patterns.add(new TrimPattern("minecraft:silence_armor_trim_smithing_template", "silence"));
-        patterns.add(new TrimPattern("minecraft:wayfinder_armor_trim_smithing_template", "wayfinder"));
-        patterns.add(new TrimPattern("minecraft:raiser_armor_trim_smithing_template", "raiser"));
-        patterns.add(new TrimPattern("minecraft:host_armor_trim_smithing_template", "host"));
-        PATTERNS = Collections.unmodifiableList(patterns);
+    public static TrimMaterial readTrimMaterial(RegistryEntryContext context) {
+        String key = context.id().asMinimalString();
 
-        List<TrimMaterial> materials = new ArrayList<>(10);
-        materials.add(new TrimMaterial("quartz", "§h", "minecraft:quartz"));
-        materials.add(new TrimMaterial("iron", "§i", "minecraft:iron_ingot"));
-        materials.add(new TrimMaterial("netherite", "§j", "minecraft:netherite_ingot"));
-        materials.add(new TrimMaterial("redstone", "§m", "minecraft:redstone"));
-        materials.add(new TrimMaterial("copper", "§n", "minecraft:copper_ingot"));
-        materials.add(new TrimMaterial("gold", "§p", "minecraft:gold_ingot"));
-        materials.add(new TrimMaterial("emerald", "§q", "minecraft:emerald"));
-        materials.add(new TrimMaterial("diamond", "§s", "minecraft:diamond"));
-        materials.add(new TrimMaterial("lapis", "§t", "minecraft:lapis_lazuli"));
-        materials.add(new TrimMaterial("amethyst", "§u", "minecraft:amethyst_shard"));
-        MATERIALS = Collections.unmodifiableList(materials);
+        // Color is used when hovering over the item
+        // Find the nearest legacy color from the style Java gives us to work with
+        Component description = MessageTranslator.componentFromNbtTag(context.data().get("description"));
+        String legacy = MessageTranslator.convertMessage(Component.space().style(description.style()));
+        String color = legacy.isBlank() ? ChatColor.WHITE : legacy.substring(2).trim();
+
+        int networkId = context.getNetworkId(context.id());
+        ItemMapping trimItem = null;
+        for (ProvidesTrimMaterial provider : materialProviders().keySet()) {
+            Holder<ArmorTrim.TrimMaterial> materialHolder = provider.materialHolder();
+            if (context.id().equals(provider.materialLocation()) || (materialHolder != null && materialHolder.isId() && materialHolder.id() == networkId)) {
+                trimItem = context.session().getItemMappings().getMapping(materialProviders().get(provider));
+                break;
+            }
+        }
+
+        if (trimItem == null) {
+            // This happens for custom trim materials, not sure what to do here.
+            GeyserImpl.getInstance().getLogger().debug("Unable to found trim material item for material " + context.id());
+            trimItem = ItemMapping.AIR;
+        }
+
+        // Just pick out the resulting color code, without RESET in front.
+        return new TrimMaterial(key, color, trimItem.getBedrockIdentifier());
+    }
+
+    public static TrimPattern readTrimPattern(RegistryEntryContext context) {
+        String key = context.id().asMinimalString();
+
+        // Not ideal, Java edition also gives us a translatable description... Bedrock wants the template item
+        String identifier = context.id().asString() + "_armor_trim_smithing_template";
+        ItemMapping itemMapping = context.session().getItemMappings().getMapping(identifier);
+        if (itemMapping == null) {
+            // This should never happen so not sure what to do here.
+            itemMapping = ItemMapping.AIR;
+        }
+        return new TrimPattern(itemMapping.getBedrockIdentifier(), key);
     }
 
     private TrimRecipe() {
         //no-op
+    }
+
+    // Lazy initialise
+    private static Map<ProvidesTrimMaterial, Item> materialProviders() {
+        if (trimMaterialProviders.isEmpty()) {
+            for (Item item : Registries.JAVA_ITEMS.get()) {
+                ProvidesTrimMaterial provider = item.getComponent(DataComponentTypes.PROVIDES_TRIM_MATERIAL);
+                if (provider != null) {
+                    trimMaterialProviders.put(provider, item);
+                }
+            }
+        }
+        return trimMaterialProviders;
     }
 
     private static ItemDescriptorWithCount tagDescriptor(String tag) {

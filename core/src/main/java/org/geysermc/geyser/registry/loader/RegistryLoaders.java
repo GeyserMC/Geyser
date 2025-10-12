@@ -25,8 +25,11 @@
 
 package org.geysermc.geyser.registry.loader;
 
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.registry.type.UtilMappings;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -39,9 +42,16 @@ public final class RegistryLoaders {
     public static final NbtRegistryLoader NBT = new NbtRegistryLoader();
 
     /**
+     * The {@link RegistryLoader} responsible for loading biome data.
+     */
+    public static final BiomeLoader BIOME_LOADER = new BiomeLoader();
+
+    /**
      * The {@link RegistryLoader} responsible for loading resource packs.
      */
     public static final ResourcePackLoader RESOURCE_PACKS = new ResourcePackLoader();
+
+    public static final UtilMappings.Loader<List<Key>> UTIL_MAPPINGS_KEYS = new UtilMappings.Loader<>();
 
     /**
      * Wraps the surrounding {@link Supplier} in a {@link RegistryLoader} which does

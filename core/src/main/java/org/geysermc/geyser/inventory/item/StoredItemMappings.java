@@ -40,32 +40,24 @@ import java.util.Map;
 @Getter
 @Accessors(fluent = true)
 public class StoredItemMappings {
-    private final ItemMapping bamboo;
-    private final ItemMapping banner;
     private final ItemMapping barrier;
     private final ItemMapping compass;
-    private final ItemMapping crossbow;
-    private final ItemMapping egg;
     private final ItemMapping glassBottle;
     private final ItemMapping milkBucket;
     private final ItemMapping powderSnowBucket;
-    private final ItemMapping shield;
+    private final ItemMapping totem;
     private final ItemMapping upgradeTemplate;
     private final ItemMapping wheat;
     private final ItemMapping writableBook;
     private final ItemMapping writtenBook;
 
     public StoredItemMappings(Map<Item, ItemMapping> itemMappings) {
-        this.bamboo = load(itemMappings, Items.BAMBOO);
-        this.banner = load(itemMappings, Items.WHITE_BANNER); // As of 1.17.10, all banners have the same Bedrock ID
         this.barrier = load(itemMappings, Items.BARRIER);
         this.compass = load(itemMappings, Items.COMPASS);
-        this.crossbow = load(itemMappings, Items.CROSSBOW);
-        this.egg = load(itemMappings, Items.EGG);
         this.glassBottle = load(itemMappings, Items.GLASS_BOTTLE);
         this.milkBucket = load(itemMappings, Items.MILK_BUCKET);
         this.powderSnowBucket = load(itemMappings, Items.POWDER_SNOW_BUCKET);
-        this.shield = load(itemMappings, Items.SHIELD);
+        this.totem = load(itemMappings, Items.TOTEM_OF_UNDYING);
         this.upgradeTemplate = load(itemMappings, Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE);
         this.wheat = load(itemMappings, Items.WHEAT);
         this.writableBook = load(itemMappings, Items.WRITABLE_BOOK);

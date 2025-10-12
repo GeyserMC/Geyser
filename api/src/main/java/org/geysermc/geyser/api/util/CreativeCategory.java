@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,11 +31,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  * Represents the creative menu categories or tabs.
  */
 public enum CreativeCategory {
-    COMMANDS("commands", 1),
-    CONSTRUCTION("construction", 2),
+    CONSTRUCTION("construction", 1),
+    NATURE("nature", 2),
     EQUIPMENT("equipment", 3),
     ITEMS("items", 4),
-    NATURE("nature", 5),
     NONE("none", 6);
 
     private final String internalName;

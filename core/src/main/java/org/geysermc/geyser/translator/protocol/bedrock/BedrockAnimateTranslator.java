@@ -25,13 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.level.ServerboundPaddleBoatPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 
 import java.util.concurrent.TimeUnit;
 
@@ -45,45 +44,43 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
             return;
         }
 
-        switch (packet.getAction()) {
-            case SWING_ARM -> {
-                session.armSwingPending();
-                // Delay so entity damage can be processed first
-                session.scheduleInEventLoop(() -> {
-                            if (session.getArmAnimationTicks() != 0) {
-                                // So, generally, a Java player can only do one *thing* at a time.
-                                // If a player right-clicks, for example, then there's probably only one action associated with
-                                // that right-click that will send a swing.
-                                // The only exception I can think of to this, *maybe*, is a player dropping items
-                                // Bedrock is a little funkier than this - it can send several arm animation packets in the
-                                // same tick, notably with high levels of haste applied.
-                                // Packet limiters do not like this and can crash the player.
-                                // If arm animation ticks is 0, then we just sent an arm swing packet this tick.
-                                // See https://github.com/GeyserMC/Geyser/issues/2875
-                                // This behavior was last touched on with ViaVersion 4.5.1 (with its packet limiter), Java 1.16.5,
-                                // and Bedrock 1.19.51.
-                                // Note for the future: we should probably largely ignore this packet and instead replicate
-                                // all actions on our end, and send swings where needed.
-                                session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
-                                session.activateArmAnimationTicking();
-                            }
-                        },
-                        25,
-                        TimeUnit.MILLISECONDS
-                );
+        if (packet.getAction() == AnimatePacket.Action.SWING_ARM) {
+
+            // If this is the case, we just hit the air. Poor air.
+            // Touch devices send PlayerAuthInputPackets with MISSED_SWING, and then the animate packet.
+            // This tends to happen 1-2 ticks after the auth input packet.
+            if (session.getTicks() - session.getLastAirHitTick() < 3) {
+                return;
             }
-            // These two might need to be flipped, but my recommendation is getting moving working first
-            case ROW_LEFT -> {
-                // Packet value is a float of how long one has been rowing, so we convert that into a boolean
-                session.setSteeringLeft(packet.getRowingTime() > 0.0);
-                ServerboundPaddleBoatPacket steerLeftPacket = new ServerboundPaddleBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
-                session.sendDownstreamGamePacket(steerLeftPacket);
-            }
-            case ROW_RIGHT -> {
-                session.setSteeringRight(packet.getRowingTime() > 0.0);
-                ServerboundPaddleBoatPacket steerRightPacket = new ServerboundPaddleBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
-                session.sendDownstreamGamePacket(steerRightPacket);
-            }
+
+            // Windows unfortunately sends the animate packet first, then the auth input packet with the MISSED_SWING.
+            // Often, these are sent in the same tick. In that case, the wait here ensures the auth input packet is processed first.
+            // Other times, there is a 1-tick-delay, which would result in the swing packet sent here. The BedrockAuthInputTranslator's
+            // MISSED_SWING case also accounts for that by checking if a swing was sent a tick ago here.
+
+            // We also send this right after entity attack to ensure packet order.
+            session.scheduleInEventLoop(() -> {
+                    if (session.getArmAnimationTicks() != 0 && (session.getTicks() - session.getLastAirHitTick() > 2)) {
+                        // So, generally, a Java player can only do one *thing* at a time.
+                        // If a player right-clicks, for example, then there's probably only one action associated with
+                        // that right-click that will send a swing.
+                        // The only exception I can think of to this, *maybe*, is a player dropping items
+                        // Bedrock is a little funkier than this - it can send several arm animation packets in the
+                        // same tick, notably with high levels of haste applied.
+                        // Packet limiters do not like this and can crash the player.
+                        // If arm animation ticks is 0, then we just sent an arm swing packet this tick.
+                        // See https://github.com/GeyserMC/Geyser/issues/2875
+                        // This behavior was last touched on with ViaVersion 4.5.1 (with its packet limiter), Java 1.16.5,
+                        // and Bedrock 1.19.51.
+                        // Note for the future: we should probably largely ignore this packet and instead replicate
+                        // all actions on our end, and send swings where needed. Can be done once we replicate Block and Item interactions fully.
+                        session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                        session.activateArmAnimationTicking();
+                    }
+                },
+                (long) (session.getMillisecondsPerTick() * 0.5),
+                TimeUnit.MILLISECONDS
+            );
         }
     }
 }

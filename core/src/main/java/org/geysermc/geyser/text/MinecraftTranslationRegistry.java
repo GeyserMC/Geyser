@@ -41,6 +41,7 @@ import java.util.regex.Pattern;
 public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<String> {
     private final Pattern stringReplacement = Pattern.compile("%s");
     private final Pattern positionalStringReplacement = Pattern.compile("%([0-9]+)\\$s");
+    private final Pattern escapeBraces = Pattern.compile("\\{+['{]+\\{+|\\{+");
 
     // Exists to maintain compatibility with Velocity's older Adventure version
     @Override
@@ -59,14 +60,26 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
             } else {
                 // The original translation will be translated
                 // Can be tested with 1.19.4: {"translate":"%s","with":[{"text":"weeeeeee"}]}
-                localeString = key;
+                return null;
             }
         }
 
-        // Replace the `%s` with numbered inserts `{0}`
-        Pattern p = stringReplacement;
+        // replace single quote instances which get lost in MessageFormat otherwise
+        localeString = localeString.replace("'", "''");
+
+        // Escape all left curly brackets with single quote - fixes https://github.com/GeyserMC/Geyser/issues/4662
+        Pattern p = escapeBraces;
         Matcher m = p.matcher(localeString);
         StringBuilder sb = new StringBuilder();
+        while (m.find()) {
+            m.appendReplacement(sb, "'" + m.group() + "'");
+        }
+        m.appendTail(sb);
+
+        // Replace the `%s` with numbered inserts `{0}`
+        p = stringReplacement;
+        m = p.matcher(sb.toString());
+        sb = new StringBuilder();
         int i = 0;
         while (m.find()) {
             m.appendReplacement(sb, "{" + (i++) + "}");
@@ -83,8 +96,7 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
         }
         m.appendTail(sb);
 
-        // replace single quote instances which get lost in MessageFormat otherwise
         // Locale shouldn't need to be specific - dates for example will not be handled
-        return new MessageFormat(sb.toString().replace("'", "''"), Locale.ROOT);
+        return new MessageFormat(sb.toString(), Locale.ROOT);
     }
 }

@@ -25,194 +25,197 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
-import com.github.steveice10.mc.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.ListTag;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.erosion.util.LecternUtils;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
-import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.LecternBlock;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBookContent;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 
-import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
-public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator {
+public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator<LecternContainer> {
 
     /**
      * Hack: Java opens a lectern first, and then follows it up with a ClientboundContainerSetContentPacket
      * to actually send the book's contents. We delay opening the inventory until the book was sent.
      */
-    private boolean initialized = false;
+    private boolean receivedBook = false;
 
     public LecternInventoryTranslator() {
-        super(1, "minecraft:lectern[facing=north,has_book=true,powered=true]", org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.LECTERN , ContainerInventoryUpdater.INSTANCE);
+        super(1, Blocks.LECTERN, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.LECTERN, ContainerInventoryUpdater.INSTANCE);
     }
 
     @Override
-    public boolean prepareInventory(GeyserSession session, Inventory inventory) {
-        super.prepareInventory(session, inventory);
-        if (((Container) inventory).isUsingRealBlock()) {
-            initialized = false; // We have to wait until we get the book to show to the client
+    public boolean prepareInventory(GeyserSession session, LecternContainer container) {
+        super.prepareInventory(session, container);
+        if (container.isBookInPlayerInventory()) {
+            // See JavaOpenBookTranslator; this isn't a lectern but a book in the player inventory
+            updateBook(session, container, container.getItem(0));
+            receivedBook = true;
         } else {
-            updateBook(session, inventory, inventory.getItem(0)); // See JavaOpenBookTranslator; placed here manually
-            initialized = true;
+            receivedBook = false; // We have to wait until we get the book
         }
         return true;
     }
 
     @Override
-    public void openInventory(GeyserSession session, Inventory inventory) {
+    public void openInventory(GeyserSession session, LecternContainer container) {
         // Hacky, but we're dealing with LECTERNS! It cannot not be hacky.
         // "initialized" indicates whether we've received the book from the Java server yet.
         // dropping lectern book is the fun workaround when we have to enter the gui to drop the book.
         // Since we leave it immediately... don't open it!
-        if (initialized && !session.isDroppingLecternBook()) {
-            super.openInventory(session, inventory);
+        if (receivedBook && !session.isDroppingLecternBook()) {
+            super.openInventory(session, container);
         }
     }
 
+    // Lecterns don't require a delay before opening.
     @Override
-    public void closeInventory(GeyserSession session, Inventory inventory) {
+    public boolean requiresOpeningDelay(GeyserSession session, LecternContainer container) {
+        return false;
+    }
+
+    @Override
+    public void closeInventory(GeyserSession session, LecternContainer container, boolean force) {
         // Of course, sending a simple ContainerClosePacket, or even breaking the block doesn't work to close a lectern.
         // Heck, the latter crashes the client xd
         // BDS just sends an empty base lectern tag... that kicks out the client. Fine. Let's do that!
-        LecternContainer lecternContainer = (LecternContainer) inventory;
-        Vector3i position = lecternContainer.isUsingRealBlock() ? session.getLastInteractionBlockPosition() : inventory.getHolderPosition();
+        Vector3i position = container.getHolderPosition();
         var baseLecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0);
         BlockEntityUtils.updateBlockEntity(session, baseLecternTag.build(), position);
 
-        super.closeInventory(session, inventory); // Removes the fake blocks if need be
+        // Closing lecterns isn't followed up by a ContainerClosePacket, so this wouldn't ever be reset.
+        session.setPendingOrCurrentBedrockInventoryId(-1);
 
+        super.closeInventory(session, container, force); // Removes the fake blocks if need be
         // Now: Restore the lectern, if it actually exists
-        if (lecternContainer.isUsingRealBlock()) {
-            GeyserImpl.getInstance().getWorldManager().sendLecternData(session, position.getX(), position.getY(), position.getZ());
+        if (container.isUsingRealBlock()) {
+            Runnable closeLecternRunnable = () -> {
+                boolean hasBook = session.getGeyser().getWorldManager().blockAt(session, position).getValue(Properties.HAS_BOOK, false);
+                NbtMap map = LecternBlock.getBaseLecternTag(position, hasBook);
+                BlockEntityUtils.updateBlockEntity(session, map, position);
+                // Bedrock will not follow up with a ContainerClosePacket that'd reset this.
+                session.setClosingInventory(false);
+                InventoryUtils.openPendingInventory(session);
+            };
+
+            if (force) {
+                // Without a delay, an inventory close request can *occasionally* be ignored as we're restoring the book too quickly
+                session.scheduleInEventLoop(closeLecternRunnable, 100, TimeUnit.MILLISECONDS);
+            } else {
+                closeLecternRunnable.run();
+            }
+        } else {
+            // Bedrock doesn't reply with a ContainerClosePacket for lecterns
+            session.setClosingInventory(false);
+            InventoryUtils.openPendingInventory(session);
         }
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSession session, LecternContainer container, int key, int value) {
         if (key == 0) { // Lectern page update
-            LecternContainer lecternContainer = (LecternContainer) inventory;
-            lecternContainer.setCurrentBedrockPage(value / 2);
-            lecternContainer.setBlockEntityTag(lecternContainer.getBlockEntityTag().toBuilder().putInt("page", lecternContainer.getCurrentBedrockPage()).build());
-            BlockEntityUtils.updateBlockEntity(session, lecternContainer.getBlockEntityTag(), lecternContainer.getPosition());
+            container.setCurrentBedrockPage(value / 2);
+            container.setBlockEntityTag(container.getBlockEntityTag().toBuilder().putInt("page", container.getCurrentBedrockPage()).build());
+            BlockEntityUtils.updateBlockEntity(session, container.getBlockEntityTag(), container.getHolderPosition());
         }
     }
 
     @Override
-    public void updateInventory(GeyserSession session, Inventory inventory) {
-        GeyserItemStack itemStack = inventory.getItem(0);
+    public void updateInventory(GeyserSession session, LecternContainer container) {
+        GeyserItemStack itemStack = container.getItem(0);
         if (!itemStack.isEmpty()) {
             boolean isDropping = session.isDroppingLecternBook();
-            updateBook(session, inventory, itemStack);
+            updateBook(session, container, itemStack);
 
-            if (!initialized && !isDropping) {
-                initialized = true;
-                openInventory(session, inventory);
+            if (!receivedBook && !isDropping) {
+                receivedBook = true;
+                openInventory(session, container);
             }
         }
     }
 
     @Override
-    public void updateSlot(GeyserSession session, Inventory inventory, int slot) {
-        // If we're not in a real lectern, the Java server thinks we are still in the player inventory.
-        if (((LecternContainer) inventory).isFakeLectern()) {
-            InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR.updateSlot(session, session.getPlayerInventory(), slot);
-            return;
-        }
-        super.updateSlot(session, inventory, slot);
+    public void updateSlot(GeyserSession session, LecternContainer container, int slot) {
+        super.updateSlot(session, container, slot);
         if (slot == 0) {
-            updateBook(session, inventory, inventory.getItem(0));
+            updateBook(session, container, container.getItem(0));
         }
+    }
+
+    @Override
+    public org.cloudburstmc.protocol.bedrock.data.inventory.@Nullable ContainerType closeContainerType(LecternContainer container) {
+        return null;
     }
 
     /**
      * Translate the data of the book in the lectern into a block entity tag.
      */
-    private void updateBook(GeyserSession session, Inventory inventory, GeyserItemStack book) {
-        LecternContainer lecternContainer = (LecternContainer) inventory;
+    private void updateBook(GeyserSession session, LecternContainer container, GeyserItemStack book) {
         if (session.isDroppingLecternBook()) {
-            // We have to enter the inventory GUI to eject the book
-            ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(inventory.getJavaId(), 3);
-            session.sendDownstreamGamePacket(packet);
-            session.setDroppingLecternBook(false);
-            InventoryUtils.closeInventory(session, inventory.getJavaId(), false);
-        } else if (lecternContainer.getBlockEntityTag() == null) {
-            CompoundTag tag = book.getNbt();
-            Vector3i position = lecternContainer.isUsingRealBlock() ? session.getLastInteractionBlockPosition() : inventory.getHolderPosition();
-
-            // If shouldExpectLecternHandled returns true, this is already handled for us
-            // shouldRefresh means that we should boot out the client on our side because their lectern GUI isn't updated yet
-            // TODO: yeet after 1.20.60 is minimum supported version
-            boolean shouldRefresh = !session.getGeyser().getWorldManager().shouldExpectLecternHandled(session)
-                    && !session.getLecternCache().contains(position)
-                    && !GameProtocol.is1_20_60orHigher(session.getUpstream().getProtocolVersion());
+            InventoryHolder<?> holder = session.getInventoryHolder();
+            if (holder != null && !container.isBookInPlayerInventory()) {
+                // We have to enter the inventory GUI to eject the book
+                ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(container.getJavaId(), 3);
+                session.sendDownstreamGamePacket(packet);
+                session.setDroppingLecternBook(false);
+                InventoryUtils.closeInventory(session, container.getJavaId(), false);
+            }
+        } else if (container.getBlockEntityTag() == null) {
+            Vector3i position = container.getHolderPosition();
 
             NbtMap blockEntityTag;
-            if (tag != null) {
-                int pagesSize = ((ListTag) tag.get("pages")).size();
+            if (book.hasNonBaseComponents()) {
+                int pages = 0;
+                WrittenBookContent writtenBookComponents = book.getComponent(DataComponentTypes.WRITTEN_BOOK_CONTENT);
+                if (writtenBookComponents != null) {
+                    pages = writtenBookComponents.getPages().size();
+                } else {
+                    WritableBookContent writableBookComponents = book.getComponent(DataComponentTypes.WRITABLE_BOOK_CONTENT);
+                    if (writableBookComponents != null) {
+                        pages = writableBookComponents.getPages().size();
+                    }
+                }
+
                 ItemData itemData = book.getItemData(session);
-                NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), pagesSize);
+                NbtMapBuilder lecternTag = LecternBlock.getBaseLecternTag(position, pages);
                 lecternTag.putCompound("book", NbtMap.builder()
                         .putByte("Count", (byte) itemData.getCount())
                         .putShort("Damage", (short) 0)
                         .putString("Name", "minecraft:written_book")
                         .putCompound("tag", itemData.getTag())
                         .build());
-                lecternTag.putInt("page", lecternContainer.getCurrentBedrockPage());
+                lecternTag.putInt("page", container.getCurrentBedrockPage());
                 blockEntityTag = lecternTag.build();
             } else {
                 // There is *a* book here, but... no NBT.
-                NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 1);
-                NbtMapBuilder bookTag = NbtMap.builder()
-                        .putByte("Count", (byte) 1)
-                        .putShort("Damage", (short) 0)
-                        .putString("Name", "minecraft:writable_book")
-                        .putCompound("tag", NbtMap.builder().putList("pages", NbtType.COMPOUND, Collections.singletonList(
-                                NbtMap.builder()
-                                        .putString("photoname", "")
-                                        .putString("text", "")
-                                        .build()
-                        )).build());
-
-                blockEntityTag = lecternTag.putCompound("book", bookTag.build()).build();
+                blockEntityTag = LecternBlock.getBaseLecternTag(position, true);
             }
 
-            // Even with serverside access to lecterns, we don't easily know which lectern this is, so we need to rebuild
-            // the block entity tag
-            lecternContainer.setBlockEntityTag(blockEntityTag);
-            lecternContainer.setPosition(position);
+            container.setBlockEntityTag(blockEntityTag);
 
             BlockEntityUtils.updateBlockEntity(session, blockEntityTag, position);
-
-            if (shouldRefresh) {
-                // the lectern cache doesn't always exist; only when we must refresh
-                session.getLecternCache().add(position);
-
-                // Close the window - we will reopen it once the client has this data synced
-                ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(lecternContainer.getJavaId());
-                session.sendDownstreamGamePacket(closeWindowPacket);
-                InventoryUtils.closeInventory(session, inventory.getJavaId(), false);
-            }
         }
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
-        return new LecternContainer(name, windowId, this.size + playerInventory.getSize(), containerType, playerInventory);
+    public LecternContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
+        return new LecternContainer(session, name, windowId, this.size, containerType);
     }
 }

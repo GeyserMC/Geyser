@@ -25,25 +25,37 @@
 
 package org.geysermc.geyser.entity.type.living.animal.horse;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.cloudburstmc.math.vector.Vector2f;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.vehicle.CamelVehicleComponent;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.vehicle.VehicleComponent;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.LongEntityMetadata;
 
 import java.util.UUID;
 
-public class CamelEntity extends AbstractHorseEntity {
-
+public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     public static final float SITTING_HEIGHT_DIFFERENCE = 1.43F;
+
+    private final CamelVehicleComponent vehicleComponent = new CamelVehicleComponent(this);
 
     public CamelEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -56,8 +68,6 @@ public class CamelEntity extends AbstractHorseEntity {
 
     public void setHorseFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
-        boolean saddled = (xd & 0x04) == 0x04;
-        setFlag(EntityFlag.SADDLED, saddled);
         setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
         setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
 
@@ -86,12 +96,12 @@ public class CamelEntity extends AbstractHorseEntity {
         }
 
         // Shows the dash meter
-        setFlag(EntityFlag.CAN_DASH, saddled);
+        // setFlag(EntityFlag.CAN_DASH, saddled);
     }
 
     @Override
-    public boolean canEat(Item item) {
-        return item == Items.CACTUS;
+    protected @Nullable Tag<Item> getFoodTag() {
+        return ItemTag.CAMEL_FOOD;
     }
 
     @Override
@@ -101,15 +111,69 @@ public class CamelEntity extends AbstractHorseEntity {
     }
 
     @Override
-    protected void setDimensions(Pose pose) {
+    protected void setDimensionsFromPose(Pose pose) {
         if (pose == Pose.SITTING) {
             setBoundingBoxHeight(definition.height() - SITTING_HEIGHT_DIFFERENCE);
             setBoundingBoxWidth(definition.width());
         } else {
-            super.setDimensions(pose);
+            super.setDimensionsFromPose(pose);
         }
     }
 
     public void setDashing(BooleanEntityMetadata entityMetadata) {
+        // Java sends true to show dash animation and start the dash cooldown,
+        // false ends the dash animation, not the cooldown.
+        // Bedrock shows dash animation if HAS_DASH_COOLDOWN is set and the camel is above ground
+        if (entityMetadata.getPrimitiveValue()) {
+            setFlag(EntityFlag.HAS_DASH_COOLDOWN, true);
+            vehicleComponent.startDashCooldown();
+        } else if (!isClientControlled()) { // Don't remove dash cooldown prematurely if client is controlling
+            setFlag(EntityFlag.HAS_DASH_COOLDOWN, false);
+        }
+    }
+
+    public void setLastPoseTick(LongEntityMetadata entityMetadata) {
+        // Tick is based on world time. If negative, the camel is sitting.
+        // Must be compared to world time to know if the camel is fully standing/sitting or transitioning.
+        vehicleComponent.setLastPoseTick(entityMetadata.getPrimitiveValue());
+    }
+
+    @Override
+    protected AttributeData calculateAttribute(Attribute javaAttribute, GeyserAttributeType type) {
+        AttributeData attributeData = super.calculateAttribute(javaAttribute, type);
+        if (javaAttribute.getType() == AttributeType.Builtin.JUMP_STRENGTH) {
+            vehicleComponent.setHorseJumpStrength(attributeData.getValue());
+        }
+        return attributeData;
+    }
+
+    @Override
+    public VehicleComponent<?> getVehicleComponent() {
+        return vehicleComponent;
+    }
+
+    @Override
+    public Vector3f getRiddenInput(Vector2f input) {
+        input = input.mul(0.5f, input.getY() < 0 ? 0.25f : 1.0f);
+        return Vector3f.from(input.getX(), 0.0, input.getY());
+    }
+
+    @Override
+    public boolean isClientControlled() {
+        return getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.get(0) == session.getPlayerEntity();
+    }
+
+    @Override
+    public float getVehicleSpeed() {
+        float moveSpeed = vehicleComponent.getMoveSpeed();
+        if (!getFlag(EntityFlag.HAS_DASH_COOLDOWN) && session.getPlayerEntity().getFlag(EntityFlag.SPRINTING)) {
+            return moveSpeed + 0.1f;
+        }
+        return moveSpeed;
+    }
+
+    @Override
+    public boolean canClimb() {
+        return false;
     }
 }

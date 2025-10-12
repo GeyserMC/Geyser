@@ -34,6 +34,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundPlayerLoadedPacket;
 
 @Translator(packet = SetLocalPlayerAsInitializedPacket.class)
 public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslator<SetLocalPlayerAsInitializedPacket> {
@@ -46,10 +47,10 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
                 if (session.remoteServer().authType() == AuthType.ONLINE) {
                     if (!session.isLoggedIn()) {
                         if (session.getGeyser().getConfig().getSavedUserLogins().contains(session.bedrockUsername())) {
-                            if (session.getGeyser().refreshTokenFor(session.bedrockUsername()) == null) {
+                            if (session.getGeyser().authChainFor(session.bedrockUsername()) == null) {
                                 LoginEncryptionUtils.buildAndShowConsentWindow(session);
                             } else {
-                                // If the refresh token is not null and we're here, then the refresh token expired
+                                // If the auth chain is not null and we're here, then it expired
                                 // and the expiration form has been cached
                                 session.getFormCache().resendAllForms();
                             }
@@ -64,14 +65,15 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
                     session.getEntityCache().updateBossBars();
 
                     // Double sigh - https://github.com/GeyserMC/Geyser/issues/2677 - as of Bedrock 1.18
-                    if (session.getOpenInventory() != null && session.getOpenInventory().isPending()) {
-                        InventoryUtils.openInventory(session, session.getOpenInventory());
+                    if (session.getInventoryHolder() != null) {
+                        InventoryUtils.openPendingInventory(session);
                     }
 
                     // What am I to expect - as of Bedrock 1.18
                     session.getFormCache().resendAllForms();
 
                     GeyserImpl.getInstance().eventBus().fire(new SessionJoinEvent(session));
+                    session.sendDownstreamGamePacket(ServerboundPlayerLoadedPacket.INSTANCE);
                 }
             }
         }

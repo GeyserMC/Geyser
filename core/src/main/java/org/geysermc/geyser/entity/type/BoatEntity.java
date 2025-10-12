@@ -25,24 +25,24 @@
 
 package org.geysermc.geyser.entity.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
+import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
-import lombok.Getter;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundPaddleBoatPacket;
 
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
-public class BoatEntity extends Entity {
+public class BoatEntity extends Entity implements Leashable, Tickable {
 
     /**
      * Required when IS_BUOYANT is sent in order for boats to work in the water. <br>
@@ -58,23 +58,36 @@ public class BoatEntity extends Entity {
     private float paddleTimeLeft;
     private boolean isPaddlingRight;
     private float paddleTimeRight;
+    private boolean doTick;
 
     /**
      * Saved for using the "pick" functionality on a boat.
      */
     @Getter
-    private int variant;
+    protected final BoatVariant variant;
+
+    private long leashHolderBedrockId = -1;
 
     // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
     private final float ROWING_SPEED = 0.1f;
 
-    public BoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public BoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, BoatVariant variant) {
         // Initial rotation is incorrect
         super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw + 90, 0, yaw + 90);
+        this.variant = variant;
+
+        dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
 
         // Required to be able to move on land 1.16.200+ or apply gravity not in the water 1.16.100+
         dirtyMetadata.put(EntityDataTypes.IS_BUOYANT, true);
-        dirtyMetadata.put(EntityDataTypes.BUOYANCY_DATA, BUOYANCY_DATA);
+        dirtyMetadata.put(EntityDataTypes.BUOYANCY_DATA, BUOYANCY_DATA);;
+    }
+
+    @Override
+    protected void initializeMetadata() {
+        super.initializeMetadata();
+        // Without this flag you cant stand on boats
+        setFlag(EntityFlag.COLLIDABLE, true);
     }
 
     @Override
@@ -122,51 +135,34 @@ public class BoatEntity extends Entity {
         moveRelative(0, 0, 0, yaw + 90, 0, 0, isOnGround);
     }
 
-    public void setVariant(IntEntityMetadata entityMetadata) {
-        variant = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityDataTypes.VARIANT, switch (variant) {
-            case 6, 7, 8 -> variant - 1; // dark_oak, mangrove, bamboo
-            case 5 -> 8; // cherry
-            default -> variant;
-        });
-    }
-
     public void setPaddlingLeft(BooleanEntityMetadata entityMetadata) {
         isPaddlingLeft = entityMetadata.getPrimitiveValue();
-        if (isPaddlingLeft) {
-            // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
-            // This is an asynchronous method that emulates Bedrock rowing until "false" is sent.
-            paddleTimeLeft = 0f;
-            if (!this.passengers.isEmpty()) {
-                // Get the entity by the first stored passenger and convey motion in this manner
-                Entity entity = this.passengers.get(0);
-                if (entity != null) {
-                    updateLeftPaddle(session, entity);
-                }
-            }
-        } else {
-            // Indicate that the row position should be reset
+        if (!isPaddlingLeft) {
+            paddleTimeLeft = 0.0f;
             dirtyMetadata.put(EntityDataTypes.ROW_TIME_LEFT, 0.0f);
         }
     }
 
     public void setPaddlingRight(BooleanEntityMetadata entityMetadata) {
         isPaddlingRight = entityMetadata.getPrimitiveValue();
-        if (isPaddlingRight) {
-            paddleTimeRight = 0f;
-            if (!this.passengers.isEmpty()) {
-                Entity entity = this.passengers.get(0);
-                if (entity != null) {
-                    updateRightPaddle(session, entity);
-                }
-            }
-        } else {
+        if (!isPaddlingRight) {
+            paddleTimeRight = 0.0f;
             dirtyMetadata.put(EntityDataTypes.ROW_TIME_RIGHT, 0.0f);
         }
     }
 
     @Override
+    public void setLeashHolderBedrockId(long bedrockId) {
+        this.leashHolderBedrockId = bedrockId;
+        dirtyMetadata.put(EntityDataTypes.LEASH_HOLDER, bedrockId);
+    }
+
+    @Override
     protected InteractiveTag testInteraction(Hand hand) {
+        InteractiveTag tag = super.testInteraction(hand);
+        if (tag != InteractiveTag.NONE) {
+            return tag;
+        }
         if (session.isSneaking()) {
             return InteractiveTag.NONE;
         } else if (passengers.size() < 2) {
@@ -178,6 +174,10 @@ public class BoatEntity extends Entity {
 
     @Override
     public InteractionResult interact(Hand hand) {
+        InteractionResult result = super.interact(hand);
+        if (result != InteractionResult.PASS) {
+            return result;
+        }
         if (session.isSneaking()) {
             return InteractionResult.PASS;
         } else {
@@ -186,30 +186,38 @@ public class BoatEntity extends Entity {
         }
     }
 
-    private void updateLeftPaddle(GeyserSession session, Entity rower) {
+    @Override
+    public void tick() {
+        // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
+        if (session.getPlayerEntity().getVehicle() == this) {
+            // For packet timing accuracy, we'll send the packets here, as that's what Java Edition 1.21.3 does.
+            ServerboundPaddleBoatPacket steerPacket = new ServerboundPaddleBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
+            session.sendDownstreamGamePacket(steerPacket);
+            return;
+        }
+        doTick = !doTick; // Run every other tick
+        if (!doTick || passengers.isEmpty()) {
+            return;
+        }
+
+        Entity rower = passengers.get(0);
+        if (rower == null) {
+            return;
+        }
+
         if (isPaddlingLeft) {
             paddleTimeLeft += ROWING_SPEED;
-            sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_LEFT, paddleTimeLeft);
-
-            session.scheduleInEventLoop(() ->
-                    updateLeftPaddle(session, rower),
-                    100,
-                    TimeUnit.MILLISECONDS
-            );
+            dirtyMetadata.put(EntityDataTypes.ROW_TIME_LEFT, paddleTimeLeft);
+        }
+        if (isPaddlingRight) {
+            paddleTimeRight += ROWING_SPEED;
+            dirtyMetadata.put(EntityDataTypes.ROW_TIME_RIGHT, paddleTimeRight);
         }
     }
 
-    private void updateRightPaddle(GeyserSession session, Entity rower) {
-        if (isPaddlingRight) {
-            paddleTimeRight += ROWING_SPEED;
-            sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_RIGHT, paddleTimeRight);
-
-            session.scheduleInEventLoop(() ->
-                            updateRightPaddle(session, rower),
-                    100,
-                    TimeUnit.MILLISECONDS
-            );
-        }
+    @Override
+    public long leashHolderBedrockId() {
+        return leashHolderBedrockId;
     }
 
     private void sendAnimationPacket(GeyserSession session, Entity rower, AnimatePacket.Action action, float rowTime) {
@@ -218,5 +226,23 @@ public class BoatEntity extends Entity {
         packet.setAction(action);
         packet.setRowingTime(rowTime);
         session.sendUpstreamPacket(packet);
+    }
+
+    /**
+     * Ordered by Bedrock ordinal
+     */
+    public enum BoatVariant {
+        OAK,
+        SPRUCE,
+        BIRCH,
+        JUNGLE,
+        ACACIA,
+        DARK_OAK,
+        MANGROVE,
+        BAMBOO,
+        CHERRY,
+        PALE_OAK;
+
+        BoatVariant() {}
     }
 }

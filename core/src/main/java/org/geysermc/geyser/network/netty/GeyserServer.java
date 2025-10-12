@@ -25,20 +25,15 @@
 
 package org.geysermc.geyser.network.netty;
 
-import com.github.steveice10.packetlib.helper.TransportHelper;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollDatagramChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.kqueue.KQueue;
-import io.netty.channel.kqueue.KQueueDatagramChannel;
-import io.netty.channel.kqueue.KQueueEventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.channel.uring.IoUring;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import net.jodah.expiringmap.ExpirationPolicy;
@@ -46,8 +41,10 @@ import net.jodah.expiringmap.ExpiringMap;
 import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandler;
+import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerRateLimiter;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.connection.ConnectionRequestEvent;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.event.type.GeyserBedrockPingEventImpl;
@@ -55,6 +52,7 @@ import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.GeyserServerInitializer;
 import org.geysermc.geyser.network.netty.handler.RakConnectionRequestHandler;
+import org.geysermc.geyser.network.netty.handler.RakGeyserRateLimiter;
 import org.geysermc.geyser.network.netty.handler.RakPingHandler;
 import org.geysermc.geyser.network.netty.proxy.ProxyServerHandler;
 import org.geysermc.geyser.ping.GeyserPingInfo;
@@ -62,14 +60,17 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.network.helper.TransportHelper;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.IntFunction;
 import java.util.function.Supplier;
+
+import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_GLOBAL_PACKET_LIMIT;
+import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_PACKET_LIMIT;
 
 public final class GeyserServer {
     private static final boolean PRINT_DEBUG_PINGS = Boolean.parseBoolean(System.getProperty("Geyser.PrintPingsInDebugMode", "true"));
@@ -77,14 +78,16 @@ public final class GeyserServer {
     /*
     The following constants are all used to ensure the ping does not reach a length where it is unparsable by the Bedrock client
      */
-    private static final int MINECRAFT_VERSION_BYTES_LENGTH = GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion().getBytes(StandardCharsets.UTF_8).length;
+    private static final String PING_VERSION = GameProtocol.DEFAULT_BEDROCK_VERSION;
+    private static final int PING_VERSION_BYTES_LENGTH = PING_VERSION.getBytes(StandardCharsets.UTF_8).length;
     private static final int BRAND_BYTES_LENGTH = GeyserImpl.NAME.getBytes(StandardCharsets.UTF_8).length;
     /**
-     * The MOTD, sub-MOTD and Minecraft version ({@link #MINECRAFT_VERSION_BYTES_LENGTH}) combined cannot reach this length.
+     * The MOTD, sub-MOTD and Minecraft version ({@link #PING_VERSION_BYTES_LENGTH}) combined cannot reach this length.
      */
     private static final int MAGIC_RAKNET_LENGTH = 338;
 
-    private static final Transport TRANSPORT = compatibleTransport();
+    // Let MCPL determine the transport type -> less code duplication and risk of ending up with 2 different types
+    private static final TransportHelper.TransportType TRANSPORT = TransportHelper.TRANSPORT_TYPE;
 
     /**
      * See {@link EventLoopGroup#shutdownGracefully(long, long, TimeUnit)}
@@ -101,9 +104,13 @@ public final class GeyserServer {
 
     @Getter
     private final ExpiringMap<InetSocketAddress, InetSocketAddress> proxiedAddresses;
-    private final int listenCount;
+    private int listenCount;
 
     private ChannelFuture[] bootstrapFutures;
+
+    // Keep track of connection attempts for dump info
+    @Getter
+    private int connectionAttempts = 0;
 
     /**
      * The port to broadcast in the pong. This can be different from the port the server is bound to, e.g. due to port forwarding.
@@ -112,14 +119,17 @@ public final class GeyserServer {
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
-        this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 2) : 1;
+        this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 1) : 1;
         GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
-        this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount);
-        this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
+        this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount, new DefaultThreadFactory("GeyserServer", true));
+        this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount, new DefaultThreadFactory("GeyserServerChild", true));
 
         this.bootstrap = this.createBootstrap();
-        // setup SO_REUSEPORT if exists
-        Bootstraps.setupBootstrap(this.bootstrap);
+        // setup SO_REUSEPORT if exists - or, if the option does not actually exist, reset listen count
+        // otherwise, we try to bind multiple times which wont work if so_reuseport is not valid
+        if (!Bootstraps.setupBootstrap(this.bootstrap)) {
+            this.listenCount = 1;
+        }
 
         if (this.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
             this.proxiedAddresses = ExpiringMap.builder()
@@ -129,11 +139,6 @@ public final class GeyserServer {
             this.proxiedAddresses = null;
         }
 
-        // It's set to 0 only if no system property or manual config value was set
-        if (geyser.getConfig().getBedrock().broadcastPort() == 0) {
-            geyser.getConfig().getBedrock().setBroadcastPort(geyser.getConfig().getBedrock().port());
-        }
-
         this.broadcastPort = geyser.getConfig().getBedrock().broadcastPort();
     }
 
@@ -141,22 +146,33 @@ public final class GeyserServer {
         bootstrapFutures = new ChannelFuture[listenCount];
         for (int i = 0; i < listenCount; i++) {
             ChannelFuture future = bootstrap.bind(address);
-            addHandlers(future);
+            modifyHandlers(future);
             bootstrapFutures[i] = future;
         }
 
         return Bootstraps.allOf(bootstrapFutures);
     }
 
-    private void addHandlers(ChannelFuture future) {
+    private void modifyHandlers(ChannelFuture future) {
         Channel channel = future.channel();
         // Add our ping handler
         channel.pipeline()
                 .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
                 .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
+
         // Add proxy handler
-        if (this.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
+        boolean isProxyProtocol = this.geyser.getConfig().getBedrock().isEnableProxyProtocol();
+        if (isProxyProtocol) {
             channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
+        }
+
+        boolean isWhitelistedProxyProtocol = isProxyProtocol && !this.geyser.getConfig().getBedrock().getProxyProtocolWhitelistedIPs().isEmpty();
+        if (Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false")) || isWhitelistedProxyProtocol) {
+            // We would already block any non-whitelisted IP addresses in onConnectionRequest so we can remove the rate limiter
+            channel.pipeline().remove(RakServerRateLimiter.NAME);
+        } else {
+            // Use our own rate limiter to allow multiple players from the same IP
+            channel.pipeline().replace(RakServerRateLimiter.NAME, RakGeyserRateLimiter.NAME, new RakGeyserRateLimiter(channel));
         }
     }
 
@@ -182,16 +198,18 @@ public final class GeyserServer {
         }
     }
 
+    @SuppressWarnings("Convert2MethodRef")
     private ServerBootstrap createBootstrap() {
         if (this.geyser.getConfig().isDebugMode()) {
-            this.geyser.getLogger().debug("EventLoop type: " + TRANSPORT.datagramChannel());
-            if (TRANSPORT.datagramChannel() == NioDatagramChannel.class) {
+            this.geyser.getLogger().debug("Transport type: " + TRANSPORT.method().name());
+            if (TRANSPORT.datagramChannelClass() == NioDatagramChannel.class) {
                 if (System.getProperties().contains("disableNativeEventLoop")) {
                     this.geyser.getLogger().debug("EventLoop type is NIO because native event loops are disabled.");
                 } else {
                     // Use lambda here, not method reference, or else NoClassDefFoundError for Epoll/KQueue will not be caught
                     this.geyser.getLogger().debug("Reason for no Epoll: " + throwableOrCaught(() -> Epoll.unavailabilityCause()));
                     this.geyser.getLogger().debug("Reason for no KQueue: " + throwableOrCaught(() -> KQueue.unavailabilityCause()));
+                    this.geyser.getLogger().debug("Reason for no IoUring: " + throwableOrCaught(() -> IoUring.unavailabilityCause()));
                 }
             }
         }
@@ -199,11 +217,24 @@ public final class GeyserServer {
         GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser);
         playerGroup = serverInitializer.getEventLoopGroup();
         this.geyser.getLogger().debug("Setting MTU to " + this.geyser.getConfig().getMtu());
+
+        int rakPacketLimit = positivePropOrDefault("Geyser.RakPacketLimit", DEFAULT_PACKET_LIMIT);
+        this.geyser.getLogger().debug("Setting RakNet packet limit to " + rakPacketLimit);
+
+        int rakGlobalPacketLimit = positivePropOrDefault("Geyser.RakGlobalPacketLimit", DEFAULT_GLOBAL_PACKET_LIMIT);
+        this.geyser.getLogger().debug("Setting RakNet global packet limit to " + rakGlobalPacketLimit);
+
+        boolean rakSendCookie = Boolean.parseBoolean(System.getProperty("Geyser.RakSendCookie", "true"));
+        this.geyser.getLogger().debug("Setting RakNet send cookie to " + rakSendCookie);
+
         return new ServerBootstrap()
-                .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannel()))
+                .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannelClass()))
                 .group(group, childGroup)
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
                 .option(RakChannelOption.RAK_MAX_MTU, this.geyser.getConfig().getMtu())
+                .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
+                .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
+                .option(RakChannelOption.RAK_SEND_COOKIE, rakSendCookie)
                 .childHandler(serverInitializer);
     }
 
@@ -219,6 +250,7 @@ public final class GeyserServer {
             }
 
             if (!isWhitelistedIP) {
+                connectionAttempts++;
                 return false;
             }
         }
@@ -233,7 +265,20 @@ public final class GeyserServer {
         } else {
             ip = "<IP address withheld>";
         }
-        geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
+
+        ConnectionRequestEvent requestEvent = new ConnectionRequestEvent(
+            inetSocketAddress, 
+            this.proxiedAddresses != null ? this.proxiedAddresses.get(inetSocketAddress) : null
+        );
+        geyser.eventBus().fire(requestEvent);
+        if (requestEvent.isCancelled()) {
+            geyser.getLogger().debug("Connection request from " + ip + " was cancelled using the API!");
+            connectionAttempts++;
+            return false;
+        }
+
+        geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
+        connectionAttempts++;
         return true;
     }
 
@@ -266,8 +311,8 @@ public final class GeyserServer {
                 .edition("MCPE")
                 .gameType("Survival") // Can only be Survival or Creative as of 1.16.210.59
                 .nintendoLimited(false)
-                .protocolVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
-                .version(GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion()) // Required to not be empty as of 1.16.210.59. Can only contain . and numbers.
+                .protocolVersion(GameProtocol.DEFAULT_BEDROCK_PROTOCOL)
+                .version(PING_VERSION)
                 .ipv4Port(this.broadcastPort)
                 .ipv6Port(this.broadcastPort)
                 .serverId(channel.config().getOption(RakChannelOption.RAK_GUID));
@@ -318,15 +363,15 @@ public final class GeyserServer {
         // We don't know why, though
         byte[] motdArray = pong.motd().getBytes(StandardCharsets.UTF_8);
         int subMotdLength = pong.subMotd().getBytes(StandardCharsets.UTF_8).length;
-        if (motdArray.length + subMotdLength > (MAGIC_RAKNET_LENGTH - MINECRAFT_VERSION_BYTES_LENGTH)) {
+        if (motdArray.length + subMotdLength > (MAGIC_RAKNET_LENGTH - PING_VERSION_BYTES_LENGTH)) {
             // Shorten the sub-MOTD first since that only appears locally
             if (subMotdLength > BRAND_BYTES_LENGTH) {
                 pong.subMotd(GeyserImpl.NAME);
                 subMotdLength = BRAND_BYTES_LENGTH;
             }
-            if (motdArray.length > (MAGIC_RAKNET_LENGTH - MINECRAFT_VERSION_BYTES_LENGTH - subMotdLength)) {
+            if (motdArray.length > (MAGIC_RAKNET_LENGTH - PING_VERSION_BYTES_LENGTH - subMotdLength)) {
                 // If the top MOTD is still too long, we chop it down
-                byte[] newMotdArray = new byte[MAGIC_RAKNET_LENGTH - MINECRAFT_VERSION_BYTES_LENGTH - subMotdLength];
+                byte[] newMotdArray = new byte[MAGIC_RAKNET_LENGTH - PING_VERSION_BYTES_LENGTH - subMotdLength];
                 System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
                 pong.motd(new String(newMotdArray, StandardCharsets.UTF_8));
             }
@@ -352,23 +397,24 @@ public final class GeyserServer {
         }
     }
 
-    private static Transport compatibleTransport() {
-        TransportHelper.TransportMethod transportMethod = TransportHelper.determineTransportMethod();
-        if (transportMethod == TransportHelper.TransportMethod.EPOLL) {
-            return new Transport(EpollDatagramChannel.class, EpollEventLoopGroup::new);
+    private static int positivePropOrDefault(String property, int defaultValue) {
+        String value = System.getProperty(property);
+        try {
+            int parsed = value != null ? Integer.parseInt(value) : defaultValue;
+
+            if (parsed < 1) {
+                GeyserImpl.getInstance().getLogger().warning(
+                    "Non-postive integer value for " + property + ": " + value + ". Using default value: " + defaultValue
+                );
+                return defaultValue;
+            }
+
+            return parsed;
+        } catch (NumberFormatException e) {
+            GeyserImpl.getInstance().getLogger().warning(
+                "Invalid integer value for " + property + ": " + value + ". Using default value: " + defaultValue
+            );
+            return defaultValue;
         }
-
-        if (transportMethod == TransportHelper.TransportMethod.KQUEUE) {
-            return new Transport(KQueueDatagramChannel.class, KQueueEventLoopGroup::new);
-        }
-
-        // if (transportMethod == TransportHelper.TransportMethod.IO_URING) {
-        //     return new Transport(IOUringDatagramChannel.class, IOUringEventLoopGroup::new);
-        // }
-
-        return new Transport(NioDatagramChannel.class, NioEventLoopGroup::new);
-    }
-
-    private record Transport(Class<? extends DatagramChannel> datagramChannel, IntFunction<EventLoopGroup> eventLoopGroupFactory) {
     }
 }

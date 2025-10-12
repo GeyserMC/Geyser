@@ -25,15 +25,15 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.ItemStack;
-import com.github.steveice10.mc.protocol.data.game.recipe.Ingredient;
-import com.github.steveice10.mc.protocol.data.game.recipe.data.ShapelessRecipeData;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.ShapelessCraftingRecipeDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
-public record GeyserShapelessRecipe(Ingredient[] ingredients, @Nullable ItemStack result) implements GeyserRecipe {
+import java.util.List;
 
-    public GeyserShapelessRecipe(ShapelessRecipeData data) {
-        this(data.getIngredients(), data.getResult());
+public record GeyserShapelessRecipe(List<SlotDisplay> ingredients, SlotDisplay result) implements GeyserRecipe {
+
+    public GeyserShapelessRecipe(ShapelessCraftingRecipeDisplay data) {
+        this(data.ingredients(), data.result());
     }
 
     @Override

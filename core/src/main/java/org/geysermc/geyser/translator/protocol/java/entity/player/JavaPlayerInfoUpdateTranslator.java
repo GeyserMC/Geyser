@@ -25,10 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import com.github.steveice10.mc.auth.data.GameProfile;
-import com.github.steveice10.mc.protocol.data.game.PlayerListEntry;
-import com.github.steveice10.mc.protocol.data.game.PlayerListEntryAction;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundPlayerInfoUpdatePacket;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
@@ -38,6 +34,11 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.PlayerListUtils;
+import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntry;
+import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntryAction;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundPlayerInfoUpdatePacket;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,13 +91,10 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                     session.getEntityCache().addPlayerEntity(playerEntity);
                 }
                 playerEntity.setUsername(name);
-                playerEntity.setTexturesProperty(texturesProperty);
 
                 if (self) {
-                    SkinManager.requestAndHandleSkinAndCape(playerEntity, session, skinAndCape ->
-                            GeyserImpl.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));
-                } else {
-                    playerEntity.setValid(true);
+                    playerEntity.setSkin(profile, true,
+                        () -> GeyserImpl.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));
                 }
             }
         }
@@ -115,22 +113,19 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                 if (entry.isListed()) {
                     PlayerListPacket.Entry playerListEntry = SkinManager.buildCachedEntry(session, entity);
                     toAdd.add(playerListEntry);
+                    session.getWaypointCache().listPlayer(entity);
                 } else {
                     toRemove.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
+                    session.getWaypointCache().unlistPlayer(entity);
                 }
+                entity.setListed(entry.isListed());
             }
 
             if (!toAdd.isEmpty()) {
-                PlayerListPacket tabListPacket = new PlayerListPacket();
-                tabListPacket.setAction(PlayerListPacket.Action.ADD);
-                tabListPacket.getEntries().addAll(toAdd);
-                session.sendUpstreamPacket(tabListPacket);
+                PlayerListUtils.batchSendPlayerList(session, toAdd, PlayerListPacket.Action.ADD);
             }
             if (!toRemove.isEmpty()) {
-                PlayerListPacket tabListPacket = new PlayerListPacket();
-                tabListPacket.setAction(PlayerListPacket.Action.REMOVE);
-                tabListPacket.getEntries().addAll(toRemove);
-                session.sendUpstreamPacket(tabListPacket);
+                PlayerListUtils.batchSendPlayerList(session, toRemove, PlayerListPacket.Action.REMOVE);
             }
         }
     }

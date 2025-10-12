@@ -25,35 +25,55 @@
 
 package org.geysermc.geyser.network;
 
-import com.github.steveice10.mc.protocol.codec.MinecraftCodec;
-import com.github.steveice10.mc.protocol.codec.PacketCodec;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
-import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
-import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
-import org.cloudburstmc.protocol.bedrock.codec.v649.Bedrock_v649;
-import org.cloudburstmc.protocol.bedrock.codec.v662.Bedrock_v662;
+import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
+import org.cloudburstmc.protocol.bedrock.codec.v819.Bedrock_v819;
+import org.cloudburstmc.protocol.bedrock.codec.v827.Bedrock_v827;
+import org.cloudburstmc.protocol.bedrock.codec.v844.Bedrock_v844;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
+import org.geysermc.geyser.api.util.MinecraftVersion;
+import org.geysermc.geyser.impl.MinecraftVersionImpl;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodec;
+import org.geysermc.mcprotocollib.protocol.codec.PacketCodec;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 /**
  * Contains information about the supported protocols in Geyser.
  */
 public final class GameProtocol {
-    /**
-     * Default Bedrock codec that should act as a fallback. Should represent the latest available
-     * release of the game that Geyser supports.
-     */
-    public static final BedrockCodec DEFAULT_BEDROCK_CODEC = Bedrock_v662.CODEC;
 
     /**
-     * A list of all supported Bedrock versions that can join Geyser
+     * All Bedrock protocol codecs that Geyser uses
      */
-    public static final List<BedrockCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
+    private static final List<BedrockCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
+
+    /**
+     * All bedrock protocol versions that Geyser supports
+     */
+    public static final IntList SUPPORTED_BEDROCK_PROTOCOLS = new IntArrayList();
+
+    /**
+     * All bedrock minecraft versions that Geyser supports.
+     * There may be multiple MinecraftVersions with the same protocol version.
+     */
+    public static final List<MinecraftVersion> SUPPORTED_BEDROCK_VERSIONS = new ArrayList<>();
+
+    /**
+     * The latest Bedrock protocol version that Geyser supports.
+     */
+    public static final int DEFAULT_BEDROCK_PROTOCOL;
+
+    /**
+     * The latest Bedrock Minecraft version that Geyser supports.
+     */
+    public static final String DEFAULT_BEDROCK_VERSION;
 
     /**
      * Java codec that is supported. We only ever support one version for
@@ -62,18 +82,44 @@ public final class GameProtocol {
     private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC;
 
     static {
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v622.CODEC.toBuilder()
-            .minecraftVersion("1.20.40/1.20.41")
-            .build());
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v630.CODEC.toBuilder()
-            .minecraftVersion("1.20.50/1.20.51")
-            .build());
-        SUPPORTED_BEDROCK_CODECS.add(Bedrock_v649.CODEC.toBuilder()
-            .minecraftVersion("1.20.60/1.20.62")
-            .build());
-        SUPPORTED_BEDROCK_CODECS.add(DEFAULT_BEDROCK_CODEC.toBuilder()
-            .minecraftVersion("1.20.70/1.20.72")
-            .build());
+        // Strict ordering
+        register(Bedrock_v818.CODEC, "1.21.90", "1.21.91", "1.21.92");
+        register(Bedrock_v819.CODEC, "1.21.93", "1.21.94");
+        register(Bedrock_v827.CODEC, "1.21.100", "1.21.101");
+        register(Bedrock_v844.CODEC, "1.21.111", "1.21.112", "1.21.113");
+
+        MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.get(SUPPORTED_BEDROCK_VERSIONS.size() - 1);
+        DEFAULT_BEDROCK_VERSION = latestBedrock.versionString();
+        DEFAULT_BEDROCK_PROTOCOL = latestBedrock.protocolVersion();
+    }
+
+    /**
+     * Registers a bedrock codec, along with its protocol version and minecraft version(s).
+     * This method must be called in ascending order in terms of protocol version.
+     *
+     * @param codec the codec to register
+     * @param minecraftVersions all versions the codec supports, in ascending order
+     */
+    private static void register(BedrockCodec codec, String... minecraftVersions) {
+        // modify packet serializers to better fit our use
+        codec = CodecProcessor.processCodec(codec);
+
+        SUPPORTED_BEDROCK_CODECS.add(codec);
+        SUPPORTED_BEDROCK_PROTOCOLS.add(codec.getProtocolVersion());
+
+        for (String version : minecraftVersions) {
+            SUPPORTED_BEDROCK_VERSIONS.add(new MinecraftVersionImpl(version, codec.getProtocolVersion()));
+        }
+    }
+
+    /**
+     * Registers a bedrock codec, its protocol version, and a single minecraft version which is taken from the codec.
+     * This method must be called in ascending order in terms of protocol version.
+     *
+     * @param codec the codec to register
+     */
+    private static void register(BedrockCodec codec) {
+        register(codec, codec.getMinecraftVersion());
     }
 
     /**
@@ -92,25 +138,16 @@ public final class GameProtocol {
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
 
-    public static boolean isPre1_20_50(GeyserSession session) {
-        return session.getUpstream().getProtocolVersion() < Bedrock_v630.CODEC.getProtocolVersion();
+    public static boolean is1_21_100(GeyserSession session) {
+        return session.protocolVersion() == Bedrock_v827.CODEC.getProtocolVersion();
     }
 
-    public static boolean isPre1_20_70(GeyserSession session) {
-        return session.getUpstream().getProtocolVersion() < Bedrock_v662.CODEC.getProtocolVersion();
+    public static boolean is1_21_110orHigher(GeyserSession session) {
+        return is1_21_110orHigher(session.protocolVersion());
     }
 
-    public static boolean is1_20_60orHigher(int protocolVersion) {
-        return protocolVersion >= Bedrock_v649.CODEC.getProtocolVersion();
-    }
-
-    /**
-     * Gets the {@link PacketCodec} for Minecraft: Java Edition.
-     *
-     * @return the packet codec for Minecraft: Java Edition
-     */
-    public static PacketCodec getJavaCodec() {
-        return DEFAULT_JAVA_CODEC;
+    public static boolean is1_21_110orHigher(int protocolVersion) {
+        return protocolVersion >= Bedrock_v844.CODEC.getProtocolVersion();
     }
 
     /**
@@ -137,31 +174,23 @@ public final class GameProtocol {
      * @return the supported Minecraft: Java Edition version
      */
     public static String getJavaMinecraftVersion() {
-        return DEFAULT_JAVA_CODEC.getMinecraftVersion();
+        return "1.21.10";
     }
 
     /**
      * @return a string showing all supported Bedrock versions for this Geyser instance
      */
     public static String getAllSupportedBedrockVersions() {
-        StringJoiner joiner = new StringJoiner(", ");
-        for (BedrockCodec packetCodec : SUPPORTED_BEDROCK_CODECS) {
-            joiner.add(packetCodec.getMinecraftVersion());
-        }
-
-        return joiner.toString();
+        return SUPPORTED_BEDROCK_VERSIONS.stream()
+            .map(MinecraftVersion::versionString)
+            .collect(Collectors.joining(", "));
     }
 
     /**
      * @return a string showing all supported Java versions for this Geyser instance
      */
     public static String getAllSupportedJavaVersions() {
-        StringJoiner joiner = new StringJoiner(", ");
-        for (String version : getJavaVersions()) {
-            joiner.add(version);
-        }
-
-        return joiner.toString();
+        return String.join(", ", getJavaVersions());
     }
 
     private GameProtocol() {

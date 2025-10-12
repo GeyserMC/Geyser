@@ -25,14 +25,13 @@
 
 package org.geysermc.geyser.erosion;
 
-import com.github.steveice10.mc.protocol.data.game.level.block.value.PistonValueType;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import io.netty.channel.Channel;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -45,12 +44,16 @@ import org.geysermc.erosion.packet.backendbound.BackendboundInitializePacket;
 import org.geysermc.erosion.packet.backendbound.BackendboundPacket;
 import org.geysermc.erosion.packet.geyserbound.*;
 import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.translator.level.block.entity.PistonBlockEntity;
 import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.value.PistonValueType;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -64,7 +67,7 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
     @Setter
     private CompletableFuture<int[]> pendingBatchLookup = null;
     @Setter
-    private CompletableFuture<CompoundTag> pickBlockLookup = null;
+    private CompletableFuture<Int2ObjectMap<byte[]>> pickBlockLookup = null;
 
     private final AtomicInteger nextTransactionId = new AtomicInteger(1);
 
@@ -120,7 +123,7 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
         }
         CompletableFuture<Integer> future = this.asyncPendingLookups.remove(transactionId);
         if (future != null) {
-            future.complete(BlockStateValues.JAVA_AIR_ID);
+            future.complete(Block.JAVA_AIR_ID);
         }
     }
 
@@ -134,28 +137,29 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
         placeBlockSoundPacket.setIdentifier(":");
         session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);
-        session.setLastBlockPlacedId(null);
+        session.setLastBlockPlaced(null);
     }
 
     @Override
     public void handlePickBlock(GeyserboundPickBlockPacket packet) {
         if (this.pickBlockLookup != null) {
-            this.pickBlockLookup.complete(packet.getTag());
+            this.pickBlockLookup.complete(packet.getComponents());
         }
     }
 
     @Override
     public void handlePistonEvent(GeyserboundPistonEventPacket packet) {
-        Direction orientation = BlockStateValues.getPistonOrientation(packet.getBlockId());
+        Direction orientation = BlockState.of(packet.getBlockId()).getValue(Properties.FACING);
         Vector3i position = packet.getPos();
         boolean isExtend = packet.isExtend();
 
         var stream = packet.getAttachedBlocks()
                 .object2IntEntrySet()
                 .stream()
-                .filter(entry -> BlockStateValues.canPistonMoveBlock(entry.getIntValue(), isExtend));
-        Object2IntMap<Vector3i> attachedBlocks = new Object2IntArrayMap<>();
-        stream.forEach(entry -> attachedBlocks.put(entry.getKey(), entry.getIntValue()));
+                .map(entry -> Pair.of(entry.getKey(), BlockState.of(entry.getIntValue())))
+                .filter(pair -> BlockStateValues.canPistonMoveBlock(pair.value(), isExtend));
+        Object2ObjectMap<Vector3i, BlockState> attachedBlocks = new Object2ObjectArrayMap<>();
+        stream.forEach(pair -> attachedBlocks.put(pair.key(), pair.value()));
 
         session.executeInEventLoop(() -> {
             PistonCache pistonCache = session.getPistonCache();
@@ -167,10 +171,10 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
 
     @Override
     public void handleHandshake(GeyserboundHandshakePacket packet) {
-        this.close();
         var handler = new GeyserboundHandshakePacketHandler(this.session);
         session.setErosionHandler(handler);
         handler.handleHandshake(packet);
+        this.close();
     }
 
     @Override
@@ -194,6 +198,17 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
 
     public void close() {
         this.packetSender.close();
+
+        if (pendingLookup != null) {
+            pendingLookup.completeExceptionally(new ErosionCancellationException());
+        }
+        if (pendingBatchLookup != null) {
+            pendingBatchLookup.completeExceptionally(new ErosionCancellationException());
+        }
+        if (pickBlockLookup != null) {
+            pickBlockLookup.completeExceptionally(new ErosionCancellationException());
+        }
+        asyncPendingLookups.forEach(($, future) -> future.completeExceptionally(new ErosionCancellationException()));
     }
 
     public int getNextTransactionId() {

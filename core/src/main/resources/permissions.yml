@@ -1,0 +1,14 @@
+
+# Add any permissions here that all players should have.
+# Permissions for builtin Geyser commands do not have to be listed here,
+# unless you want to override their default value.
+
+# If an extension/plugin registers their permissions with default values, entries here are typically unnecessary.
+# If extensions don't register their permissions, permissions that everyone should (not) have must be added here manually.
+# If a permission is both lists, default-denied permissions takes precedence
+
+default-permissions:
+  - geyser.command.help # this is unnecessary
+
+default-denied-permissions:
+  - geyser.command.stop # also unnecessary

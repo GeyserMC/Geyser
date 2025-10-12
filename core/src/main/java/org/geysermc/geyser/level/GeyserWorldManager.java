@@ -25,24 +25,16 @@
 
 package org.geysermc.geyser.level;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.GameMode;
-import com.github.steveice10.mc.protocol.data.game.level.block.BlockEntityInfo;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.geysermc.erosion.packet.backendbound.*;
+import org.geysermc.erosion.packet.backendbound.BackendboundBatchBlockRequestPacket;
+import org.geysermc.erosion.packet.backendbound.BackendboundBlockRequestPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
-import org.geysermc.erosion.util.LecternUtils;
+import org.geysermc.geyser.erosion.ErosionCancellationException;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class GeyserWorldManager extends WorldManager {
@@ -53,6 +45,8 @@ public class GeyserWorldManager extends WorldManager {
         var erosionHandler = session.getErosionHandler().getAsActive();
         if (erosionHandler == null) {
             return session.getChunkCache().getBlockAt(x, y, z);
+        } else if (session.isClosed()) {
+            throw new ErosionCancellationException();
         }
         CompletableFuture<Integer> future = new CompletableFuture<>(); // Boxes
         erosionHandler.setPendingLookup(future);
@@ -65,6 +59,8 @@ public class GeyserWorldManager extends WorldManager {
         var erosionHandler = session.getErosionHandler().getAsActive();
         if (erosionHandler == null) {
             return super.getBlockAtAsync(session, x, y, z);
+        } else if (session.isClosed()) {
+            return CompletableFuture.failedFuture(new ErosionCancellationException());
         }
         CompletableFuture<Integer> future = new CompletableFuture<>(); // Boxes
         int transactionId = erosionHandler.getNextTransactionId();
@@ -78,6 +74,8 @@ public class GeyserWorldManager extends WorldManager {
         var erosionHandler = session.getErosionHandler().getAsActive();
         if (erosionHandler == null) {
             return super.getBlocksAt(session, iter);
+        } else if (session.isClosed()) {
+            throw new ErosionCancellationException();
         }
         CompletableFuture<int[]> future = new CompletableFuture<>();
         erosionHandler.setPendingBatchLookup(future);
@@ -89,51 +87,6 @@ public class GeyserWorldManager extends WorldManager {
     public boolean hasOwnChunkCache() {
         // This implementation can only fetch data from the session chunk cache
         return false;
-    }
-
-    @Override
-    public void sendLecternData(GeyserSession session, int x, int z, List<BlockEntityInfo> blockEntityInfos) {
-        var erosionHandler = session.getErosionHandler().getAsActive();
-        if (erosionHandler == null) {
-            // No-op - don't send any additional information other than what the chunk has already sent
-            return;
-        }
-        List<Vector3i> vectors = new ObjectArrayList<>(blockEntityInfos.size());
-        //noinspection ForLoopReplaceableByForEach - avoid constructing iterator
-        for (int i = 0; i < blockEntityInfos.size(); i++) {
-            BlockEntityInfo info = blockEntityInfos.get(i);
-            vectors.add(Vector3i.from(info.getX(), info.getY(), info.getZ()));
-        }
-        erosionHandler.sendPacket(new BackendboundBatchBlockEntityPacket(x, z, vectors));
-    }
-
-    @Override
-    public void sendLecternData(GeyserSession session, int x, int y, int z) {
-        var erosionHandler = session.getErosionHandler().getAsActive();
-        if (erosionHandler != null) {
-            erosionHandler.sendPacket(new BackendboundBlockEntityPacket(Vector3i.from(x, y, z)));
-            return;
-        }
-
-        // Without direct server access, we can't get lectern information on-the-fly.
-        // I should have set this up so it's only called when there is a book in the block state. - Camotoy
-        NbtMapBuilder lecternTag = LecternUtils.getBaseLecternTag(x, y, z, 1);
-        lecternTag.putCompound("book", NbtMap.builder()
-                .putByte("Count", (byte) 1)
-                .putShort("Damage", (short) 0)
-                .putString("Name", "minecraft:written_book")
-                .putCompound("tag", NbtMap.builder()
-                        .putString("photoname", "")
-                        .putString("text", "")
-                        .build())
-                .build());
-        lecternTag.putInt("page", -1); // I'm surprisingly glad this exists - it forces Bedrock to stop reading immediately. Usually.
-        BlockEntityUtils.updateBlockEntity(session, lecternTag.build(), Vector3i.from(x, y, z));
-    }
-
-    @Override
-    public boolean shouldExpectLecternHandled(GeyserSession session) {
-        return session.getErosionHandler().isActive();
     }
 
     @Override
@@ -165,23 +118,5 @@ public class GeyserWorldManager extends WorldManager {
     @Override
     public GameMode getDefaultGameMode(GeyserSession session) {
         return GameMode.SURVIVAL;
-    }
-
-    @Override
-    public boolean hasPermission(GeyserSession session, String permission) {
-        return false;
-    }
-
-    @NonNull
-    @Override
-    public CompletableFuture<@Nullable CompoundTag> getPickItemNbt(GeyserSession session, int x, int y, int z, boolean addNbtData) {
-        var erosionHandler = session.getErosionHandler().getAsActive();
-        if (erosionHandler == null) {
-            return super.getPickItemNbt(session, x, y, z, addNbtData);
-        }
-        CompletableFuture<CompoundTag> future = new CompletableFuture<>();
-        erosionHandler.setPickBlockLookup(future);
-        erosionHandler.sendPacket(new BackendboundPickBlockPacket(Vector3i.from(x, y, z)));
-        return future;
     }
 }

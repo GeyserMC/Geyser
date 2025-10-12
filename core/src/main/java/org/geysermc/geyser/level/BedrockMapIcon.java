@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.level;
 
-import com.github.steveice10.mc.protocol.data.game.level.map.MapIconType;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.mcprotocollib.protocol.data.game.level.map.MapIconType;
 
 public enum BedrockMapIcon {
     ICON_WHITE_ARROW(MapIconType.WHITE_ARROW, 0),
@@ -63,7 +63,8 @@ public enum BedrockMapIcon {
     ICON_SNOWY_VILLAGE(MapIconType.SNOWY_VILLAGE, 20),
     ICON_TAIGA_VILLAGE(MapIconType.TAIGA_VILLAGE, 21),
     ICON_JUNGLE_TEMPLE(MapIconType.JUNGLE_TEMPLE, 22),
-    ICON_SWAMP_HUT(MapIconType.SWAMP_HUT, 23);
+    ICON_SWAMP_HUT(MapIconType.SWAMP_HUT, 23),
+    ICON_TRIAL_CHAMBERS(MapIconType.TRIAL_CHAMBERS, 24);
 
     private static final BedrockMapIcon[] VALUES = values();
 

@@ -25,57 +25,55 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.item.ArmorMaterial;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
+import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 public class ArmorItem extends Item {
-    private final ArmorMaterial material;
 
-    public ArmorItem(String javaIdentifier, ArmorMaterial material, Builder builder) {
+    public ArmorItem(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
-        this.material = material;
     }
 
     @Override
-    public void translateNbtToBedrock(@NonNull GeyserSession session, @NonNull CompoundTag tag) {
-        super.translateNbtToBedrock(session, tag);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, tooltip, builder);
 
-        if (tag.get("Trim") instanceof CompoundTag trim) {
-            StringTag material = trim.remove("material");
-            StringTag pattern = trim.remove("pattern");
+        ArmorTrim trim = components.get(DataComponentTypes.TRIM);
+        if (trim != null) {
+            TrimMaterial material = session.getRegistryCache().registry(JavaRegistries.TRIM_MATERIAL).byId(trim.material().id());
+            TrimPattern pattern = session.getRegistryCache().registry(JavaRegistries.TRIM_PATTERN).byId(trim.pattern().id());
+
+            // discard custom trim patterns/materials to prevent visual glitches on bedrock
+            if (!getNamespace(material.getMaterialId()).equals("minecraft")
+                    || !getNamespace(pattern.getPatternId()).equals("minecraft")) {
+                // TODO - how is this shown in tooltip? should we add a custom trim tooltip to the lore here
+                return;
+            }
+
+            NbtMapBuilder trimBuilder = NbtMap.builder();
             // bedrock has an uppercase first letter key, and the value is not namespaced
-            trim.put(new StringTag("Material", stripNamespace(material.getValue())));
-            trim.put(new StringTag("Pattern", stripNamespace(pattern.getValue())));
+            trimBuilder.put("Material", material.getMaterialId());
+            trimBuilder.put("Pattern", pattern.getPatternId());
+            builder.putCompound("Trim", trimBuilder.build());
         }
     }
 
-    @Override
-    public void translateNbtToJava(@NonNull CompoundTag tag, @NonNull ItemMapping mapping) {
-        super.translateNbtToJava(tag, mapping);
-
-        if (tag.get("Trim") instanceof CompoundTag trim) {
-            StringTag material = trim.remove("Material");
-            StringTag pattern = trim.remove("Pattern");
-            // java has a lowercase key, and namespaced value
-            trim.put(new StringTag("material", "minecraft:" + material.getValue()));
-            trim.put(new StringTag("pattern", "minecraft:" + pattern.getValue()));
-        }
-    }
-
-    @Override
-    public boolean isValidRepairItem(Item other) {
-        return material.getRepairIngredient() == other;
-    }
-
-    private static String stripNamespace(String identifier) {
+    // TODO maybe some kind of namespace util?
+    private static String getNamespace(String identifier) {
         int i = identifier.indexOf(':');
         if (i >= 0) {
-            return identifier.substring(i + 1);
+            return identifier.substring(0, i);
         }
-        return identifier;
+        return "minecraft";
     }
 }

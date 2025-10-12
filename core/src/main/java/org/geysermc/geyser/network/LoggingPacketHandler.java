@@ -891,4 +891,29 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     public PacketSignal handle(ToggleCrafterSlotRequestPacket packet) {
         return defaultHandler(packet);
     }
+
+    @Override
+    public PacketSignal handle(TrimDataPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public PacketSignal handle(MovementPredictionSyncPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public PacketSignal handle(ServerboundDiagnosticsPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public PacketSignal handle(UpdateClientOptionsPacket packet) {
+        return defaultHandler(packet);
+    }
+
+    @Override
+    public PacketSignal handle(PlayerUpdateEntityOverridesPacket packet) {
+        return defaultHandler(packet);
+    }
 }

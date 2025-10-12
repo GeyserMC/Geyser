@@ -25,16 +25,6 @@
 
 package org.geysermc.geyser.entity.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.Attribute;
-import com.github.steveice10.mc.protocol.data.game.entity.attribute.AttributeType;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.Pose;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.player.Hand;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,31 +35,52 @@ import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
-import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.vehicle.HappyGhastVehicleComponent;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.AttributeUtils;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
+import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticleData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class LivingEntity extends Entity {
-
-    protected ItemData helmet = ItemData.AIR;
-    protected ItemData chestplate = ItemData.AIR;
-    protected ItemData leggings = ItemData.AIR;
-    protected ItemData boots = ItemData.AIR;
-    protected ItemData hand = ItemData.AIR;
-    protected ItemData offHand = ItemData.AIR;
+    protected EnumMap<EquipmentSlot, GeyserItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
 
     @Getter(value = AccessLevel.NONE)
     protected float health = 1f; // The default value in Java Edition before any entity metadata is sent
@@ -81,15 +92,114 @@ public class LivingEntity extends Entity {
      */
     private boolean isMaxFrozenState = false;
 
+    /**
+     * The base scale entity data, without attributes applied. Used for such cases as baby variants.
+     */
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private float scale;
+    /**
+     * The scale sent through the Java attributes packet
+     */
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private float attributeScale;
+
     public LivingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
+    public GeyserItemStack getItemInSlot(EquipmentSlot slot) {
+        GeyserItemStack stack = equipment.get(slot);
+        if (stack == null) {
+            return GeyserItemStack.EMPTY;
+        }
+        return stack;
+    }
+
+    public GeyserItemStack getMainHandItem() {
+        return getItemInSlot(EquipmentSlot.MAIN_HAND);
+    }
+
+    public GeyserItemStack getOffHandItem() {
+        return getItemInSlot(EquipmentSlot.OFF_HAND);
+    }
+
+    public boolean isHolding(Item item) {
+        return getMainHandItem().is(item) || getOffHandItem().is(item);
+    }
+
+    public void setHelmet(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.HELMET, stack);
+    }
+
+    public void setChestplate(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.CHESTPLATE, stack);
+    }
+
+    public void setLeggings(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.LEGGINGS, stack);
+    }
+
+    public void setBoots(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.BOOTS, stack);
+    }
+
+    public void setBody(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.BODY, stack);
+    }
+
+    public void setSaddle(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.SADDLE, stack);
+
+        boolean saddled = false;
+        if (!stack.isEmpty()) {
+            Equippable equippable = stack.getComponent(DataComponentTypes.EQUIPPABLE);
+            saddled = equippable != null && equippable.slot() == EquipmentSlot.SADDLE;
+        }
+
+        updateSaddled(saddled);
+    }
+
+    public void setHand(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.MAIN_HAND, stack);
+    }
+
+    public void setOffhand(GeyserItemStack stack) {
+        this.equipment.put(EquipmentSlot.OFF_HAND, stack);
+    }
+
+    protected void updateSaddled(boolean saddled) {
+        setFlag(EntityFlag.SADDLED, saddled);
+        updateBedrockMetadata();
+
+        // Update the interactive tag, if necessary
+        Entity mouseoverEntity = session.getMouseoverEntity();
+        if (mouseoverEntity != null && mouseoverEntity.getEntityId() == entityId) {
+            mouseoverEntity.updateInteractiveTag();
+        }
+    }
+
+    public void switchHands() {
+        GeyserItemStack offhand = this.equipment.get(EquipmentSlot.OFF_HAND);
+        this.equipment.put(EquipmentSlot.OFF_HAND, this.equipment.get(EquipmentSlot.MAIN_HAND));
+        this.equipment.put(EquipmentSlot.MAIN_HAND, offhand);
+    }
+
     @Override
     protected void initializeMetadata() {
+        // Initialize here so overriding classes don't have 0 values
+        this.scale = 1f;
+        this.attributeScale = 1f;
         super.initializeMetadata();
         // Matches Bedrock behavior; is always set to this
         dirtyMetadata.put(EntityDataTypes.STRUCTURAL_INTEGRITY, 1);
+    }
+
+    @Override
+    public void updateNametag(@Nullable Team team) {
+        // if name not visible, don't mark it as visible
+        updateNametag(team, team == null || team.isVisibleFor(session.getPlayerEntity().getUsername()));
     }
 
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
@@ -105,10 +215,14 @@ public class LivingEntity extends Entity {
         setFlag(EntityFlag.BLOCKING, isUsingItem && isUsingShield);
 
         // Riptide spin attack
-        setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, (xd & 0x04) == 0x04);
+        setSpinAttack((xd & 0x04) == 0x04);
 
         // OptionalPack usage
         setFlag(EntityFlag.EMERGING, isUsingItem && isUsingOffhand);
+    }
+
+    protected void setSpinAttack(boolean value) {
+        setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, value);
     }
 
     public void setHealth(FloatEntityMetadata entityMetadata) {
@@ -119,6 +233,37 @@ public class LivingEntity extends Entity {
         attributesPacket.setRuntimeEntityId(geyserId);
         attributesPacket.setAttributes(Collections.singletonList(healthData));
         session.sendUpstreamPacket(attributesPacket);
+    }
+
+    // TODO: support all particle types
+    public void setParticles(ObjectEntityMetadata<List<Particle>> entityMetadata) {
+        List<Particle> particles = entityMetadata.getValue();
+        float r = 0f;
+        float g = 0f;
+        float b = 0f;
+
+        int count = 0;
+        for (Particle particle : particles) {
+            if (particle.getType() != ParticleType.ENTITY_EFFECT) {
+                continue;
+            }
+
+            int color = ((ColorParticleData) particle.getData()).getColor();
+            r += ((color >> 16) & 0xFF) / 255f;
+            g += ((color >> 8) & 0xFF) / 255f;
+            b += ((color) & 0xFF) / 255f;
+            count++;
+        }
+
+        int result = 0;
+        if (count > 0) {
+            r = r / count * 255f;
+            g = g / count * 255f;
+            b = b / count * 255f;
+            result = (int) r << 16 | (int) g << 8 | (int) b;
+        }
+
+        dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, result);
     }
 
     public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
@@ -133,11 +278,10 @@ public class LivingEntity extends Entity {
     }
 
     protected boolean hasShield(boolean offhand) {
-        ItemMapping shieldMapping = session.getItemMappings().getStoredItems().shield();
         if (offhand) {
-            return offHand.getDefinition().equals(shieldMapping.getBedrockDefinition());
+            return getOffHandItem().is(Items.SHIELD);
         } else {
-            return hand.getDefinition().equals(shieldMapping.getBedrockDefinition());
+            return getMainHandItem().is(Items.SHIELD);
         }
     }
 
@@ -147,12 +291,12 @@ public class LivingEntity extends Entity {
     }
 
     @Override
-    protected void setDimensions(Pose pose) {
+    protected void setDimensionsFromPose(Pose pose) {
         if (pose == Pose.SLEEPING) {
             setBoundingBoxWidth(0.2f);
             setBoundingBoxHeight(0.2f);
         } else {
-            super.setDimensions(pose);
+            super.setDimensionsFromPose(pose);
         }
     }
 
@@ -162,6 +306,21 @@ public class LivingEntity extends Entity {
         this.isMaxFrozenState = freezingPercentage >= 1.0f;
         setFlag(EntityFlag.SHAKING, isShaking());
         return freezingPercentage;
+    }
+
+    protected void setScale(float scale) {
+        this.scale = scale;
+        applyScale();
+    }
+
+    private void setAttributeScale(float scale) {
+        this.attributeScale = MathUtils.clamp(scale, GeyserAttributeType.SCALE.getMinimum(), GeyserAttributeType.SCALE.getMaximum());
+        applyScale();
+    }
+
+    private void applyScale() {
+        // Take any adjustments Bedrock requires, and compute it alongside the attribute's additional changes
+        this.dirtyMetadata.put(EntityDataTypes.SCALE, scale * attributeScale);
     }
 
     /**
@@ -181,7 +340,7 @@ public class LivingEntity extends Entity {
     @Override
     public InteractionResult interact(Hand hand) {
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);
-        if (itemStack.asItem() == Items.NAME_TAG) {
+        if (itemStack.is(Items.NAME_TAG)) {
             InteractionResult result = checkInteractWithNameTag(itemStack);
             if (result.consumesAction()) {
                 return result;
@@ -191,50 +350,80 @@ public class LivingEntity extends Entity {
         return super.interact(hand);
     }
 
+    @Override
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        if (this instanceof ClientVehicle clientVehicle) {
+            if (clientVehicle.isClientControlled()) {
+                return;
+            }
+            clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
+        }
+
+        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    }
+
+    @Override
+    public boolean setBoundingBoxHeight(float height) {
+        if (valid && this instanceof ClientVehicle clientVehicle) {
+            clientVehicle.getVehicleComponent().setHeight(height);
+        }
+
+        return super.setBoundingBoxHeight(height);
+    }
+
+    @Override
+    public void setBoundingBoxWidth(float width) {
+        if (valid && this instanceof ClientVehicle clientVehicle) {
+            clientVehicle.getVehicleComponent().setWidth(width);
+        }
+
+        super.setBoundingBoxWidth(width);
+    }
+
     /**
      * Checks to see if a nametag interaction would go through.
      */
+    // Implementation note for 1.20.5: this code was moved to the NameTag item.
     protected final InteractionResult checkInteractWithNameTag(GeyserItemStack itemStack) {
-        CompoundTag nbt = itemStack.getNbt();
-        if (nbt != null && nbt.get("display") instanceof CompoundTag displayTag && displayTag.get("Name") instanceof StringTag) {
+        if (itemStack.getComponent(DataComponentTypes.CUSTOM_NAME) != null) {
             // The mob shall be named
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.PASS;
     }
 
-    public void updateArmor(GeyserSession session) {
+    public void updateArmor() {
         if (!valid) return;
 
-        ItemData helmet = this.helmet;
-        ItemData chestplate = this.chestplate;
+        GeyserItemStack helmet = getItemInSlot(EquipmentSlot.HELMET);
+        GeyserItemStack chestplate = getItemInSlot(EquipmentSlot.CHESTPLATE);
         // If an entity has a banner on them, it will be in the helmet slot in Java but the chestplate spot in Bedrock
         // But don't overwrite the chestplate if it isn't empty
-        ItemMapping banner = session.getItemMappings().getStoredItems().banner();
-        if (ItemData.AIR.equals(chestplate) && helmet.getDefinition().equals(banner.getBedrockDefinition())) {
-            chestplate = this.helmet;
-            helmet = ItemData.AIR;
-        } else if (chestplate.getDefinition().equals(banner.getBedrockDefinition())) {
+        if (chestplate.isEmpty() && helmet.is(session, ItemTag.BANNERS)) {
+            chestplate = helmet;
+            helmet = GeyserItemStack.EMPTY;
+        } else if (chestplate.is(session, ItemTag.BANNERS)) {
             // Prevent chestplate banners from showing erroneously
-            chestplate = ItemData.AIR;
+            chestplate = GeyserItemStack.EMPTY;
         }
 
         MobArmorEquipmentPacket armorEquipmentPacket = new MobArmorEquipmentPacket();
         armorEquipmentPacket.setRuntimeEntityId(geyserId);
-        armorEquipmentPacket.setHelmet(helmet);
-        armorEquipmentPacket.setChestplate(chestplate);
-        armorEquipmentPacket.setLeggings(leggings);
-        armorEquipmentPacket.setBoots(boots);
+        armorEquipmentPacket.setHelmet(ItemTranslator.translateToBedrock(session, helmet));
+        armorEquipmentPacket.setChestplate(ItemTranslator.translateToBedrock(session, chestplate));
+        armorEquipmentPacket.setLeggings(ItemTranslator.translateToBedrock(session, getItemInSlot(EquipmentSlot.LEGGINGS)));
+        armorEquipmentPacket.setBoots(ItemTranslator.translateToBedrock(session, getItemInSlot(EquipmentSlot.BOOTS)));
+        armorEquipmentPacket.setBody(ItemTranslator.translateToBedrock(session, getItemInSlot(EquipmentSlot.BODY)));
 
         session.sendUpstreamPacket(armorEquipmentPacket);
     }
 
-    public void updateMainHand(GeyserSession session) {
+    public void updateMainHand() {
         if (!valid) return;
 
         MobEquipmentPacket handPacket = new MobEquipmentPacket();
         handPacket.setRuntimeEntityId(geyserId);
-        handPacket.setItem(hand);
+        handPacket.setItem(ItemTranslator.translateToBedrock(session, getMainHandItem()));
         handPacket.setHotbarSlot(-1);
         handPacket.setInventorySlot(0);
         handPacket.setContainerId(ContainerId.INVENTORY);
@@ -242,17 +431,26 @@ public class LivingEntity extends Entity {
         session.sendUpstreamPacket(handPacket);
     }
 
-    public void updateOffHand(GeyserSession session) {
+    public void updateOffHand() {
         if (!valid) return;
 
         MobEquipmentPacket offHandPacket = new MobEquipmentPacket();
         offHandPacket.setRuntimeEntityId(geyserId);
-        offHandPacket.setItem(offHand);
+        offHandPacket.setItem(ItemTranslator.translateToBedrock(session, getOffHandItem()));
         offHandPacket.setHotbarSlot(-1);
         offHandPacket.setInventorySlot(0);
         offHandPacket.setContainerId(ContainerId.OFFHAND);
 
         session.sendUpstreamPacket(offHandPacket);
+    }
+
+    /**
+     * Called when a SWING_ARM animation packet is received
+     *
+     * @return true if an ATTACK_START event should be used instead
+     */
+    public boolean useArmSwingAttack() {
+        return false;
     }
 
     /**
@@ -288,20 +486,78 @@ public class LivingEntity extends Entity {
     protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
         if (javaAttribute.getType() instanceof AttributeType.Builtin type) {
             switch (type) {
-                case GENERIC_MAX_HEALTH -> {
+                case MAX_HEALTH -> {
                     // Since 1.18.0, setting the max health to 0 or below causes the entity to die on Bedrock but not on Java
                     // See https://github.com/GeyserMC/Geyser/issues/2971
                     this.maxHealth = Math.max((float) AttributeUtils.calculateValue(javaAttribute), 1f);
                     newAttributes.add(createHealthAttribute());
                 }
-                case GENERIC_ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
-                case GENERIC_FLYING_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED));
-                case GENERIC_MOVEMENT_SPEED -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.MOVEMENT_SPEED));
-                case GENERIC_FOLLOW_RANGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
-                case GENERIC_KNOCKBACK_RESISTANCE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.KNOCKBACK_RESISTANCE));
-                case HORSE_JUMP_STRENGTH -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.HORSE_JUMP_STRENGTH));
+                case MOVEMENT_SPEED -> {
+                    AttributeData attributeData = calculateAttribute(javaAttribute, GeyserAttributeType.MOVEMENT_SPEED);
+                    newAttributes.add(attributeData);
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setMoveSpeed(attributeData.getValue());
+                    }
+                }
+                case STEP_HEIGHT -> {
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setStepHeight((float) AttributeUtils.calculateValue(javaAttribute));
+                    }
+                }
+                case GRAVITY ->  {
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setGravity(AttributeUtils.calculateValue(javaAttribute));
+                    }
+                }
+                case ATTACK_DAMAGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.ATTACK_DAMAGE));
+                case FLYING_SPEED -> {
+                    AttributeData attributeData = calculateAttribute(javaAttribute, GeyserAttributeType.FLYING_SPEED);
+                    newAttributes.add(attributeData);
+                    if (this instanceof HappyGhastEntity ghast && ghast.getVehicleComponent() instanceof HappyGhastVehicleComponent component) {
+                        component.setFlyingSpeed(attributeData.getValue());
+                    }
+                }
+                case FOLLOW_RANGE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FOLLOW_RANGE));
+                case KNOCKBACK_RESISTANCE -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.KNOCKBACK_RESISTANCE));
+                case JUMP_STRENGTH -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.HORSE_JUMP_STRENGTH));
+                case SCALE -> {
+                    // Attribute on Java, entity data on Bedrock
+                    setAttributeScale((float) AttributeUtils.calculateValue(javaAttribute));
+                    updateBedrockMetadata();
+                }
+                case WATER_MOVEMENT_EFFICIENCY -> {
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setWaterMovementEfficiency(AttributeUtils.calculateValue(javaAttribute));
+                    }
+                }
             }
         }
+    }
+
+    protected boolean hasBodyArmor() {
+        return this.hasValidEquippableItemForSlot(EquipmentSlot.BODY);
+    }
+
+    private boolean hasValidEquippableItemForSlot(EquipmentSlot slot) {
+        // MojMap LivingEntity#hasItemInSlot
+        GeyserItemStack itemInSlot = equipment.get(slot);
+        if (itemInSlot != null) {
+            // MojMap LivingEntity#isEquippableInSlot
+            Equippable equippable = itemInSlot.getComponent(DataComponentTypes.EQUIPPABLE);
+            if (equippable != null) {
+                return slot == equippable.slot() &&
+                    canUseSlot(slot) &&
+                    EntityUtils.equipmentUsableByEntity(session, equippable, this.definition.entityType());
+            } else {
+                return slot == EquipmentSlot.MAIN_HAND && canUseSlot(EquipmentSlot.MAIN_HAND);
+            }
+        }
+
+        return false;
+    }
+
+    protected boolean canUseSlot(EquipmentSlot slot) {
+        return true;
     }
 
     /**

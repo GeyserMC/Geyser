@@ -25,21 +25,20 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import com.github.steveice10.mc.protocol.data.game.entity.player.PlayerSpawnInfo;
-import com.github.steveice10.mc.protocol.packet.ingame.clientbound.ClientboundRespawnPacket;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
-import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
+import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerSpawnInfo;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRespawnPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundPlayerLoadedPacket;
 
 @Translator(packet = ClientboundRespawnPacket.class)
 public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPacket> {
@@ -49,13 +48,20 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
         SessionPlayerEntity entity = session.getPlayerEntity();
         PlayerSpawnInfo spawnInfo = packet.getCommonPlayerSpawnInfo();
 
+        if (!packet.isKeepMetadata()) {
+            entity.resetMetadata();
+        }
+
+        if (!packet.isKeepAttributeModifiers()) {
+            entity.resetAttributes();
+        }
+
         session.setSpawned(false);
 
         entity.setHealth(entity.getMaxHealth());
         entity.getAttributes().put(GeyserAttributeType.HEALTH, entity.createHealthAttribute());
 
-        session.setInventoryTranslator(InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
-        session.setOpenInventory(null);
+        session.setInventoryHolder(null);
         session.setClosingInventory(false);
 
         entity.setLastDeathPosition(spawnInfo.getLastDeathPos());
@@ -67,34 +73,27 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
         session.setGameMode(spawnInfo.getGameMode());
 
         if (session.isRaining()) {
-            LevelEventPacket stopRainPacket = new LevelEventPacket();
-            stopRainPacket.setType(LevelEvent.STOP_RAINING);
-            stopRainPacket.setData(0);
-            stopRainPacket.setPosition(Vector3f.ZERO);
-            session.sendUpstreamPacket(stopRainPacket);
-            session.setRaining(false);
+            session.updateRain(0);
         }
 
         if (session.isThunder()) {
-            LevelEventPacket stopThunderPacket = new LevelEventPacket();
-            stopThunderPacket.setType(LevelEvent.STOP_THUNDERSTORM);
-            stopThunderPacket.setData(0);
-            stopThunderPacket.setPosition(Vector3f.ZERO);
-            session.sendUpstreamPacket(stopThunderPacket);
-            session.setThunder(false);
+            session.updateThunder(0);
         }
 
-        String newDimension = spawnInfo.getDimension();
-        if (!session.getDimension().equals(newDimension) || !spawnInfo.getWorldName().equals(session.getWorldName())) {
+        JavaDimension newDimension = session.getRegistryCache().registry(JavaRegistries.DIMENSION_TYPE).byId(spawnInfo.getDimension());
+        if (session.getDimensionType() != newDimension || !spawnInfo.getWorldName().equals(session.getWorldName())) {
             // Switching to a new world (based off the world name change or new dimension); send a fake dimension change
-            if (DimensionUtils.javaToBedrock(session.getDimension()) == DimensionUtils.javaToBedrock(newDimension)) {
-                String fakeDim = DimensionUtils.getTemporaryDimension(session.getDimension(), newDimension);
-                DimensionUtils.switchDimension(session, fakeDim);
+            if (session.getDimensionType().bedrockId() == newDimension.bedrockId()) {
+                int fakeDim = DimensionUtils.getTemporaryDimension(session.getDimensionType().bedrockId(), newDimension.bedrockId());
+                DimensionUtils.fastSwitchDimension(session, fakeDim);
             }
             session.setWorldName(spawnInfo.getWorldName());
+            session.setWorldTicks(0);
             DimensionUtils.switchDimension(session, newDimension);
 
             ChunkUtils.loadDimension(session);
         }
+
+        session.sendDownstreamGamePacket(ServerboundPlayerLoadedPacket.INSTANCE);
     }
 }

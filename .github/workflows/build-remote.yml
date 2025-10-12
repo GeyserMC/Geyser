@@ -1,0 +1,47 @@
+name: Build Remote
+
+on:
+  workflow_call:
+    inputs:
+      repository:
+        required: true
+        description: 'The repo of the remote'
+        type: string
+      ref:
+        required: true
+        description: 'The ref of the remote'
+        type: string
+
+permissions: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set Build Number
+        run: |
+          echo "BUILD_NUMBER=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+
+      - name: Setup Gradle
+        uses: GeyserMC/actions/setup-gradle-composite@master
+        with:
+          checkout_repository: ${{ inputs.repository }}
+          checkout_ref: ${{ inputs.ref }}
+          setup-java_java-version: 21
+          setup-gradle_cache-read-only: true
+
+      - name: Build Geyser
+        run: ./gradlew build
+
+      - name: Archive Artifacts
+        uses: GeyserMC/actions/upload-multi-artifact@master
+        if: success()
+        with:
+          artifacts: |
+            bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
+            bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
+            bootstrap/standalone/build/libs/Geyser-Standalone.jar
+            bootstrap/spigot/build/libs/Geyser-Spigot.jar
+            bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
+            bootstrap/velocity/build/libs/Geyser-Velocity.jar
+            bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar

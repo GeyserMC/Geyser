@@ -40,6 +40,7 @@ import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -85,7 +86,7 @@ public class NewsHandler {
                     logger.error("Error while reading news item", e);
                 }
             }
-        } catch (JsonSyntaxException ignored) {}
+        } catch (IOException | JsonSyntaxException ignored) {}
     }
 
     public void handleNews(GeyserSession session, NewsItemAction action) {

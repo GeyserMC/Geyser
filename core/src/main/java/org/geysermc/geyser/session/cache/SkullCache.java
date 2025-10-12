@@ -25,22 +25,25 @@
 
 package org.geysermc.geyser.session.cache;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
-import org.geysermc.geyser.level.block.BlockStateValues;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.WallSkullBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
+import org.geysermc.mcprotocollib.auth.GameProfile;
 
 import java.io.IOException;
 import java.util.*;
@@ -48,27 +51,19 @@ import java.util.*;
 public class SkullCache {
     private final int maxVisibleSkulls;
     private final boolean cullingEnabled;
-    
+
     private final int skullRenderDistanceSquared;
-    
-    /**
-     * The time in milliseconds before unused skull entities are despawned
-     */
-    private static final long CLEANUP_PERIOD = 10000;
 
     @Getter
     private final Map<Vector3i, Skull> skulls = new Object2ObjectOpenHashMap<>();
 
     private final List<Skull> inRangeSkulls = new ArrayList<>();
 
-    private final Deque<SkullPlayerEntity> unusedSkullEntities = new ArrayDeque<>();
     private int totalSkullEntities = 0;
 
     private final GeyserSession session;
 
     private Vector3f lastPlayerPosition;
-
-    private long lastCleanup = System.currentTimeMillis();
 
     public SkullCache(GeyserSession session) {
         this.session = session;
@@ -80,7 +75,15 @@ public class SkullCache {
         this.skullRenderDistanceSquared = distance * distance;
     }
 
-    public Skull putSkull(Vector3i position, UUID uuid, String texturesProperty, int blockState) {
+    public Skull putSkull(Vector3i position, GameProfile resolved, BlockState blockState) {
+        GameProfile.Property textures = resolved.getProperty("textures");
+        if (textures != null) {
+            return putSkull(position, resolved.getId(), textures.getValue(), blockState);
+        }
+        return null;
+    }
+
+    public Skull putSkull(Vector3i position, UUID uuid, String texturesProperty, BlockState blockState) {
         Skull skull = skulls.computeIfAbsent(position, Skull::new);
         skull.uuid = uuid;
         if (!texturesProperty.equals(skull.texturesProperty)) {
@@ -147,7 +150,7 @@ public class SkullCache {
         }
     }
 
-    public Skull updateSkull(Vector3i position, int blockState) {
+    public Skull updateSkull(Vector3i position, BlockState blockState) {
         Skull skull = skulls.get(position);
         if (skull != null) {
             putSkull(position, skull.uuid, skull.texturesProperty, blockState);
@@ -186,43 +189,26 @@ public class SkullCache {
                 }
             }
         }
-
-        // Occasionally clean up unused entities as we want to keep skull
-        // entities around for later use, to reduce "player" pop-in
-        if ((System.currentTimeMillis() - lastCleanup) > CLEANUP_PERIOD) {
-            lastCleanup = System.currentTimeMillis();
-            for (SkullPlayerEntity entity : unusedSkullEntities) {
-                entity.despawnEntity();
-                totalSkullEntities--;
-            }
-            unusedSkullEntities.clear();
-        }
     }
 
     private void assignSkullEntity(Skull skull) {
         if (skull.entity != null) {
             return;
         }
-        if (unusedSkullEntities.isEmpty()) {
-            if (!cullingEnabled || totalSkullEntities < maxVisibleSkulls) {
-                // Create a new entity
-                long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
-                skull.entity = new SkullPlayerEntity(session, geyserId);
-                skull.entity.spawnEntity();
-                skull.entity.updateSkull(skull);
-                totalSkullEntities++;
-            }
-        } else {
-            // Reuse an entity
-            skull.entity = unusedSkullEntities.removeFirst();
+        if (!cullingEnabled || totalSkullEntities < maxVisibleSkulls) {
+            // Create a new entity
+            long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
+            skull.entity = new SkullPlayerEntity(session, geyserId);
+            skull.entity.spawnEntity();
             skull.entity.updateSkull(skull);
+            totalSkullEntities++;
         }
     }
 
     private void freeSkullEntity(Skull skull) {
         if (skull.entity != null) {
-            skull.entity.free();
-            unusedSkullEntities.addFirst(skull.entity);
+            skull.entity.despawnEntity();
+            totalSkullEntities--;
             skull.entity = null;
         }
     }
@@ -241,24 +227,25 @@ public class SkullCache {
     }
 
     public void clear() {
+        for (Skull skull : skulls.values()) {
+            if (skull.entity != null) {
+                skull.entity.despawnEntity();
+            }
+        }
         skulls.clear();
         inRangeSkulls.clear();
-        unusedSkullEntities.clear();
         totalSkullEntities = 0;
         lastPlayerPosition = null;
     }
 
-    private @Nullable BlockDefinition translateCustomSkull(String skinHash, int blockState) {
+    private @Nullable BlockDefinition translateCustomSkull(String skinHash, BlockState blockState) {
         CustomSkull customSkull = BlockRegistries.CUSTOM_SKULLS.get(skinHash);
         if (customSkull != null) {
-            byte floorRotation = BlockStateValues.getSkullRotation(blockState);
             CustomBlockState customBlockState;
-            if (floorRotation == -1) {
-                // Wall skull
-                int wallDirection = BlockStateValues.getSkullWallDirections().get(blockState);
-                customBlockState = customSkull.getWallBlockState(wallDirection);
+            if (blockState.block() instanceof WallSkullBlock) {
+                customBlockState = customSkull.getWallBlockState(WallSkullBlock.getDegrees(blockState));
             } else {
-                customBlockState = customSkull.getFloorBlockState(floorRotation);
+                customBlockState = customSkull.getFloorBlockState(blockState.getValue(Properties.ROTATION_16));
             }
 
             return session.getBlockMappings().getCustomBlockStateDefinitions().get(customBlockState);
@@ -273,7 +260,7 @@ public class SkullCache {
         private String texturesProperty;
         private String skinHash;
 
-        private int blockState;
+        private BlockState blockState;
         private BlockDefinition blockDefinition;
         private SkullPlayerEntity entity;
 

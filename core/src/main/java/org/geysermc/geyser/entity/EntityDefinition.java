@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.entity;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.MetadataType;
-import com.github.steveice10.mc.protocol.data.game.entity.type.EntityType;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -36,10 +33,16 @@ import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.entity.EntityIdentifier;
 import org.geysermc.geyser.entity.factory.EntityFactory;
+import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
+import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
+import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,10 +55,11 @@ import java.util.function.BiConsumer;
  * metadata translators needed to translate the properties sent from the server. The translators are structured in such
  * a way that inserting a new one (for example in version updates) is convenient.
  *
+ * @param identifier the Bedrock identifier of this entity
  * @param <T> the entity type this definition represents
  */
 public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, EntityType entityType, EntityIdentifier entityIdentifier,
-                                                 float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators, boolean custom) implements org.geysermc.geyser.api.entity.GeyserEntityDefinition {
+                                                 float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators, boolean custom) implements org.geysermc.geyser.api.entity.GeyserEntityDefinition {
 
     public static <T extends Entity> EntityDefinitionBuilder<T> inherited(EntityFactory<T> factory, EntityDefinition<? super T> parent) {
         return new EntityDefinitionBuilder<>(factory, parent.entityType, parent.entityIdentifier, parent.width, parent.height, parent.offset, new ObjectArrayList<>(parent.translators));
@@ -105,6 +109,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
         private float width;
         private float height;
         private float offset = 0.00001f;
+        private GeyserEntityProperties.Builder propertiesBuilder;
         private final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
         private final boolean custom;
 
@@ -190,6 +195,14 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             return this;
         }
 
+        public Builder<T> property(PropertyType<?, ?> propertyType) {
+            if (this.propertiesBuilder == null) {
+                this.propertiesBuilder = new GeyserEntityProperties.Builder(this.identifier);
+            }
+            propertiesBuilder.add(propertyType);
+            return this;
+        }
+
         public <U, EM extends EntityMetadata<U, ? extends MetadataType<U>>> EntityDefinitionBuilder<T> addTranslator(MetadataType<U> type, BiConsumer<T, EM> translateFunction) {
             translators.add(new EntityMetadataTranslator<>(type, translateFunction));
             return this;
@@ -216,11 +229,19 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             } else if (this.identifier != null && type == null) {
                 identifier = this.identifier.identifier();
             }
+            GeyserEntityProperties registeredProperties = propertiesBuilder == null ? null : propertiesBuilder.build();
+            EntityDefinition<T> definition = new EntityDefinition<>(factory, type, identifier, width, height, offset, registeredProperties, translators);
+            if (register && definition.entityType() != null) {
 
-            EntityDefinition<T> definition = new EntityDefinition<>(factory, type, this.identifier, width, height, offset, translators, custom);
-            if (register && identifier != null) {
-                EntityUtils.registerEntity(identifier, definition);
+                Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
+                Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent("minecraft:" + type.name().toLowerCase(Locale.ROOT), definition);
             }
+
+            // TODO
+            //EntityDefinition<T> definition = new EntityDefinition<>(factory, type, this.identifier, width, height, offset, translators, custom);
+            //if (register && identifier != null) {
+            //    EntityUtils.registerEntity(identifier, definition);
+            //}
 
             return definition;
         }

@@ -25,20 +25,19 @@
 
 package org.geysermc.geyser.inventory;
 
-import com.github.steveice10.mc.protocol.data.game.inventory.ContainerType;
-import com.github.steveice10.opennbt.tag.builtin.ByteTag;
-import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
-import com.github.steveice10.opennbt.tag.builtin.Tag;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.math.vector.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.item.ItemTranslator;
+import org.geysermc.geyser.translator.item.ItemTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.jetbrains.annotations.Range;
 
 import java.util.Arrays;
@@ -47,6 +46,10 @@ import java.util.Arrays;
 public abstract class Inventory {
     @Getter
     protected final int javaId;
+
+    @Setter
+    @Getter
+    private int bedrockId;
 
     /**
      * The Java inventory state ID from the server. As of Java Edition 1.18.1 this value has one instance per player.
@@ -57,7 +60,7 @@ public abstract class Inventory {
     @Setter
     private int stateId;
     /**
-     * See {@link org.geysermc.geyser.inventory.click.ClickPlan#execute(boolean)}; used as a hack
+     * See {@link ClickPlan#execute(boolean)}; used as a hack
      */
     @Getter
     private int nextStateId = -1;
@@ -77,43 +80,52 @@ public abstract class Inventory {
     protected final GeyserItemStack[] items;
 
     /**
-     * The location of the inventory block. Will either be a fake block above the player's head, or the actual block location
+     * The location of the inventory block. Will either be a fake block above the player's head, or the actual block location.
      */
     @Getter
     @Setter
     protected Vector3i holderPosition = Vector3i.ZERO;
 
+    /**
+     * The entity id of the entity holding the inventory.
+     * Either this, or the holder position must be set in order for Bedrock to open inventories.
+     */
     @Getter
     @Setter
     protected long holderId = -1;
 
+    /**
+     * Whether this inventory is currently shown to the Bedrock player.
+     */
     @Getter
     @Setter
-    private boolean pending = false;
+    private boolean displayed;
 
-    @Getter
-    @Setter
-    private boolean displayed = false;
-
-    protected Inventory(int id, int size, ContainerType containerType) {
-        this("Inventory", id, size, containerType);
+    protected Inventory(GeyserSession session, int id, int size, ContainerType containerType) {
+        this(session, "Inventory", id, size, containerType);
     }
 
-    protected Inventory(String title, int javaId, int size, ContainerType containerType) {
+    protected Inventory(GeyserSession session, String title, int javaId, int size, ContainerType containerType) {
         this.title = title;
         this.javaId = javaId;
         this.size = size;
         this.containerType = containerType;
         this.items = new GeyserItemStack[size];
         Arrays.fill(items, GeyserItemStack.EMPTY);
-    }
 
-    // This is to prevent conflicts with special bedrock inventory IDs.
-    // The vanilla java server only sends an ID between 1 and 100 when opening an inventory,
-    // so this is rarely needed. (certain plugins)
-    // Example: https://github.com/GeyserMC/Geyser/issues/3254
-    public int getBedrockId() {
-        return javaId <= 100 ? javaId : (javaId % 100) + 1;
+        // This is to prevent conflicts with special bedrock inventory IDs.
+        // The vanilla java server only sends an ID between 1 and 100 when opening an inventory,
+        // so this is rarely needed. (certain plugins)
+        // Example: https://github.com/GeyserMC/Geyser/issues/3254
+        this.bedrockId = javaId <= 100 ? javaId : (javaId % 100) + 1;
+
+        // We occasionally need to re-open inventories with a delay in cases where
+        // Java wouldn't - e.g. for virtual chest menus that switch pages.
+        // And, well, we want to avoid reusing Bedrock inventory id's that are currently being used in a closing inventory;
+        // so to be safe we just deviate in that case as well.
+        if ((session.getInventoryHolder() != null && session.getInventoryHolder().bedrockId() == bedrockId) || session.isClosingInventory()) {
+            this.bedrockId += 1;
+        }
     }
 
     public GeyserItemStack getItem(int slot) {
@@ -127,8 +139,8 @@ public abstract class Inventory {
     public abstract int getOffsetForHotbar(@Range(from = 0, to = 8) int slot);
 
     public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
-        if (slot > this.size) {
-            session.getGeyser().getLogger().debug("Tried to set an item out of bounds! " + this);
+        if (slot < 0 || slot >= this.size) {
+            session.getGeyser().getLogger().debug("Tried to set an item out of bounds (slot was " + slot + ")! " + this);
             return;
         }
         GeyserItemStack oldItem = items[slot];
@@ -136,26 +148,29 @@ public abstract class Inventory {
         items[slot] = newItem;
 
         // Lodestone caching
-        if (newItem.asItem() == Items.COMPASS) {
-            CompoundTag nbt = newItem.getNbt();
-            if (nbt != null) {
-                Tag lodestoneTag = nbt.get("LodestoneTracked");
-                if (lodestoneTag instanceof ByteTag) {
-                    session.getLodestoneCache().cacheInventoryItem(newItem);
-                }
+        if (newItem.is(Items.COMPASS)) {
+            var tracker = newItem.getComponent(DataComponentTypes.LODESTONE_TRACKER);
+            if (tracker != null) {
+                session.getLodestoneCache().cacheInventoryItem(newItem, tracker);
             }
         }
     }
 
-    protected void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
+    public static void updateItemNetId(GeyserItemStack oldItem, GeyserItemStack newItem, GeyserSession session) {
         if (!newItem.isEmpty()) {
             ItemDefinition oldMapping = ItemTranslator.getBedrockItemDefinition(session, oldItem);
             ItemDefinition newMapping = ItemTranslator.getBedrockItemDefinition(session, newItem);
             if (oldMapping.equals(newMapping)) {
                 newItem.setNetId(oldItem.getNetId());
+                newItem.mergeBundleData(session, oldItem.getBundleData());
             } else {
                 newItem.setNetId(session.getNextItemNetId());
+                session.getBundleCache().markNewBundle(newItem.getBundleData());
+                session.getBundleCache().onOldItemDelete(oldItem);
             }
+        } else {
+            // Empty item means no more bundle if one existed.
+            session.getBundleCache().onOldItemDelete(oldItem);
         }
     }
 
@@ -169,5 +184,13 @@ public abstract class Inventory {
 
     public void resetNextStateId() {
         nextStateId = -1;
+    }
+
+    /**
+     * Whether we should be sending a {@link org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket}
+     * when closing the inventory.
+     */
+    public boolean shouldConfirmContainerClose() {
+        return true;
     }
 }

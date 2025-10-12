@@ -28,6 +28,8 @@ package org.geysermc.geyser.translator.sound.block;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
@@ -36,12 +38,11 @@ import org.geysermc.geyser.translator.sound.SoundTranslator;
 public class ComparatorSoundInteractionTranslator implements BlockSoundInteractionTranslator {
 
     @Override
-    public void translate(GeyserSession session, Vector3f position, String identifier) {
-        boolean powered = identifier.contains("mode=compare");
+    public void translate(GeyserSession session, Vector3f position, BlockState state) {
         LevelEventPacket levelEventPacket = new LevelEventPacket();
         levelEventPacket.setPosition(position);
         levelEventPacket.setType(LevelEvent.SOUND_CLICK); //TODO: New ID?
-        levelEventPacket.setData(powered ? 500 : 550);
+        levelEventPacket.setData(state.getValue(Properties.MODE_COMPARATOR).equals("compare") ? 500 : 550);
         session.sendUpstreamPacket(levelEventPacket);
     }
 }

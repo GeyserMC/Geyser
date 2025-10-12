@@ -25,14 +25,14 @@
 
 package org.geysermc.geyser.entity.type.living.animal;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import com.google.common.collect.ImmutableList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import it.unimi.dsi.fastutil.ints.IntList;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.living.AbstractFishEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
 import java.util.List;
 import java.util.UUID;
@@ -59,6 +59,10 @@ public class TropicalFishEntity extends AbstractFishEntity {
         dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, getPattern(varNumber)); // Pattern 0-5
         dirtyMetadata.put(EntityDataTypes.COLOR, getBaseColor(varNumber)); // Base color 0-15
         dirtyMetadata.put(EntityDataTypes.COLOR_2, getPatternColor(varNumber)); // Pattern color 0-15
+    }
+
+    public static int getPackedVariant(int pattern, int baseColor, int patternColor) {
+        return pattern & 65535 | (baseColor & 0xFF) << 16 | (patternColor & 0xFF) << 24;
     }
 
     public static int getShape(int variant) {

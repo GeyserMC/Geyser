@@ -25,23 +25,26 @@
 
 package org.geysermc.geyser.entity.type;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.AddPaintingPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.PaintingVariant;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 
 import java.util.UUID;
 
-public class PaintingEntity extends Entity {
+public class PaintingEntity extends HangingEntity {
     private static final double OFFSET = -0.46875;
-    private final Direction direction;
+    private int paintingId = -1; // Ideally this would be the default painting Java uses in their metadata, but seems to depend on the current paintings loaded in the registry
+    private Direction direction = Direction.SOUTH; // Default to SOUTH direction, like on Java - entity metadata should correct this when necessary
 
-    public PaintingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw, Direction direction) {
+    public PaintingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
-        this.direction = direction;
     }
 
     @Override
@@ -49,8 +52,32 @@ public class PaintingEntity extends Entity {
         // Wait until we get the metadata needed
     }
 
-    public void setPaintingType(ObjectEntityMetadata<com.github.steveice10.mc.protocol.data.game.entity.type.PaintingType> entityMetadata) {
-        PaintingType type = PaintingType.getByPaintingType(entityMetadata.getValue());
+    @Override
+    public void setDirection(Direction direction) {
+        this.direction = direction;
+        updatePainting();
+    }
+
+    public void setPaintingType(ObjectEntityMetadata<Holder<PaintingVariant>> entityMetadata) {
+        if (!entityMetadata.getValue().isId()) {
+            return;
+        }
+        paintingId = entityMetadata.getValue().id();
+        updatePainting();
+    }
+
+    private void updatePainting() {
+        if (paintingId == -1) {
+            return;
+        } else if (valid) {
+            despawnEntity();
+        }
+
+        PaintingType type = session.getRegistryCache().registry(JavaRegistries.PAINTING_VARIANT).byId(paintingId);
+        if (type == null) {
+            return;
+        }
+
         AddPaintingPacket addPaintingPacket = new AddPaintingPacket();
         addPaintingPacket.setUniqueEntityId(geyserId);
         addPaintingPacket.setRuntimeEntityId(geyserId);
@@ -78,8 +105,12 @@ public class PaintingEntity extends Entity {
 
     private Vector3f fixOffset(PaintingType paintingName) {
         Vector3f position = super.position;
-        position = position.add(0.5, 0.5, 0.5);
-        double widthOffset = paintingName.getWidth() > 1 ? 0.5 : 0;
+        // ViaVersion already adds the offset for us on older versions,
+        // so no need to do it then otherwise it will be spaced
+        if (session.isEmulatePost1_18Logic()) {
+            position = position.add(0.5, 0.5, 0.5);
+        }
+        double widthOffset = paintingName.getWidth() > 1 && paintingName.getWidth() != 3 ? 0.5 : 0;
         double heightOffset = paintingName.getHeight() > 1 && paintingName.getHeight() != 3 ? 0.5 : 0;
 
         return switch (direction) {

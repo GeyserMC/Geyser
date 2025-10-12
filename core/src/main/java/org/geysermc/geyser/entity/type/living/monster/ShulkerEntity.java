@@ -25,15 +25,15 @@
 
 package org.geysermc.geyser.entity.type.living.monster;
 
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.EntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import com.github.steveice10.mc.protocol.data.game.entity.object.Direction;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.living.GolemEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 
 import java.util.UUID;
 
@@ -52,6 +52,12 @@ public class ShulkerEntity extends GolemEntity {
         // As of 1.19.4, it seems Java no longer sends the shulker color if it's the default color on initial spawn
         // We still need the special case for 16 color in setShulkerColor though as it will send it for an entity metadata update
         dirtyMetadata.put(EntityDataTypes.VARIANT, 16);
+
+        setFlag(EntityFlag.COLLIDABLE, true);
+
+        // This is vanilla behaviour yes (BDS does this), without this as of 1.21.93 entity became fully invisible.
+        // Doing this allow the invisible parity support inside GeyserOptionalPack to works again.
+        setFlag(EntityFlag.RENDER_WHEN_INVISIBLE, true);
     }
 
     public void setAttachedFace(EntityMetadata<Direction, ?> entityMetadata) {

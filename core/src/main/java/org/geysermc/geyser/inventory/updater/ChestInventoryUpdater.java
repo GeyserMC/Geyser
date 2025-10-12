@@ -25,10 +25,10 @@
 
 package org.geysermc.geyser.inventory.updater;
 
+import lombok.AllArgsConstructor;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
-import lombok.AllArgsConstructor;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -46,7 +46,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
     private final int paddedSize;
 
     @Override
-    public void updateInventory(InventoryTranslator translator, GeyserSession session, Inventory inventory) {
+    public void updateInventory(InventoryTranslator<?> translator, GeyserSession session, Inventory inventory) {
         super.updateInventory(translator, session, inventory);
 
         List<ItemData> bedrockItems = new ArrayList<>(paddedSize);
@@ -65,7 +65,7 @@ public class ChestInventoryUpdater extends InventoryUpdater {
     }
 
     @Override
-    public boolean updateSlot(InventoryTranslator translator, GeyserSession session, Inventory inventory, int javaSlot) {
+    public boolean updateSlot(InventoryTranslator<?> translator, GeyserSession session, Inventory inventory, int javaSlot) {
         if (super.updateSlot(translator, session, inventory, javaSlot))
             return true;
 

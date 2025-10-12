@@ -28,14 +28,40 @@ package org.geysermc.geyser.platform.standalone;
 import lombok.extern.slf4j.Slf4j;
 import net.minecrell.terminalconsole.SimpleTerminalConsole;
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.io.IoBuilder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.ChatColor;
+import org.jline.reader.Candidate;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
 
 @Slf4j
 public class GeyserStandaloneLogger extends SimpleTerminalConsole implements GeyserLogger, GeyserCommandSource {
+    private static final Logger logger = LogManager.getLogger("GeyserConsole");
+
+    /**
+     * Sets up {@code System.out} and {@code System.err} to redirect to log4j.
+     */
+    public static void setupStreams() {
+        System.setOut(IoBuilder.forLogger(logger).setLevel(Level.INFO).buildPrintStream());
+        System.setErr(IoBuilder.forLogger(logger).setLevel(Level.ERROR).buildPrintStream());
+    }
+
+    @Override
+    protected LineReader buildReader(LineReaderBuilder builder) {
+        builder.completer((reader, line, candidates) -> {
+            var suggestions = GeyserImpl.getInstance().commandRegistry().suggestionsFor(this, line.line());
+            for (var suggestion : suggestions.list()) {
+                candidates.add(new Candidate(suggestion.suggestion()));
+            }
+        });
+        return super.buildReader(builder);
+    }
 
     @Override
     protected boolean isRunning() {
@@ -44,7 +70,9 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
 
     @Override
     protected void runCommand(String line) {
-        GeyserImpl.getInstance().commandManager().runCommand(this, line);
+        // don't block the terminal!
+        GeyserImpl geyser = GeyserImpl.getInstance();
+        geyser.getScheduledThread().execute(() -> geyser.commandRegistry().runCommand(this, line));
     }
 
     @Override
@@ -85,6 +113,12 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
     @Override
     public void debug(String message) {
         log.debug(ChatColor.GRAY + message);
+    }
+
+    @Override
+    public void debug(String message, Object... arguments) {
+        // We can't use the debug call that would format for us as we're using Java's string formatting
+        log.debug(ChatColor.GRAY + String.format(message, arguments));
     }
 
     @Override

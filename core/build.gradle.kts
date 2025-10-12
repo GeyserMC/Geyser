@@ -1,11 +1,16 @@
-import net.kyori.blossom.BlossomExtension
-
 plugins {
+    // Allow blossom to mark sources root of templates
+    idea
     alias(libs.plugins.blossom)
     id("geyser.publish-conventions")
+    id("io.freefair.lombok")
 }
 
 dependencies {
+    constraints {
+        implementation(libs.raknet) // Ensure protocol does not override the RakNet version
+    }
+
     api(projects.common)
     api(projects.api)
 
@@ -20,32 +25,34 @@ dependencies {
     implementation(libs.websocket)
 
     api(libs.bundles.protocol)
-    implementation(libs.blockstateupdater)
 
-    api(libs.mcauthlib)
+    api(libs.minecraftauth)
     api(libs.mcprotocollib) {
         exclude("io.netty", "netty-all")
-        exclude("com.github.GeyserMC", "packetlib")
-        exclude("com.github.GeyserMC", "mcauthlib")
+        exclude("net.raphimc", "MinecraftAuth")
     }
 
     implementation(libs.raknet) {
         exclude("io.netty", "*")
     }
 
-    implementation(libs.netty.resolver.dns)
-    implementation(libs.netty.resolver.dns.native.macos) { artifact { classifier = "osx-x86_64" } }
-    implementation(libs.netty.codec.haproxy)
 
     // Network dependencies we are updating ourselves
     api(libs.netty.handler)
+    implementation(libs.netty.codec.haproxy)
 
-    implementation(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }
+    api(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }
     implementation(libs.netty.transport.native.epoll) { artifact { classifier = "linux-aarch_64" } }
+    // kqueue is macos only
     implementation(libs.netty.transport.native.kqueue) { artifact { classifier = "osx-x86_64" } }
+    api(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-x86_64" } }
+    implementation(libs.netty.transport.native.io.uring) { artifact { classifier = "linux-aarch_64" } }
 
     // Adventure text serialization
     api(libs.bundles.adventure)
+
+    // command library
+    api(libs.cloud.core)
 
     api(libs.erosion.common) {
         isTransitive = false
@@ -53,6 +60,7 @@ dependencies {
 
     // Test
     testImplementation(libs.junit)
+    testImplementation(libs.mockito)
 
     // Annotation Processors
     compileOnly(projects.ap)
@@ -60,11 +68,6 @@ dependencies {
     annotationProcessor(projects.ap)
 
     api(libs.events)
-}
-
-configurations.api {
-    // This is still experimental - additionally, it could only really benefit standalone
-    exclude(group = "io.netty.incubator", module = "netty-incubator-transport-native-io_uring")
 }
 
 tasks.processResources {
@@ -75,7 +78,7 @@ tasks.processResources {
         expand(
             "branch" to info.branch,
             "buildNumber" to info.buildNumber,
-            "projectVersion" to project.version,
+            "projectVersion" to info.version,
             "commit" to info.commit,
             "commitAbbrev" to info.commitAbbrev,
             "commitMessage" to info.commitMessage,
@@ -84,20 +87,26 @@ tasks.processResources {
     }
 }
 
-configure<BlossomExtension> {
-    val mainFile = "src/main/java/org/geysermc/geyser/GeyserImpl.java"
-    val info = GitInfo()
-
-    replaceToken("\${version}", "${project.version} (${info.gitVersion})", mainFile)
-    replaceToken("\${gitVersion}", info.gitVersion, mainFile)
-    replaceToken("\${buildNumber}", info.buildNumber, mainFile)
-    replaceToken("\${branch}", info.branch, mainFile)
-    replaceToken("\${commit}", info.commit, mainFile)
-    replaceToken("\${repository}", info.repository, mainFile)
+sourceSets {
+    main {
+        blossom {
+            val info = GitInfo()
+            javaSources {
+                property("version", info.version)
+                property("gitVersion", info.gitVersion)
+                property("buildNumber", info.buildNumber.toString())
+                property("branch", info.branch)
+                property("commit", info.commit)
+                property("repository", info.repository)
+                property("devVersion", info.isDev.toString())
+            }
+        }
+    }
 }
 
-fun Project.buildNumber(): Int =
-    (System.getenv("GITHUB_RUN_NUMBER") ?: jenkinsBuildNumber())?.let { Integer.parseInt(it) } ?: -1
+fun isDevBuild(branch: String, repository: String): Boolean {
+    return branch != "master" || repository.equals("https://github.com/GeyserMC/Geyser", ignoreCase = true).not()
+}
 
 inner class GitInfo {
     val branch: String
@@ -111,27 +120,27 @@ inner class GitInfo {
     val commitMessage: String
     val repository: String
 
+    val isDev: Boolean
+
     init {
-        // On Jenkins, a detached head is checked out, so indra cannot determine the branch.
-        // Fortunately, this environment variable is available.
-        branch = indraGit.branchName() ?: System.getenv("BRANCH_NAME") ?: "DEV"
+        branch = indraGit.branchName() ?: "DEV"
 
         val commit = indraGit.commit()
         this.commit = commit?.name ?: "0".repeat(40)
         commitAbbrev = commit?.name?.substring(0, 7) ?: "0".repeat(7)
 
         gitVersion = "git-${branch}-${commitAbbrev}"
-        version = "${project.version} ($gitVersion)"
-        buildNumber = buildNumber()
 
         val git = indraGit.git()
         commitMessage = git?.commit()?.message ?: ""
         repository = git?.repository?.config?.getString("remote", "origin", "url") ?: ""
+
+        buildNumber = buildNumber()
+        isDev = isDevBuild(branch, repository)
+        val projectVersion = if (isDev) project.version else projectVersion(project)
+        version = "$projectVersion ($gitVersion)"
     }
 }
-
-// todo remove this when we're not using Jenkins anymore
-fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")
 
 // Manual task to download the bedrock data files from the CloudburstMC/Data repository
 // Invoke with ./gradlew :core:downloadBedrockData --suffix=1_20_70
@@ -139,10 +148,10 @@ fun jenkinsBuildNumber(): String? = System.getenv("BUILD_NUMBER")
 tasks.register<DownloadFilesTask>("downloadBedrockData") {
     urls = listOf(
         "https://raw.githubusercontent.com/CloudburstMC/Data/master/entity_identifiers.dat",
-        "https://raw.githubusercontent.com/CloudburstMC/Data/master/biome_definitions.dat",
         "https://raw.githubusercontent.com/CloudburstMC/Data/master/block_palette.nbt",
         "https://raw.githubusercontent.com/CloudburstMC/Data/master/creative_items.json",
-        "https://raw.githubusercontent.com/CloudburstMC/Data/master/runtime_item_states.json"
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/runtime_item_states.json",
+        "https://raw.githubusercontent.com/CloudburstMC/Data/master/stripped_biome_definitions.json"
     )
     suffixedFiles = listOf("block_palette.nbt", "creative_items.json", "runtime_item_states.json")
 

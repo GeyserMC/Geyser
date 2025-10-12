@@ -39,8 +39,8 @@ bedrock:
   # A list of allowed PROXY protocol speaking proxy IP addresses/subnets. Only effective when "enable-proxy-protocol" is enabled, and
   # should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
   # Keeping this list empty means there is no IP address whitelist.
-  # Both IP addresses and subnets are supported.
-  #proxy-protocol-whitelisted-ips: [ "127.0.0.1", "172.18.0.0/16" ]
+  # IP addresses, subnets, and links to plain text files are supported.
+  #proxy-protocol-whitelisted-ips: [ "127.0.0.1", "172.18.0.0/16", "https://example.com/whitelist.txt" ]
 remote:
   # The IP address of the remote (Java Edition) server
   # If it is "auto", for standalone version the remote address will be set to 127.0.0.1,
@@ -54,9 +54,6 @@ remote:
   # For plugin versions, it's recommended to keep the `address` field to "auto" so Floodgate support is automatically configured.
   # If Floodgate is installed and `address:` is set to "auto", then "auth-type: floodgate" will automatically be used.
   auth-type: online
-  # Allow for password-based authentication methods through Geyser. Only useful in online mode.
-  # If this is false, users must authenticate to Microsoft using a code provided by Geyser on their desktop.
-  allow-password-authentication: true
   # Whether to enable PROXY protocol or not while connecting to the server.
   # This is useful only when:
   # 1) Your server supports PROXY protocol (it probably doesn't)
@@ -113,14 +110,6 @@ max-players: 100
 # If debug messages should be sent through console
 debug-mode: false
 
-# Allow third party capes to be visible. Currently allowing:
-# OptiFine capes, LabyMod capes, 5Zig capes and MinecraftCapes
-allow-third-party-capes: false
-
-# Allow third party deadmau5 ears to be visible. Currently allowing:
-# MinecraftCapes
-allow-third-party-ears: false
-
 # Allow a fake cooldown indicator to be sent. Bedrock players otherwise do not see a cooldown as they still use 1.8 combat.
 # Please note: if the cooldown is enabled, some users may see a black box during the cooldown sequence, like below:
 # https://cdn.discordapp.com/attachments/613170125696270357/957075682230419466/Screenshot_from_2022-03-25_20-35-08.png
@@ -176,7 +165,6 @@ above-bedrock-nether-building: false
 force-resource-packs: true
 
 # Allows Xbox achievements to be unlocked.
-# THIS DISABLES ALL COMMANDS FROM SUCCESSFULLY RUNNING FOR BEDROCK IN-GAME, as otherwise Bedrock thinks you are cheating.
 xbox-achievements-enabled: false
 
 # Whether player IP addresses will be logged by the server.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,41 +26,60 @@
 package org.geysermc.geyser.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
+import java.util.zip.ZipFile;
 
 public class WebUtils {
+
+    private static final Path REMOTE_PACK_CACHE = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
 
     /**
      * Makes a web request to the given URL and returns the body as a string
      *
      * @param reqURL URL to fetch
-     * @return Body contents or error message if the request fails
+     * @return body content or
+     * @throws IOException / a wrapped UnknownHostException for nicer errors.
      */
-    public static String getBody(String reqURL) {
+    public static String getBody(String reqURL) throws IOException {
         try {
             URL url = new URL(reqURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
-            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION); // Otherwise Java 8 fails on checking updates
+            con.setRequestProperty("User-Agent", getUserAgent()); // Otherwise Java 8 fails on checking updates
             con.setConnectTimeout(10000);
             con.setReadTimeout(10000);
 
             return connectionToString(con);
-        } catch (Exception e) {
-            return e.getMessage();
+        } catch (UnknownHostException e) {
+            throw new IllegalStateException("Unable to resolve requested url (%s)! Are you offline?".formatted(reqURL), e);
         }
     }
 
@@ -72,7 +91,7 @@ public class WebUtils {
      */
     public static JsonNode getJson(String reqURL) throws IOException {
         HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
-        con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setRequestProperty("User-Agent", getUserAgent());
         con.setConnectTimeout(10000);
         con.setReadTimeout(10000);
         return GeyserImpl.JSON_MAPPER.readTree(con.getInputStream());
@@ -87,13 +106,145 @@ public class WebUtils {
     public static void downloadFile(String reqURL, String fileLocation) {
         try {
             HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
-            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+            con.setRequestProperty("User-Agent", getUserAgent());
             InputStream in = con.getInputStream();
             Files.copy(in, Paths.get(fileLocation), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
             throw new RuntimeException("Unable to download and save file: " + fileLocation + " (" + reqURL + ")", e);
         }
     }
+
+    /**
+     * Checks a remote pack URL to see if it is valid
+     * If it is, it will download the pack file and return a path to it
+     *
+     * @param url The URL to check
+     * @param force If true, the pack will be downloaded even if it is cached to a separate location.
+     * @return Path to the downloaded pack file, or null if it was unable to be loaded
+     */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static @NonNull Path downloadRemotePack(String url, boolean force) throws IOException {
+        GeyserLogger logger = GeyserImpl.getInstance().getLogger();
+        try {
+            HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(10000);
+            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().platformName() + "/" + GeyserImpl.VERSION);
+            con.setInstanceFollowRedirects(true);
+
+            int responseCode = con.getResponseCode();
+            if (responseCode >= 400) {
+                throw new IllegalStateException(String.format("Invalid response code from remote pack at URL: %s (code: %d)", url, responseCode));
+            }
+
+            int size = con.getContentLength();
+            String type = con.getContentType();
+
+            if (size <= 0) {
+                throw new IllegalArgumentException(String.format("Invalid content length received from remote pack at URL: %s (size: %d)", url, size));
+            }
+
+            if (type == null || !type.equals("application/zip")) {
+                throw new IllegalArgumentException(String.format("Url %s tries to provide a resource pack using the %s content type, which is not supported by Bedrock edition! " +
+                    "Bedrock Edition only supports the application/zip content type.", url, type));
+            }
+
+            // Ensure remote pack cache dir exists
+            Files.createDirectories(REMOTE_PACK_CACHE);
+
+            Path packMetadata = REMOTE_PACK_CACHE.resolve(url.hashCode() + ".metadata");
+            Path downloadLocation;
+
+            // If we downloaded this pack before, reuse it if the ETag matches.
+            if (Files.exists(packMetadata) && !force) {
+                try {
+                    List<String> metadata = Files.readAllLines(packMetadata, StandardCharsets.UTF_8);
+                    int cachedSize = Integer.parseInt(metadata.get(0));
+                    String cachedEtag = metadata.get(1);
+                    long cachedLastModified = Long.parseLong(metadata.get(2));
+                    downloadLocation = REMOTE_PACK_CACHE.resolve(metadata.get(3));
+
+                    if (cachedSize == size &&
+                            cachedEtag.equals(con.getHeaderField("ETag")) &&
+                            cachedLastModified == con.getLastModified() &&
+                            downloadLocation.toFile().exists()) {
+                        logger.debug("Using cached pack (%s) for %s.".formatted(downloadLocation.getFileName(), url));
+                        downloadLocation.toFile().setLastModified(System.currentTimeMillis());
+                        packMetadata.toFile().setLastModified(System.currentTimeMillis());
+                        return downloadLocation;
+                    } else {
+                        logger.debug("Deleting cached pack/metadata (%s) as it appears to have changed!".formatted(url));
+                        Files.deleteIfExists(packMetadata);
+                        Files.deleteIfExists(downloadLocation);
+                    }
+                } catch (IOException e) {
+                    GeyserImpl.getInstance().getLogger().error("Failed to read cached pack metadata! " + e);
+                    packMetadata.toFile().deleteOnExit();
+                }
+            }
+
+            downloadLocation = REMOTE_PACK_CACHE.resolve(url.hashCode() + "_" + System.currentTimeMillis() + ".zip");
+            Files.copy(con.getInputStream(), downloadLocation, StandardCopyOption.REPLACE_EXISTING);
+
+            // This needs to match as the client fails to download the pack otherwise
+            long downloadSize = Files.size(downloadLocation);
+            if (downloadSize != size) {
+                Files.delete(downloadLocation);
+                throw new IllegalStateException("Size mismatch with resource pack at url: %s. Downloaded pack has %s bytes, expected %s bytes!"
+                        .formatted(url, downloadSize, size));
+            }
+
+            try {
+                boolean shouldDeleteEnclosing = false;
+                var originalZip = downloadLocation;
+                try (ZipFile zip = new ZipFile(downloadLocation.toFile())) {
+                    // This can (or should???) contain a zip
+                    if (zip.stream().allMatch(name -> name.getName().endsWith(".zip"))) {
+                        // Unzip the pack, as that's what we're after
+                        downloadLocation = REMOTE_PACK_CACHE.resolve(url.hashCode() + "_" + System.currentTimeMillis() + "_unzipped.zip");
+                        Files.copy(zip.getInputStream(zip.entries().nextElement()), downloadLocation, StandardCopyOption.REPLACE_EXISTING);
+                        shouldDeleteEnclosing = true;
+                    }
+                } finally {
+                    if (shouldDeleteEnclosing) {
+                        // We don't need the original zip anymore
+                        Files.delete(originalZip);
+                    }
+                }
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Encountered exception while reading downloaded resource pack at url: %s".formatted(url), e);
+            }
+
+            try {
+                Files.write(
+                        packMetadata,
+                        Arrays.asList(
+                                String.valueOf(size),
+                                con.getHeaderField("ETag"),
+                                String.valueOf(con.getLastModified()),
+                                downloadLocation.getFileName().toString()
+                        ),
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.TRUNCATE_EXISTING);
+                packMetadata.toFile().setLastModified(System.currentTimeMillis());
+            } catch (IOException e) {
+                Files.delete(packMetadata);
+                Files.delete(downloadLocation);
+                throw new IllegalStateException("Failed to write cached pack metadata: " + e.getMessage());
+            }
+
+            downloadLocation.toFile().setLastModified(System.currentTimeMillis());
+            logger.debug("Successfully downloaded remote pack! URL: %s (to: %s )".formatted(url, downloadLocation));
+            return downloadLocation;
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Unable to download resource pack from malformed URL %s".formatted(url));
+        } catch (SocketTimeoutException | ConnectException e) {
+            logger.debug(e);
+            throw new IllegalArgumentException("Unable to download pack from url %s due to network error ( %s )".formatted(url, e.toString()));
+        }
+    }
+
 
     /**
      * Post a string to the given URL
@@ -108,7 +259,7 @@ public class WebUtils {
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "text/plain");
-        con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setRequestProperty("User-Agent", getUserAgent());
         con.setDoOutput(true);
 
         OutputStream out = con.getOutputStream();
@@ -163,7 +314,7 @@ public class WebUtils {
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().toString() + "/" + GeyserImpl.VERSION);
+        con.setRequestProperty("User-Agent", getUserAgent());
         con.setDoOutput(true);
 
         try (OutputStream out = con.getOutputStream()) {
@@ -176,6 +327,13 @@ public class WebUtils {
         return connectionToString(con);
     }
 
+    /**
+     * Find a SRV record for the given address
+     *
+     * @param geyser Geyser instance
+     * @param remoteAddress Address to find the SRV record for
+     * @return The SRV record or null if not found
+     */
     public static String @Nullable [] findSrvRecord(GeyserImpl geyser, String remoteAddress) {
         try {
             // Searches for a server address and a port from a SRV record of the specified host name
@@ -192,5 +350,31 @@ public class WebUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * Get a stream of lines from the given URL
+     *
+     * @param reqURL URL to fetch
+     * @return Stream of lines from the URL or an empty stream if the request fails
+     */
+    public static Stream<String> getLineStream(String reqURL) {
+        try {
+            URL url = new URL(reqURL);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", getUserAgent()); // Otherwise Java 8 fails on checking updates
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(10000);
+
+            return connectionToString(con).lines();
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().error("Error while trying to get a stream from " + reqURL, e);
+            return Stream.empty();
+        }
+    }
+
+    public static String getUserAgent() {
+        return "Geyser-" + GeyserImpl.getInstance().getPlatformType().platformName() + "/" + GeyserImpl.VERSION;
     }
 }
