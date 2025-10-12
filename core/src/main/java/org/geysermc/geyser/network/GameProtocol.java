@@ -174,7 +174,7 @@ public final class GameProtocol {
      * @return the supported Minecraft: Java Edition version
      */
     public static String getJavaMinecraftVersion() {
-        return "1.21.9";
+        return "1.21.10";
     }
 
     /**
