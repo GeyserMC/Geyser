@@ -80,7 +80,7 @@ public class ConnectionTestCommand extends GeyserCommand {
 
         // Replace "<" and ">" symbols if they are present to avoid the common issue of people including them
         final String ip = ipArgument.replace("<", "").replace(">", "");
-        final int port = portArgument != null ? portArgument : geyser.config().bedrock().broadcastPort(); // default bedrock port
+        final int port = portArgument != null ? portArgument : geyser.config().advanced().bedrock().broadcastPort(); // default bedrock port
 
         // Issue: people commonly checking placeholders
         if (ip.equals("ip")) {
@@ -109,7 +109,7 @@ public class ConnectionTestCommand extends GeyserCommand {
         GeyserConfig config = geyser.config();
 
         // Issue: do the ports not line up? We only check this if players don't override the broadcast port - if they do, they (hopefully) know what they're doing
-        if (config.bedrock().broadcastPort() == config.bedrock().port()) {
+        if (config.advanced().bedrock().broadcastPort() == config.bedrock().port()) {
             if (port != config.bedrock().port()) {
                 if (portArgument != null) {
                     source.sendMessage("The port you are testing with (" + port + ") is not the same as you set in your Geyser configuration ("
@@ -126,9 +126,9 @@ public class ConnectionTestCommand extends GeyserCommand {
                 }
             }
         } else {
-            if (config.bedrock().broadcastPort() != port) {
+            if (config.advanced().bedrock().broadcastPort() != port) {
                 source.sendMessage("The port you are testing with (" + port + ") is not the same as the broadcast port set in your Geyser configuration ("
-                        + config.bedrock().broadcastPort() + "). ");
+                        + config.advanced().bedrock().broadcastPort() + "). ");
                 source.sendMessage("You ONLY need to change the broadcast port if clients connects with a port different from the port Geyser is running on.");
                 source.sendMessage("Re-run the command with the port in the config, or change the `bedrock` `broadcast-port` in the config.");
             }
@@ -140,7 +140,7 @@ public class ConnectionTestCommand extends GeyserCommand {
         }
 
         // Issue: did someone turn on enable-proxy-protocol, and they didn't mean it?
-        if (config.bedrock().useHaproxyProtocol()) {
+        if (config.advanced().bedrock().useHaproxyProtocol()) {
             source.sendMessage("You have the `use-haproxy-protocol` setting enabled. " +
                     "Unless you're deliberately using additional software that REQUIRES this setting, you may not need it enabled.");
         }

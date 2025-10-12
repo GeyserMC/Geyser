@@ -59,7 +59,7 @@ public class CustomSkullRegistryPopulator {
         SkullResourcePackManager.SKULL_SKINS.clear(); // Remove skins after reloading
         BlockRegistries.CUSTOM_SKULLS.set(Object2ObjectMaps.emptyMap());
 
-        if (!GeyserImpl.getInstance().config().enableCustomContent()) {
+        if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
             return;
         }
 

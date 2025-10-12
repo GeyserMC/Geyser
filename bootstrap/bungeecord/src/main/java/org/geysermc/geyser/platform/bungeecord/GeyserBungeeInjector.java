@@ -157,7 +157,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                 listenerInfo.isPingPassthrough(),
                 listenerInfo.getQueryPort(),
                 listenerInfo.isQueryEnabled(),
-                bootstrap.config().java().useHaproxyProtocol() // If Geyser is expecting HAProxy, so should the Bungee end
+                bootstrap.config().advanced().java().useHaproxyProtocol() // If Geyser is expecting HAProxy, so should the Bungee end
         );
 
         // The field that stores all listeners in BungeeCord
@@ -191,7 +191,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                         }
                         initChannel.invoke(channelInitializer, ch);
 
-                        if (bootstrap.config().disableCompression()) {
+                        if (bootstrap.config().advanced().java().disableCompression()) {
                             ch.pipeline().addAfter(PipelineUtils.PACKET_ENCODER, "geyser-compression-disabler",
                                     new GeyserBungeeCompressionDisabler());
                         }

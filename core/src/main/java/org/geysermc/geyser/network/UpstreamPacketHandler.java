@@ -103,7 +103,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         super(geyser, session);
 
         ZlibCompression compression = new ZlibCompression(Zlib.RAW);
-        compression.setLevel(this.geyser.config().bedrock().compressionLevel());
+        compression.setLevel(this.geyser.config().advanced().bedrock().compressionLevel());
         this.compressionStrategy = new SimpleCompressionStrategy(compression);
     }
 
@@ -241,7 +241,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         resourcePacksInfo.getResourcePackInfos().addAll(this.resourcePackLoadEvent.infoPacketEntries());
         resourcePacksInfo.setVibrantVisualsForceDisabled(!session.isAllowVibrantVisuals());
 
-        resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().forceResourcePacks());
+        resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().gameplay().forceResourcePacks());
         resourcePacksInfo.setWorldTemplateId(UUID.randomUUID());
         resourcePacksInfo.setWorldTemplateVersion("*");
         session.sendUpstreamPacket(resourcePacksInfo);
@@ -315,7 +315,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {
-        if (geyser.config().savedUserLogins().contains(bedrockUsername)) {
+        if (geyser.config().auth().savedUserLogins().contains(bedrockUsername)) {
             String authChain = geyser.authChainFor(bedrockUsername);
             if (authChain != null) {
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().name()));
