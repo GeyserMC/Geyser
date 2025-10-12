@@ -482,7 +482,18 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             metrics.addCustomChart(new Metrics.SingleLineChart("players", sessionManager::size));
             // Prevent unwanted words best we can
             metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> config.getRemote().authType().toString().toLowerCase(Locale.ROOT)));
-            metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::platformName));
+
+            Map<String, Map<String, Integer>> platformTypeMap = new HashMap<>();
+            Map<String, Integer> serverPlatform = new HashMap<>();
+            serverPlatform.put(bootstrap.getServerPlatform(), 1);
+            platformTypeMap.put(platformType().platformName(), serverPlatform);
+
+            metrics.addCustomChart(new Metrics.DrilldownPie("platform", () -> {
+                // By the end, we should return, for example:
+                // Geyser-Spigot => (Paper, 1)
+                return platformTypeMap;
+            }));
+
             metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserImpl.VERSION));
             metrics.addCustomChart(new Metrics.SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.getRemote().isUseProxyProtocol())));
@@ -520,7 +531,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             if (minecraftVersion != null) {
                 Map<String, Map<String, Integer>> versionMap = new HashMap<>();
                 Map<String, Integer> platformMap = new HashMap<>();
-                platformMap.put(platformType.platformName(), 1);
+                platformMap.put(bootstrap.getServerPlatform(), 1);
                 versionMap.put(minecraftVersion, platformMap);
 
                 metrics.addCustomChart(new Metrics.DrilldownPie("minecraftServerVersion", () -> {

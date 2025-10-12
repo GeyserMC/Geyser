@@ -314,6 +314,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         return new GeyserStandaloneDumpInfo(this);
     }
 
+    @Override
+    public @NonNull String getServerPlatform() {
+        return PlatformType.STANDALONE.platformName();
+    }
+
     @NonNull
     @Override
     public String getServerBindAddress() {
