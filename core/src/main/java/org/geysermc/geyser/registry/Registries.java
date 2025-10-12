@@ -42,10 +42,10 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.entity.EntityDefinition;
+import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
-import org.geysermc.geyser.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.event.type.GeyserDefineEntitiesEventImpl;
 import org.geysermc.geyser.inventory.item.Enchantment.JavaEnchantment;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -131,12 +131,12 @@ public final class Registries {
     /**
      * A map containing all entity types and their respective Geyser definitions
      */
-    public static final SimpleMappedRegistry<EntityType, GeyserEntityDefinition<?>> ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(() -> new EnumMap<>(EntityType.class)));
+    public static final SimpleMappedRegistry<EntityType, EntityDefinition<?>> ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(() -> new EnumMap<>(EntityType.class)));
 
     /**
      * A map containing all entity identifiers and their respective Geyser definitions
      */
-    public static final SimpleMappedRegistry<String, GeyserEntityDefinition<?>> ENTITY_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
+    public static final SimpleMappedRegistry<String, EntityDefinition<?>> ENTITY_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
      * A registry containing all the Java packet translators.
@@ -224,15 +224,15 @@ public final class Registries {
 
     public static void callRegistryEvents() {
         // Call registry events
-        List<EntityDefinition> definitions = ENTITY_IDENTIFIERS.get().values().stream()
-                .map(def -> (EntityDefinition) def)
+        List<GeyserEntityDefinition> definitions = ENTITY_IDENTIFIERS.get().values().stream()
+                .map(def -> (GeyserEntityDefinition) def)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         GeyserDefineEntitiesEvent defineEntitiesEvent = new GeyserDefineEntitiesEventImpl(definitions) {
             @Override
-            public boolean register(@NonNull EntityDefinition entityDefinition) {
-                GeyserEntityDefinition<?> geyserDefinition = (GeyserEntityDefinition<?>) entityDefinition;
+            public boolean register(@NonNull GeyserEntityDefinition entityDefinition) {
+                EntityDefinition<?> geyserDefinition = (EntityDefinition<?>) entityDefinition;
                 if (!geyserDefinition.custom()) {
                     return false;
                 }

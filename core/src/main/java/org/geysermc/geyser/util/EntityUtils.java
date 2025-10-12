@@ -37,7 +37,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserEntityIdentifier;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -284,7 +284,7 @@ public final class EntityUtils {
         };
     }
 
-    public static void registerEntity(String identifier, GeyserEntityDefinition<?> definition) {
+    public static void registerEntity(String identifier, EntityDefinition<?> definition) {
         if (definition.entityType() != null) {
             Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
             Registries.ENTITY_IDENTIFIERS.get().putIfAbsent(identifier, definition);

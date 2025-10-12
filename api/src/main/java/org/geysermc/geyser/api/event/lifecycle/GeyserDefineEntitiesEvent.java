@@ -27,7 +27,7 @@ package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
-import org.geysermc.geyser.api.entity.EntityDefinition;
+import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ import java.util.List;
  * <p>
  * This event can be used to add custom entities to Geyser.
  * Entity definitions can be created using the builder provided
- * inside of {@link EntityDefinition}.
+ * inside of {@link GeyserEntityDefinition}.
  */
 public interface GeyserDefineEntitiesEvent extends Event {
 
@@ -46,13 +46,12 @@ public interface GeyserDefineEntitiesEvent extends Event {
      * @return the list of entity definitions
      */
     @NonNull
-    List<EntityDefinition> entityDefinitions();
+    List<GeyserEntityDefinition> entityDefinitions();
 
     /**
      * Registers a new entity definition.
      *
      * @param entityDefinition the entity definition to register
-     * @return {@code true} if the entity definition was registered, {@code false} otherwise
      */
-    boolean register(@NonNull EntityDefinition entityDefinition);
+    void register(@NonNull GeyserEntityDefinition entityDefinition);
 }

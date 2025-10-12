@@ -26,9 +26,7 @@
 package org.geysermc.geyser.api.event.bedrock;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.event.Event;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.entity.EntityDefinition;
 import org.geysermc.geyser.api.entity.EntityIdentifier;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 

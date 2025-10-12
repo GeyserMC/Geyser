@@ -33,7 +33,7 @@ import org.geysermc.geyser.api.GeyserApi;
  * its properties. This is typically data such as its identifier,
  * its height/width, offset, etc.
  */
-public interface EntityDefinition {
+public interface GeyserEntityDefinition {
 
     /**
      * Gets the identifier of this entity.
@@ -107,6 +107,6 @@ public interface EntityDefinition {
          *
          * @return the entity definition
          */
-        EntityDefinition build();
+        GeyserEntityDefinition build();
     }
 }

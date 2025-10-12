@@ -26,9 +26,8 @@
 package org.geysermc.geyser.api.event.java;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.entity.EntityDefinition;
+import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 
 import java.util.UUID;
@@ -40,10 +39,10 @@ public class ServerSpawnEntityEvent extends ConnectionEvent {
     private final int entityId;
     private final UUID uuid;
 
-    private EntityDefinition entityDefinition;
+    private GeyserEntityDefinition entityDefinition;
 
-    public ServerSpawnEntityEvent(@NonNull GeyserConnection connection, int entityId, @Nullable UUID uuid,
-                                  @NonNull EntityDefinition entityDefinition) {
+    public ServerSpawnEntityEvent(@NonNull GeyserConnection connection, int entityId, @NonNull UUID uuid,
+                                  @NonNull GeyserEntityDefinition entityDefinition) {
         super(connection);
         this.entityId = entityId;
         this.uuid = uuid;
@@ -64,8 +63,7 @@ public class ServerSpawnEntityEvent extends ConnectionEvent {
      *
      * @return the uuid of the entity being spawned
      */
-    @Nullable
-    public UUID uuid() {
+    public @NonNull UUID uuid() {
         return this.uuid;
     }
 
@@ -77,7 +75,7 @@ public class ServerSpawnEntityEvent extends ConnectionEvent {
      *         when the entity is spawned
      */
     @NonNull
-    public EntityDefinition entityDefinition() {
+    public GeyserEntityDefinition entityDefinition() {
         return this.entityDefinition;
     }
 
@@ -88,7 +86,7 @@ public class ServerSpawnEntityEvent extends ConnectionEvent {
      * @param entityDefinition the entity definition sent to the connection
      *                         when the entity is spawned
      */
-    public void entityDefinition(@NonNull EntityDefinition entityDefinition) {
+    public void entityDefinition(@NonNull GeyserEntityDefinition entityDefinition) {
         this.entityDefinition = entityDefinition;
     }
 }

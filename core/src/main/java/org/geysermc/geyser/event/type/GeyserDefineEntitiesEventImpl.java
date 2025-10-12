@@ -26,21 +26,21 @@
 package org.geysermc.geyser.event.type;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.entity.EntityDefinition;
+import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
 
 import java.util.List;
 
 public abstract class GeyserDefineEntitiesEventImpl implements GeyserDefineEntitiesEvent {
-    private final List<EntityDefinition> entityDefinitions;
+    private final List<GeyserEntityDefinition> entityDefinitions;
 
-    public GeyserDefineEntitiesEventImpl(List<EntityDefinition> entityDefinitions) {
+    public GeyserDefineEntitiesEventImpl(List<GeyserEntityDefinition> entityDefinitions) {
         this.entityDefinitions = entityDefinitions;
     }
 
     @NonNull
     @Override
-    public List<EntityDefinition> entityDefinitions() {
+    public List<GeyserEntityDefinition> entityDefinitions() {
         return this.entityDefinitions;
     }
 }

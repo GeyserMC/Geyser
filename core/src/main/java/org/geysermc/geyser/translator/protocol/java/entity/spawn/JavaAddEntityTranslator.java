@@ -35,7 +35,7 @@ import com.github.steveice10.mc.protocol.packet.ingame.clientbound.entity.spawn.
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
-import org.geysermc.geyser.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.*;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.registry.Registries;
@@ -50,7 +50,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
 
     @Override
     public void translate(GeyserSession session, ClientboundAddEntityPacket packet) {
-        GeyserEntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(packet.getType());
+        EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(packet.getType());
         if (definition == null) {
             session.getGeyser().getLogger().debug("Could not find an entity definition with type " + packet.getType());
             return;
@@ -93,7 +93,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         ServerSpawnEntityEvent event = new ServerSpawnEntityEvent(session, packet.getEntityId(), packet.getUuid(), definition);
         GeyserImpl.getInstance().eventBus().fire(event);
 
-        GeyserEntityDefinition<?> eventDefinition = (GeyserEntityDefinition<?>) event.entityDefinition();
+        EntityDefinition<?> eventDefinition = (EntityDefinition<?>) event.entityDefinition();
 
         // If the definition is changed, we need to update our current
         // definition to reflect that.

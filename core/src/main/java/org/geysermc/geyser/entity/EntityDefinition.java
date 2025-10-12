@@ -34,7 +34,6 @@ import lombok.experimental.Accessors;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.entity.EntityDefinition;
 import org.geysermc.geyser.api.entity.EntityIdentifier;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.type.Entity;
@@ -55,10 +54,10 @@ import java.util.function.BiConsumer;
  *
  * @param <T> the entity type this definition represents
  */
-public record GeyserEntityDefinition<T extends Entity>(EntityFactory<T> factory, EntityType entityType, EntityIdentifier entityIdentifier,
-                                                       float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators, boolean custom) implements EntityDefinition {
+public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, EntityType entityType, EntityIdentifier entityIdentifier,
+                                                 float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators, boolean custom) implements org.geysermc.geyser.api.entity.GeyserEntityDefinition {
 
-    public static <T extends Entity> EntityDefinitionBuilder<T> inherited(EntityFactory<T> factory, GeyserEntityDefinition<? super T> parent) {
+    public static <T extends Entity> EntityDefinitionBuilder<T> inherited(EntityFactory<T> factory, EntityDefinition<? super T> parent) {
         return new EntityDefinitionBuilder<>(factory, parent.entityType, parent.entityIdentifier, parent.width, parent.height, parent.offset, new ObjectArrayList<>(parent.translators));
     }
 
@@ -99,7 +98,7 @@ public record GeyserEntityDefinition<T extends Entity>(EntityFactory<T> factory,
 
     @Setter
     @Accessors(fluent = true, chain = true)
-    public static class EntityDefinitionBuilder<T extends Entity> implements EntityDefinition.Builder {
+    public static class EntityDefinitionBuilder<T extends Entity> implements org.geysermc.geyser.api.entity.GeyserEntityDefinition.Builder {
         private final EntityFactory<T> factory;
         private EntityType type;
         private EntityIdentifier identifier;
@@ -109,7 +108,7 @@ public record GeyserEntityDefinition<T extends Entity>(EntityFactory<T> factory,
         private final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
         private final boolean custom;
 
-        private EntityDefinitionBuilder(GeyserEntityDefinition<T> definition) {
+        private EntityDefinitionBuilder(EntityDefinition<T> definition) {
             this.factory = definition.factory;
             this.type = definition.entityType;
             this.identifier = definition.entityIdentifier;
@@ -201,7 +200,7 @@ public record GeyserEntityDefinition<T extends Entity>(EntityFactory<T> factory,
             return this;
         }
 
-        public GeyserEntityDefinition<T> build() {
+        public EntityDefinition<T> build() {
             return build(true);
         }
 
@@ -209,7 +208,7 @@ public record GeyserEntityDefinition<T extends Entity>(EntityFactory<T> factory,
          * @param register whether to register this entity in the Registries for entity types. Generally this should be
          *                 set to false if we're not expecting this entity to spawn from the network.
          */
-        public GeyserEntityDefinition<T> build(boolean register) {
+        public EntityDefinition<T> build(boolean register) {
             String identifier = null;
             if (this.identifier == null && type != null) {
                 identifier = "minecraft:" + type.name().toLowerCase(Locale.ROOT);
@@ -218,7 +217,7 @@ public record GeyserEntityDefinition<T extends Entity>(EntityFactory<T> factory,
                 identifier = this.identifier.identifier();
             }
 
-            GeyserEntityDefinition<T> definition = new GeyserEntityDefinition<>(factory, type, this.identifier, width, height, offset, translators, custom);
+            EntityDefinition<T> definition = new EntityDefinition<>(factory, type, this.identifier, width, height, offset, translators, custom);
             if (register && identifier != null) {
                 EntityUtils.registerEntity(identifier, definition);
             }

@@ -34,21 +34,21 @@ import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.entity.EntityDefinition;
 import org.geysermc.geyser.api.entity.EntityIdentifier;
+import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.pack.PathPackCodec;
-import org.geysermc.geyser.impl.camera.GeyserCameraFade;
-import org.geysermc.geyser.impl.camera.GeyserCameraPosition;
 import org.geysermc.geyser.command.GeyserCommandManager;
-import org.geysermc.geyser.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserEntityIdentifier;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
+import org.geysermc.geyser.impl.camera.GeyserCameraFade;
+import org.geysermc.geyser.impl.camera.GeyserCameraPosition;
 import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
@@ -95,7 +95,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
 
         // entities
         providers.put(EntityIdentifier.Builder.class, args -> new GeyserEntityIdentifier.EntityIdentifierBuilder());
-        providers.put(EntityDefinition.Builder.class, args -> new GeyserEntityDefinition.EntityDefinitionBuilder<>(Entity::new, true));
+        providers.put(GeyserEntityDefinition.Builder.class, args -> new EntityDefinition.EntityDefinitionBuilder<>(Entity::new, true));
 
         return providers;
     }
