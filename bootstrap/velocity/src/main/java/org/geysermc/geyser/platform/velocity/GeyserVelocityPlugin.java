@@ -230,6 +230,11 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
         return new GeyserVelocityDumpInfo(proxyServer);
     }
 
+    @Override
+    public @NonNull String getServerPlatform() {
+        return proxyServer.getVersion().getName();
+    }
+
     @Nullable
     @Override
     public SocketAddress getSocketAddress() {
