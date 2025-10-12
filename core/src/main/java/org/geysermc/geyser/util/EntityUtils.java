@@ -380,8 +380,8 @@ public final class EntityUtils {
         return null;
     }
 
-    public static void registerEntity(String identifier, EntityDefinition<?> definition) {
-        if (definition.entityType() != null) {
+    public static void registerEntity(String identifier, EntityDefinition<?> definition, @Nullable GeyserEntityIdentifier nbtId) {
+        if (nbtId == null) {
             Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
             Registries.ENTITY_IDENTIFIERS.get().putIfAbsent(identifier, definition);
         } else {
@@ -391,7 +391,7 @@ public final class EntityUtils {
             // Now let's add it to the entity identifiers
             NbtMap nbt = Registries.BEDROCK_ENTITY_IDENTIFIERS.get();
             List<NbtMap> idlist = new ArrayList<>(nbt.getList("idlist", NbtType.COMPOUND));
-            idlist.add(((GeyserEntityIdentifier) definition.entityIdentifier()).nbt());
+            idlist.add(nbtId.nbt());
 
             NbtMap newIdentifiers = nbt.toBuilder()
                     .putList("idlist", NbtType.COMPOUND, idlist)
@@ -399,6 +399,8 @@ public final class EntityUtils {
 
             Registries.BEDROCK_ENTITY_IDENTIFIERS.set(newIdentifiers);
             GeyserImpl.getInstance().getLogger().debug("Registered custom entity " + identifier);
+
+            // TODO allow register "real" custom java entities
         }
     }
 

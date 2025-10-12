@@ -34,6 +34,7 @@ import org.geysermc.geyser.entity.type.FallingBlockEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.HangingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.impl.event.ServerSpawnEntityEventImpl;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
@@ -49,6 +50,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.object.WardenData;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 
+import java.util.Objects;
+
 @Translator(packet = ClientboundAddEntityPacket.class)
 public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEntityPacket> {
 
@@ -59,7 +62,31 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(packet.getType());
         if (definition == null) {
             session.getGeyser().getLogger().debug("Could not find an entity definition with type " + packet.getType());
+        }
+
+        ServerSpawnEntityEvent event = new ServerSpawnEntityEventImpl(session, packet.getEntityId(), packet.getUuid(), definition, packet.getType());
+        GeyserImpl.getInstance().eventBus().fire(event);
+
+        if (event.entityDefinition() == null) {
             return;
+        }
+        EntityDefinition<?> eventDefinition = Objects.requireNonNull((EntityDefinition<?>) event.entityDefinition());
+
+        // If the definition is changed, we need to update our current
+        // definition to reflect that.
+        if (!Objects.equals(eventDefinition, definition)) {
+            if (definition == null) {
+                session.getGeyser().getLogger().debug("Spawning custom entity " + eventDefinition.identifier() + "as a replacement for unknown entity!");
+                definition = eventDefinition;
+            } else {
+                session.getGeyser().getLogger().debug("Replacing entity definition " + definition.identifier() + " with " + eventDefinition.identifier() + " for " + packet.getEntityId() + " (" + packet.getUuid() + ")");
+                definition = definition.toBuilder()
+                    .identifier(eventDefinition.entityIdentifier())
+                    .width(eventDefinition.width())
+                    .height(eventDefinition.height())
+                    .offset(eventDefinition.offset())
+                    .build();
+            }
         }
 
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
@@ -101,23 +128,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             return;
         }
 
-        ServerSpawnEntityEvent event = new ServerSpawnEntityEvent(session, packet.getEntityId(), packet.getUuid(), definition);
-        GeyserImpl.getInstance().eventBus().fire(event);
-
-        EntityDefinition<?> eventDefinition = (EntityDefinition<?>) event.entityDefinition();
-
-        // If the definition is changed, we need to update our current
-        // definition to reflect that.
-        if (!eventDefinition.equals(definition)) {
-            session.getGeyser().getLogger().debug("Replacing entity definition " + definition.identifier() + " with " + eventDefinition.identifier() + " for " + packet.getEntityId() + " (" + packet.getUuid() + ")");
-
-            definition = definition.toBuilder()
-                    .identifier(eventDefinition.entityIdentifier())
-                    .width(eventDefinition.width())
-                    .height(eventDefinition.height())
-                    .offset(eventDefinition.offset())
-                    .build();
-        }
+        // TODO custom entities: Should we still handle the "default" data even when the definition was replaced???
 
         Entity entity;
         if (packet.getType() == EntityType.FALLING_BLOCK) {

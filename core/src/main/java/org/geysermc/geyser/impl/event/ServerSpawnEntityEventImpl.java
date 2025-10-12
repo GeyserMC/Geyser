@@ -23,63 +23,52 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.java;
+package org.geysermc.geyser.impl.event;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
+import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.impl.IdentifierImpl;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.UUID;
 
-/**
- * Called when the downstream server spawns an entity.
- */
-public abstract class ServerSpawnEntityEvent extends ConnectionEvent {
+public class ServerSpawnEntityEventImpl extends ServerSpawnEntityEvent {
+    private final int entityId;
+    private final UUID uuid;
+    private final EntityType type;
+    private GeyserEntityDefinition entityDefinition;
 
-    public ServerSpawnEntityEvent(@NonNull GeyserConnection connection) {
+    public ServerSpawnEntityEventImpl(@NonNull GeyserConnection connection, int entityId, @NonNull UUID uuid,
+                                      @Nullable GeyserEntityDefinition entityDefinition, EntityType type) {
         super(connection);
+        this.entityId = entityId;
+        this.uuid = uuid;
+        this.entityDefinition = entityDefinition;
+        this.type = type;
     }
 
-    /**
-     * Gets the entity id of the entity being spawned.
-     *
-     * @return the entity id of the entity being spawned
-     */
-    public abstract int entityId();
+    public int entityId() {
+        return this.entityId;
+    }
 
-    /**
-     * Gets the uuid of the entity being spawned.
-     *
-     * @return the uuid of the entity being spawned
-     */
-    public abstract @NonNull UUID uuid();
+    public @NonNull UUID uuid() {
+        return this.uuid;
+    }
 
-    /**
-     * Gets the entity type that was initially sent by the Java server.
-     * This can be used to
-     *
-     * @return the Java edition entity type of the entity being spawned
-     */
-    public abstract @NonNull Identifier entityType();
+    public @NonNull Identifier entityType() {
+        return IdentifierImpl.of(type.name());
+    }
 
-    /**
-     * Gets the entity definition sent to the connection
-     * when the entity is spawned.
-     *
-     * @return the entity definition sent to the connection
-     *         when the entity is spawned
-     */
-    public abstract @Nullable GeyserEntityDefinition entityDefinition();
+    @Nullable
+    public GeyserEntityDefinition entityDefinition() {
+        return this.entityDefinition;
+    }
 
-    /**
-     * Sets the entity definition sent to the connection
-     * when the entity is spawned.
-     *
-     * @param entityDefinition the entity definition sent to the connection
-     *                         when the entity is spawned
-     */
-    public abstract void entityDefinition(@Nullable GeyserEntityDefinition entityDefinition);
+    public void entityDefinition(@Nullable GeyserEntityDefinition entityDefinition) {
+        this.entityDefinition = entityDefinition;
+    }
 }

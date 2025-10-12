@@ -56,8 +56,6 @@ import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
 import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
@@ -117,10 +115,8 @@ import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.EntityData;
-import org.geysermc.geyser.api.entity.EntityIdentifier;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
-import org.geysermc.geyser.api.event.bedrock.SessionDefineEntitiesEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.RemoteServer;
@@ -132,7 +128,6 @@ import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.GeyserEntityData;
-import org.geysermc.geyser.entity.GeyserEntityIdentifier;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -255,7 +250,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Getter
 public class GeyserSession implements GeyserConnection, GeyserCommandSource {
@@ -896,32 +890,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void sendAvailableEntityIdentifiers() {
-        NbtMap nbt = Registries.BEDROCK_ENTITY_IDENTIFIERS.get();
-        List<NbtMap> idlist = nbt.getList("idlist", NbtType.COMPOUND);
-        List<EntityIdentifier> identifiers = new ArrayList<>(idlist.size());
-        for (NbtMap identifier : idlist) {
-            identifiers.add(new GeyserEntityIdentifier(identifier));
-        }
-
-        NbtMapBuilder builder = nbt.toBuilder();
-        SessionDefineEntitiesEvent event = new SessionDefineEntitiesEvent(this, identifiers) {
-
-            @Override
-            public boolean register(@NonNull EntityIdentifier entityIdentifier) {
-                return identifiers.add(entityIdentifier);
-            }
-        };
-
-        this.geyser.eventBus().fire(event);
-
-        builder.putList("idlist", NbtType.COMPOUND, identifiers
-                .stream()
-                .map(identifer -> ((GeyserEntityIdentifier) identifer).nbt())
-                .collect(Collectors.toList())
-        );
-
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
-        entityPacket.setIdentifiers(builder.build());
+        entityPacket.setIdentifiers(Registries.BEDROCK_ENTITY_IDENTIFIERS.get());
         upstream.sendPacket(entityPacket);
     }
 

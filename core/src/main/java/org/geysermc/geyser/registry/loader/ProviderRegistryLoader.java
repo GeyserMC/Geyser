@@ -34,7 +34,6 @@ import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.api.command.Command;
-import org.geysermc.geyser.api.entity.EntityIdentifier;
 import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.extension.Extension;
@@ -47,6 +46,8 @@ import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.api.pack.option.SubpackOption;
 import org.geysermc.geyser.api.pack.option.UrlFallbackOption;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.impl.IdentifierImpl;
@@ -112,7 +113,6 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(CameraPosition.Builder.class, args -> new GeyserCameraPosition.Builder());
 
         // entities
-        providers.put(EntityIdentifier.Builder.class, args -> new GeyserEntityIdentifier.EntityIdentifierBuilder());
         providers.put(GeyserEntityDefinition.Builder.class, args -> new EntityDefinition.EntityDefinitionBuilder<>(Entity::new, true));
 
         return providers;

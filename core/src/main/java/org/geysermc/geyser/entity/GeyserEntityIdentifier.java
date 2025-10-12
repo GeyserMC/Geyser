@@ -25,61 +25,21 @@
 
 package org.geysermc.geyser.entity;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.geysermc.geyser.api.entity.EntityIdentifier;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public record GeyserEntityIdentifier(NbtMap nbt) implements EntityIdentifier {
+public record GeyserEntityIdentifier(NbtMap nbt) {
     private static final AtomicInteger RUNTIME_ID_ALLOCATOR = new AtomicInteger(100000);
 
-    @Override
-    public boolean hasSpawnEgg() {
-        return this.nbt.getBoolean("hasspawnegg");
-    }
-
-    @NonNull
-    @Override
-    public String identifier() {
-        return this.nbt.getString("id");
-    }
-
-    @Override
-    public boolean isSummonable() {
-        return this.nbt.getBoolean("summonable");
-    }
-
-    public static class EntityIdentifierBuilder implements EntityIdentifier.Builder {
-        private final NbtMapBuilder nbt = NbtMap.builder();
-
-        @Override
-        public Builder spawnEgg(boolean spawnEgg) {
-            this.nbt.putBoolean("hasspawnegg", spawnEgg);
-            return this;
-        }
-
-        @Override
-        public Builder identifier(String identifier) {
-            this.nbt.putString("id", identifier);
-            return this;
-        }
-
-        @Override
-        public Builder summonable(boolean summonable) {
-            this.nbt.putBoolean("summonable", summonable);
-            return this;
-        }
-
-        @Override
-        public EntityIdentifier build() {
-            // Vanilla registry information
-            this.nbt.putString("bid", "");
-            this.nbt.putInt("rid", RUNTIME_ID_ALLOCATOR.getAndIncrement());
-            this.nbt.putBoolean("experimental", false);
-
-            return new GeyserEntityIdentifier(this.nbt.build());
-        }
+    public static GeyserEntityIdentifier of(String identifier, boolean hasSpawnEgg, boolean summonable) {
+        return new GeyserEntityIdentifier(NbtMap.builder()
+            .putBoolean("hasSpawnEgg", hasSpawnEgg)
+            .putString("id", identifier)
+            .putBoolean("summonable", summonable)
+            .putString("bid", "")
+            .putInt("rid", RUNTIME_ID_ALLOCATOR.getAndIncrement())
+            .putBoolean("experimental", false)
+            .build());
     }
 }

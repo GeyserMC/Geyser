@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.entity;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.util.Identifier;
 
 /**
  * Holds information about an entity that remains constant no matter
@@ -41,7 +42,7 @@ public interface GeyserEntityDefinition {
      * @return the identifier of this entity
      */
     @NonNull
-    EntityIdentifier entityIdentifier();
+    Identifier entityIdentifier();
 
     /**
      * Gets the width of this entity.
@@ -64,6 +65,20 @@ public interface GeyserEntityDefinition {
      */
     float offset();
 
+    /**
+     * Gets whether this entity has a spawn egg or not.
+     *
+     * @return whether this entity has a spawn egg or not
+     */
+    boolean hasSpawnEgg();
+
+    /**
+     * Gets whether the entity is summonable or not.
+     *
+     * @return whether the entity is summonable or not
+     */
+    boolean isSummonable();
+
     static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
     }
@@ -76,7 +91,7 @@ public interface GeyserEntityDefinition {
          * @param identifier the identifier of this entity
          * @return the builder
          */
-        Builder identifier(@NonNull EntityIdentifier identifier);
+        Builder identifier(@NonNull Identifier identifier);
 
         /**
          * Sets the width of this entity.
@@ -101,6 +116,20 @@ public interface GeyserEntityDefinition {
          * @return the builder
          */
         Builder offset(float offset);
+
+        /**
+         * Sets whether this entity definition has a spawn egg
+         * @param hasSpawnEgg whether a spawn egg exists
+         * @return the builder
+         */
+        Builder hasSpawnEgg(boolean hasSpawnEgg);
+
+        /**
+         * Sets whether this entity is summonable with commands
+         * @param summonable whether this entity is summonable
+         * @return the builder
+         */
+        Builder summonable(boolean summonable);
 
         /**
          * Builds the entity definition.
