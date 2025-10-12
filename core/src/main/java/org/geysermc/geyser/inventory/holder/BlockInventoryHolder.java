@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.inventory.holder;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
@@ -58,13 +59,19 @@ public class BlockInventoryHolder extends InventoryHolder {
     private final BlockState defaultJavaBlockState;
     private final ContainerType containerType;
     private final Set<Block> validBlocks;
+    private final @Nullable Class<? extends Block> validBlockClass;
 
     public BlockInventoryHolder(Block defaultJavaBlock, ContainerType containerType, Block... validBlocks) {
-        this(defaultJavaBlock.defaultBlockState(), containerType, validBlocks);
+        this(defaultJavaBlock.defaultBlockState(), null, containerType, validBlocks);
     }
 
     public BlockInventoryHolder(BlockState defaultJavaBlockState, ContainerType containerType, Block... validBlocks) {
+        this(defaultJavaBlockState, null, containerType, validBlocks);
+    }
+
+    public BlockInventoryHolder(BlockState defaultJavaBlockState, @Nullable Class<? extends Block> validBlockClass, ContainerType containerType, Block... validBlocks) {
         this.defaultJavaBlockState = defaultJavaBlockState;
+        this.validBlockClass = validBlockClass;
         this.containerType = containerType;
         if (validBlocks != null) {
             Set<Block> validBlocksTemp = new HashSet<>(validBlocks.length + 1);
@@ -162,6 +169,9 @@ public class BlockInventoryHolder extends InventoryHolder {
      * @return true if this Java block ID can be used for player inventory.
      */
     protected boolean isValidBlock(GeyserSession session, Vector3i position, BlockState blockState) {
+        if (this.validBlockClass != null && this.validBlockClass.isInstance(blockState.block())) {
+            return true;
+        }
         return this.validBlocks.contains(blockState.block());
     }
 
