@@ -176,16 +176,7 @@ public final class InputCache {
         if (session.isFlying()) {
             // Of course e.g. mobile devices handle it differently with a descend case, while
             // e.g. Win10 sends SNEAK_DOWN. Why? We'll never know.
-            System.out.println("Flying....");
             return authInputData.contains(PlayerAuthInputData.DESCEND) || authInputData.contains(PlayerAuthInputData.SNEAK_DOWN);
-        }
-
-        // We need to send sneak inside vehicle so the player can dismount.
-        if (session.getPlayerEntity().getVehicle() != null) {
-            System.out.println(authInputData);
-//            sneaking = authInputData.contains(PlayerAuthInputData.SNEAK_CURRENT_RAW) || authInputData.contains(PlayerAuthInputData.SNEAK_PRESSED_RAW) || authInputData.contains(PlayerAuthInputData.SNEAK_DOWN);
-        } else {
-            System.out.println("Not inside vehicle!");
         }
 
         boolean sneaking = session.isSneaking();

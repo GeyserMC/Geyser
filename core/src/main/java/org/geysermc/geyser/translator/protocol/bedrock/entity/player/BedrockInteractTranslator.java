@@ -79,8 +79,6 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 session.setSteeringLeft(false);
                 session.setSteeringRight(false);
 
-                // Even though we already lock player ability to dismount, there could be edge cases that we don't know about
-                // that allow the player to dismount client-sided anyway, so keep this since I don't want to potentially break things.
                 Entity currentVehicle = session.getPlayerEntity().getVehicle();
                 if (currentVehicle != null) {
                     session.setShouldSendSneak(true);

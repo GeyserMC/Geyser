@@ -477,10 +477,7 @@ public class SessionPlayerEntity extends PlayerEntity {
             this.vehicle.updateBedrockMetadata();
         }
 
-        // Bedrock client dismount behaviour is entirely client-sided, which could causes some problems, so we lock the player
-        // ability to dismount before they enter a vehicle, or after they exit one. We also have to lock jump input since
-        // Bedrock still able to dismount from a vehicle by pressing space despite locking their dismount input.
-        this.session.setLockInput(InputLocksFlag.DISMOUNT, entity != null);
+        // Bedrock player can dismount by pressing jump while Java cannot, so we need to prevent player from jumping to match vanilla behaviour.
         this.session.setLockInput(InputLocksFlag.JUMP, entity != null && entity.canBeDismountWithJump());
         this.session.updateInputLocks();
 
