@@ -56,12 +56,6 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
         for (int i = 0; i < passengerIds.length; i++) {
             int passengerId = passengerIds[i];
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
-            if (passenger == null) {
-                // Can occur if the passenger is outside the client's tracking range
-                // In this case, another SetPassengers packet will be sent when the passenger is spawned.
-                continue;
-            }
-
             if (passenger == session.getPlayerEntity()) {
                 session.getPlayerEntity().setVehicle(entity);
                 // We need to confirm teleports before entering a vehicle, or else we will likely exit right out
@@ -70,6 +64,11 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                 if (entity instanceof ClientVehicle clientVehicle) {
                     clientVehicle.getVehicleComponent().onMount();
                 }
+            }
+            if (passenger == null) {
+                // Can occur if the passenger is outside the client's tracking range
+                // In this case, another SetPassengers packet will be sent when the passenger is spawned.
+                continue;
             }
 
             boolean rider = packet.getPassengerIds()[0] == passengerId;
