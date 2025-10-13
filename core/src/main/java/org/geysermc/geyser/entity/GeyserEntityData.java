@@ -88,7 +88,8 @@ public class GeyserEntityData implements EntityData {
             movementLockOwners.remove(owner);
         }
 
-        session.lockInputs(InputLocksFlag.MOVEMENT, isMovementLocked());
+        session.setLockInput(InputLocksFlag.MOVEMENT, isMovementLocked());
+        session.updateInputLocks();
         return isMovementLocked();
     }
 

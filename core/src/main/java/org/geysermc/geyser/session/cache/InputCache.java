@@ -127,7 +127,8 @@ public final class InputCache {
             // https://mojang.github.io/bedrock-protocol-docs/html/enums.html
             // using the "raw" values allows us sending key presses even with locked input
             // There appear to be cases where the raw value is not sent - e.g. sneaking with a shield on mobile (1.21.80)
-            .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_CURRENT_RAW) || bedrockInput.contains(PlayerAuthInputData.JUMP_DOWN))
+            // We also need to check for water auto jumping, since bedrock don't send jumping value in those cases.
+            .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_CURRENT_RAW) || bedrockInput.contains(PlayerAuthInputData.JUMP_DOWN) || bedrockInput.contains(PlayerAuthInputData.AUTO_JUMPING_IN_WATER))
             .withShift(session.isShouldSendSneak() || sneaking)
             .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINT_DOWN));
 
@@ -175,7 +176,16 @@ public final class InputCache {
         if (session.isFlying()) {
             // Of course e.g. mobile devices handle it differently with a descend case, while
             // e.g. Win10 sends SNEAK_DOWN. Why? We'll never know.
+            System.out.println("Flying....");
             return authInputData.contains(PlayerAuthInputData.DESCEND) || authInputData.contains(PlayerAuthInputData.SNEAK_DOWN);
+        }
+
+        // We need to send sneak inside vehicle so the player can dismount.
+        if (session.getPlayerEntity().getVehicle() != null) {
+            System.out.println(authInputData);
+//            sneaking = authInputData.contains(PlayerAuthInputData.SNEAK_CURRENT_RAW) || authInputData.contains(PlayerAuthInputData.SNEAK_PRESSED_RAW) || authInputData.contains(PlayerAuthInputData.SNEAK_DOWN);
+        } else {
+            System.out.println("Not inside vehicle!");
         }
 
         boolean sneaking = session.isSneaking();

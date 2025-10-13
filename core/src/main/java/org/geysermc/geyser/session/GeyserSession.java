@@ -751,6 +751,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean hasAcceptedCodeOfConduct = false;
 
     private final Set<InputLocksFlag> inputLocksSet = EnumSet.noneOf(InputLocksFlag.class);
+    private boolean inputLockDirty;
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
@@ -2381,11 +2382,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         entities().showEmote(emoter, emoteId);
     }
 
-    public void lockInputs(InputLocksFlag flag, boolean value) {
-        boolean dirty = value ? this.inputLocksSet.add(flag) : this.inputLocksSet.remove(flag);
-        if (!dirty) {
+    public void setLockInput(InputLocksFlag flag, boolean value) {
+        this.inputLockDirty |= value ? this.inputLocksSet.add(flag) : this.inputLocksSet.remove(flag);
+    }
+
+    public void updateInputLocks() {
+        if (!this.inputLockDirty) {
             return;
         }
+        this.inputLockDirty = false;
 
         UpdateClientInputLocksPacket packet = new UpdateClientInputLocksPacket();
 

@@ -252,7 +252,8 @@ public class GeyserCameraData implements CameraData {
             this.cameraLockOwners.remove(owner);
         }
 
-        session.lockInputs(InputLocksFlag.CAMERA, isCameraLocked());
+        session.setLockInput(InputLocksFlag.CAMERA, isCameraLocked());
+        session.updateInputLocks();
         return isCameraLocked();
     }
 
