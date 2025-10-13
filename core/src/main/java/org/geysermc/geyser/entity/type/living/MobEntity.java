@@ -85,7 +85,7 @@ public class MobEntity extends LivingEntity implements Leashable {
             return InteractiveTag.REMOVE_LEASH;
         } else {
             GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);
-            if (itemStack.asItem() == Items.NAME_TAG) {
+            if (itemStack.is(Items.NAME_TAG)) {
                 InteractionResult result = checkInteractWithNameTag(itemStack);
                 if (result.consumesAction()) {
                     return InteractiveTag.NAME;
@@ -120,8 +120,10 @@ public class MobEntity extends LivingEntity implements Leashable {
         }
 
         for (EquipmentSlot slot : EquipmentSlot.values()) {
-            GeyserItemStack equipped = equipment.get(slot);
-            if (equipped == null || equipped.isEmpty()) continue;
+            GeyserItemStack equipped = getItemInSlot(slot);
+            if (equipped.isEmpty()) {
+                continue;
+            }
 
             Equippable equippable = equipped.getComponent(DataComponentTypes.EQUIPPABLE);
             if (equippable != null && equippable.canBeSheared()) {
@@ -135,7 +137,7 @@ public class MobEntity extends LivingEntity implements Leashable {
     }
 
     private InteractionResult checkPriorityInteractions(GeyserItemStack itemInHand) {
-        if (itemInHand.asItem() == Items.NAME_TAG) {
+        if (itemInHand.is(Items.NAME_TAG)) {
             InteractionResult result = checkInteractWithNameTag(itemInHand);
             if (result.consumesAction()) {
                 return result;

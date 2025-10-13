@@ -45,11 +45,10 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.protocol.bedrock.codec.v786.Bedrock_v786;
-import org.cloudburstmc.protocol.bedrock.codec.v800.Bedrock_v800;
 import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
 import org.cloudburstmc.protocol.bedrock.codec.v819.Bedrock_v819;
 import org.cloudburstmc.protocol.bedrock.codec.v827.Bedrock_v827;
+import org.cloudburstmc.protocol.bedrock.codec.v844.Bedrock_v844;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
@@ -74,6 +73,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.populator.conversion.Conversion844_827;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
@@ -107,6 +107,10 @@ public class ItemRegistryPopulator {
         public PaletteVersion(String version, int protocolVersion, Map<Item, Item> javaOnlyItems) {
             this(version, protocolVersion, javaOnlyItems, (item, mapping) -> mapping);
         }
+
+        public PaletteVersion(String version, int protocolVersion, Remapper remapper) {
+            this(version, protocolVersion, Collections.emptyMap(), remapper);
+        }
     }
 
     @FunctionalInterface
@@ -116,39 +120,82 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
-        // Fallbacks for 1.21.6 items (1.21.6 -> 1.21.5)
-        Map<Item, Item> itemFallbacks = new HashMap<>();
-        itemFallbacks.put(Items.BLACK_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.BLUE_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.BROWN_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.RED_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.GREEN_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.YELLOW_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.ORANGE_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.MAGENTA_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.LIGHT_BLUE_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.LIME_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.PINK_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.GRAY_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.CYAN_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.PURPLE_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.LIGHT_GRAY_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.WHITE_HARNESS, Items.SADDLE);
-        itemFallbacks.put(Items.HAPPY_GHAST_SPAWN_EGG, Items.EGG);
-        itemFallbacks.put(Items.DRIED_GHAST, Items.PLAYER_HEAD);
-        itemFallbacks.put(Items.MUSIC_DISC_TEARS, Items.MUSIC_DISC_5);
-        itemFallbacks.put(Items.MUSIC_DISC_LAVA_CHICKEN, Items.MUSIC_DISC_CHIRP);
+        Map<Item, Item> eightTwoSevenFallbacks = new HashMap<>();
+        eightTwoSevenFallbacks.put(Items.ACACIA_SHELF, Items.CHISELED_BOOKSHELF);
+        eightTwoSevenFallbacks.put(Items.BAMBOO_SHELF, Items.CHISELED_BOOKSHELF);
+        eightTwoSevenFallbacks.put(Items.BIRCH_SHELF, Items.CHISELED_BOOKSHELF);
+        eightTwoSevenFallbacks.put(Items.CHERRY_SHELF, Items.CHISELED_BOOKSHELF);
+        eightTwoSevenFallbacks.put(Items.CRIMSON_SHELF, Items.CHISELED_BOOKSHELF);
+        eightTwoSevenFallbacks.put(Items.DARK_OAK_SHELF, Items.CHISELED_BOOKSHELF);
+        eightTwoSevenFallbacks.put(Items.JUNGLE_SHELF, Items.CHISELED_BOOKSHELF);
+        eightTwoSevenFallbacks.put(Items.MANGROVE_SHELF, Items.CHISELED_BOOKSHELF);
+        eightTwoSevenFallbacks.put(Items.OAK_SHELF, Items.CHISELED_BOOKSHELF);
+        eightTwoSevenFallbacks.put(Items.PALE_OAK_SHELF, Items.CHISELED_BOOKSHELF);
+        eightTwoSevenFallbacks.put(Items.SPRUCE_SHELF, Items.CHISELED_BOOKSHELF);
+        eightTwoSevenFallbacks.put(Items.WARPED_SHELF, Items.CHISELED_BOOKSHELF);
+        eightTwoSevenFallbacks.put(Items.COPPER_BARS, Items.IRON_BARS);
+        eightTwoSevenFallbacks.put(Items.EXPOSED_COPPER_BARS, Items.IRON_BARS);
+        eightTwoSevenFallbacks.put(Items.WEATHERED_COPPER_BARS, Items.IRON_BARS);
+        eightTwoSevenFallbacks.put(Items.OXIDIZED_COPPER_BARS, Items.IRON_BARS);
+        eightTwoSevenFallbacks.put(Items.WAXED_COPPER_BARS, Items.IRON_BARS);
+        eightTwoSevenFallbacks.put(Items.WAXED_EXPOSED_COPPER_BARS, Items.IRON_BARS);
+        eightTwoSevenFallbacks.put(Items.WAXED_WEATHERED_COPPER_BARS, Items.IRON_BARS);
+        eightTwoSevenFallbacks.put(Items.WAXED_OXIDIZED_COPPER_BARS, Items.IRON_BARS);
+        eightTwoSevenFallbacks.put(Items.COPPER_GOLEM_STATUE, Items.ARMOR_STAND);
+        eightTwoSevenFallbacks.put(Items.EXPOSED_COPPER_GOLEM_STATUE, Items.ARMOR_STAND);
+        eightTwoSevenFallbacks.put(Items.WEATHERED_COPPER_GOLEM_STATUE, Items.ARMOR_STAND);
+        eightTwoSevenFallbacks.put(Items.OXIDIZED_COPPER_GOLEM_STATUE, Items.ARMOR_STAND);
+        eightTwoSevenFallbacks.put(Items.WAXED_COPPER_GOLEM_STATUE, Items.ARMOR_STAND);
+        eightTwoSevenFallbacks.put(Items.WAXED_EXPOSED_COPPER_GOLEM_STATUE, Items.ARMOR_STAND);
+        eightTwoSevenFallbacks.put(Items.WAXED_WEATHERED_COPPER_GOLEM_STATUE, Items.ARMOR_STAND);
+        eightTwoSevenFallbacks.put(Items.WAXED_OXIDIZED_COPPER_GOLEM_STATUE, Items.ARMOR_STAND);
+        eightTwoSevenFallbacks.put(Items.COPPER_LANTERN, Items.LANTERN);
+        eightTwoSevenFallbacks.put(Items.EXPOSED_COPPER_LANTERN, Items.LANTERN);
+        eightTwoSevenFallbacks.put(Items.WEATHERED_COPPER_LANTERN, Items.LANTERN);
+        eightTwoSevenFallbacks.put(Items.OXIDIZED_COPPER_LANTERN, Items.LANTERN);
+        eightTwoSevenFallbacks.put(Items.WAXED_COPPER_LANTERN, Items.LANTERN);
+        eightTwoSevenFallbacks.put(Items.WAXED_EXPOSED_COPPER_LANTERN, Items.LANTERN);
+        eightTwoSevenFallbacks.put(Items.WAXED_WEATHERED_COPPER_LANTERN, Items.LANTERN);
+        eightTwoSevenFallbacks.put(Items.WAXED_OXIDIZED_COPPER_LANTERN, Items.LANTERN);
+        eightTwoSevenFallbacks.put(Items.EXPOSED_LIGHTNING_ROD, Items.LIGHTNING_ROD);
+        eightTwoSevenFallbacks.put(Items.WEATHERED_LIGHTNING_ROD, Items.LIGHTNING_ROD);
+        eightTwoSevenFallbacks.put(Items.OXIDIZED_LIGHTNING_ROD, Items.LIGHTNING_ROD);
+        eightTwoSevenFallbacks.put(Items.WAXED_LIGHTNING_ROD, Items.LIGHTNING_ROD);
+        eightTwoSevenFallbacks.put(Items.WAXED_EXPOSED_LIGHTNING_ROD, Items.LIGHTNING_ROD);
+        eightTwoSevenFallbacks.put(Items.WAXED_WEATHERED_LIGHTNING_ROD, Items.LIGHTNING_ROD);
+        eightTwoSevenFallbacks.put(Items.WAXED_OXIDIZED_LIGHTNING_ROD, Items.LIGHTNING_ROD);
+        eightTwoSevenFallbacks.put(Items.COPPER_TORCH, Items.TORCH);
+        eightTwoSevenFallbacks.put(Items.COPPER_HORSE_ARMOR, Items.LEATHER_HORSE_ARMOR);
 
-        Map<Item, Item> fallbacks1_21_80 = new HashMap<>();
-        fallbacks1_21_80.put(Items.MUSIC_DISC_LAVA_CHICKEN, Items.MUSIC_DISC_CHIRP);
-        fallbacks1_21_80.put(Items.MUSIC_DISC_TEARS, Items.MUSIC_DISC_5);
+        Map<Item, Item> eightOneNineFallbacks = new HashMap<>(eightTwoSevenFallbacks);
+        eightOneNineFallbacks.put(Items.COPPER_CHEST, Items.CHEST);
+        eightOneNineFallbacks.put(Items.EXPOSED_COPPER_CHEST, Items.CHEST);
+        eightOneNineFallbacks.put(Items.WEATHERED_COPPER_CHEST, Items.CHEST);
+        eightOneNineFallbacks.put(Items.OXIDIZED_COPPER_CHEST, Items.CHEST);
+        eightOneNineFallbacks.put(Items.WAXED_COPPER_CHEST, Items.CHEST);
+        eightOneNineFallbacks.put(Items.WAXED_EXPOSED_COPPER_CHEST, Items.CHEST);
+        eightOneNineFallbacks.put(Items.WAXED_WEATHERED_COPPER_CHEST, Items.CHEST);
+        eightOneNineFallbacks.put(Items.WAXED_OXIDIZED_COPPER_CHEST, Items.CHEST);
+        eightOneNineFallbacks.put(Items.COPPER_HELMET, Items.LEATHER_HELMET);
+        eightOneNineFallbacks.put(Items.COPPER_CHESTPLATE, Items.LEATHER_CHESTPLATE);
+        eightOneNineFallbacks.put(Items.COPPER_LEGGINGS, Items.LEATHER_LEGGINGS);
+        eightOneNineFallbacks.put(Items.COPPER_BOOTS, Items.LEATHER_BOOTS);
+        eightOneNineFallbacks.put(Items.COPPER_NUGGET, Items.IRON_NUGGET);
+        eightOneNineFallbacks.put(Items.COPPER_SWORD, Items.STONE_SWORD);
+        eightOneNineFallbacks.put(Items.COPPER_PICKAXE, Items.STONE_PICKAXE);
+        eightOneNineFallbacks.put(Items.COPPER_SHOVEL, Items.STONE_SHOVEL);
+        eightOneNineFallbacks.put(Items.COPPER_AXE, Items.STONE_AXE);
+        eightOneNineFallbacks.put(Items.COPPER_HOE, Items.STONE_HOE);
+        eightOneNineFallbacks.put(Items.COPPER_GOLEM_SPAWN_EGG, Items.IRON_GOLEM_SPAWN_EGG);
+
+        Map<Item, Item> eightOneEightFallbacks = new HashMap<>(eightOneNineFallbacks);
+        eightOneEightFallbacks.put(Items.MUSIC_DISC_LAVA_CHICKEN, Items.MUSIC_DISC_CHIRP);
 
         List<PaletteVersion> paletteVersions = new ArrayList<>(4);
-        paletteVersions.add(new PaletteVersion("1_21_70", Bedrock_v786.CODEC.getProtocolVersion(), itemFallbacks));
-        paletteVersions.add(new PaletteVersion("1_21_80", Bedrock_v800.CODEC.getProtocolVersion(), fallbacks1_21_80));
-        paletteVersions.add(new PaletteVersion("1_21_90", Bedrock_v818.CODEC.getProtocolVersion(), Map.of(Items.MUSIC_DISC_LAVA_CHICKEN, Items.MUSIC_DISC_CHIRP)));
-        paletteVersions.add(new PaletteVersion("1_21_93", Bedrock_v819.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("1_21_100", Bedrock_v827.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_90", Bedrock_v818.CODEC.getProtocolVersion(), eightOneEightFallbacks, Conversion844_827::remapItem));
+        paletteVersions.add(new PaletteVersion("1_21_93", Bedrock_v819.CODEC.getProtocolVersion(), eightOneNineFallbacks, Conversion844_827::remapItem));
+        paletteVersions.add(new PaletteVersion("1_21_100", Bedrock_v827.CODEC.getProtocolVersion(), eightTwoSevenFallbacks, Conversion844_827::remapItem));
+        paletteVersions.add(new PaletteVersion("1_21_110", Bedrock_v844.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 

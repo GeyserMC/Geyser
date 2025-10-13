@@ -74,6 +74,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectIns
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.TooltipDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.TypedEntityData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Weapon;
@@ -213,9 +214,15 @@ public class DataComponentHashers {
 
         register(DataComponentTypes.TRIM, RegistryHasher.ARMOR_TRIM);
         register(DataComponentTypes.DEBUG_STICK_STATE, MinecraftHasher.NBT_MAP);
-        register(DataComponentTypes.ENTITY_DATA, MinecraftHasher.NBT_MAP);
+        registerMap(DataComponentTypes.ENTITY_DATA, builder -> builder
+            .accept("id", RegistryHasher.ENTITY_TYPE_KEY, TypedEntityData::type)
+            .inlineNbt(TypedEntityData::tag)
+        );
         register(DataComponentTypes.BUCKET_ENTITY_DATA, MinecraftHasher.NBT_MAP);
-        register(DataComponentTypes.BLOCK_ENTITY_DATA, MinecraftHasher.NBT_MAP);
+        registerMap(DataComponentTypes.BLOCK_ENTITY_DATA, builder -> builder
+            .accept("id", RegistryHasher.BLOCK_ENTITY_TYPE_KEY, TypedEntityData::type)
+            .inlineNbt(TypedEntityData::tag)
+        );
 
         register(DataComponentTypes.INSTRUMENT, RegistryHasher.INSTRUMENT_COMPONENT);
         register(DataComponentTypes.PROVIDES_TRIM_MATERIAL, RegistryHasher.PROVIDES_TRIM_MATERIAL);
@@ -235,7 +242,7 @@ public class DataComponentHashers {
             .optional("flight_duration", MinecraftHasher.BYTE, fireworks -> (byte) fireworks.getFlightDuration(), (byte) 0)
             .optionalList("explosions", RegistryHasher.FIREWORK_EXPLOSION, Fireworks::getExplosions));
 
-        register(DataComponentTypes.PROFILE, MinecraftHasher.GAME_PROFILE);
+        register(DataComponentTypes.PROFILE, MinecraftHasher.RESOLVABLE_PROFILE);
         register(DataComponentTypes.NOTE_BLOCK_SOUND, MinecraftHasher.KEY);
         register(DataComponentTypes.BANNER_PATTERNS, RegistryHasher.BANNER_PATTERN_LAYER.list());
         register(DataComponentTypes.BASE_COLOR, MinecraftHasher.DYE_COLOR);

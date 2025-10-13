@@ -52,11 +52,8 @@ public class CrossbowItem extends Item {
         if (chargedProjectiles != null && !chargedProjectiles.isEmpty()) {
             ItemStack javaProjectile = chargedProjectiles.get(0);
 
-            ItemMapping projectileMapping = session.getItemMappings().getMapping(javaProjectile.getId());
             ItemData itemData = ItemTranslator.translateToBedrock(session, javaProjectile);
-
-            NbtMapBuilder newProjectile = BedrockItemBuilder.createItemNbt(projectileMapping, itemData.getCount(), itemData.getDamage());
-
+            NbtMapBuilder newProjectile = BedrockItemBuilder.createItemNbt(itemData);
             builder.putCompound("chargedItem", newProjectile.build());
         }
     }

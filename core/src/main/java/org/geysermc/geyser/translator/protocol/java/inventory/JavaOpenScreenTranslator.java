@@ -63,6 +63,10 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
             newTranslator = InventoryTranslator.inventoryTranslator(packet.getType());
         }
 
+        if (session.hasFormOpen()) {
+            session.closeForm();
+        }
+
         // No translator exists for this window type. Close all windows and return.
         if (newTranslator == null) {
             if (currentInventory != null) {

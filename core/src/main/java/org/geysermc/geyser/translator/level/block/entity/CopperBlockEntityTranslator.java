@@ -23,19 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.populator.conversion;
+package org.geysermc.geyser.translator.level.block.entity;
 
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
-public class Conversion800_786 {
+@BlockEntity(type = BlockEntityType.COPPER_GOLEM_STATUE)
+public class CopperBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
 
-    public static NbtMap remapBlock(NbtMap nbtMap) {
+    @Override
+    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
+        // Copper golem poses are set through block states on Java and through NBT on bedrock
+        bedrockNbt.putBoolean("isMovable", false)
+            .putInt("Pose", translateCopperPose(blockState.getValue(Properties.COPPER_GOLEM_POSE)));
+    }
 
-        final String name = nbtMap.getString("name");
-        if (name.equals("minecraft:dried_ghast")) {
-            return ConversionHelper.withoutStates("unknown");
-        }
-
-        return nbtMap;
+    private static int translateCopperPose(String java) {
+        return switch (java) {
+            case "standing" -> 0;
+            case "sitting" -> 1;
+            case "running" -> 2;
+            case "star" -> 3;
+            default -> throw new IllegalStateException("Unexpected value for copper pose: " + java);
+        };
     }
 }
