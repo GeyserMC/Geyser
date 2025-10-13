@@ -30,7 +30,7 @@ import lombok.Getter;
 
 // This is taken from (https://gist.github.com/wan-adrian/e919b46be3889d865801eb8883407587) or (https://github.com/PowerNukkitX/PowerNukkitX/blob/master/src/main/java/cn/nukkit/network/protocol/types/ClientInputLocksFlag.java)
 @RequiredArgsConstructor
-@Getter()
+@Getter
 public enum InputLocksFlag {
     RESET(0),
     CAMERA(2),

@@ -43,6 +43,7 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
+import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.Blocks;
@@ -476,6 +477,9 @@ public class SessionPlayerEntity extends PlayerEntity {
             this.vehicle.updateBedrockMetadata();
         }
 
+        // Bedrock client dismount behaviour is entirely client-sided, which could causes some problems, so we lock the player
+        // ability to dismount before they enter a vehicle, or after they exit one.
+        this.session.lockInputs(InputLocksFlag.DISMOUNT, entity != null);
         super.setVehicle(entity);
     }
   
