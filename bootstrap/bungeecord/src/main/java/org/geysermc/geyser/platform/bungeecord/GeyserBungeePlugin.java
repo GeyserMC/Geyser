@@ -273,6 +273,11 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         return Paths.get(getProxy().getName().equals("BungeeCord") ? "proxy.log.0" : "logs/latest.log");
     }
 
+    @Override
+    public @NonNull String getServerPlatform() {
+        return getProxy().getName();
+    }
+
     @Nullable
     @Override
     public SocketAddress getSocketAddress() {

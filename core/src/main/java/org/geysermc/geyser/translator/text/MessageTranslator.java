@@ -28,10 +28,12 @@ package org.geysermc.geyser.translator.text;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.TranslationArgument;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
@@ -75,6 +77,7 @@ public class MessageTranslator {
     // Reset character
     private static final String RESET = BASE + "r";
     private static final Pattern RESET_PATTERN = Pattern.compile("(" + RESET + "){2,}");
+    private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
 
     static {
         GSON_SERIALIZER = DefaultComponentSerializer.get()
@@ -107,6 +110,43 @@ public class MessageTranslator {
 
         ComponentFlattener flattener = ComponentFlattener.basic().toBuilder()
             .nestingLimit(30)
+            .complexMapper(TranslatableComponent.class, (translatable, consumer) -> {
+                final String translated = translatable.key();
+                final Matcher matcher = LOCALIZATION_PATTERN.matcher(translated);
+                final List<TranslationArgument> args = translatable.arguments();
+                int argPosition = 0;
+                int lastIdx = 0;
+                while (matcher.find()) {
+                    // append prior
+                    if (lastIdx < matcher.start()) {
+                        consumer.accept(Component.text(translated.substring(lastIdx, matcher.start())));
+                    }
+                    lastIdx = matcher.end();
+
+                    final @Nullable String argIdx = matcher.group(1);
+                    // calculate argument position
+                    if (argIdx != null) {
+                        try {
+                            final int idx = Integer.parseInt(argIdx) - 1;
+                            if (idx < args.size()) {
+                                consumer.accept(args.get(idx).asComponent());
+                            }
+                        } catch (final NumberFormatException ex) {
+                            // ignore, drop the format placeholder
+                        }
+                    } else {
+                        final int idx = argPosition++;
+                        if (idx < args.size()) {
+                            consumer.accept(args.get(idx).asComponent());
+                        }
+                    }
+                }
+
+                // append tail
+                if (lastIdx < translated.length()) {
+                    consumer.accept(Component.text(translated.substring(lastIdx)));
+                }
+            })
             .build();
 
         BEDROCK_SERIALIZER = LegacyComponentSerializer.legacySection().toBuilder()

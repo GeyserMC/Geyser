@@ -40,7 +40,7 @@ import org.geysermc.geyser.api.skin.Cape;
 import org.geysermc.geyser.api.skin.Skin;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.api.skin.SkinGeometry;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
@@ -233,7 +233,7 @@ public class SkinProvider {
         return CACHED_JAVA_CAPES.getIfPresent(capeUrl);
     }
 
-    static CompletableFuture<SkinData> requestSkinData(PlayerEntity entity, GeyserSession session) {
+    static CompletableFuture<SkinData> requestSkinData(AvatarEntity entity, GeyserSession session) {
         SkinManager.GameProfileData data = SkinManager.GameProfileData.from(entity);
         if (data == null) {
             // This player likely does not have a textures property
@@ -473,16 +473,84 @@ public class SkinProvider {
         return data;
     }
 
+    public static @Nullable String shorthandUUID(@Nullable UUID uuid) {
+        if (uuid == null) {
+            return null;
+        }
+
+        return uuid.toString().replace("-", "");
+    }
+
+    public static @Nullable UUID expandUUID(@Nullable String uuid) {
+        if (uuid == null) {
+            return null;
+        }
+
+        long mostSignificant = Long.parseUnsignedLong(uuid.substring(0, 16), 16);
+        long leastSignificant = Long.parseUnsignedLong(uuid.substring(16), 16);
+        return new UUID(mostSignificant, leastSignificant);
+    }
+
+    /**
+     * Request a player's username from their UUID
+     *
+     * @param uuid the player's UUID
+     * @return a completable username of the player
+     */
+    public static CompletableFuture<@Nullable String> requestUsernameFromUUID(UUID uuid) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                JsonObject node = WebUtils.getJson("https://api.minecraftservices.com/minecraft/profile/lookup/" + shorthandUUID(uuid));
+                JsonElement name = node.get("name");
+                if (name == null) {
+                    GeyserImpl.getInstance().getLogger().debug("No username found in Mojang response for " + uuid);
+                    return null;
+                }
+                return name.getAsString();
+            } catch (Exception e) {
+                if (GeyserImpl.getInstance().config().debugMode()) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }, getExecutorService());
+    }
+
+    /**
+     * Request a player's UUID from their username
+     *
+     * @param username the player's username
+     * @return a completable UUID of the player
+     */
+    public static CompletableFuture<@Nullable UUID> requestUUIDFromUsername(String username) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                JsonObject node = WebUtils.getJson("https://api.mojang.com/users/profiles/minecraft/" + username);
+                JsonElement id = node.get("id");
+                if (id == null) {
+                    GeyserImpl.getInstance().getLogger().debug("No UUID found in Mojang response for " + username);
+                    return null;
+                }
+                return expandUUID(id.getAsString());
+            } catch (Exception e) {
+                if (GeyserImpl.getInstance().config().debugMode()) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }, getExecutorService());
+    }
+
     /**
      * Request textures from a player's UUID
      *
-     * @param uuid the player's UUID without any hyphens
+     * @param uuid the player's UUID
      * @return a completable GameProfile with textures included
      */
-    public static CompletableFuture<@Nullable String> requestTexturesFromUUID(String uuid) {
+    public static CompletableFuture<@Nullable String> requestTexturesFromUUID(UUID uuid) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                JsonObject node = WebUtils.getJson("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
+                JsonObject node = WebUtils.getJson("https://sessionserver.mojang.com/session/minecraft/profile/" + shorthandUUID(uuid));
                 JsonArray properties = node.getAsJsonArray("properties");
                 if (properties == null) {
                     GeyserImpl.getInstance().getLogger().debug("No properties found in Mojang response for " + uuid);
@@ -506,28 +574,13 @@ public class SkinProvider {
      * @return a completable GameProfile with textures included
      */
     public static CompletableFuture<@Nullable String> requestTexturesFromUsername(String username) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                // Offline skin, or no present UUID
-                JsonObject node = WebUtils.getJson("https://api.mojang.com/users/profiles/minecraft/" + username);
-                JsonElement id = node.get("id");
-                if (id == null) {
-                    GeyserImpl.getInstance().getLogger().debug("No UUID found in Mojang response for " + username);
-                    return null;
+        return requestUUIDFromUsername(username)
+            .thenCompose(uuid -> {
+                if (uuid == null) {
+                    return CompletableFuture.completedFuture(null);
                 }
-                return id.getAsString();
-            } catch (Exception e) {
-                if (GeyserImpl.getInstance().config().debugMode()) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        }, getExecutorService()).thenCompose(uuid -> {
-            if (uuid == null) {
-                return CompletableFuture.completedFuture(null);
-            }
-            return requestTexturesFromUUID(uuid);
-        });
+                return requestTexturesFromUUID(uuid);
+            });
     }
 
     private static BufferedImage downloadImage(String imageUrl) throws IOException {

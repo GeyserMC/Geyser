@@ -31,6 +31,7 @@ import lombok.Setter;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.chunk.GeyserChunk;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.DataPalette;
@@ -89,9 +90,7 @@ public class ChunkCache {
                 previouslyEmpty = true;
                 if (block != Block.JAVA_AIR_ID) {
                     // A previously empty chunk, which is no longer empty as a block has been added to it
-                    palette = DataPalette.createForChunk();
-                    // Fixes the chunk assuming that all blocks is the `block` variable we are updating. /shrug
-                    palette.getPalette().stateToId(Block.JAVA_AIR_ID);
+                    palette = DataPalette.createForBlockState(Block.JAVA_AIR_ID, BlockRegistries.BLOCK_STATES.get().size());
                     chunk.sections()[(y - minY) >> 4] = palette;
                 } else {
                     // Nothing to update

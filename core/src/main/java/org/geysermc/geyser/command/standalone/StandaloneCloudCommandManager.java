@@ -59,6 +59,11 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
      */
     private final Set<String> basePermissions = new ObjectOpenHashSet<>();
 
+    /**
+     * Any permissions that all connections do not have
+     */
+    private final Set<String> baseDeniedPermissions = new ObjectOpenHashSet<>();
+
     public StandaloneCloudCommandManager(GeyserImpl geyser) {
         super(ExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler());
         // simpleCoordinator: execute commands immediately on the calling thread.
@@ -74,6 +79,7 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
             FileUtils.fileOrCopiedFromResource(permissionsFile, "permissions.yml", geyser.getBootstrap());
             PermissionConfiguration config = FileUtils.loadConfig(permissionsFile, PermissionConfiguration.class);
             basePermissions.addAll(config.getDefaultPermissions());
+            baseDeniedPermissions.addAll(config.getDefaultDeniedPermissions());
         } catch (Exception e) {
             geyser.getLogger().error("Failed to load permissions.yml - proceeding without it", e);
         }
@@ -88,11 +94,19 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
             Objects.requireNonNull(permission, "permission");
             Objects.requireNonNull(def, "permission default for " + permission);
 
-            if (permission.isBlank()) {
+            if (permission.isBlank() || def == TriState.NOT_SET) {
                 return;
             }
+
+            GeyserImpl.getInstance().getLogger().debug("Registering permission %s with permission default %s", permission, def);
+
             if (def == TriState.TRUE) {
+                // The last caller gets to override earlier set defaults
+                baseDeniedPermissions.remove(permission);
                 basePermissions.add(permission);
+            } else {
+                basePermissions.remove(permission);
+                baseDeniedPermissions.add(permission);
             }
         });
     }
@@ -119,6 +133,11 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
             }
             // undefined - try the next checker to see if it has a defined value
         }
+
+        if (baseDeniedPermissions.contains(permission)) {
+            return false;
+        }
+
         // fallback to our list of default permissions
         // note that a PermissionChecker may in fact override any values set here by returning FALSE
         return basePermissions.contains(permission);

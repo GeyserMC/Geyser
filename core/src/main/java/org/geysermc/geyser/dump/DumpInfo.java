@@ -63,6 +63,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,7 +99,7 @@ public class DumpInfo {
         this.cpuCount = Runtime.getRuntime().availableProcessors();
         this.cpuName = CpuUtils.tryGetProcessorName();
         this.systemLocale = Locale.getDefault();
-        this.systemEncoding = System.getProperty("file.encoding");
+        this.systemEncoding = Charset.defaultCharset().displayName();
 
         this.gitInfo = new GitInfo(GeyserImpl.BUILD_NUMBER, GeyserImpl.COMMIT.substring(0, 7), GeyserImpl.COMMIT, GeyserImpl.BRANCH, GeyserImpl.REPOSITORY);
 

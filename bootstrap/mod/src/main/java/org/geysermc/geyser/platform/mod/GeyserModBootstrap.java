@@ -226,4 +226,9 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     public InputStream getResourceOrNull(String resource) {
         return this.platform.resolveResource(resource);
     }
+
+    @Override
+    public @NonNull String getServerPlatform() {
+        return server.getServerModName();
+    }
 }

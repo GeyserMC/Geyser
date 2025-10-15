@@ -37,4 +37,6 @@ import java.util.Set;
 public class PermissionConfiguration {
 
     private Set<String> defaultPermissions = Collections.emptySet();
+
+    private Set<String> defaultDeniedPermissions = Collections.emptySet();
 }

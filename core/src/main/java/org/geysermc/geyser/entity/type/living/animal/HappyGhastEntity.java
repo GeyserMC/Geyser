@@ -33,11 +33,13 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.properties.type.BooleanProperty;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.HappyGhastVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
@@ -61,6 +63,11 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
     public static final float[] X_OFFSETS = {0.0F, -1.7F, 0.0F, 1.7F};
     public static final float[] Z_OFFSETS = {1.7F, 0.0F, -1.7F, 0.0F};
 
+    public static final BooleanProperty CAN_MOVE_PROPERTY = new BooleanProperty(
+        IdentifierImpl.of("can_move"),
+        true
+    );
+
     private final HappyGhastVehicleComponent vehicleComponent = new HappyGhastVehicleComponent(this, 0.0f);
     private boolean staysStill;
 
@@ -80,8 +87,6 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
 
         setFlag(EntityFlag.WASD_AIR_CONTROLLED, true);
         setFlag(EntityFlag.DOES_SERVER_AUTH_ONLY_DISMOUNT, true);
-
-        propertyManager.add("minecraft:can_move", true);
     }
 
     @Override
@@ -111,7 +116,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
 
     public void setStaysStill(BooleanEntityMetadata entityMetadata) {
         staysStill = entityMetadata.getPrimitiveValue();
-        propertyManager.add("minecraft:can_move", !entityMetadata.getPrimitiveValue());
+        CAN_MOVE_PROPERTY.apply(propertyManager, !entityMetadata.getPrimitiveValue());
         updateBedrockEntityProperties();
     }
 
@@ -122,12 +127,12 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
             return super.testMobInteraction(hand, itemInHand);
         } else {
             if (!itemInHand.isEmpty()) {
-                if (session.getTagCache().is(ItemTag.HARNESSES, itemInHand)) {
-                    if (this.equipment.get(EquipmentSlot.BODY) == null) {
+                if (itemInHand.is(session, ItemTag.HARNESSES)) {
+                    if (getItemInSlot(EquipmentSlot.BODY).isEmpty()) {
                         // Harnesses the ghast
                         return InteractiveTag.EQUIP_HARNESS;
                     }
-                } else if (itemInHand.asItem() == Items.SHEARS) {
+                } else if (itemInHand.is(Items.SHEARS)) {
                     if (this.canShearEquipment() && !session.isSneaking()) {
                         // Shears the harness off of the ghast
                         return InteractiveTag.REMOVE_HARNESS;
@@ -135,7 +140,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
                 }
             }
 
-            if (this.equipment.get(EquipmentSlot.BODY) != null && !session.isSneaking()) {
+            if (!getItemInSlot(EquipmentSlot.BODY).isEmpty() && !session.isSneaking()) {
                 // Rides happy ghast
                 return InteractiveTag.RIDE_HORSE;
             } else {
@@ -151,12 +156,12 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
             return super.mobInteract(hand, itemInHand);
         } else {
             if (!itemInHand.isEmpty()) {
-                if (session.getTagCache().is(ItemTag.HARNESSES, itemInHand)) {
-                    if (this.equipment.get(EquipmentSlot.BODY) == null) {
+                if (itemInHand.is(session, ItemTag.HARNESSES)) {
+                    if (getItemInSlot(EquipmentSlot.BODY).isEmpty()) {
                         // Harnesses the ghast
                         return InteractionResult.SUCCESS;
                     }
-                } else if (itemInHand.asItem() == Items.SHEARS) {
+                } else if (itemInHand.is(Items.SHEARS)) {
                     if (this.canShearEquipment() && !session.isSneaking()) {
                         // Shears the harness off of the ghast
                         return InteractionResult.SUCCESS;
@@ -164,7 +169,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
                 }
             }
 
-            if (this.equipment.get(EquipmentSlot.BODY) == null && !session.isSneaking()) {
+            if (!getItemInSlot(EquipmentSlot.BODY).isEmpty() && !session.isSneaking()) {
                 // Rides happy ghast
                 return InteractionResult.SUCCESS;
             } else {
@@ -208,7 +213,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
 
     @Override
     public boolean isClientControlled() {
-        if (!hasBodyArmor() || getFlag(EntityFlag.NO_AI) || staysStill) {
+        if (!hasBodyArmor() || staysStill) {
             return false;
         }
 

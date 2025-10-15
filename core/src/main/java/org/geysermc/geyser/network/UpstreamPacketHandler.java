@@ -151,14 +151,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     @Override
-    public void onDisconnect(String reason) {
+    public void onDisconnect(CharSequence reason) {
         // Use our own disconnect messages for these reasons
-        if (BedrockDisconnectReasons.CLOSED.equals(reason)) {
+        if (BedrockDisconnectReasons.CLOSED.contentEquals(reason)) {
             this.session.getUpstream().getSession().setDisconnectReason(GeyserLocale.getLocaleStringLog("geyser.network.disconnect.closed_by_remote_peer"));
-        } else if (BedrockDisconnectReasons.TIMEOUT.equals(reason)) {
+        } else if (BedrockDisconnectReasons.TIMEOUT.contentEquals(reason)) {
             this.session.getUpstream().getSession().setDisconnectReason(GeyserLocale.getLocaleStringLog("geyser.network.disconnect.timed_out"));
         }
-        this.session.disconnect(this.session.getUpstream().getSession().getDisconnectReason());
+        this.session.disconnect(this.session.getUpstream().getSession().getDisconnectReason().toString());
     }
 
     @Override
@@ -288,16 +288,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 stackPacket.setForcedToAccept(false); // Leaving this as false allows the player to choose to download or not
                 stackPacket.setGameVersion(session.getClientData().getGameVersion());
                 stackPacket.getResourcePacks().addAll(this.resourcePackLoadEvent.orderedPacks());
-                // Allows Vibrant Visuals to be toggled in the settings
-                if (session.isAllowVibrantVisuals() && !GameProtocol.is1_21_90orHigher(session)) {
-                    stackPacket.getExperiments().add(new ExperimentData("experimental_graphics", true));
-                }
 
-                if (GameProtocol.is1_21_80(session)) {
-                    // Support happy ghasts in .80
-                    stackPacket.getExperiments().add(new ExperimentData("y_2025_drop_2", true));
-                    // Enables the locator bar for 1.21.80 clients
-                    stackPacket.getExperiments().add(new ExperimentData("locator_bar", true));
+                if (GameProtocol.is1_21_100(session)) {
+                    // Support copper age drop features (or some of them) in 1.21.100
+                    stackPacket.getExperiments().add(new ExperimentData("y_2025_drop_3", true));
                 }
 
                 session.sendUpstreamPacket(stackPacket);

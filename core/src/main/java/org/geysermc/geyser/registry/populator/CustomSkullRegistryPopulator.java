@@ -46,10 +46,14 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 public class CustomSkullRegistryPopulator {
+
+    private static final Pattern SKULL_HASH_PATTERN = Pattern.compile("^[a-fA-F0-9]+$");
 
     public static void populate() {
         SkullResourcePackManager.SKULL_SKINS.clear(); // Remove skins after reloading
@@ -117,8 +121,8 @@ public class CustomSkullRegistryPopulator {
         });
 
         skinHashes.forEach((skinHash) -> {
-            if (!skinHash.matches("^[a-fA-F0-9]+$")) {
-                GeyserImpl.getInstance().getLogger().error("Skin hash " + skinHash + " does not match required format ^[a-fA-F0-9]{64}$ and will not be added as a custom block.");
+            if (!SKULL_HASH_PATTERN.matcher(skinHash).matches()) {
+                GeyserImpl.getInstance().getLogger().error("Skin hash " + skinHash + " does not match required format ^[a-fA-F0-9]+$ and will not be added as a custom block.");
                 return;
             }
 
@@ -176,14 +180,13 @@ public class CustomSkullRegistryPopulator {
      */
     private static @Nullable String getProfileFromUuid(String uuid) {
         try {
-            String uuidDigits = uuid.replace("-", "");
-            if (uuidDigits.length() != 32) {
-                GeyserImpl.getInstance().getLogger().error("Invalid skull uuid " + uuid + " This skull will not be added as a custom block.");
-                return null;
-            }
-            return SkinProvider.requestTexturesFromUUID(uuid).get();
+            UUID parsed = UUID.fromString(uuid);
+            return SkinProvider.requestTexturesFromUUID(parsed).get();
         } catch (InterruptedException | ExecutionException e) {
             GeyserImpl.getInstance().getLogger().error("Unable to request skull textures for " + uuid + " This skull will not be added as a custom block.", e);
+            return null;
+        } catch (IllegalArgumentException e) {
+            GeyserImpl.getInstance().getLogger().error("Invalid skull uuid " + uuid + " This skull will not be added as a custom block.");
             return null;
         }
     }

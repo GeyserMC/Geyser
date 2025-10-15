@@ -240,6 +240,11 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
         return new GeyserViaProxyDumpInfo();
     }
 
+    @Override
+    public @NonNull String getServerPlatform() {
+        return PlatformType.VIAPROXY.platformName();
+    }
+
     @NonNull
     @Override
     public String getServerBindAddress() {

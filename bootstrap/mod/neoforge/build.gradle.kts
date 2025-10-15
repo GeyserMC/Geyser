@@ -13,8 +13,6 @@ architectury {
 provided("org.cloudburstmc.math", "api")
 provided("com.google.errorprone", "error_prone_annotations")
 
-val includeTransitive: Configuration = configurations.getByName("includeTransitive")
-
 dependencies {
     // See https://github.com/google/guava/issues/6618
     modules {

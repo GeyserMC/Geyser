@@ -98,6 +98,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.AssetUtils;
+import org.geysermc.geyser.util.CodeOfConductManager;
 import org.geysermc.geyser.util.JsonUtils;
 import org.geysermc.geyser.util.NewsHandler;
 import org.geysermc.geyser.util.VersionCheckUtils;
@@ -149,7 +150,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
      */
     public static final String OAUTH_CLIENT_ID = "204cefd1-4818-4de1-b98d-513fae875d88";
 
-    private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
+    private static final Pattern IP_REGEX = Pattern.compile("\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b");
 
     private final SessionManager sessionManager = new SessionManager();
 
@@ -301,7 +302,10 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         if (isReloading) {
             // If we're reloading, the default locale in the config might have changed.
             GeyserLocale.finalizeDefaultLocale(this);
+        } else {
+            CodeOfConductManager.load();
         }
+
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfig config = bootstrap.config();
 
@@ -427,7 +431,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         if (!(config instanceof GeyserPluginConfig)) {
             String remoteAddress = config.java().address();
             // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
-            if (!remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
+            if (!IP_REGEX.matcher(remoteAddress).matches() && !remoteAddress.equalsIgnoreCase("localhost")) {
                 String[] record = WebUtils.findSrvRecord(this, remoteAddress);
                 if (record != null) {
                     int remotePort = Integer.parseInt(record[2]);
@@ -528,7 +532,18 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             metrics.addCustomChart(new SingleLineChart("players", sessionManager::size));
             // Prevent unwanted words best we can
             metrics.addCustomChart(new SimplePie("authMode", () -> config.java().authType().toString().toLowerCase(Locale.ROOT)));
-            metrics.addCustomChart(new SimplePie("platform", platformType()::platformName));
+
+            Map<String, Map<String, Integer>> platformTypeMap = new HashMap<>();
+            Map<String, Integer> serverPlatform = new HashMap<>();
+            serverPlatform.put(bootstrap.getServerPlatform(), 1);
+            platformTypeMap.put(platformType().platformName(), serverPlatform);
+
+            metrics.addCustomChart(new DrilldownPie("platform", () -> {
+                // By the end, we should return, for example:
+                // Geyser-Spigot => (Paper, 1)
+                return platformTypeMap;
+            }));
+
             metrics.addCustomChart(new SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new SimplePie("version", () -> GeyserImpl.VERSION));
             metrics.addCustomChart(new SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.java().useHaproxyProtocol())));
@@ -566,7 +581,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             if (minecraftVersion != null) {
                 Map<String, Map<String, Integer>> versionMap = new HashMap<>();
                 Map<String, Integer> platformMap = new HashMap<>();
-                platformMap.put(platformType().platformName(), 1);
+                platformMap.put(bootstrap.getServerPlatform(), 1);
                 versionMap.put(minecraftVersion, platformMap);
 
                 metrics.addCustomChart(new DrilldownPie("minecraftServerVersion", () -> {
@@ -732,6 +747,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);
 
         ResourcePackLoader.clear();
+        CodeOfConductManager.getInstance().save();
 
         this.setEnabled(false);
     }
