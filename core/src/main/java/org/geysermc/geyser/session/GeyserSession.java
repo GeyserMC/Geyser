@@ -706,7 +706,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * A cache of IDs from ClientboundKeepAlivePackets that have been sent to the Bedrock client, but haven't been returned to the server.
-     * Only used if {@link GeyserConfig#forwardPlayerPing()} is enabled.
+     * Only used if {@link GeyserConfig.GameplayConfig#forwardPlayerPing()} is enabled.
      */
     private final Queue<Long> keepAliveCache = new ConcurrentLinkedQueue<>();
 
@@ -854,7 +854,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         upstream.sendPacket(playStatusPacket);
 
         SetCommandsEnabledPacket setCommandsEnabledPacket = new SetCommandsEnabledPacket();
-        setCommandsEnabledPacket.setCommandsEnabled(!geyser.config().xboxAchievementsEnabled());
+        setCommandsEnabledPacket.setCommandsEnabled(!geyser.config().gameplay().xboxAchievementsEnabled());
         upstream.sendPacket(setCommandsEnabledPacket);
 
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
@@ -1072,10 +1072,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Disable automatic creation of a new TcpClientSession when transferring - we don't use that functionality.
         this.downstream.getSession().setFlag(MinecraftConstants.FOLLOW_TRANSFERS, false);
 
-        if (geyser.config().java().useHaproxyProtocol()) {
+        if (geyser.config().advanced().java().useHaproxyProtocol()) {
             downstream.setFlag(BuiltinFlags.CLIENT_PROXIED_ADDRESS, upstream.getAddress());
         }
-        if (geyser.config().forwardPlayerPing()) {
+        if (geyser.config().gameplay().forwardPlayerPing()) {
             // Let Geyser handle sending the keep alive
             downstream.setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, false);
         }
@@ -1776,7 +1776,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setLevelGameType(GameType.SURVIVAL);
         startGamePacket.setDifficulty(1);
         startGamePacket.setDefaultSpawn(Vector3i.ZERO);
-        startGamePacket.setAchievementsDisabled(!geyser.config().xboxAchievementsEnabled());
+        startGamePacket.setAchievementsDisabled(!geyser.config().gameplay().xboxAchievementsEnabled());
         startGamePacket.setCurrentTick(-1);
         startGamePacket.setEduEditionOffers(0);
         startGamePacket.setEduFeaturesEnabled(false);
@@ -1786,7 +1786,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setBroadcastingToLan(true);
         startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
         startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
-        startGamePacket.setCommandsEnabled(!geyser.config().xboxAchievementsEnabled());
+        startGamePacket.setCommandsEnabled(!geyser.config().gameplay().xboxAchievementsEnabled());
         startGamePacket.setTexturePacksRequired(false);
         startGamePacket.setBonusChestEnabled(false);
         startGamePacket.setStartingWithMap(false);
@@ -1804,7 +1804,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setEducationProductionId("");
         startGamePacket.setForceExperimentalGameplay(OptionalBoolean.empty());
 
-        String serverName = geyser.config().bedrock().serverName();
+        String serverName = geyser.config().gameplay().serverName();
         startGamePacket.setLevelId(serverName);
         startGamePacket.setLevelName(serverName);
 
@@ -2459,7 +2459,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private void softEnumPacket(String name, SoftEnumUpdateType type, String enums) {
         // There is no need to send command enums if command suggestions are disabled
-        if (!this.geyser.config().commandSuggestions()) {
+        if (!this.geyser.config().gameplay().commandSuggestions()) {
             return;
         }
         UpdateSoftEnumPacket packet = new UpdateSoftEnumPacket();

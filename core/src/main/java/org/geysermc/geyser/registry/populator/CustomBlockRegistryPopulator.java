@@ -104,7 +104,7 @@ public class CustomBlockRegistryPopulator {
      * @param stage the stage to populate
      */
     public static void populate(Stage stage) {
-        if (!GeyserImpl.getInstance().config().enableCustomContent()) {
+        if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
             return;
         }
         

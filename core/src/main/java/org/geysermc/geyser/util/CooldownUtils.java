@@ -44,7 +44,7 @@ public class CooldownUtils {
      * @param session GeyserSession
      */
     public static void sendCooldown(GeyserSession session) {
-        if (session.getGeyser().config().showCooldown() == CooldownType.DISABLED) return;
+        if (session.getGeyser().config().gameplay().showCooldown() == CooldownType.DISABLED) return;
         CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
         if (sessionPreference == CooldownType.DISABLED) return;
 

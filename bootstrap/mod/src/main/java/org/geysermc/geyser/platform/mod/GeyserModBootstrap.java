@@ -100,7 +100,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
         GeyserImpl.start();
 
-        if (!geyserConfig.integratedPingPassthrough()) {
+        if (!geyserConfig.motd().integratedPingPassthrough()) {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
             this.geyserPingPassthrough = new ModPingPassthrough(server, geyserLogger);

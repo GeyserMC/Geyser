@@ -58,7 +58,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
 public class SkinProvider {
@@ -144,7 +148,7 @@ public class SkinProvider {
 
     public static void registerCacheImageTask(GeyserImpl geyser) {
         // Schedule Daily Image Expiry if we are caching them
-        if (geyser.config().cacheImages() > 0) {
+        if (geyser.config().advanced().cacheImages() > 0) {
             geyser.getScheduledThread().scheduleAtFixedRate(() -> {
                 File cacheFolder = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").toFile();
                 if (!cacheFolder.exists()) {
@@ -152,7 +156,7 @@ public class SkinProvider {
                 }
 
                 int count = 0;
-                final long expireTime = ((long) GeyserImpl.getInstance().config().cacheImages()) * ((long)1000 * 60 * 60 * 24);
+                final long expireTime = ((long) GeyserImpl.getInstance().config().advanced().cacheImages()) * ((long)1000 * 60 * 60 * 24);
                 for (File imageFile : Objects.requireNonNull(cacheFolder.listFiles())) {
                     if (imageFile.lastModified() < System.currentTimeMillis() - expireTime) {
                         //noinspection ResultOfMethodCallIgnored
@@ -422,7 +426,7 @@ public class SkinProvider {
             GeyserImpl.getInstance().getLogger().debug("Downloaded " + imageUrl);
 
             // Write to cache if we are allowed
-            if (GeyserImpl.getInstance().config().cacheImages() > 0) {
+            if (GeyserImpl.getInstance().config().advanced().cacheImages() > 0) {
                 imageFile.getParentFile().mkdirs();
                 try {
                     ImageIO.write(image, "png", imageFile);

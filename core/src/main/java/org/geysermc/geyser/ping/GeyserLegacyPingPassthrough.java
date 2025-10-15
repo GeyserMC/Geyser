@@ -65,10 +65,10 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
      * @return GeyserPingPassthrough, or null if not initialized
      */
     public static @Nullable IGeyserPingPassthrough init(GeyserImpl geyser) {
-        if (geyser.config().passthroughMotd() || geyser.config().passthroughPlayerCounts()) {
+        if (geyser.config().motd().passthroughMotd() || geyser.config().motd().passthroughPlayerCounts()) {
             GeyserLegacyPingPassthrough pingPassthrough = new GeyserLegacyPingPassthrough(geyser);
             // Ensure delay is not zero
-            int interval = (geyser.config().pingPassthroughInterval() == 0) ? 1 : geyser.config().pingPassthroughInterval();
+            int interval = (geyser.config().motd().pingPassthroughInterval() == 0) ? 1 : geyser.config().motd().pingPassthroughInterval();
             geyser.getLogger().debug("Scheduling ping passthrough at an interval of " + interval + " second(s).");
             geyser.getScheduledThread().scheduleAtFixedRate(pingPassthrough, 1, interval, TimeUnit.SECONDS);
             return pingPassthrough;
@@ -102,7 +102,7 @@ public class GeyserLegacyPingPassthrough implements IGeyserPingPassthrough, Runn
             byte[] buffer;
 
             try (DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream())) {
-                if (geyser.config().java().useHaproxyProtocol()) {
+                if (geyser.config().advanced().java().useHaproxyProtocol()) {
                     // HAProxy support
                     // Based on https://github.com/netty/netty/blob/d8ad931488f6b942dabe28ecd6c399b4438da0a8/codec-haproxy/src/main/java/io/netty/handler/codec/haproxy/HAProxyMessageEncoder.java#L78
                     dataOutputStream.write(HAPROXY_BINARY_PREFIX);

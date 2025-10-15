@@ -71,7 +71,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_GLOBAL_PACKET_LIMIT;
 import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_PACKET_LIMIT;
@@ -123,7 +122,7 @@ public final class GeyserServer {
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
-        this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", geyser.config().listenCount()) : 1;
+        this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 1) : 1;
         GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
         this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount, new DefaultThreadFactory("GeyserServer", true));
         this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount, new DefaultThreadFactory("GeyserServerChild", true));
@@ -135,7 +134,7 @@ public final class GeyserServer {
             this.listenCount = 1;
         }
 
-        if (this.geyser.config().bedrock().useHaproxyProtocol()) {
+        if (this.geyser.config().advanced().bedrock().useHaproxyProtocol()) {
             this.proxiedAddresses = ExpiringMap.builder()
                     .expiration(30 + 1, TimeUnit.MINUTES)
                     .expirationPolicy(ExpirationPolicy.ACCESSED).build();
@@ -143,7 +142,7 @@ public final class GeyserServer {
             this.proxiedAddresses = null;
         }
 
-        this.broadcastPort = geyser.config().bedrock().broadcastPort();
+        this.broadcastPort = geyser.config().advanced().bedrock().broadcastPort();
     }
 
     public CompletableFuture<Void> bind(InetSocketAddress address) {
@@ -165,12 +164,12 @@ public final class GeyserServer {
                 .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
 
         // Add proxy handler
-        boolean isProxyProtocol = this.geyser.config().bedrock().useHaproxyProtocol();
+        boolean isProxyProtocol = this.geyser.config().advanced().bedrock().useHaproxyProtocol();
         if (isProxyProtocol) {
             channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
         }
 
-        boolean isWhitelistedProxyProtocol = isProxyProtocol && !this.geyser.config().bedrock().proxyProtocolWhitelistedIps().isEmpty();
+        boolean isWhitelistedProxyProtocol = isProxyProtocol && !this.geyser.config().advanced().bedrock().proxyProtocolWhitelistedIps().isEmpty();
         if (Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false")) || isWhitelistedProxyProtocol) {
             // We would already block any non-whitelisted IP addresses in onConnectionRequest so we can remove the rate limiter
             channel.pipeline().remove(RakServerRateLimiter.NAME);
@@ -220,7 +219,7 @@ public final class GeyserServer {
 
         GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser);
         playerGroup = serverInitializer.getEventLoopGroup();
-        this.geyser.getLogger().debug("Setting MTU to " + this.geyser.config().mtu());
+        this.geyser.getLogger().debug("Setting MTU to " + this.geyser.config().advanced().bedrock().mtu());
 
         int rakPacketLimit = positivePropOrDefault("Geyser.RakPacketLimit", DEFAULT_PACKET_LIMIT);
         this.geyser.getLogger().debug("Setting RakNet packet limit to " + rakPacketLimit);
@@ -235,7 +234,7 @@ public final class GeyserServer {
                 .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannelClass()))
                 .group(group, childGroup)
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
-                .option(RakChannelOption.RAK_MAX_MTU, this.geyser.config().mtu())
+                .option(RakChannelOption.RAK_MAX_MTU, this.geyser.config().advanced().bedrock().mtu())
                 .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
                 .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
                 .option(RakChannelOption.RAK_SEND_COOKIE, rakSendCookie)
@@ -243,8 +242,8 @@ public final class GeyserServer {
     }
 
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
-        List<String> allowedProxyIPs = geyser.config().bedrock().proxyProtocolWhitelistedIps();
-        if (geyser.config().bedrock().useHaproxyProtocol() && !allowedProxyIPs.isEmpty()) {
+        List<String> allowedProxyIPs = geyser.config().advanced().bedrock().proxyProtocolWhitelistedIps();
+        if (geyser.config().advanced().bedrock().useHaproxyProtocol() && !allowedProxyIPs.isEmpty()) {
             boolean isWhitelistedIP = false;
             for (CIDRMatcher matcher : getWhitelistedIPsMatchers()) {
                 if (matcher.matches(inetSocketAddress.getAddress())) {
@@ -261,7 +260,7 @@ public final class GeyserServer {
 
         String ip;
         if (geyser.config().logPlayerIpAddresses()) {
-            if (geyser.config().bedrock().useHaproxyProtocol()) {
+            if (geyser.config().advanced().bedrock().useHaproxyProtocol()) {
                 ip = this.proxiedAddresses.getOrDefault(inetSocketAddress, inetSocketAddress).toString();
             } else {
                 ip = inetSocketAddress.toString();
@@ -290,7 +289,7 @@ public final class GeyserServer {
         if (geyser.config().debugMode() && PRINT_DEBUG_PINGS) {
             String ip;
             if (geyser.config().logPlayerIpAddresses()) {
-                if (geyser.config().bedrock().useHaproxyProtocol()) {
+                if (geyser.config().advanced().bedrock().useHaproxyProtocol()) {
                     ip = this.proxiedAddresses.getOrDefault(inetSocketAddress, inetSocketAddress).toString();
                 } else {
                     ip = inetSocketAddress.toString();
@@ -304,7 +303,7 @@ public final class GeyserServer {
         GeyserConfig config = geyser.config();
 
         GeyserPingInfo pingInfo = null;
-        if (config.passthroughMotd() || config.passthroughPlayerCounts()) {
+        if (config.motd().passthroughMotd() || config.motd().passthroughPlayerCounts()) {
             IGeyserPingPassthrough pingPassthrough = geyser.getBootstrap().getGeyserPingPassthrough();
             if (pingPassthrough != null) {
                 pingInfo = pingPassthrough.getPingInformation(inetSocketAddress);
@@ -321,25 +320,25 @@ public final class GeyserServer {
                 .ipv6Port(this.broadcastPort)
                 .serverId(channel.config().getOption(RakChannelOption.RAK_GUID));
 
-        if (config.passthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
+        if (config.motd().passthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
             String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
-            String mainMotd = (motd.length > 0) ? motd[0] : config.bedrock().primaryMotd(); // First line of the motd.
-            String subMotd = (motd.length > 1) ? motd[1] : config.bedrock().secondaryMotd(); // Second line of the motd if present, otherwise default.
+            String mainMotd = (motd.length > 0) ? motd[0] : config.motd().primaryMotd(); // First line of the motd.
+            String subMotd = (motd.length > 1) ? motd[1] : config.motd().secondaryMotd(); // Second line of the motd if present, otherwise default.
 
             pong.motd(mainMotd.trim());
             pong.subMotd(subMotd.trim()); // Trimmed to shift it to the left, prevents the universe from collapsing on us just because we went 2 characters over the text box's limit.
         } else {
-            pong.motd(config.bedrock().primaryMotd());
-            pong.subMotd(config.bedrock().secondaryMotd());
+            pong.motd(config.motd().primaryMotd());
+            pong.subMotd(config.motd().secondaryMotd());
         }
 
         // Placed here to prevent overriding values set in the ping event.
-        if (config.passthroughPlayerCounts() && pingInfo != null) {
+        if (config.motd().passthroughPlayerCounts() && pingInfo != null) {
             pong.playerCount(pingInfo.getPlayers().getOnline());
             pong.maximumPlayerCount(pingInfo.getPlayers().getMax());
         } else {
             pong.playerCount(geyser.getSessionManager().getSessions().size());
-            pong.maximumPlayerCount(config.maxPlayers());
+            pong.maximumPlayerCount(config.motd().maxPlayers());
         }
 
         this.geyser.eventBus().fire(new GeyserBedrockPingEventImpl(pong, inetSocketAddress));
@@ -393,7 +392,7 @@ public final class GeyserServer {
     private List<CIDRMatcher> whitelistedIPsMatchers = null;
 
     /**
-     * @return Unmodifiable list of {@link CIDRMatcher}s from {@link GeyserConfig.BedrockConfig#proxyProtocolWhitelistedIps()}
+     * @return Unmodifiable list of {@link CIDRMatcher}s from {@link GeyserConfig.AdvancedBedrockConfig#proxyProtocolWhitelistedIps()}
      */
     public List<CIDRMatcher> getWhitelistedIPsMatchers() {
         // Effective Java, Third Edition; Item 83: Use lazy initialization judiciously
@@ -402,7 +401,7 @@ public final class GeyserServer {
             synchronized (this) {
                 // Check if proxyProtocolWhitelistedIPs contains URLs we need to fetch and parse by line
                 List<String> whitelistedCIDRs = new ArrayList<>();
-                for (String ip: geyser.config().bedrock().proxyProtocolWhitelistedIps()) {
+                for (String ip: geyser.config().advanced().bedrock().proxyProtocolWhitelistedIps()) {
                     if (!ip.startsWith("http")) {
                         whitelistedCIDRs.add(ip);
                         continue;

@@ -62,8 +62,8 @@ public class PreferencesCache {
     public PreferencesCache(GeyserSession session) {
         this.session = session;
 
-        prefersCustomSkulls = session.getGeyser().config().allowCustomSkulls();
-        cooldownPreference = session.getGeyser().config().showCooldown();
+        prefersCustomSkulls = session.getGeyser().config().gameplay().maxVisibleCustomSkulls() != 0;
+        cooldownPreference = session.getGeyser().config().gameplay().showCooldown();
     }
 
     /**
@@ -72,10 +72,10 @@ public class PreferencesCache {
      * If {@link #prefersShowCoordinates} is true, coordinates will be shown, unless either of the following conditions apply: <br>
      * <br>
      * {@link GeyserSession#isReducedDebugInfo()} is enabled
-     * {@link GeyserConfig#showCoordinates()} is disabled
+     * {@link GeyserConfig.GameplayConfig#showCoordinates()} is disabled
      */
     public void updateShowCoordinates() {
-        allowShowCoordinates = !session.isReducedDebugInfo() && session.getGeyser().config().showCoordinates();
+        allowShowCoordinates = !session.isReducedDebugInfo() && session.getGeyser().config().gameplay().showCoordinates();
         session.sendGameRule("showcoordinates", allowShowCoordinates && prefersShowCoordinates);
     }
 
@@ -83,6 +83,6 @@ public class PreferencesCache {
      * @return true if the session prefers custom skulls, and the config allows them.
      */
     public boolean showCustomSkulls() {
-        return prefersCustomSkulls && session.getGeyser().config().allowCustomSkulls();
+        return prefersCustomSkulls && session.getGeyser().config().gameplay().maxVisibleCustomSkulls() != 0;
     }
 }

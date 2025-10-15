@@ -45,7 +45,7 @@ public class FloodgateKeyLoader {
             }
         }
 
-        Path floodgateKey = geyserDataFolder.resolve(config.floodgateKeyFile());
+        Path floodgateKey = geyserDataFolder.resolve(config.auth().floodgateKeyFile());
 
         if (!Files.exists(floodgateKey)) {
             logger.error(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.not_installed"));

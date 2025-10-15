@@ -26,22 +26,26 @@
 package org.geysermc.geyser.configuration;
 
 import com.google.common.annotations.VisibleForTesting;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.UUID;
-import java.util.function.Consumer;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
 import org.spongepowered.configurate.objectmapping.meta.Processor;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
+import org.spongepowered.configurate.transformation.TransformAction;
 import org.spongepowered.configurate.yaml.NodeStyle;
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.UUID;
+import java.util.function.Consumer;
 
 import static org.spongepowered.configurate.NodePath.path;
 import static org.spongepowered.configurate.transformation.TransformAction.remove;
@@ -49,18 +53,18 @@ import static org.spongepowered.configurate.transformation.TransformAction.renam
 
 public final class ConfigLoader {
     private static final String HEADER = """
-            --------------------------------
-            Geyser Configuration File
-
-            A bridge between Minecraft: Bedrock Edition and Minecraft: Java Edition.
-
-            GitHub: https://github.com/GeyserMC/Geyser
-            Discord: https://discord.gg/geysermc
-            Wiki: https://geysermc.org/wiki
-
-            NOTICE: See https://geysermc.org/wiki/geyser/setup/ for the setup guide. Many video tutorials are outdated.
-            In most cases, especially with server hosting providers, further hosting-specific configuration is required.
-            --------------------------------""";
+        --------------------------------
+        Geyser Configuration File
+        
+        A bridge between Minecraft: Bedrock Edition and Minecraft: Java Edition.
+        
+        GitHub: https://github.com/GeyserMC/Geyser
+        Discord: https://discord.gg/geysermc
+        Wiki: https://geysermc.org/wiki
+        
+        NOTICE: See https://geysermc.org/wiki/geyser/setup/ for the setup guide. Many video tutorials are outdated.
+        In most cases, especially with server hosting providers, further hosting-specific configuration is required.
+        --------------------------------""";
 
     /**
      * Only nullable for testing.
@@ -131,63 +135,113 @@ public final class ConfigLoader {
 
         var migrations = ConfigurationTransformation.versionedBuilder()
             .versionKey("config-version")
-                // Pre-Configurate
-                .addVersion(5, ConfigurationTransformation.builder()
-                    .addAction(path("legacy-ping-passthrough"), configClass == GeyserRemoteConfig.class ? remove() : (path, value) -> {
-                        // Invert value
-                        value.set(!value.getBoolean());
-                        return new Object[]{"integrated-ping-passthrough"};
-                    })
-                    .addAction(path("remote"), rename("java"))
-                    .addAction(path("floodgate-key-file"), (path, value) -> {
-                        // Elimate any legacy config values
-                        if ("public-key.pem".equals(value.getString())) {
-                            value.set("key.pem");
+            .addVersion(5, ConfigurationTransformation.builder()
+                // Java section
+                .addAction(path("remote"), rename("java"))
+                .addAction(path("remote", "address"), (path, value) -> {
+                    if ("auto".equals(value.getString())) {
+                        // Auto-convert back to localhost
+                        value.set("127.0.0.1");
+                    }
+                    return null;
+                })
+
+                // Motd section
+                .addAction(path("bedrock", "motd1"), renameAndMove("motd", "primary-motd"))
+                .addAction(path("bedrock", "motd2"), renameAndMove("motd", "secondary-motd"))
+                .addAction(path("passthrough-motd"), moveTo("motd"))
+                .addAction(path("passthrough-player-counts"), moveTo("motd"))
+                .addAction(path("ping-passthrough-interval"), moveTo("motd"))
+                .addAction(path("max-players"), moveTo("motd"))
+                .addAction(path("legacy-ping-passthrough"), configClass == GeyserRemoteConfig.class ? remove() : (path, value) -> {
+                    // Invert value
+                    value.set(!value.getBoolean());
+                    return new Object[]{"motd", "integrated-ping-passthrough"};
+                })
+
+                // auth section
+                .addAction(path("floodgate-key-file"), (path, value) -> {
+                    // Elimate any legacy config values
+                    if ("public-key.pem".equals(value.getString())) {
+                        value.set("key.pem");
+                    }
+                    return new Object[]{"auth", "floodgate-key-file"};
+                })
+                .addAction(path("saved-user-logins"), moveTo("auth"))
+                .addAction(path("pending-authentication-timeout"), moveTo("auth"))
+                .addAction(path("enable-proxy-connections"), renameAndMove("auth", "disable-xbox-auth"))
+
+                // gameplay
+                .addAction(path("command-suggestions"), moveTo("gameplay"))
+                .addAction(path("forward-player-ping"), moveTo("gameplay"))
+                .addAction(path("show-cooldown"), (path, value) -> {
+                    String s = value.getString();
+                    if (s != null) {
+                        switch (s) {
+                            case "true" -> value.set("title");
+                            case "false" -> value.set("disabled");
                         }
-                        return null;
-                    })
-                    .addAction(path("default-locale"), (path, value) -> {
-                        if (value.getString() == null) {
-                            value.set("system");
-                        }
-                        return null;
-                    })
-                    .addAction(path("show-cooldown"), (path, value) -> {
-                        String s = value.getString();
-                        if (s != null) {
-                            switch (s) {
-                                case "true" -> value.set("title");
-                                case "false" -> value.set("disabled");
-                            }
-                        }
-                        return null;
-                    })
-                    .addAction(path("addNonBedrockItems"), rename("enableCustomContent"))
-                    .addAction(path("aboveBedrockNetherBuilding"), rename("netherRoofWorkaround"))
-                    .addAction(path("metrics", "uuid"), (path, value) -> {
-                        if ("generateduuid".equals(value.getString())) {
-                            // Manually copied config without Metrics UUID creation?
-                            value.set(UUID.randomUUID());
-                        }
-                        return null;
-                    })
-                    .addAction(path("remote", "address"), (path, value) -> {
-                        if ("auto".equals(value.getString())) {
-                            // Auto-convert back to localhost
-                            value.set("127.0.0.1");
-                        }
-                        return null;
-                    })
-                    .addAction(path("metrics", "enabled"), (path, value) -> {
-                        // Move to the root, not in the Metrics class.
-                        return new Object[]{"enable-metrics"};
-                    })
-                    .addAction(path("bedrock", "motd1"), rename("primary-motd"))
-                    .addAction(path("bedrock", "motd2"), rename("secondary-motd"))
-                    .addAction(path("bedrock", "enableProxyProtocol"), rename("useProxyProtocol"))
-                    .addAction(path("enableProxyConnections"), rename("disableXboxAuth"))
-                    .build())
-                .build();
+                    }
+                    return new Object[]{"gameplay", "show-cooldown"};
+                })
+                .addAction(path("bedrock", "server-name"), moveTo("gameplay"))
+                .addAction(path("show-coordinates"), moveTo("gameplay"))
+                .addAction(path("disable-bedrock-scaffolding"), moveTo("gameplay"))
+                .addAction(path("custom-skull-render-distance"), moveTo("gameplay"))
+                .addAction(path("force-resource-packs"), moveTo("gameplay"))
+                .addAction(path("xbox-achievements-enabled"), moveTo("gameplay"))
+                .addAction(path("unusable-space-block"), moveTo("gameplay"))
+                .addAction(path("unusable-space-block"), moveTo("gameplay"))
+                .addAction(path("add-non-bedrock-items"), renameAndMove("gameplay", "enable-custom-content"))
+                .addAction(path("above-bedrock-nether-building"), renameAndMove("gameplay", "nether-roof-workaround"))
+                .addAction(path("xbox-achievements-enabled"), moveTo("gameplay"))
+                .addAction(path("max-visible-custom-skulls"), moveTo("gameplay"))
+                .addAction(path("allow-custom-skulls"), (path, value) -> {
+                    if (!value.getBoolean()) {
+                        value.raw(0);
+                        return new Object[] { "gameplay", "max-visible-custom-skulls" };
+                    }
+                    return null;
+                })
+
+                // Advanced section
+                .addAction(path("cache-images"), moveTo("advanced"))
+                .addAction(path("scoreboard-packet-threshold"), moveTo("advanced"))
+                .addAction(path("add-team-suggestions"), moveTo("advanced"))
+
+                // Bedrock
+                .addAction(path("bedrock", "broadcast-port"), moveTo("advanced", "bedrock"))
+                .addAction(path("bedrock", "compression-level"), renameAndMove("advanced", "bedrock", "compression-level"))
+                .addAction(path("bedrock", "enable-proxy-protocol"), renameAndMove("advanced", "bedrock", "use-haproxy-protocol"))
+                .addAction(path("bedrock", "proxy-protocol-whitelisted-ips"), renameAndMove("advanced", "bedrock", "proxy-protocol-whitelisted-ips"))
+                .addAction(path("bedrock", "mtu"), moveTo("advanced", "bedrock"))
+
+                // Java
+                .addAction(path("remote", "use-proxy-protocol"), renameAndMove("advanced", "java", "use-haproxy-protocol"))
+                .addAction(path("disable-compression"), renameAndMove("advanced", "java", "disable-compression"))
+                .addAction(path("use-direct-connection"), renameAndMove("advanced", "java", "use-direct-connection"))
+
+                // Other
+                .addAction(path("default-locale"), (path, value) -> {
+                    if (value.getString() == null) {
+                        value.set("system");
+                    }
+                    return null;
+                })
+                .addAction(path("metrics", "uuid"), (path, value) -> {
+                    if ("generateduuid".equals(value.getString())) {
+                        // Manually copied config without Metrics UUID creation?
+                        value.set(UUID.randomUUID());
+                    }
+                    return null;
+                })
+                .addAction(path("metrics", "enabled"), (path, value) -> {
+                    // Move to the root, not in the Metrics class.
+                    return new Object[]{"enable-metrics"};
+                })
+
+                .build())
+            .build();
 
         int currentVersion = migrations.version(node);
         migrations.apply(node);
@@ -227,6 +281,25 @@ public final class ConfigLoader {
         return config;
     }
 
+    static TransformAction renameAndMove(String... newPath) {
+        return ((path, value) -> Arrays.stream(newPath).toArray());
+    }
+
+    static TransformAction moveTo(String... newPath) {
+        return (path, value) -> {
+            Object[] arr = path.array();
+            if (arr.length == 0) {
+                throw new ConfigurateException(value, "The root node cannot be renamed!");
+            } else {
+                // create a new array with space for newPath segments + the original last segment
+                Object[] result = new Object[newPath.length + 1];
+                System.arraycopy(newPath, 0, result, 0, newPath.length);
+                result[newPath.length] = arr[arr.length - 1];
+                return result;
+            }
+        };
+    }
+
     private YamlConfigurationLoader createLoader(File file) {
         return YamlConfigurationLoader.builder()
             .file(file)
@@ -243,7 +316,7 @@ public final class ConfigLoader {
                 .serializers(builder -> builder.register(new LowercaseEnumSerializer())))
             .build();
     }
-    
+
     private static Processor.Factory<ExcludePlatform, Object> excludePlatform(String thisPlatform) {
         return (data, fieldType) -> (value, destination) -> {
             for (String platform : data.platforms()) {

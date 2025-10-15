@@ -197,7 +197,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
         GeyserImpl.start();
 
-        if (!geyserConfig.integratedPingPassthrough()) {
+        if (!geyserConfig.motd().integratedPingPassthrough()) {
             this.geyserBungeePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
             this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());

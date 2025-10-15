@@ -271,7 +271,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
     @Override
     public Path getFloodgateKeyPath() {
-        return new File(ROOT_FOLDER, geyserConfig.floodgateKeyFile()).toPath();
+        return new File(ROOT_FOLDER, geyserConfig.auth().floodgateKeyFile()).toPath();
     }
 
     @Override
