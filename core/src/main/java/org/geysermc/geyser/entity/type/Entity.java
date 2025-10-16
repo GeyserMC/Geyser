@@ -619,7 +619,7 @@ public class Entity implements GeyserEntity {
      *
      * @return whether the entity can be dismounted when pressing jump.
      */
-    public boolean canBeDismountWithJump() {
+    public boolean doesJumpDismount() {
         return true;
     }
 

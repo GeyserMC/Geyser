@@ -88,12 +88,12 @@ public class AbstractHorseEntity extends AnimalEntity {
         super.updateSaddled(saddled);
 
         // We want to allow player to press jump again if pressing jump doesn't dismount the entity.
-        this.session.setLockInput(InputLocksFlag.JUMP, this.canBeDismountWithJump());
+        this.session.setLockInput(InputLocksFlag.JUMP, this.doesJumpDismount());
         this.session.updateInputLocks();
     }
 
     @Override
-    public boolean canBeDismountWithJump() {
+    public boolean doesJumpDismount() {
         return !this.getFlag(EntityFlag.SADDLED);
     }
 
