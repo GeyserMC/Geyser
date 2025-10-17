@@ -1697,7 +1697,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Open the current form, unless we're in the process of closing another
         // If we're waiting, the form will be sent when Bedrock confirms closing
         // If we don't wait, the client rejects the form as it is busy
-        if (!isClosingInventory()) {
+        if (!isClosingInventory() && upstream.isInitialized()) {
             formCache.resendAllForms();
         }
 
