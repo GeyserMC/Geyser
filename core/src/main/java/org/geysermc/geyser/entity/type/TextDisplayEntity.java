@@ -76,7 +76,9 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      * @return the Y offset to apply based on the number of lines
      */
     private float calculateLineOffset() {
-        if (lineCount == 0) return 0;
+        if (lineCount == 0) {
+            return 0;
+        } 
         return LINE_HEIGHT_OFFSET * lineCount;
     }
 
