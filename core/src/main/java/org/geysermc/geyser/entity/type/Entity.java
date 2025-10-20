@@ -53,6 +53,7 @@ import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -244,6 +245,10 @@ public class Entity implements GeyserEntity {
             passenger.setVehicle(null);
             passenger.setFlag(EntityFlag.RIDING, false);
             passenger.updateBedrockMetadata();
+
+            if (passenger instanceof SessionPlayerEntity playerEntity) {
+                playerEntity.setLastRemovedVehicle(this.entityId);
+            }
         }
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
@@ -251,6 +256,14 @@ public class Entity implements GeyserEntity {
         session.sendUpstreamPacket(removeEntityPacket);
 
         valid = false;
+    }
+
+    /**
+     * Set the player's position without applying an offset or moving the bounding box
+     * @param position the new position of the Bedrock player
+     */
+    public void setPositionManual(Vector3f position) {
+        this.position = position;
     }
 
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
@@ -421,6 +434,15 @@ public class Entity implements GeyserEntity {
         // Swimming is ignored here and instead we rely on the pose
         setGliding((xd & 0x80) == 0x80);
         setInvisible((xd & 0x20) == 0x20);
+    }
+
+    /**
+     * Gets the position of the entity without it being offset.
+     *
+     * @return the position of the entity without the offset value
+     */
+    public Vector3f position() {
+        return this.position;
     }
 
     /**
