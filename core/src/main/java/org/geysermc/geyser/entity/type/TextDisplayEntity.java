@@ -43,6 +43,16 @@ import java.util.UUID;
 @Getter
 public class TextDisplayEntity extends DisplayBaseEntity {
 
+    /**
+     * The height offset per line of text in a text display entity when rendered
+     * as an armor stand nametag on Bedrock Edition.
+     * <p>
+     * This value was empirically adjusted to match Java Edition's multi-line text
+     * centering behavior. Note that this differs from the 0.1414f multiplier used
+     * in {@link org.geysermc.geyser.util.EntityUtils} for mount offset calculations.
+     */
+    private static final float LINE_HEIGHT_OFFSET = 0.12f;
+
     private int lineCount;
 
     public TextDisplayEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -54,9 +64,27 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         super.moveRelative(relX, relY + definition.offset(), relZ, yaw, pitch, isOnGround);
     }
 
+    /**
+     * Calculates the Y offset needed to match Java Edition's text centering
+     * behavior for multi-line text displays.
+     * <p>
+     * In Java Edition, multi-line text displays are centered vertically.
+     * This value differs from the 0.1414f multiplier used in {@link org.geysermc.geyser.util.EntityUtils}
+     * for text displays mounted on players, as this handles the base positioning
+     * rather than mount offset calculations.
+     * 
+     * @return the Y offset to apply based on the number of lines
+     */
+    private float calculateLineOffset() {
+        if (lineCount == 0) {
+            return 0;
+        } 
+        return LINE_HEIGHT_OFFSET * lineCount;
+    }
+
     @Override
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position.add(Vector3f.from(0, definition.offset(), 0)), yaw, pitch, headYaw, isOnGround, teleported);
+        super.moveAbsolute(position.add(0, calculateLineOffset(), 0), yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     @Override
@@ -70,7 +98,14 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     public void setText(EntityMetadata<Component, ?> entityMetadata) {
         this.dirtyMetadata.put(EntityDataTypes.NAME, MessageTranslator.convertMessage(entityMetadata.getValue(), session.locale()));
+        
+        int previousLineCount = lineCount;
         calculateLineCount(entityMetadata.getValue());
+
+        // If the line count changed, update the position to account for the new offset
+        if (previousLineCount != lineCount) {
+            moveAbsolute(position, yaw, pitch, headYaw, onGround, false);
+        }
     }
 
     private void calculateLineCount(@Nullable Component text) {
