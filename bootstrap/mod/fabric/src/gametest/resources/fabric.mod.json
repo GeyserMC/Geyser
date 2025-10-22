@@ -1,0 +1,13 @@
+{
+    "schemaVersion": 1,
+    "id": "geyser-gametest",
+    "version": "1.0.0",
+    "name": "Geyser-GameTest",
+    "icon": "assets/geyser/icon.png",
+    "environment": "*",
+    "entrypoints": {
+        "fabric-gametest": [
+            "org.geysermc.geyser.gametest.GeyserGameTest"
+        ]
+    }
+}

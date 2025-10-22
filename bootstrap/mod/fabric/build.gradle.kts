@@ -18,6 +18,15 @@ loom {
     }
 }
 
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = "geyser-gametest"
+        enableClientGameTests = false
+        eula = true
+    }
+}
+
 dependencies {
     implementation(libs.fabric.loader)
     api(libs.fabric.api)
