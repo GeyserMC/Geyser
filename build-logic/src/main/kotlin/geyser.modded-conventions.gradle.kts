@@ -5,8 +5,9 @@ import org.gradle.kotlin.dsl.dependencies
 
 plugins {
     id("geyser.platform-conventions")
-    id("architectury-plugin")
-    id("dev.architectury.loom")
+    //id("architectury-plugin")
+    //id("dev.architectury.loom")
+    id("fabric-loom")
 }
 
 // These are provided by Minecraft/modded platforms already, no need to include them
@@ -39,13 +40,13 @@ provided("org.ow2.asm", "asm")
 provided("org.incendo", ".*")
 provided("io.leangen.geantyref", "geantyref")
 
-architectury {
-    minecraft = libs.minecraft.get().version as String
-}
+//architectury {
+//    minecraft = libs.minecraft.get().version as String
+//}
 
-loom {
-    silentMojangMappingsLicense()
-}
+//loom {
+//    silentMojangMappingsLicense()
+//}
 
 indra {
     javaVersions {

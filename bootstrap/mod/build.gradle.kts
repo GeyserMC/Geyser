@@ -2,9 +2,9 @@ plugins {
     id("geyser.modded-conventions")
 }
 
-architectury {
-    common("neoforge", "fabric")
-}
+//architectury {
+//    common("neoforge", "fabric")
+//}
 
 loom {
     mixin.defaultRefmapName.set("geyser-refmap.json")

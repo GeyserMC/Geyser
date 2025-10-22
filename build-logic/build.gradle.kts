@@ -22,7 +22,8 @@ dependencies {
     implementation(libs.lombok)
     implementation(libs.indra)
     implementation(libs.shadow)
-    implementation(libs.architectury.plugin)
-    implementation(libs.architectury.loom)
+    //implementation(libs.architectury.plugin)
+    //implementation(libs.architectury.loom)
+    implementation("fabric-loom:fabric-loom.gradle.plugin:1.12.0-alpha.45")
     implementation(libs.minotaur)
 }

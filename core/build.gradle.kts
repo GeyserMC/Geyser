@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.blossom)
     id("geyser.publish-conventions")
     id("io.freefair.lombok")
+    // Allows gametests/fabric runServer task to work correctly
+    id("net.fabricmc.fabric-loom-companion")
 }
 
 dependencies {

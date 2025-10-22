@@ -3,9 +3,28 @@ plugins {
     id("geyser.modrinth-uploading-conventions")
 }
 
-architectury {
-    platformSetupLoomIde()
-    fabric()
+//architectury {
+//    platformSetupLoomIde()
+//    fabric()
+//}
+
+loom {
+    mods {
+        create("geyser-fabric") {
+            sourceSet(sourceSets.main.get())
+            sourceSet("main", projects.mod)
+            sourceSet("main", projects.core)
+        }
+    }
+}
+
+fabricApi {
+    configureTests {
+        createSourceSet = true
+        modId = "geyser-gametest"
+        enableClientGameTests = false
+        eula = true
+    }
 }
 
 dependencies {
@@ -13,7 +32,7 @@ dependencies {
     modApi(libs.fabric.api)
 
     api(project(":mod", configuration = "namedElements"))
-    shadowBundle(project(path = ":mod", configuration = "transformProductionFabric"))
+    //shadowBundle(project(path = ":mod", configuration = "transformProductionFabric"))
     shadowBundle(projects.core)
     includeTransitive(projects.core)
 
@@ -37,20 +56,33 @@ dependencies {
     include(libs.fabric.permissions.api)
 }
 
-tasks.withType<Jar> {
-    manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.fabric.GeyserFabricMain"
-}
-
 relocate("org.cloudburstmc.netty")
 relocate("org.cloudburstmc.protocol")
 
 tasks {
+    jar {
+        manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.fabric.GeyserFabricMain"
+    }
+
     remapJar {
         archiveBaseName.set("Geyser-Fabric")
     }
 
     remapModrinthJar {
         archiveBaseName.set("geyser-fabric")
+    }
+
+    getByName("processGametestResources", ProcessResources::class) {
+        filesMatching("fabric.mod.json") {
+            expand(
+                "id" to "geyser",
+                "name" to "Geyser",
+                "version" to project.version,
+                "description" to project.description,
+                "url" to "https://geysermc.org",
+                "author" to "GeyserMC"
+            )
+        }
     }
 }
 
