@@ -216,13 +216,11 @@ public class DataComponentHashers {
         register(DataComponentTypes.DEBUG_STICK_STATE, MinecraftHasher.NBT_MAP);
         registerMap(DataComponentTypes.ENTITY_DATA, builder -> builder
             .accept("id", RegistryHasher.ENTITY_TYPE_KEY, TypedEntityData::type)
-            .inlineNbt(TypedEntityData::tag)
-        );
+            .accept(TypedEntityData::tag, MapBuilder.inlineNbtMap()));
         register(DataComponentTypes.BUCKET_ENTITY_DATA, MinecraftHasher.NBT_MAP);
         registerMap(DataComponentTypes.BLOCK_ENTITY_DATA, builder -> builder
             .accept("id", RegistryHasher.BLOCK_ENTITY_TYPE_KEY, TypedEntityData::type)
-            .inlineNbt(TypedEntityData::tag)
-        );
+            .accept(TypedEntityData::tag, MapBuilder.inlineNbtMap()));
 
         register(DataComponentTypes.INSTRUMENT, RegistryHasher.INSTRUMENT_COMPONENT);
         register(DataComponentTypes.PROVIDES_TRIM_MATERIAL, RegistryHasher.PROVIDES_TRIM_MATERIAL);

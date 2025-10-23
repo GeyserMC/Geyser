@@ -351,7 +351,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<BeehiveOccupant> BEEHIVE_OCCUPANT = MinecraftHasher.mapBuilder(builder -> builder
         .accept("id", RegistryHasher.ENTITY_TYPE_KEY, beehiveOccupant -> beehiveOccupant.getEntityData().type())
-        .inlineNbt(beehiveOccupant -> beehiveOccupant.getEntityData().tag())
+        .accept(beehiveOccupant -> beehiveOccupant.getEntityData().tag(), MapBuilder.inlineNbtMap())
         .accept("ticks_in_hive", INT, BeehiveOccupant::getTicksInHive)
         .accept("min_ticks_in_hive", INT, BeehiveOccupant::getMinTicksInHive));
 

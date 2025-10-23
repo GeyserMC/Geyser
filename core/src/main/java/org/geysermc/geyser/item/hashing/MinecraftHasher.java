@@ -52,7 +52,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Encodes an object into a {@link HashCode} using a {@link MinecraftHashEncoder}.
@@ -108,13 +107,17 @@ public interface MinecraftHasher<Type> {
 
     MinecraftHasher<Boolean> BOOL = (b, encoder) -> encoder.bool(b);
 
-    MinecraftHasher<IntStream> INT_ARRAY = (ints, encoder) -> encoder.intArray(ints.toArray());
+    MinecraftHasher<byte[]> BYTE_ARRAY = (ints, encoder) -> encoder.byteArray(ints);
+
+    MinecraftHasher<int[]> INT_ARRAY = (ints, encoder) -> encoder.intArray(ints);
+
+    MinecraftHasher<long[]> LONG_ARRAY = (ints, encoder) -> encoder.longArray(ints);
 
     MinecraftHasher<NbtMap> NBT_MAP = (map, encoder) -> encoder.nbtMap(map);
 
     MinecraftHasher<NbtList<?>> NBT_LIST = (list, encoder) -> encoder.nbtList(list);
 
-    MinecraftHasher<Vector3i> POS = INT_ARRAY.cast(pos -> IntStream.of(pos.getX(), pos.getY(), pos.getZ()));
+    MinecraftHasher<Vector3i> POS = INT_ARRAY.cast(pos -> new int[]{pos.getX(), pos.getY(), pos.getZ()});
 
     MinecraftHasher<Key> KEY = STRING.cast(Key::asString);
 
@@ -125,7 +128,7 @@ public interface MinecraftHasher<Type> {
     MinecraftHasher<UUID> UUID = INT_ARRAY.cast(uuid -> {
         long mostSignificant = uuid.getMostSignificantBits();
         long leastSignificant = uuid.getLeastSignificantBits();
-        return IntStream.of((int) (mostSignificant >> 32), (int) mostSignificant, (int) (leastSignificant >> 32), (int) leastSignificant);
+        return new int[]{(int) (mostSignificant >> 32), (int) mostSignificant, (int) (leastSignificant >> 32), (int) leastSignificant};
     }); // TODO test
 
     MinecraftHasher<GameProfile.Property> GAME_PROFILE_PROPERTY = mapBuilder(builder -> builder
