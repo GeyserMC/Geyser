@@ -361,7 +361,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
      * @param registry the registry to create a hasher for.
      */
     static RegistryHasher<?> registry(JavaRegistryKey<?> registry) {
-        MinecraftHasher<Integer> hasher = KEY.sessionCast(registry::key);
+        MinecraftHasher<Integer> hasher = KEY.registryCast(registry::key);
         return hasher::hash;
     }
 

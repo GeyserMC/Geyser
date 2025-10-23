@@ -49,6 +49,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryData;
 import org.geysermc.geyser.session.cache.registry.RegistryUnit;
@@ -72,7 +73,7 @@ import java.util.Map;
  *
  * Crafted as of 1.20.5 for easy "add new registry" functionality in the future.
  */
-public final class RegistryCache {
+public final class RegistryCache implements JavaRegistryProvider {
     private static final Map<JavaRegistryKey<?>, Map<Key, NbtMap>> DEFAULTS;
     private static final Map<JavaRegistryKey<?>, RegistryLoader<?>> READERS = new HashMap<>();
 
@@ -150,6 +151,7 @@ public final class RegistryCache {
         }
     }
 
+    @Override
     public <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey) {
         if (!registries.containsKey(registryKey)) {
             throw new IllegalArgumentException("The given registry is not data-driven");
@@ -195,7 +197,8 @@ public final class RegistryCache {
                 }
                 builder.add(i, new RegistryEntryData<>(i, entry.getId(), cacheEntry));
             }
-            registry.reset(builder);
+            // TODO don't do this cast here
+            ((SimpleJavaRegistry<T>) registry).reset(builder);
         });
     }
 

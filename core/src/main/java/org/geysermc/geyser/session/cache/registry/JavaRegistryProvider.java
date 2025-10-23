@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,26 +25,7 @@
 
 package org.geysermc.geyser.session.cache.registry;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+public interface JavaRegistryProvider {
 
-import java.util.List;
-
-public class SimpleJavaRegistry<T> implements JavaRegistry<T> {
-    protected final ObjectArrayList<RegistryEntryData<T>> entries = new ObjectArrayList<>();
-
-    public void reset(List<RegistryEntryData<T>> entries) {
-        this.entries.clear();
-        this.entries.addAll(entries);
-        this.entries.trim();
-    }
-
-    @Override
-    public List<RegistryEntryData<T>> entries() {
-        return entries;
-    }
-
-    @Override
-    public String toString() {
-        return entries.toString();
-    }
+    <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey);
 }

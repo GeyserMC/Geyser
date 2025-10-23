@@ -33,7 +33,7 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.components.Rarity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
@@ -66,7 +66,7 @@ import java.util.stream.IntStream;
  *
  * <ul>
  *     <li>{@link MinecraftHasher#list()} creates a hasher that hashes a list of the objects.</li>
- *     <li>{@link MinecraftHasher#cast(Function)} and {@link MinecraftHasher#sessionCast(BiFunction)} create a new hasher that delegates to this hasher with a converter function.</li>
+ *     <li>{@link MinecraftHasher#cast(Function)} and {@link MinecraftHasher#registryCast(BiFunction)} create a new hasher that delegates to this hasher with a converter function.</li>
  *     <li>{@link MinecraftHasher#filterable()} creates a hasher that hashes a {@link Filterable} instance of the object.</li>
  * </ul>
  *
@@ -188,25 +188,25 @@ public interface MinecraftHasher<Type> {
     /**
      * "Casts" this hasher to another hash a different object, with a converter method. The returned hasher takes a {@link Casted}, converts it to a {@link Type} using the {@code converter}, and then hashes it.
      *
-     * <p>If a {@link GeyserSession} object is needed for conversion, use {@link MinecraftHasher#sessionCast(BiFunction)}.</p>
+     * <p>If a {@link JavaRegistryProvider} object is needed for conversion, use {@link MinecraftHasher#registryCast(BiFunction)}.</p>
      *
      * @param converter the converter function that converts a {@link Casted} into a {@link Type}.
      * @param <Casted> the type of the new hasher.
-     * @see MinecraftHasher#sessionCast(BiFunction)
+     * @see MinecraftHasher#registryCast(BiFunction)
      */
     default <Casted> MinecraftHasher<Casted> cast(Function<Casted, Type> converter) {
         return (value, encoder) -> hash(converter.apply(value), encoder);
     }
 
     /**
-     * Like {@link MinecraftHasher#cast(Function)}, but has access to {@link GeyserSession}.
+     * Like {@link MinecraftHasher#cast(Function)}, but has access to {@link JavaRegistryProvider}.
      *
      * @param converter the converter function.
      * @param <Casted> the type of the new hasher.
      * @see MinecraftHasher#cast(Function)
      */
-    default <Casted> MinecraftHasher<Casted> sessionCast(BiFunction<GeyserSession, Casted, Type> converter) {
-        return (value, encoder) -> hash(converter.apply(encoder.session(), value), encoder);
+    default <Casted> MinecraftHasher<Casted> registryCast(BiFunction<JavaRegistryProvider, Casted, Type> converter) {
+        return (value, encoder) -> hash(converter.apply(encoder.registries(), value), encoder);
     }
 
     /**
