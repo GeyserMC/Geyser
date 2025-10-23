@@ -66,6 +66,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Stores any information sent via Java registries. May not contain all data in a given registry - we'll strip what's
@@ -188,7 +189,7 @@ public final class RegistryCache implements JavaRegistryProvider {
                     entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
                 }
 
-                RegistryEntryContext context = new RegistryEntryContext(entry, entryIdMap, session);
+                RegistryEntryContext context = new RegistryEntryContext(entry, entryIdMap, Optional.of(session));
                 // This is what Geyser wants to keep as a value for this registry.
                 T cacheEntry = reader.read(context);
                 if (cacheEntry == null) {

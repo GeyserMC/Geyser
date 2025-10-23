@@ -27,7 +27,6 @@ package org.geysermc.geyser.level;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.SoundUtils;
 
 public record JukeboxSong(String soundEvent, String description) {
@@ -35,7 +34,6 @@ public record JukeboxSong(String soundEvent, String description) {
     public static JukeboxSong read(RegistryEntryContext context) {
         NbtMap data = context.data();
         String soundEvent = SoundUtils.readSoundEvent(data, "jukebox song " + context.id());
-        String description = MessageTranslator.deserializeDescription(context.session(), data);
-        return new JukeboxSong(soundEvent, description);
+        return new JukeboxSong(soundEvent, context.deserializeDescription());
     }
 }
