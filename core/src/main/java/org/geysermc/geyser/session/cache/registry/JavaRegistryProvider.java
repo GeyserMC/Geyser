@@ -23,36 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.dialog;
+package org.geysermc.geyser.session.cache.registry;
 
-import net.kyori.adventure.key.Key;
-import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.MinecraftKey;
+@FunctionalInterface
+public interface JavaRegistryProvider {
 
-import java.util.List;
-import java.util.Optional;
-
-public class ConfirmationDialog extends DialogWithButtons {
-
-    public static final Key TYPE = MinecraftKey.key("confirmation");
-
-    private final DialogButton yes;
-    private final DialogButton no;
-
-    public ConfirmationDialog(Optional<GeyserSession> session, NbtMap map, IdGetter idGetter) {
-        super(session, map, Optional.empty());
-        yes = DialogButton.read(session, map.get("yes"), idGetter).orElseThrow();
-        no = DialogButton.read(session, map.get("no"), idGetter).orElseThrow();
-    }
-
-    @Override
-    protected List<DialogButton> buttons(DialogHolder holder) {
-        return List.of(yes, no);
-    }
-
-    @Override
-    protected Optional<DialogButton> onCancel() {
-        return Optional.of(no);
-    }
+    <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey);
 }

@@ -57,6 +57,7 @@ import java.util.function.ToIntFunction;
  */
 @Data
 public final class GeyserHolderSet<T> {
+    private static final int[] EMPTY = new int[0];
 
     private final JavaRegistryKey<T> registry;
     private final @Nullable Tag<T> tag;
@@ -84,6 +85,13 @@ public final class GeyserHolderSet<T> {
         this.tag = tag;
         this.holders = holders;
         this.inline = inline;
+    }
+
+    /**
+     * Constructs an empty {@link GeyserHolderSet}.
+     */
+    public static <T> GeyserHolderSet<T> empty(JavaRegistryKey<T> registry) {
+        return new GeyserHolderSet<>(registry, EMPTY);
     }
 
     /**
