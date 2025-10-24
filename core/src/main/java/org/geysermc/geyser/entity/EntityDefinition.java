@@ -41,6 +41,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 /**
@@ -48,11 +49,32 @@ import java.util.function.BiConsumer;
  * metadata translators needed to translate the properties sent from the server. The translators are structured in such
  * a way that inserting a new one (for example in version updates) is convenient.
  *
- * @param identifier the Bedrock identifier of this entity
  * @param <T> the entity type this definition represents
  */
-public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, EntityType entityType, String identifier,
-                                                 float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+public final class EntityDefinition<T extends Entity> {
+    private final EntityFactory<T> factory;
+    private final EntityType entityType;
+    private final String identifier;
+    private final float width;
+    private final float height;
+    private final float offset;
+    private final GeyserEntityProperties registeredProperties;
+    private final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
+
+    /**
+     * @param identifier the Bedrock identifier of this entity
+     */
+    public EntityDefinition(EntityFactory<T> factory, EntityType entityType, String identifier,
+                            float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+        this.factory = factory;
+        this.entityType = entityType;
+        this.identifier = identifier;
+        this.width = width;
+        this.height = height;
+        this.offset = offset;
+        this.registeredProperties = registeredProperties;
+        this.translators = translators;
+    }
 
     public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, EntityDefinition<? super T> parent) {
         return new Builder<>(factory, parent.entityType, parent.identifier, parent.width, parent.height, parent.offset, new ObjectArrayList<>(parent.translators));
@@ -80,6 +102,72 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
 
         translator.translate(entity, metadata);
     }
+
+    public EntityFactory<T> factory() {
+        return factory;
+    }
+
+    public EntityType entityType() {
+        return entityType;
+    }
+
+    public String identifier() {
+        return identifier;
+    }
+
+    public float width() {
+        return width;
+    }
+
+    public float height() {
+        return height;
+    }
+
+    public float offset() {
+        return offset;
+    }
+
+    public GeyserEntityProperties registeredProperties() {
+        return registeredProperties;
+    }
+
+    public List<EntityMetadataTranslator<? super T, ?, ?>> translators() {
+        return translators;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (EntityDefinition) obj;
+        return Objects.equals(this.factory, that.factory) &&
+            Objects.equals(this.entityType, that.entityType) &&
+            Objects.equals(this.identifier, that.identifier) &&
+            Float.floatToIntBits(this.width) == Float.floatToIntBits(that.width) &&
+            Float.floatToIntBits(this.height) == Float.floatToIntBits(that.height) &&
+            Float.floatToIntBits(this.offset) == Float.floatToIntBits(that.offset) &&
+            Objects.equals(this.registeredProperties, that.registeredProperties) &&
+            Objects.equals(this.translators, that.translators);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(factory, entityType, identifier, width, height, offset, registeredProperties, translators);
+    }
+
+    @Override
+    public String toString() {
+        return "EntityDefinition[" +
+            "factory=" + factory + ", " +
+            "entityType=" + entityType + ", " +
+            "identifier=" + identifier + ", " +
+            "width=" + width + ", " +
+            "height=" + height + ", " +
+            "offset=" + offset + ", " +
+            "registeredProperties=" + registeredProperties + ", " +
+            "translators=" + translators + ']';
+    }
+
 
     @Setter
     @Accessors(fluent = true, chain = true)
@@ -155,7 +243,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
 
         /**
          * @param register whether to register this entity in the Registries for entity types. Generally this should be
-         *                 set to false if we're not expecting this entity to spawn from the network.
+         * set to false if we're not expecting this entity to spawn from the network.
          */
         public EntityDefinition<T> build(boolean register) {
             if (identifier == null && type != null) {
