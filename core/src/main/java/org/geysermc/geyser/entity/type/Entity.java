@@ -614,6 +614,14 @@ public class Entity implements GeyserEntity {
     protected boolean isShaking() {
         return false;
     }
+    /**
+     * If true, the entity can be dismounted by pressing jump.
+     *
+     * @return whether the entity can be dismounted when pressing jump.
+     */
+    public boolean doesJumpDismount() {
+        return true;
+    }
 
     /**
      * x = Pitch, y = Yaw, z = HeadYaw

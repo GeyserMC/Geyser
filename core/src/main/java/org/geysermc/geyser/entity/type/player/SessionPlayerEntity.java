@@ -43,6 +43,7 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
+import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.Blocks;
@@ -475,6 +476,10 @@ public class SessionPlayerEntity extends PlayerEntity {
             this.vehicle.setBoundingBoxHeight(this.vehicle.getDefinition().height());
             this.vehicle.updateBedrockMetadata();
         }
+
+        // Bedrock player can dismount by pressing jump while Java cannot, so we need to prevent player from jumping to match vanilla behaviour.
+        this.session.setLockInput(InputLocksFlag.JUMP, entity != null && entity.doesJumpDismount());
+        this.session.updateInputLocks();
 
         super.setVehicle(entity);
     }

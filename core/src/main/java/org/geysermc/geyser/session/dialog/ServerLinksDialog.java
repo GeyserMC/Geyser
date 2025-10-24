@@ -42,7 +42,7 @@ public class ServerLinksDialog extends DialogWithButtons {
 
     public static final Key TYPE = MinecraftKey.key("server_links");
 
-    protected ServerLinksDialog(GeyserSession session, NbtMap map, IdGetter idGetter) {
+    protected ServerLinksDialog(Optional<GeyserSession> session, NbtMap map, IdGetter idGetter) {
         super(session, map, readDefaultExitAction(session, map, idGetter));
     }
 

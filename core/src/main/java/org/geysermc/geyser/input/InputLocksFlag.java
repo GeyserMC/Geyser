@@ -23,36 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.dialog;
+package org.geysermc.geyser.input;
 
-import net.kyori.adventure.key.Key;
-import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.MinecraftKey;
+import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 
-import java.util.List;
-import java.util.Optional;
+// This is taken from (https://gist.github.com/wan-adrian/e919b46be3889d865801eb8883407587) or (https://github.com/PowerNukkitX/PowerNukkitX/blob/master/src/main/java/cn/nukkit/network/protocol/types/ClientInputLocksFlag.java)
+@RequiredArgsConstructor
+@Getter
+public enum InputLocksFlag {
+    RESET(0),
+    CAMERA(2),
+    MOVEMENT(4),
+    LATERAL_MOVEMENT(16),
+    SNEAK(32),
+    JUMP(64),
+    MOUNT(128),
+    DISMOUNT(256),
+    MOVE_FORWARD(512),
+    MOVE_BACKWARD(1024),
+    MOVE_LEFT(2048),
+    MOVE_RIGHT(4096);
 
-public class ConfirmationDialog extends DialogWithButtons {
-
-    public static final Key TYPE = MinecraftKey.key("confirmation");
-
-    private final DialogButton yes;
-    private final DialogButton no;
-
-    public ConfirmationDialog(Optional<GeyserSession> session, NbtMap map, IdGetter idGetter) {
-        super(session, map, Optional.empty());
-        yes = DialogButton.read(session, map.get("yes"), idGetter).orElseThrow();
-        no = DialogButton.read(session, map.get("no"), idGetter).orElseThrow();
-    }
-
-    @Override
-    protected List<DialogButton> buttons(DialogHolder holder) {
-        return List.of(yes, no);
-    }
-
-    @Override
-    protected Optional<DialogButton> onCancel() {
-        return Optional.of(no);
-    }
+    private final int offset;
 }

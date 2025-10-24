@@ -68,16 +68,18 @@ public final class TrimRecipe {
 
         int networkId = context.getNetworkId(context.id());
         ItemMapping trimItem = null;
-        for (ProvidesTrimMaterial provider : materialProviders().keySet()) {
-            Holder<ArmorTrim.TrimMaterial> materialHolder = provider.materialHolder();
-            if (context.id().equals(provider.materialLocation()) || (materialHolder != null && materialHolder.isId() && materialHolder.id() == networkId)) {
-                trimItem = context.session().getItemMappings().getMapping(materialProviders().get(provider));
-                break;
+        if (context.session().isPresent()) {
+            for (ProvidesTrimMaterial provider : materialProviders().keySet()) {
+                Holder<ArmorTrim.TrimMaterial> materialHolder = provider.materialHolder();
+                if (context.id().equals(provider.materialLocation()) || (materialHolder != null && materialHolder.isId() && materialHolder.id() == networkId)) {
+                    trimItem = context.session().get().getItemMappings().getMapping(materialProviders().get(provider));
+                    break;
+                }
             }
         }
 
         if (trimItem == null) {
-            // This happens for custom trim materials, not sure what to do here.
+            // This happens in testing and for custom trim materials, not sure what to do for the latter.
             GeyserImpl.getInstance().getLogger().debug("Unable to found trim material item for material " + context.id());
             trimItem = ItemMapping.AIR;
         }
@@ -91,10 +93,14 @@ public final class TrimRecipe {
 
         // Not ideal, Java edition also gives us a translatable description... Bedrock wants the template item
         String identifier = context.id().asString() + "_armor_trim_smithing_template";
-        ItemMapping itemMapping = context.session().getItemMappings().getMapping(identifier);
-        if (itemMapping == null) {
-            // This should never happen so not sure what to do here.
-            itemMapping = ItemMapping.AIR;
+        ItemMapping itemMapping = ItemMapping.AIR;
+        if (context.session().isPresent()) {
+            itemMapping = context.session().get().getItemMappings().getMapping(identifier);
+            if (itemMapping == null) {
+                // This should never happen so not sure what to do here.
+                GeyserImpl.getInstance().getLogger().debug("Unable to found trim pattern item for pattern " + context.id());
+                itemMapping = ItemMapping.AIR;
+            }
         }
         return new TrimPattern(itemMapping.getBedrockIdentifier(), key);
     }

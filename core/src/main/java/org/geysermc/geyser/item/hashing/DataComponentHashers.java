@@ -216,13 +216,11 @@ public class DataComponentHashers {
         register(DataComponentTypes.DEBUG_STICK_STATE, MinecraftHasher.NBT_MAP);
         registerMap(DataComponentTypes.ENTITY_DATA, builder -> builder
             .accept("id", RegistryHasher.ENTITY_TYPE_KEY, TypedEntityData::type)
-            .inlineNbt(TypedEntityData::tag)
-        );
+            .accept(TypedEntityData::tag, MapBuilder.inlineNbtMap()));
         register(DataComponentTypes.BUCKET_ENTITY_DATA, MinecraftHasher.NBT_MAP);
         registerMap(DataComponentTypes.BLOCK_ENTITY_DATA, builder -> builder
             .accept("id", RegistryHasher.BLOCK_ENTITY_TYPE_KEY, TypedEntityData::type)
-            .inlineNbt(TypedEntityData::tag)
-        );
+            .accept(TypedEntityData::tag, MapBuilder.inlineNbtMap()));
 
         register(DataComponentTypes.INSTRUMENT, RegistryHasher.INSTRUMENT_COMPONENT);
         register(DataComponentTypes.PROVIDES_TRIM_MATERIAL, RegistryHasher.PROVIDES_TRIM_MATERIAL);
@@ -270,7 +268,7 @@ public class DataComponentHashers {
         register(DataComponentTypes.PIG_VARIANT, RegistryHasher.PIG_VARIANT);
         register(DataComponentTypes.COW_VARIANT, RegistryHasher.COW_VARIANT);
         register(DataComponentTypes.CHICKEN_VARIANT, MinecraftHasher.KEY
-            .sessionCast((session, holder) -> holder.getOrCompute(id -> JavaRegistries.CHICKEN_VARIANT.key(session, id)))); // Why, Mojang?
+            .registryCast((session, holder) -> holder.getOrCompute(id -> JavaRegistries.CHICKEN_VARIANT.key(session, id)))); // Why, Mojang?
         register(DataComponentTypes.FROG_VARIANT, RegistryHasher.FROG_VARIANT);
         register(DataComponentTypes.HORSE_VARIANT, RegistryHasher.HORSE_VARIANT);
         register(DataComponentTypes.PAINTING_VARIANT, RegistryHasher.PAINTING_VARIANT.cast(Holder::id)); // This can and will throw when a direct holder was received, which is still possible due to a bug in 1.21.6.
@@ -311,7 +309,7 @@ public class DataComponentHashers {
 
     public static <T> HashCode hash(GeyserSession session, DataComponentType<T> component, T value) {
         try {
-            return hasher(component).hash(value, new MinecraftHashEncoder(session));
+            return hasher(component).hash(value, new MinecraftHashEncoder(session.getRegistryCache()));
         } catch (Exception exception) {
             GeyserImpl.getInstance().getLogger().error("Failed to hash item data component " + component.getKey() + " with value " + value + "!");
             GeyserImpl.getInstance().getLogger().error("This is a Geyser bug, please report this!");
