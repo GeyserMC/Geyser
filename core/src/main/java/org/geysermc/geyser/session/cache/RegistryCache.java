@@ -186,7 +186,7 @@ public final class RegistryCache implements JavaRegistryProvider {
                 entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
             }
 
-            RegistryEntryContext context = new RegistryEntryContext(entry, entryIdMap, Optional.of(session));
+            RegistryEntryContext context = new RegistryEntryContext(entry, key -> entryIdMap.getOrDefault(key, -1), Optional.of(session));
             // This is what Geyser wants to keep as a value for this registry.
             T cacheEntry = reader.read(context);
             if (cacheEntry == null) {

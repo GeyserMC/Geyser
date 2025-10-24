@@ -42,6 +42,7 @@ import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
@@ -307,9 +308,9 @@ public class DataComponentHashers {
         return hasher;
     }
 
-    public static <T> HashCode hash(GeyserSession session, DataComponentType<T> component, T value) {
+    public static <T> HashCode hash(JavaRegistryProvider registries, DataComponentType<T> component, T value) {
         try {
-            return hasher(component).hash(value, new MinecraftHashEncoder(session.getRegistryCache()));
+            return hasher(component).hash(value, new MinecraftHashEncoder(registries));
         } catch (Exception exception) {
             GeyserImpl.getInstance().getLogger().error("Failed to hash item data component " + component.getKey() + " with value " + value + "!");
             GeyserImpl.getInstance().getLogger().error("This is a Geyser bug, please report this!");
@@ -317,8 +318,8 @@ public class DataComponentHashers {
         }
     }
 
-    public static <V, T extends DataComponentType<V>> HashCode hash(GeyserSession session, DataComponent<V, T> component) {
-        return hash(session, component.getType(), component.getValue());
+    public static <V, T extends DataComponentType<V>> HashCode hash(JavaRegistryProvider registries, DataComponent<V, T> component) {
+        return hash(registries, component.getType(), component.getValue());
     }
 
     public static HashedStack hashStack(GeyserSession session, ItemStack stack) {
@@ -339,7 +340,7 @@ public class DataComponentHashers {
             } else if (component.getValue().getValue() == null) {
                 removals.add(component.getKey());
             } else {
-                hashedAdditions.put(component.getKey(), hash(session, (DataComponentType) component.getKey(), component.getValue().getValue()).asInt());
+                hashedAdditions.put(component.getKey(), hash(session.getRegistryCache(), (DataComponentType) component.getKey(), component.getValue().getValue()).asInt());
             }
         }
         return new HashedStack(stack.getId(), stack.getAmount(), hashedAdditions, removals);
@@ -540,7 +541,7 @@ public class DataComponentHashers {
     }
 
     private static <T> void testHash(GeyserSession session, DataComponentType<T> component, T value, int expected) {
-        int got = hash(session, component, value).asInt();
+        int got = hash(session.getRegistryCache(), component, value).asInt();
         System.out.println("Testing hashing component " + component.getKey() + ", expected " + expected + ", got " + got + " " + (got == expected ? "PASS" : "ERROR"));
     }
 }

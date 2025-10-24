@@ -1,0 +1,20 @@
+{
+    "type": "geyser:component_hash",
+    "component": "minecraft:custom_data",
+    "value": [
+        {
+            "hello": "g'day",
+            "nice?": false,
+            "coolness": 100,
+            "geyser": {
+                "is": "very cool"
+            },
+            "a list": [
+                ["in a list"]
+            ]
+        },
+        {
+            "example_key": "second test case!"
+        }
+    ]
+}
