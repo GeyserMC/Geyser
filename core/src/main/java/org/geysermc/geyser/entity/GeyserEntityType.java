@@ -27,7 +27,12 @@ package org.geysermc.geyser.entity;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.api.util.Identifier;
@@ -38,10 +43,12 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import java.util.EnumMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public record GeyserEntityType(Identifier javaIdentifier, int javaId) implements JavaEntityType {
     private static final Map<BuiltinEntityType, GeyserEntityType> VANILLA = new EnumMap<>(BuiltinEntityType.class);
     private static final Int2ObjectMap<GeyserEntityType> CUSTOM = new Int2ObjectOpenHashMap<>();
+    private static final Object2ObjectMap<Identifier, GeyserEntityType> CUSTOM_BY_IDENTIFIER = new Object2ObjectOpenHashMap<>();
 
     private GeyserEntityType(BuiltinEntityType builtin) {
         this(Identifier.of(builtin.name().toLowerCase(Locale.ROOT)), builtin.id());
@@ -73,23 +80,36 @@ public record GeyserEntityType(Identifier javaIdentifier, int javaId) implements
         return type == null ? new GeyserEntityType(javaId) : type;
     }
 
-    // TODO improve this
+    @Nullable
     public static GeyserEntityType of(Key javaKey) {
-        Identifier identifier = MinecraftKey.keyToIdentifier(javaKey);
-        for (GeyserEntityType builtin : VANILLA.values()) {
-            if (builtin.javaIdentifier.equals(identifier)) {
-                return builtin;
+        if (javaKey.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
+            try {
+                return ofVanilla(BuiltinEntityType.valueOf(javaKey.value().toUpperCase(Locale.ROOT)));
+            } catch (IllegalArgumentException exception) {
+                return null;
             }
         }
-        for (GeyserEntityType custom : CUSTOM.values()) {
-            if (custom.javaIdentifier.equals(identifier)) {
-                return custom;
-            }
-        }
-        return null;
+        return CUSTOM_BY_IDENTIFIER.get(MinecraftKey.keyToIdentifier(javaKey));
     }
 
     public static GeyserEntityType of(EntityType type) {
         return type instanceof BuiltinEntityType builtin ? ofVanilla(builtin) : of(type.id());
+    }
+
+    public static GeyserEntityType createCustom(@NonNull Identifier javaIdentifier, @NonNegative int javaId) {
+        Objects.requireNonNull(javaIdentifier, "javaIdentifier may not be null");
+        if (javaIdentifier.vanilla()) {
+            throw new IllegalArgumentException("Cannot register custom entity type in vanilla namespace!" + javaIdentifier);
+        } else if (javaId < 0) {
+            throw new IllegalArgumentException("Invalid ID (may not be below zero): " + javaId);
+        } else if (javaId < BuiltinEntityType.VALUES.length) {
+            throw new IllegalArgumentException("Invalid ID (conflicts with vanilla entity type): " + javaId);
+        } else if (CUSTOM.containsKey(javaId) || CUSTOM_BY_IDENTIFIER.containsKey(javaIdentifier)) {
+            throw new IllegalArgumentException("Custom entity type with identifier " + javaIdentifier + " and ID " + javaId + " conflicts with existing custom entity type");
+        }
+        GeyserEntityType type = new GeyserEntityType(javaIdentifier, javaId);
+        CUSTOM.put(javaId, type);
+        CUSTOM_BY_IDENTIFIER.put(javaIdentifier, type);
+        return type;
     }
 }
