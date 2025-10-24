@@ -40,7 +40,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.HashOps;
+import org.geysermc.geyser.gametest.registries.GameTestJavaRegistryProvider;
+import org.geysermc.geyser.item.hashing.DataComponentHashers;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -48,39 +51,42 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class GeyserComponentHashTestInstance<T> extends GameTestInstance {
+public class GeyserComponentHashTestInstance extends GameTestInstance {
 
-    private static final MapCodec<TypedDataComponent<?>> TYPED_COMPONENT_CODEC = DataComponentType.PERSISTENT_CODEC
-        .dispatchMap("component", TypedDataComponent::type, GeyserComponentHashTestInstance::typedComponentCodec);
-    public static final MapCodec<GeyserComponentHashTestInstance<?>> CODEC = TYPED_COMPONENT_CODEC.xmap(GeyserComponentHashTestInstance::new,
-        instance -> instance.testValue);
+    private static final MapCodec<List<TypedDataComponent<?>>> TYPED_COMPONENT_CODEC = DataComponentType.PERSISTENT_CODEC
+        .dispatchMap("component", list -> list.getFirst().type(), GeyserComponentHashTestInstance::typedComponentListCodec);
+    public static final MapCodec<GeyserComponentHashTestInstance> CODEC = TYPED_COMPONENT_CODEC.xmap(GeyserComponentHashTestInstance::new,
+        instance -> instance.testCases);
 
-    private final TypedDataComponent<T> testValue;
+    private final List<TypedDataComponent<?>> testCases;
 
-    public GeyserComponentHashTestInstance(TypedDataComponent<T> testValue) {
+    public GeyserComponentHashTestInstance(List<TypedDataComponent<?>> testCases) {
         // TODO use default vanilla test environment
         super(new TestData<>(Holder.direct(new TestEnvironmentDefinition.AllOf(List.of())),
             ResourceLocation.withDefaultNamespace("empty"), 1, 1, true));
-        this.testValue = testValue;
+        this.testCases = testCases;
     }
 
     @Override
     public void run(@NotNull GameTestHelper helper) {
-        // Encode vanilla component to buffer
-        RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
-        TypedDataComponent.STREAM_CODEC.encode(buffer, testValue);
-
-        // Read with MCPL
-        int id = MinecraftTypes.readVarInt(buffer);
-        DataComponent<?, ?> mcplComponent = DataComponentTypes.from(id).readDataComponent(buffer);
-
-        // Hash both and compare
         RegistryOps<HashCode> ops = RegistryOps.create(HashOps.CRC32C_INSTANCE, helper.getLevel().registryAccess());
-        int expected = testValue.encodeValue(ops).getOrThrow().asInt();
-        //int geyser = DataComponentHashers.hash(session, mcplComponent).asInt();
-        int geyser = 0;
 
-        helper.assertValueEqual(expected, geyser, Component.literal("Hash for component " + testValue));
+        for (TypedDataComponent<?> testCase : testCases) {
+            // Encode vanilla component to buffer
+            RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), helper.getLevel().registryAccess());
+            TypedDataComponent.STREAM_CODEC.encode(buffer, testCase);
+
+            // Read with MCPL
+            int id = MinecraftTypes.readVarInt(buffer);
+            DataComponent<?, ?> mcplComponent = DataComponentTypes.from(id).readDataComponent(buffer);
+
+            // Hash both and compare
+            int expected = testCase.encodeValue(ops).getOrThrow().asInt();
+            GameTestJavaRegistryProvider registries = new GameTestJavaRegistryProvider(helper.getLevel().registryAccess());
+            int geyser = DataComponentHashers.hash(registries, mcplComponent).asInt();
+
+            helper.assertValueEqual(expected, geyser, Component.literal("Hash for component " + testCase));
+        }
 
         // Succeed if nothing was thrown
         helper.succeed();
@@ -97,7 +103,17 @@ public class GeyserComponentHashTestInstance<T> extends GameTestInstance {
         return Component.literal("Geyser Data Component Hash Test");
     }
 
-    private static <T> MapCodec<TypedDataComponent<T>> typedComponentCodec(DataComponentType<T> component) {
-        return component.codecOrThrow().fieldOf("value").xmap(value -> new TypedDataComponent<>(component, value), TypedDataComponent::value);
+    // Generics are NOT friendly!!!
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static MapCodec<List<TypedDataComponent<?>>> typedComponentListCodec(DataComponentType component) {
+        return ExtraCodecs.compactListCodec(component.codecOrThrow()).fieldOf("value")
+            .xmap(
+                values -> ((List<?>) values).stream()
+                    .map(testCase -> new TypedDataComponent(component, testCase))
+                    .map(testCase -> (TypedDataComponent<?>) testCase)
+                    .toList(),
+                typedComponents -> ((List<?>) typedComponents).stream()
+                    .map(testCase -> ((TypedDataComponent<?>) testCase).value())
+                    .toList());
     }
 }

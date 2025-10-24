@@ -58,7 +58,7 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
                 this.setServer(server);
                 onGeyserEnable();
             });
-        } else {
+        } else if (!GeyserFabricPlatform.isGameTestServer()) {
             ClientLifecycleEvents.CLIENT_STOPPING.register(($)-> {
                 onGeyserShutdown();
             });
