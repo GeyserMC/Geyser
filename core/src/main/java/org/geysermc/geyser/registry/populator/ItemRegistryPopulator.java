@@ -197,7 +197,7 @@ public class ItemRegistryPopulator {
         paletteVersions.add(new PaletteVersion("1_21_93", Bedrock_v819.CODEC.getProtocolVersion(), eightOneNineFallbacks, Conversion844_827::remapItem));
         paletteVersions.add(new PaletteVersion("1_21_100", Bedrock_v827.CODEC.getProtocolVersion(), eightTwoSevenFallbacks, Conversion844_827::remapItem));
         paletteVersions.add(new PaletteVersion("1_21_110", Bedrock_v844.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("1_21_110", Bedrock_v859.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_120", Bedrock_v859.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -209,13 +209,6 @@ public class ItemRegistryPopulator {
             items = GeyserImpl.JSON_MAPPER.readValue(stream, mappingItemsType);
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java runtime item IDs", e);
-        }
-
-        NbtMap vanillaComponents;
-        try (InputStream stream = bootstrap.getResourceOrThrow("bedrock/item_components.nbt")) {
-            vanillaComponents = (NbtMap) NbtUtils.createGZIPReader(stream, true, true).readTag();
-        } catch (Exception e) {
-            throw new AssertionError("Unable to load Bedrock item components", e);
         }
 
         boolean customItemsAllowed = GeyserImpl.getInstance().getConfig().isAddNonBedrockItems();
@@ -242,6 +235,13 @@ public class ItemRegistryPopulator {
                 itemEntries = GeyserImpl.JSON_MAPPER.readValue(stream, paletteEntriesType);
             } catch (Exception e) {
                 throw new AssertionError("Unable to load Bedrock runtime item IDs", e);
+            }
+
+            NbtMap vanillaComponents;
+            try (InputStream stream = bootstrap.getResourceOrThrow("bedrock/item_components.%s.nbt".formatted(palette.version()))) {
+                vanillaComponents = (NbtMap) NbtUtils.createGZIPReader(stream, true, true).readTag();
+            } catch (Exception e) {
+                throw new AssertionError("Unable to load Bedrock item components", e);
             }
 
             // Used for custom items
