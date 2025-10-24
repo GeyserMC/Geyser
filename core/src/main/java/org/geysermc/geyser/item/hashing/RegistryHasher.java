@@ -27,6 +27,7 @@ package org.geysermc.geyser.item.hashing;
 
 import com.google.common.hash.HashCode;
 import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.hashing.data.ConsumeEffectType;
 import org.geysermc.geyser.item.hashing.data.FireworkExplosionShape;
@@ -108,9 +109,9 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     RegistryHasher<?> ITEM = registry(JavaRegistries.ITEM);
 
-    RegistryHasher<?> ENTITY_TYPE = enumIdRegistry(EntityType.values());
+    RegistryHasher<?> ENTITY_TYPE = registry(JavaRegistries.ENTITY_TYPE);
 
-    MinecraftHasher<EntityType> ENTITY_TYPE_KEY = enumRegistry();
+    MinecraftHasher<EntityType> ENTITY_TYPE_KEY = IDENTIFIER.cast(type -> GeyserEntityType.of(type).javaIdentifier());
 
     MinecraftHasher<BlockEntityType> BLOCK_ENTITY_TYPE_KEY = enumRegistry();
 

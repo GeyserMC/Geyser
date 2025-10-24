@@ -26,22 +26,22 @@
 package org.geysermc.geyser.entity;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 
 /**
@@ -51,9 +51,13 @@ import java.util.function.BiConsumer;
  *
  * @param <T> the entity type this definition represents
  */
-public final class EntityDefinition<T extends Entity> {
+@Getter
+@Accessors(fluent = true)
+@EqualsAndHashCode
+@ToString
+public class EntityDefinition<T extends Entity> {
     private final EntityFactory<T> factory;
-    private final EntityType entityType;
+    private final GeyserEntityType entityType;
     private final String identifier;
     private final float width;
     private final float height;
@@ -64,7 +68,7 @@ public final class EntityDefinition<T extends Entity> {
     /**
      * @param identifier the Bedrock identifier of this entity
      */
-    public EntityDefinition(EntityFactory<T> factory, EntityType entityType, String identifier,
+    public EntityDefinition(EntityFactory<T> factory, GeyserEntityType entityType, String identifier,
                             float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
         this.factory = factory;
         this.entityType = entityType;
@@ -74,14 +78,6 @@ public final class EntityDefinition<T extends Entity> {
         this.offset = offset;
         this.registeredProperties = registeredProperties;
         this.translators = translators;
-    }
-
-    public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, EntityDefinition<? super T> parent) {
-        return new Builder<>(factory, parent.entityType, parent.identifier, parent.width, parent.height, parent.offset, new ObjectArrayList<>(parent.translators));
-    }
-
-    public static <T extends Entity> Builder<T> builder(EntityFactory<T> factory) {
-        return new Builder<>(factory);
     }
 
     @SuppressWarnings("unchecked")
@@ -103,90 +99,27 @@ public final class EntityDefinition<T extends Entity> {
         translator.translate(entity, metadata);
     }
 
-    public EntityFactory<T> factory() {
-        return factory;
-    }
-
-    public EntityType entityType() {
-        return entityType;
-    }
-
-    public String identifier() {
-        return identifier;
-    }
-
-    public float width() {
-        return width;
-    }
-
-    public float height() {
-        return height;
-    }
-
-    public float offset() {
-        return offset;
-    }
-
-    public GeyserEntityProperties registeredProperties() {
-        return registeredProperties;
-    }
-
-    public List<EntityMetadataTranslator<? super T, ?, ?>> translators() {
-        return translators;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (EntityDefinition) obj;
-        return Objects.equals(this.factory, that.factory) &&
-            Objects.equals(this.entityType, that.entityType) &&
-            Objects.equals(this.identifier, that.identifier) &&
-            Float.floatToIntBits(this.width) == Float.floatToIntBits(that.width) &&
-            Float.floatToIntBits(this.height) == Float.floatToIntBits(that.height) &&
-            Float.floatToIntBits(this.offset) == Float.floatToIntBits(that.offset) &&
-            Objects.equals(this.registeredProperties, that.registeredProperties) &&
-            Objects.equals(this.translators, that.translators);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(factory, entityType, identifier, width, height, offset, registeredProperties, translators);
-    }
-
-    @Override
-    public String toString() {
-        return "EntityDefinition[" +
-            "factory=" + factory + ", " +
-            "entityType=" + entityType + ", " +
-            "identifier=" + identifier + ", " +
-            "width=" + width + ", " +
-            "height=" + height + ", " +
-            "offset=" + offset + ", " +
-            "registeredProperties=" + registeredProperties + ", " +
-            "translators=" + translators + ']';
-    }
-
-
     @Setter
     @Accessors(fluent = true, chain = true)
-    public static class Builder<T extends Entity> {
-        private final EntityFactory<T> factory;
-        private EntityType type;
-        private String identifier;
-        private float width;
-        private float height;
-        private float offset = 0.00001f;
-        private GeyserEntityProperties.Builder propertiesBuilder;
-        private final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
+    public static abstract class Builder<T extends Entity> {
+        protected final EntityFactory<T> factory;
+        @Setter(AccessLevel.NONE)
+        protected GeyserEntityType type;
 
-        private Builder(EntityFactory<T> factory) {
+        protected String identifier;
+        protected float width;
+        protected float height;
+        protected float offset = 0.00001f;
+        @Setter(AccessLevel.NONE)
+        protected GeyserEntityProperties.Builder propertiesBuilder;
+        protected final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
+
+        protected Builder(EntityFactory<T> factory) {
             this.factory = factory;
             translators = new ObjectArrayList<>();
         }
 
-        public Builder(EntityFactory<T> factory, EntityType type, String identifier, float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+        protected Builder(EntityFactory<T> factory, GeyserEntityType type, String identifier, float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
             this.factory = factory;
             this.type = type;
             this.identifier = identifier;
@@ -210,15 +143,6 @@ public final class EntityDefinition<T extends Entity> {
             return this;
         }
 
-        /**
-         * Resets the identifier as well
-         */
-        public Builder<T> type(EntityType type) {
-            this.type = type;
-            identifier = null;
-            return this;
-        }
-
         public Builder<T> property(PropertyType<?, ?> propertyType) {
             if (this.propertiesBuilder == null) {
                 this.propertiesBuilder = new GeyserEntityProperties.Builder(this.identifier);
@@ -238,24 +162,11 @@ public final class EntityDefinition<T extends Entity> {
         }
 
         public EntityDefinition<T> build() {
-            return build(true);
-        }
-
-        /**
-         * @param register whether to register this entity in the Registries for entity types. Generally this should be
-         * set to false if we're not expecting this entity to spawn from the network.
-         */
-        public EntityDefinition<T> build(boolean register) {
             if (identifier == null && type != null) {
-                identifier = "minecraft:" + type.name().toLowerCase(Locale.ROOT);
+                identifier = type.javaIdentifier().toString();
             }
-            GeyserEntityProperties registeredProperties = propertiesBuilder == null ? new GeyserEntityProperties() : propertiesBuilder.build();
-            EntityDefinition<T> definition = new EntityDefinition<>(factory, type, identifier, width, height, offset, registeredProperties, translators);
-            if (register && definition.entityType() != null) {
-                Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
-                Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent("minecraft:" + type.name().toLowerCase(Locale.ROOT), definition);
-            }
-            return definition;
+            GeyserEntityProperties registeredProperties = propertiesBuilder == null ? null : propertiesBuilder.build();
+            return new EntityDefinition<>(factory, type, identifier, width, height, offset, registeredProperties, translators);
         }
     }
 }

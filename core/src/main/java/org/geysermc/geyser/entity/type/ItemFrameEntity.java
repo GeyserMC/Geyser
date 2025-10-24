@@ -43,6 +43,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetad
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
@@ -176,7 +177,7 @@ public class ItemFrameEntity extends HangingEntity {
         builder.putInt("y", bedrockPosition.getY());
         builder.putInt("z", bedrockPosition.getZ());
         builder.putByte("isMovable", (byte) 1);
-        builder.putString("id", this.definition.entityType() == EntityType.GLOW_ITEM_FRAME ? "GlowItemFrame" : "ItemFrame");
+        builder.putString("id", this.definition.entityType().is(BuiltinEntityType.GLOW_ITEM_FRAME) ? "GlowItemFrame" : "ItemFrame");
         return builder.build();
     }
 
@@ -222,7 +223,7 @@ public class ItemFrameEntity extends HangingEntity {
 
     private BlockDefinition buildBlockDefinition(Direction direction) {
         NbtMapBuilder blockBuilder = NbtMap.builder()
-            .putString("name", this.definition.entityType() == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_frame" : "minecraft:frame");
+            .putString("name", this.definition.entityType().is(BuiltinEntityType.GLOW_ITEM_FRAME) ? "minecraft:glow_frame" : "minecraft:frame");
         NbtMapBuilder statesBuilder = NbtMap.builder()
             .putInt("facing_direction", direction.ordinal())
             .putByte("item_frame_map_bit", (byte) 0)

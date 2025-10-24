@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.FallingBlockEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
@@ -45,6 +46,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.FallingBlockData;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.ProjectileData;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.WardenData;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 
@@ -55,9 +57,10 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
 
     @Override
     public void translate(GeyserSession session, ClientboundAddEntityPacket packet) {
-        EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(packet.getType());
+        GeyserEntityType type = GeyserEntityType.of(packet.getType());
+        EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(type);
         if (definition == null) {
-            session.getGeyser().getLogger().debug("Could not find an entity definition with type " + packet.getType());
+            session.getGeyser().getLogger().warning("Could not find an entity definition with type " + type);
             return;
         }
 
@@ -67,7 +70,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         float pitch = packet.getPitch();
         float headYaw = packet.getHeadYaw();
 
-        if (packet.getType() == EntityType.PLAYER) {
+        if (type.is(BuiltinEntityType.PLAYER)) {
 
             PlayerEntity entity;
             if (packet.getUuid().equals(session.getPlayerEntity().getUuid())) {
@@ -102,10 +105,10 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         }
 
         Entity entity;
-        if (packet.getType() == EntityType.FALLING_BLOCK) {
+        if (type.is(BuiltinEntityType.FALLING_BLOCK)) {
             entity = new FallingBlockEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
                     position, motion, yaw, pitch, headYaw, ((FallingBlockData) packet.getData()).getId());
-        } else if (packet.getType() == EntityType.FISHING_BOBBER) {
+        } else if (type.is(BuiltinEntityType.FISHING_BOBBER)) {
             // Fishing bobbers need the owner for the line
             int ownerEntityId = ((ProjectileData) packet.getData()).getOwnerId();
             Entity owner = session.getEntityCache().getEntityByJavaId(ownerEntityId);
@@ -126,7 +129,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             }
         }
 
-        if (packet.getType() == EntityType.WARDEN) {
+        if (type.is(BuiltinEntityType.WARDEN)) {
             WardenData wardenData = (WardenData) packet.getData();
             if (wardenData.isEmerging()) {
                 entity.setPose(Pose.EMERGING);

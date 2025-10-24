@@ -32,7 +32,9 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -50,7 +52,7 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
 import java.util.Locale;
@@ -106,61 +108,73 @@ public final class EntityUtils {
 
         float height = mount.getBoundingBoxHeight();
         float mountedHeightOffset = height * 0.75f;
-        switch (mount.getDefinition().entityType()) {
-            case CAMEL -> {
-                boolean isBaby = mount.getFlag(EntityFlag.BABY);
-                mountedHeightOffset = height - (isBaby ? 0.35f : 0.6f);
-            }
-            case CAVE_SPIDER, CHICKEN, SPIDER -> mountedHeightOffset = height * 0.5f;
-            case DONKEY, MULE -> mountedHeightOffset -= 0.25f;
-            case TRADER_LLAMA, LLAMA -> mountedHeightOffset = height * 0.6f;
-            case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
-                    COMMAND_BLOCK_MINECART -> mountedHeightOffset = 0;
-            case BAMBOO_RAFT, BAMBOO_CHEST_RAFT -> mountedHeightOffset = 0.25f;
-            case HOGLIN, ZOGLIN -> {
-                boolean isBaby = mount.getFlag(EntityFlag.BABY);
-                mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
-            }
-            case PIGLIN -> mountedHeightOffset = height * 0.92f;
-            case PHANTOM -> mountedHeightOffset = height * 0.35f;
-            case RAVAGER -> mountedHeightOffset = 2.1f;
-            case SKELETON_HORSE -> mountedHeightOffset -= 0.1875f;
-            case SNIFFER -> mountedHeightOffset = 1.8f;
-            case STRIDER -> mountedHeightOffset = height - 0.19f;
+        GeyserEntityType type = mount.getDefinition().entityType();
+        if (type.is(BuiltinEntityType.CAMEL)) {
+            boolean isBaby = mount.getFlag(EntityFlag.BABY);
+            mountedHeightOffset = height - (isBaby ? 0.35f : 0.6f);
+        } else if (type.is(BuiltinEntityType.CAVE_SPIDER) || type.is(BuiltinEntityType.CHICKEN) || type.is(BuiltinEntityType.SPIDER)) {
+            mountedHeightOffset = height * 0.5f;
+        } else if (type.is(BuiltinEntityType.DONKEY) || type.is(BuiltinEntityType.MULE)) {
+            mountedHeightOffset -= 0.25f;
+        } else if (type.is(BuiltinEntityType.TRADER_LLAMA) || type.is(BuiltinEntityType.LLAMA)) {
+            mountedHeightOffset = height * 0.6f;
+        } else if (type.is(BuiltinEntityType.MINECART) || type.is(BuiltinEntityType.HOPPER_MINECART) || type.is(BuiltinEntityType.TNT_MINECART)
+            || type.is(BuiltinEntityType.CHEST_MINECART) || type.is(BuiltinEntityType.FURNACE_MINECART)
+            || type.is(BuiltinEntityType.SPAWNER_MINECART) || type.is(BuiltinEntityType.COMMAND_BLOCK_MINECART)) {
+            mountedHeightOffset = 0;
+        } else if (type.is(BuiltinEntityType.BAMBOO_RAFT) || type.is(BuiltinEntityType.BAMBOO_CHEST_RAFT)) {
+            mountedHeightOffset = 0.25f;
+        } else if (type.is(BuiltinEntityType.HOGLIN) || type.is(BuiltinEntityType.ZOGLIN)) {
+            boolean isBaby = mount.getFlag(EntityFlag.BABY);
+            mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
+        } else if (type.is(BuiltinEntityType.PIGLIN)) {
+            mountedHeightOffset = height * 0.92f;
+        } else if (type.is(BuiltinEntityType.PHANTOM)) {
+            mountedHeightOffset = height * 0.35f;
+        } else if (type.is(BuiltinEntityType.RAVAGER)) {
+            mountedHeightOffset = 2.1f;
+        } else if (type.is(BuiltinEntityType.SKELETON_HORSE)) {
+            mountedHeightOffset -= 0.1875f;
+        } else if (type.is(BuiltinEntityType.SNIFFER)) {
+            mountedHeightOffset = 1.8f;
+        } else if (type.is(BuiltinEntityType.STRIDER)) {
+            mountedHeightOffset = height - 0.19f;
         }
         return mountedHeightOffset;
     }
 
     private static float getHeightOffset(Entity passenger) {
         boolean isBaby;
-        switch (passenger.getDefinition().entityType()) {
-            case ALLAY, VEX:
-                return 0.4f;
-            case SKELETON, STRAY, WITHER_SKELETON:
-                return -0.6f;
-            case ARMOR_STAND:
-                if (((ArmorStandEntity) passenger).isMarker()) {
-                    return 0.0f;
-                } else {
-                    return 0.1f;
-                }
-            case ENDERMITE, SILVERFISH:
+        GeyserEntityType type = passenger.getDefinition().entityType();
+        if (type.is(BuiltinEntityType.ALLAY) || type.is(BuiltinEntityType.VEX)) {
+            return 0.4f;
+        } else if (type.is(BuiltinEntityType.SKELETON) || type.is(BuiltinEntityType.STRAY) || type.is(BuiltinEntityType.WITHER_SKELETON)) {
+            return -0.6f;
+        } else if (type.is(BuiltinEntityType.ARMOR_STAND)) {
+            if (((ArmorStandEntity) passenger).isMarker()) {
+                return 0.0f;
+            } else {
                 return 0.1f;
-            case PIGLIN, PIGLIN_BRUTE, ZOMBIFIED_PIGLIN:
-                isBaby = passenger.getFlag(EntityFlag.BABY);
-                return isBaby ? -0.05f : -0.45f;
-            case DROWNED, HUSK, ZOMBIE_VILLAGER, ZOMBIE:
-                isBaby = passenger.getFlag(EntityFlag.BABY);
-                return isBaby ? 0.0f : -0.45f;
-            case EVOKER, ILLUSIONER, PILLAGER, RAVAGER, VINDICATOR, WITCH:
-                return -0.45f;
-            case PLAYER:
-                return -0.35f;
-            case SHULKER:
-                Entity vehicle = passenger.getVehicle();
-                if (vehicle instanceof BoatEntity || vehicle.getDefinition() == EntityDefinitions.MINECART) {
-                    return 0.1875f - getMountedHeightOffset(vehicle);
-                }
+            }
+        } else if (type.is(BuiltinEntityType.ENDERMITE) || type.is(BuiltinEntityType.SILVERFISH)) {
+            return 0.1f;
+        } else if (type.is(BuiltinEntityType.PIGLIN) || type.is(BuiltinEntityType.PIGLIN_BRUTE) || type.is(BuiltinEntityType.ZOMBIFIED_PIGLIN)) {
+            isBaby = passenger.getFlag(EntityFlag.BABY);
+            return isBaby ? -0.05f : -0.45f;
+        } else if (type.is(BuiltinEntityType.DROWNED) || type.is(BuiltinEntityType.HUSK) || type.is(BuiltinEntityType.ZOMBIE_VILLAGER)
+            || type.is(BuiltinEntityType.ZOMBIE)) {
+            isBaby = passenger.getFlag(EntityFlag.BABY);
+            return isBaby ? 0.0f : -0.45f;
+        } else if (type.is(BuiltinEntityType.EVOKER) || type.is(BuiltinEntityType.ILLUSIONER) || type.is(BuiltinEntityType.PILLAGER)
+            || type.is(BuiltinEntityType.RAVAGER) || type.is(BuiltinEntityType.VINDICATOR) || type.is(BuiltinEntityType.WITCH)) {
+            return -0.45f;
+        } else if (type.is(BuiltinEntityType.PLAYER)) {
+            return -0.35f;
+        } else if (type.is(BuiltinEntityType.SHULKER)) {
+            Entity vehicle = passenger.getVehicle();
+            if (vehicle instanceof BoatEntity || vehicle.getDefinition() == EntityDefinitions.MINECART) {
+                return 0.1875f - getMountedHeightOffset(vehicle);
+            }
         }
         if (passenger instanceof AnimalEntity) {
             return 0.14f;
@@ -181,57 +195,55 @@ public final class EntityUtils {
             float xOffset = 0;
             float yOffset = mountedHeightOffset + heightOffset;
             float zOffset = 0;
-            switch (mount.getDefinition().entityType()) {
-                case CAMEL -> {
-                    zOffset = 0.5f;
-                    if (passengers > 1) {
-                        if (!rider) {
-                            zOffset = -0.7f;
-                        }
-                        if (passenger instanceof AnimalEntity) {
-                            zOffset += 0.2f;
-                        }
+            GeyserEntityType mountType = mount.getDefinition().entityType();
+            if (mountType.is(BuiltinEntityType.CAMEL)) {
+                zOffset = 0.5f;
+                if (passengers > 1) {
+                    if (!rider) {
+                        zOffset = -0.7f;
                     }
-                    if (mount.getFlag(EntityFlag.SITTING)) {
-                        if (mount.getFlag(EntityFlag.BABY)) {
-                            yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE * 0.5f;
-                        } else {
-                            yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE;
-                        }
+                    if (passenger instanceof AnimalEntity) {
+                        zOffset += 0.2f;
                     }
                 }
-                case CHICKEN -> zOffset = -0.1f;
-                case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
-                case TEXT_DISPLAY -> {
-                    if (passenger instanceof TextDisplayEntity textDisplay) {
-                        Vector3f displayTranslation = textDisplay.getTranslation();
-                        if (displayTranslation == null) {
-                            return;
-                        }
+                if (mount.getFlag(EntityFlag.SITTING)) {
+                    if (mount.getFlag(EntityFlag.BABY)) {
+                        yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE * 0.5f;
+                    } else {
+                        yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE;
+                    }
+                }
+            } else if (mountType.is(BuiltinEntityType.CHICKEN)) {
+                zOffset = -0.1f;
+            } else if (mountType.is(BuiltinEntityType.TRADER_LLAMA) || mountType.is(BuiltinEntityType.LLAMA)) {
+                zOffset = -0.3f;
+            } else if (mountType.is(BuiltinEntityType.TEXT_DISPLAY)) {
+                if (passenger instanceof TextDisplayEntity textDisplay) {
+                    Vector3f displayTranslation = textDisplay.getTranslation();
+                    if (displayTranslation == null) {
+                        return;
+                    }
 
+                    xOffset = displayTranslation.getX();
+                    yOffset = displayTranslation.getY() + 0.2f;
+                    zOffset = displayTranslation.getZ();
+                }
+            } else if (mountType.is(BuiltinEntityType.PLAYER)) {
+                if (passenger instanceof TextDisplayEntity textDisplay) {
+                    Vector3f displayTranslation = textDisplay.getTranslation();
+                    int lines = textDisplay.getLineCount();
+                    if (displayTranslation != null && lines != 0) {
+                        float multiplier = .1414f;
                         xOffset = displayTranslation.getX();
-                        yOffset = displayTranslation.getY() + 0.2f;
+                        yOffset += displayTranslation.getY() + multiplier * lines;
                         zOffset = displayTranslation.getZ();
                     }
                 }
-                case PLAYER -> {
-                    if (passenger instanceof TextDisplayEntity textDisplay) {
-                        Vector3f displayTranslation = textDisplay.getTranslation();
-                        int lines = textDisplay.getLineCount();
-                        if (displayTranslation != null && lines != 0) {
-                            float multiplier = .1414f;
-                            xOffset = displayTranslation.getX();
-                            yOffset += displayTranslation.getY() + multiplier * lines;
-                            zOffset = displayTranslation.getZ();
-                        }
-                    }
-                }
-                case HAPPY_GHAST -> {
-                    int seatingIndex = Math.min(index, 4);
-                    xOffset = HappyGhastEntity.X_OFFSETS[seatingIndex];
-                    yOffset = 3.4f;
-                    zOffset = HappyGhastEntity.Z_OFFSETS[seatingIndex];
-                }
+            } else if (mountType.is(BuiltinEntityType.HAPPY_GHAST)) {
+                int seatingIndex = Math.min(index, 4);
+                xOffset = HappyGhastEntity.X_OFFSETS[seatingIndex];
+                yOffset = 3.4f;
+                zOffset = HappyGhastEntity.Z_OFFSETS[seatingIndex];
             }
             if (mount instanceof ChestBoatEntity) {
                 xOffset = 0.15F;
@@ -244,26 +256,31 @@ public final class EntityUtils {
                     }
                 }
             }
+
             /*
              * Bedrock Differences
              * Zoglin & Hoglin seem to be taller in Bedrock edition
              * Horses are tinier
              * Players, Minecarts, and Boats have different origins
              */
-            if (mount.getDefinition().entityType() == EntityType.PLAYER) {
+            GeyserEntityType passengerType = passenger.getDefinition().entityType();
+            if (mountType.is(BuiltinEntityType.PLAYER)) {
                 yOffset -= EntityDefinitions.PLAYER.offset();
             }
-            if (passenger.getDefinition().entityType() == EntityType.PLAYER) {
+            if (passengerType.is(BuiltinEntityType.PLAYER)) {
                 yOffset += EntityDefinitions.PLAYER.offset();
             }
-            switch (mount.getDefinition().entityType()) {
-                case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
-                        COMMAND_BLOCK_MINECART -> yOffset -= mount.getDefinition().height() * 0.5f;
+            if (mountType.is(BuiltinEntityType.MINECART) || mountType.is(BuiltinEntityType.HOPPER_MINECART) || mountType.is(BuiltinEntityType.TNT_MINECART)
+                || mountType.is(BuiltinEntityType.CHEST_MINECART) || mountType.is(BuiltinEntityType.FURNACE_MINECART)
+                || mountType.is(BuiltinEntityType.SPAWNER_MINECART) || mountType.is(BuiltinEntityType.COMMAND_BLOCK_MINECART)) {
+                yOffset -= mount.getDefinition().height() * 0.5f;
             }
-            switch (passenger.getDefinition().entityType()) {
-                case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
-                     COMMAND_BLOCK_MINECART, SHULKER -> yOffset += passenger.getDefinition().height() * 0.5f;
-                case FALLING_BLOCK -> yOffset += 0.995f;
+            if (passengerType.is(BuiltinEntityType.MINECART) || passengerType.is(BuiltinEntityType.HOPPER_MINECART) || passengerType.is(BuiltinEntityType.TNT_MINECART)
+                || passengerType.is(BuiltinEntityType.CHEST_MINECART) || passengerType.is(BuiltinEntityType.FURNACE_MINECART) || passengerType.is(BuiltinEntityType.SPAWNER_MINECART)
+                || passengerType.is(BuiltinEntityType.COMMAND_BLOCK_MINECART) || passengerType.is(BuiltinEntityType.SHULKER)) {
+                yOffset += passenger.getDefinition().height() * 0.5f;
+            } else if (passengerType.is(BuiltinEntityType.FALLING_BLOCK)) {
+                yOffset += 0.995f;
             }
             if (mount instanceof BoatEntity) {
                 yOffset -= mount.getDefinition().height() * 0.5f;
@@ -340,25 +357,24 @@ public final class EntityUtils {
         return translatedEntityName(type.namespace(), type.value(), session);
     }
 
-    public static String translatedEntityName(@Nullable EntityType type, @NonNull GeyserSession session) {
-        if (type == EntityType.PLAYER) {
-            return "Player"; // the player's name is always shown instead
-        }
+    public static String translatedEntityName(@Nullable GeyserEntityType type, @NonNull GeyserSession session) {
         // default fallback value as used in Minecraft Java
         if (type == null) {
             return "entity.unregistered_sadface";
+        } else if (type.is(BuiltinEntityType.PLAYER)) {
+            return "Player"; // the player's name is always shown instead
         }
         // this works at least with all 1.20.5 entities, except the killer bunny since that's not an entity type.
-        String typeName = type.name().toLowerCase(Locale.ROOT);
-        return translatedEntityName("minecraft", typeName, session);
+        Identifier typeName = type.javaIdentifier();
+        return translatedEntityName(typeName.namespace(), typeName.path(), session);
     }
 
-    public static boolean equipmentUsableByEntity(GeyserSession session, Equippable equippable, EntityType entity) {
+    public static boolean equipmentUsableByEntity(GeyserSession session, Equippable equippable, GeyserEntityType entity) {
         if (equippable.allowedEntities() == null) {
             return true;
         }
 
-        GeyserHolderSet<EntityType> holderSet = GeyserHolderSet.fromHolderSet(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
+        GeyserHolderSet<GeyserEntityType> holderSet = GeyserHolderSet.fromHolderSet(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
         return holderSet.contains(session, entity);
     }
 

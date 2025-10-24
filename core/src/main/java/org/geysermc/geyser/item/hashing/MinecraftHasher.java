@@ -31,9 +31,11 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
@@ -124,6 +126,8 @@ public interface MinecraftHasher<Type> {
     MinecraftHasher<Key> TAG = STRING.cast(key -> '#' + key.asString());
 
     MinecraftHasher<Key> KEY_REMOVAL = STRING.cast(key -> '!' + key.asString());
+
+    MinecraftHasher<Identifier> IDENTIFIER = KEY.cast(MinecraftKey::identifierToKey);
 
     MinecraftHasher<UUID> UUID = INT_ARRAY.cast(uuid -> {
         long mostSignificant = uuid.getMostSignificantBits();

@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -36,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.item.type.Item;
@@ -123,7 +125,8 @@ public final class Registries {
     /**
      * A map containing all entity types and their respective Geyser definitions
      */
-    public static final SimpleMappedRegistry<EntityType, EntityDefinition<?>> ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(() -> new EnumMap<>(EntityType.class)));
+    // Is a Reference2ObjectMap since GeyserEntityType, the implementation of JavaEntityType, only ever keeps one instance per registered entity type
+    public static final SimpleMappedRegistry<JavaEntityType, EntityDefinition<?>> ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(Reference2ObjectOpenHashMap::new));
 
     /**
      * A registry holding a list of all the known entity properties to be sent to the client after start game.

@@ -26,7 +26,7 @@
 package org.geysermc.geyser.entity.type;
 
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
@@ -40,7 +40,7 @@ public class AbstractArrowEntity extends Entity {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
 
         // Set the correct texture if using the resource pack
-        setFlag(EntityFlag.BRIBED, definition.entityType() == EntityType.SPECTRAL_ARROW);
+        setFlag(EntityFlag.BRIBED, definition.entityType().is(BuiltinEntityType.SPECTRAL_ARROW));
 
         setMotion(motion);
     }

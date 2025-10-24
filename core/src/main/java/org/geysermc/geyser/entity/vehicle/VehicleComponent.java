@@ -56,7 +56,7 @@ import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 
 public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
@@ -218,7 +218,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         double lavaHeight = getFluidHeightAndApplyMovement(ctx, iter, Fluid.LAVA, vehicle.getSession().getDimensionType().ultrawarm() ? 0.007 : 0.007 / 3, min.getY());
 
         // Apply upward motion if the vehicle is a Strider, and it is submerged in lava
-        if (lavaHeight > 0 && vehicle.getDefinition().entityType() == EntityType.STRIDER) {
+        if (lavaHeight > 0 && vehicle.getDefinition().entityType().is(BuiltinEntityType.STRIDER)) {
             Vector3i blockPos = ctx.centerPos().toInt();
             if (!CollisionManager.FLUID_COLLISION.isBelow(blockPos.getY(), boundingBox) || ctx.getBlock(blockPos.up()).is(Blocks.LAVA)) {
                 vehicle.setMotion(vehicle.getMotion().mul(0.5f).add(0, 0.05f, 0));
