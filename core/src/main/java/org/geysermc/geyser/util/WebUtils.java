@@ -290,7 +290,7 @@ public class WebUtils {
         // Read the error message if there is one if not just read normally
         InputStream inputStream = con.getErrorStream();
         if (inputStream != null) {
-            throw new IOException(inputStreamToString(con.getErrorStream(), null));
+            throw new IOException(inputStreamToString(inputStream, null));
         }
     }
 
