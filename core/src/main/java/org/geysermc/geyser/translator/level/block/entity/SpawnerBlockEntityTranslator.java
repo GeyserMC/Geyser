@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -118,7 +118,7 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
             // As of 1.19.3, spawners can be empty
             builder.put("EntityIdentifier", entityId);
 
-            EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);
+            EntityDefinition<?> definition = Registries.ENTITY_IDENTIFIERS.get(entityId);
             if (definition != null) {
                 builder.putFloat("DisplayEntityWidth", definition.width());
                 builder.putFloat("DisplayEntityHeight", definition.height());

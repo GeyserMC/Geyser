@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
@@ -131,9 +132,9 @@ public final class Registries {
     public static final SimpleRegistry<Set<NbtMap>> BEDROCK_ENTITY_PROPERTIES = SimpleRegistry.create(RegistryLoaders.empty(HashSet::new));
 
     /**
-     * A map containing all Java entity identifiers and their respective Geyser definitions
+     * A map containing all entity identifiers and their respective Geyser definitions
      */
-    public static final SimpleMappedRegistry<String, EntityDefinition<?>> JAVA_ENTITY_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
+    public static final SimpleMappedRegistry<String, EntityDefinition<?>> ENTITY_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
      * A registry containing all the Java packet translators.
@@ -260,5 +261,28 @@ public final class Registries {
             biomesNbt.put(key, value.build());
         }
         BIOMES_NBT.set(biomesNbt.build());
+    }
+
+    public static void callRegistryEvents() {
+        // Call registry events
+        List<GeyserEntityDefinition> definitions = ENTITY_IDENTIFIERS.get().values().stream()
+                .map(def -> (GeyserEntityDefinition) def)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        GeyserDefineEntitiesEvent defineEntitiesEvent = new GeyserDefineEntitiesEventImpl(definitions) {
+            @Override
+            public boolean register(@NonNull GeyserEntityDefinition entityDefinition) {
+                EntityDefinition<?> geyserDefinition = (EntityDefinition<?>) entityDefinition;
+                if (!geyserDefinition.custom()) {
+                    return false;
+                }
+
+                EntityUtils.registerEntity(geyserDefinition.identifier(), geyserDefinition);
+                return true;
+            }
+        };
+
+        GeyserImpl.getInstance().eventBus().fire(defineEntitiesEvent);
     }
 }

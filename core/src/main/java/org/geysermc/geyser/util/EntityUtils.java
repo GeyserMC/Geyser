@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,10 +29,15 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.GeyserEntityIdentifier;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -52,7 +57,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
+import org.geysermc.geyser.registry.Registries;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -370,6 +378,30 @@ public final class EntityUtils {
                 (long) uuid[2] << 32 | ((long) uuid[3] & 0xFFFFFFFFL));
         }
         return null;
+    }
+
+    public static void registerEntity(String identifier, EntityDefinition<?> definition, @Nullable GeyserEntityIdentifier nbtId) {
+        if (nbtId == null) {
+            Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
+            Registries.ENTITY_IDENTIFIERS.get().putIfAbsent(identifier, definition);
+        } else {
+            // We're dealing with a custom entity here
+            Registries.ENTITY_IDENTIFIERS.get().putIfAbsent(identifier, definition);
+
+            // Now let's add it to the entity identifiers
+            NbtMap nbt = Registries.BEDROCK_ENTITY_IDENTIFIERS.get();
+            List<NbtMap> idlist = new ArrayList<>(nbt.getList("idlist", NbtType.COMPOUND));
+            idlist.add(nbtId.nbt());
+
+            NbtMap newIdentifiers = nbt.toBuilder()
+                    .putList("idlist", NbtType.COMPOUND, idlist)
+                    .build();
+
+            Registries.BEDROCK_ENTITY_IDENTIFIERS.set(newIdentifiers);
+            GeyserImpl.getInstance().getLogger().debug("Registered custom entity " + identifier);
+
+            // TODO allow register "real" custom java entities
+        }
     }
 
     private EntityUtils() {
