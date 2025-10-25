@@ -490,7 +490,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
 
                     if (isCursor(transferAction.getDestination())) {
                         if (session.getPlayerInventory().getCursor().isEmpty()) {
-                            GeyserItemStack newItemStack = GeyserItemStack.from(javaCreativeItem);
+                            GeyserItemStack newItemStack = GeyserItemStack.from(session, javaCreativeItem);
                             session.getBundleCache().initialize(newItemStack);
                             newItemStack.setAmount(transferAction.getCount());
                             session.getPlayerInventory().setCursor(newItemStack, session);
@@ -502,7 +502,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                     } else {
                         int destSlot = bedrockSlotToJava(transferAction.getDestination());
                         if (inventory.getItem(destSlot).isEmpty()) {
-                            GeyserItemStack newItemStack = GeyserItemStack.from(javaCreativeItem);
+                            GeyserItemStack newItemStack = GeyserItemStack.from(session, javaCreativeItem);
                             session.getBundleCache().initialize(newItemStack);
                             newItemStack.setAmount(transferAction.getCount());
                             inventory.setItem(destSlot, newItemStack, session);
