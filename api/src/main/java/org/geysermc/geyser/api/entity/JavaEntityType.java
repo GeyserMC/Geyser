@@ -42,6 +42,10 @@ public interface JavaEntityType {
         return javaIdentifier().equals(javaIdentifier);
     }
 
+    static JavaEntityType ofVanilla(@NonNull Identifier javaIdentifier) {
+        return GeyserApi.api().provider(JavaEntityType.class, javaIdentifier);
+    }
+
     static JavaEntityType create(@NonNull Identifier javaIdentifier, @NonNegative int javaId) {
         return GeyserApi.api().provider(JavaEntityType.class, javaIdentifier, javaId);
     }

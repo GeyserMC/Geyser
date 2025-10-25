@@ -36,6 +36,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
@@ -46,21 +47,29 @@ import java.util.Map;
 import java.util.Objects;
 
 public record GeyserEntityType(Identifier javaIdentifier, int javaId) implements JavaEntityType {
+    private static final Identifier UNREGISTERED = IdentifierImpl.of(Constants.GEYSER_CUSTOM_NAMESPACE, "unregistered_sadface");
+
     private static final Map<BuiltinEntityType, GeyserEntityType> VANILLA = new EnumMap<>(BuiltinEntityType.class);
     private static final Int2ObjectMap<GeyserEntityType> CUSTOM = new Int2ObjectOpenHashMap<>();
     private static final Object2ObjectMap<Identifier, GeyserEntityType> CUSTOM_BY_IDENTIFIER = new Object2ObjectOpenHashMap<>();
+
+    public GeyserEntityType {
+        if (!VANILLA.containsValue(this) && !CUSTOM.containsKey(javaId)) {
+            throw new IllegalCallerException("Public constructor of GeyserEntityType should not be used; use one of the static factory methods instead");
+        }
+    }
 
     private GeyserEntityType(BuiltinEntityType builtin) {
         this(Identifier.of(builtin.name().toLowerCase(Locale.ROOT)), builtin.id());
     }
 
     private GeyserEntityType(int javaId) {
-        this(Identifier.of(Constants.GEYSER_CUSTOM_NAMESPACE, "unregistered_sadface"), javaId);
+        this(UNREGISTERED, javaId);
     }
 
     @Override
     public boolean isUnregistered() {
-        return javaIdentifier.namespace().equals(Constants.GEYSER_CUSTOM_NAMESPACE) && javaIdentifier.path().equals("unregistered_sadface");
+        return javaIdentifier.equals(UNREGISTERED);
     }
 
     public boolean is(EntityType type) {
@@ -69,6 +78,13 @@ public record GeyserEntityType(Identifier javaIdentifier, int javaId) implements
 
     public static GeyserEntityType ofVanilla(BuiltinEntityType builtin) {
         return VANILLA.computeIfAbsent(builtin, GeyserEntityType::new);
+    }
+
+    /**
+     * @throws IllegalArgumentException document this in API
+     */
+    public static GeyserEntityType ofVanilla(Identifier javaIdentifier) {
+        return ofVanilla(BuiltinEntityType.valueOf(javaIdentifier.path().toUpperCase(Locale.ROOT)));
     }
 
     public static GeyserEntityType of(int javaId) {
@@ -84,7 +100,7 @@ public record GeyserEntityType(Identifier javaIdentifier, int javaId) implements
     public static GeyserEntityType of(Key javaKey) {
         if (javaKey.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
             try {
-                return ofVanilla(BuiltinEntityType.valueOf(javaKey.value().toUpperCase(Locale.ROOT)));
+                return ofVanilla(MinecraftKey.keyToIdentifier(javaKey));
             } catch (IllegalArgumentException exception) {
                 return null;
             }

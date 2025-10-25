@@ -364,7 +364,7 @@ public final class EntityDefinitions {
             END_CRYSTAL = VanillaEntityDefinition.inherited(EnderCrystalEntity::new, entityBase)
                     .type(BuiltinEntityType.END_CRYSTAL)
                     .heightAndWidth(2.0f)
-                    .identifier("minecraft:ender_crystal")
+                    .bedrockIdentifier("minecraft:ender_crystal")
                     .addTranslator(MetadataTypes.OPTIONAL_BLOCK_POS, EnderCrystalEntity::setBlockTarget)
                     .addTranslator(MetadataTypes.BOOLEAN,
                             (enderCrystalEntity, entityMetadata) -> enderCrystalEntity.setFlag(EntityFlag.SHOW_BOTTOM, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue())) // There is a base located on the ender crystal
@@ -372,17 +372,17 @@ public final class EntityDefinitions {
             EXPERIENCE_ORB = VanillaEntityDefinition.inherited(ExpOrbEntity::new, entityBase)
                     .type(BuiltinEntityType.EXPERIENCE_ORB)
                     .addTranslator(null) // int determining xb orb texture
-                    .identifier("minecraft:xp_orb")
+                    .bedrockIdentifier("minecraft:xp_orb")
                     .build();
             EVOKER_FANGS = VanillaEntityDefinition.inherited(EvokerFangsEntity::new, entityBase)
                     .type(BuiltinEntityType.EVOKER_FANGS)
                     .height(0.8f).width(0.5f)
-                    .identifier("minecraft:evocation_fang")
+                    .bedrockIdentifier("minecraft:evocation_fang")
                     .build();
             EYE_OF_ENDER = VanillaEntityDefinition.inherited(EnderEyeEntity::new, entityBase)
                     .type(BuiltinEntityType.EYE_OF_ENDER)
                     .heightAndWidth(0.25f)
-                    .identifier("minecraft:eye_of_ender_signal")
+                    .bedrockIdentifier("minecraft:eye_of_ender_signal")
                     .addTranslator(null)  // Item
                     .build();
             FALLING_BLOCK = VanillaEntityDefinition.<FallingBlockEntity>inherited(null, entityBase)
@@ -393,14 +393,14 @@ public final class EntityDefinitions {
             FIREWORK_ROCKET = VanillaEntityDefinition.inherited(FireworkEntity::new, entityBase)
                     .type(BuiltinEntityType.FIREWORK_ROCKET)
                     .heightAndWidth(0.25f)
-                    .identifier("minecraft:fireworks_rocket")
+                    .bedrockIdentifier("minecraft:fireworks_rocket")
                     .addTranslator(MetadataTypes.ITEM_STACK, FireworkEntity::setFireworkItem)
                     .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, FireworkEntity::setPlayerGliding)
                     .addTranslator(null) // Shot at angle
                     .build();
             FISHING_BOBBER = VanillaEntityDefinition.<FishingHookEntity>inherited(null, entityBase)
                     .type(BuiltinEntityType.FISHING_BOBBER)
-                    .identifier("minecraft:fishing_hook")
+                    .bedrockIdentifier("minecraft:fishing_hook")
                     .addTranslator(MetadataTypes.INT, FishingHookEntity::setHookedEntity)
                     .addTranslator(null) // Biting TODO check
                     .build();
@@ -451,7 +451,7 @@ public final class EntityDefinitions {
                     .build();
             TEXT_DISPLAY = VanillaEntityDefinition.inherited(TextDisplayEntity::new, displayBase)
                     .type(BuiltinEntityType.TEXT_DISPLAY)
-                    .identifier("minecraft:armor_stand")
+                    .bedrockIdentifier("minecraft:armor_stand")
                     .offset(-0.5f)
                     .addTranslator(MetadataTypes.COMPONENT, TextDisplayEntity::setText)
                     .addTranslator(null) // Line width
@@ -463,7 +463,7 @@ public final class EntityDefinitions {
             INTERACTION = VanillaEntityDefinition.inherited(InteractionEntity::new, entityBase)
                     .type(BuiltinEntityType.INTERACTION)
                     .heightAndWidth(1.0f) // default size until server specifies otherwise
-                    .identifier("minecraft:armor_stand")
+                    .bedrockIdentifier("minecraft:armor_stand")
                     .addTranslator(MetadataTypes.FLOAT, InteractionEntity::setWidth)
                     .addTranslator(MetadataTypes.FLOAT, InteractionEntity::setHeight)
                     .addTranslator(MetadataTypes.BOOLEAN, InteractionEntity::setResponse)
@@ -496,17 +496,17 @@ public final class EntityDefinitions {
             EXPERIENCE_BOTTLE = VanillaEntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(BuiltinEntityType.EXPERIENCE_BOTTLE)
                     .heightAndWidth(0.25f)
-                    .identifier("minecraft:xp_bottle")
+                    .bedrockIdentifier("minecraft:xp_bottle")
                     .build();
             SPLASH_POTION = VanillaEntityDefinition.inherited(ThrownPotionEntity::new, throwableItemBase)
                     .type(BuiltinEntityType.SPLASH_POTION)
                     .heightAndWidth(0.25f)
-                    .identifier("minecraft:splash_potion")
+                    .bedrockIdentifier("minecraft:splash_potion")
                     .build();
             LINGERING_POTION = VanillaEntityDefinition.inherited(ThrownPotionEntity::new, throwableItemBase)
                 .type(BuiltinEntityType.LINGERING_POTION)
                 .heightAndWidth(0.25f)
-                .identifier("minecraft:splash_potion")
+                .bedrockIdentifier("minecraft:splash_potion")
                 .build();
             SNOWBALL = VanillaEntityDefinition.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(BuiltinEntityType.SNOWBALL)
@@ -516,12 +516,12 @@ public final class EntityDefinitions {
             EntityFactory<AbstractWindChargeEntity> windChargeSupplier = AbstractWindChargeEntity::new;
             BREEZE_WIND_CHARGE = VanillaEntityDefinition.inherited(windChargeSupplier, entityBase)
                     .type(BuiltinEntityType.BREEZE_WIND_CHARGE)
-                    .identifier("minecraft:breeze_wind_charge_projectile")
+                    .bedrockIdentifier("minecraft:breeze_wind_charge_projectile")
                     .heightAndWidth(0.3125f)
                     .build();
             WIND_CHARGE = VanillaEntityDefinition.inherited(windChargeSupplier, entityBase)
                     .type(BuiltinEntityType.WIND_CHARGE)
-                    .identifier("minecraft:wind_charge_projectile")
+                    .bedrockIdentifier("minecraft:wind_charge_projectile")
                     .heightAndWidth(0.3125f)
                     .build();
 
@@ -538,11 +538,11 @@ public final class EntityDefinitions {
             SPECTRAL_ARROW = VanillaEntityDefinition.inherited(abstractArrowBase.factory(), abstractArrowBase)
                     .type(BuiltinEntityType.SPECTRAL_ARROW)
                     .heightAndWidth(0.25f)
-                    .identifier("minecraft:arrow")
+                    .bedrockIdentifier("minecraft:arrow")
                     .build();
             TRIDENT = VanillaEntityDefinition.inherited(TridentEntity::new, abstractArrowBase) // TODO remove class
                     .type(BuiltinEntityType.TRIDENT)
-                    .identifier("minecraft:thrown_trident")
+                    .bedrockIdentifier("minecraft:thrown_trident")
                     .addTranslator(null) // Loyalty
                     .addTranslator(MetadataTypes.BOOLEAN, (tridentEntity, entityMetadata) -> tridentEntity.setFlag(EntityFlag.ENCHANTED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                     .build();
@@ -588,7 +588,7 @@ public final class EntityDefinitions {
                     .build();
             FURNACE_MINECART = VanillaEntityDefinition.inherited(FurnaceMinecartEntity::new, MINECART)
                     .type(BuiltinEntityType.FURNACE_MINECART)
-                    .identifier("minecraft:minecart")
+                    .bedrockIdentifier("minecraft:minecart")
                     .addTranslator(MetadataTypes.BOOLEAN, FurnaceMinecartEntity::setHasFuel)
                     .build();
             HOPPER_MINECART = VanillaEntityDefinition.inherited(MINECART.factory(), MINECART)
@@ -596,7 +596,7 @@ public final class EntityDefinitions {
                     .build();
             SPAWNER_MINECART = VanillaEntityDefinition.inherited(SpawnerMinecartEntity::new, MINECART)
                     .type(BuiltinEntityType.SPAWNER_MINECART)
-                    .identifier("minecraft:minecart")
+                    .bedrockIdentifier("minecraft:minecart")
                     .build();
             TNT_MINECART = VanillaEntityDefinition.inherited(MINECART.factory(), MINECART)
                     .type(BuiltinEntityType.TNT_MINECART)
@@ -779,7 +779,7 @@ public final class EntityDefinitions {
                     .type(BuiltinEntityType.GIANT)
                     .height(1.8f).width(1.6f)
                     .offset(1.62f)
-                    .identifier("minecraft:zombie")
+                    .bedrockIdentifier("minecraft:zombie")
                     .build();
             IRON_GOLEM = VanillaEntityDefinition.inherited(IronGolemEntity::new, mobEntityBase)
                     .type(BuiltinEntityType.IRON_GOLEM)
@@ -868,7 +868,7 @@ public final class EntityDefinitions {
                     .type(BuiltinEntityType.ZOMBIE_VILLAGER)
                     .height(1.8f).width(0.6f)
                     .offset(1.62f)
-                    .identifier("minecraft:zombie_villager_v2")
+                    .bedrockIdentifier("minecraft:zombie_villager_v2")
                     .addTranslator(MetadataTypes.BOOLEAN, ZombieVillagerEntity::setTransforming)
                     .addTranslator(MetadataTypes.VILLAGER_DATA, ZombieVillagerEntity::setZombieVillagerData)
                     .build();
@@ -876,7 +876,7 @@ public final class EntityDefinitions {
                     .type(BuiltinEntityType.ZOMBIFIED_PIGLIN)
                     .height(1.95f).width(0.6f)
                     .offset(1.62f)
-                    .identifier("minecraft:zombie_pigman")
+                    .bedrockIdentifier("minecraft:zombie_pigman")
                     .build();
 
             DROWNED = VanillaEntityDefinition.inherited(ZOMBIE.factory(), ZOMBIE)
@@ -931,7 +931,7 @@ public final class EntityDefinitions {
             TROPICAL_FISH = VanillaEntityDefinition.inherited(TropicalFishEntity::new, abstractFishEntityBase)
                     .type(BuiltinEntityType.TROPICAL_FISH)
                     .heightAndWidth(0.6f)
-                    .identifier("minecraft:tropicalfish")
+                    .bedrockIdentifier("minecraft:tropicalfish")
                     .addTranslator(MetadataTypes.INT, TropicalFishEntity::setFishVariant)
                     .build();
 
@@ -959,12 +959,12 @@ public final class EntityDefinitions {
             EVOKER = VanillaEntityDefinition.inherited(spellcasterEntityBase.factory(), spellcasterEntityBase)
                     .type(BuiltinEntityType.EVOKER)
                     .height(1.95f).width(0.6f)
-                    .identifier("minecraft:evocation_illager")
+                    .bedrockIdentifier("minecraft:evocation_illager")
                     .build();
             ILLUSIONER = VanillaEntityDefinition.inherited(spellcasterEntityBase.factory(), spellcasterEntityBase)
                     .type(BuiltinEntityType.ILLUSIONER)
                     .height(1.95f).width(0.6f)
-                    .identifier("minecraft:evocation_illager")
+                    .bedrockIdentifier("minecraft:evocation_illager")
                     .build();
             PILLAGER = VanillaEntityDefinition.inherited(PillagerEntity::new, raidParticipantEntityBase)
                     .type(BuiltinEntityType.PILLAGER)
@@ -1132,7 +1132,7 @@ public final class EntityDefinitions {
                     .type(BuiltinEntityType.VILLAGER)
                     .height(1.8f).width(0.6f)
                     .offset(1.62f)
-                    .identifier("minecraft:villager_v2")
+                    .bedrockIdentifier("minecraft:villager_v2")
                     .addTranslator(MetadataTypes.VILLAGER_DATA, VillagerEntity::setVillagerData)
                     .build();
             WANDERING_TRADER = VanillaEntityDefinition.inherited(abstractVillagerEntityBase.factory(), abstractVillagerEntityBase)
@@ -1205,7 +1205,7 @@ public final class EntityDefinitions {
                     .build();
             TRADER_LLAMA = VanillaEntityDefinition.inherited(TraderLlamaEntity::new, LLAMA)
                     .type(BuiltinEntityType.TRADER_LLAMA)
-                    .identifier("minecraft:llama")
+                    .bedrockIdentifier("minecraft:llama")
                     .build();
         }
 
@@ -1240,7 +1240,7 @@ public final class EntityDefinitions {
 
         // As of 1.18 these don't track entity data at all
         ENDER_DRAGON_PART = VanillaEntityDefinition.<EnderDragonPartEntity>builder(null)
-                .identifier("minecraft:armor_stand") // Emulated
+                .bedrockIdentifier("minecraft:armor_stand") // Emulated
                 .build(false); // Never sent over the network
 
         Registries.JAVA_ENTITY_IDENTIFIERS.get().put("minecraft:marker", null); // We don't need an entity definition for this as it is never sent over the network
@@ -1250,7 +1250,7 @@ public final class EntityDefinitions {
         return VanillaEntityDefinition.inherited((session, javaId, bedrockId, uuid, definition, position, motion, yaw, pitch, headYaw) ->
             new BoatEntity(session, javaId, bedrockId, uuid, definition, position, motion, yaw, variant), base)
             .type(BuiltinEntityType)
-            .identifier("minecraft:boat")
+            .bedrockIdentifier("minecraft:boat")
             .build();
     }
 
@@ -1258,7 +1258,7 @@ public final class EntityDefinitions {
         return VanillaEntityDefinition.inherited((session, javaId, bedrockId, uuid, definition, position, motion, yaw, pitch, headYaw) ->
                 new ChestBoatEntity(session, javaId, bedrockId, uuid, definition, position, motion, yaw, variant), base)
             .type(BuiltinEntityType)
-            .identifier("minecraft:chest_boat")
+            .bedrockIdentifier("minecraft:chest_boat")
             .build();
     }
 
@@ -1339,7 +1339,7 @@ public final class EntityDefinitions {
         });
 
         for (var definition : Registries.ENTITY_DEFINITIONS.get().values()) {
-            if (!definition.registeredProperties().isEmpty()) {
+            if (!definition.registeredProperties().isEmpty()) { // TODO Null or empty check??
                 Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(definition.identifier()));
             }
         }

@@ -50,7 +50,7 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
 
         if (!(entity instanceof LivingEntity livingEntity)) {
             session.getGeyser().getLogger().debug("Attempted to add armor to a non-living entity (" +
-                    entity.getDefinition().identifier() + ").");
+                    entity.getDefinition().bedrockIdentifier() + ").");
             return;
         }
 

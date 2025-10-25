@@ -25,14 +25,12 @@
 
 package org.geysermc.geyser.entity;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
@@ -53,120 +51,99 @@ import java.util.function.BiConsumer;
  */
 @Getter
 @Accessors(fluent = true)
-@EqualsAndHashCode
-@ToString
-public class EntityDefinition<T extends Entity> {
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public abstract class EntityDefinition<T extends Entity> extends EntityDefinitionBase<T> {
     private final EntityFactory<T> factory;
     private final GeyserEntityType entityType;
-    private final String identifier;
-    private final float width;
-    private final float height;
-    private final float offset;
+    private final String bedrockIdentifier;
     private final GeyserEntityProperties registeredProperties;
-    private final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
 
-    /**
-     * @param identifier the Bedrock identifier of this entity
-     */
-    public EntityDefinition(EntityFactory<T> factory, GeyserEntityType entityType, String identifier,
+    public EntityDefinition(EntityFactory<T> factory, GeyserEntityType entityType, String bedrockIdentifier,
                             float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+        super(width, height, offset, translators);
         this.factory = factory;
         this.entityType = entityType;
-        this.identifier = identifier;
-        this.width = width;
-        this.height = height;
-        this.offset = offset;
+        this.bedrockIdentifier = bedrockIdentifier;
         this.registeredProperties = registeredProperties;
-        this.translators = translators;
-    }
-
-    @SuppressWarnings("unchecked")
-    public <M> void translateMetadata(T entity, EntityMetadata<M, ? extends MetadataType<M>> metadata) {
-        EntityMetadataTranslator<? super T, M, EntityMetadata<M, ? extends MetadataType<M>>> translator = (EntityMetadataTranslator<? super T, M, EntityMetadata<M, ? extends MetadataType<M>>>) this.translators.get(metadata.getId());
-        if (translator == null) {
-            // This can safely happen; it means we don't translate this entity metadata
-            return;
-        }
-
-        if (translator.acceptedType() != metadata.getType()) {
-            GeyserImpl.getInstance().getLogger().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getDefinition().entityType());
-            if (GeyserImpl.getInstance().config().debugMode()) {
-                GeyserImpl.getInstance().getLogger().debug(metadata.toString());
-            }
-            return;
-        }
-
-        translator.translate(entity, metadata);
     }
 
     @Setter
     @Accessors(fluent = true, chain = true)
-    public static abstract class Builder<T extends Entity> {
+    public static abstract class Builder<T extends Entity> extends EntityDefinitionBase.Builder<T> {
         protected final EntityFactory<T> factory;
         @Setter(AccessLevel.NONE)
         protected GeyserEntityType type;
-
-        protected String identifier;
-        protected float width;
-        protected float height;
-        protected float offset = 0.00001f;
+        protected String bedrockIdentifier;
         @Setter(AccessLevel.NONE)
         protected GeyserEntityProperties.Builder propertiesBuilder;
-        protected final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
 
         protected Builder(EntityFactory<T> factory) {
+            super();
             this.factory = factory;
-            translators = new ObjectArrayList<>();
         }
 
-        protected Builder(EntityFactory<T> factory, GeyserEntityType type, String identifier, float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+        protected Builder(EntityFactory<T> factory, float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+            super(width, height, offset, translators);
             this.factory = factory;
-            this.type = type;
-            this.identifier = identifier;
             this.width = width;
             this.height = height;
             this.offset = offset;
-            this.translators = translators;
         }
 
         /**
-         * Sets the height and width as one value
+         * Resets the bedrock identifier as well
          */
-        public Builder<T> heightAndWidth(float value) {
-            height = value;
-            width = value;
+        public Builder<T> type(GeyserEntityType type) {
+            this.type = type;
+            this.bedrockIdentifier = null;
             return this;
         }
 
+        @Override
+        public Builder<T> width(float width) {
+            return (Builder<T>) super.width(width);
+        }
+
+        @Override
+        public Builder<T> height(float height) {
+            return (Builder<T>) super.height(height);
+        }
+
+        @Override
+        public Builder<T> heightAndWidth(float value) {
+            return (Builder<T>) super.heightAndWidth(value);
+        }
+
+        @Override
         public Builder<T> offset(float offset) {
-            this.offset = offset + 0.00001f;
-            return this;
+            return (Builder<T>) super.offset(offset);
+        }
+
+        @Override
+        public <U, EM extends EntityMetadata<U, ? extends MetadataType<U>>> Builder<T> addTranslator(MetadataType<U> type, BiConsumer<T, EM> translateFunction) {
+            return (Builder<T>) super.addTranslator(type, translateFunction);
+        }
+
+        @Override
+        public Builder<T> addTranslator(EntityMetadataTranslator<T, ?, ?> translator) {
+            return (Builder<T>) super.addTranslator(translator);
         }
 
         public Builder<T> property(PropertyType<?, ?> propertyType) {
             if (this.propertiesBuilder == null) {
-                this.propertiesBuilder = new GeyserEntityProperties.Builder(this.identifier);
+                this.propertiesBuilder = new GeyserEntityProperties.Builder(this.bedrockIdentifier);
             }
             propertiesBuilder.add(propertyType);
             return this;
         }
 
-        public <U, EM extends EntityMetadata<U, ? extends MetadataType<U>>> Builder<T> addTranslator(MetadataType<U> type, BiConsumer<T, EM> translateFunction) {
-            translators.add(new EntityMetadataTranslator<>(type, translateFunction));
-            return this;
-        }
-
-        public Builder<T> addTranslator(EntityMetadataTranslator<T, ?, ?> translator) {
-            translators.add(translator);
-            return this;
-        }
-
-        public EntityDefinition<T> build() {
-            if (identifier == null && type != null) {
-                identifier = type.javaIdentifier().toString();
+        protected void validateTypeAndIdentifier() {
+            if (type == null) {
+                throw new IllegalStateException("Missing entity type!");
+            } else if (bedrockIdentifier == null) {
+                bedrockIdentifier = type.javaIdentifier().toString();
             }
-            GeyserEntityProperties registeredProperties = propertiesBuilder == null ? null : propertiesBuilder.build();
-            return new EntityDefinition<>(factory, type, identifier, width, height, offset, registeredProperties, translators);
         }
     }
 }

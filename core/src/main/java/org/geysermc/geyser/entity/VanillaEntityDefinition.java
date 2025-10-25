@@ -48,50 +48,37 @@ import java.util.function.BiConsumer;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<T> {
-    private final BuiltinEntityType builtinType;
-    
-    /**
-     * @param identifier the Bedrock identifier of this entity
-     */
-    public VanillaEntityDefinition(EntityFactory<T> factory, GeyserEntityType entityType, String identifier,
-                                   float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators,
-                                   BuiltinEntityType builtinType) {
-        super(factory, entityType, identifier, width, height, offset, registeredProperties, translators);
-        this.builtinType = builtinType;
-    }
 
-    public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, EntityDefinition<? super T> parent) {
-        return new Builder<>(factory, parent.entityType(), parent.identifier(), parent.width(), parent.height(), parent.offset(), new ObjectArrayList<>(parent.translators()));
+    public VanillaEntityDefinition(EntityFactory<T> factory, GeyserEntityType entityType, String bedrockIdentifier,
+                                   float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+        super(factory, entityType, bedrockIdentifier, width, height, offset, registeredProperties, translators);
     }
 
     public static <T extends Entity> Builder<T> builder(EntityFactory<T> factory) {
         return new Builder<>(factory);
     }
 
-    public static class Builder<T extends Entity> extends EntityDefinition.Builder<T> {
-        private BuiltinEntityType builtinType;
+    public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, EntityDefinition<? super T> parent) {
+        return new Builder<>(factory, parent.width(), parent.height(), parent.offset(), new ObjectArrayList<>(parent.translators()));
+    }
 
-        private Builder(EntityFactory<T> factory) {
+    public static class Builder<T extends Entity> extends EntityDefinition.Builder<T> {
+
+        protected Builder(EntityFactory<T> factory) {
             super(factory);
         }
 
-        public Builder(EntityFactory<T> factory, GeyserEntityType type, String identifier, float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> entityMetadataTranslators) {
-            super(factory, type, identifier, width, height, offset, entityMetadataTranslators);
+        protected Builder(EntityFactory<T> factory, float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+            super(factory, width, height, offset, translators);
         }
 
-        /**
-         * Resets the identifier as well
-         */
         public Builder<T> type(BuiltinEntityType type) {
-            this.type = GeyserEntityType.ofVanilla(type);
-            builtinType = type;
-            identifier(null);
-            return this;
+            return (Builder<T>) super.type(GeyserEntityType.ofVanilla(type));
         }
 
         @Override
-        public Builder<T> identifier(String identifier) {
-            return (Builder<T>) super.identifier(identifier);
+        public Builder<T> bedrockIdentifier(String bedrockIdentifier) {
+            return (Builder<T>) super.bedrockIdentifier(bedrockIdentifier);
         }
 
         @Override
@@ -138,13 +125,11 @@ public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<
          * @param register whether to register this entity in the Registries for entity types. Generally this should be
          * set to false if we're not expecting this entity to spawn from the network.
          */
-        // TODO fix code duplication
         public VanillaEntityDefinition<T> build(boolean register) {
-            if (identifier == null && type != null) {
-                identifier = type.javaIdentifier().toString();
-            }
+            validateTypeAndIdentifier();
+
             GeyserEntityProperties registeredProperties = propertiesBuilder == null ? null : propertiesBuilder.build();
-            VanillaEntityDefinition<T> definition = new VanillaEntityDefinition<>(factory, type, identifier, width, height, offset, registeredProperties, translators, builtinType);
+            VanillaEntityDefinition<T> definition = new VanillaEntityDefinition<>(factory, type, bedrockIdentifier, width, height, offset, registeredProperties, translators);
             if (register && definition.entityType() != null) {
                 Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
                 Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent(type.javaIdentifier().toString(), definition);

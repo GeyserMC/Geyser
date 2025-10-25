@@ -70,7 +70,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Boolea
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -199,7 +198,7 @@ public class Entity implements GeyserEntity {
 
     public void spawnEntity() {
         AddEntityPacket addEntityPacket = new AddEntityPacket();
-        addEntityPacket.setIdentifier(definition.identifier());
+        addEntityPacket.setIdentifier(definition.bedrockIdentifier());
         addEntityPacket.setRuntimeEntityId(geyserId);
         addEntityPacket.setUniqueEntityId(geyserId);
         addEntityPacket.setPosition(position);
