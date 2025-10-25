@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.network;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Objects;
 
@@ -36,12 +37,10 @@ import java.util.Objects;
  * @since 2.8.2
  */
 public class ExternalNetworkChannel implements NetworkChannel {
-    private final String key;
-    private final String channel;
+    private final Identifier identifier;
 
-    protected ExternalNetworkChannel(@NonNull String key, @NonNull String channel) {
-        this.key = key;
-        this.channel = channel;
+    protected ExternalNetworkChannel(@NonNull Identifier identifier) {
+        this.identifier = identifier;
     }
 
     /**
@@ -49,17 +48,8 @@ public class ExternalNetworkChannel implements NetworkChannel {
      */
     @Override
     @NonNull
-    public String key() {
-        return this.key;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @NonNull
-    public String channel() {
-        return this.channel;
+    public Identifier identifier() {
+        return this.identifier;
     }
 
     /**
@@ -74,19 +64,18 @@ public class ExternalNetworkChannel implements NetworkChannel {
     public boolean equals(Object o) {
         if (o == null || !NetworkChannel.class.isAssignableFrom(o.getClass())) return false;
         NetworkChannel that = (NetworkChannel) o;
-        return Objects.equals(this.key(), that.key()) && Objects.equals(this.channel(), that.channel());
+        return Objects.equals(this.identifier(), that.identifier());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.key(), this.channel());
+        return Objects.hash(this.identifier());
     }
 
     @Override
     public String toString() {
         return "ExternalNetworkChannel{" +
-                "key='" + this.key + '\'' +
-                ", channel='" + this.channel + '\'' +
+                "identifier='" + this.identifier + '\'' +
                 '}';
     }
 }

@@ -27,13 +27,16 @@ package org.geysermc.geyser.api.network;
 
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Objects;
 
 /**
  * Represents a network channel associated with a packet.
  * <p>
- * This channel is used for communication of packets between the server and client.
+ * This channel is used for listening to communication over
+ * packets between the server and client and can be used to
+ * send or receive packets.
  * @since 2.8.2
  */
 public class PacketChannel extends ExternalNetworkChannel {
@@ -43,7 +46,7 @@ public class PacketChannel extends ExternalNetworkChannel {
     private final Class<?> packetType;
 
     protected PacketChannel(@NonNull String key, @NonNegative int packetId, @NonNull Class<?> packetType) {
-        super(PACKET_CHANNEL_KEY, key);
+        super(Identifier.of(PACKET_CHANNEL_KEY, key));
 
         this.packetId = packetId;
         this.packetType = packetType;

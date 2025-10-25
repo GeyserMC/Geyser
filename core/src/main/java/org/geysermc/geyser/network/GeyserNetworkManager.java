@@ -85,7 +85,7 @@ public class GeyserNetworkManager implements NetworkManager {
     }
 
     @Override
-    public @NonNull Set<NetworkChannel> getRegisteredChannels() {
+    public @NonNull Set<NetworkChannel> registeredChannels() {
         return Set.copyOf(this.definitions.keySet());
     }
 
@@ -132,7 +132,7 @@ public class GeyserNetworkManager implements NetworkManager {
         message.encode(buffer);
 
         ServerboundCustomPayloadPacket packet = new ServerboundCustomPayloadPacket(
-                Key.key(channel.key(), channel.channel()),
+                Key.key(channel.identifier().toString()),
                 buffer.serialize()
         );
 
@@ -201,8 +201,7 @@ public class GeyserNetworkManager implements NetworkManager {
         }
 
         this.definitions.put(channel, codec);
-        if (channel.isPacket()) {
-            PacketChannel packetChannel = (PacketChannel) channel;
+        if (channel.isPacket() && channel instanceof PacketChannel packetChannel) {
             int packetId = packetChannel.packetId();
             this.packetChannels.put(packetId, packetChannel);
         }

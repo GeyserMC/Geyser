@@ -55,6 +55,7 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
      * Registers a new network channel with a message factory.
      *
      * @param channel the channel to register
+     * @param codec the codec to use to encode/decode the buffer
      * @param messageFactory the factory to create messages from the buffer
      */
     public abstract <T extends MessageBuffer> void register(@NonNull NetworkChannel channel, @NonNull MessageCodec<T> codec, @NonNull MessageFactory<T> messageFactory);

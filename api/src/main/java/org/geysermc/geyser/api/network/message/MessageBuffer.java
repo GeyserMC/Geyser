@@ -60,4 +60,11 @@ public interface MessageBuffer {
      * @return the serialized byte array
      */
     byte @NonNull [] serialize();
+
+    /**
+     * Gets the length of the buffer.
+     *
+     * @return the length of the buffer
+     */
+    int length();
 }

@@ -33,6 +33,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  * @param <T> the type of the message buffer
  * @since 2.8.2
  */
+@FunctionalInterface
 public interface MessageFactory<T extends MessageBuffer> {
 
     /**

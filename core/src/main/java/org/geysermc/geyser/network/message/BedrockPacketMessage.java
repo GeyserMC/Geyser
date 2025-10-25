@@ -52,6 +52,6 @@ public record BedrockPacketMessage(@NonNull BedrockPacket packet) implements Mes
 
     @Override
     public void encode(@NonNull ByteBufMessageBuffer buffer) {
-        throw new UnsupportedOperationException("BedrockPacketMessage does not support encoding directly to a MessageBuffe.");
+        throw new UnsupportedOperationException("BedrockPacketMessage does not support encoding directly to a MessageBuffer.");
     }
 }

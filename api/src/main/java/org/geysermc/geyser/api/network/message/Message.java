@@ -50,6 +50,11 @@ public interface Message<T extends MessageBuffer> {
     interface Simple extends Message<MessageBuffer> {
     }
 
+    /**
+     * Represents a packet message with an unknown packet ID.
+     *
+     * @param <T> the type of message buffer
+     */
     interface PacketBase<T extends MessageBuffer> extends Message<T> {
     }
 
@@ -92,6 +97,11 @@ public interface Message<T extends MessageBuffer> {
         }
     }
 
+    /**
+     * Represents a packet message that wraps an underlying packet object.
+     *
+     * @param <T> the type of message buffer
+     */
     interface PacketWrapped<T extends MessageBuffer> extends PacketBase<T> {
 
         /**

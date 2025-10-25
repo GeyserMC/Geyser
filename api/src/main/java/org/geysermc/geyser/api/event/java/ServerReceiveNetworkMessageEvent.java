@@ -37,7 +37,7 @@ import org.geysermc.geyser.api.network.message.Message;
  * Called when the server receives a network message.
  * @since 2.8.2
  */
-public class ServerReceiveNetworkMessageEvent extends ConnectionEvent implements Cancellable {
+public final class ServerReceiveNetworkMessageEvent extends ConnectionEvent implements Cancellable {
     private final NetworkChannel channel;
     private final Message<?> message;
     private final MessageDirection direction;
@@ -53,6 +53,8 @@ public class ServerReceiveNetworkMessageEvent extends ConnectionEvent implements
 
     /**
      * Gets the channel that received the message.
+     * <p>
+     * See {@link NetworkChannel} for more information.
      *
      * @return the channel that received the message
      */

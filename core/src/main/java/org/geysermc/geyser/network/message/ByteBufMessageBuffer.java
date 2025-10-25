@@ -28,9 +28,9 @@ package org.geysermc.geyser.network.message;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.network.message.DataType;
 import org.geysermc.geyser.api.network.message.MessageBuffer;
 import org.geysermc.geyser.api.network.message.MessageCodec;
-import org.geysermc.geyser.api.network.message.DataType;
 
 public record ByteBufMessageBuffer(MessageCodec<ByteBufMessageBuffer> codec, ByteBuf buffer) implements MessageBuffer {
 
@@ -54,5 +54,10 @@ public record ByteBufMessageBuffer(MessageCodec<ByteBufMessageBuffer> codec, Byt
         this.buffer.readBytes(bytes);
         this.buffer.clear(); // Clear the buffer after serialization
         return bytes;
+    }
+
+    @Override
+    public int length() {
+        return this.buffer.readableBytes();
     }
 }

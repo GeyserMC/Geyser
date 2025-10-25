@@ -46,7 +46,7 @@ public interface NetworkManager {
      * @return the registered network channels
      */
     @NonNull
-    Set<NetworkChannel> getRegisteredChannels();
+    Set<NetworkChannel> registeredChannels();
 
     /**
      * Sends a message to this connection on the specified channel.

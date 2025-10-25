@@ -33,6 +33,6 @@ public record JavaPacketMessage(MinecraftPacket packet) implements Message.Packe
 
     @Override
     public void encode(@NonNull ByteBufMessageBuffer buffer) {
-        throw new UnsupportedOperationException("JavaPacketMessage does not support encoding directly to a MessageBuffe.");
+        throw new UnsupportedOperationException("JavaPacketMessage does not support encoding directly to a MessageBuffer.");
     }
 }

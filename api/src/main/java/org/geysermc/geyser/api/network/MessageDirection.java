@@ -32,10 +32,16 @@ package org.geysermc.geyser.api.network;
 public enum MessageDirection {
     /**
      * Indicates that the message is sent from the server to the client.
+     * <p>
+     * Note that extensions may also send messages in this direction, meaning
+     * that not every clientbound message is necessarily from the server itself.
      */
     CLIENTBOUND,
     /**
      * Indicates that the message is sent from the client to the server.
+     * <p>
+     * Note that extensions may also send messages in this direction, meaning
+     * that not every serverbound message is necessarily from the client itself.
      */
     SERVERBOUND
 }

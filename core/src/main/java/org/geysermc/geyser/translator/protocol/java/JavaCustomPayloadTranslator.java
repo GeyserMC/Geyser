@@ -154,7 +154,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             session.ensureInEventLoop(() -> {
                 GeyserNetworkManager networkManager = session.getNetworkManager();
                 NetworkChannel networkChannel = NetworkChannel.of(packet.getChannel().namespace(), packet.getChannel().value());
-                if (!networkManager.getRegisteredChannels().contains(networkChannel)) {
+                if (!networkManager.registeredChannels().contains(networkChannel)) {
                     logger.debug("Received a custom payload for an unregistered channel: " + networkChannel.channel());
                     return;
                 }

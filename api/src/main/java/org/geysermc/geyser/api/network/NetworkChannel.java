@@ -28,28 +28,60 @@ package org.geysermc.geyser.api.network;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.Identifier;
 
 /**
  * Represents a channel used for network communication.
+ * <p>
+ * A network channel can either be an external channel or a
+ * packet channel. External channels are identified by a unique
+ * key and are used for custom payloads over the network. Packet
+ * channels will represent data from packets, identified by a packet
+ * ID and type.
+ * <p>
+ * For constructing an external NetworkChannel, the following
+ * can be done:
+ *
+ * <pre>
+ * {@code
+ *     private final NetworkChannel myChannel = NetworkChannel.of("example", "my_channel");
+ * }
+ * </pre>
+ * Or when inside an extension, with 'this' being the extension instance:
+ * <pre>
+ * {@code
+ *     private final NetworkChannel myChannel = NetworkChannel.of(this, "my_channel");
+ * }
+ * </pre>
+ *
+ * <p>
+ * For packet channels, it can get slightly more complex as you need to
+ * know the packet ID alongside having a constructed message type. The
+ * following example demonstrates this with the animate packet, assuming
+ * the AnimateMessage class represents the correct packet structure:
+ * <pre>
+ * {@code
+ *    private final NetworkChannel animateChannel = NetworkChannel.packet("animate", 44, AnimateMessage.class);
+ * }
+ * </pre>
+ *
+ * <p>
+ * Packet channels can also be registered against packet objects from
+ * exterbak protocol libraries, such as the ones provided in Geyser. For
+ * an example on how to do this, please see the
+ * <a href="https://geysermc.org/wiki/geyser/networking-api">Networking API documentation</a>.
+ *
  * @since 2.8.2
  */
 public interface NetworkChannel {
 
     /**
-     * Gets the key that owns this channel.
+     * Gets the identifier that owns this channel.
      *
-     * @return the key that owns this channel
+     * @return the identifier that owns this channel
      */
     @NonNull
-    String key();
-
-    /**
-     * Gets the name of the channel.
-     *
-     * @return the channel name
-     */
-    @NonNull
-    String channel();
+    Identifier identifier();
 
     /**
      * Checks if this channel is a packet channel.
@@ -60,6 +92,9 @@ public interface NetworkChannel {
 
     /**
      * Creates a new {@link NetworkChannel} instance.
+     * <p>
+     * Extensions should use this method to register
+     * their own channels for more robust identification.
      *
      * @param extension the extension that registered this channel
      * @param channel the name of the channel
@@ -72,6 +107,9 @@ public interface NetworkChannel {
 
     /**
      * Creates a new {@link NetworkChannel} instance.
+     * <p>
+     * This method is used for external channels provided
+     * by third parties, such as plugins or mods.
      *
      * @param id the channel id
      * @param channel the name of the channel
@@ -79,7 +117,21 @@ public interface NetworkChannel {
      */
     @NonNull
     static NetworkChannel of(@NonNull String id, @NonNull String channel) {
-        return new ExternalNetworkChannel(id, channel);
+        return of(Identifier.of(id, channel));
+    }
+
+    /**
+     * Creates a new {@link NetworkChannel} instance.
+     * <p>
+     * This method is used for external channels provided
+     * by third parties, such as plugins or mods.
+     *
+     * @param identifier the {@link Identifier} of the channel
+     * @return a new {@link NetworkChannel} instance
+     */
+    @NonNull
+    static NetworkChannel of(@NonNull Identifier identifier) {
+        return new ExternalNetworkChannel(identifier);
     }
 
     /**

@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.network;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Objects;
 
@@ -48,17 +49,8 @@ public class ExtensionNetworkChannel implements NetworkChannel {
      */
     @Override
     @NonNull
-    public String key() {
-        return this.extension.description().id();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @NonNull
-    public String channel() {
-        return this.channel;
+    public Identifier identifier() {
+        return Identifier.of(this.extension.description().id(), this.channel);
     }
 
     /**
@@ -73,12 +65,12 @@ public class ExtensionNetworkChannel implements NetworkChannel {
     public boolean equals(Object o) {
         if (o == null || !NetworkChannel.class.isAssignableFrom(o.getClass())) return false;
         NetworkChannel that = (NetworkChannel) o;
-        return Objects.equals(this.key(), that.key()) && Objects.equals(this.channel(), that.channel());
+        return Objects.equals(this.identifier(), that.identifier());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.key(), this.channel());
+        return Objects.hash(this.identifier());
     }
 
     @Override
