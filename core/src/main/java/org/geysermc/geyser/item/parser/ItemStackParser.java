@@ -191,9 +191,9 @@ public final class ItemStackParser {
         try {
             patch.put((DataComponentType<Parsed>) type, parser.parse(session, (Raw) raw));
         } catch (ClassCastException exception) {
-            GeyserImpl.getInstance().getLogger().error("Received incorrect object type for component " + type + "!", exception);
+            GeyserImpl.getInstance().getLogger().debug("Received incorrect object type for component " + type + "!", exception);
         } catch (Exception exception) {
-            GeyserImpl.getInstance().getLogger().error("Failed to parse component" + type + " from " + raw + "!", exception);
+            GeyserImpl.getInstance().getLogger().debug("Failed to parse component" + type + " from " + raw + "!", exception);
         }
     }
 
