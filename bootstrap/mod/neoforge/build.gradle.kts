@@ -13,9 +13,6 @@ architectury {
 provided("org.cloudburstmc.math", "api")
 provided("com.google.errorprone", "error_prone_annotations")
 
-// Jackson shipped by Minecraft is too old, so we shade & relocate our newer version
-relocate("com.fasterxml.jackson")
-
 dependencies {
     // See https://github.com/google/guava/issues/6618
     modules {
@@ -29,12 +26,6 @@ dependencies {
     api(project(":mod", configuration = "namedElements"))
     shadowBundle(project(path = ":mod", configuration = "transformProductionNeoForge"))
     shadowBundle(projects.core)
-
-    // Minecraft (1.21.2+) includes jackson. But an old version!
-    shadowBundle(libs.jackson.core)
-    shadowBundle(libs.jackson.databind)
-    shadowBundle(libs.jackson.dataformat.yaml)
-    shadowBundle(libs.jackson.annotations)
 
     // Let's shade in our own api
     shadowBundle(projects.api)
@@ -60,11 +51,6 @@ tasks {
 
     remapModrinthJar {
         archiveBaseName.set("geyser-neoforge")
-    }
-
-    shadowJar {
-        // Without this, jackson's service files are not relocated
-        mergeServiceFiles()
     }
 }
 
