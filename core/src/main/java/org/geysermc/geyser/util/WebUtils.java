@@ -76,7 +76,7 @@ public class WebUtils {
             con.setRequestProperty("User-Agent", getUserAgent()); // Otherwise Java 8 fails on checking updates
             con.setConnectTimeout(10000);
             con.setReadTimeout(10000);
-
+            checkResponseCode(con);
             return connectionToString(con);
         } catch (UnknownHostException e) {
             throw new IllegalStateException("Unable to resolve requested url (%s)! Are you offline?".formatted(reqURL), e);
@@ -94,6 +94,7 @@ public class WebUtils {
         con.setRequestProperty("User-Agent", getUserAgent());
         con.setConnectTimeout(10000);
         con.setReadTimeout(10000);
+        checkResponseCode(con);
         return GeyserImpl.JSON_MAPPER.readTree(con.getInputStream());
     }
 
@@ -107,6 +108,7 @@ public class WebUtils {
         try {
             HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
             con.setRequestProperty("User-Agent", getUserAgent());
+            checkResponseCode(con);
             InputStream in = con.getInputStream();
             Files.copy(in, Paths.get(fileLocation), StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
@@ -270,24 +272,38 @@ public class WebUtils {
     }
 
     /**
-     * Get the string output from the passed {@link HttpURLConnection}
-     *
-     * @param con The connection to get the string from
-     * @return The body of the returned page
-     * @throws IOException If the request fails
+     * Gets the string output from the passed {@link HttpURLConnection},
+     * or logs the error message.
      */
     private static String connectionToString(HttpURLConnection con) throws IOException {
+        checkResponseCode(con);
+        return inputStreamToString(con.getInputStream(), con::disconnect);
+    }
+
+    /**
+     * Throws an exception if there is an error stream to avoid further issues
+     */
+    private static void checkResponseCode(HttpURLConnection con) throws IOException {
         // Send the request (we dont use this but its required for getErrorStream() to work)
         con.getResponseCode();
 
         // Read the error message if there is one if not just read normally
-        InputStream inputStream = con.getErrorStream();
-        if (inputStream == null) {
-            inputStream = con.getInputStream();
+        InputStream errorStream = con.getErrorStream();
+        if (errorStream != null) {
+            throw new IOException(inputStreamToString(errorStream, null));
         }
+    }
 
+    /**
+     * Get the string output from the passed {@link InputStream}
+     *
+     * @param stream The input stream to get the string from
+     * @return The body of the returned page
+     * @throws IOException If the request fails
+     */
+    private static String inputStreamToString(InputStream stream, @Nullable Runnable onFinish) throws IOException {
         StringBuilder content = new StringBuilder();
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(inputStream))) {
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(stream))) {
             String inputLine;
 
             while ((inputLine = in.readLine()) != null) {
@@ -295,7 +311,9 @@ public class WebUtils {
                 content.append("\n");
             }
 
-            con.disconnect();
+            if (onFinish != null) {
+                onFinish.run();
+            }
         }
 
         return content.toString();
