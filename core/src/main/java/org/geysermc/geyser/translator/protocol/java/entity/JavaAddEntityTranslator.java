@@ -51,6 +51,8 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.Clie
 @Translator(packet = ClientboundAddEntityPacket.class)
 public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEntityPacket> {
 
+    private static final boolean SHOW_PLAYER_LIST_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowPlayerListLogs", "true"));
+
     @Override
     public void translate(GeyserSession session, ClientboundAddEntityPacket packet) {
         EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(packet.getType());
@@ -60,7 +62,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         }
 
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
-        Vector3f motion = Vector3f.from(packet.getMotionX(), packet.getMotionY(), packet.getMotionZ());
+        Vector3f motion = packet.getMovement().toFloat();
         float yaw = packet.getYaw();
         float pitch = packet.getPitch();
         float headYaw = packet.getHeadYaw();
@@ -76,7 +78,9 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             } else {
                 entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
                 if (entity == null) {
-                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
+                    if (SHOW_PLAYER_LIST_LOGS) {
+                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
+                    }
                     return;
                 }
 

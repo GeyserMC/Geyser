@@ -118,14 +118,20 @@ public class InventoryUtils {
      */
     public static void openPendingInventory(GeyserSession session) {
         InventoryHolder<?> holder = session.getInventoryHolder();
-        if (holder == null || !holder.pending()) {
+        if (holder == null) {
             session.setPendingOrCurrentBedrockInventoryId(-1);
             GeyserImpl.getInstance().getLogger().debug(session, "No pending inventory, not opening an inventory! Current inventory: %s", debugInventory(holder));
             return;
         }
 
         // Current inventory isn't null! Let's see if we need to open it.
-        if (holder.inventory().getBedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
+        if (holder.bedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
+            // Don't re-open an inventory that is already open
+            if (!holder.pending() && holder.inventory().isDisplayed()) {
+                GeyserImpl.getInstance().getLogger().debug("Container with id %s is not pending and already displayed!".formatted(holder.bedrockId()));
+                return;
+            }
+
             GeyserImpl.getInstance().getLogger().debug(session, "Attempting to open currently delayed inventory with matching bedrock id! " + holder.bedrockId());
             openAndUpdateInventory(holder);
             return;
@@ -266,7 +272,7 @@ public class InventoryUtils {
             canStackDebug(item1, item2);
         if (item1.isEmpty() || item2.isEmpty())
             return false;
-        return item1.getJavaId() == item2.getJavaId() && Objects.equals(item1.getComponents(), item2.getComponents());
+        return item1.isSameItem(item2) && Objects.equals(item1.getComponents(), item2.getComponents());
     }
 
     private static void canStackDebug(GeyserItemStack item1, GeyserItemStack item2) {
@@ -379,7 +385,7 @@ public class InventoryUtils {
                 && Objects.equals(itemStack.getComponents(), other.getDataComponentsPatch());
         }
         if (slotDisplay instanceof TagSlotDisplay tagSlotDisplay) {
-            return session.getTagCache().is(new Tag<>(JavaRegistries.ITEM, tagSlotDisplay.tag()), itemStack.asItem());
+            return itemStack.is(session, new Tag<>(JavaRegistries.ITEM, tagSlotDisplay.tag()));
         }
         session.getGeyser().getLogger().warning("Unknown slot display type: " + slotDisplay);
         return false;

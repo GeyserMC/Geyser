@@ -84,7 +84,7 @@ public class JavaBlockEventTranslator extends PacketTranslator<ClientboundBlockE
             });
         } else if (value instanceof PistonValue pistonValue) {
             PistonValueType action = (PistonValueType) packet.getType();
-            Direction direction = Direction.fromPistonValue(pistonValue.getDirection());
+            Direction direction = Direction.fromMCPL(pistonValue.getDirection());
             PistonCache pistonCache = session.getPistonCache();
 
             if (session.getGeyser().getWorldManager().hasOwnChunkCache() || session.getErosionHandler().isActive()) {

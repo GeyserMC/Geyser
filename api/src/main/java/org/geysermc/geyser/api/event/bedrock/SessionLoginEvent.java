@@ -31,6 +31,7 @@ import org.geysermc.event.Cancellable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.util.PlatformType;
 
 import java.util.Map;
 import java.util.Objects;
@@ -109,6 +110,8 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
 
     /**
      * Sets the {@link RemoteServer} to connect the session to.
+     * This method will only work as expected on {@link PlatformType#STANDALONE},
+     * as on other Geyser platforms, the remote server is not determined by Geyser.
      *
      * @param remoteServer Sets the {@link RemoteServer} to connect to.
      */

@@ -76,9 +76,13 @@ public class LoginEncryptionUtils {
                 return;
             }
 
+            // Should always be present, but hey, why not make it safe :D
+            Long rawIssuedAt = (Long) result.rawIdentityClaims().get("iat");
+            long issuedAt = rawIssuedAt != null ? rawIssuedAt : -1;
+
             IdentityData extraData = result.identityClaims().extraData;
             // TODO!!! identity won't persist
-            session.setAuthData(new AuthData(extraData.displayName, extraData.identity, extraData.xuid));
+            session.setAuthData(new AuthData(extraData.displayName, extraData.identity, extraData.xuid, issuedAt));
             if (authPayload instanceof CertificateChainPayload certificateChainPayload) {
                 session.setCertChainData(certificateChainPayload.getChain());
             } else {

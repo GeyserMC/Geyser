@@ -25,10 +25,16 @@
 
 package org.geysermc.geyser.translator.text;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
-import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.TranslationArgument;
 import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
@@ -49,17 +55,11 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.text.DummyLegacyHoverEventSerializer;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.text.GsonComponentSerializerWrapper;
 import org.geysermc.geyser.text.MinecraftTranslationRegistry;
 import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.regex.Pattern;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -78,16 +78,15 @@ public class MessageTranslator {
     // Reset character
     private static final String RESET = BASE + "r";
     private static final Pattern RESET_PATTERN = Pattern.compile("(" + RESET + "){2,}");
+    private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
 
     static {
-        // Temporary fix for https://github.com/KyoriPowered/adventure/issues/447 - TODO resolve properly
-        GsonComponentSerializer source = DefaultComponentSerializer.get()
+        GSON_SERIALIZER = DefaultComponentSerializer.get()
                 .toBuilder()
                 // Use a custom legacy hover event deserializer since we don't use any of this data anyway, and
                 // fixes issues where legacy hover events throw deserialization errors
                 .legacyHoverEventSerializer(new DummyLegacyHoverEventSerializer())
                 .build();
-        GSON_SERIALIZER = new GsonComponentSerializerWrapper(source);
         // Tell MCProtocolLib to use this serializer, too.
         DefaultComponentSerializer.set(GSON_SERIALIZER);
 
@@ -110,10 +109,46 @@ public class MessageTranslator {
         formats.add(CharacterAndFormat.characterAndFormat('t', TextColor.color(33, 73, 123))); // Lapis
         formats.add(CharacterAndFormat.characterAndFormat('u', TextColor.color(154, 92, 198))); // Amethyst
 
-        // Can be removed once Adventure 1.15.0 is released (see https://github.com/KyoriPowered/adventure/pull/954)
         ComponentFlattener flattener = ComponentFlattener.basic().toBuilder()
-                .mapper(ScoreComponent.class, component -> "")
-                .build();
+            .nestingLimit(30)
+            .complexMapper(TranslatableComponent.class, (translatable, consumer) -> {
+                final String translated = translatable.key();
+                final Matcher matcher = LOCALIZATION_PATTERN.matcher(translated);
+                final List<TranslationArgument> args = translatable.arguments();
+                int argPosition = 0;
+                int lastIdx = 0;
+                while (matcher.find()) {
+                    // append prior
+                    if (lastIdx < matcher.start()) {
+                        consumer.accept(Component.text(translated.substring(lastIdx, matcher.start())));
+                    }
+                    lastIdx = matcher.end();
+
+                    final @Nullable String argIdx = matcher.group(1);
+                    // calculate argument position
+                    if (argIdx != null) {
+                        try {
+                            final int idx = Integer.parseInt(argIdx) - 1;
+                            if (idx < args.size()) {
+                                consumer.accept(args.get(idx).asComponent());
+                            }
+                        } catch (final NumberFormatException ex) {
+                            // ignore, drop the format placeholder
+                        }
+                    } else {
+                        final int idx = argPosition++;
+                        if (idx < args.size()) {
+                            consumer.accept(args.get(idx).asComponent());
+                        }
+                    }
+                }
+
+                // append tail
+                if (lastIdx < translated.length()) {
+                    consumer.accept(Component.text(translated.substring(lastIdx)));
+                }
+            })
+            .build();
 
         BEDROCK_SERIALIZER = LegacyComponentSerializer.legacySection().toBuilder()
                 .formats(formats)
@@ -293,17 +328,6 @@ public class MessageTranslator {
 
     public static String convertMessageLenient(String message) {
         return convertMessageLenient(message, GeyserLocale.getDefaultLocale());
-    }
-
-    /**
-     * Convert a Bedrock message string back to a format Java can understand
-     *
-     * @param message Message to convert
-     * @return The formatted JSON string
-     */
-    public static String convertToJavaMessage(String message) {
-        Component component = BEDROCK_SERIALIZER.deserialize(message);
-        return GSON_SERIALIZER.serialize(component);
     }
 
     /**
@@ -490,11 +514,15 @@ public class MessageTranslator {
         return convertMessageForTooltip(parsed, session.locale());
     }
 
-    public static @Nullable String convertFromNullableNbtTag(GeyserSession session, @Nullable Object nbtTag) {
+    /**
+     * Should only be used by {@link org.geysermc.geyser.session.cache.RegistryCache.RegistryReader}s, as these do not always have a {@link GeyserSession} available.
+     */
+    public static @Nullable String convertFromNullableNbtTag(Optional<GeyserSession> session, @Nullable Object nbtTag) {
         if (nbtTag == null) {
             return null;
         }
-        return convertMessage(session, componentFromNbtTag(nbtTag));
+        return session.map(present -> convertMessage(present, componentFromNbtTag(nbtTag)))
+            .orElse("MISSING GEYSER SESSION");
     }
 
     public static Component componentFromNbtTag(Object nbtTag) {

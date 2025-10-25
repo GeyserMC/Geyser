@@ -32,7 +32,6 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -42,8 +41,7 @@ import java.util.Set;
  * @param description only populated if {@link #bedrockEnchantment()} is null.
  * @param anvilCost also as a rarity multiplier
  */
-public record Enchantment(String identifier,
-                          Set<EnchantmentComponent> effects,
+public record Enchantment(Set<EnchantmentComponent> effects,
                           GeyserHolderSet<Item> supportedItems,
                           int maxLevel,
                           String description,
@@ -55,7 +53,9 @@ public record Enchantment(String identifier,
         NbtMap data = context.data();
         Set<EnchantmentComponent> effects = readEnchantmentComponents(data.getCompound("effects"));
 
-        GeyserHolderSet<Item> supportedItems = GeyserHolderSet.readHolderSet(context.session(), JavaRegistries.ITEM, data.get("supported_items"));
+        GeyserHolderSet<Item> supportedItems = context.session()
+            .map(session -> GeyserHolderSet.readHolderSet(session, JavaRegistries.ITEM, data.get("supported_items")))
+            .orElseGet(() -> GeyserHolderSet.empty(JavaRegistries.ITEM));
 
         int maxLevel = data.getInt("max_level");
         int anvilCost = data.getInt("anvil_cost");
@@ -64,10 +64,9 @@ public record Enchantment(String identifier,
 
         BedrockEnchantment bedrockEnchantment = BedrockEnchantment.getByJavaIdentifier(context.id().asString());
 
-        String description = bedrockEnchantment == null ? MessageTranslator.deserializeDescription(context.session(), data) : null;
+        String description = bedrockEnchantment == null ? context.deserializeDescription() : null;
 
-        return new Enchantment(context.id().asString(), effects, supportedItems, maxLevel,
-                description, anvilCost, exclusiveSet, bedrockEnchantment);
+        return new Enchantment(effects, supportedItems, maxLevel, description, anvilCost, exclusiveSet, bedrockEnchantment);
     }
 
     private static Set<EnchantmentComponent> readEnchantmentComponents(NbtMap effects) {

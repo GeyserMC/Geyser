@@ -61,6 +61,7 @@ public class DimensionUtils {
         session.getLodestoneCache().clear();
         session.getPistonCache().clear();
         session.getSkullCache().clear();
+        session.getBlockBreakHandler().reset();
 
         changeDimension(session, bedrockDimension);
 
@@ -170,7 +171,7 @@ public class DimensionUtils {
      *
      * @param javaDimension Dimension ID to convert
      * @return Converted Bedrock edition dimension ID
-     */
+     */ // TODO take a key
     public static int javaToBedrock(String javaDimension) {
         return switch (javaDimension) {
             case BedrockDimension.NETHER_IDENTIFIER -> BedrockDimension.BEDROCK_NETHER_ID;

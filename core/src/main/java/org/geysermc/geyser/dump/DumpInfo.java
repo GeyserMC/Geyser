@@ -34,12 +34,12 @@ import com.google.common.io.Files;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import lombok.Getter;
-import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.FloodgateInfoHolder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
@@ -55,6 +55,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -87,7 +88,7 @@ public class DumpInfo {
         this.cpuCount = Runtime.getRuntime().availableProcessors();
         this.cpuName = CpuUtils.tryGetProcessorName();
         this.systemLocale = Locale.getDefault();
-        this.systemEncoding = System.getProperty("file.encoding");
+        this.systemEncoding = Charset.defaultCharset().displayName();
 
         this.gitInfo = new GitInfo(GeyserImpl.BUILD_NUMBER, GeyserImpl.COMMIT.substring(0, 7), GeyserImpl.COMMIT, GeyserImpl.BRANCH, GeyserImpl.REPOSITORY);
 
@@ -224,9 +225,9 @@ public class DumpInfo {
         private final int javaProtocol;
 
         MCInfo() {
-            this.bedrockVersions = GameProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockCodec::getMinecraftVersion).toList();
-            this.bedrockProtocols = GameProtocol.SUPPORTED_BEDROCK_CODECS.stream().map(BedrockCodec::getProtocolVersion).toList();
-            this.defaultBedrockProtocol = GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion();
+            this.bedrockVersions = GameProtocol.SUPPORTED_BEDROCK_VERSIONS.stream().map(MinecraftVersion::versionString).toList();
+            this.bedrockProtocols = GameProtocol.SUPPORTED_BEDROCK_PROTOCOLS;
+            this.defaultBedrockProtocol = GameProtocol.DEFAULT_BEDROCK_PROTOCOL;
             this.javaVersions = GameProtocol.getJavaVersions();
             this.javaProtocol = GameProtocol.getJavaProtocolVersion();
         }

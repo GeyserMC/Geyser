@@ -35,6 +35,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
@@ -63,36 +64,43 @@ public final class TrimRecipe {
         // Find the nearest legacy color from the style Java gives us to work with
         Component description = MessageTranslator.componentFromNbtTag(context.data().get("description"));
         String legacy = MessageTranslator.convertMessage(Component.space().style(description.style()));
+        String color = legacy.isBlank() ? ChatColor.WHITE : legacy.substring(2).trim();
 
         int networkId = context.getNetworkId(context.id());
         ItemMapping trimItem = null;
-        for (ProvidesTrimMaterial provider : materialProviders().keySet()) {
-            Holder<ArmorTrim.TrimMaterial> materialHolder = provider.materialHolder();
-            if (context.id().equals(provider.materialLocation()) || (materialHolder != null && materialHolder.isId() && materialHolder.id() == networkId)) {
-                trimItem = context.session().getItemMappings().getMapping(materialProviders().get(provider));
-                break;
+        if (context.session().isPresent()) {
+            for (ProvidesTrimMaterial provider : materialProviders().keySet()) {
+                Holder<ArmorTrim.TrimMaterial> materialHolder = provider.materialHolder();
+                if (context.id().equals(provider.materialLocation()) || (materialHolder != null && materialHolder.isId() && materialHolder.id() == networkId)) {
+                    trimItem = context.session().get().getItemMappings().getMapping(materialProviders().get(provider));
+                    break;
+                }
             }
         }
 
         if (trimItem == null) {
-            // This happens for custom trim materials, not sure what to do here.
+            // This happens in testing and for custom trim materials, not sure what to do for the latter.
             GeyserImpl.getInstance().getLogger().debug("Unable to found trim material item for material " + context.id());
             trimItem = ItemMapping.AIR;
         }
 
         // Just pick out the resulting color code, without RESET in front.
-        return new TrimMaterial(key, legacy.substring(2).trim(), trimItem.getBedrockIdentifier());
+        return new TrimMaterial(key, color, trimItem.getBedrockIdentifier());
     }
 
-    // TODO this is WRONG. this changed. FIXME in 1.21.5
     public static TrimPattern readTrimPattern(RegistryEntryContext context) {
         String key = context.id().asMinimalString();
 
-        String itemIdentifier = context.data().getString("template_item");
-        ItemMapping itemMapping = context.session().getItemMappings().getMapping(itemIdentifier);
-        if (itemMapping == null) {
-            // This should never happen so not sure what to do here.
-            itemMapping = ItemMapping.AIR;
+        // Not ideal, Java edition also gives us a translatable description... Bedrock wants the template item
+        String identifier = context.id().asString() + "_armor_trim_smithing_template";
+        ItemMapping itemMapping = ItemMapping.AIR;
+        if (context.session().isPresent()) {
+            itemMapping = context.session().get().getItemMappings().getMapping(identifier);
+            if (itemMapping == null) {
+                // This should never happen so not sure what to do here.
+                GeyserImpl.getInstance().getLogger().debug("Unable to found trim pattern item for pattern " + context.id());
+                itemMapping = ItemMapping.AIR;
+            }
         }
         return new TrimPattern(itemMapping.getBedrockIdentifier(), key);
     }

@@ -41,7 +41,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.util.EncryptionUtils;
 import org.geysermc.api.Geyser;
 import org.geysermc.cumulus.form.Form;
@@ -54,7 +53,6 @@ import org.geysermc.floodgate.crypto.FloodgateCipher;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.command.CommandSource;
-import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostReloadEvent;
@@ -96,6 +94,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.AssetUtils;
+import org.geysermc.geyser.util.CodeOfConductManager;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.Metrics;
 import org.geysermc.geyser.util.NewsHandler;
@@ -111,7 +110,6 @@ import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.security.Key;
 import java.text.DecimalFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -151,7 +149,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
      */
     public static final String OAUTH_CLIENT_ID = "204cefd1-4818-4de1-b98d-513fae875d88";
 
-    private static final String IP_REGEX = "\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b";
+    private static final Pattern IP_REGEX = Pattern.compile("\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b");
 
     private final SessionManager sessionManager = new SessionManager();
 
@@ -170,7 +168,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     private final PlatformType platformType;
     private final GeyserBootstrap bootstrap;
 
-    private final EventBus<EventRegistrar> eventBus;
+    private final GeyserEventBus eventBus;
     private final GeyserExtensionManager extensionManager;
 
     private Metrics metrics;
@@ -299,7 +297,10 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         if (isReloading) {
             // If we're reloading, the default locale in the config might have changed.
             GeyserLocale.finalizeDefaultLocale(this);
+        } else {
+            CodeOfConductManager.load();
         }
+
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfiguration config = bootstrap.getGeyserConfig();
 
@@ -409,7 +410,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
         String remoteAddress = config.getRemote().address();
         // Filters whether it is not an IP address or localhost, because otherwise it is not possible to find out an SRV entry.
-        if (!remoteAddress.matches(IP_REGEX) && !remoteAddress.equalsIgnoreCase("localhost")) {
+        if (!IP_REGEX.matcher(remoteAddress).matches() && !remoteAddress.equalsIgnoreCase("localhost")) {
             String[] record = WebUtils.findSrvRecord(this, remoteAddress);
             if (record != null) {
                 int remotePort = Integer.parseInt(record[2]);
@@ -481,7 +482,18 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             metrics.addCustomChart(new Metrics.SingleLineChart("players", sessionManager::size));
             // Prevent unwanted words best we can
             metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> config.getRemote().authType().toString().toLowerCase(Locale.ROOT)));
-            metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::platformName));
+
+            Map<String, Map<String, Integer>> platformTypeMap = new HashMap<>();
+            Map<String, Integer> serverPlatform = new HashMap<>();
+            serverPlatform.put(bootstrap.getServerPlatform(), 1);
+            platformTypeMap.put(platformType().platformName(), serverPlatform);
+
+            metrics.addCustomChart(new Metrics.DrilldownPie("platform", () -> {
+                // By the end, we should return, for example:
+                // Geyser-Spigot => (Paper, 1)
+                return platformTypeMap;
+            }));
+
             metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserImpl.VERSION));
             metrics.addCustomChart(new Metrics.SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.getRemote().isUseProxyProtocol())));
@@ -519,7 +531,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             if (minecraftVersion != null) {
                 Map<String, Map<String, Integer>> versionMap = new HashMap<>();
                 Map<String, Integer> platformMap = new HashMap<>();
-                platformMap.put(platformType.platformName(), 1);
+                platformMap.put(bootstrap.getServerPlatform(), 1);
                 versionMap.put(minecraftVersion, platformMap);
 
                 metrics.addCustomChart(new Metrics.DrilldownPie("minecraftServerVersion", () -> {
@@ -686,6 +698,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);
 
         ResourcePackLoader.clear();
+        CodeOfConductManager.getInstance().save();
 
         this.setEnabled(false);
     }
@@ -752,7 +765,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     @Override
     @NonNull
-    public EventBus<EventRegistrar> eventBus() {
+    public GeyserEventBus eventBus() {
         return this.eventBus;
     }
 
@@ -792,11 +805,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     @Override
     public @NonNull List<MinecraftVersion> supportedBedrockVersions() {
-        ArrayList<MinecraftVersion> versions = new ArrayList<>();
-        for (BedrockCodec codec : GameProtocol.SUPPORTED_BEDROCK_CODECS) {
-            versions.add(new MinecraftVersionImpl(codec.getMinecraftVersion(), codec.getProtocolVersion()));
-        }
-        return Collections.unmodifiableList(versions);
+        return Collections.unmodifiableList(GameProtocol.SUPPORTED_BEDROCK_VERSIONS);
     }
 
     @Override

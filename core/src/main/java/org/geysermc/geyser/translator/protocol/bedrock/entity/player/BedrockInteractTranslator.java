@@ -62,7 +62,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
 
         switch (packet.getAction()) {
             case INTERACT:
-                if (session.getPlayerInventory().getItemInHand().asItem() == Items.SHIELD) {
+                if (session.getPlayerInventory().getItemInHand().is(Items.SHIELD)) {
                     break;
                 }
                 ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
@@ -75,14 +75,14 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 session.sendDownstreamGamePacket(attackPacket);
                 break;
             case LEAVE_VEHICLE:
-                session.setShouldSendSneak(true);
-
                 // Reset steering to avoid these accidentally triggering session#isHandsBusy
                 session.setSteeringLeft(false);
                 session.setSteeringRight(false);
 
                 Entity currentVehicle = session.getPlayerEntity().getVehicle();
                 if (currentVehicle != null) {
+                    session.setShouldSendSneak(true);
+
                     session.setMountVehicleScheduledFuture(session.scheduleInEventLoop(() -> {
                         if (session.getPlayerEntity().getVehicle() == null) {
                             return;

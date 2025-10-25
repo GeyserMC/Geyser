@@ -53,7 +53,7 @@ public abstract class AnimalEntity extends AgeableEntity {
         if (tag == null) {
             return false;
         }
-        return session.getTagCache().is(tag, itemStack);
+        return itemStack.is(session, tag);
     }
 
     /**

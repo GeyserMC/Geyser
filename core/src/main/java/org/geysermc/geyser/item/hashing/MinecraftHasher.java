@@ -33,10 +33,11 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.components.Rarity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
@@ -45,12 +46,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * Encodes an object into a {@link HashCode} using a {@link MinecraftHashEncoder}.
@@ -64,7 +65,7 @@ import java.util.stream.IntStream;
  *
  * <ul>
  *     <li>{@link MinecraftHasher#list()} creates a hasher that hashes a list of the objects.</li>
- *     <li>{@link MinecraftHasher#cast(Function)} and {@link MinecraftHasher#sessionCast(BiFunction)} create a new hasher that delegates to this hasher with a converter function.</li>
+ *     <li>{@link MinecraftHasher#cast(Function)} and {@link MinecraftHasher#registryCast(BiFunction)} create a new hasher that delegates to this hasher with a converter function.</li>
  *     <li>{@link MinecraftHasher#filterable()} creates a hasher that hashes a {@link Filterable} instance of the object.</li>
  * </ul>
  *
@@ -106,13 +107,17 @@ public interface MinecraftHasher<Type> {
 
     MinecraftHasher<Boolean> BOOL = (b, encoder) -> encoder.bool(b);
 
-    MinecraftHasher<IntStream> INT_ARRAY = (ints, encoder) -> encoder.intArray(ints.toArray());
+    MinecraftHasher<byte[]> BYTE_ARRAY = (ints, encoder) -> encoder.byteArray(ints);
+
+    MinecraftHasher<int[]> INT_ARRAY = (ints, encoder) -> encoder.intArray(ints);
+
+    MinecraftHasher<long[]> LONG_ARRAY = (ints, encoder) -> encoder.longArray(ints);
 
     MinecraftHasher<NbtMap> NBT_MAP = (map, encoder) -> encoder.nbtMap(map);
 
     MinecraftHasher<NbtList<?>> NBT_LIST = (list, encoder) -> encoder.nbtList(list);
 
-    MinecraftHasher<Vector3i> POS = INT_ARRAY.cast(pos -> IntStream.of(pos.getX(), pos.getY(), pos.getZ()));
+    MinecraftHasher<Vector3i> POS = INT_ARRAY.cast(pos -> new int[]{pos.getX(), pos.getY(), pos.getZ()});
 
     MinecraftHasher<Key> KEY = STRING.cast(Key::asString);
 
@@ -123,7 +128,7 @@ public interface MinecraftHasher<Type> {
     MinecraftHasher<UUID> UUID = INT_ARRAY.cast(uuid -> {
         long mostSignificant = uuid.getMostSignificantBits();
         long leastSignificant = uuid.getLeastSignificantBits();
-        return IntStream.of((int) (mostSignificant >> 32), (int) mostSignificant, (int) (leastSignificant >> 32), (int) leastSignificant);
+        return new int[]{(int) (mostSignificant >> 32), (int) mostSignificant, (int) (leastSignificant >> 32), (int) leastSignificant};
     }); // TODO test
 
     MinecraftHasher<GameProfile.Property> GAME_PROFILE_PROPERTY = mapBuilder(builder -> builder
@@ -131,10 +136,15 @@ public interface MinecraftHasher<Type> {
         .accept("value", STRING, GameProfile.Property::getValue)
         .optionalNullable("signature", STRING, GameProfile.Property::getSignature));
 
-    MinecraftHasher<GameProfile> GAME_PROFILE = mapBuilder(builder -> builder
-        .optionalNullable("name", STRING, GameProfile::getName)
-        .optionalNullable("id", UUID, GameProfile::getId)
-        .optionalList("properties", GAME_PROFILE_PROPERTY, GameProfile::getProperties));
+    MinecraftHasher<ResolvableProfile> RESOLVABLE_PROFILE = mapBuilder(builder -> builder
+        .optionalNullable("name", STRING, resolvableProfile -> resolvableProfile.getProfile().getName())
+        .optionalNullable("id", UUID, resolvableProfile -> resolvableProfile.getProfile().getId())
+        .optionalList("properties", GAME_PROFILE_PROPERTY, resolvableProfile -> resolvableProfile.getProfile().getProperties())
+        .optionalNullable("texture", KEY, ResolvableProfile::getBody)
+        .optionalNullable("cape", KEY, ResolvableProfile::getCape)
+        .optionalNullable("elytra", KEY, ResolvableProfile::getElytra)
+        .optional("model", STRING, resolvableProfile -> Optional.ofNullable(resolvableProfile.getModel()).map(GameProfile.TextureModel::name))
+    );
 
     MinecraftHasher<Integer> RARITY = fromIdEnum(Rarity.values(), Rarity::getName);
 
@@ -181,25 +191,25 @@ public interface MinecraftHasher<Type> {
     /**
      * "Casts" this hasher to another hash a different object, with a converter method. The returned hasher takes a {@link Casted}, converts it to a {@link Type} using the {@code converter}, and then hashes it.
      *
-     * <p>If a {@link GeyserSession} object is needed for conversion, use {@link MinecraftHasher#sessionCast(BiFunction)}.</p>
+     * <p>If a {@link JavaRegistryProvider} object is needed for conversion, use {@link MinecraftHasher#registryCast(BiFunction)}.</p>
      *
      * @param converter the converter function that converts a {@link Casted} into a {@link Type}.
      * @param <Casted> the type of the new hasher.
-     * @see MinecraftHasher#sessionCast(BiFunction)
+     * @see MinecraftHasher#registryCast(BiFunction)
      */
     default <Casted> MinecraftHasher<Casted> cast(Function<Casted, Type> converter) {
         return (value, encoder) -> hash(converter.apply(value), encoder);
     }
 
     /**
-     * Like {@link MinecraftHasher#cast(Function)}, but has access to {@link GeyserSession}.
+     * Like {@link MinecraftHasher#cast(Function)}, but has access to {@link JavaRegistryProvider}.
      *
      * @param converter the converter function.
      * @param <Casted> the type of the new hasher.
      * @see MinecraftHasher#cast(Function)
      */
-    default <Casted> MinecraftHasher<Casted> sessionCast(BiFunction<GeyserSession, Casted, Type> converter) {
-        return (value, encoder) -> hash(converter.apply(encoder.session(), value), encoder);
+    default <Casted> MinecraftHasher<Casted> registryCast(BiFunction<JavaRegistryProvider, Casted, Type> converter) {
+        return (value, encoder) -> hash(converter.apply(encoder.registries(), value), encoder);
     }
 
     /**

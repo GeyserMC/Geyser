@@ -150,6 +150,11 @@ public interface GeyserBootstrap {
     }
 
     /**
+     * @return  the name of the server platform Geyser is running on.
+     */
+    @NonNull String getServerPlatform();
+
+    /**
      * Get an InputStream for the given resource path.
      * Overridden on platforms that have different class loader properties.
      *
