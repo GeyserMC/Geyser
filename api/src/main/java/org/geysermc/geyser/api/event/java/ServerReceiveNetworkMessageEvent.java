@@ -34,7 +34,7 @@ import org.geysermc.geyser.api.network.NetworkChannel;
 import org.geysermc.geyser.api.network.message.Message;
 
 /**
- * Called when the server receives a network message.
+ * Called when Geyser receives a network message from the server.
  * @since 2.8.2
  */
 public final class ServerReceiveNetworkMessageEvent extends ConnectionEvent implements Cancellable {
