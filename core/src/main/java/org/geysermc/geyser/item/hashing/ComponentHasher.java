@@ -165,6 +165,7 @@ public interface ComponentHasher {
         } else if (component instanceof NBTComponent<?,?> nbt) {
             return NBT_COMPONENT.hash(nbt, encoder);
         }
+        // TODO support object component hashing!
         throw new IllegalStateException("Unimplemented component hasher: " + component);
     };
 
