@@ -162,7 +162,7 @@ public class BlockInventoryHolder extends InventoryHolder {
      * a block to hold the inventory that's wildly out of range.
      */
     protected boolean checkInteractionPosition(GeyserSession session) {
-        return session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition());
+        return session.getLastInteractionPlayerPosition().distance(session.getPlayerEntity().getPosition()) < 2;
     }
 
     /**
