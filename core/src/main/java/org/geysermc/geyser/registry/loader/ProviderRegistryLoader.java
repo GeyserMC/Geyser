@@ -114,7 +114,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(CameraPosition.Builder.class, args -> new GeyserCameraPosition.Builder());
 
         // entities
-        providers.put(JavaEntityType.class, args -> args.length == 1 ? GeyserEntityType.ofVanilla((Identifier) args[0]) : GeyserEntityType.createCustom((Identifier) args[0], (int) args[1]));
+        providers.put(JavaEntityType.class, args -> args.length == 1 ? GeyserEntityType.ofVanilla((Identifier) args[0]) : GeyserEntityType.createCustomAndRegister((Identifier) args[0], (int) args[1]));
         providers.put(CustomEntityDefinition.class, args -> GeyserCustomEntityDefinition.inherited((String) args[0], (JavaEntityType) args[1]));
 
         return providers;

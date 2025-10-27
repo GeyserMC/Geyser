@@ -36,7 +36,7 @@ import org.geysermc.geyser.api.entity.CustomEntityDefinition;
 import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
-import org.geysermc.geyser.api.predicate.context.entity.EntitySpawnContext;
+import org.geysermc.geyser.api.predicate.context.entity.EntitySpawnPredicateContext;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
@@ -56,10 +56,10 @@ import java.util.function.BiConsumer;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class GeyserCustomEntityDefinition<T extends Entity> extends EntityDefinition<T> implements CustomEntityDefinition {
-    private final List<MinecraftPredicate<? super EntitySpawnContext>> predicates;
+    private final List<MinecraftPredicate<? super EntitySpawnPredicateContext>> predicates;
     private final PredicateStrategy predicateStrategy;
 
-    public GeyserCustomEntityDefinition(EntityFactory<T> factory, String bedrockIdentifier, List<MinecraftPredicate<? super EntitySpawnContext>> predicates, PredicateStrategy predicateStrategy,
+    public GeyserCustomEntityDefinition(EntityFactory<T> factory, String bedrockIdentifier, List<MinecraftPredicate<? super EntitySpawnPredicateContext>> predicates, PredicateStrategy predicateStrategy,
                                         float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
         super(factory, bedrockIdentifier, width, height, offset, registeredProperties, translators);
         this.predicates = predicates;
@@ -84,7 +84,7 @@ public class GeyserCustomEntityDefinition<T extends Entity> extends EntityDefini
     }
 
     public static class Builder<T extends Entity> extends EntityDefinition.Builder<T> implements CustomEntityDefinition.Builder {
-        protected List<MinecraftPredicate<? super EntitySpawnContext>> predicates;
+        protected List<MinecraftPredicate<? super EntitySpawnPredicateContext>> predicates;
         protected PredicateStrategy predicateStrategy = PredicateStrategy.AND;
 
         protected Builder(EntityFactory<T> factory, String bedrockIdentifier) {
@@ -122,7 +122,7 @@ public class GeyserCustomEntityDefinition<T extends Entity> extends EntityDefini
             return (Builder<T>) super.offset(offset);
         }
 
-        public Builder<T> predicate(@NonNull MinecraftPredicate<? super EntitySpawnContext> predicate) {
+        public Builder<T> predicate(@NonNull MinecraftPredicate<? super EntitySpawnPredicateContext> predicate) {
             predicates.add(Objects.requireNonNull(predicate, "predicate must not be null"));
             return this;
         }

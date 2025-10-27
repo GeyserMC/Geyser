@@ -27,13 +27,16 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.predicate.context.entity.EntitySpawnPredicateContext;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.GeyserCustomEntityDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.FallingBlockEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.HangingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.impl.predicate.GeyserEntitySpawnPredicateContext;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
@@ -47,7 +50,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.object.FallingBlockD
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.ProjectileData;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.WardenData;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 
 @Translator(packet = ClientboundAddEntityPacket.class)
@@ -58,9 +60,14 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
     @Override
     public void translate(GeyserSession session, ClientboundAddEntityPacket packet) {
         GeyserEntityType type = GeyserEntityType.of(packet.getType());
-        EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(type);
+        if (type.isUnregistered()) {
+            session.getGeyser().getLogger().warning("Received unregistered entity type " + type + " in add entity packet");
+            return;
+        }
+
+        EntityDefinition<?> definition = getEntityDefinition(session, type, packet);
         if (definition == null) {
-            session.getGeyser().getLogger().warning("Could not find an entity definition with type " + type);
+            session.getGeyser().getLogger().warning("Could not find an entity definition for add entity packet " + packet);
             return;
         }
 
@@ -137,5 +144,15 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         }
 
         session.getEntityCache().spawnEntity(entity);
+    }
+
+    private static EntityDefinition<?> getEntityDefinition(GeyserSession session, GeyserEntityType entityType, ClientboundAddEntityPacket packet) {
+        EntitySpawnPredicateContext context = new GeyserEntitySpawnPredicateContext(session, entityType, packet);
+        for (GeyserCustomEntityDefinition<?> customEntityDefinition : Registries.CUSTOM_ENTITY_DEFINITIONS) {
+            if (customEntityDefinition.test(context)) {
+                return customEntityDefinition;
+            }
+        }
+        return Registries.ENTITY_DEFINITIONS.get(context.entityType());
     }
 }

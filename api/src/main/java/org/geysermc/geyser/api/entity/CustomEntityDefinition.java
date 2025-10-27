@@ -29,12 +29,6 @@ import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.predicate.MinecraftPredicate;
-import org.geysermc.geyser.api.predicate.PredicateStrategy;
-import org.geysermc.geyser.api.predicate.context.entity.EntitySpawnContext;
-import org.geysermc.geyser.api.util.GenericBuilder;
-
-import java.util.List;
 
 public interface CustomEntityDefinition {
 
@@ -47,15 +41,11 @@ public interface CustomEntityDefinition {
 
     float offset();
 
-    List<MinecraftPredicate<? super EntitySpawnContext>> predicates();
-
-    PredicateStrategy predicateStrategy();
-
     static Builder builder(@NonNull String bedrockIdentifier, @NonNull JavaEntityType vanillaType) {
         return GeyserApi.api().provider(Builder.class, bedrockIdentifier, vanillaType);
     }
 
-    interface Builder extends GenericBuilder<CustomEntityDefinition> {
+    interface Builder {
 
         @This
         Builder width(@Positive float width);
@@ -68,12 +58,6 @@ public interface CustomEntityDefinition {
 
         @This
         Builder offset(@Positive float offset);
-
-        @This
-        Builder predicate(@NonNull MinecraftPredicate<? super EntitySpawnContext> predicate);
-
-        @This
-        Builder predicateStrategy(@NonNull PredicateStrategy strategy);
 
         @Override
         CustomEntityDefinition build();

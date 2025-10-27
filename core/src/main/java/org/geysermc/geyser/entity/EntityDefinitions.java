@@ -30,9 +30,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.CustomEntityDefinition;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
 import org.geysermc.geyser.api.entity.property.type.GeyserStringEnumProperty;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomEntitiesEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.factory.EntityFactory;
@@ -173,6 +175,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatE
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -1263,7 +1266,19 @@ public final class EntityDefinitions {
     }
 
     public static void init() {
-        // entities would be initialized before this event is called
+        // entities would be initialized before these events are called
+        GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomEntitiesEvent() {
+            @Override
+            public List<CustomEntityDefinition> existingCustomEntityDefinitions() {
+                return Collections.unmodifiableList(Registries.CUSTOM_ENTITY_DEFINITIONS.get());
+            }
+
+            @Override
+            public void register(CustomEntityDefinition customEntityDefinition) {
+                Registries.CUSTOM_ENTITY_DEFINITIONS.register(Registries.CUSTOM_ENTITY_DEFINITIONS.get().size(), customEntityDefinition);
+            }
+        });
+
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {
             @Override
             public GeyserFloatEntityProperty registerFloatProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, float min, float max, @Nullable Float defaultValue) {
@@ -1345,13 +1360,13 @@ public final class EntityDefinitions {
         }
     }
 
-    private static <T> void registerProperty(Identifier BuiltinEntityType, PropertyType<T, ?> property) {
-        var definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(BuiltinEntityType.toString());
+    private static <T> void registerProperty(Identifier entityType, PropertyType<T, ?> property) {
+        var definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityType.toString());
         if (definition == null) {
-            throw new IllegalArgumentException("Unknown entity type: " + BuiltinEntityType);
+            throw new IllegalArgumentException("Unknown entity type: " + entityType);
         }
 
-        definition.registeredProperties().add(BuiltinEntityType.toString(), property);
+        definition.registeredProperties().add(entityType.toString(), property);
     }
 
     private EntityDefinitions() {

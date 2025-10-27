@@ -117,7 +117,7 @@ public record GeyserEntityType(Identifier javaIdentifier, int javaId) implements
         return type instanceof BuiltinEntityType builtin ? ofVanilla(builtin) : of(type.id());
     }
 
-    public static GeyserEntityType createCustom(@NonNull Identifier javaIdentifier, @NonNegative int javaId) {
+    public static GeyserEntityType createCustomAndRegister(@NonNull Identifier javaIdentifier, @NonNegative int javaId) {
         Objects.requireNonNull(javaIdentifier, "javaIdentifier may not be null");
         if (javaIdentifier.vanilla()) {
             throw new IllegalArgumentException("Cannot register custom entity type in vanilla namespace!" + javaIdentifier);

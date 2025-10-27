@@ -23,32 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.entity;
+package org.geysermc.geyser.api.event.lifecycle;
 
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.event.Event;
+import org.geysermc.geyser.api.entity.CustomEntityDefinition;
 
-public interface JavaEntityType {
+import java.util.List;
 
-    Identifier javaIdentifier();
+public interface GeyserDefineCustomEntitiesEvent extends Event {
 
-    int javaId();
+    List<CustomEntityDefinition> existingCustomEntityDefinitions();
 
-    boolean isUnregistered();
-
-    boolean vanilla();
-
-    default boolean is(Identifier javaIdentifier) {
-        return javaIdentifier().equals(javaIdentifier);
+    default void register(CustomEntityDefinition.Builder builder) {
+        register(builder.build());
     }
 
-    static JavaEntityType ofVanilla(@NonNull Identifier javaIdentifier) {
-        return GeyserApi.api().provider(JavaEntityType.class, javaIdentifier);
-    }
-
-    static JavaEntityType createAndRegister(@NonNull Identifier javaIdentifier, @NonNegative int javaId) {
-        return GeyserApi.api().provider(JavaEntityType.class, javaIdentifier, javaId);
-    }
+    void register(CustomEntityDefinition customEntityDefinition);
 }
