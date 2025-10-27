@@ -323,7 +323,7 @@ public class BlockBreakHandler {
 
             this.serverSideBlockBreaking = false;
             if (BlockRegistries.NON_VANILLA_BLOCK_IDS.get().get(state.javaId()) || blockStateOverride != null ||
-                customItem != null || (skull != null && skull.getBlockDefinition() != null)) {
+                customItem != null || session.getItemMappings().getNonVanillaCustomItemIds().contains(item.getJavaId()) || (skull != null && skull.getBlockDefinition() != null)) {
                 this.serverSideBlockBreaking = true;
             }
 

@@ -651,6 +651,7 @@ public class ItemRegistryPopulator {
                     .customItemDefinitions(null)
                     .build();
 
+            final List<Integer> nonVanillaCustomItemIds = new ArrayList<>();
             if (customItemsAllowed) {
                 // Add furnace minecart
                 int furnaceMinecartId = nextFreeBedrockId++;
@@ -694,6 +695,8 @@ public class ItemRegistryPopulator {
                         }
                         mappings.set(javaItem.javaId(), mapping);
                         registry.put(customItemId, mapping.getBedrockDefinition());
+
+                        nonVanillaCustomItemIds.add(javaItem.javaId());
 
                         if (customItem.bedrockOptions().creativeCategory() != CreativeCategory.NONE) {
                             CreativeItemData creativeItemData = new CreativeItemData(ItemData.builder()
@@ -770,6 +773,7 @@ public class ItemRegistryPopulator {
                     .lightBlocks(lightBlocks)
                     .lodestoneCompass(lodestoneEntry)
                     .customIdMappings(customIdMappings)
+                    .nonVanillaCustomItemIds(nonVanillaCustomItemIds)
                     .customBlockItemDefinitions(customBlockItemDefinitions)
                     .build();
 
