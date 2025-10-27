@@ -102,7 +102,7 @@ public class CreativeItemRegistryPopulator {
             }
 
             if (creativeItemGroup.getCategory() != category) {
-                lastCreativeItemGroup.put(category, i--);
+                lastCreativeItemGroup.put(category, i - 1);
                 category = creativeItemGroup.getCategory();
             }
 
