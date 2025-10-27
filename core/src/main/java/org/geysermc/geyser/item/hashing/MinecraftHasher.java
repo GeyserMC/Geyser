@@ -216,6 +216,8 @@ public interface MinecraftHasher<Type> {
      * Delegates to {@link MinecraftHasher#dispatch(String, Function, Function)}, uses {@code "type"} as the {@code typeKey}.
      *
      * @see MinecraftHasher#dispatch(String, Function, Function)
+     * @see MapBuilder#dispatch(MinecraftHasher, Function, Function)
+     * @see MapBuilder#dispatch(String, MinecraftHasher, Function, Function)
      */
     default <Dispatched> MinecraftHasher<Dispatched> dispatch(Function<Dispatched, Type> typeExtractor, Function<Type, MapBuilder<Dispatched>> hashDispatch) {
         return dispatch("type", typeExtractor, hashDispatch);
@@ -227,15 +229,17 @@ public interface MinecraftHasher<Type> {
      *
      * <p>This can be used to create hashers that hash an abstract type or interface into a map with different keys depending on the type.</p>
      *
+     * <p>Internally this simply delegates to and wraps {@link MapBuilder#dispatch(String, MinecraftHasher, Function, Function)} in {@link MinecraftHasher#mapBuilder(MapBuilder)},
+     * using {@code this} as {@code typeHasher}.</p>
+     *
      * @param typeKey the key to store the {@link Type} in.
      * @param typeExtractor the function that extracts a {@link Type} from a {@link Dispatched}.
      * @param mapDispatch the function that provides a {@link MapBuilder} based on a {@link Type}.
      * @param <Dispatched> the type of the new hasher.
+     * @see MapBuilder#dispatch(String, MinecraftHasher, Function, Function)
      */
     default <Dispatched> MinecraftHasher<Dispatched> dispatch(String typeKey, Function<Dispatched, Type> typeExtractor, Function<Type, MapBuilder<Dispatched>> mapDispatch) {
-        return mapBuilder(builder -> builder
-            .accept(typeKey, this, typeExtractor)
-            .accept(typeExtractor, mapDispatch));
+        return mapBuilder(MapBuilder.dispatch(typeKey, this, typeExtractor, mapDispatch));
     }
 
     /**
