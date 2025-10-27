@@ -74,7 +74,6 @@ import java.util.function.Function;
  */
 // Lots of unchecked casting happens here. It should all be handled properly.
 @SuppressWarnings("unchecked")
-// TODO only log some things once (like was done in vault translator)
 public final class ItemStackParser {
     private static final Map<DataComponentType<?>, DataComponentParser<?, ?>> PARSERS = new Reference2ObjectOpenHashMap<>();
 
@@ -191,9 +190,9 @@ public final class ItemStackParser {
         try {
             patch.put((DataComponentType<Parsed>) type, parser.parse(session, (Raw) raw));
         } catch (ClassCastException exception) {
-            GeyserImpl.getInstance().getLogger().error("Received incorrect object type for component " + type + "!", exception);
+            GeyserImpl.getInstance().getLogger().debug("Received incorrect object type for component " + type + "!", exception);
         } catch (Exception exception) {
-            GeyserImpl.getInstance().getLogger().error("Failed to parse component" + type + " from " + raw + "!", exception);
+            GeyserImpl.getInstance().getLogger().debug("Failed to parse component" + type + " from " + raw + "!", exception);
         }
     }
 
