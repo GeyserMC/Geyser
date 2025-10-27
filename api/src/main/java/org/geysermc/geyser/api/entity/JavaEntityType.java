@@ -38,6 +38,8 @@ public interface JavaEntityType {
 
     boolean isUnregistered();
 
+    boolean vanilla();
+
     default boolean is(Identifier javaIdentifier) {
         return javaIdentifier().equals(javaIdentifier);
     }

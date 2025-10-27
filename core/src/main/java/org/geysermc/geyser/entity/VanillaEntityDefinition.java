@@ -48,21 +48,24 @@ import java.util.function.BiConsumer;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<T> {
+    private final GeyserEntityType entityType;
 
     public VanillaEntityDefinition(EntityFactory<T> factory, GeyserEntityType entityType, String bedrockIdentifier,
                                    float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
-        super(factory, entityType, bedrockIdentifier, width, height, offset, registeredProperties, translators);
+        super(factory, bedrockIdentifier, width, height, offset, registeredProperties, translators);
+        this.entityType = entityType;
     }
 
     public static <T extends Entity> Builder<T> builder(EntityFactory<T> factory) {
         return new Builder<>(factory);
     }
 
-    public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, EntityDefinition<? super T> parent) {
+    public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, EntityDefinitionBase<? super T> parent) {
         return new Builder<>(factory, parent.width(), parent.height(), parent.offset(), new ObjectArrayList<>(parent.translators()));
     }
 
     public static class Builder<T extends Entity> extends EntityDefinition.Builder<T> {
+        protected GeyserEntityType type;
 
         protected Builder(EntityFactory<T> factory) {
             super(factory);
@@ -72,8 +75,13 @@ public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<
             super(factory, width, height, offset, translators);
         }
 
+        /**
+         * Resets the bedrock identifier as well
+         */
         public Builder<T> type(BuiltinEntityType type) {
-            return (Builder<T>) super.type(GeyserEntityType.ofVanilla(type));
+            this.type = GeyserEntityType.ofVanilla(type);
+            this.bedrockIdentifier = null;
+            return this;
         }
 
         @Override
@@ -119,6 +127,14 @@ public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<
         @Override
         public VanillaEntityDefinition<T> build() {
             return build(true);
+        }
+
+        private void validateTypeAndIdentifier() {
+            if (type == null) {
+                throw new IllegalStateException("Missing entity type!");
+            } else if (bedrockIdentifier == null) {
+                bedrockIdentifier = type.javaIdentifier().toString();
+            }
         }
 
         /**

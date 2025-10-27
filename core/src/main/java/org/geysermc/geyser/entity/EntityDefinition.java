@@ -55,15 +55,13 @@ import java.util.function.BiConsumer;
 @ToString(callSuper = true)
 public abstract class EntityDefinition<T extends Entity> extends EntityDefinitionBase<T> {
     private final EntityFactory<T> factory;
-    private final GeyserEntityType entityType;
     private final String bedrockIdentifier;
     private final GeyserEntityProperties registeredProperties;
 
-    public EntityDefinition(EntityFactory<T> factory, GeyserEntityType entityType, String bedrockIdentifier,
+    public EntityDefinition(EntityFactory<T> factory, String bedrockIdentifier,
                             float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
         super(width, height, offset, translators);
         this.factory = factory;
-        this.entityType = entityType;
         this.bedrockIdentifier = bedrockIdentifier;
         this.registeredProperties = registeredProperties;
     }
@@ -72,8 +70,6 @@ public abstract class EntityDefinition<T extends Entity> extends EntityDefinitio
     @Accessors(fluent = true, chain = true)
     public static abstract class Builder<T extends Entity> extends EntityDefinitionBase.Builder<T> {
         protected final EntityFactory<T> factory;
-        @Setter(AccessLevel.NONE)
-        protected GeyserEntityType type;
         protected String bedrockIdentifier;
         @Setter(AccessLevel.NONE)
         protected GeyserEntityProperties.Builder propertiesBuilder;
@@ -89,15 +85,6 @@ public abstract class EntityDefinition<T extends Entity> extends EntityDefinitio
             this.width = width;
             this.height = height;
             this.offset = offset;
-        }
-
-        /**
-         * Resets the bedrock identifier as well
-         */
-        public Builder<T> type(GeyserEntityType type) {
-            this.type = type;
-            this.bedrockIdentifier = null;
-            return this;
         }
 
         @Override
@@ -136,14 +123,6 @@ public abstract class EntityDefinition<T extends Entity> extends EntityDefinitio
             }
             propertiesBuilder.add(propertyType);
             return this;
-        }
-
-        protected void validateTypeAndIdentifier() {
-            if (type == null) {
-                throw new IllegalStateException("Missing entity type!");
-            } else if (bedrockIdentifier == null) {
-                bedrockIdentifier = type.javaIdentifier().toString();
-            }
         }
     }
 }

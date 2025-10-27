@@ -61,7 +61,9 @@ public class EntityDefinitionBase<T extends Entity> {
         return new Builder<>(clazz);
     }
 
-    public static <T extends Entity> Builder<T> baseInherited(EntityDefinitionBase<? super T> parent) {
+    // Unused param so Java knows what entity we're talking about
+    @SuppressWarnings("unused")
+    public static <T extends Entity> Builder<T> baseInherited(Class<T> clazz, EntityDefinitionBase<? super T> parent) {
         return new Builder<>(parent.width(), parent.height(), parent.offset(), new ObjectArrayList<>(parent.translators()));
     }
 
@@ -97,7 +99,8 @@ public class EntityDefinitionBase<T extends Entity> {
         }
 
         // Unused param so Java knows what entity we're talking about
-        protected Builder(@SuppressWarnings("unused") Class<T> clazz) {
+        @SuppressWarnings("unused")
+        protected Builder(Class<T> clazz) {
             this();
         }
 

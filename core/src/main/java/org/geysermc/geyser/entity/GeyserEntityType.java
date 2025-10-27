@@ -72,6 +72,11 @@ public record GeyserEntityType(Identifier javaIdentifier, int javaId) implements
         return javaIdentifier.equals(UNREGISTERED);
     }
 
+    @Override
+    public boolean vanilla() {
+        return VANILLA.containsValue(this);
+    }
+
     public boolean is(EntityType type) {
         return javaId == type.id();
     }

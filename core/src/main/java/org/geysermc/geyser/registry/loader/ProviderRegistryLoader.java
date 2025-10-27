@@ -34,6 +34,7 @@ import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.entity.CustomEntityDefinition;
 import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.extension.Extension;
@@ -46,6 +47,7 @@ import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.api.pack.option.SubpackOption;
 import org.geysermc.geyser.api.pack.option.UrlFallbackOption;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.entity.GeyserCustomEntityDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
@@ -113,6 +115,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
 
         // entities
         providers.put(JavaEntityType.class, args -> args.length == 1 ? GeyserEntityType.ofVanilla((Identifier) args[0]) : GeyserEntityType.createCustom((Identifier) args[0], (int) args[1]));
+        providers.put(CustomEntityDefinition.class, args -> GeyserCustomEntityDefinition.inherited((String) args[0], (JavaEntityType) args[1]));
 
         return providers;
     }
