@@ -79,7 +79,7 @@ public interface MapBuilder<Type> extends UnaryOperator<MapHasher<Type>> {
      * @param <Type> the type of the {@code typeKey}.
      * @param <Dispatched> the type of the new map builder.
      */
-    static  <Type, Dispatched> MapBuilder<Dispatched> dispatch(String typeKey, MinecraftHasher<Type> typeHasher, Function<Dispatched, Type> typeExtractor, Function<Type, MapBuilder<Dispatched>> mapDispatch) {
+    static <Type, Dispatched> MapBuilder<Dispatched> dispatch(String typeKey, MinecraftHasher<Type> typeHasher, Function<Dispatched, Type> typeExtractor, Function<Type, MapBuilder<Dispatched>> mapDispatch) {
         return builder -> builder
             .accept(typeKey, typeHasher, typeExtractor)
             .accept(typeExtractor, mapDispatch);
