@@ -56,6 +56,11 @@ public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<
         this.entityType = entityType;
     }
 
+    @Override
+    public boolean is(BuiltinEntityType builtin) {
+        return entityType.is(builtin);
+    }
+
     public static <T extends Entity> Builder<T> builder(EntityFactory<T> factory) {
         return new Builder<>(factory);
     }

@@ -38,6 +38,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -65,6 +66,8 @@ public abstract class EntityDefinition<T extends Entity> extends EntityDefinitio
         this.bedrockIdentifier = bedrockIdentifier;
         this.registeredProperties = registeredProperties;
     }
+
+    public abstract boolean is(BuiltinEntityType type);
 
     @Setter
     @Accessors(fluent = true, chain = true)

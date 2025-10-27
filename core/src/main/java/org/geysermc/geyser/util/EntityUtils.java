@@ -33,6 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.entity.type.BoatEntity;
@@ -108,36 +109,36 @@ public final class EntityUtils {
 
         float height = mount.getBoundingBoxHeight();
         float mountedHeightOffset = height * 0.75f;
-        GeyserEntityType type = mount.getDefinition().entityType();
-        if (type.is(BuiltinEntityType.CAMEL)) {
+        EntityDefinition<?> definition = mount.getDefinition();
+        if (definition.is(BuiltinEntityType.CAMEL)) {
             boolean isBaby = mount.getFlag(EntityFlag.BABY);
             mountedHeightOffset = height - (isBaby ? 0.35f : 0.6f);
-        } else if (type.is(BuiltinEntityType.CAVE_SPIDER) || type.is(BuiltinEntityType.CHICKEN) || type.is(BuiltinEntityType.SPIDER)) {
+        } else if (definition.is(BuiltinEntityType.CAVE_SPIDER) || definition.is(BuiltinEntityType.CHICKEN) || definition.is(BuiltinEntityType.SPIDER)) {
             mountedHeightOffset = height * 0.5f;
-        } else if (type.is(BuiltinEntityType.DONKEY) || type.is(BuiltinEntityType.MULE)) {
+        } else if (definition.is(BuiltinEntityType.DONKEY) || definition.is(BuiltinEntityType.MULE)) {
             mountedHeightOffset -= 0.25f;
-        } else if (type.is(BuiltinEntityType.TRADER_LLAMA) || type.is(BuiltinEntityType.LLAMA)) {
+        } else if (definition.is(BuiltinEntityType.TRADER_LLAMA) || definition.is(BuiltinEntityType.LLAMA)) {
             mountedHeightOffset = height * 0.6f;
-        } else if (type.is(BuiltinEntityType.MINECART) || type.is(BuiltinEntityType.HOPPER_MINECART) || type.is(BuiltinEntityType.TNT_MINECART)
-            || type.is(BuiltinEntityType.CHEST_MINECART) || type.is(BuiltinEntityType.FURNACE_MINECART)
-            || type.is(BuiltinEntityType.SPAWNER_MINECART) || type.is(BuiltinEntityType.COMMAND_BLOCK_MINECART)) {
+        } else if (definition.is(BuiltinEntityType.MINECART) || definition.is(BuiltinEntityType.HOPPER_MINECART) || definition.is(BuiltinEntityType.TNT_MINECART)
+            || definition.is(BuiltinEntityType.CHEST_MINECART) || definition.is(BuiltinEntityType.FURNACE_MINECART)
+            || definition.is(BuiltinEntityType.SPAWNER_MINECART) || definition.is(BuiltinEntityType.COMMAND_BLOCK_MINECART)) {
             mountedHeightOffset = 0;
-        } else if (type.is(BuiltinEntityType.BAMBOO_RAFT) || type.is(BuiltinEntityType.BAMBOO_CHEST_RAFT)) {
+        } else if (definition.is(BuiltinEntityType.BAMBOO_RAFT) || definition.is(BuiltinEntityType.BAMBOO_CHEST_RAFT)) {
             mountedHeightOffset = 0.25f;
-        } else if (type.is(BuiltinEntityType.HOGLIN) || type.is(BuiltinEntityType.ZOGLIN)) {
+        } else if (definition.is(BuiltinEntityType.HOGLIN) || definition.is(BuiltinEntityType.ZOGLIN)) {
             boolean isBaby = mount.getFlag(EntityFlag.BABY);
             mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
-        } else if (type.is(BuiltinEntityType.PIGLIN)) {
+        } else if (definition.is(BuiltinEntityType.PIGLIN)) {
             mountedHeightOffset = height * 0.92f;
-        } else if (type.is(BuiltinEntityType.PHANTOM)) {
+        } else if (definition.is(BuiltinEntityType.PHANTOM)) {
             mountedHeightOffset = height * 0.35f;
-        } else if (type.is(BuiltinEntityType.RAVAGER)) {
+        } else if (definition.is(BuiltinEntityType.RAVAGER)) {
             mountedHeightOffset = 2.1f;
-        } else if (type.is(BuiltinEntityType.SKELETON_HORSE)) {
+        } else if (definition.is(BuiltinEntityType.SKELETON_HORSE)) {
             mountedHeightOffset -= 0.1875f;
-        } else if (type.is(BuiltinEntityType.SNIFFER)) {
+        } else if (definition.is(BuiltinEntityType.SNIFFER)) {
             mountedHeightOffset = 1.8f;
-        } else if (type.is(BuiltinEntityType.STRIDER)) {
+        } else if (definition.is(BuiltinEntityType.STRIDER)) {
             mountedHeightOffset = height - 0.19f;
         }
         return mountedHeightOffset;
@@ -145,32 +146,32 @@ public final class EntityUtils {
 
     private static float getHeightOffset(Entity passenger) {
         boolean isBaby;
-        GeyserEntityType type = passenger.getDefinition().entityType();
-        if (type.is(BuiltinEntityType.ALLAY) || type.is(BuiltinEntityType.VEX)) {
+        EntityDefinition<?> definition = passenger.getDefinition();
+        if (definition.is(BuiltinEntityType.ALLAY) || definition.is(BuiltinEntityType.VEX)) {
             return 0.4f;
-        } else if (type.is(BuiltinEntityType.SKELETON) || type.is(BuiltinEntityType.STRAY) || type.is(BuiltinEntityType.WITHER_SKELETON)) {
+        } else if (definition.is(BuiltinEntityType.SKELETON) || definition.is(BuiltinEntityType.STRAY) || definition.is(BuiltinEntityType.WITHER_SKELETON)) {
             return -0.6f;
-        } else if (type.is(BuiltinEntityType.ARMOR_STAND)) {
+        } else if (definition.is(BuiltinEntityType.ARMOR_STAND)) {
             if (((ArmorStandEntity) passenger).isMarker()) {
                 return 0.0f;
             } else {
                 return 0.1f;
             }
-        } else if (type.is(BuiltinEntityType.ENDERMITE) || type.is(BuiltinEntityType.SILVERFISH)) {
+        } else if (definition.is(BuiltinEntityType.ENDERMITE) || definition.is(BuiltinEntityType.SILVERFISH)) {
             return 0.1f;
-        } else if (type.is(BuiltinEntityType.PIGLIN) || type.is(BuiltinEntityType.PIGLIN_BRUTE) || type.is(BuiltinEntityType.ZOMBIFIED_PIGLIN)) {
+        } else if (definition.is(BuiltinEntityType.PIGLIN) || definition.is(BuiltinEntityType.PIGLIN_BRUTE) || definition.is(BuiltinEntityType.ZOMBIFIED_PIGLIN)) {
             isBaby = passenger.getFlag(EntityFlag.BABY);
             return isBaby ? -0.05f : -0.45f;
-        } else if (type.is(BuiltinEntityType.DROWNED) || type.is(BuiltinEntityType.HUSK) || type.is(BuiltinEntityType.ZOMBIE_VILLAGER)
-            || type.is(BuiltinEntityType.ZOMBIE)) {
+        } else if (definition.is(BuiltinEntityType.DROWNED) || definition.is(BuiltinEntityType.HUSK) || definition.is(BuiltinEntityType.ZOMBIE_VILLAGER)
+            || definition.is(BuiltinEntityType.ZOMBIE)) {
             isBaby = passenger.getFlag(EntityFlag.BABY);
             return isBaby ? 0.0f : -0.45f;
-        } else if (type.is(BuiltinEntityType.EVOKER) || type.is(BuiltinEntityType.ILLUSIONER) || type.is(BuiltinEntityType.PILLAGER)
-            || type.is(BuiltinEntityType.RAVAGER) || type.is(BuiltinEntityType.VINDICATOR) || type.is(BuiltinEntityType.WITCH)) {
+        } else if (definition.is(BuiltinEntityType.EVOKER) || definition.is(BuiltinEntityType.ILLUSIONER) || definition.is(BuiltinEntityType.PILLAGER)
+            || definition.is(BuiltinEntityType.RAVAGER) || definition.is(BuiltinEntityType.VINDICATOR) || definition.is(BuiltinEntityType.WITCH)) {
             return -0.45f;
-        } else if (type.is(BuiltinEntityType.PLAYER)) {
+        } else if (definition.is(BuiltinEntityType.PLAYER)) {
             return -0.35f;
-        } else if (type.is(BuiltinEntityType.SHULKER)) {
+        } else if (definition.is(BuiltinEntityType.SHULKER)) {
             Entity vehicle = passenger.getVehicle();
             if (vehicle instanceof BoatEntity || vehicle.getDefinition() == EntityDefinitions.MINECART) {
                 return 0.1875f - getMountedHeightOffset(vehicle);
@@ -195,8 +196,8 @@ public final class EntityUtils {
             float xOffset = 0;
             float yOffset = mountedHeightOffset + heightOffset;
             float zOffset = 0;
-            GeyserEntityType mountType = mount.getDefinition().entityType();
-            if (mountType.is(BuiltinEntityType.CAMEL)) {
+            EntityDefinition<?> mountDefinition = mount.getDefinition();
+            if (mountDefinition.is(BuiltinEntityType.CAMEL)) {
                 zOffset = 0.5f;
                 if (passengers > 1) {
                     if (!rider) {
@@ -213,11 +214,11 @@ public final class EntityUtils {
                         yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE;
                     }
                 }
-            } else if (mountType.is(BuiltinEntityType.CHICKEN)) {
+            } else if (mountDefinition.is(BuiltinEntityType.CHICKEN)) {
                 zOffset = -0.1f;
-            } else if (mountType.is(BuiltinEntityType.TRADER_LLAMA) || mountType.is(BuiltinEntityType.LLAMA)) {
+            } else if (mountDefinition.is(BuiltinEntityType.TRADER_LLAMA) || mountDefinition.is(BuiltinEntityType.LLAMA)) {
                 zOffset = -0.3f;
-            } else if (mountType.is(BuiltinEntityType.TEXT_DISPLAY)) {
+            } else if (mountDefinition.is(BuiltinEntityType.TEXT_DISPLAY)) {
                 if (passenger instanceof TextDisplayEntity textDisplay) {
                     Vector3f displayTranslation = textDisplay.getTranslation();
                     if (displayTranslation == null) {
@@ -228,7 +229,7 @@ public final class EntityUtils {
                     yOffset = displayTranslation.getY() + 0.2f;
                     zOffset = displayTranslation.getZ();
                 }
-            } else if (mountType.is(BuiltinEntityType.PLAYER)) {
+            } else if (mountDefinition.is(BuiltinEntityType.PLAYER)) {
                 if (passenger instanceof TextDisplayEntity textDisplay) {
                     Vector3f displayTranslation = textDisplay.getTranslation();
                     int lines = textDisplay.getLineCount();
@@ -239,7 +240,7 @@ public final class EntityUtils {
                         zOffset = displayTranslation.getZ();
                     }
                 }
-            } else if (mountType.is(BuiltinEntityType.HAPPY_GHAST)) {
+            } else if (mountDefinition.is(BuiltinEntityType.HAPPY_GHAST)) {
                 int seatingIndex = Math.min(index, 4);
                 xOffset = HappyGhastEntity.X_OFFSETS[seatingIndex];
                 yOffset = 3.4f;
@@ -263,23 +264,23 @@ public final class EntityUtils {
              * Horses are tinier
              * Players, Minecarts, and Boats have different origins
              */
-            GeyserEntityType passengerType = passenger.getDefinition().entityType();
-            if (mountType.is(BuiltinEntityType.PLAYER)) {
+            EntityDefinition<?> passengerDefinition = passenger.getDefinition();
+            if (mountDefinition.is(BuiltinEntityType.PLAYER)) {
                 yOffset -= EntityDefinitions.PLAYER.offset();
             }
-            if (passengerType.is(BuiltinEntityType.PLAYER)) {
+            if (passengerDefinition.is(BuiltinEntityType.PLAYER)) {
                 yOffset += EntityDefinitions.PLAYER.offset();
             }
-            if (mountType.is(BuiltinEntityType.MINECART) || mountType.is(BuiltinEntityType.HOPPER_MINECART) || mountType.is(BuiltinEntityType.TNT_MINECART)
-                || mountType.is(BuiltinEntityType.CHEST_MINECART) || mountType.is(BuiltinEntityType.FURNACE_MINECART)
-                || mountType.is(BuiltinEntityType.SPAWNER_MINECART) || mountType.is(BuiltinEntityType.COMMAND_BLOCK_MINECART)) {
+            if (mountDefinition.is(BuiltinEntityType.MINECART) || mountDefinition.is(BuiltinEntityType.HOPPER_MINECART) || mountDefinition.is(BuiltinEntityType.TNT_MINECART)
+                || mountDefinition.is(BuiltinEntityType.CHEST_MINECART) || mountDefinition.is(BuiltinEntityType.FURNACE_MINECART)
+                || mountDefinition.is(BuiltinEntityType.SPAWNER_MINECART) || mountDefinition.is(BuiltinEntityType.COMMAND_BLOCK_MINECART)) {
                 yOffset -= mount.getDefinition().height() * 0.5f;
             }
-            if (passengerType.is(BuiltinEntityType.MINECART) || passengerType.is(BuiltinEntityType.HOPPER_MINECART) || passengerType.is(BuiltinEntityType.TNT_MINECART)
-                || passengerType.is(BuiltinEntityType.CHEST_MINECART) || passengerType.is(BuiltinEntityType.FURNACE_MINECART) || passengerType.is(BuiltinEntityType.SPAWNER_MINECART)
-                || passengerType.is(BuiltinEntityType.COMMAND_BLOCK_MINECART) || passengerType.is(BuiltinEntityType.SHULKER)) {
+            if (passengerDefinition.is(BuiltinEntityType.MINECART) || passengerDefinition.is(BuiltinEntityType.HOPPER_MINECART) || passengerDefinition.is(BuiltinEntityType.TNT_MINECART)
+                || passengerDefinition.is(BuiltinEntityType.CHEST_MINECART) || passengerDefinition.is(BuiltinEntityType.FURNACE_MINECART) || passengerDefinition.is(BuiltinEntityType.SPAWNER_MINECART)
+                || passengerDefinition.is(BuiltinEntityType.COMMAND_BLOCK_MINECART) || passengerDefinition.is(BuiltinEntityType.SHULKER)) {
                 yOffset += passenger.getDefinition().height() * 0.5f;
-            } else if (passengerType.is(BuiltinEntityType.FALLING_BLOCK)) {
+            } else if (passengerDefinition.is(BuiltinEntityType.FALLING_BLOCK)) {
                 yOffset += 0.995f;
             }
             if (mount instanceof BoatEntity) {

@@ -76,7 +76,7 @@ public class EntityDefinitionBase<T extends Entity> {
         }
 
         if (translator.acceptedType() != metadata.getType()) {
-            GeyserImpl.getInstance().getLogger().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getDefinition().entityType());
+            GeyserImpl.getInstance().getLogger().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getDefinition().bedrockIdentifier());
             if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                 GeyserImpl.getInstance().getLogger().debug(metadata.toString());
             }

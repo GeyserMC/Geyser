@@ -30,7 +30,6 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
@@ -126,8 +125,8 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
 
         entity.setPassengers(newPassengers);
 
-        GeyserEntityType type = entity.getDefinition().entityType();
-        if (type.is(BuiltinEntityType.HORSE) || type.is(BuiltinEntityType.SKELETON_HORSE) || type.is(BuiltinEntityType.DONKEY) || type.is(BuiltinEntityType.MULE) || type.is(BuiltinEntityType.RAVAGER)) {
+        if (entity.getDefinition().is(BuiltinEntityType.HORSE) || entity.getDefinition().is(BuiltinEntityType.SKELETON_HORSE) || entity.getDefinition().is(BuiltinEntityType.DONKEY)
+            || entity.getDefinition().is(BuiltinEntityType.MULE) || entity.getDefinition().is(BuiltinEntityType.RAVAGER)) {
             entity.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 181.0f);
             entity.updateBedrockMetadata();
         }

@@ -45,6 +45,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 
 import java.util.List;
 import java.util.Objects;
@@ -63,6 +64,11 @@ public class GeyserCustomEntityDefinition<T extends Entity> extends EntityDefini
         super(factory, bedrockIdentifier, width, height, offset, registeredProperties, translators);
         this.predicates = predicates;
         this.predicateStrategy = predicateStrategy;
+    }
+
+    @Override
+    public boolean is(BuiltinEntityType type) {
+        return false;
     }
 
     public static Builder<?> inherited(String bedrockIdentifier, JavaEntityType vanillaType) {
