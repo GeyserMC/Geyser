@@ -54,6 +54,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
 import java.util.Locale;
+import java.util.UUID;
 
 public final class EntityUtils {
     /**
@@ -261,8 +262,8 @@ public final class EntityUtils {
             }
             switch (passenger.getDefinition().entityType()) {
                 case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
-                        COMMAND_BLOCK_MINECART -> yOffset += passenger.getDefinition().height() * 0.5f;
-                case FALLING_BLOCK -> yOffset += 0.5f;
+                     COMMAND_BLOCK_MINECART, SHULKER -> yOffset += passenger.getDefinition().height() * 0.5f;
+                case FALLING_BLOCK -> yOffset += 0.995f;
             }
             if (mount instanceof BoatEntity) {
                 yOffset -= mount.getDefinition().height() * 0.5f;
@@ -296,14 +297,14 @@ public final class EntityUtils {
      * Determine if an action would result in a successful bucketing of the given entity.
      */
     public static boolean attemptToBucket(GeyserItemStack itemInHand) {
-        return itemInHand.asItem() == Items.WATER_BUCKET;
+        return itemInHand.is(Items.WATER_BUCKET);
     }
 
     /**
      * Attempt to determine the result of saddling the given entity.
      */
     public static InteractionResult attemptToSaddle(Entity entityToSaddle, GeyserItemStack itemInHand) {
-        if (itemInHand.asItem() == Items.SADDLE) {
+        if (itemInHand.is(Items.SADDLE)) {
             if (!entityToSaddle.getFlag(EntityFlag.SADDLED) && !entityToSaddle.getFlag(EntityFlag.BABY)) {
                 // Saddle
                 return InteractionResult.SUCCESS;
@@ -358,7 +359,17 @@ public final class EntityUtils {
         }
 
         GeyserHolderSet<EntityType> holderSet = GeyserHolderSet.fromHolderSet(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
-        return session.getTagCache().is(holderSet, entity);
+        return holderSet.contains(session, entity);
+    }
+
+    // From ViaVersion! thank u!!
+    public static UUID uuidFromIntArray(int[] uuid) {
+        if (uuid != null && uuid.length == 4) {
+            // thank u viaversion
+            return new UUID((long) uuid[0] << 32 | ((long) uuid[1] & 0xFFFFFFFFL),
+                (long) uuid[2] << 32 | ((long) uuid[3] & 0xFFFFFFFFL));
+        }
+        return null;
     }
 
     private EntityUtils() {

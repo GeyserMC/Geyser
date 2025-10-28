@@ -8,8 +8,6 @@ architectury {
     fabric()
 }
 
-val includeTransitive: Configuration = configurations.getByName("includeTransitive")
-
 dependencies {
     modImplementation(libs.fabric.loader)
     modApi(libs.fabric.api)

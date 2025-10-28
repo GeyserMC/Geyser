@@ -166,7 +166,7 @@ public class CollisionManager {
         }
         // We need to parse the float as a string since casting a float to a double causes us to
         // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = bedrockPosition.getY() - EntityDefinitions.PLAYER.offset();
+        double javaY = Double.parseDouble(Float.toString(bedrockPosition.getY() - EntityDefinitions.PLAYER.offset()));
 
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY,
                 Double.parseDouble(Float.toString(bedrockPosition.getZ())));
@@ -197,17 +197,18 @@ public class CollisionManager {
             return null;
         }
 
-        position = playerBoundingBox.getBottomCenter();
-
         boolean newOnGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0 || onGround;
         // Send corrected position to Bedrock if they differ by too much to prevent de-syncs
         if (onGround != newOnGround || movement.distanceSquared(adjustedMovement) > INCORRECT_MOVEMENT_THRESHOLD) {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Client will dismount if on a vehicle
             if (playerEntity.getVehicle() == null && pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
-                playerEntity.moveAbsolute(position.toFloat(), playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), onGround, true);
+                recalculatePosition();
+                return null;
             }
         }
+
+        position = playerBoundingBox.getBottomCenter();
 
         if (!newOnGround) {
             // Trim the position to prevent rounding errors that make Java think we are clipping into a block
@@ -217,12 +218,8 @@ public class CollisionManager {
         return new CollisionResult(position, TriState.byBoolean(onGround));
     }
 
-    // TODO: This makes the player look upwards for some reason, rotation values must be wrong
     public void recalculatePosition() {
         PlayerEntity entity = session.getPlayerEntity();
-        // Gravity might need to be reset...
-        entity.updateBedrockMetadata(); // TODO may not be necessary
-
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
         movePlayerPacket.setPosition(entity.getPosition());
@@ -280,7 +277,15 @@ public class CollisionManager {
 
         // Main correction code
         for (iter.reset(); iter.hasNext(); iter.next()) {
-            BlockCollision blockCollision = BlockUtils.getCollision(blocks[iter.getIteration()]);
+            final int blockId = blocks[iter.getIteration()];
+
+            // These block have different offset between BE and JE so we ignore them because if we "correct" the position
+            // it will lead to complication and more inaccurate movement.
+            if (session.getBlockMappings().getCollisionIgnoredBlocks().contains(blockId)) {
+                continue;
+            }
+
+            BlockCollision blockCollision = BlockUtils.getCollision(blockId);
             if (blockCollision != null) {
                 if (!blockCollision.correctPosition(session, iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox)) {
                     return false;

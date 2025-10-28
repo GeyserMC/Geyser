@@ -50,7 +50,6 @@ import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.api.util.CreativeCategory;
-import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
@@ -58,17 +57,15 @@ import org.geysermc.geyser.level.block.GeyserCustomBlockState;
 import org.geysermc.geyser.level.block.GeyserGeometryComponent;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 import org.geysermc.geyser.level.block.type.Block;
-import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.PistonBehavior;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.translator.collision.OtherCollision;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -284,21 +281,7 @@ public class CustomBlockRegistryPopulator {
                 builder.requiresCorrectToolForDrops();
             }
             String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());
-            String pickItem = javaBlockState.pickItem();
-            Block block = new Block(cleanJavaIdentifier, builder) {
-                @Override
-                public ItemStack pickItem(BlockState state) {
-                    if (this.item == null) {
-                        this.item = Registries.JAVA_ITEM_IDENTIFIERS.get(pickItem);
-                        if (this.item == null) {
-                            GeyserImpl.getInstance().getLogger().warning("We could not find item " + pickItem
-                                + " for getting the item for block " + javaBlockState.identifier());
-                            this.item = Items.AIR;
-                        }
-                    }
-                    return new ItemStack(this.item.javaId());
-                }
-            };
+            Block block = new Block(cleanJavaIdentifier, builder);
             block.setJavaId(javaBlockState.stateGroupId());
 
             BlockRegistries.JAVA_BLOCKS.registerWithAnyIndex(javaBlockState.stateGroupId(), block, Blocks.AIR);
@@ -466,8 +449,14 @@ public class CustomBlockRegistryPopulator {
                 MaterialInstance materialInstance = entry.getValue();
                 NbtMapBuilder materialBuilder = NbtMap.builder()
                         .putString("render_method", materialInstance.renderMethod())
-                        .putBoolean("face_dimming", materialInstance.faceDimming())
-                        .putBoolean("ambient_occlusion", materialInstance.faceDimming());
+                        .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion());
+
+                if (GameProtocol.is1_21_110orHigher(protocolVersion)) {
+                    materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
+                } else {
+                    materialBuilder.putBoolean("face_dimming", materialInstance.faceDimming());
+                }
+
                 // Texture can be unspecified when blocks.json is used in RP (https://wiki.bedrock.dev/blocks/blocks-stable.html#minecraft-material-instances)
                 if (materialInstance.texture() != null) {
                     materialBuilder.putString("texture", materialInstance.texture());

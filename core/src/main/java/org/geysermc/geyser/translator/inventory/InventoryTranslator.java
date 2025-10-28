@@ -329,8 +329,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                         if (destSlot == 5) {
                             // only set the head if the destination is the head slot
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
-                            if (javaItem.asItem() == Items.PLAYER_HEAD
-                                    && javaItem.hasNonBaseComponents()) {
+                            if (javaItem.is(Items.PLAYER_HEAD) && javaItem.hasNonBaseComponents()) {
                                 FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
                             }
                         } else if (sourceSlot == 5) {
@@ -604,7 +603,8 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                 case CRAFT_RESULTS_DEPRECATED: // Tends to be called for UI inventories
                 case CRAFT_RECIPE_OPTIONAL: // Anvils and cartography tables will handle this
                 case CRAFT_LOOM: // Looms 1.17.40+
-                case CRAFT_REPAIR_AND_DISENCHANT: { // Grindstones 1.17.40+
+                case CRAFT_REPAIR_AND_DISENCHANT: // Grindstones 1.17.40+
+                case MINE_BLOCK: { // server-auth block breaking, confirming durability
                     break;
                 }
                 default:

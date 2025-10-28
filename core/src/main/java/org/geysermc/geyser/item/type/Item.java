@@ -45,6 +45,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
@@ -53,6 +54,7 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.jetbrains.annotations.UnmodifiableView;
 
@@ -99,6 +101,14 @@ public class Item {
 
     public int defaultMaxStackSize() {
         return baseComponents.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 1);
+    }
+
+    public boolean is(GeyserSession session, Tag<Item> tag) {
+        return session.getTagCache().is(tag, javaId);
+    }
+
+    public boolean is(GeyserSession session, HolderSet set) {
+        return session.getTagCache().is(set, JavaRegistries.ITEM, javaId);
     }
 
     /**
@@ -256,6 +266,7 @@ public class Item {
         if (bedrockEnchantment == null) {
             String enchantmentTranslation = MinecraftLocale.getLocaleString(enchantment.description(), session.locale());
             addJavaOnlyEnchantment(session, builder, enchantmentTranslation, level);
+            builder.addEnchantmentGlint();
             return null;
         }
 

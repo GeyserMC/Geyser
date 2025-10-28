@@ -8,8 +8,10 @@ dependencies {
 
     implementation(libs.cloud.bungee)
     implementation(libs.adventure.text.serializer.bungeecord)
-    compileOnlyApi(libs.bungeecord.proxy)
-
+    compileOnlyApi(libs.bungeecord.proxy) {
+        isTransitive = false
+    }
+    compileOnlyApi(libs.bungeecord.api)
     implementation(libs.floodgate.bungee)
 }
 

@@ -151,6 +151,11 @@ public interface GeyserBootstrap {
     }
 
     /**
+     * @return  the name of the server platform Geyser is running on.
+     */
+    @NonNull String getServerPlatform();
+
+    /**
      * Returns the skin applier for this platform, if the hybrid provider is integrated with the system.
      */
     default SkinApplier createSkinApplier() {

@@ -16,8 +16,6 @@ provided("com.google.errorprone", "error_prone_annotations")
 // Jackson shipped by Minecraft is too old, so we shade & relocate our newer version
 relocate("com.fasterxml.jackson")
 
-val includeTransitive: Configuration = configurations.getByName("includeTransitive")
-
 dependencies {
     // See https://github.com/google/guava/issues/6618
     modules {

@@ -77,7 +77,7 @@ public class GoatEntity extends AnimalEntity {
     @NonNull
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (!getFlag(EntityFlag.BABY) && itemInHand.asItem() == Items.BUCKET) {
+        if (!getFlag(EntityFlag.BABY) && itemInHand.is(Items.BUCKET)) {
             session.playSoundEvent(isScreamer ? SoundEvent.MILK_SCREAMER : SoundEvent.MILK, position);
             return InteractionResult.SUCCESS;
         } else {

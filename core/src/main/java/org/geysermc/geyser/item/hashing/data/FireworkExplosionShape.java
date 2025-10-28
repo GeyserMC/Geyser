@@ -25,11 +25,22 @@
 
 package org.geysermc.geyser.item.hashing.data;
 
+import java.util.Locale;
+
 // Ordered and named by Java ID
 public enum FireworkExplosionShape {
     SMALL_BALL,
     LARGE_BALL,
     STAR,
     CREEPER,
-    BURST
+    BURST;
+
+    public static FireworkExplosionShape fromJavaIdentifier(String identifier) {
+        for (FireworkExplosionShape shape : values()) {
+            if (shape.name().toLowerCase(Locale.ROOT).equals(identifier)) {
+                return shape;
+            }
+        }
+        return null;
+    }
 }

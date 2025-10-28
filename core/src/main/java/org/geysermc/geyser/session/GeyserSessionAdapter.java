@@ -84,12 +84,12 @@ public class GeyserSessionAdapter extends SessionAdapter {
             addedData = "";
         }
 
-        String address;
-        if (geyser.getConfig().getRemote().isForwardHost()) {
-            address = session.getClientData().getServerAddress().split(":")[0];
-        } else {
-            address = intention.getHostname();
-        }
+            String address;
+            if (geyser.getConfig().getRemote().isForwardHost()) {
+                address = session.joinAddress();
+            } else {
+                address = intention.getHostname();
+            }
 
         event.setPacket(intention.withHostname(address + addedData));
     }

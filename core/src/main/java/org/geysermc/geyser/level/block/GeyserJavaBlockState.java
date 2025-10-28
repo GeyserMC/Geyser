@@ -14,7 +14,6 @@ public class GeyserJavaBlockState implements JavaBlockState {
     boolean waterlogged;
     JavaBoundingBox[] collision;
     boolean canBreakWithHand;
-    String pickItem;
     String pistonBehavior;
 
     private GeyserJavaBlockState(Builder builder) {
@@ -25,7 +24,6 @@ public class GeyserJavaBlockState implements JavaBlockState {
         this.waterlogged = builder.waterlogged;
         this.collision = builder.collision;
         this.canBreakWithHand = builder.canBreakWithHand;
-        this.pickItem = builder.pickItem;
         this.pistonBehavior = builder.pistonBehavior;
     }
 
@@ -66,7 +64,7 @@ public class GeyserJavaBlockState implements JavaBlockState {
 
     @Override
     public @Nullable String pickItem() {
-        return pickItem;
+        return null;
     }
 
     @Override
@@ -88,7 +86,6 @@ public class GeyserJavaBlockState implements JavaBlockState {
         private boolean waterlogged;
         private JavaBoundingBox[] collision;
         private boolean canBreakWithHand;
-        private String pickItem;
         private String pistonBehavior;
 
         @Override
@@ -134,8 +131,8 @@ public class GeyserJavaBlockState implements JavaBlockState {
         }
 
         @Override
+        @Deprecated
         public Builder pickItem(@Nullable String pickItem) {
-            this.pickItem = pickItem;
             return this;
         }
 

@@ -28,6 +28,7 @@ package org.geysermc.geyser.item.hashing;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.KeybindComponent;
 import net.kyori.adventure.text.NBTComponent;
+import net.kyori.adventure.text.ObjectComponent;
 import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.SelectorComponent;
 import net.kyori.adventure.text.TextComponent;
@@ -39,6 +40,9 @@ import net.kyori.adventure.text.format.ShadowColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.object.ObjectContents;
+import net.kyori.adventure.text.object.PlayerHeadObjectContents;
+import org.geysermc.geyser.item.hashing.data.ObjectContentsType;
 
 import java.util.function.Supplier;
 
@@ -53,6 +57,17 @@ public interface ComponentHasher {
             return ACTUAL_COMPONENT;
         }
     });
+
+    MinecraftHasher<PlayerHeadObjectContents.ProfileProperty> PROFILE_PROPERTY = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("name", MinecraftHasher.STRING, PlayerHeadObjectContents.ProfileProperty::name)
+        .accept("value", MinecraftHasher.STRING, PlayerHeadObjectContents.ProfileProperty::value)
+        .accept("signature", MinecraftHasher.STRING, PlayerHeadObjectContents.ProfileProperty::signature));
+
+    MinecraftHasher<PlayerHeadObjectContents> RESOLVABLE_PROFILE = MinecraftHasher.mapBuilder(builder -> builder
+        .optionalNullable("name", MinecraftHasher.STRING, PlayerHeadObjectContents::name)
+        .optionalNullable("id", MinecraftHasher.UUID, PlayerHeadObjectContents::id)
+        .optionalList("properties", PROFILE_PROPERTY, PlayerHeadObjectContents::profileProperties)
+        .optionalNullable("texture", MinecraftHasher.KEY, PlayerHeadObjectContents::texture));
 
     MinecraftHasher<NamedTextColor> NAMED_COLOR = MinecraftHasher.STRING.cast(NamedTextColor::toString);
 
@@ -73,12 +88,21 @@ public interface ComponentHasher {
 
     MinecraftHasher<ClickEvent.Action> CLICK_EVENT_ACTION = MinecraftHasher.STRING.cast(ClickEvent.Action::toString);
 
+    MinecraftHasher<ClickEvent.Payload.Text> CLICK_EVENT_TEXT_PAYLOAD = MinecraftHasher.STRING.cast(ClickEvent.Payload.Text::value);
+
+    MinecraftHasher<ClickEvent.Payload.Int> CLICK_EVENT_INT_PAYLOAD = MinecraftHasher.INT.cast(ClickEvent.Payload.Int::integer);
+
+    // Both dialog and custom click event types are not possible to hash within Geyser, because:
+    // - Dialog has no proper implementation within Adventure yet. Once it does, we'd probably only hash dialog holders with a resource location, because setting up
+    //   hashers for the full dialog structure can be a lot of work.
+    // - Custom uses BinaryTagHolder to store NBT data, which essentially only stores a string representation. This won't work with hashing, we need a NBT tag to hash.
     MinecraftHasher<ClickEvent> CLICK_EVENT = CLICK_EVENT_ACTION.dispatch("action", ClickEvent::action, action -> switch (action) {
-        case OPEN_URL -> builder -> builder.accept("url", MinecraftHasher.STRING, ClickEvent::value);
-        case OPEN_FILE -> builder -> builder.accept("path", MinecraftHasher.STRING, ClickEvent::value);
-        case RUN_COMMAND, SUGGEST_COMMAND -> builder -> builder.accept("command", MinecraftHasher.STRING, ClickEvent::value);
-        case CHANGE_PAGE -> builder -> builder.accept("page", MinecraftHasher.STRING, ClickEvent::value);
-        case COPY_TO_CLIPBOARD -> builder -> builder.accept("value", MinecraftHasher.STRING, ClickEvent::value);
+        case OPEN_URL -> builder -> builder.accept("url", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
+        case OPEN_FILE -> builder -> builder.accept("path", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
+        case RUN_COMMAND, SUGGEST_COMMAND -> builder -> builder.accept("command", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
+        case CHANGE_PAGE -> builder -> builder.accept("page", CLICK_EVENT_INT_PAYLOAD, event -> (ClickEvent.Payload.Int) event.payload());
+        case COPY_TO_CLIPBOARD -> builder -> builder.accept("value", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
+        case SHOW_DIALOG, CUSTOM -> MapBuilder.unit();
     });
 
     MinecraftHasher<HoverEvent.Action<?>> HOVER_EVENT_ACTION = MinecraftHasher.STRING.cast(HoverEvent.Action::toString);
@@ -142,6 +166,13 @@ public interface ComponentHasher {
         .optional("interpret", MinecraftHasher.BOOL, NBTComponent::interpret, false)
         .optionalNullable("separator", COMPONENT, NBTComponent::separator)); // TODO source key, needs kyori update?
 
+    MinecraftHasher<ObjectContentsType> OBJECT_CONTENTS_TYPE = MinecraftHasher.fromEnum(ObjectContentsType::getName);
+
+    MapBuilder<ObjectContents> OBJECT_CONTENTS = MapBuilder.dispatch("object", OBJECT_CONTENTS_TYPE, ObjectContentsType::fromContents, ObjectContentsType::mapBuilder);
+
+    MinecraftHasher<ObjectComponent> OBJECT_COMPONENT = component(builder -> builder
+        .accept(OBJECT_CONTENTS, ObjectComponent::contents));
+
     MinecraftHasher<Component> ACTUAL_COMPONENT = (component, encoder) -> {
         if (component instanceof TextComponent text) {
             return TEXT_COMPONENT.hash(text, encoder);
@@ -155,8 +186,10 @@ public interface ComponentHasher {
             return SELECTOR_COMPONENT.hash(selector, encoder);
         } else if (component instanceof NBTComponent<?,?> nbt) {
             return NBT_COMPONENT.hash(nbt, encoder);
+        } else if (component instanceof ObjectComponent object) {
+            return OBJECT_COMPONENT.hash(object, encoder);
         }
-        throw new IllegalStateException("Unimplemented component hasher: " + component);
+        throw new UnsupportedOperationException("Unimplemented component hasher: " + component);
     };
 
     private static <T extends Component> MinecraftHasher<T> component(MapBuilder<T> componentBuilder) {

@@ -238,4 +238,9 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             return false;
         }
     }
+
+    @Override
+    public @NonNull String getServerPlatform() {
+        return server.getServerModName();
+    }
 }

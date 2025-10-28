@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.skin.Skin;
 import org.geysermc.geyser.api.skin.SkinData;
+import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -55,7 +56,7 @@ public class SkullSkinManager extends SkinManager {
             .build();
     }
 
-    public static void requestAndHandleSkin(SkullPlayerEntity entity, GeyserSession session,
+    public static void requestAndHandleSkin(AvatarEntity entity, GeyserSession session,
                                             Consumer<Skin> skinConsumer) {
         BiConsumer<Skin, Throwable> applySkin = (skin, throwable) -> {
             try {
@@ -77,11 +78,13 @@ public class SkullSkinManager extends SkinManager {
 
         GameProfileData data = GameProfileData.from(entity);
         if (data == null) {
-            GeyserImpl.getInstance().getLogger().debug("Using fallback skin for skull at " + entity.getSkullPosition() +
-                    " with texture value: " + entity.getTexturesProperty() + " and UUID: " + entity.getSkullUUID());
-            // No texture available, fallback using the UUID
-            SkinData fallback = SkinProvider.determineFallbackSkinData(entity.getSkullUUID());
-            applySkin.accept(fallback.skin(), null);
+            if (entity instanceof SkullPlayerEntity skullEntity) {
+                GeyserImpl.getInstance().getLogger().debug("Using fallback skin for skull at " + skullEntity.getSkullPosition() +
+                    " with texture value: " + entity.getTexturesProperty() + " and UUID: " + skullEntity.getSkullUUID());
+                // No texture available, fallback using the UUID
+                SkinData fallback = SkinProvider.determineFallbackSkinData(skullEntity.getSkullUUID());
+                applySkin.accept(fallback.skin(), null);
+            }
         } else {
             SkinProvider.requestSkin(entity.getUuid(), data.skinUrl(), true)
                     .whenCompleteAsync(applySkin);
