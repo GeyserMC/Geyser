@@ -216,7 +216,11 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     public void initialize() {
         // Setup encryption early so we don't start if we can't auth
-        EncryptionUtils.getMojangPublicKey();
+        try {
+            EncryptionUtils.getMojangPublicKey();
+        } catch (Throwable e) {
+            throw new RuntimeException("Cannot setup authentication! Are you offline? ", e);
+        }
 
         long startupTime = System.currentTimeMillis();
 

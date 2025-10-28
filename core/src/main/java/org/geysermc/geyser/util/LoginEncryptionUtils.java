@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import net.raphimc.minecraftauth.step.msa.StepMsaDeviceCode;
 import org.cloudburstmc.protocol.bedrock.data.auth.AuthPayload;
 import org.cloudburstmc.protocol.bedrock.data.auth.CertificateChainPayload;
+import org.cloudburstmc.protocol.bedrock.data.auth.TokenPayload;
 import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ServerToClientHandshakePacket;
 import org.cloudburstmc.protocol.bedrock.util.ChainValidationResult;
@@ -51,7 +52,6 @@ import org.geysermc.geyser.text.GeyserLocale;
 import javax.crypto.SecretKey;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.List;
 import java.util.function.BiConsumer;
 
 public class LoginEncryptionUtils {
@@ -81,13 +81,13 @@ public class LoginEncryptionUtils {
             long issuedAt = rawIssuedAt != null ? rawIssuedAt : -1;
 
             IdentityData extraData = result.identityClaims().extraData;
-            // TODO!!! identity won't persist
             session.setAuthData(new AuthData(extraData.displayName, extraData.identity, extraData.xuid, issuedAt));
-            if (authPayload instanceof CertificateChainPayload certificateChainPayload) {
+            if (authPayload instanceof TokenPayload tokenPayload) {
+                session.setToken(tokenPayload.getToken());
+            } else if (authPayload instanceof CertificateChainPayload certificateChainPayload) {
                 session.setCertChainData(certificateChainPayload.getChain());
             } else {
-                GeyserImpl.getInstance().getLogger().warning("Received new auth payload!");
-                session.setCertChainData(List.of());
+                GeyserImpl.getInstance().getLogger().warning("Unknown auth payload! Skin uploading will not work");
             }
 
             PublicKey identityPublicKey = result.identityClaims().parsedIdentityPublicKey();
