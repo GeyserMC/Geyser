@@ -651,7 +651,7 @@ public class ItemRegistryPopulator {
                     .customItemDefinitions(null)
                     .build();
 
-            final List<Integer> nonVanillaCustomItemIds = new ArrayList<>();
+            final IntSet nonVanillaCustomItemIds = new IntOpenHashSet();
             if (customItemsAllowed) {
                 // Add furnace minecart
                 int furnaceMinecartId = nextFreeBedrockId++;

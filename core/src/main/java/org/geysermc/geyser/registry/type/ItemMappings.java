@@ -26,6 +26,7 @@
 package org.geysermc.geyser.registry.type;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.Builder;
 import lombok.Value;
@@ -74,7 +75,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
     List<ItemDefinition> boats;
     Int2ObjectMap<String> customIdMappings;
 
-    List<Integer> nonVanillaCustomItemIds;
+    IntSet nonVanillaCustomItemIds;
 
     Object2ObjectMap<CustomBlockData, ItemDefinition> customBlockItemDefinitions;
 
