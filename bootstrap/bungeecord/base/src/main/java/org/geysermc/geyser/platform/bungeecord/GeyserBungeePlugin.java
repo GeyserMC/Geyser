@@ -134,7 +134,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             ExecutionCoordinator.simpleCoordinator(),
             sourceConverter
         );
-        this.commandRegistry = new CommandRegistry(geyser, cloud, false); // applying root permission would be a breaking change because we can't register permission defaults
+        this.commandRegistry = new CommandRegistry(geyser, cloud);
 
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
         // task that waits for a field to be filled which is set after the plugin enable
