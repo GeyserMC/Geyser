@@ -97,6 +97,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.AssetUtils;
+import org.geysermc.geyser.util.CodeOfConductManager;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.Metrics;
 import org.geysermc.geyser.util.NewsHandler;
@@ -220,7 +221,11 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     public void initialize() {
         // Setup encryption early so we don't start if we can't auth
-        EncryptionUtils.getMojangPublicKey();
+        try {
+            EncryptionUtils.getMojangPublicKey();
+        } catch (Throwable e) {
+            throw new RuntimeException("Cannot setup authentication! Are you offline? ", e);
+        }
 
         long startupTime = System.currentTimeMillis();
 
@@ -304,7 +309,10 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         if (isReloading) {
             // If we're reloading, the default locale in the config might have changed.
             GeyserLocale.finalizeDefaultLocale(this);
+        } else {
+            CodeOfConductManager.load();
         }
+
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfiguration config = bootstrap.getGeyserConfig();
 
@@ -486,7 +494,18 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             metrics.addCustomChart(new Metrics.SingleLineChart("players", sessionManager::size));
             // Prevent unwanted words best we can
             metrics.addCustomChart(new Metrics.SimplePie("authMode", () -> config.getRemote().authType().toString().toLowerCase(Locale.ROOT)));
-            metrics.addCustomChart(new Metrics.SimplePie("platform", platformType::platformName));
+
+            Map<String, Map<String, Integer>> platformTypeMap = new HashMap<>();
+            Map<String, Integer> serverPlatform = new HashMap<>();
+            serverPlatform.put(bootstrap.getServerPlatform(), 1);
+            platformTypeMap.put(platformType().platformName(), serverPlatform);
+
+            metrics.addCustomChart(new Metrics.DrilldownPie("platform", () -> {
+                // By the end, we should return, for example:
+                // Geyser-Spigot => (Paper, 1)
+                return platformTypeMap;
+            }));
+
             metrics.addCustomChart(new Metrics.SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new Metrics.SimplePie("version", () -> GeyserImpl.VERSION));
             metrics.addCustomChart(new Metrics.SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.getRemote().isUseProxyProtocol())));
@@ -524,7 +543,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             if (minecraftVersion != null) {
                 Map<String, Map<String, Integer>> versionMap = new HashMap<>();
                 Map<String, Integer> platformMap = new HashMap<>();
-                platformMap.put(platformType.platformName(), 1);
+                platformMap.put(bootstrap.getServerPlatform(), 1);
                 versionMap.put(minecraftVersion, platformMap);
 
                 metrics.addCustomChart(new Metrics.DrilldownPie("minecraftServerVersion", () -> {
@@ -691,6 +710,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);
 
         ResourcePackLoader.clear();
+        CodeOfConductManager.getInstance().save();
 
         this.setEnabled(false);
     }

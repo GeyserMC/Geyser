@@ -36,7 +36,7 @@ import java.util.Optional;
 
 public record DialogButton(String label, Optional<DialogAction> action) {
 
-    public static List<DialogButton> readList(GeyserSession session, List<NbtMap> tag, Dialog.IdGetter idGetter) {
+    public static List<DialogButton> readList(Optional<GeyserSession> session, List<NbtMap> tag, Dialog.IdGetter idGetter) {
         if (tag == null) {
             return List.of();
         }
@@ -47,7 +47,7 @@ public record DialogButton(String label, Optional<DialogAction> action) {
         return buttons;
     }
 
-    public static Optional<DialogButton> read(GeyserSession session, Object tag, Dialog.IdGetter idGetter) {
+    public static Optional<DialogButton> read(Optional<GeyserSession> session, Object tag, Dialog.IdGetter idGetter) {
         if (!(tag instanceof NbtMap map)) {
             return Optional.empty();
         }

@@ -43,6 +43,7 @@ import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.ChestType;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.ChestBlock;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -204,8 +205,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator<Con
         if (session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition())) {
             BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getLastInteractionBlockPosition());
             if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(state.javaId())) {
-                if ((state.block() == Blocks.CHEST || state.block() == Blocks.TRAPPED_CHEST)
-                    && state.getValue(Properties.CHEST_TYPE) != ChestType.SINGLE) {
+                if (state.block() instanceof ChestBlock && state.getValue(Properties.CHEST_TYPE) != ChestType.SINGLE) {
                     container.setHolderPosition(session.getLastInteractionBlockPosition());
                     container.setUsingRealBlock(true, state.block());
 

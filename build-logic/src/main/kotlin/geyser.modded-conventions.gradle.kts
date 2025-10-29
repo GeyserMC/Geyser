@@ -96,8 +96,8 @@ tasks {
 
 afterEvaluate {
     val providedDependencies = providedDependencies[project.name]!!
-    val shadedDependencies = configurations.getByName("shadowBundle")
-        .dependencies.stream().map { dependency -> "${dependency.group}:${dependency.name}" }.toList()
+    val shadedDependencies = configurations.getByName("shadowBundle").resolvedConfiguration.resolvedArtifacts.stream()
+        .map { dependency -> "${dependency.moduleVersion.id.module}" }.toList()
 
     // Now: Include all transitive dependencies that aren't excluded
     configurations["includeTransitive"].resolvedConfiguration.resolvedArtifacts.forEach { dep ->

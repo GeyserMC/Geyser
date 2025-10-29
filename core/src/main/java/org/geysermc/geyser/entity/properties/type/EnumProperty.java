@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,37 +25,40 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.api.entity.property.type.GeyserEnumEntityProperty;
+import org.geysermc.geyser.api.util.Identifier;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
-public class EnumProperty implements PropertyType {
-    private final String name;
-    private final List<String> values;
-    private final Object2IntMap<String> valueIndexMap;
+public record EnumProperty<E extends Enum<E>>(
+    Identifier identifier,
+    Class<E> enumClass,
+    E defaultValue
+) implements AbstractEnumProperty<E>, GeyserEnumEntityProperty<E> {
 
-    public EnumProperty(String name, List<String> values) {
-        this.name = name;
-        this.values = values;
-                this.valueIndexMap = new Object2IntOpenHashMap<>(values.size());
-        for (int i = 0; i < values.size(); i++) {
-            valueIndexMap.put(values.get(i), i);
-        }
+    public EnumProperty {
+        validateAllValues(identifier, Arrays.stream(enumClass.getEnumConstants()).map(value -> value.name().toLowerCase(Locale.ROOT)).toList());
+    }
+
+    public List<E> values() {
+        return List.of(enumClass.getEnumConstants());
+    }
+
+    public List<String> allBedrockValues() {
+        return values().stream().map(
+            value -> value.name().toLowerCase(Locale.ROOT)
+        ).toList();
     }
 
     @Override
-    public NbtMap nbtMap() {
-        return NbtMap.builder()
-                .putString("name", name)
-                .putList("enum", NbtType.STRING, values)
-                .putInt("type", 3)
-                .build();
+    public int indexOf(E value) {
+        return value.ordinal();
     }
 
-    public int getIndex(String value) {
-        return valueIndexMap.getOrDefault(value, -1);
+    @Override
+    public int defaultIndex() {
+        return defaultValue.ordinal();
     }
 }

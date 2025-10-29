@@ -34,7 +34,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.util.BlockEntityUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 public class FlowerPotBlock extends Block implements BedrockChunkWantsBlockEntityTag {
     private final Block flower;
@@ -76,14 +75,6 @@ public class FlowerPotBlock extends Block implements BedrockChunkWantsBlockEntit
             }
         }
         return tagBuilder.build();
-    }
-
-    @Override
-    public ItemStack pickItem(BlockState state) {
-        if (this.flower != Blocks.AIR) {
-            return new ItemStack(this.flower.asItem().javaId());
-        }
-        return super.pickItem(state);
     }
 
     public Block flower() {

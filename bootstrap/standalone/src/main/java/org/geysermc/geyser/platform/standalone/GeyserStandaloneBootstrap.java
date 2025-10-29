@@ -89,11 +89,6 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED); // Can eat performance
         }
 
-        // Restore allocator used before Netty 4.2 due to oom issues with the adaptive allocator
-        if (System.getProperty("io.netty.allocator.type") == null) {
-            System.setProperty("io.netty.allocator.type", "pooled");
-        }
-
         System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
         GeyserStandaloneLogger.setupStreams();
 
@@ -312,6 +307,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     @Override
     public BootstrapDumpInfo getDumpInfo() {
         return new GeyserStandaloneDumpInfo(this);
+    }
+
+    @Override
+    public @NonNull String getServerPlatform() {
+        return PlatformType.STANDALONE.platformName();
     }
 
     @NonNull

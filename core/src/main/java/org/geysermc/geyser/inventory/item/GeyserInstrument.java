@@ -46,9 +46,8 @@ public interface GeyserInstrument {
         NbtMap data = context.data();
         String soundEvent = SoundUtils.readSoundEvent(data, "instrument " + context.id());
         float range = data.getFloat("range");
-        String description = MessageTranslator.deserializeDescriptionForTooltip(context.session(), data);
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByJavaIdentifier(context.id());
-        return new GeyserInstrument.Impl(soundEvent, range, description, bedrockInstrument);
+        return new GeyserInstrument.Impl(soundEvent, range, context.deserializeDescription(), bedrockInstrument);
     }
 
     String soundEvent();
