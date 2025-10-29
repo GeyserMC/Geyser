@@ -826,12 +826,12 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     }
 
     @Override
-    public @NonNull String getDefaultLocale() {
+    public @NonNull String defaultLocale() {
         return GeyserLocale.getDefaultLocale();
     }
 
     @Override
-    public @NonNull String getTranslationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue) {
+    public @NonNull String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue) {
         String translation = MinecraftLocale.getLocaleStringIfPresent(key, locale);
         if (translation == null) translation = defaultValue;
 
@@ -839,8 +839,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     }
 
     @Override
-    public @NonNull String getTranslationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue, @NotNull @NonNull String... parameters) {
-        String translation = getTranslationStringOrDefault(locale, key, defaultValue);
+    public @NonNull String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue, @NotNull @NonNull String... parameters) {
+        String translation = translationStringOrDefault(locale, key, defaultValue);
         int order = 0;
         for (String parameter : parameters) {
             translation = translation.replaceFirst("%s", parameter).replace("%" + order + "$s", parameter);

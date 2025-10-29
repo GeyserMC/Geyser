@@ -166,7 +166,7 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the default locale
      */
     @NonNull
-    String getDefaultLocale();
+    String defaultLocale();
 
     /**
      * Get's the translation string associated with the key from the locale specified
@@ -175,8 +175,8 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the translated message, or the key if there is none
      */
     @NonNull
-    default String getTranslationString(@NonNull String locale, @NonNull String key) {
-        return getTranslationStringOrDefault(locale, key, key);
+    default String translationString(@NonNull String locale, @NonNull String key) {
+        return translationStringOrDefault(locale, key, key);
     }
 
     /**
@@ -187,7 +187,7 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the translated message, or the key if there is none
      */
     @NonNull
-    String getTranslationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue);
+    String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue);
 
     /**
      * Get's the translation string associated with the key from the locale specified
@@ -198,8 +198,8 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the translated message, or the key if there is none
      */
     @NonNull
-    default String getTranslationString(@NonNull String locale, @NonNull String key, @NonNull String... parameters) {
-        return getTranslationStringOrDefault(locale, key, key, parameters);
+    default String translationString(@NonNull String locale, @NonNull String key, @NonNull String... parameters) {
+        return translationStringOrDefault(locale, key, key, parameters);
     }
 
     /**
@@ -212,7 +212,7 @@ public interface GeyserApi extends GeyserApiBase {
      * @return the translated message, or the key if there is none
      */
     @NonNull
-    String getTranslationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue, @NonNull String... parameters);
+    String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue, @NonNull String... parameters);
 
     /**
      * Gets the current {@link GeyserApiBase} instance.

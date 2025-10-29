@@ -180,7 +180,7 @@ public class MinecraftLocale {
         // Load locales from extensions (the ultimate override)
         GeyserImpl.getInstance().getLanguageManager().registerTranslationStrings(new LocaleManager() {
             @Override
-            public String getLocaleCode() {
+            public String localeCode() {
                 return locale;
             }
 
@@ -195,7 +195,7 @@ public class MinecraftLocale {
             }
 
             @Override
-            public Map<String, String> getTranslationStrings() {
+            public Map<String, String> translationStrings() {
                 return Collections.unmodifiableMap(langMap);
             }
         });

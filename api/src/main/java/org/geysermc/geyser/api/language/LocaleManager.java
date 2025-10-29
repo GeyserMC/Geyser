@@ -32,7 +32,7 @@ public interface LocaleManager {
      * Get the locale code for this locale manager
      * @return the locale code
      */
-    String getLocaleCode();
+    String localeCode();
 
     /**
      * Register a translation string
@@ -52,5 +52,5 @@ public interface LocaleManager {
      * Gets all translations for this locale, the returned map is immutable
      * @return All translations for this locale
      */
-    Map<String, String> getTranslationStrings();
+    Map<String, String> translationStrings();
 }
