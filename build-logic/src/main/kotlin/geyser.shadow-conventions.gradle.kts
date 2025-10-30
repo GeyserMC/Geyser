@@ -2,11 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("geyser.base-conventions")
-    id("com.gradleup.shadow")
-}
-
-shadow {
-    addShadowVariantIntoJavaComponent = false
+    id("com.github.johnrengelman.shadow")
 }
 
 tasks {

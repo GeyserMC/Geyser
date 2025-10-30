@@ -11,7 +11,7 @@ tasks {
                 "id" to "geyser",
                 "name" to "Geyser",
                 "version" to project.version,
-                "description" to project.description as String,
+                "description" to project.description,
                 "url" to "https://geysermc.org",
                 "author" to "GeyserMC"
             )

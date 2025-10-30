@@ -59,10 +59,8 @@ dependencies {
     }
 
     // Test
-    testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation(libs.junit)
     testImplementation(libs.mockito)
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // Annotation Processors
     compileOnly(projects.ap)
@@ -110,7 +108,7 @@ fun isDevBuild(branch: String, repository: String): Boolean {
     return branch != "master" || repository.equals("https://github.com/GeyserMC/Geyser", ignoreCase = true).not()
 }
 
-class GitInfo {
+inner class GitInfo {
     val branch: String
     val commit: String
     val commitAbbrev: String
