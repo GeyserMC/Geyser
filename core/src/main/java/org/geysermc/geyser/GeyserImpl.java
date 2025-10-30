@@ -274,6 +274,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         // Replace disconnect messages whenever necessary
         eventBus.subscribe(this, SessionDisconnectEventImpl.class, SessionDisconnectListener::onSessionDisconnect);
 
+        /* Call Registry events */
+        Registries.callRegistryEvents();
+
         startInstance();
 
         GeyserConfiguration config = bootstrap.getGeyserConfig();

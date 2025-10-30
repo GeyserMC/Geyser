@@ -851,9 +851,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         biomeDefinitionListPacket.setBiomes(Registries.BIOMES.get());
         upstream.sendPacket(biomeDefinitionListPacket);
 
-        AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
-        entityPacket.setIdentifiers(Registries.BEDROCK_ENTITY_IDENTIFIERS.get());
-        upstream.sendPacket(entityPacket);
+        this.sendAvailableEntityIdentifiers();
 
         CameraPresetsPacket cameraPresetsPacket = new CameraPresetsPacket();
         cameraPresetsPacket.getPresets().addAll(CameraDefinitions.CAMERA_PRESETS);
@@ -894,8 +892,14 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // We disable the locator bar until we are certain that the server wants us to enable it
         // See WaypointCache for details
         gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
-        
+
         upstream.sendPacket(gamerulePacket);
+    }
+
+    public void sendAvailableEntityIdentifiers() {
+        AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
+        entityPacket.setIdentifiers(Registries.BEDROCK_ENTITY_IDENTIFIERS.get());
+        upstream.sendPacket(entityPacket);
     }
 
     public void authenticate(String username) {
