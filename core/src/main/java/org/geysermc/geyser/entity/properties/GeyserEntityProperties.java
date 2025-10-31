@@ -98,7 +98,7 @@ public class GeyserEntityProperties {
     }
 
     public boolean isEmpty() {
-        return properties != null && properties.isEmpty();
+        return properties == null || properties.isEmpty();
     }
 
     public int getPropertyIndex(String name) {
