@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.entity.property.type.GeyserIntEntityProperty;
 import org.geysermc.geyser.api.util.Identifier;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 public record IntProperty(
     Identifier identifier,
