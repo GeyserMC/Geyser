@@ -1981,6 +1981,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
+     * Used for getting the current protocol state in order to send packets more reliably.
+     *
+     * @return the protocol state.
+     */
+    public ProtocolState getProtocolState() {
+        return protocol.getOutboundState();
+    }
+
+    /**
      * Send a packet to the remote server.
      *
      * @param packet the java edition packet from MCProtocolLib
