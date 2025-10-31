@@ -53,7 +53,7 @@ public class GeyserEntityProperties {
     private final ObjectArrayList<PropertyType<?, ?>> properties;
     private final Object2IntMap<String> propertyIndices;
 
-    private GeyserEntityProperties() {
+    public GeyserEntityProperties() {
         this.properties = new ObjectArrayList<>();
         this.propertyIndices = new Object2IntOpenHashMap<>();
     }
