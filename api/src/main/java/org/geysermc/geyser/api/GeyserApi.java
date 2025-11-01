@@ -162,6 +162,59 @@ public interface GeyserApi extends GeyserApiBase {
     CommandSource consoleCommandSource();
 
     /**
+     * Gets the default locale used within Geyser
+     * @return the default locale
+     */
+    @NonNull
+    String defaultLocale();
+
+    /**
+     * Get's the translation string associated with the key from the locale specified
+     * @param locale the locale to use
+     * @param key the key of the translation
+     * @return the translated message, or the key if there is none
+     */
+    @NonNull
+    default String translationString(@NonNull String locale, @NonNull String key) {
+        return translationStringOrDefault(locale, key, key);
+    }
+
+    /**
+     * Get's the translation string associated with the key from the locale specified
+     * @param locale the locale to use
+     * @param key the key of the translation
+     * @param defaultValue the fallback value for this translation
+     * @return the translated message, or the key if there is none
+     */
+    @NonNull
+    String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue);
+
+    /**
+     * Get's the translation string associated with the key from the locale specified
+     * using the parameters specified
+     * @param locale the locale to use
+     * @param key the key of the translation
+     * @param parameters the parameters of the translation
+     * @return the translated message, or the key if there is none
+     */
+    @NonNull
+    default String translationString(@NonNull String locale, @NonNull String key, @NonNull String... parameters) {
+        return translationStringOrDefault(locale, key, key, parameters);
+    }
+
+    /**
+     * Get's the translation string associated with the key from the locale specified
+     * using the parameters specified
+     * @param locale the locale to use
+     * @param key the key of the translation
+     * @param defaultValue the fallback value for this translation
+     * @param parameters the parameters of the translation
+     * @return the translated message, or the key if there is none
+     */
+    @NonNull
+    String translationStringOrDefault(@NonNull String locale, @NonNull String key, @NonNull String defaultValue, @NonNull String... parameters);
+
+    /**
      * Gets the current {@link GeyserApiBase} instance.
      *
      * @return the current geyser api instance
