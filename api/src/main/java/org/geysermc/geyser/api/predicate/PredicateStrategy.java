@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,25 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.components;
+package org.geysermc.geyser.api.predicate;
 
-import org.cloudburstmc.nbt.NbtMap;
-
-import java.util.Locale;
-
-public enum WearableSlot {
-    HEAD,
-    CHEST,
-    LEGS,
-    FEET;
-
-    private final NbtMap slotNbt;
-
-    WearableSlot() {
-        this.slotNbt = NbtMap.builder().putString("slot", "slot.armor." + this.name().toLowerCase(Locale.ROOT)).build();
-    }
-
-    public NbtMap getSlotNbt() {
-        return slotNbt;
-    }
+/**
+ * Represents all possible strategies for evaluating multiple predicates.
+ */
+public enum PredicateStrategy {
+    /**
+     * Require all predicates to pass
+     */
+    AND,
+    /**
+     * Require only one of the predicates to pass
+     */
+    OR
 }
