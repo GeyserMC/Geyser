@@ -167,7 +167,7 @@ public class Entity implements GeyserEntity {
 
         this.valid = false;
 
-        this.propertyManager = definition.registeredProperties() == null ? null : new GeyserEntityPropertyManager(definition.registeredProperties());
+        this.propertyManager = definition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(definition.registeredProperties());
 
         setPosition(position);
         setAirSupply(getMaxAir());

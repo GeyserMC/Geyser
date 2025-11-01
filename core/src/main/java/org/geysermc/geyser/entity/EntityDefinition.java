@@ -161,7 +161,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             if (identifier == null && type != null) {
                 identifier = "minecraft:" + type.name().toLowerCase(Locale.ROOT);
             }
-            GeyserEntityProperties registeredProperties = propertiesBuilder == null ? null : propertiesBuilder.build();
+            GeyserEntityProperties registeredProperties = propertiesBuilder == null ? new GeyserEntityProperties() : propertiesBuilder.build();
             EntityDefinition<T> definition = new EntityDefinition<>(factory, type, identifier, width, height, offset, registeredProperties, translators);
             if (register && definition.entityType() != null) {
                 Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
