@@ -36,10 +36,12 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityProperty;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.registry.Registries;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -93,8 +95,12 @@ public class GeyserEntityProperties {
         propertyIndices.put(name, properties.size() - 1);
     }
 
+    public @NonNull Collection<GeyserEntityProperty<?>> properties() {
+        return properties == null ? List.of() : List.copyOf(properties);
+    }
+
     public @NonNull List<PropertyType<?, ?>> getProperties() {
-        return properties;
+        return properties == null ? List.of() : List.copyOf(properties);
     }
 
     public boolean isEmpty() {
