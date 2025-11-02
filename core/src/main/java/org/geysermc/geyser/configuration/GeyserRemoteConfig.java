@@ -56,7 +56,7 @@ public interface GeyserRemoteConfig extends GeyserConfig {
 
         @Override
         @Comment("""
-                Forward the hostname that the Bedrock client used to connect over to the Java server.
+                Whether to forward the hostname that the Bedrock client used to connect over to the Java server.
                 This is designed to be used for forced hosts on proxies.""")
         boolean forwardHostname();
     }

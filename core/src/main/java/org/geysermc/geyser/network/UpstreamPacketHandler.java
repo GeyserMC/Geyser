@@ -241,7 +241,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         resourcePacksInfo.getResourcePackInfos().addAll(this.resourcePackLoadEvent.infoPacketEntries());
         resourcePacksInfo.setVibrantVisualsForceDisabled(!session.isAllowVibrantVisuals());
 
-        resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().gameplay().forceResourcePacks());
+        resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().gameplay().forceResourcePacks() ||
+            GeyserImpl.getInstance().config().gameplay().enableOptionalPack());
         resourcePacksInfo.setWorldTemplateId(UUID.randomUUID());
         resourcePacksInfo.setWorldTemplateVersion("*");
         session.sendUpstreamPacket(resourcePacksInfo);
@@ -315,7 +316,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {
-        if (geyser.config().auth().savedUserLogins().contains(bedrockUsername)) {
+        if (geyser.config().savedUserLogins().contains(bedrockUsername)) {
             String authChain = geyser.authChainFor(bedrockUsername);
             if (authChain != null) {
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().name()));

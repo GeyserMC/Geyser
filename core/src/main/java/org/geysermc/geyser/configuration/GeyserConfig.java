@@ -55,23 +55,39 @@ public interface GeyserConfig {
     @Comment("Network settings for the Java server connection")
     JavaConfig java();
 
-    @Comment("Authentication configuration")
-    AuthConfig auth();
-
     @Comment("MOTD settings")
     MotdConfig motd();
 
-    @Comment("Settings affecting gameplay")
+    @Comment("Gameplay options that affect Bedrock players")
     GameplayConfig gameplay();
 
     @Comment("The default locale if we don't have the one the client requested. If set to \"system\", the system's language will be used.")
-    @NonNull
     @DefaultString(GeyserLocale.SYSTEM_LOCALE)
+    @NonNull
     String defaultLocale();
 
     @Comment("Whether player IP addresses will be logged by the server.")
     @DefaultBoolean(true)
     boolean logPlayerIpAddresses();
+
+    @Comment("""
+            For online mode authentication type only.
+            Stores a list of Bedrock player usernames that should have their Java Edition account saved after login.
+            This saves a token that can be reused to authenticate the player later. This does not save emails or passwords,
+            but you should still be cautious when adding to this list and giving others access to this Geyser instance's files.
+            Removing a name from this list will delete its cached login information on the next Geyser startup.
+            The file that tokens will be saved in is in the same folder as this config, named "saved-refresh-tokens.json".""")
+    default List<String> savedUserLogins() {
+        return List.of("ThisExampleUsernameShouldBeLongEnoughToNeverBeAnXboxUsername",
+            "ThisOtherExampleUsernameShouldAlsoBeLongEnough");
+    }
+
+    @Comment("""
+            For online mode authentication type only.
+            Specify how many seconds to wait while user authorizes Geyser to access their Microsoft account.
+            User is allowed to disconnect from the server during this period.""")
+    @DefaultNumeric(120)
+    int pendingAuthenticationTimeout();
 
     @Comment("""
             Whether to alert the console and operators that a new Geyser version is available that supports a Bedrock version
@@ -110,15 +126,15 @@ public interface GeyserConfig {
     @ConfigSerializable
     interface BedrockConfig extends BedrockListener {
         @Comment("""
-                The IP address that Geyser will bind on to listen for connections.
-                Generally, you should only uncomment and change this if you want to limit what IPs can connect to your server.""")
+                The IP address that Geyser will bind on to listen for incoming Bedrock connections.
+                Generally, you should only change this if you want to limit what IPs can connect to your server.""")
         @NonNull
         @DefaultString("0.0.0.0")
         @AsteriskSerializer.Asterisk
         String address();
 
         @Comment("""
-            The port that will listen for connections.
+            The port that will Geyser will listen on for incoming Bedrock connections.
             Since Minecraft: Bedrock Edition uses UDP, this port must allow UDP traffic.""")
         @DefaultNumeric(19132)
         @NumericRange(from = 0, to = 65535)
@@ -201,7 +217,7 @@ public interface GeyserConfig {
         @DefaultString("Another Geyser server.")
         String secondaryMotd();
 
-        @Comment("Relay the MOTD from the Java server to Bedrock players.")
+        @Comment("Whether Geyser should relay the MOTD from the Java server to Bedrock players.")
         @DefaultBoolean(true)
         boolean passthroughMotd();
 
@@ -211,12 +227,12 @@ public interface GeyserConfig {
         @DefaultNumeric(100)
         int maxPlayers();
 
-        @Comment("Relay the player count and max players from the Java server to Bedrock players.")
+        @Comment("Whether to relay the player count and max players from the Java server to Bedrock players.")
         @DefaultBoolean(true)
         boolean passthroughPlayerCounts();
 
         @Comment("""
-            Use server API methods to determine the Java server's MOTD and ping passthrough.
+            Whether to use server API methods to determine the Java server's MOTD and ping passthrough.
             There is no need to disable this unless your MOTD or player count does not appear properly.""")
         @DefaultBoolean(true)
         @PluginSpecific
@@ -230,16 +246,17 @@ public interface GeyserConfig {
     @ConfigSerializable
     interface GameplayConfig {
 
-        @Comment("The Server Name that will be sent to Minecraft: Bedrock Edition clients. This is visible in both the pause menu and the settings menu.")
+        @Comment("The server name that will be sent to Minecraft: Bedrock Edition clients. This is visible in both the pause menu and the settings menu.")
         @DefaultString("Geyser")
         String serverName();
 
-        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         @Comment("""
-            Bedrock clients can freeze when opening up the command prompt for the first time if given a lot of commands.
-            Disabling this will prevent command suggestions from being sent and solve freezing for Bedrock clients.""")
+            Whether to automatically serve the GeyserOptionalPack to all connecting players.
+            This adds some quality-of-life visual fixes for Bedrock players.
+            See https://geysermc.org/wiki/other/geyseroptionalpack for all current features.
+            If enabled, force-resource-packs will be enabled.""")
         @DefaultBoolean(true)
-        boolean commandSuggestions();
+        boolean enableOptionalPack();
 
         @Comment("""
             Allow a fake cooldown indicator to be sent. Bedrock players otherwise do not see a cooldown as they still use 1.8 combat.
@@ -251,6 +268,13 @@ public interface GeyserConfig {
             return CooldownUtils.CooldownType.TITLE;
         }
 
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+        @Comment("""
+            Bedrock clients can freeze when opening up the command prompt for the first time if given a lot of commands.
+            Disabling this will prevent command suggestions from being sent and solve freezing for Bedrock clients.""")
+        @DefaultBoolean(true)
+        boolean commandSuggestions();
+
         @Comment("Controls if coordinates are shown to players.")
         @DefaultBoolean(true)
         boolean showCoordinates();
@@ -259,31 +283,10 @@ public interface GeyserConfig {
         boolean disableBedrockScaffolding();
 
         @Comment("""
-            Whether to add any items and blocks which normally does not exist in Bedrock Edition.
-            This should only need to be disabled if using a proxy that does not use the "transfer packet" style of server switching.
-            If this is disabled, furnace minecart items will be mapped to hopper minecart items.
-            Geyser's block, item, and skull mappings systems will also be disabled.
-            This option requires a restart of Geyser in order to change its setting.""")
-        @DefaultBoolean(true)
-        boolean enableCustomContent();
-
-        @Comment("""
             Bedrock prevents building and displaying blocks above Y127 in the Nether.
             This config option works around that by changing the Nether dimension ID to the End ID.
             The main downside to this is that the entire Nether will have the same red fog rather than having different fog for each biome.""")
         boolean netherRoofWorkaround();
-
-        @Comment("""
-            Whether to forward player ping to the server. While enabling this will allow Bedrock players to have more accurate
-            ping, it may also cause players to time out more easily.""")
-        boolean forwardPlayerPing();
-
-        @Comment("""
-            Force clients to load all resource packs if there are any.
-            If set to false, it allows the user to connect to the server even if they don't
-            want to download the resource packs.""")
-        @DefaultBoolean(true)
-        boolean forceResourcePacks();
 
         @Comment("""
             The maximum number of custom skulls to be displayed per player. Increasing this may decrease performance on weaker devices.
@@ -304,53 +307,33 @@ public interface GeyserConfig {
         @DefaultString("minecraft:barrier")
         String unusableSpaceBlock();
 
+        @Comment("""
+            Whether to add any items and blocks which normally does not exist in Bedrock Edition.
+            This should only need to be disabled if using a proxy that does not use the "transfer packet" style of server switching.
+            If this is disabled, furnace minecart items will be mapped to hopper minecart items.
+            Geyser's block, item, and skull mappings systems will also be disabled.
+            This option requires a restart of Geyser in order to change its setting.""")
+        @DefaultBoolean(true)
+        boolean enableCustomContent();
+
+        @Comment("""
+            Force clients to load all resource packs if there are any.
+            If set to false, it allows the user to connect to the server even if they don't
+            want to download the resource packs.""")
+        @DefaultBoolean(true)
+        boolean forceResourcePacks();
+
+        @Comment("""
+            Whether to forward player ping to the server. While enabling this will allow Bedrock players to have more accurate
+            ping, it may also cause players to time out more easily.""")
+        boolean forwardPlayerPing();
+
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         @Comment("""
             Allows Xbox achievements to be unlocked.
             If a player types in an unknown command, they will receive a message that states cheats are disabled.
             Otherwise, commands work as expected.""")
         boolean xboxAchievementsEnabled();
-    }
-
-    @ConfigSerializable
-    interface AuthConfig {
-        // Cannot be type File yet because we may want to hide it in plugin instances.
-        @Comment("""
-        Floodgate uses encryption to ensure use from authorized sources.
-        This should point to the public key generated by Floodgate (BungeeCord, Spigot or Velocity)
-        You can ignore this when not using Floodgate.
-        If you're using a plugin version of Floodgate on the same server, the key will automatically be picked up from Floodgate.""")
-        @DefaultString("key.pem")
-        String floodgateKeyFile();
-
-        @Comment("""
-            For online mode authentication type only.
-            Stores a list of Bedrock player usernames that should have their Java Edition account saved after login.
-            This saves a token that can be reused to authenticate the player later. This does not save emails or passwords,
-            but you should still be cautious when adding to this list and giving others access to this Geyser instance's files.
-            Removing a name from this list will delete its cached login information on the next Geyser startup.
-            The file that tokens will be saved in is in the same folder as this config, named "saved-refresh-tokens.json".""")
-        default List<String> savedUserLogins() {
-            return List.of("ThisExampleUsernameShouldBeLongEnoughToNeverBeAnXboxUsername",
-                "ThisOtherExampleUsernameShouldAlsoBeLongEnough");
-        }
-
-        @Comment("""
-            For online mode authentication type only.
-            Specify how many seconds to wait while user authorizes Geyser to access their Microsoft account.
-            User is allowed to disconnect from the server during this period.""")
-        @DefaultNumeric(120)
-        int pendingAuthenticationTimeout();
-
-        @Comment("""
-        This option disables the auth step Geyser performs for connecting Bedrock players.
-        It can be used to allow connections from ProxyPass and WaterdogPE. In these cases, make sure that users
-        cannot directly connect to this Geyser instance. See https://www.spigotmc.org/wiki/firewall-guide/ for
-        assistance - and use UDP instead of TCP.
-        Disabling Xbox authentication for other use-cases is NOT SUPPORTED, as it allows anyone to spoof usernames,
-        and is therefore a security risk. All Floodgate functionality (including skin uploading and account linking) will also not work when Xbox auth is disabled.
-        """)
-        boolean disableXboxAuth();
     }
 
     @ConfigSerializable
@@ -393,6 +376,16 @@ public interface GeyserConfig {
             1400 is the default.""")
         @DefaultNumeric(1400)
         int mtu();
+
+        @Comment("""
+            This option disables the auth step Geyser performs for connecting Bedrock players.
+            It can be used to allow connections from ProxyPass and WaterdogPE. In these cases, make sure that users
+            cannot directly connect to this Geyser instance. See https://www.spigotmc.org/wiki/firewall-guide/ for
+            assistance - and use UDP instead of TCP.
+            Disabling Bedrock authentication for other use-cases is NOT SUPPORTED, as it allows anyone to spoof usernames, and is therefore a security risk.
+            All Floodgate functionality (including skin uploading and account linking) will also not work when this option is disabled.""")
+        @DefaultBoolean(true)
+        boolean validateBedrockLogin();
     }
 
     @ConfigSerializable
@@ -441,13 +434,21 @@ public interface GeyserConfig {
         int scoreboardPacketThreshold();
 
         @Comment("""
-        Whether Geyser should send team names in command suggestions.
-        Disable this if you have a lot of teams used that you don't need as suggestions.
-        """)
+            Whether Geyser should send team names in command suggestions.
+            Disable this if you have a lot of teams used that you don't need as suggestions.""")
         @DefaultBoolean(true)
         boolean addTeamSuggestions();
 
-        @Comment("Advanced networking options for the Geyser <-> Java connection")
+        // Cannot be type File yet because we may want to hide it in plugin instances.
+        @Comment("""
+            Floodgate uses encryption to ensure use from authorized sources.
+            This should point to the public key generated by Floodgate (BungeeCord, Spigot or Velocity)
+            You can ignore this when not using Floodgate.
+            If you're using a plugin version of Floodgate on the same server, the key will automatically be picked up from Floodgate.""")
+        @DefaultString("key.pem")
+        String floodgateKeyFile();
+
+        @Comment("Advanced networking options for the Geyser to Java server connection")
         AdvancedJavaConfig java();
 
         @Comment("Advanced networking options for Geyser's Bedrock listener")

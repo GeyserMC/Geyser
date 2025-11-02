@@ -215,7 +215,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     public void initialize() {
         // Setup encryption early so we don't start if we can't auth
-        if (!config().auth().disableXboxAuth()) {
+        if (config().advanced().bedrock().validateBedrockLogin()) {
             try {
                 EncryptionUtils.getMojangPublicKey();
             } catch (Throwable t) {
@@ -326,7 +326,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             logger.warning("If you do not know what this is, open the Geyser config, and set \"use-haproxy-protocol\" under the  \"advanced/java\" section to \"false\".");
         }
 
-        if (config.auth().disableXboxAuth()) {
+        if (!config.advanced().bedrock().validateBedrockLogin()) {
             logger.error("XBOX AUTHENTICATION IS DISABLED ON THIS GEYSER INSTANCE!");
             logger.error("While this allows using Bedrock edition proxies, it also opens up the ability for hackers to connect with any username they choose.");
             logger.error("To change this, set \"disable-xbox-auth\" to \"false\" in Geyser's config file.");
@@ -444,7 +444,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             logger.warning("The use-direct-connection config option is deprecated. Please reach out to us on Discord if there's a reason it needs to be disabled.");
         }
 
-        pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.auth().pendingAuthenticationTimeout());
+        pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.pendingAuthenticationTimeout());
 
         this.newsHandler = new NewsHandler(BRANCH, this.buildNumber());
 
@@ -642,7 +642,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                     logger.error("Cannot load saved user tokens!", e);
                 }
                 if (authChainFile != null) {
-                    List<String> validUsers = config.auth().savedUserLogins();
+                    List<String> validUsers = config.savedUserLogins();
                     boolean doWrite = false;
                     for (Map.Entry<String, String> entry : authChainFile.entrySet()) {
                         String user = entry.getKey();
@@ -910,7 +910,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     }
 
     public void saveAuthChain(@NonNull String bedrockName, @NonNull String authChain) {
-        if (!config().auth().savedUserLogins().contains(bedrockName)) {
+        if (!config().savedUserLogins().contains(bedrockName)) {
             // Do not save this login
             return;
         }

@@ -66,18 +66,6 @@ public class ConfigMigrations {
                 return new Object[]{"motd", "integrated-ping-passthrough"};
             })
 
-            // auth section
-            .addAction(path("floodgate-key-file"), (path, value) -> {
-                // Elimate any legacy config values
-                if ("public-key.pem".equals(value.getString())) {
-                    value.set("key.pem");
-                }
-                return new Object[]{"auth", "floodgate-key-file"};
-            })
-            .addAction(path("saved-user-logins"), moveTo("auth"))
-            .addAction(path("pending-authentication-timeout"), moveTo("auth"))
-            .addAction(path("enable-proxy-connections"), renameAndMove("auth", "disable-xbox-auth"))
-
             // gameplay
             .addAction(path("command-suggestions"), moveTo("gameplay"))
             .addAction(path("forward-player-ping"), moveTo("gameplay"))
@@ -115,13 +103,20 @@ public class ConfigMigrations {
             .addAction(path("cache-images"), moveTo("advanced"))
             .addAction(path("scoreboard-packet-threshold"), moveTo("advanced"))
             .addAction(path("add-team-suggestions"), moveTo("advanced"))
+            .addAction(path("floodgate-key-file"), (path, value) -> {
+                // Elimate any legacy config values
+                if ("public-key.pem".equals(value.getString())) {
+                    value.set("key.pem");
+                }
+                return new Object[]{"advanced", "floodgate-key-file"};
+            })
 
             // Bedrock
             .addAction(path("bedrock", "broadcast-port"), moveTo("advanced", "bedrock"))
             .addAction(path("bedrock", "compression-level"), renameAndMove("advanced", "bedrock", "compression-level"))
             .addAction(path("bedrock", "enable-proxy-protocol"), renameAndMove("advanced", "bedrock", "use-haproxy-protocol"))
             .addAction(path("bedrock", "proxy-protocol-whitelisted-ips"), renameAndMove("advanced", "bedrock", "proxy-protocol-whitelisted-ips"))
-            .addAction(path("bedrock", "mtu"), moveTo("advanced", "bedrock"))
+            .addAction(path("mtu"), moveTo("advanced", "bedrock"))
 
             // Java
             .addAction(path("remote", "use-proxy-protocol"), renameAndMove("advanced", "java", "use-haproxy-protocol"))

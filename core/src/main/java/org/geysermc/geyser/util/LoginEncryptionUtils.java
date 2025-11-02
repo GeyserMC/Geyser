@@ -66,7 +66,7 @@ public class LoginEncryptionUtils {
 
             geyser.getLogger().debug(String.format("Is player data signed? %s", result.signed()));
 
-            if (!result.signed() && !session.getGeyser().config().auth().disableXboxAuth()) {
+            if (!result.signed() && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
                 return;
             }
@@ -219,7 +219,7 @@ public class LoginEncryptionUtils {
                 .append("\n%xbox.signin.enterCode\n")
                 .append(ChatColor.GREEN)
                 .append(msCode.getUserCode());
-        int timeout = session.getGeyser().config().auth().pendingAuthenticationTimeout();
+        int timeout = session.getGeyser().config().pendingAuthenticationTimeout();
         if (timeout != 0) {
             message.append("\n\n")
                     .append(ChatColor.RESET)
