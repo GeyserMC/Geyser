@@ -773,40 +773,44 @@ public class Entity implements GeyserEntity {
     }
 
     @Override
-    public void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer) {
-        if (this.propertyManager != null) {
-            Objects.requireNonNull(consumer);
-            GeyserEntityProperties propertyDefinitions = definition.registeredProperties();
-            consumer.accept(new BatchPropertyUpdater() {
-                @Override
-                public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
-                    Objects.requireNonNull(property, "property must not be null!");
-                    if (!(property instanceof PropertyType<T, ? extends EntityProperty> propertyType)) {
-                        throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
-                    }
-                    int index = propertyDefinitions.getPropertyIndex(property.identifier().toString());
-                    if (index < 0) {
-                        throw new IllegalArgumentException("No property with the name " + property.identifier() + " has been registered.");
-                    }
+    public void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer, boolean immediate) {
+        if (this.propertyManager == null) {
+            throw new IllegalArgumentException("Given entity has no registered properties!");
+        }
 
-                    var expectedProperty = propertyDefinitions.getProperties().get(index);
-                    if (!expectedProperty.equals(propertyType)) {
-                        throw new IllegalArgumentException("The supplied property was not registered with this entity type!");
-                    }
-
-                    propertyType.apply(propertyManager, value);
+        Objects.requireNonNull(consumer);
+        GeyserEntityProperties propertyDefinitions = definition.registeredProperties();
+        consumer.accept(new BatchPropertyUpdater() {
+            @Override
+            public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
+                Objects.requireNonNull(property, "property must not be null!");
+                if (!(property instanceof PropertyType<T, ? extends EntityProperty> propertyType)) {
+                    throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
                 }
-            });
+                int index = propertyDefinitions.getPropertyIndex(property.identifier().toString());
+                if (index < 0) {
+                    throw new IllegalArgumentException("No property with the name " + property.identifier() + " has been registered.");
+                }
 
-            if (propertyManager.hasProperties()) {
-                SetEntityDataPacket packet = new SetEntityDataPacket();
-                packet.setRuntimeEntityId(getGeyserId());
-                propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
-                propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
+                var expectedProperty = propertyDefinitions.getProperties().get(index);
+                if (!expectedProperty.equals(propertyType)) {
+                    throw new IllegalArgumentException("The supplied property was not registered with this entity type!");
+                }
+
+                propertyType.apply(propertyManager, value);
+            }
+        });
+
+        if (propertyManager.hasProperties()) {
+            SetEntityDataPacket packet = new SetEntityDataPacket();
+            packet.setRuntimeEntityId(getGeyserId());
+            propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
+            propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
+            if (immediate) {
+                session.sendUpstreamPacketImmediately(packet);
+            } else {
                 session.sendUpstreamPacket(packet);
             }
-        } else {
-            throw new IllegalArgumentException("Given entity has no registered properties!");
         }
     }
 }
