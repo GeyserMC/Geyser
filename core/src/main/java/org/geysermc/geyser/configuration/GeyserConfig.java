@@ -289,17 +289,6 @@ public interface GeyserConfig {
         boolean netherRoofWorkaround();
 
         @Comment("""
-            The maximum number of custom skulls to be displayed per player. Increasing this may decrease performance on weaker devices.
-            A value of 0 will disable all custom skulls.
-            Setting this to -1 will cause all custom skulls to be displayed regardless of distance or number.""")
-        @DefaultNumeric(128)
-        int maxVisibleCustomSkulls();
-
-        @Comment("The radius in blocks around the player in which custom skulls are displayed.")
-        @DefaultNumeric(32)
-        int customSkullRenderDistance();
-
-        @Comment("""
             Which item to use to mark unavailable slots in a Bedrock player inventory. Examples of this are the 2x2 crafting grid while in creative,
             or custom inventory menus with sizes different from the usual 3x9. A barrier block is the default item.
             This config option can be set to any Bedrock item identifier. If you want to set this to a custom item, make sure that you specify the item in the following format: "geyser_custom:<mapping-name>"
@@ -334,6 +323,17 @@ public interface GeyserConfig {
             If a player types in an unknown command, they will receive a message that states cheats are disabled.
             Otherwise, commands work as expected.""")
         boolean xboxAchievementsEnabled();
+
+        @Comment("""
+            The maximum number of custom skulls to be displayed per player. Increasing this may decrease performance on weaker devices.
+            A value of 0 will disable all custom skulls.
+            Setting this to -1 will cause all custom skulls to be displayed regardless of distance or number.""")
+        @DefaultNumeric(128)
+        int maxVisibleCustomSkulls();
+
+        @Comment("The radius in blocks around the player in which custom skulls are displayed.")
+        @DefaultNumeric(32)
+        int customSkullRenderDistance();
     }
 
     @ConfigSerializable
