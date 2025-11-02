@@ -477,10 +477,6 @@ public class SessionPlayerEntity extends PlayerEntity {
             this.vehicle.updateBedrockMetadata();
         }
 
-        // Bedrock player can dismount by pressing jump while Java cannot, so we need to prevent player from jumping to match vanilla behaviour.
-        this.session.setLockInput(InputLocksFlag.JUMP, entity != null && entity.doesJumpDismount());
-        this.session.updateInputLocks();
-
         super.setVehicle(entity);
     }
   

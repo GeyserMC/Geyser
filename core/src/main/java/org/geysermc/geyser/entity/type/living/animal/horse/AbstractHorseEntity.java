@@ -86,17 +86,6 @@ public class AbstractHorseEntity extends AnimalEntity {
         // Shows the jump meter
         setFlag(EntityFlag.CAN_POWER_JUMP, saddled);
         super.updateSaddled(saddled);
-
-        if (this.passengers.contains(session.getPlayerEntity())) {
-            // We want to allow player to press jump again if pressing jump doesn't dismount the entity.
-            this.session.setLockInput(InputLocksFlag.JUMP, this.doesJumpDismount());
-            this.session.updateInputLocks();
-        }
-    }
-
-    @Override
-    public boolean doesJumpDismount() {
-        return !this.getFlag(EntityFlag.SADDLED);
     }
 
     public void setHorseFlags(ByteEntityMetadata entityMetadata) {
