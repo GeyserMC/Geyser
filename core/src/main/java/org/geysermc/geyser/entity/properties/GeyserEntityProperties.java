@@ -94,7 +94,7 @@ public class GeyserEntityProperties {
     }
 
     public @NonNull List<PropertyType<?, ?>> getProperties() {
-        return properties;
+        return properties == null ? List.of() : properties;
     }
 
     public boolean isEmpty() {
