@@ -1334,7 +1334,7 @@ public final class EntityDefinitions {
                 if (definition == null) {
                     throw new IllegalArgumentException("Unknown entity type: " + identifier);
                 }
-                return definition.registeredProperties().properties();
+                return List.copyOf(definition.registeredProperties().getProperties());
             }
         });
 
