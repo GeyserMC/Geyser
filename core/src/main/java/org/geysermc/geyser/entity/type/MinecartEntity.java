@@ -212,8 +212,8 @@ public class MinecartEntity extends Entity implements Tickable {
 
     @Override
     public boolean doesJumpDismount() {
-        // This is misleading because jumping is literally the only way to dismount for Touch users.
-        // Therefore, do this so we won't lock jumping, prevent Touch user from getting out.
+        // This is a little bit misleading because jumping is literally the only way to dismount for Touch users.
+        // Therefore, do this so we won't lock jumping to let Touch user able to dismount.
         return false;
     }
 
