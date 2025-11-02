@@ -339,7 +339,7 @@ public interface GeyserConfig {
             For online mode authentication type only.
             Specify how many seconds to wait while user authorizes Geyser to access their Microsoft account.
             User is allowed to disconnect from the server during this period.""")
-        @DefaultNumeric(128)
+        @DefaultNumeric(120)
         int pendingAuthenticationTimeout();
 
         @Comment("""
