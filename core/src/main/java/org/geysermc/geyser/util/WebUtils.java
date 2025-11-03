@@ -109,14 +109,24 @@ public class WebUtils {
      * @param fileLocation Location to save on disk
      */
     public static void downloadFile(String reqURL, String fileLocation) {
+        downloadFile(reqURL, Paths.get(fileLocation));
+    }
+
+    /**
+     * Downloads a file from the given URL and saves it to disk
+     *
+     * @param reqURL File to fetch
+     * @param path Location to save on disk as a path
+     */
+    public static void downloadFile(String reqURL, Path path) {
         try {
             HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
             con.setRequestProperty("User-Agent", getUserAgent());
             checkResponseCode(con);
             InputStream in = con.getInputStream();
-            Files.copy(in, Paths.get(fileLocation), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
-            throw new RuntimeException("Unable to download and save file: " + fileLocation + " (" + reqURL + ")", e);
+            throw new RuntimeException("Unable to download and save file: " + path.toAbsolutePath() + " (" + reqURL + ")", e);
         }
     }
 
