@@ -23,43 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.properties.type;
+package org.geysermc.geyser.input;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.entity.property.type.GeyserEnumEntityProperty;
-import org.geysermc.geyser.api.util.Identifier;
+import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+// This is taken from (https://gist.github.com/wan-adrian/e919b46be3889d865801eb8883407587) or (https://github.com/PowerNukkitX/PowerNukkitX/blob/master/src/main/java/cn/nukkit/network/protocol/types/ClientInputLocksFlag.java)
+@RequiredArgsConstructor
+@Getter
+public enum InputLocksFlag {
+    RESET(0),
+    CAMERA(2),
+    MOVEMENT(4),
+    LATERAL_MOVEMENT(16),
+    SNEAK(32),
+    JUMP(64),
+    MOUNT(128),
+    DISMOUNT(256),
+    MOVE_FORWARD(512),
+    MOVE_BACKWARD(1024),
+    MOVE_LEFT(2048),
+    MOVE_RIGHT(4096);
 
-public record EnumProperty<E extends Enum<E>>(
-    Identifier identifier,
-    Class<E> enumClass,
-    @NonNull E defaultValue
-) implements AbstractEnumProperty<E>, GeyserEnumEntityProperty<E> {
-
-    public EnumProperty {
-        validateAllValues(identifier, Arrays.stream(enumClass.getEnumConstants()).map(value -> value.name().toLowerCase(Locale.ROOT)).toList());
-    }
-
-    public List<E> values() {
-        return List.of(enumClass.getEnumConstants());
-    }
-
-    public List<String> allBedrockValues() {
-        return values().stream().map(
-            value -> value.name().toLowerCase(Locale.ROOT)
-        ).toList();
-    }
-
-    @Override
-    public int indexOf(E value) {
-        return value.ordinal();
-    }
-
-    @Override
-    public int defaultIndex() {
-        return defaultValue.ordinal();
-    }
+    private final int offset;
 }

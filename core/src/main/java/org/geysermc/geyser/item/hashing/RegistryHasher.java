@@ -304,7 +304,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<ConsumeEffectType> CONSUME_EFFECT_TYPE = enumRegistry();
 
-    MinecraftHasher<ConsumeEffect> CONSUME_EFFECT = CONSUME_EFFECT_TYPE.dispatch(ConsumeEffectType::fromEffect, type -> type.getBuilder().cast());
+    MinecraftHasher<ConsumeEffect> CONSUME_EFFECT = CONSUME_EFFECT_TYPE.dispatch(ConsumeEffectType::fromEffect, ConsumeEffectType::mapBuilder);
 
     MinecraftHasher<SuspiciousStewEffect> SUSPICIOUS_STEW_EFFECT = MinecraftHasher.mapBuilder(builder -> builder
         .accept("id", EFFECT_ID, SuspiciousStewEffect::getMobEffectId)
@@ -351,7 +351,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<BeehiveOccupant> BEEHIVE_OCCUPANT = MinecraftHasher.mapBuilder(builder -> builder
         .accept("id", RegistryHasher.ENTITY_TYPE_KEY, beehiveOccupant -> beehiveOccupant.getEntityData().type())
-        .inlineNbt(beehiveOccupant -> beehiveOccupant.getEntityData().tag())
+        .accept(beehiveOccupant -> beehiveOccupant.getEntityData().tag(), MapBuilder.inlineNbtMap())
         .accept("ticks_in_hive", INT, BeehiveOccupant::getTicksInHive)
         .accept("min_ticks_in_hive", INT, BeehiveOccupant::getMinTicksInHive));
 
@@ -361,7 +361,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
      * @param registry the registry to create a hasher for.
      */
     static RegistryHasher<?> registry(JavaRegistryKey<?> registry) {
-        MinecraftHasher<Integer> hasher = KEY.sessionCast(registry::key);
+        MinecraftHasher<Integer> hasher = KEY.registryCast(registry::key);
         return hasher::hash;
     }
 

@@ -118,14 +118,20 @@ public class InventoryUtils {
      */
     public static void openPendingInventory(GeyserSession session) {
         InventoryHolder<?> holder = session.getInventoryHolder();
-        if (holder == null || !holder.pending()) {
+        if (holder == null) {
             session.setPendingOrCurrentBedrockInventoryId(-1);
             GeyserImpl.getInstance().getLogger().debug(session, "No pending inventory, not opening an inventory! Current inventory: %s", debugInventory(holder));
             return;
         }
 
         // Current inventory isn't null! Let's see if we need to open it.
-        if (holder.inventory().getBedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
+        if (holder.bedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
+            // Don't re-open an inventory that is already open
+            if (!holder.pending() && holder.inventory().isDisplayed()) {
+                GeyserImpl.getInstance().getLogger().debug("Container with id %s is not pending and already displayed!".formatted(holder.bedrockId()));
+                return;
+            }
+
             GeyserImpl.getInstance().getLogger().debug(session, "Attempting to open currently delayed inventory with matching bedrock id! " + holder.bedrockId());
             openAndUpdateInventory(holder);
             return;

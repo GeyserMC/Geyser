@@ -126,11 +126,6 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     }
 
     @Override
-    public PacketSignal handle(CraftingEventPacket packet) {
-        return defaultHandler(packet);
-    }
-
-    @Override
     public PacketSignal handle(EntityEventPacket packet) {
         return defaultHandler(packet);
     }
@@ -162,11 +157,6 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
 
     @Override
     public PacketSignal handle(InventoryTransactionPacket packet) {
-        return defaultHandler(packet);
-    }
-
-    @Override
-    public PacketSignal handle(ItemFrameDropItemPacket packet) {
         return defaultHandler(packet);
     }
 

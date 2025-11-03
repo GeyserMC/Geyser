@@ -167,7 +167,7 @@ public class Entity implements GeyserEntity {
 
         this.valid = false;
 
-        this.propertyManager = definition.registeredProperties() == null ? null : new GeyserEntityPropertyManager(definition.registeredProperties());
+        this.propertyManager = definition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(definition.registeredProperties());
 
         setPosition(position);
         setAirSupply(getMaxAir());
@@ -613,6 +613,14 @@ public class Entity implements GeyserEntity {
      */
     protected boolean isShaking() {
         return false;
+    }
+    /**
+     * If true, the entity can be dismounted by pressing jump.
+     *
+     * @return whether the entity can be dismounted when pressing jump.
+     */
+    public boolean doesJumpDismount() {
+        return true;
     }
 
     /**

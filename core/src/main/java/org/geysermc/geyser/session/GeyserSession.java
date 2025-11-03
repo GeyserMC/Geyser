@@ -111,6 +111,7 @@ import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
+import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
@@ -232,6 +233,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -268,6 +270,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private List<String> certChainData;
+    @Setter
+    private String token;
 
     @NonNull
     @Setter
@@ -743,6 +747,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Accessors(fluent = true)
     private boolean hasAcceptedCodeOfConduct = false;
+
+    private final Set<InputLocksFlag> inputLocksSet = EnumSet.noneOf(InputLocksFlag.class);
+    private boolean inputLockDirty;
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
@@ -2369,23 +2376,31 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         entities().showEmote(emoter, emoteId);
     }
 
-    public void lockInputs(boolean camera, boolean movement) {
+    public void setLockInput(InputLocksFlag flag, boolean value) {
+        this.inputLockDirty |= value ? this.inputLocksSet.add(flag) : this.inputLocksSet.remove(flag);
+    }
+
+    public void updateInputLocks() {
+        if (!this.inputLockDirty) {
+            return;
+        }
+        this.inputLockDirty = false;
+
         UpdateClientInputLocksPacket packet = new UpdateClientInputLocksPacket();
-        final int cameraOffset = 1 << 1;
-        final int movementOffset = 1 << 2;
 
         int result = 0;
-        if (camera) {
-            result |= cameraOffset;
-        }
-        if (movement) {
-            result |= movementOffset;
+        for (InputLocksFlag other : this.inputLocksSet) {
+            result |= other.getOffset();
         }
 
         packet.setLockComponentData(result);
         packet.setServerPosition(this.playerEntity.getPosition());
 
         sendUpstreamPacket(packet);
+    }
+
+    public boolean getLockedInput(InputLocksFlag flag) {
+        return this.inputLocksSet.contains(flag);
     }
 
     @Override

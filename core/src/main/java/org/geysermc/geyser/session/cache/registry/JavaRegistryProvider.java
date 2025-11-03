@@ -23,43 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.properties.type;
+package org.geysermc.geyser.session.cache.registry;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.entity.property.type.GeyserEnumEntityProperty;
-import org.geysermc.geyser.api.util.Identifier;
+@FunctionalInterface
+public interface JavaRegistryProvider {
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-
-public record EnumProperty<E extends Enum<E>>(
-    Identifier identifier,
-    Class<E> enumClass,
-    @NonNull E defaultValue
-) implements AbstractEnumProperty<E>, GeyserEnumEntityProperty<E> {
-
-    public EnumProperty {
-        validateAllValues(identifier, Arrays.stream(enumClass.getEnumConstants()).map(value -> value.name().toLowerCase(Locale.ROOT)).toList());
-    }
-
-    public List<E> values() {
-        return List.of(enumClass.getEnumConstants());
-    }
-
-    public List<String> allBedrockValues() {
-        return values().stream().map(
-            value -> value.name().toLowerCase(Locale.ROOT)
-        ).toList();
-    }
-
-    @Override
-    public int indexOf(E value) {
-        return value.ordinal();
-    }
-
-    @Override
-    public int defaultIndex() {
-        return defaultValue.ordinal();
-    }
+    <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey);
 }

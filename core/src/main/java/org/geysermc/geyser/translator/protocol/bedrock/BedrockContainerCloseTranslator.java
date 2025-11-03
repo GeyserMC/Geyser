@@ -61,6 +61,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
             } else if (holder.bedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
                 // If virtual inventories are opened too quickly, they can be occasionally rejected
                 // We just try and queue a new one.
+                holder.inventory().setDisplayed(false);
                 // Before making another attempt to re-open, let's make sure we actually need this inventory open.
                 if (holder.containerOpenAttempts() < 7) {
                     holder.incrementContainerOpenAttempts();

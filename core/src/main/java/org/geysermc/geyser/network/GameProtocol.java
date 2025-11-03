@@ -33,6 +33,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
 import org.cloudburstmc.protocol.bedrock.codec.v819.Bedrock_v819;
 import org.cloudburstmc.protocol.bedrock.codec.v827.Bedrock_v827;
 import org.cloudburstmc.protocol.bedrock.codec.v844.Bedrock_v844;
+import org.cloudburstmc.protocol.bedrock.codec.v859.Bedrock_v859;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
@@ -86,7 +87,8 @@ public final class GameProtocol {
         register(Bedrock_v818.CODEC, "1.21.90", "1.21.91", "1.21.92");
         register(Bedrock_v819.CODEC, "1.21.93", "1.21.94");
         register(Bedrock_v827.CODEC, "1.21.100", "1.21.101");
-        register(Bedrock_v844.CODEC, "1.21.111", "1.21.112", "1.21.113");
+        register(Bedrock_v844.CODEC, "1.21.111", "1.21.112", "1.21.113", "1.21.114");
+        register(Bedrock_v859.CODEC, "1.21.120");
 
         MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.get(SUPPORTED_BEDROCK_VERSIONS.size() - 1);
         DEFAULT_BEDROCK_VERSION = latestBedrock.versionString();

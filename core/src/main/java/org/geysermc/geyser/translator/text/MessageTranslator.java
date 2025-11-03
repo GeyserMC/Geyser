@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.text;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -513,11 +514,15 @@ public class MessageTranslator {
         return convertMessageForTooltip(parsed, session.locale());
     }
 
-    public static @Nullable String convertFromNullableNbtTag(GeyserSession session, @Nullable Object nbtTag) {
+    /**
+     * Should only be used by {@link org.geysermc.geyser.session.cache.RegistryCache.RegistryReader}s, as these do not always have a {@link GeyserSession} available.
+     */
+    public static @Nullable String convertFromNullableNbtTag(Optional<GeyserSession> session, @Nullable Object nbtTag) {
         if (nbtTag == null) {
             return null;
         }
-        return convertMessage(session, componentFromNbtTag(nbtTag));
+        return session.map(present -> convertMessage(present, componentFromNbtTag(nbtTag)))
+            .orElse("MISSING GEYSER SESSION");
     }
 
     public static Component componentFromNbtTag(Object nbtTag) {
