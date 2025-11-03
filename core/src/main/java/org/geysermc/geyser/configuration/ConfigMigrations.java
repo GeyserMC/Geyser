@@ -113,15 +113,15 @@ public class ConfigMigrations {
 
             // Bedrock
             .addAction(path("bedrock", "broadcast-port"), moveTo("advanced", "bedrock"))
-            .addAction(path("bedrock", "compression-level"), renameAndMove("advanced", "bedrock", "compression-level"))
+            .addAction(path("bedrock", "compression-level"), moveTo("advanced", "bedrock"))
             .addAction(path("bedrock", "enable-proxy-protocol"), renameAndMove("advanced", "bedrock", "use-haproxy-protocol"))
-            .addAction(path("bedrock", "proxy-protocol-whitelisted-ips"), renameAndMove("advanced", "bedrock", "proxy-protocol-whitelisted-ips"))
+            .addAction(path("bedrock", "proxy-protocol-whitelisted-ips"), renameAndMove("advanced", "bedrock", "haproxy-protocol-whitelisted-ips"))
             .addAction(path("mtu"), moveTo("advanced", "bedrock"))
 
             // Java
             .addAction(path("remote", "use-proxy-protocol"), renameAndMove("advanced", "java", "use-haproxy-protocol"))
-            .addAction(path("disable-compression"), renameAndMove("advanced", "java", "disable-compression"))
-            .addAction(path("use-direct-connection"), renameAndMove("advanced", "java", "use-direct-connection"))
+            .addAction(path("disable-compression"), moveTo("advanced", "java"))
+            .addAction(path("use-direct-connection"), moveTo("advanced", "java"))
 
             // Other
             .addAction(path("default-locale"), (path, value) -> {

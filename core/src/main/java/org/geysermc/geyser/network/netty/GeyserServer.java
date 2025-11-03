@@ -169,7 +169,7 @@ public final class GeyserServer {
             channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
         }
 
-        boolean isWhitelistedProxyProtocol = isProxyProtocol && !this.geyser.config().advanced().bedrock().proxyProtocolWhitelistedIps().isEmpty();
+        boolean isWhitelistedProxyProtocol = isProxyProtocol && !this.geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps().isEmpty();
         if (Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false")) || isWhitelistedProxyProtocol) {
             // We would already block any non-whitelisted IP addresses in onConnectionRequest so we can remove the rate limiter
             channel.pipeline().remove(RakServerRateLimiter.NAME);
@@ -242,7 +242,7 @@ public final class GeyserServer {
     }
 
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
-        List<String> allowedProxyIPs = geyser.config().advanced().bedrock().proxyProtocolWhitelistedIps();
+        List<String> allowedProxyIPs = geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps();
         if (geyser.config().advanced().bedrock().useHaproxyProtocol() && !allowedProxyIPs.isEmpty()) {
             boolean isWhitelistedIP = false;
             for (CIDRMatcher matcher : getWhitelistedIPsMatchers()) {
@@ -392,7 +392,7 @@ public final class GeyserServer {
     private List<CIDRMatcher> whitelistedIPsMatchers = null;
 
     /**
-     * @return Unmodifiable list of {@link CIDRMatcher}s from {@link GeyserConfig.AdvancedBedrockConfig#proxyProtocolWhitelistedIps()}
+     * @return Unmodifiable list of {@link CIDRMatcher}s from {@link GeyserConfig.AdvancedBedrockConfig#haproxyProtocolWhitelistedIps()}
      */
     public List<CIDRMatcher> getWhitelistedIPsMatchers() {
         // Effective Java, Third Edition; Item 83: Use lazy initialization judiciously
@@ -401,7 +401,7 @@ public final class GeyserServer {
             synchronized (this) {
                 // Check if proxyProtocolWhitelistedIPs contains URLs we need to fetch and parse by line
                 List<String> whitelistedCIDRs = new ArrayList<>();
-                for (String ip: geyser.config().advanced().bedrock().proxyProtocolWhitelistedIps()) {
+                for (String ip: geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()) {
                     if (!ip.startsWith("http")) {
                         whitelistedCIDRs.add(ip);
                         continue;

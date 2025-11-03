@@ -201,7 +201,7 @@ advanced:
     # should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
     # Keeping this list empty means there is no IP address whitelist.
     # IP addresses, subnets, and links to plain text files are supported.
-    proxy-protocol-whitelisted-ips: []
+    haproxy-protocol-whitelisted-ips: []
 
     # The internet supports a maximum MTU of 1492 but could cause issues with packet fragmentation.
     # 1400 is the default.

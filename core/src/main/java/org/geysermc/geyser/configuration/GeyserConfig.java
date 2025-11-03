@@ -367,7 +367,7 @@ public interface GeyserConfig {
                 should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
                 Keeping this list empty means there is no IP address whitelist.
                 IP addresses, subnets, and links to plain text files are supported.""")
-        default List<String> proxyProtocolWhitelistedIps() {
+        default List<String> haproxyProtocolWhitelistedIps() {
             return Collections.emptyList();
         }
 
