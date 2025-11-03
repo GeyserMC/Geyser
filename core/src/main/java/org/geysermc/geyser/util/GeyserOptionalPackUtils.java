@@ -36,8 +36,11 @@ import org.geysermc.geyser.api.pack.option.PriorityOption;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 
 public class GeyserOptionalPackUtils {
+
+    private static final UUID PACK_UUID = UUID.fromString("e5f5c938-a701-11eb-b2a3-047d7bb283ba");
 
     private static final Path CACHE = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache");
     private static final Path PACK_PATH = CACHE.resolve("GeyserOptionalPack.mcpack");
@@ -47,6 +50,11 @@ public class GeyserOptionalPackUtils {
 
     @Getter
     private static boolean optionalPackLoaded = false;
+
+    public static boolean isGeyserOptionalPack(ResourcePack resourcePack) {
+        return resourcePack.uuid().equals(PACK_UUID) &&
+                resourcePack.manifest().header().name().equals("GeyserOptionalPack");
+    }
 
     public static void register(GeyserDefineResourcePacksEvent event) {
         GeyserImpl geyser = GeyserImpl.getInstance();

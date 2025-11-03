@@ -43,8 +43,10 @@ import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.pack.option.OptionHolder;
+import org.geysermc.geyser.pack.url.GeyserUrlPackCodec;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.GeyserOptionalPackUtils;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -103,9 +105,22 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
             throw new ResourcePackException(ResourcePackException.Cause.UNKNOWN_IMPLEMENTATION);
         }
 
+        GeyserImpl geyser = session.getGeyser();
+
         UUID uuid = resourcePack.uuid();
         if (packs.containsKey(uuid)) {
-            throw new ResourcePackException(ResourcePackException.Cause.DUPLICATE);
+            if (geyser.config().gameplay().enableOptionalPack() && GeyserOptionalPackUtils.isGeyserOptionalPack(resourcePack)) {
+                if (resourcePack.codec() instanceof GeyserUrlPackCodec) {
+                    packs.remove(uuid);
+                } else {
+                    geyser.getLogger().warning("An extension has attempted to register the GeyserOptionalPack! " +
+                            "Geyser is currently configured to include this pack by default, " +
+                            "and will prioitize it's own, extensions should no longer include the GeyserOptionalPack by default.");
+                    return;
+                }
+            } else {
+                throw new ResourcePackException(ResourcePackException.Cause.DUPLICATE);
+            }
         }
 
         attemptRegisterOptions(pack, options);

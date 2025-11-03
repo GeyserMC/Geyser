@@ -28,12 +28,15 @@ package org.geysermc.geyser.event.type;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.ResourcePackHolder;
+import org.geysermc.geyser.pack.url.GeyserUrlPackCodec;
+import org.geysermc.geyser.util.GeyserOptionalPackUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -61,9 +64,22 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
             throw new ResourcePackException(ResourcePackException.Cause.UNKNOWN_IMPLEMENTATION);
         }
 
+        GeyserImpl geyser = GeyserImpl.getInstance();
+
         UUID uuid = resourcePack.uuid();
         if (packs.containsKey(uuid)) {
-            throw new ResourcePackException(ResourcePackException.Cause.DUPLICATE);
+            if (geyser.config().gameplay().enableOptionalPack() && GeyserOptionalPackUtils.isGeyserOptionalPack(resourcePack)) {
+                if (resourcePack.codec() instanceof GeyserUrlPackCodec) {
+                    packs.remove(uuid);
+                } else {
+                    geyser.getLogger().warning("An extension has attempted to register the GeyserOptionalPack! " +
+                            "Geyser is currently configured to include this pack by default, " +
+                            "and will prioitize it's own, extensions should no longer include the GeyserOptionalPack by default.");
+                    return;
+                }
+            } else {
+                throw new ResourcePackException(ResourcePackException.Cause.DUPLICATE);
+            }
         }
 
         ResourcePackHolder holder = ResourcePackHolder.of(pack);
