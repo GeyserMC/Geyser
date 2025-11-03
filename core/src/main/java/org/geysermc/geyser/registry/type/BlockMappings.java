@@ -31,13 +31,16 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.Builder;
 import lombok.Value;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.List;
 import java.util.Map;
@@ -68,6 +71,7 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
     BlockDefinition netherPortalBlock;
 
     IntArrayList collisionIgnoredBlocks;
+    IntArrayList furnitureBlocks;
 
     Map<NbtMap, BlockDefinition> itemFrames;
     Map<Block, NbtMap> flowerPotBlocks;
@@ -78,6 +82,16 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
     List<BlockPropertyData> blockProperties;
     Object2ObjectMap<CustomBlockState, GeyserBedrockBlock> customBlockStateDefinitions;
     Int2ObjectMap<GeyserBedrockBlock> extendedCollisionBoxes;
+
+    public int getBedrockBlockId(GeyserSession session, Vector3i pos, int javaState) {
+        if (furnitureBlocks.contains(javaState)) {
+            var furnitureBlock = session.getGeyser().getWorldManager().getBedrockIdOverride(session, pos.getX(), pos.getY(), pos.getZ());
+            if (furnitureBlock != -1) {
+                return furnitureBlock;
+            }
+        }
+        return getBedrockBlockId(javaState);
+    }
 
     public int getBedrockBlockId(int javaState) {
         return getBedrockBlock(javaState).getRuntimeId();

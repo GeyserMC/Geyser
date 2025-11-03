@@ -174,7 +174,8 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
                         int javaId = javaData.get(yzx);
                         BlockState state = BlockState.of(javaId);
-                        int bedrockId = session.getBlockMappings().getBedrockBlockId(javaId);
+                        var realBlockPos = ChunkUtil.getRealWorldBlockPos(packet.getX(), packet.getZ(), yzx);
+                        int bedrockId = session.getBlockMappings().getBedrockBlockId(session, realBlockPos, javaId);
                         int xzy = indexYZXtoXZY(yzx);
                         section.getBlockStorageArray()[0].setFullBlock(xzy, bedrockId);
 
@@ -365,6 +366,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                                 bedrockData.set(xzy, layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY)));
                             }
                             EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0, sectionY);
+                            ChunkUtil.modifyPallete(javaData, javaPalette, session, sectionY, yOffset, packet, bedrockData, layer0);
                             continue;
                         }
                         BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes()
@@ -385,6 +387,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
                 }
 
+                ChunkUtil.modifyPallete(javaData, javaPalette, session, sectionY, yOffset, packet, bedrockData, layer0);
                 sections[bedrockSectionY] = new GeyserChunkSection(layers, subChunkIndex);
                 extendedCollisionNextSection = thisExtendedCollisionNextSection;
             }

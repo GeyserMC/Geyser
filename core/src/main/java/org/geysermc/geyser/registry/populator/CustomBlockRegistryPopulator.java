@@ -25,6 +25,10 @@
 
 package org.geysermc.geyser.registry.populator;
 
+import com.gardensmc.gardensfurniture.GardensFurniture;
+import com.gardensmc.gardensfurniture.custom.block.CustomBlock;
+import com.gardensmc.gardensfurniture.custom.item.CustomPlaceableItem;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -42,9 +46,11 @@ import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
+import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions.Face;
+import org.geysermc.geyser.api.block.custom.component.TransformationComponent;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
@@ -62,6 +68,7 @@ import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
+import org.geysermc.geyser.registry.populator.conversion.FurnitureItemConverter;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.translator.collision.OtherCollision;
 import org.geysermc.geyser.util.BlockUtils;
@@ -74,6 +81,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -203,6 +211,9 @@ public class CustomBlockRegistryPopulator {
         Map<CustomBlockData, Set<Integer>> extendedCollisionBoxes = new HashMap<>();
         Map<BoxComponent, CustomBlockData> extendedCollisionBoxSet = new HashMap<>();
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
+
+        CUSTOM_BLOCKS.addAll(FurnitureItemConverter.buildGeyserCustomBlocks());
+
         mappingsConfigReader.loadBlockMappingsFromJson((key, block) -> {
             CUSTOM_BLOCKS.add(block.data());
             if (block.overrideItem()) {

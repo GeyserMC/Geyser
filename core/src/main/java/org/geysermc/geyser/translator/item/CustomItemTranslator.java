@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.item;
 
+import com.gardensmc.gardensfurniture.GardensFurniture;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -59,6 +60,12 @@ public final class CustomItemTranslator {
             if (!customModelData.floats().isEmpty()) {
                 customModelDataInt = customModelData.floats().get(0);
             }
+        }
+
+        String itemModelString = null;
+        var itemModelData = components.get(DataComponentTypes.ITEM_MODEL);
+        if (itemModelData != null) {
+            itemModelString = itemModelData.asString();
         }
 
         boolean checkDamage = mapping.getJavaItem().defaultMaxDamage() > 0;
@@ -97,6 +104,11 @@ public final class CustomItemTranslator {
 
             OptionalInt customModelDataOption = options.customModelData();
             if (customModelDataOption.isPresent() && customModelDataInt < customModelDataOption.getAsInt()) {
+                continue;
+            }
+
+            String itemModel = options.itemModel();
+            if (itemModel != null && !itemModel.equals(itemModelString)) {
                 continue;
             }
 

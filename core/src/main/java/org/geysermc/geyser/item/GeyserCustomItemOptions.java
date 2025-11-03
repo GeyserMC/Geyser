@@ -34,6 +34,7 @@ import java.util.OptionalInt;
 public record GeyserCustomItemOptions(TriState unbreakable,
                                       OptionalInt customModelData,
                                       OptionalInt damagePredicate,
+                                      String itemModel,
                                       boolean defaultItem) implements CustomItemOptions {
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
@@ -41,6 +42,7 @@ public record GeyserCustomItemOptions(TriState unbreakable,
         private TriState unbreakable = TriState.NOT_SET;
         private OptionalInt customModelData = OptionalInt.empty();
         private OptionalInt damagePredicate = OptionalInt.empty();
+        private String itemModel = null;
         private boolean defaultItem = false;
 
         @Override
@@ -66,6 +68,12 @@ public record GeyserCustomItemOptions(TriState unbreakable,
         }
 
         @Override
+        public CustomItemOptions.Builder itemModel(String itemModel) {
+            this.itemModel = itemModel;
+            return this;
+        }
+
+        @Override
         public Builder defaultItem(boolean defaultItem) {
             this.defaultItem = defaultItem;
             return this;
@@ -73,7 +81,7 @@ public record GeyserCustomItemOptions(TriState unbreakable,
 
         @Override
         public CustomItemOptions build() {
-            return new GeyserCustomItemOptions(this.unbreakable, this.customModelData, this.damagePredicate, this.defaultItem);
+            return new GeyserCustomItemOptions(this.unbreakable, this.customModelData, this.damagePredicate, this.itemModel, this.defaultItem);
         }
     }
 }

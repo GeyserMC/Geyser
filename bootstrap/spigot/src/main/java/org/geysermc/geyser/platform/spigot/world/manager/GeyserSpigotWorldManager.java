@@ -37,7 +37,9 @@ import org.geysermc.erosion.bukkit.SchedulerUtils;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.GameRule;
 import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.platform.spigot.GardensUtil;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
@@ -146,5 +148,15 @@ public class GeyserSpigotWorldManager extends WorldManager {
      */
     public boolean isLegacy() {
         return false;
+    }
+
+    @Override
+    public int getBedrockIdOverride(GeyserSession session, int x, int y, int z) {
+        return GardensUtil.getBedrockBlockIdOverride(session, x, y, z);
+    }
+
+    @Override
+    public GeyserBedrockBlock getBedrockBlockOverride(GeyserSession session, int x, int y, int z) {
+        return GardensUtil.getBedrockBlockOverride(session, x, y, z);
     }
 }

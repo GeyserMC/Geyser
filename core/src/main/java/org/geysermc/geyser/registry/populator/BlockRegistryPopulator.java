@@ -247,6 +247,7 @@ public final class BlockRegistryPopulator {
             Map<Block, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
             Map<NbtMap, BlockDefinition> itemFrames = new Object2ObjectOpenHashMap<>();
             IntArrayList collisionIgnoredBlocks = new IntArrayList();
+            IntArrayList furnitureBlocks = new IntArrayList();
 
             Set<BlockDefinition> jigsawDefinitions = new ObjectOpenHashSet<>();
             Map<String, BlockDefinition> structureBlockDefinitions = new Object2ObjectOpenHashMap<>();
@@ -316,6 +317,17 @@ public final class BlockRegistryPopulator {
                     collisionIgnoredBlocks.add(javaRuntimeId);
                 }
 
+                var furnitureTypes = Set.of(
+                    Blocks.OAK_LEAVES, Blocks.BIRCH_LEAVES, Blocks.SPRUCE_LEAVES, Blocks.CHERRY_LEAVES, Blocks.NOTE_BLOCK, Blocks.CAVE_VINES, Blocks.CAVE_VINES_PLANT, Blocks.TRIPWIRE, Blocks.OAK_SAPLING, Blocks.DARK_OAK_SAPLING,
+                    Blocks.WAXED_CUT_COPPER_STAIRS, Blocks.EXPOSED_CUT_COPPER_STAIRS, Blocks.WEATHERED_CUT_COPPER_STAIRS, Blocks.OXIDIZED_CUT_COPPER_STAIRS,
+                    Blocks.WAXED_CUT_COPPER_SLAB, Blocks.EXPOSED_CUT_COPPER_SLAB, Blocks.WEATHERED_CUT_COPPER_SLAB, Blocks.OXIDIZED_CUT_COPPER_SLAB,
+                    Blocks.WAXED_COPPER_DOOR, Blocks.WAXED_EXPOSED_COPPER_DOOR, Blocks.WAXED_WEATHERED_COPPER_DOOR, Blocks.WAXED_OXIDIZED_COPPER_DOOR,
+                    Blocks.WAXED_COPPER_TRAPDOOR, Blocks.WAXED_EXPOSED_COPPER_TRAPDOOR, Blocks.WAXED_WEATHERED_COPPER_TRAPDOOR, Blocks.WAXED_OXIDIZED_COPPER_TRAPDOOR
+                );
+                if (furnitureTypes.contains(block)) {
+                    furnitureBlocks.add(javaRuntimeId);
+                }
+
                 boolean waterlogged = blockState.getValue(Properties.WATERLOGGED, false)
                         || block == Blocks.BUBBLE_COLUMN || block == Blocks.KELP || block == Blocks.KELP_PLANT
                         || block == Blocks.SEAGRASS || block == Blocks.TALL_SEAGRASS;
@@ -335,6 +347,7 @@ public final class BlockRegistryPopulator {
             }
 
             builder.collisionIgnoredBlocks(collisionIgnoredBlocks);
+            builder.furnitureBlocks(furnitureBlocks);
 
             if (commandBlockDefinition == null) {
                 throw new AssertionError("Unable to find command block in palette");

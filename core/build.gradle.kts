@@ -68,6 +68,7 @@ dependencies {
     annotationProcessor(projects.ap)
 
     api(libs.events)
+    compileOnly(fileTree("${project.rootDir}/dependencies") { include("*.jar") })
 }
 
 tasks.processResources {

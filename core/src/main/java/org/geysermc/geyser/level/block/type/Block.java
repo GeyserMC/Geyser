@@ -89,7 +89,10 @@ public class Block {
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
         checkForEmptySkull(session, state, position);
 
-        BlockDefinition definition = session.getBlockMappings().getBedrockBlock(state);
+        BlockDefinition definition = session.getGeyser().getWorldManager().getBedrockBlockOverride(session, position.getX(), position.getY(), position.getZ());
+        if (definition == null) {
+            definition = session.getBlockMappings().getBedrockBlock(state);
+        }
         sendBlockUpdatePacket(session, state, definition, position);
 
         // Extended collision boxes for custom blocks

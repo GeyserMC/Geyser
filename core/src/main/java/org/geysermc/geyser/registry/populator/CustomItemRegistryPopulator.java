@@ -45,6 +45,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.WearableSlot;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
+import org.geysermc.geyser.registry.populator.conversion.FurnitureItemConverter;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
@@ -68,6 +69,12 @@ public class CustomItemRegistryPopulator {
                 customItems.get(key).add(item);
             }
         });
+
+//        FurnitureItemConverter.registerItems((key, item) -> {
+//            if (CustomItemRegistryPopulator.initialCheck(key, item, items)) {
+//                customItems.get(key).add(item);
+//            }
+//        });
 
         GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomItemsEventImpl(customItems, nonVanillaCustomItems) {
             @Override

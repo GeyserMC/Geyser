@@ -50,6 +50,13 @@ public interface CustomItemOptions {
     @NonNull OptionalInt customModelData();
 
     /**
+     * Gets the item's model definition.
+     *
+     * @return the item's model
+     */
+    String itemModel();
+
+    /**
      * Gets the item's damage predicate.
      *
      * @return the item's damage predicate
@@ -72,7 +79,8 @@ public interface CustomItemOptions {
     default boolean hasCustomItemOptions() {
         return this.unbreakable() != TriState.NOT_SET ||
                 this.customModelData().isPresent() ||
-                this.damagePredicate().isPresent();
+                this.damagePredicate().isPresent() ||
+                this.itemModel() != null;
     }
 
     static CustomItemOptions.Builder builder() {
@@ -85,6 +93,8 @@ public interface CustomItemOptions {
         Builder customModelData(int customModelData);
 
         Builder damagePredicate(int damagePredicate);
+
+        Builder itemModel(String itemModel);
 
         Builder defaultItem(boolean defaultItem);
 

@@ -37,6 +37,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
@@ -50,6 +51,7 @@ import org.geysermc.geyser.item.type.PotionItem;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.populator.conversion.FurnitureItemConverter;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -232,6 +234,17 @@ public final class ItemTranslator {
                 translateCustomBlock(customBlockData, session, builder);
             } else {
                 builder.blockDefinition(bedrockItem.getBedrockBlockDefinition());
+            }
+        }
+
+        if (customComponents != null) {
+            var itemModelData = customComponents.get(DataComponentTypes.ITEM_MODEL);
+            String itemModel = itemModelData == null ? null : itemModelData.toString();
+            if (itemModel != null) {
+                var customBlock = FurnitureItemConverter.ITEM_MODEL_TO_BLOCK_DATA.get(itemModel);
+                if (customBlock != null) {
+                    translateCustomBlock(FurnitureItemConverter.ITEM_MODEL_TO_BLOCK_DATA.values().iterator().next(), session, builder);
+                }
             }
         }
 
@@ -527,6 +540,15 @@ public final class ItemTranslator {
                 mapping.getJavaItem().javaIdentifier(), null);
         if (customBlockData != null) {
             itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customBlockData);
+        }
+
+        var itemModelData = itemStack.getComponent(DataComponentTypes.ITEM_MODEL);
+        String itemModel = itemModelData == null ? null : itemModelData.toString();
+        if (itemModel != null) {
+            var customBlock = FurnitureItemConverter.ITEM_MODEL_TO_BLOCK_DATA.get(itemModel);
+            if (customBlock != null) {
+                itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customBlock);
+            }
         }
 
         if (mapping.getJavaItem().equals(Items.PLAYER_HEAD)) {

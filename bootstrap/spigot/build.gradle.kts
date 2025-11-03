@@ -31,6 +31,7 @@ dependencies {
     compileOnly(libs.folia.api)
 
     compileOnlyApi(libs.viaversion)
+    compileOnly(fileTree("${project.rootDir}/dependencies") { include("*.jar") })
 }
 
 platformRelocate("it.unimi.dsi.fastutil")

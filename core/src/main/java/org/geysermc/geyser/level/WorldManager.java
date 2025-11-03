@@ -34,6 +34,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
@@ -204,4 +205,12 @@ public abstract class WorldManager {
             return null;
         }
     };
+
+    public int getBedrockIdOverride(GeyserSession session, int x, int y, int z) {
+        return -1;
+    }
+
+    public GeyserBedrockBlock getBedrockBlockOverride(GeyserSession session, int x, int y, int z) {
+        return null;
+    }
 }

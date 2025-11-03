@@ -144,6 +144,11 @@ public class MappingsReader_v1 extends MappingsReader {
             customItemOptions.damagePredicate(damagePredicate.asInt());
         }
 
+        JsonNode itemModel = node.get("item_model");
+        if (itemModel != null && itemModel.isTextual()) {
+            customItemOptions.itemModel(itemModel.asText());
+        }
+
         JsonNode unbreakable = node.get("unbreakable");
         if (unbreakable != null && unbreakable.isBoolean()) {
             customItemOptions.unbreakable(unbreakable.asBoolean());
