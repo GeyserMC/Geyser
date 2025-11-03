@@ -63,7 +63,7 @@ public class ConfigMigrations {
             .addAction(path("legacy-ping-passthrough"), configClass == GeyserRemoteConfig.class ? remove() : (path, value) -> {
                 // Invert value
                 value.set(!value.getBoolean());
-                return new Object[]{"motd", "integrated-ping-passthrough"};
+                return new Object[]{ "motd", "integrated-ping-passthrough" };
             })
 
             // gameplay
@@ -94,7 +94,7 @@ public class ConfigMigrations {
             .addAction(path("allow-custom-skulls"), (path, value) -> {
                 if (!value.getBoolean()) {
                     value.raw(0);
-                    return new Object[]{"gameplay", "max-visible-custom-skulls"};
+                    return new Object[]{ "gameplay", "max-visible-custom-skulls" };
                 }
                 return null;
             })
@@ -108,7 +108,7 @@ public class ConfigMigrations {
                 if ("public-key.pem".equals(value.getString())) {
                     value.set("key.pem");
                 }
-                return new Object[]{"advanced", "floodgate-key-file"};
+                return new Object[]{ "advanced", "floodgate-key-file" };
             })
 
             // Bedrock
@@ -135,11 +135,11 @@ public class ConfigMigrations {
                     // Manually copied config without Metrics UUID creation?
                     value.set(UUID.randomUUID());
                 }
-                return new Object[]{"metrics-uuid"};
+                return new Object[]{ "metrics-uuid" };
             })
             .addAction(path("metrics", "enabled"), (path, value) -> {
                 // Move to the root, not in the Metrics class.
-                return new Object[]{"enable-metrics"};
+                return new Object[]{ "enable-metrics" };
             })
 
             .build())

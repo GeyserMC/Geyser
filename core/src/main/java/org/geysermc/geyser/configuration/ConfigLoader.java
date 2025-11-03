@@ -62,6 +62,7 @@ public final class ConfigLoader {
      * Only nullable for testing.
      */
     private final @Nullable GeyserBootstrap bootstrap;
+    private PlatformType platformType;
     private @Nullable Consumer<CommentedConfigurationNode> transformer;
     private File configFile;
 
@@ -73,6 +74,7 @@ public final class ConfigLoader {
 
     public ConfigLoader(GeyserBootstrap bootstrap) {
         this.bootstrap = bootstrap;
+        this.platformType = bootstrap.platformType();
         configFile = new File(bootstrap.getConfigFolder().toFile(), "config.yml");
     }
 
@@ -168,7 +170,8 @@ public final class ConfigLoader {
     }
 
     @VisibleForTesting
-    CommentedConfigurationNode loadConfigurationNode(Class<? extends GeyserConfig> configClass) {
+    CommentedConfigurationNode loadConfigurationNode(Class<? extends GeyserConfig> configClass, PlatformType platformType) {
+        this.platformType = platformType;
         load(configClass);
         return configurationNode.copy();
     }
@@ -179,10 +182,8 @@ public final class ConfigLoader {
             .indent(2)
             .nodeStyle(NodeStyle.BLOCK)
             .defaultOptions(options -> InterfaceDefaultOptions.addTo(options, builder -> {
-                    if (this.bootstrap != null) { // Testing only.
-                        builder.addProcessor(ExcludePlatform.class, excludePlatform(bootstrap.platformType().platformName()))
-                            .addProcessor(PluginSpecific.class, integrationSpecific(bootstrap.platformType() != PlatformType.STANDALONE));
-                    }
+                        builder.addProcessor(ExcludePlatform.class, excludePlatform(platformType.platformName()))
+                            .addProcessor(PluginSpecific.class, integrationSpecific(platformType != PlatformType.STANDALONE));
                 })
                 .shouldCopyDefaults(false) // If we use ConfigurationNode#get(type, default), do not write the default back to the node.
                 .header(ConfigLoader.HEADER)
