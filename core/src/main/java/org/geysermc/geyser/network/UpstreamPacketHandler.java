@@ -103,7 +103,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         super(geyser, session);
 
         ZlibCompression compression = new ZlibCompression(Zlib.RAW);
-        compression.setLevel(this.geyser.config().bedrock().compressionLevel());
+        compression.setLevel(this.geyser.config().advanced().bedrock().compressionLevel());
         this.compressionStrategy = new SimpleCompressionStrategy(compression);
     }
 
@@ -241,7 +241,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         resourcePacksInfo.getResourcePackInfos().addAll(this.resourcePackLoadEvent.infoPacketEntries());
         resourcePacksInfo.setVibrantVisualsForceDisabled(!session.isAllowVibrantVisuals());
 
-        resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().forceResourcePacks());
+        resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().gameplay().forceResourcePacks() ||
+            GeyserImpl.getInstance().config().gameplay().enableOptionalPack());
         resourcePacksInfo.setWorldTemplateId(UUID.randomUUID());
         resourcePacksInfo.setWorldTemplateVersion("*");
         session.sendUpstreamPacket(resourcePacksInfo);

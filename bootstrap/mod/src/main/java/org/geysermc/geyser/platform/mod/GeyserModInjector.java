@@ -96,7 +96,7 @@ public class GeyserModInjector extends GeyserInjector {
                         int index = ch.pipeline().names().indexOf("encoder");
                         String baseName = index != -1 ? "encoder" : "outbound_config";
 
-                        if (bootstrap.config().disableCompression()) {
+                        if (bootstrap.config().advanced().java().disableCompression()) {
                             ch.pipeline().addAfter(baseName, "geyser-compression-disabler", new GeyserModCompressionDisabler());
                         }
                     }

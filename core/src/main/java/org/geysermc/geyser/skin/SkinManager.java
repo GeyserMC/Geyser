@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.skin;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.common.cache.Cache;

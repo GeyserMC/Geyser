@@ -215,7 +215,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     public void initialize() {
         // Setup encryption early so we don't start if we can't auth
-        if (!config().disableXboxAuth()) {
+        if (config().advanced().bedrock().validateBedrockLogin()) {
             try {
                 EncryptionUtils.getMojangPublicKey();
             } catch (Throwable t) {
@@ -316,20 +316,20 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         Registries.RESOURCE_PACKS.load();
 
         // Warnings to users who enable options that they might not need.
-        if (config.bedrock().useHaproxyProtocol()) {
+        if (config.advanced().bedrock().useHaproxyProtocol()) {
             logger.warning("Geyser is configured to expect HAProxy protocol for incoming Bedrock connections.");
-            logger.warning("If you do not know what this is, open the Geyser config, and set \"use-haproxy-protocol\" under the  \"bedrock\" section to \"false\".");
+            logger.warning("If you do not know what this is, open the Geyser config, and set \"use-haproxy-protocol\" under the  \"advanced/bedrock\" section to \"false\".");
         }
 
-        if (config.java().useHaproxyProtocol()) {
+        if (config.advanced().java().useHaproxyProtocol()) {
             logger.warning("Geyser is configured to use proxy protocol when connecting to the Java server.");
-            logger.warning("If you do not know what this is, open the Geyser config, and set \"use-haproxy-protocol\" under the  \"java\" section to \"false\".");
+            logger.warning("If you do not know what this is, open the Geyser config, and set \"use-haproxy-protocol\" under the  \"advanced/java\" section to \"false\".");
         }
 
-        if (config.disableXboxAuth()) {
+        if (!config.advanced().bedrock().validateBedrockLogin()) {
             logger.error("XBOX AUTHENTICATION IS DISABLED ON THIS GEYSER INSTANCE!");
             logger.error("While this allows using Bedrock edition proxies, it also opens up the ability for hackers to connect with any username they choose.");
-            logger.error("To change this, set \"disable-xbox-auth\" to \"false\" in Geyser's config-advanced.yml file.");
+            logger.error("To change this, set \"disable-xbox-auth\" to \"false\" in Geyser's config file.");
         }
 
         String geyserUdpPort = System.getProperty("geyserUdpPort", "");
@@ -416,7 +416,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 if (parsedPort < 1 || parsedPort > 65535) {
                     throw new NumberFormatException("The broadcast port must be between 1 and 65535 inclusive!");
                 }
-                config.bedrock().broadcastPort(parsedPort);
+                config.advanced().bedrock().broadcastPort(parsedPort);
                 logger.info("Broadcast port set from system property: " + parsedPort);
             } catch (NumberFormatException e) {
                 logger.error(String.format("Invalid broadcast port from system property: %s! Defaulting to configured port.", broadcastPort + " (" + e.getMessage() + ")"));
@@ -424,8 +424,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
 
         // It's set to 0 only if no system property or manual config value was set
-        if (config.bedrock().broadcastPort() == 0) {
-            config.bedrock().broadcastPort(config.bedrock().port());
+        if (config.advanced().bedrock().broadcastPort() == 0) {
+            config.advanced().bedrock().broadcastPort(config.bedrock().port());
         }
 
         if (!(config instanceof GeyserPluginConfig)) {
@@ -440,7 +440,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                     logger.debug("Found SRV record \"" + remoteAddress + ":" + remotePort + "\"");
                 }
             }
-        } else if (!config.useDirectConnection()) {
+        } else if (!config.advanced().java().useDirectConnection()) {
             logger.warning("The use-direct-connection config option is deprecated. Please reach out to us on Discord if there's a reason it needs to be disabled.");
         }
 
@@ -456,9 +456,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             logger.debug("Epoll is not available; Erosion's Unix socket handling will not work.");
         }
 
-        BedrockDimension.changeBedrockNetherId(config.netherRoofWorkaround()); // Apply End dimension ID workaround to Nether
+        BedrockDimension.changeBedrockNetherId(config.gameplay().netherRoofWorkaround()); // Apply End dimension ID workaround to Nether
 
-        int bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads", config.bedrockNetworkThreadCount());
+        int bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads", -1);
         if (bedrockThreadCount == -1) {
             // Copy the code from Netty's default thread count fallback
             bedrockThreadCount = Math.max(1, SystemPropertyUtil.getInt("io.netty.eventLoopThreads", NettyRuntime.availableProcessors() * 2));
@@ -546,8 +546,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
             metrics.addCustomChart(new SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
             metrics.addCustomChart(new SimplePie("version", () -> GeyserImpl.VERSION));
-            metrics.addCustomChart(new SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.java().useHaproxyProtocol())));
-            metrics.addCustomChart(new SimplePie("bedrockHaProxyProtocol", () -> String.valueOf(config.bedrock().useHaproxyProtocol())));
+            metrics.addCustomChart(new SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.advanced().java().useHaproxyProtocol())));
+            metrics.addCustomChart(new SimplePie("bedrockHaProxyProtocol", () -> String.valueOf(config.advanced().bedrock().useHaproxyProtocol())));
             metrics.addCustomChart(new AdvancedPie("playerPlatform", () -> {
                 Map<String, Integer> valueMap = new HashMap<>();
                 for (GeyserSession session : sessionManager.getAllSessions()) {

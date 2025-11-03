@@ -35,6 +35,18 @@ public interface GeyserPluginConfig extends GeyserConfig {
     @Override
     IntegratedJavaConfig java();
 
+    @Override
+    PluginMotdConfig motd();
+
+    @ConfigSerializable
+    interface PluginMotdConfig extends MotdConfig {
+        @Comment("""
+            How often to ping the Java server to refresh MOTD and player count, in seconds.
+            Only relevant if integrated-ping-passthrough is disabled.""")
+        @Override
+        int pingPassthroughInterval();
+    }
+
     @ConfigSerializable
     interface IntegratedJavaConfig extends JavaConfig {
         @Override
@@ -57,10 +69,4 @@ public interface GeyserPluginConfig extends GeyserConfig {
             return true; // No need to worry about suspicious behavior flagging the server.
         }
     }
-
-    @Comment("""
-            How often to ping the Java server to refresh MOTD and player count, in seconds.
-            Only relevant if integrated-ping-passthrough is disabled.""")
-    @Override
-    int pingPassthroughInterval();
 }

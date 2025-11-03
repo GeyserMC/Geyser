@@ -218,7 +218,7 @@ public class ItemRegistryPopulator {
             throw new AssertionError("Unable to load Bedrock item components", e);
         }
 
-        boolean customItemsAllowed = GeyserImpl.getInstance().config().enableCustomContent();
+        boolean customItemsAllowed = GeyserImpl.getInstance().config().gameplay().enableCustomContent();
 
         // List values here is important compared to HashSet - we need to preserve the order of what's given to us
         // (as of 1.19.2 Java) to replicate some edge cases in Java predicate behavior where it checks from the bottom
