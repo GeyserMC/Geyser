@@ -57,6 +57,7 @@ import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.event.EventRegistrar;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostReloadEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
@@ -81,6 +82,7 @@ import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.GeyserServer;
+import org.geysermc.geyser.pack.GeyserOptionalPackUtils;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.loader.ResourcePackLoader;
@@ -274,6 +276,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         eventBus.subscribe(this, GeyserRegisterPermissionsEvent.class, Permissions::register);
         // Replace disconnect messages whenever necessary
         eventBus.subscribe(this, SessionDisconnectEventImpl.class, SessionDisconnectListener::onSessionDisconnect);
+        // Apply the GeyserOptionalPack if enabled
+        eventBus.subscribe(this, GeyserDefineResourcePacksEvent.class, GeyserOptionalPackUtils::register);
 
         startInstance();
 
