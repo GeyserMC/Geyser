@@ -200,7 +200,7 @@ public class SkinManager {
             .skinId(skinId)
             .skinResourcePatch(geometry.geometryName())
             .skinData(ImageData.of(skin.skinData()))
-            //.capeId(cape.capeId())
+            .capeId(cape.capeId())
             .capeData(ImageData.of(cape.capeData()))
             .geometryData(geometry.geometryData().isBlank() ? GEOMETRY : geometry.geometryData())
             .geometryDataEngineVersion(session.getClientData().getGameVersion())
