@@ -54,7 +54,7 @@ public class AbstractMerchantEntity extends AgeableEntity {
     @NonNull
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (itemInHand.asItem() != Items.VILLAGER_SPAWN_EGG
+        if (!itemInHand.is(Items.VILLAGER_SPAWN_EGG)
                 && (definition != EntityDefinitions.VILLAGER || !getFlag(EntityFlag.SLEEPING) && ((VillagerEntity) this).isCanTradeWith())) {
             // An additional check we know cannot work
             if (!isBaby()) {
@@ -67,7 +67,7 @@ public class AbstractMerchantEntity extends AgeableEntity {
     @NonNull
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (itemInHand.asItem() != Items.VILLAGER_SPAWN_EGG
+        if (!itemInHand.is(Items.VILLAGER_SPAWN_EGG)
                 && (definition != EntityDefinitions.VILLAGER || !getFlag(EntityFlag.SLEEPING))
                 && (definition != EntityDefinitions.WANDERING_TRADER || !getFlag(EntityFlag.BABY))) {
             // Trading time

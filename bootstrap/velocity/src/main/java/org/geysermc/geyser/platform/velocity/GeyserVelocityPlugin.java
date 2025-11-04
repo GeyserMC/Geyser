@@ -36,8 +36,6 @@ import com.velocitypowered.api.network.ProtocolVersion;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.proxy.ProxyServer;
-import io.netty.buffer.AdaptiveByteBufAllocator;
-import io.netty.buffer.ByteBufAllocator;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -93,10 +91,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     public void onGeyserInitialize() {
         GeyserLocale.init(this);
 
-        // TODO remove when this isn't an issue anymore
-        boolean adaptiveAllocatorUsed = System.getProperty("io.netty.allocator.type") == null && ByteBufAllocator.DEFAULT instanceof AdaptiveByteBufAllocator;
-
-        if (!ProtocolVersion.isSupported(GameProtocol.getJavaProtocolVersion()) || adaptiveAllocatorUsed) {
+        if (!ProtocolVersion.isSupported(GameProtocol.getJavaProtocolVersion())) {
             geyserLogger.error("      / \\");
             geyserLogger.error("     /   \\");
             geyserLogger.error("    /  |  \\");
@@ -228,6 +223,11 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     @Override
     public BootstrapDumpInfo getDumpInfo() {
         return new GeyserVelocityDumpInfo(proxyServer);
+    }
+
+    @Override
+    public @NonNull String getServerPlatform() {
+        return proxyServer.getVersion().getName();
     }
 
     @Nullable

@@ -113,6 +113,7 @@ import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
+import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
@@ -154,6 +155,7 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -211,6 +213,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.HandPreference;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ChatVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ParticleStatus;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.SkinPart;
@@ -218,6 +221,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.statistic.CustomStatistic;
 import org.geysermc.mcprotocollib.protocol.data.game.statistic.Statistic;
 import org.geysermc.mcprotocollib.protocol.data.handshake.HandshakeIntent;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundClientInformationPacket;
+import org.geysermc.mcprotocollib.protocol.packet.configuration.serverbound.ServerboundAcceptCodeOfConductPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatCommandSignedPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
@@ -231,6 +235,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -269,6 +274,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private List<String> certChainData;
+    @Setter
+    private String token;
 
     @NonNull
     @Setter
@@ -396,7 +403,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * A map of all players (and their heads) that are wearing a player head with a custom texture.
      * Our workaround for these players is to give them a custom skin and geometry to emulate wearing a custom skull.
      */
-    private final Map<UUID, GameProfile> playerWithCustomHeads = new Object2ObjectOpenHashMap<>();
+    private final Map<UUID, ResolvableProfile> playerWithCustomHeads = new Object2ObjectOpenHashMap<>();
 
     @Setter
     private boolean droppingLecternBook;
@@ -741,6 +748,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Setter
     private boolean allowVibrantVisuals = true;
+
+    @Accessors(fluent = true)
+    private boolean hasAcceptedCodeOfConduct = false;
+
+    private final Set<InputLocksFlag> inputLocksSet = EnumSet.noneOf(InputLocksFlag.class);
+    private boolean inputLockDirty;
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
@@ -1442,9 +1455,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return false;
         }
 
-        if (playerInventoryHolder.inventory().getItemInHand().asItem() == Items.SHIELD) {
+        if (playerInventoryHolder.inventory().getItemInHand().is(Items.SHIELD)) {
             useItem(Hand.MAIN_HAND);
-        } else if (playerInventoryHolder.inventory().getOffhand().asItem() == Items.SHIELD) {
+        } else if (playerInventoryHolder.inventory().getOffhand().is(Items.SHIELD)) {
             useItem(Hand.OFF_HAND);
         } else {
             // No blocking
@@ -1691,7 +1704,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Open the current form, unless we're in the process of closing another
         // If we're waiting, the form will be sent when Bedrock confirms closing
         // If we don't wait, the client rejects the form as it is busy
-        if (!isClosingInventory()) {
+        if (!isClosingInventory() && upstream.isInitialized()) {
             formCache.resendAllForms();
         }
 
@@ -1708,6 +1721,23 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean doSendForm(@NonNull Form form) {
         formCache.showForm(form);
         return true;
+    }
+
+    public void acceptCodeOfConduct() {
+        if (hasAcceptedCodeOfConduct) {
+            return;
+        }
+        hasAcceptedCodeOfConduct = true;
+        sendDownstreamConfigurationPacket(ServerboundAcceptCodeOfConductPacket.INSTANCE);
+    }
+
+    public void prepareForConfigurationForm() {
+        if (!sentSpawnPacket) {
+            connect();
+        }
+        // Disable time progression whilst the form is open
+        // Once logged into the game this is set correctly when receiving a time packet from the server
+        setDaylightCycle(false);
     }
 
     public @NonNull PlayerInventory getPlayerInventory() {
@@ -1811,6 +1841,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
 
+        // Enable 2025 Content Drop 3 features on 1.21.100
+        if (GameProtocol.is1_21_100(this)) {
+            startGamePacket.getExperiments().add(new ExperimentData("y_2025_drop_3", true));
+        }
+
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
         startGamePacket.setServerEngine(""); // Do we want to fill this in?
@@ -1826,6 +1861,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // positions for block breaking actions, which is easier to validate
         // It does *not* mean we can dictate the break speed server-sided :(
         startGamePacket.setServerAuthoritativeBlockBreaking(true);
+
+        if (playerEntity.getPropertyManager() != null) {
+            startGamePacket.setPlayerPropertyData(playerEntity.getPropertyManager().toNbtMap("minecraft:player"));
+        }
 
         startGamePacket.setServerId("");
         startGamePacket.setWorldId("");
@@ -1902,6 +1941,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     public void sendDownstreamGamePacket(Packet packet) {
         sendDownstreamPacket(packet, ProtocolState.GAME);
+    }
+
+    public void sendDownstreamConfigurationPacket(Packet packet) {
+        sendDownstreamPacket(packet, ProtocolState.CONFIGURATION);
     }
 
     /**
@@ -2341,23 +2384,31 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         entities().showEmote(emoter, emoteId);
     }
 
-    public void lockInputs(boolean camera, boolean movement) {
+    public void setLockInput(InputLocksFlag flag, boolean value) {
+        this.inputLockDirty |= value ? this.inputLocksSet.add(flag) : this.inputLocksSet.remove(flag);
+    }
+
+    public void updateInputLocks() {
+        if (!this.inputLockDirty) {
+            return;
+        }
+        this.inputLockDirty = false;
+
         UpdateClientInputLocksPacket packet = new UpdateClientInputLocksPacket();
-        final int cameraOffset = 1 << 1;
-        final int movementOffset = 1 << 2;
 
         int result = 0;
-        if (camera) {
-            result |= cameraOffset;
-        }
-        if (movement) {
-            result |= movementOffset;
+        for (InputLocksFlag other : this.inputLocksSet) {
+            result |= other.getOffset();
         }
 
         packet.setLockComponentData(result);
         packet.setServerPosition(this.playerEntity.getPosition());
 
         sendUpstreamPacket(packet);
+    }
+
+    public boolean getLockedInput(InputLocksFlag flag) {
+        return this.inputLocksSet.contains(flag);
     }
 
     @Override

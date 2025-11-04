@@ -683,7 +683,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         }
 
         BlockState blockState = ctx.centerBlock();
-        if (vehicle.getSession().getTagCache().is(BlockTag.CLIMBABLE, blockState.block())) {
+        if (blockState.block().is(vehicle.getSession(), BlockTag.CLIMBABLE)) {
             return true;
         }
 

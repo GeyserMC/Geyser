@@ -71,7 +71,7 @@ public class PermissionUtils {
                 case FALSE -> false;
                 case NOT_SET -> {
                     if (player != null) {
-                        yield player.createCommandSourceStack().hasPermission(Objects.requireNonNull(player.getServer()).getOperatorUserPermissionLevel());
+                        yield player.createCommandSourceStack().hasPermission(Objects.requireNonNull(player.level()).getServer().operatorUserPermissionLevel());
                     }
                     yield false; // NeoForge javadocs say player is null in the case of an offline player.
                 }

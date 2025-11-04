@@ -403,6 +403,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     }
 
     @Override
+    public @NonNull String getServerPlatform() {
+        return Bukkit.getName();
+    }
+
+    @Override
     public SocketAddress getSocketAddress() {
         return this.geyserInjector.getServerSocketAddress();
     }
