@@ -53,7 +53,7 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
 
     @Override
     public void onInitialize() {
-        // We love workarounds! Fabric doesn't allow us to have out adapters init before this, so we'll force it!
+        // We love workarounds! Fabric doesn't allow us to have our adapters init before this, so we'll force it!
         FabricLoader.getInstance().getEntrypointContainers("geyser:adapter", ModInitializer.class)
             .forEach(entrypoint -> entrypoint.getEntrypoint().onInitialize());
 
@@ -87,6 +87,8 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
         });
 
         this.onGeyserInitialize();
+
+        if (getGeyser() == null) return;
 
         CommandManager<GeyserCommandSource> cloud;
 

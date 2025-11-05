@@ -100,6 +100,7 @@ jline-terminal-jna = { group = "org.jline", name = "jline-terminal-jna", version
 jline-reader = { group = "org.jline", name = "jline-reader", version.ref = "jline" }
 
 cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
+cloud-services = { group = "org.incendo", name = "cloud-services", version.ref = "cloud" }
 cloud-paper = { group = "org.incendo", name = "cloud-paper", version.ref = "cloud-minecraft" }
 cloud-velocity = { group = "org.incendo", name = "cloud-velocity", version.ref = "cloud-minecraft" }
 cloud-bungee = { group = "org.incendo", name = "cloud-bungee", version.ref = "cloud-minecraft" }
@@ -124,10 +125,14 @@ neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref =
 adapters = { group = "org.geysermc.geyser.adapters", name = "common", version.ref = "adapters" }
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
 adapters-paper = { group = "org.geysermc.geyser.adapters", name = "paper-all", version.ref = "adapters" }
-adapters-fabric-v1215 = { group = "org.geysermc.geyser.adapters", name = "modded-v1_21_5-fabric", version.ref = "adapters" }
-adapters-neoforge-v1215 = { group = "org.geysermc.geyser.adapters", name = "modded-v1_21_5-neoforge", version.ref = "adapters" }
-adapters-fabric-v1206 = { group = "org.geysermc.geyser.adapters", name = "modded-v1_20_6-fabric", version.ref = "adapters" }
-adapters-neoforge-v1206 = { group = "org.geysermc.geyser.adapters", name = "modded-v1_20_6-neoforge", version.ref = "adapters" }
+adapters-world-fabric-v1213 = { group = "org.geysermc.geyser.adapters", name = "modded_world_fabric_v1_21_3", version.ref = "adapters" }
+adapters-world-neoforge-v1213 = { group = "org.geysermc.geyser.adapters", name = "modded_world_neoforge_v1_21_3", version.ref = "adapters" }
+adapters-world-fabric-v1206 = { group = "org.geysermc.geyser.adapters", name = "modded_world_fabric_v1_20_6", version.ref = "adapters" }
+adapters-world-neoforge-v1206 = { group = "org.geysermc.geyser.adapters", name = "modded_world_neoforge_v1_20_6", version.ref = "adapters" }
+adapters-command-fabric-v1215 = { group = "org.geysermc.geyser.adapters", name = "modded_command_fabric_v1_21_5", version.ref = "adapters" }
+adapters-command-neoforge-v1215 = { group = "org.geysermc.geyser.adapters", name = "modded_command_neoforge_v1_21_5", version.ref = "adapters" }
+adapters-command-fabric-v1206 = { group = "org.geysermc.geyser.adapters", name = "modded_command_fabric_v1_20_6", version.ref = "adapters" }
+adapters-command-neoforge-v1206 = { group = "org.geysermc.geyser.adapters", name = "modded_command_neoforge_v1_20_6", version.ref = "adapters" }
 bungeecord-proxy = { group = "net.md-5", name = "bungeecord-proxy", version.ref = "bungeecord" }
 bungeecord-api = { group = "net.md-5", name = "bungeecord-api", version.ref = "bungeecord-api" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }

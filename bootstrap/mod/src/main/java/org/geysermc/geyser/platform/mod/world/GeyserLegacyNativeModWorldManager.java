@@ -32,27 +32,27 @@ import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.SharedConstants;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.level.block.Block;
-import org.geysermc.geyser.level.GeyserWorldManager;
+import net.minecraft.server.level.ServerLevel;
+import org.geysermc.geyser.adapters.WorldAdapter;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class GeyserLegacyNativeModWorldManager extends GeyserNativeModWorldManager {
     private final Int2IntMap oldToNewBlockId;
 
-    public GeyserLegacyNativeModWorldManager(MinecraftServer server) {
-        super(server);
+    public GeyserLegacyNativeModWorldManager(WorldAdapter<ServerLevel> adapter, MinecraftServer server) {
+        super(adapter, server);
         IntList allBlockStates = adapter.getAllBlockStates();
         oldToNewBlockId = new Int2IntOpenHashMap(allBlockStates.size());
 
-        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(GameProtocol.getJavaProtocolVersion(),
-            SharedConstants.getProtocolVersion());
+        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(
+                GameProtocol.getJavaProtocolVersion(),
+                SharedConstants.getProtocolVersion()
+        );
 
         Objects.requireNonNull(protocolList, "protocolList cannot be null");
         for (int oldBlockId : allBlockStates) {

@@ -35,6 +35,7 @@ import org.geysermc.geyser.util.VersionCheckUtils;
 
 public final class GeyserModUpdateListener {
     public static void onPlayReady(ServerPlayer player, CommandManagerAdapter<?, ?> commandManagerAdapter) {
+        if (commandManagerAdapter == null) return;
         // We could just not register the listener, but, this allows config reloading
         if (GeyserImpl.getInstance().getConfig().isNotifyOnNewBedrockUpdate()) {
             // Should be creating this in the supplier, but we need it for the permission check.

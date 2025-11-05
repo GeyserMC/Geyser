@@ -36,24 +36,26 @@ import net.minecraft.world.level.block.entity.DecoratedPotBlockEntity;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.adapters.WorldAdapter;
-import org.geysermc.geyser.adapters.PlatformAdapters;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.ReflectionUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.function.Consumer;
 
 public class GeyserNativeModWorldManager extends GeyserWorldManager {
 
-    protected final WorldAdapter<ServerLevel> adapter; // So GeyserLegacyNativeModWorldManager can access this
+    private final WorldAdapter<ServerLevel> adapter;
     private final MinecraftServer server;
 
-    public GeyserNativeModWorldManager(MinecraftServer server) {
+    public GeyserNativeModWorldManager(WorldAdapter<ServerLevel> adapter, MinecraftServer server) {
         this.server = server;
-        this.adapter = (WorldAdapter<ServerLevel>) PlatformAdapters.getWorldAdapter();
+        this.adapter = adapter;
     }
 
     @Override
@@ -63,7 +65,18 @@ public class GeyserNativeModWorldManager extends GeyserWorldManager {
             return Block.JAVA_AIR_ID;
         }
 
-        return adapter.getBlockAt(player.level(), x, y, z);
+        // TODO Adapter. This is ugly. Not sure how to yet achieve this though without yet another adapter,
+        // which I'd like to avoid, perhaps we can do some nonsense with services?
+        // Or maybe make the world adapter use ServerPlayer provided that we can do that.
+        ServerLevel level = ReflectionUtils.tryMethods(
+                ServerPlayer.class, player, ServerLevel.class,
+                "level", "getLevel", // Neo
+                "method_14220", "method_51469" // Fabric
+        );
+
+        if (level == null) throw new RuntimeException("Unable to get ServerLevel from ServerPlayer.");
+
+        return adapter.getBlockAt(level, x, y, z);
     }
 
     @Override
@@ -87,7 +100,7 @@ public class GeyserNativeModWorldManager extends GeyserWorldManager {
 
     @Override
     public String @Nullable [] getBiomeIdentifiers(boolean withTags) {
-        return super.getBiomeIdentifiers(withTags);
+        return this.adapter.getBiomeSuggestions(withTags);
     }
 
     // TODO World Adapter this, probably doesn't work in older versions (Hence the try catch)
@@ -111,7 +124,7 @@ public class GeyserNativeModWorldManager extends GeyserWorldManager {
                     apply.accept(sherds);
                 }
             });
-        } catch (Exception e) {
+        } catch (Exception | NoClassDefFoundError e) {
             super.getDecoratedPotData(session, pos, apply);
         }
     }

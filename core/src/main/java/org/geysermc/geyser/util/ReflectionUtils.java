@@ -23,17 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.mod;
+package org.geysermc.geyser.util;
 
-import net.minecraft.SharedConstants;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
-public class ModConstants {
-    public static final int MODERN_PROTOCOL = 773; // 1.21.9/.10
-    public static final int CURRENT_PROTOCOL = SharedConstants.getProtocolVersion();
+public class ReflectionUtils {
 
-    public static boolean isModernVersion() {
-        return MODERN_PROTOCOL <= CURRENT_PROTOCOL;
+    private ReflectionUtils() {
+        throw new AssertionError("instant death");
     }
 
-    private ModConstants() {}
+    public static <T, S> T tryMethods(Class<S> clazz, S instance, Class<T> expectedReturnClass, String... methodNames) {
+        T t = null;
+
+        for (String methodName : methodNames) {
+            try {
+                Method method = clazz.getMethod(methodName);
+                t = (T) method.invoke(instance);
+                break;
+            } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException ignored) {}
+        }
+
+        return t;
+    }
 }

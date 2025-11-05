@@ -29,14 +29,18 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.adapters.PlatformAdapters;
+import org.geysermc.geyser.adapters.WorldAdapter;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
@@ -124,9 +128,14 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             return;
         }
 
-        this.geyserWorldManager = ModConstants.isModernVersion() ?
-                new GeyserNativeModWorldManager(server) :
-                new GeyserLegacyNativeModWorldManager(server);
+        WorldAdapter<ServerLevel> worldAdapter = (WorldAdapter<ServerLevel>) PlatformAdapters.getWorldAdapter();
+        if (worldAdapter == null) {
+            this.geyserWorldManager = new GeyserWorldManager();
+        } else {
+            this.geyserWorldManager = ModConstants.isModernVersion() ?
+                    new GeyserNativeModWorldManager(worldAdapter, server) :
+                    new GeyserLegacyNativeModWorldManager(worldAdapter, server);
+        }
 
         // We want to do this late in the server startup process to allow other mods
         // To do their job injecting, then connect into *that*
@@ -192,7 +201,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     @Override
     public String getMinecraftServerVersion() {
-        return ModConstants.CURRENT_VERSION;
+        return this.server.getServerVersion();
     }
 
     @SuppressWarnings("ConstantConditions") // Certain IDEA installations think that ip cannot be null
