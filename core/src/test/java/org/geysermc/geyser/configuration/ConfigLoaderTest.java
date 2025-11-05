@@ -30,17 +30,22 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.util.CheckedConsumer;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ConfigLoaderTest {
@@ -91,11 +96,21 @@ public class ConfigLoaderTest {
         testConfiguration("legacy");
     }
 
-//    @Test
-//    TODO test whether the @NumericRanges are properly applied & result in a failed config
-//    void testInvalidConfig() throws Exception {
-//        testConfiguration("invalid");
-//    }
+    @Test
+    // TODO test whether the @NumericRanges are properly applied & result in a failed config
+    void testInvalidConfig() throws Exception {
+        streamResourceFiles(CONFIG_PREFIX + "/invalid").forEach(resource -> {
+            try {
+                forAllConfigs(type -> {
+                    assertThrows(ConfigurateException.class,
+                        () -> new ConfigLoader(resource).loadConfigurationNode(type, getPlatformType(type)),
+                        "Did not get exception while loading %s (file: %s)".formatted(type.getSimpleName(), resource.getName()));
+                });
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 
     public void testConfiguration(String folder) throws Exception {
         forAllConfigs(type -> {
@@ -128,6 +143,18 @@ public class ConfigLoaderTest {
     void forAllConfigs(CheckedConsumer<Class<? extends GeyserConfig>, Exception> consumer) throws Exception {
         consumer.accept(GeyserPluginConfig.class);
         consumer.accept(GeyserRemoteConfig.class);
+    }
+
+    private static Stream<File> streamResourceFiles(String directory) throws IOException, URISyntaxException {
+        URL resourceUrl = ConfigLoaderTest.class.getClassLoader().getResource(directory);
+        Objects.requireNonNull(resourceUrl, "Resource directory not found: " + directory);
+
+        Path resourcePath = Path.of(resourceUrl.toURI());
+        // Walk the directory, but don't go into subdirectories (maxDepth = 1)
+        return Files.walk(resourcePath, 1)
+            .filter(path -> !path.equals(resourcePath)) // Exclude the directory itself
+            .filter(Files::isRegularFile) // Ensure we only get files
+            .map(Path::toFile);
     }
 
     @SneakyThrows

@@ -32,6 +32,7 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.spongepowered.configurate.CommentedConfigurationNode;
+import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.interfaces.InterfaceDefaultOptions;
 import org.spongepowered.configurate.objectmapping.meta.Processor;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
@@ -122,7 +123,7 @@ public final class ConfigLoader {
         }
     }
 
-    private <T extends GeyserConfig> T load0(Class<T> configClass) throws IOException {
+    private <T extends GeyserConfig> T load0(Class<T> configClass) throws ConfigurateException {
         var loader = createLoader(configFile);
 
         CommentedConfigurationNode node = loader.load();
@@ -170,9 +171,9 @@ public final class ConfigLoader {
     }
 
     @VisibleForTesting
-    CommentedConfigurationNode loadConfigurationNode(Class<? extends GeyserConfig> configClass, PlatformType platformType) {
+    CommentedConfigurationNode loadConfigurationNode(Class<? extends GeyserConfig> configClass, PlatformType platformType) throws ConfigurateException {
         this.platformType = platformType;
-        load(configClass);
+        load0(configClass);
         return configurationNode.copy();
     }
 

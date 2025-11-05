@@ -41,7 +41,7 @@ bedrock:
   # Keeping this list empty means there is no IP address whitelist.
   # IP addresses, subnets, and links to plain text files are supported.
   #proxy-protocol-whitelisted-ips: [ "127.0.0.1", "172.18.0.0/16", "https://example.com/whitelist.txt" ]
-remote:auto
+remote:
   # The IP address of the remote (Java Edition) server
   # If it is "auto", for standalone version the remote address will be set to 127.0.0.1,
   # for plugin versions, it is recommended to keep this as "auto" so Geyser will automatically configure address, port, and auth-type.
