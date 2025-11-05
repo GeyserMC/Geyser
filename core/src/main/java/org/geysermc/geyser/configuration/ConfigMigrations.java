@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.configuration;
 
+import org.geysermc.geyser.GeyserImpl;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
 import org.spongepowered.configurate.transformation.TransformAction;
@@ -95,6 +96,12 @@ public class ConfigMigrations {
                 if (!value.getBoolean()) {
                     value.raw(0);
                     return new Object[]{ "gameplay", "max-visible-custom-skulls" };
+                }
+                return null;
+            })
+            .addAction(path("emote-offhand-workaround"), (path,  value) -> {
+                if (value.getBoolean()) {
+                    GeyserImpl.getInstance().getLogger().warning("The emote-offhand-workaround has been replaced with an official Geyser extension!");
                 }
                 return null;
             })
