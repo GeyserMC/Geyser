@@ -748,6 +748,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Accessors(fluent = true)
     private boolean hasAcceptedCodeOfConduct = false;
 
+    @Accessors(fluent = true)
+    @Setter
+    private boolean includedPackActive = false;
+
     private final Set<InputLocksFlag> inputLocksSet = EnumSet.noneOf(InputLocksFlag.class);
     private boolean inputLockDirty;
 

@@ -43,10 +43,9 @@ import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.pack.option.OptionHolder;
-import org.geysermc.geyser.pack.url.GeyserUrlPackCodec;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.GeyserOptionalPackUtils;
+import org.geysermc.geyser.util.GeyserIntegratedPackUtil;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -57,7 +56,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent {
+public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent implements GeyserIntegratedPackUtil {
 
     /**
      * The packs for this Session. A {@link ResourcePackHolder} may contain resource pack options registered
@@ -75,6 +74,8 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     private final GeyserSession session;
 
+    private boolean willCdnFail = false;
+
     public SessionLoadResourcePacksEventImpl(GeyserSession session) {
         super(session);
         this.session = session;
@@ -90,6 +91,9 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     @Override
     public boolean register(@NonNull ResourcePack resourcePack) {
         try {
+            if (handlePossibleOptionalPack(resourcePack)) {
+                return false;
+            }
             register(resourcePack, PriorityOption.NORMAL);
         } catch (ResourcePackException e) {
             GeyserImpl.getInstance().getLogger().error("An exception occurred while registering resource pack: " + e.getMessage(), e);
@@ -105,22 +109,13 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
             throw new ResourcePackException(ResourcePackException.Cause.UNKNOWN_IMPLEMENTATION);
         }
 
-        GeyserImpl geyser = session.getGeyser();
+        if (handlePossibleOptionalPack(resourcePack)) {
+            return;
+        }
 
         UUID uuid = resourcePack.uuid();
         if (packs.containsKey(uuid)) {
-            if (geyser.config().gameplay().enableOptionalPack() && GeyserOptionalPackUtils.isGeyserOptionalPack(resourcePack)) {
-                if (resourcePack.codec() instanceof GeyserUrlPackCodec) {
-                    packs.remove(uuid);
-                } else {
-                    geyser.getLogger().warning("An extension has attempted to register the GeyserOptionalPack! " +
-                            "Geyser is currently configured to include this pack by default, " +
-                            "and will prioitize it's own, extensions should no longer include the GeyserOptionalPack by default.");
-                    return;
-                }
-            } else {
-                throw new ResourcePackException(ResourcePackException.Cause.DUPLICATE);
-            }
+            throw new ResourcePackException(ResourcePackException.Cause.DUPLICATE);
         }
 
         attemptRegisterOptions(pack, options);
@@ -216,7 +211,14 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     public List<ResourcePacksInfoPacket.Entry> infoPacketEntries() {
         List<ResourcePacksInfoPacket.Entry> entries = new ArrayList<>();
 
+        boolean anyCdn = packs.values().stream().anyMatch(holder -> holder.codec() instanceof UrlPackCodec);
+        boolean warned = false;
+
         for (ResourcePackHolder holder : packs.values()) {
+            if (!warned && anyCdn && !(holder.codec() instanceof UrlPackCodec)) {
+                GeyserImpl.getInstance().getLogger().warning("Mixing pack codecs will result in all UrlPackCodec delivered packs to fall back to non-cdn delivery!");
+                warned = true;
+            }
             GeyserResourcePack pack = holder.pack();
             ResourcePackManifest.Header header = pack.manifest().header();
             entries.add(new ResourcePacksInfoPacket.Entry(

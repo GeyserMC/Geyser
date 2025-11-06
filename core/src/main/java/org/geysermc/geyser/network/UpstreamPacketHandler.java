@@ -236,15 +236,18 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             // Can happen if an error occurs in the resource pack event; that'll disconnect the player
             return PacketSignal.HANDLED;
         }
+        session.includedPackActive(resourcePackLoadEvent.isIntegratedPackActive());
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         resourcePacksInfo.getResourcePackInfos().addAll(this.resourcePackLoadEvent.infoPacketEntries());
         resourcePacksInfo.setVibrantVisualsForceDisabled(!session.isAllowVibrantVisuals());
 
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().gameplay().forceResourcePacks() ||
-            GeyserImpl.getInstance().config().gameplay().enableOptionalPack());
+            resourcePackLoadEvent.isIntegratedPackActive());
         resourcePacksInfo.setWorldTemplateId(UUID.randomUUID());
         resourcePacksInfo.setWorldTemplateVersion("*");
+
+        GeyserImpl.getInstance().getLogger().info(resourcePacksInfo.toString());
         session.sendUpstreamPacket(resourcePacksInfo);
 
         GeyserLocale.loadGeyserLocale(session.locale());
