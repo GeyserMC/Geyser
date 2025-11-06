@@ -74,8 +74,6 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     private final GeyserSession session;
 
-    private boolean willCdnFail = false;
-
     public SessionLoadResourcePacksEventImpl(GeyserSession session) {
         super(session);
         this.session = session;
