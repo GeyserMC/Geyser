@@ -34,6 +34,7 @@ import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.ResourcePackHolder;
+import org.geysermc.geyser.util.GeyserIntegratedPackUtil;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,11 +43,12 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Getter
-public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePacksEvent {
+public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePacksEvent implements GeyserIntegratedPackUtil {
     private final Map<UUID, ResourcePackHolder> packs;
 
     public GeyserDefineResourcePacksEventImpl(Map<UUID, ResourcePackHolder> packMap) {
         this.packs = packMap;
+        registerGeyserPack(this);
     }
 
     @Override
@@ -59,6 +61,10 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
         Objects.requireNonNull(resourcePack, "resource pack must not be null!");
         if (!(resourcePack instanceof GeyserResourcePack pack)) {
             throw new ResourcePackException(ResourcePackException.Cause.UNKNOWN_IMPLEMENTATION);
+        }
+
+        if (handlePossibleOptionalPack(resourcePack)) {
+            return;
         }
 
         UUID uuid = resourcePack.uuid();

@@ -251,12 +251,10 @@ public interface GeyserConfig {
         String serverName();
 
         @Comment("""
-            Whether to automatically serve the GeyserOptionalPack to all connecting players.
-            This adds some quality-of-life visual fixes for Bedrock players.
-            See https://geysermc.org/wiki/other/geyseroptionalpack for all current features.
+            Whether to automatically serve a resource pack that is required for some Geyser features to all connecting Bedrock players.
             If enabled, force-resource-packs will be enabled.""")
         @DefaultBoolean(true)
-        boolean enableOptionalPack();
+        boolean enableIntegratedPack();
 
         @Comment("""
             Allow a fake cooldown indicator to be sent. Bedrock players otherwise do not see a cooldown as they still use 1.8 combat.
@@ -438,6 +436,14 @@ public interface GeyserConfig {
             Disable this if you have a lot of teams used that you don't need as suggestions.""")
         @DefaultBoolean(true)
         boolean addTeamSuggestions();
+
+        @Comment("""
+            A list of remote resource pack urls to send to the Bedrock client for downloading.
+            The Bedrock client is very picky about how these are delivered - please see our wiki page for further info: https://geysermc.org/wiki/geyser/packs/
+            """)
+        default List<String> resourcePackUrls() {
+            return Collections.emptyList();
+        }
 
         // Cannot be type File yet because we may want to hide it in plugin instances.
         @Comment("""

@@ -45,6 +45,7 @@ import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.pack.option.OptionHolder;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.GeyserIntegratedPackUtil;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent {
+public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent implements GeyserIntegratedPackUtil {
 
     /**
      * The packs for this Session. A {@link ResourcePackHolder} may contain resource pack options registered
@@ -73,6 +74,8 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
     private final GeyserSession session;
 
+    private boolean willCdnFail = false;
+
     public SessionLoadResourcePacksEventImpl(GeyserSession session) {
         super(session);
         this.session = session;
@@ -88,6 +91,9 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     @Override
     public boolean register(@NonNull ResourcePack resourcePack) {
         try {
+            if (handlePossibleOptionalPack(resourcePack)) {
+                return false;
+            }
             register(resourcePack, PriorityOption.NORMAL);
         } catch (ResourcePackException e) {
             GeyserImpl.getInstance().getLogger().error("An exception occurred while registering resource pack: " + e.getMessage(), e);
@@ -101,6 +107,10 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         Objects.requireNonNull(resourcePack);
         if (!(resourcePack instanceof GeyserResourcePack pack)) {
             throw new ResourcePackException(ResourcePackException.Cause.UNKNOWN_IMPLEMENTATION);
+        }
+
+        if (handlePossibleOptionalPack(resourcePack)) {
+            return;
         }
 
         UUID uuid = resourcePack.uuid();
@@ -201,7 +211,14 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     public List<ResourcePacksInfoPacket.Entry> infoPacketEntries() {
         List<ResourcePacksInfoPacket.Entry> entries = new ArrayList<>();
 
+        boolean anyCdn = packs.values().stream().anyMatch(holder -> holder.codec() instanceof UrlPackCodec);
+        boolean warned = false;
+
         for (ResourcePackHolder holder : packs.values()) {
+            if (!warned && anyCdn && !(holder.codec() instanceof UrlPackCodec)) {
+                GeyserImpl.getInstance().getLogger().warning("Mixing pack codecs will result in all UrlPackCodec delivered packs to fall back to non-cdn delivery!");
+                warned = true;
+            }
             GeyserResourcePack pack = holder.pack();
             ResourcePackManifest.Header header = pack.manifest().header();
             entries.add(new ResourcePacksInfoPacket.Entry(
