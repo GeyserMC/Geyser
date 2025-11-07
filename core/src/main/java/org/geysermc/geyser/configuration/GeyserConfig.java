@@ -251,12 +251,6 @@ public interface GeyserConfig {
         String serverName();
 
         @Comment("""
-            Whether to automatically serve a resource pack that is required for some Geyser features to all connecting Bedrock players.
-            If enabled, force-resource-packs will be enabled.""")
-        @DefaultBoolean(true)
-        boolean enableIntegratedPack();
-
-        @Comment("""
             Allow a fake cooldown indicator to be sent. Bedrock players otherwise do not see a cooldown as they still use 1.8 combat.
             Please note: if the cooldown is enabled, some users may see a black box during the cooldown sequence, like below:
             https://geysermc.org/img/external/cooldown_indicator.png
@@ -309,6 +303,12 @@ public interface GeyserConfig {
             want to download the resource packs.""")
         @DefaultBoolean(true)
         boolean forceResourcePacks();
+
+        @Comment("""
+            Whether to automatically serve a resource pack that is required for some Geyser features to all connecting Bedrock players.
+            If enabled, force-resource-packs will be enabled.""")
+        @DefaultBoolean(true)
+        boolean enableIntegratedPack();
 
         @Comment("""
             Whether to forward player ping to the server. While enabling this will allow Bedrock players to have more accurate
