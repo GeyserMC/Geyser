@@ -49,7 +49,7 @@ import java.util.regex.Pattern;
 public final class VersionCheckUtils {
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private static @NonNull OptionalInt LATEST_BEDROCK_RELEASE = OptionalInt.empty();
-    private static final int SUPPORTED_JAVA_VERSION = 17;
+    private static final int SUPPORTED_JAVA_VERSION = 21;
 
     public static void checkForOutdatedFloodgate(GeyserLogger logger) {
         try {
