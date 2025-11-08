@@ -85,7 +85,7 @@ public class DumpInfo {
     private Object config;
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final int connectionAttempts;
-    private final HashInfo hashInfo;
+    private final String hash;
     private final RamInfo ramInfo;
     private LogsInfo logsInfo;
     private final BootstrapDumpInfo bootstrapInfo;
@@ -118,16 +118,11 @@ public class DumpInfo {
             }
         }
 
-        String md5Hash = "unknown";
         String sha256Hash = "unknown";
         try {
             // https://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-file
-            // https://stackoverflow.com/questions/304268/getting-a-files-md5-checksum-in-java
             File file = new File(DumpInfo.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             ByteSource byteSource = Files.asByteSource(file);
-            // Jenkins uses MD5 for its hash - TODO remove
-            //noinspection UnstableApiUsage,deprecation
-            md5Hash = byteSource.hash(Hashing.md5()).toString();
             //noinspection UnstableApiUsage
             sha256Hash = byteSource.hash(Hashing.sha256()).toString();
         } catch (Exception e) {
@@ -135,7 +130,7 @@ public class DumpInfo {
                 e.printStackTrace();
             }
         }
-        this.hashInfo = new HashInfo(md5Hash, sha256Hash);
+        this.hash = sha256Hash;
 
         this.ramInfo = new RamInfo();
 
@@ -300,9 +295,6 @@ public class DumpInfo {
                 this.link = logData.get("url").getAsString();
             } catch (IOException ignored) { }
         }
-    }
-
-    public record HashInfo(String md5Hash, String sha256Hash) {
     }
 
     public record RamInfo(long free, long total, long max) {
