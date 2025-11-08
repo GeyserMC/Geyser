@@ -83,7 +83,6 @@ public class DumpInfo {
     private final String systemEncoding;
     private final GitInfo gitInfo;
     private Object config;
-    private Object advancedConfig;
     private final Object2IntMap<DeviceOs> userPlatforms;
     private final int connectionAttempts;
     private final HashInfo hashInfo;
@@ -112,10 +111,6 @@ public class DumpInfo {
             ConfigurationNode configNode = CommentedConfigurationNode.root(options);
             configNode.set(geyser.config());
             this.config = toGson(configNode);
-
-            ConfigurationNode advancedConfigNode = CommentedConfigurationNode.root(options);
-            advancedConfigNode.set(geyser.config());
-            this.advancedConfig = toGson(advancedConfigNode);
         } catch (SerializationException e) {
             e.printStackTrace();
             if (geyser.config().debugMode()) {
