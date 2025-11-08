@@ -45,6 +45,9 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.pack.ResourcePackHolder;
+import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.util.CpuUtils;
@@ -91,6 +94,8 @@ public class DumpInfo {
     private final BootstrapDumpInfo bootstrapInfo;
     private final FlagsInfo flagsInfo;
     private final List<ExtensionInfo> extensionInfo;
+    private final List<PackInfo> packInfo;
+    private final MappingInfo mappingInfo;
 
     public DumpInfo(GeyserImpl geyser, boolean addLog) {
         this.versionInfo = new VersionInfo();
@@ -158,6 +163,14 @@ public class DumpInfo {
         for (Extension extension : GeyserApi.api().extensionManager().extensions()) {
             this.extensionInfo.add(new ExtensionInfo(extension.isEnabled(), extension.name(), extension.description().version(), extension.description().apiVersion(), extension.description().main(), extension.description().authors()));
         }
+
+        this.packInfo = Registries.RESOURCE_PACKS.get().values().stream()
+            .map(PackInfo::new)
+            .toList();
+        this.mappingInfo = new MappingInfo(BlockRegistries.CUSTOM_BLOCKS.get().length,
+            BlockRegistries.CUSTOM_SKULLS.get().size(),
+            Registries.ITEMS.forVersion(GameProtocol.DEFAULT_BEDROCK_PROTOCOL).getCustomIdMappings().size()
+        );
     }
 
     private JsonElement toGson(ConfigurationNode node) {
@@ -319,5 +332,15 @@ public class DumpInfo {
 
     public record GitInfo(String buildNumber, @SerializedName("git.commit.id.abbrev") String commitHashAbbrev, @SerializedName("git.commit.id") String commitHash,
                               @SerializedName("git.branch") String branchName, @SerializedName("git.remote.origin.url") String originUrl) {
+    }
+
+    public record PackInfo(String name, String type) {
+
+        public PackInfo(ResourcePackHolder holder) {
+            this(holder.pack().manifest().header().name(), holder.codec().getClass().getSimpleName());
+        }
+    }
+
+    public record MappingInfo(int customBlocks, int customSkulls, int customItems) {
     }
 }
