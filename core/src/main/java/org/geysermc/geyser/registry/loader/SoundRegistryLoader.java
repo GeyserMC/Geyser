@@ -44,8 +44,10 @@ public class SoundRegistryLoader implements RegistryLoader<String, Map<String, S
     @Override
     public Map<String, SoundMapping> load(String input) {
         JsonObject soundsJson;
-        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(input)) {
-            soundsJson = new JsonParser().parse(new InputStreamReader(stream)).getAsJsonObject();
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(input);
+              InputStreamReader isr = new InputStreamReader(stream)) {
+            //noinspection deprecation
+            soundsJson = new JsonParser().parse(isr).getAsJsonObject();
         } catch (IOException e) {
             throw new AssertionError("Unable to load sound mappings", e);
         }

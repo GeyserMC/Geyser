@@ -129,6 +129,7 @@ public interface GeyserConfig {
                 The IP address that Geyser will bind on to listen for incoming Bedrock connections.
                 Generally, you should only change this if you want to limit what IPs can connect to your server.""")
         @NonNull
+        @Override
         @DefaultString("0.0.0.0")
         @AsteriskSerializer.Asterisk
         String address();
@@ -136,6 +137,7 @@ public interface GeyserConfig {
         @Comment("""
             The port that will Geyser will listen on for incoming Bedrock connections.
             Since Minecraft: Bedrock Edition uses UDP, this port must allow UDP traffic.""")
+        @Override
         @DefaultNumeric(19132)
         @NumericRange(from = 0, to = 65535)
         int port();
@@ -184,6 +186,7 @@ public interface GeyserConfig {
                 What type of authentication Bedrock players will be checked against when logging into the Java server.
                 Can be "floodgate" (see https://wiki.geysermc.org/floodgate/), "online", or "offline".""")
         @NonNull
+        @Override
         default AuthType authType() {
             return AuthType.ONLINE;
         }
@@ -191,16 +194,19 @@ public interface GeyserConfig {
         void authType(AuthType authType);
         boolean forwardHostname();
 
+        @Override
         @Exclude
         default String minecraftVersion() {
             return GameProtocol.getJavaMinecraftVersion();
         }
 
+        @Override
         @Exclude
         default int protocolVersion() {
             return GameProtocol.getJavaProtocolVersion();
         }
 
+        @Override
         @Exclude
         default boolean resolveSrv() {
             return false;

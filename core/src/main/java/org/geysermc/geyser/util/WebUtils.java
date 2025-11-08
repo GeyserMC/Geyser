@@ -97,7 +97,9 @@ public class WebUtils {
         con.setConnectTimeout(10000);
         con.setReadTimeout(10000);
         checkResponseCode(con);
-        try (JsonReader reader = GeyserImpl.GSON.newJsonReader(new InputStreamReader(con.getInputStream()))) {
+        try (InputStreamReader isr = new InputStreamReader(con.getInputStream());
+             JsonReader reader = GeyserImpl.GSON.newJsonReader(isr)) {
+            //noinspection deprecation
             return new JsonParser().parse(reader).getAsJsonObject();
         }
     }

@@ -40,8 +40,10 @@ import java.io.InputStreamReader;
 public abstract class EffectRegistryLoader<T> implements RegistryLoader<String, T> {
 
     public JsonObject loadFile(String input) {
-        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(input)) {
-            return new JsonParser().parse(new InputStreamReader(stream)).getAsJsonObject();
+        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(input);
+         InputStreamReader reader = new InputStreamReader(stream)) {
+            //noinspection deprecation
+            return new JsonParser().parse(reader).getAsJsonObject();
         } catch (Exception e) {
             throw new AssertionError("Unable to load registrations for " + input, e);
         }

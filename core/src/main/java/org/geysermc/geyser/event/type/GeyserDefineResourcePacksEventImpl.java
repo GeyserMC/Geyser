@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.event.type;
 
-import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent;
@@ -42,7 +41,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-@Getter
 public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePacksEvent implements GeyserIntegratedPackUtil {
     private final Map<UUID, ResourcePackHolder> packs;
 
@@ -125,5 +123,10 @@ public class GeyserDefineResourcePacksEventImpl extends GeyserDefineResourcePack
         }
 
         holder.optionHolder().validateAndAdd(holder.pack(), options);
+    }
+
+    @Override
+    public Map<UUID, ResourcePackHolder> getPacks() {
+        return packs;
     }
 }

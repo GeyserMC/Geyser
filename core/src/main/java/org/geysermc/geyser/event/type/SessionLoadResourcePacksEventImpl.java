@@ -27,7 +27,6 @@ package org.geysermc.geyser.event.type;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.packet.ResourcePackStackPacket;
@@ -62,7 +61,6 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
      * The packs for this Session. A {@link ResourcePackHolder} may contain resource pack options registered
      * during the {@link org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent}.
      */
-    @Getter
     private final Map<UUID, ResourcePackHolder> packs;
 
     /**
@@ -251,5 +249,10 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
             return urlPackCodec.url();
         }
         return "";
+    }
+
+    @Override
+    public Map<UUID, ResourcePackHolder> getPacks() {
+        return packs;
     }
 }
