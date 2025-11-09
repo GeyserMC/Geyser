@@ -448,7 +448,6 @@ public class CustomBlockRegistryPopulator {
             for (Map.Entry<String, MaterialInstance> entry : components.materialInstances().entrySet()) {
                 MaterialInstance materialInstance = entry.getValue();
                 NbtMapBuilder materialBuilder = NbtMap.builder()
-                        .putString("render_method", materialInstance.renderMethod())
                         .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion())
                         .putBoolean("isotropic", materialInstance.isotropic());
 
@@ -456,6 +455,10 @@ public class CustomBlockRegistryPopulator {
                     materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
                 } else {
                     materialBuilder.putBoolean("face_dimming", materialInstance.faceDimming());
+                }
+
+                if (materialInstance.renderMethod() != null) {
+                    materialBuilder.putString("render_method", materialInstance.renderMethod());
                 }
 
                 if (materialInstance.tintMethod() != null) {
