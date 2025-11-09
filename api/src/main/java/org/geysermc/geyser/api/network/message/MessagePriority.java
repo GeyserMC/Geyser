@@ -62,10 +62,10 @@ public enum MessagePriority {
      */
     @NonNull
     public static MessagePriority of(int value) {
-        if (value >= 75) return LAST;
-        if (value >= 25) return LATE;
-        if (value <= -75) return FIRST;
-        if (value <= -25) return EARLY;
+        if (value >= 75) return FIRST;
+        if (value >= 25) return EARLY;
+        if (value <= -75) return LAST;
+        if (value <= -25) return LATE;
         return NORMAL;
     }
 }
