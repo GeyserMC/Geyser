@@ -58,7 +58,6 @@ public enum MessagePriority {
      *
      * @param value the priority value
      * @return the priority
-     * @throws IllegalArgumentException if outside allowed range
      */
     @NonNull
     public static MessagePriority of(int value) {

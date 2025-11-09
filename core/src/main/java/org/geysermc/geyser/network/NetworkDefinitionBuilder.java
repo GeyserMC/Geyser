@@ -52,6 +52,7 @@ public class NetworkDefinitionBuilder<M extends Message<? extends MessageBuffer>
         this.registrationCallback = registrationCallback;
     }
 
+    @Override
     public SessionDefineNetworkChannelsEvent.Builder.@NonNull Initial<M> pipeline(@NonNull Consumer<Pipeline> pipeline) {
         Objects.requireNonNull(pipeline, "pipeline");
         PipelineImpl impl = new PipelineImpl();

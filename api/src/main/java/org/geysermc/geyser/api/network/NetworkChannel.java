@@ -45,13 +45,13 @@ import org.geysermc.geyser.api.util.Identifier;
  *
  * <pre>
  * {@code
- *     private final NetworkChannel myChannel = NetworkChannel.of("example", "my_channel");
+ *     private final NetworkChannel myChannel = NetworkChannel.of("example", "my_channel", MyMessage.class);
  * }
  * </pre>
  * Or when inside an extension, with 'this' being the extension instance:
  * <pre>
  * {@code
- *     private final NetworkChannel myChannel = NetworkChannel.of(this, "my_channel");
+ *     private final NetworkChannel myChannel = NetworkChannel.of(this, "my_channel", MyMessage.class);
  * }
  * </pre>
  *

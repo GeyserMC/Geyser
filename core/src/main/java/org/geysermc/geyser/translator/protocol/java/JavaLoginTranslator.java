@@ -139,9 +139,12 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
                     .stream()
                     .filter(channel -> !channel.isPacket())
                     .map(channel -> channel.identifier().namespace() + ":" + channel.identifier().path())
+                    .distinct()
                     .collect(Collectors.joining("\0"));
 
-            session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(register, channels.getBytes(StandardCharsets.UTF_8)));
+            if (!channels.isEmpty()) {
+                session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(register, channels.getBytes(StandardCharsets.UTF_8)));
+            }
         }
 
         if (session.getBedrockDimension().bedrockId() != newDimension.bedrockId()) {
