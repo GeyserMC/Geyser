@@ -138,20 +138,36 @@ val gitPropertiesMap = mapOf(
     "git.remote.origin.url" to gitRepositoryUrl
 )
 
-// Configuration cache compliant
-tasks.processResources {
-    val generatedPropsFile = layout.buildDirectory.file("generated/git/git.properties")
+val generateGitProperties = tasks.register("generateGitProperties") {
+    description = "Generates git.properties from Git information."
+    group = "build"
+
     inputs.properties(gitPropertiesMap)
+
+    val generatedPropsFile = layout.buildDirectory.file("generated/git/git.properties")
     outputs.file(generatedPropsFile)
+
     doLast {
         val props = Properties()
         gitPropertiesMap.forEach { (key, provider) ->
             props[key] = provider.get()
         }
+        
         generatedPropsFile.get().asFile.apply {
             parentFile.mkdirs()
             writer().use { props.store(it, null) }
+            // remove comment line
+            val lines = readLines()
+            if (lines.isNotEmpty()) {
+                writeText(lines.drop(1).joinToString("\n"))
+            }
         }
+    }
+}
+
+tasks.processResources {
+    from(generateGitProperties) {
+        into(".")
     }
 }
 
@@ -171,9 +187,6 @@ sourceSets {
                 property("repository", gitRepositoryUrl)
                 property("devVersion", gitRepositoryIsDev.map { it.toString() })
             }
-        }
-        resources {
-            srcDir(layout.buildDirectory.dir("generated/git"))
         }
     }
 }
