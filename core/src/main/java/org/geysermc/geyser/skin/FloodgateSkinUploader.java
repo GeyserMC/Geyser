@@ -190,15 +190,22 @@ public final class FloodgateSkinUploader {
         };
     }
 
-    public void uploadSkin(List<String> chainData, String clientData) {
-        if (chainData == null || clientData == null) {
+    public void uploadSkin(GeyserSession session) {
+        List<String> chainData = session.getCertChainData();
+        String token = session.getToken();
+        String clientData = session.getClientData().getOriginalString();
+        if ((chainData == null && token == null) || clientData == null) {
             return;
         }
 
         ObjectNode node = JACKSON.createObjectNode();
-        ArrayNode chainDataNode = JACKSON.createArrayNode();
-        chainData.forEach(chainDataNode::add);
-        node.set("chain_data", chainDataNode);
+        if (chainData != null) {
+            ArrayNode chainDataNode = JACKSON.createArrayNode();
+            chainData.forEach(chainDataNode::add);
+            node.set("chain_data", chainDataNode);
+        } else {
+            node.put("token", token);
+        }
         node.put("client_data", clientData);
 
         // The reason why I don't like Jackson
@@ -218,7 +225,7 @@ public final class FloodgateSkinUploader {
     }
 
     private void reconnectLater(GeyserImpl geyser) {
-        // we ca only reconnect when the thread pool is open
+        // we can only reconnect when the thread pool is open
         if (geyser.getScheduledThread().isShutdown() || closed) {
             logger.info("The skin uploader has been closed");
             return;

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.entity.property.type.GeyserEnumEntityProperty;
 import org.geysermc.geyser.api.util.Identifier;
 
@@ -35,7 +36,7 @@ import java.util.Locale;
 public record EnumProperty<E extends Enum<E>>(
     Identifier identifier,
     Class<E> enumClass,
-    E defaultValue
+    @NonNull E defaultValue
 ) implements AbstractEnumProperty<E>, GeyserEnumEntityProperty<E> {
 
     public EnumProperty {

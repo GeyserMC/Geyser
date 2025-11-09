@@ -1272,7 +1272,7 @@ public final class EntityDefinitions {
                 if (propertyId.vanilla()) {
                     throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
                 }
-                FloatProperty property = new FloatProperty(propertyId, min, max, defaultValue);
+                FloatProperty property = new FloatProperty(propertyId, max, min, defaultValue);
                 registerProperty(identifier, property);
                 return property;
             }
@@ -1284,7 +1284,7 @@ public final class EntityDefinitions {
                 if (propertyId.vanilla()) {
                     throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
                 }
-                IntProperty property = new IntProperty(propertyId, min, max, defaultValue);
+                IntProperty property = new IntProperty(propertyId, max, min, defaultValue);
                 registerProperty(identifier, property);
                 return property;
             }
@@ -1339,7 +1339,7 @@ public final class EntityDefinitions {
         });
 
         for (var definition : Registries.ENTITY_DEFINITIONS.get().values()) {
-            if (definition.registeredProperties() != null) {
+            if (!definition.registeredProperties().isEmpty()) {
                 Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(definition.identifier()));
             }
         }

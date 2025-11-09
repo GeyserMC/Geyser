@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.bedrock.entity.player.input;
 
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.InputMode;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
@@ -40,6 +41,7 @@ import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -270,11 +272,31 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         }
 
         if (sendMovement) {
-            vehicle.setOnGround(packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
+            // We only need to determine onGround status this way for client predicted vehicles.
+            // For other vehicle, Geyser already handle it in VehicleComponent or the Java server handle it.
+            if (packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE)) {
+                Vector3f position = vehicle.getPosition();
+
+                if (vehicle instanceof BoatEntity) {
+                    position = position.down(vehicle.getDefinition().offset());
+                }
+
+                final BoundingBox box = new BoundingBox(
+                    position.up(vehicle.getBoundingBoxHeight() / 2f).toDouble(),
+                    vehicle.getBoundingBoxWidth(), vehicle.getBoundingBoxHeight(), vehicle.getBoundingBoxWidth()
+                );
+
+                // Manually calculate the vertical collision ourselves, the VERTICAL_COLLISION input data is inaccurate inside a vehicle!
+                Vector3d movement = session.getPlayerEntity().getLastTickEndVelocity().toDouble();
+                Vector3d correctedMovement = session.getCollisionManager().correctMovementForCollisions(movement, box, true, false);
+
+                vehicle.setOnGround(correctedMovement.getY() != movement.getY() && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
+            }
+
             Vector3f vehiclePosition = packet.getPosition();
             Vector2f vehicleRotation = packet.getVehicleRotation();
             if (vehicleRotation == null) {
-                return; // If the client just got in or out of a vehicle for example.
+                return; // If the client just got in or out of a vehicle for example. Or if this vehicle isn't client predicted.
             }
 
             if (session.getWorldBorder().isPassingIntoBorderBoundaries(vehiclePosition, false)) {

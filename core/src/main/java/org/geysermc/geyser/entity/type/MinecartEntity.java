@@ -211,6 +211,13 @@ public class MinecartEntity extends Entity implements Tickable {
     }
 
     @Override
+    public boolean doesJumpDismount() {
+        // This is a little bit misleading because jumping is literally the only way to dismount for Touch users.
+        // Therefore, do this so we won't lock jumping to let Touch user able to dismount.
+        return false;
+    }
+
+    @Override
     protected InteractiveTag testInteraction(Hand hand) {
         if (definition == EntityDefinitions.CHEST_MINECART || definition == EntityDefinitions.HOPPER_MINECART) {
             return InteractiveTag.OPEN_CONTAINER;

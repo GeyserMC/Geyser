@@ -74,7 +74,6 @@ import java.util.function.Function;
  */
 // Lots of unchecked casting happens here. It should all be handled properly.
 @SuppressWarnings("unchecked")
-// TODO only log some things once (like was done in vault translator)
 public final class ItemStackParser {
     private static final Map<DataComponentType<?>, DataComponentParser<?, ?>> PARSERS = new Reference2ObjectOpenHashMap<>();
 
