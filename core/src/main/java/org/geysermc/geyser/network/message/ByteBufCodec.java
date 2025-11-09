@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.network.message;
 
+import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.common.util.VarInts;
@@ -101,6 +102,24 @@ public class ByteBufCodec implements MessageCodec<ByteBufMessageBuffer> {
         buffer.buffer().readBytes(bytes);
 
         return new String(bytes, StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public @NonNull String readString(@NonNull ByteBufMessageBuffer buffer, int maxLength) {
+        int maxBytes = ByteBufUtil.utf8MaxBytes(maxLength);
+        int size = VarInts.readUnsignedInt(buffer.buffer());
+        if (size > maxBytes) {
+            throw new IllegalArgumentException("The received encoded string buffer length is longer than maximum allowed (" + size + " > " + maxBytes + ")");
+        }
+
+        byte[] bytes = new byte[size];
+        buffer.buffer().readBytes(bytes);
+        String string = new String(bytes, StandardCharsets.UTF_8);
+        if (string.length() > maxLength) {
+            throw new IllegalArgumentException("The received string length is longer than maximum allowed (" + string.length() + " > " + maxLength + ")");
+        }
+
+        return string;
     }
 
     @Override

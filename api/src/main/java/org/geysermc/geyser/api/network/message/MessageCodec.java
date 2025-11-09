@@ -133,6 +133,16 @@ public interface MessageCodec<T extends MessageBuffer> {
     String readString(@NonNull T buffer);
 
     /**
+     * Reads a string from the {@link T buffer}.
+     *
+     * @param buffer the buffer to read from
+     * @param maxLength the maximum length of the string to read
+     * @return the string read
+     */
+    @NonNull
+    String readString(@NonNull T buffer, int maxLength);
+
+    /**
      * Writes a boolean value to the {@link T buffer}.
      *
      * @param buffer the buffer to write to
