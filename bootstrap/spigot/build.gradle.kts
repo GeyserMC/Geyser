@@ -79,5 +79,6 @@ modrinth {
 tasks {
     runServer {
         minecraftVersion(libs.versions.runpaperversion.get())
+        jvmArgs("-Dcom.mojang.eula.agree=true")
     }
 }
