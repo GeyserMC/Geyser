@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -449,7 +449,9 @@ public class CustomBlockRegistryPopulator {
                 MaterialInstance materialInstance = entry.getValue();
                 NbtMapBuilder materialBuilder = NbtMap.builder()
                         .putString("render_method", materialInstance.renderMethod())
-                        .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion());
+                        .putString("tint_method", materialInstance.tintMethod())
+                        .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion())
+                        .putBoolean("isotropic", materialInstance.isotropic());
 
                 if (GameProtocol.is1_21_110orHigher(protocolVersion)) {
                     materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
