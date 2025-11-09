@@ -449,7 +449,6 @@ public class CustomBlockRegistryPopulator {
                 MaterialInstance materialInstance = entry.getValue();
                 NbtMapBuilder materialBuilder = NbtMap.builder()
                         .putString("render_method", materialInstance.renderMethod())
-                        .putString("tint_method", materialInstance.tintMethod())
                         .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion())
                         .putBoolean("isotropic", materialInstance.isotropic());
 
@@ -457,6 +456,10 @@ public class CustomBlockRegistryPopulator {
                     materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
                 } else {
                     materialBuilder.putBoolean("face_dimming", materialInstance.faceDimming());
+                }
+
+                if (materialInstance.tintMethod() != null) {
+                    materialBuilder.putString("tint_method", materialInstance.tintMethod());
                 }
 
                 // Texture can be unspecified when blocks.json is used in RP (https://wiki.bedrock.dev/blocks/blocks-stable.html#minecraft-material-instances)
