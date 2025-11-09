@@ -33,7 +33,7 @@ import java.util.function.Supplier;
 
 /**
  * Represents a message that can be sent over the network.
- * @since 2.8.2
+ * @since 2.9.1
  */
 public interface Message<T extends MessageBuffer> {
 
@@ -69,8 +69,10 @@ public interface Message<T extends MessageBuffer> {
          * @param packet the packet object to create the message from
          * @return a new packet message
          */
-        static <T extends MessageBuffer> PacketWrapped<T> of(@NonNull Object packet) {
-            return GeyserApi.api().provider(PacketWrapped.class, packet);
+        @SuppressWarnings("unchecked")
+        @NonNull
+        static <T extends MessageBuffer, P> PacketWrapped<T, P> of(@NonNull Object packet) {
+            return (PacketWrapped<T, P>) GeyserApi.api().provider(PacketWrapped.class, packet);
         }
 
         /**
@@ -80,7 +82,7 @@ public interface Message<T extends MessageBuffer> {
          * @return a new packet message
          */
         @NonNull
-        static <T extends MessageBuffer> MessageFactory<T> of(@NonNull Supplier<Object> packetSupplier) {
+        static <T extends MessageBuffer, P> MessageFactory<T, PacketWrapped<T, P>> of(@NonNull Supplier<P> packetSupplier) {
             return buffer -> of(packetSupplier.get());
         }
 
@@ -92,7 +94,7 @@ public interface Message<T extends MessageBuffer> {
          * @return a new packet message factory
          */
         @NonNull
-        static <T extends MessageBuffer, V> MessageFactory<T> of(@NonNull Function<T, V> substitutor, @NonNull Function<V, Object> packetSupplier) {
+        static <T extends MessageBuffer, V, P> MessageFactory<T, PacketWrapped<T, P>> of(@NonNull Function<T, V> substitutor, @NonNull Function<V, P> packetSupplier) {
             return buffer -> of(packetSupplier.apply(substitutor.apply(buffer)));
         }
     }
@@ -102,7 +104,7 @@ public interface Message<T extends MessageBuffer> {
      *
      * @param <T> the type of message buffer
      */
-    interface PacketWrapped<T extends MessageBuffer> extends PacketBase<T> {
+    interface PacketWrapped<T extends MessageBuffer, P> extends PacketBase<T> {
 
         /**
          * Gets the packet associated with this message.
@@ -110,6 +112,6 @@ public interface Message<T extends MessageBuffer> {
          * @return the packet
          */
         @NonNull
-        Object packet();
+        P packet();
     }
 }

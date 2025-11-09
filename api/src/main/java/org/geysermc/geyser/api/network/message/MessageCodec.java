@@ -31,7 +31,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
  * A codec for encoding and decoding messages.
  * 
  * @param <T> the type of {@link MessageBuffer} used for encoding and decoding
- * @since 2.8.2
+ * @since 2.9.1
  */
 public interface MessageCodec<T extends MessageBuffer> {
 

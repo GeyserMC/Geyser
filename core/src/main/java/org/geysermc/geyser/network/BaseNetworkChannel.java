@@ -23,26 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.network.message;
+package org.geysermc.geyser.network;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.network.NetworkChannel;
 
-/**
- * A factory interface for creating messages from a given message buffer.
- *
- * @param <T> the type of the message buffer
- * @param <M> the type of the message
- * @since 2.9.1
- */
-@FunctionalInterface
-public interface MessageFactory<T extends MessageBuffer, M extends Message<T>> {
+public abstract class BaseNetworkChannel implements NetworkChannel {
+    private final Class<?> messageType;
+
+    public BaseNetworkChannel(Class<?> messageType) {
+        this.messageType = messageType;
+    }
 
     /**
-     * Creates a new message from the provided buffer.
+     * Gets the type of message this channel handles.
      *
-     * @param buffer the buffer to create the message from
-     * @return a new message created from the buffer
+     * @return the message type
      */
     @NonNull
-    M create(@NonNull T buffer);
+    public Class<?> messageType() {
+        return messageType;
+    }
 }

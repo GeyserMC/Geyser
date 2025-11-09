@@ -35,7 +35,7 @@ import java.util.Optional;
  * Represents a data type that can be sent or received over the network.
  *
  * @param <T> the type
- * @since 2.8.2
+ * @since 2.9.1
  */
 public final class DataType<T> {
     /**

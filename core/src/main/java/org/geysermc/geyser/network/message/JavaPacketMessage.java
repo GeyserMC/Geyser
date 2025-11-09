@@ -29,7 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.network.message.Message;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
 
-public record JavaPacketMessage(MinecraftPacket packet) implements Message.PacketWrapped<ByteBufMessageBuffer> {
+public record JavaPacketMessage<T extends MinecraftPacket>(T packet) implements Message.PacketWrapped<ByteBufMessageBuffer, T> {
 
     @Override
     public void encode(@NonNull ByteBufMessageBuffer buffer) {

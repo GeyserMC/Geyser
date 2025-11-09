@@ -33,7 +33,7 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.api.network.message.Message;
 import org.geysermc.geyser.session.GeyserSession;
 
-public record BedrockPacketMessage(@NonNull BedrockPacket packet) implements Message.PacketWrapped<ByteBufMessageBuffer> {
+public record BedrockPacketMessage<T extends BedrockPacket>(@NonNull T packet) implements Message.PacketWrapped<ByteBufMessageBuffer, T> {
 
     @SuppressWarnings("unchecked")
     public void postProcess(@NonNull GeyserSession session, @NonNull ByteBufMessageBuffer buffer) {

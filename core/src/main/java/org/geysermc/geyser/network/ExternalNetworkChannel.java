@@ -23,25 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.network;
+package org.geysermc.geyser.network;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Objects;
 
 /**
- * Represents a network channel associated with an extension.
- * @since 2.8.2
+ * Represents a network channel not associated with any specific extension.
+ * <p>
+ * This can be used for external communication channels, like mods or plugins.
  */
-public class ExtensionNetworkChannel implements NetworkChannel {
-    private final Extension extension;
-    private final String channel;
+public class ExternalNetworkChannel extends BaseNetworkChannel {
+    private final Identifier identifier;
 
-    protected ExtensionNetworkChannel(@NonNull Extension extension, @NonNull String channel) {
-        this.extension = extension;
-        this.channel = channel;
+    public ExternalNetworkChannel(@NonNull Identifier identifier, @NonNull Class<?> messageType) {
+        super(messageType);
+
+        this.identifier = identifier;
     }
 
     /**
@@ -50,7 +50,7 @@ public class ExtensionNetworkChannel implements NetworkChannel {
     @Override
     @NonNull
     public Identifier identifier() {
-        return Identifier.of(this.extension.description().id(), this.channel);
+        return this.identifier;
     }
 
     /**
@@ -63,21 +63,21 @@ public class ExtensionNetworkChannel implements NetworkChannel {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || !NetworkChannel.class.isAssignableFrom(o.getClass())) return false;
-        NetworkChannel that = (NetworkChannel) o;
-        return Objects.equals(this.identifier(), that.identifier());
+        if (o == null || getClass() != o.getClass()) return false;
+        ExternalNetworkChannel that = (ExternalNetworkChannel) o;
+        return Objects.equals(this.identifier, that.identifier) && Objects.equals(this.messageType(), that.messageType());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.identifier());
+        return Objects.hash(this.identifier(), this.messageType());
     }
 
     @Override
     public String toString() {
-        return "ExtensionNetworkChannel{" +
-                "extension=" + this.extension.description().id() +
-                ", channel='" + this.channel + '\'' +
+        return "ExternalNetworkChannel{" +
+                "identifier='" + this.identifier + '\'' +
+                ", messageType=" + this.messageType() +
                 '}';
     }
 }

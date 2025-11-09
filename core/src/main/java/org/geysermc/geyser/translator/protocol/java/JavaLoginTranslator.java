@@ -137,7 +137,8 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         if (!registeredChannels.isEmpty()) {
             String channels = registeredChannels
                     .stream()
-                    .map(channel -> channel.key() + ":" + channel.channel())
+                    .filter(channel -> !channel.isPacket())
+                    .map(channel -> channel.identifier().namespace() + ":" + channel.identifier().path())
                     .collect(Collectors.joining("\0"));
 
             session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(register, channels.getBytes(StandardCharsets.UTF_8)));

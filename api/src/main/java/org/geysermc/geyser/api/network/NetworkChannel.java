@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.network;
 
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.Identifier;
 
@@ -67,11 +68,11 @@ import org.geysermc.geyser.api.util.Identifier;
  *
  * <p>
  * Packet channels can also be registered against packet objects from
- * exterbak protocol libraries, such as the ones provided in Geyser. For
+ * external protocol libraries, such as the ones provided in Geyser. For
  * an example on how to do this, please see the
  * <a href="https://geysermc.org/wiki/geyser/networking-api">Networking API documentation</a>.
  *
- * @since 2.8.2
+ * @since 2.9.1
  */
 public interface NetworkChannel {
 
@@ -91,58 +92,61 @@ public interface NetworkChannel {
     boolean isPacket();
 
     /**
-     * Creates a new {@link NetworkChannel} instance.
+     * Creates a new external {@link NetworkChannel} instance.
      * <p>
      * Extensions should use this method to register
      * their own channels for more robust identification.
      *
      * @param extension the extension that registered this channel
      * @param channel the name of the channel
-     * @return a new {@link NetworkChannel} instance
+     * @param messageType the type of the message sent over this channel
+     * @return a new external {@link NetworkChannel} instance
      */
     @NonNull
-    static NetworkChannel of(@NonNull Extension extension, @NonNull String channel) {
-        return new ExtensionNetworkChannel(extension, channel);
+    static NetworkChannel of(@NonNull Extension extension, @NonNull String channel, @NonNull Class<?> messageType) {
+        return GeyserApi.api().provider(NetworkChannel.class, extension, channel, messageType);
     }
 
     /**
-     * Creates a new {@link NetworkChannel} instance.
+     * Creates a new external {@link NetworkChannel} instance.
      * <p>
      * This method is used for external channels provided
      * by third parties, such as plugins or mods.
      *
      * @param id the channel id
      * @param channel the name of the channel
-     * @return a new {@link NetworkChannel} instance
+     * @param messageType the type of the message sent over this channel
+     * @return a new external {@link NetworkChannel} instance
      */
     @NonNull
-    static NetworkChannel of(@NonNull String id, @NonNull String channel) {
-        return of(Identifier.of(id, channel));
+    static NetworkChannel of(@NonNull String id, @NonNull String channel, @NonNull Class<?> messageType) {
+        return of(Identifier.of(id, channel), messageType);
     }
 
     /**
-     * Creates a new {@link NetworkChannel} instance.
+     * Creates a new external {@link NetworkChannel} instance.
      * <p>
      * This method is used for external channels provided
      * by third parties, such as plugins or mods.
      *
      * @param identifier the {@link Identifier} of the channel
-     * @return a new {@link NetworkChannel} instance
+     * @param messageType the type of the message sent over this channel
+     * @return a new external {@link NetworkChannel} instance
      */
     @NonNull
-    static NetworkChannel of(@NonNull Identifier identifier) {
-        return new ExternalNetworkChannel(identifier);
+    static NetworkChannel of(@NonNull Identifier identifier, @NonNull Class<?> messageType) {
+        return GeyserApi.api().provider(NetworkChannel.class, identifier, messageType);
     }
 
     /**
-     * Creates a new {@link PacketChannel} instance for a packet channel.
+     * Creates a new packet {@link NetworkChannel} instance for a packet channel.
      *
      * @param key the packet key
      * @param packetId the packet ID
      * @param packetType the type of the packet
-     * @return a new {@link PacketChannel} instance for a packet channel
+     * @return a new packet {@link NetworkChannel} instance for a packet channel
      */
     static NetworkChannel packet(@NonNull String key, @NonNegative int packetId, @NonNull Class<?> packetType) {
-        return new PacketChannel(key, packetId, packetType);
+        return GeyserApi.api().provider(NetworkChannel.class, key, packetId, packetType);
     }
 }

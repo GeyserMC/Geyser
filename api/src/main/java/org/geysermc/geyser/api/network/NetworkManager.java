@@ -36,7 +36,7 @@ import java.util.Set;
  * Represents the network manager responsible for handling network operations
  * for a {@link GeyserConnection}.
  *
- * @since 2.8.2
+ * @since 2.9.1
  */
 public interface NetworkManager {
 
