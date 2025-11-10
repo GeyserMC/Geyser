@@ -126,7 +126,7 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
         if (bedrockId < 0 || bedrockId >= this.bedrockRuntimeMap.length) {
             return null;
         }
-        return bedrockRuntimeMap[bedrockId];
+        return this.bedrockRuntimeMap[bedrockId];
     }
 
     public @Nullable GeyserBedrockBlock getDefinition(NbtMap tag) {
@@ -139,6 +139,6 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
 
     @Override
     public boolean isRegistered(BlockDefinition bedrockBlock) {
-        return getDefinition(bedrockBlock.getRuntimeId()) == bedrockBlock;
+        return getDefinition(((GeyserBedrockBlock)bedrockBlock).getActualRuntimeId()) == bedrockBlock;
     }
 }
