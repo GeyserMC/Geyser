@@ -26,28 +26,22 @@
 package org.geysermc.geyser.entity.type.living.monster;
 
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.UUID;
 
 public class BasePiglinEntity extends MonsterEntity {
-    protected static GeyserBedrockBlock DUMMY_0_BLOCK = new GeyserBedrockBlock(0, NbtMap.EMPTY);
-    protected static GeyserBedrockBlock DUMMY_1_BLOCK = new GeyserBedrockBlock(1, NbtMap.EMPTY);
-
     private boolean isImmuneToZombification;
 
     public BasePiglinEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
-        // Both TARGET_EID and BLOCK are needed for melee attack animation
-        dirtyMetadata.put(EntityDataTypes.BLOCK, DUMMY_1_BLOCK);
+        // Both TARGET_EID and VARIANT are needed for melee attack animation
+        dirtyMetadata.put(EntityDataTypes.VARIANT, 1);
         setFlag(EntityFlag.SHAKING, isShaking());
     }
 

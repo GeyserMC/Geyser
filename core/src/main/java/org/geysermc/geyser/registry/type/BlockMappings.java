@@ -136,8 +136,6 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
 
     @Override
     public boolean isRegistered(BlockDefinition bedrockBlock) {
-        int runtimeId = bedrockBlock.getRuntimeId();
-        // We need to allow "runtime" id 0 and 1 because that is used for PiglinEntity for attack animation...
-        return runtimeId == 0 || runtimeId == 1 || getDefinition(bedrockBlock.getRuntimeId()) == bedrockBlock;
+        return getDefinition(bedrockBlock.getRuntimeId()) == bedrockBlock;
     }
 }

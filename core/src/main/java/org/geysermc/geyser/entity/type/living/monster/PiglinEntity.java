@@ -74,7 +74,7 @@ public class PiglinEntity extends BasePiglinEntity {
         boolean toCrossbow = stack != null && stack.is(Items.CROSSBOW);
 
         if (toCrossbow ^ getMainHandItem().is(Items.CROSSBOW)) { // If switching to/from crossbow
-            dirtyMetadata.put(EntityDataTypes.BLOCK, toCrossbow ? DUMMY_0_BLOCK : DUMMY_1_BLOCK);
+            dirtyMetadata.put(EntityDataTypes.VARIANT, toCrossbow ? 0 : 1);
             dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, (byte) 0);
             setFlag(EntityFlag.CHARGED, false);
             setFlag(EntityFlag.USING_ITEM, false);
