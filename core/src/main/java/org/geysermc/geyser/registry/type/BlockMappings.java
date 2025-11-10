@@ -60,7 +60,7 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
     Int2ObjectMap<String> javaToBedrockIdentifiers;
 
     Map<NbtMap, GeyserBedrockBlock> stateDefinitionMap;
-    GeyserBedrockBlock[] bedrockRuntimeMap;
+    Int2ObjectMap<GeyserBedrockBlock> bedrockHashedIdMap;
     int[] remappedVanillaIds;
 
     BlockDefinition commandBlock;
@@ -123,10 +123,7 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
 
     @Override
     public @Nullable GeyserBedrockBlock getDefinition(int bedrockId) {
-        if (bedrockId < 0 || bedrockId >= this.bedrockRuntimeMap.length) {
-            return null;
-        }
-        return this.bedrockRuntimeMap[bedrockId];
+        return this.bedrockHashedIdMap.get(bedrockId);
     }
 
     public @Nullable GeyserBedrockBlock getDefinition(NbtMap tag) {
@@ -139,6 +136,8 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
 
     @Override
     public boolean isRegistered(BlockDefinition bedrockBlock) {
-        return getDefinition(((GeyserBedrockBlock)bedrockBlock).getActualRuntimeId()) == bedrockBlock;
+        int runtimeId = bedrockBlock.getRuntimeId();
+        // We need to allow "runtime" id 0 and 1 because that is used for PiglinEntity for attack animation...
+        return runtimeId == 0 || runtimeId == 1 || getDefinition(bedrockBlock.getRuntimeId()) == bedrockBlock;
     }
 }

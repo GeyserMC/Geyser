@@ -29,24 +29,19 @@ import lombok.Getter;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 
-@Getter
 public class GeyserBedrockBlock implements BlockDefinition {
-    private final int hashedId, runtimeId;
+    private final int hashedNetworkId;
+    @Getter
     private final NbtMap state;
 
-    public GeyserBedrockBlock(int hashedId, int runtimeId, NbtMap state) {
-        this.hashedId = hashedId;
-        this.runtimeId = runtimeId;
+    public GeyserBedrockBlock(int hashedNetworkId, NbtMap state) {
+        this.hashedNetworkId = hashedNetworkId;
         this.state = state;
     }
 
     @Override
-    public int getRuntimeId() {
-        return this.hashedId;
-    }
-
-    public int getActualRuntimeId() {
-        return this.runtimeId;
+    public int getRuntimeId() { // A little bit misleading name lol.
+        return this.hashedNetworkId;
     }
 
     @Override

@@ -181,16 +181,16 @@ public final class BlockRegistryPopulator {
             final Remapper stateMapper = blockMappers.get(palette);
 
             Object2ObjectMap<NbtMap, GeyserBedrockBlock> blockStateOrderedMap = new Object2ObjectOpenHashMap<>(blockStates.size());
-            GeyserBedrockBlock[] bedrockRuntimeMap = new GeyserBedrockBlock[blockStates.size()];
-            for (int i = 0; i < blockStates.size(); i++) {
-                NbtMap tag = blockStates.get(i);
+            Int2ObjectMap<GeyserBedrockBlock> bedrockHashedIdMap = new Int2ObjectOpenHashMap<>();
+            for (final NbtMap tag : blockStates) {
                 NbtMap remappedTag = stateMapper.remap(tag);
 
-                GeyserBedrockBlock block = new GeyserBedrockBlock(BlockHashUtils.toHash(remappedTag), i, remappedTag);
+                int hashedId = BlockHashUtils.toHash(remappedTag);
+                GeyserBedrockBlock block = new GeyserBedrockBlock(hashedId, remappedTag);
                 if (blockStateOrderedMap.put(tag, block) != null) { // Not a typo, use the latest block tag.
                     throw new AssertionError("Duplicate block states in Bedrock palette: " + tag);
                 }
-                bedrockRuntimeMap[i] = block;
+                bedrockHashedIdMap.put(hashedId, block);
             }
 
             Object2ObjectMap<CustomBlockState, GeyserBedrockBlock> customBlockStateDefinitions = Object2ObjectMaps.emptyMap();
@@ -324,7 +324,7 @@ public final class BlockRegistryPopulator {
                 // Get the tag needed for non-empty flower pots
                 if (javaPottable.contains(block)) {
                     // Specifically NOT putIfAbsent - mangrove propagule breaks otherwise
-                    flowerPotBlocks.put(block, blockStates.get(bedrockDefinition.getActualRuntimeId()));
+                    flowerPotBlocks.put(block, bedrockHashedIdMap.get(bedrockDefinition.getRuntimeId()).getState());
                 }
 
                 javaToVanillaBedrockBlocks[javaRuntimeId] = vanillaBedrockDefinition;
@@ -401,7 +401,7 @@ public final class BlockRegistryPopulator {
                 }
             });
 
-            BlockRegistries.BLOCKS.register(palette.valueInt(), builder.bedrockRuntimeMap(bedrockRuntimeMap)
+            BlockRegistries.BLOCKS.register(palette.valueInt(), builder.bedrockHashedIdMap(bedrockHashedIdMap)
                     .javaToBedrockBlocks(javaToBedrockBlocks)
                     .javaToVanillaBedrockBlocks(javaToVanillaBedrockBlocks)
                     .javaToBedrockIdentifiers(javaToBedrockIdentifiers)

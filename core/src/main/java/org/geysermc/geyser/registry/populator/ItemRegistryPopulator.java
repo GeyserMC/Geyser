@@ -379,7 +379,7 @@ public class ItemRegistryPopulator {
                         bedrockBlock = blockOverride;
                     } else {
                         // Try to get an example block runtime ID from the creative contents packet, for Bedrock identifier obtaining
-                        int aValidBedrockBlockId = blacklistedIdentifiers.getOrDefault(bedrockIdentifier, customBlockItemOverride != null ? customBlockItemOverride.getActualRuntimeId() : -1);
+                        int aValidBedrockBlockId = blacklistedIdentifiers.getOrDefault(bedrockIdentifier, customBlockItemOverride != null ? customBlockItemOverride.getRuntimeId() : -1);
                         if (aValidBedrockBlockId == -1 && customBlockItemOverride == null) {
                             // Fallback
                             if (!noBlockDefinitions.contains(entry.getValue().getBedrockIdentifier())) {
@@ -436,7 +436,7 @@ public class ItemRegistryPopulator {
                             if (bedrockBlock == null) {
                                 // We need to loop around again (we can't cache the block tags above) because Bedrock can include states that we don't have a pairing for
                                 // in it's "preferred" block state - I.E. the first matching block state in the list
-                                for (GeyserBedrockBlock block : blockMappings.getBedrockRuntimeMap()) {
+                                for (GeyserBedrockBlock block : blockMappings.getBedrockHashedIdMap().values()) {
                                     if (block == null) {
                                         continue;
                                     }
