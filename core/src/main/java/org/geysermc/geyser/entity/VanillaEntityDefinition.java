@@ -138,7 +138,7 @@ public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<
             if (type == null) {
                 throw new IllegalStateException("Missing entity type!");
             } else if (bedrockIdentifier == null) {
-                bedrockIdentifier = type.javaIdentifier().toString();
+                bedrockIdentifier = type.identifier().toString();
             }
         }
 
@@ -153,7 +153,7 @@ public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<
             VanillaEntityDefinition<T> definition = new VanillaEntityDefinition<>(factory, type, bedrockIdentifier, width, height, offset, registeredProperties, translators);
             if (register && definition.entityType() != null) {
                 Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
-                Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent(type.javaIdentifier().toString(), definition);
+                Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent(type.identifier().toString(), definition);
             }
             return definition;
         }

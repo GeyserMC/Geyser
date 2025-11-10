@@ -111,7 +111,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     RegistryHasher<?> ENTITY_TYPE = registry(JavaRegistries.ENTITY_TYPE);
 
-    MinecraftHasher<EntityType> ENTITY_TYPE_KEY = IDENTIFIER.cast(type -> GeyserEntityType.of(type).javaIdentifier());
+    MinecraftHasher<EntityType> ENTITY_TYPE_KEY = IDENTIFIER.cast(type -> GeyserEntityType.of(type).identifier());
 
     MinecraftHasher<BlockEntityType> BLOCK_ENTITY_TYPE_KEY = enumRegistry();
 

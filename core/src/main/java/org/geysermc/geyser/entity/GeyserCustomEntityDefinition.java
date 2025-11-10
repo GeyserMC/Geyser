@@ -32,7 +32,7 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.entity.CustomEntityDefinition;
+import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;

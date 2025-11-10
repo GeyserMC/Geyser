@@ -366,7 +366,7 @@ public final class EntityUtils {
             return "Player"; // the player's name is always shown instead
         }
         // this works at least with all 1.20.5 entities, except the killer bunny since that's not an entity type.
-        Identifier typeName = type.javaIdentifier();
+        Identifier typeName = type.identifier();
         return translatedEntityName(typeName.namespace(), typeName.path(), session);
     }
 

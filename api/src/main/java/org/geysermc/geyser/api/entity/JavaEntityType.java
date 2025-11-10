@@ -30,18 +30,25 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.Identifier;
 
+/**
+ * Represents a Java edition entity type
+ */
 public interface JavaEntityType {
 
-    Identifier javaIdentifier();
+    /**
+     * @return the identifier of the type
+     */
+    Identifier identifier();
 
+    /**
+     * @return the
+     */
     int javaId();
-
-    boolean isUnregistered();
 
     boolean vanilla();
 
     default boolean is(Identifier javaIdentifier) {
-        return javaIdentifier().equals(javaIdentifier);
+        return identifier().equals(javaIdentifier);
     }
 
     static JavaEntityType ofVanilla(@NonNull Identifier javaIdentifier) {

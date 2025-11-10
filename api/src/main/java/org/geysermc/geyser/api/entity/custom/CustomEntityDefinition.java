@@ -23,17 +23,17 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.entity;
+package org.geysermc.geyser.api.entity.custom;
 
 import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.util.Identifier;
 
 public interface CustomEntityDefinition {
 
-    // TODO Identifier
-    String bedrockIdentifier();
+    Identifier bedrockIdentifier();
 
     float width();
 

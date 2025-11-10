@@ -37,7 +37,6 @@ import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.entity.CustomEntityDefinition;
 import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.entity.GeyserCustomEntityDefinition;
 import org.geysermc.geyser.entity.VanillaEntityDefinition;

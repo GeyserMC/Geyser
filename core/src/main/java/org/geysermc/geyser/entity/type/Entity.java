@@ -669,6 +669,8 @@ public class Entity implements GeyserEntity {
         return this.valid;
     }
 
+
+
     /**
      * Update the suggestion that the client currently has on their screen for this entity (for example, "Feed" or "Ride")
      */

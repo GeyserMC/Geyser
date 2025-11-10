@@ -26,7 +26,7 @@
 package org.geysermc.geyser.api.event.lifecycle;
 
 import org.geysermc.event.Event;
-import org.geysermc.geyser.api.entity.CustomEntityDefinition;
+import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 
 import java.util.List;
 

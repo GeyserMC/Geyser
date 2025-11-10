@@ -46,7 +46,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-public record GeyserEntityType(Identifier javaIdentifier, int javaId) implements JavaEntityType {
+public record GeyserEntityType(Identifier identifier, int javaId) implements JavaEntityType {
     private static final Identifier UNREGISTERED = IdentifierImpl.of(Constants.GEYSER_CUSTOM_NAMESPACE, "unregistered_sadface");
 
     private static final Map<BuiltinEntityType, GeyserEntityType> VANILLA = new EnumMap<>(BuiltinEntityType.class);
@@ -67,9 +67,8 @@ public record GeyserEntityType(Identifier javaIdentifier, int javaId) implements
         this(UNREGISTERED, javaId);
     }
 
-    @Override
     public boolean isUnregistered() {
-        return javaIdentifier.equals(UNREGISTERED);
+        return identifier.equals(UNREGISTERED);
     }
 
     @Override
