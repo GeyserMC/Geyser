@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.network.message;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.GeyserApi;
 
 /**
  * A codec for encoding and decoding messages.
@@ -254,4 +255,26 @@ public interface MessageCodec<T extends MessageBuffer> {
      */
     @NonNull
     T createBuffer(byte @NonNull [] data);
+
+    /**
+     * Gets a provided {@link MessageCodec} for the given type.
+     *
+     * @param type the type of message codec to get
+     * @param options the encoder options
+     * @param <T> the type of message codec to get
+     * @param <C> the type of message codec to get
+     * @return the provided message codec
+     * @throws IllegalArgumentException if no provider is found
+     */
+    @NonNull
+    static <T, C extends MessageCodec<MessageBuffer.Wrapped<T>>> C provided(@NonNull Class<T> type, @NonNull EncoderOptions... options) {
+        return GeyserApi.api().provider(MessageCodec.class, type, options);
+    }
+
+    /**
+     * Options for the encoder.
+     */
+    enum EncoderOptions {
+        LITTLE_ENDIAN
+    }
 }

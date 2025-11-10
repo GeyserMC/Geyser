@@ -66,7 +66,7 @@ public class GeyserNetworkManager implements NetworkManager {
     private final GeyserSession session;
 
     private final Map<NetworkChannel, List<MessageDefinition<?, ?>>> definitions = new LinkedHashMap<>();
-    private final Int2ObjectMap<PacketChannel> packetChannels = new Int2ObjectOpenHashMap<>();
+    private final Int2ObjectMap<List<PacketChannel>> packetChannels = new Int2ObjectOpenHashMap<>();
 
     public GeyserNetworkManager(GeyserSession session) {
         this.session = session;
@@ -218,9 +218,9 @@ public class GeyserNetworkManager implements NetworkManager {
         return messages;
     }
 
-    @Nullable
-    public PacketChannel getPacketChannel(int packetId) {
-        return this.packetChannels.get(packetId);
+    @NonNull
+    public List<PacketChannel> getPacketChannels(int packetId) {
+        return this.packetChannels.getOrDefault(packetId, List.of());
     }
 
     @SuppressWarnings("unchecked")
@@ -231,21 +231,30 @@ public class GeyserNetworkManager implements NetworkManager {
 
         BedrockCodec codec = this.session.getUpstream().getSession().getCodec();
         BedrockPacketDefinition<BedrockPacket> definition = codec.getPacketDefinition((Class<BedrockPacket>) packet.getClass());
-        PacketChannel channel = this.getPacketChannel(definition.getId());
-        if (channel == null) {
+        List<PacketChannel> channels = this.getPacketChannels(definition.getId());
+        if (channels.isEmpty()) {
             return true;
         }
 
-        List<Message<ByteBufMessageBuffer>> messages;
-        if (channel.messageType().isInstance(packet)) {
-            messages = List.of(new BedrockPacketMessage<>(packet));
-        } else {
-            ByteBuf buffer = Unpooled.buffer();
-            definition.getSerializer().serialize(buffer, this.session.getUpstream().getCodecHelper(), packet);
-            messages = this.createMessages(channel, new ByteBufMessageBuffer(ByteBufCodec.INSTANCE_LE, buffer));
+        List<Message<ByteBufMessageBuffer>> messages = new ArrayList<>();
+        for (PacketChannel channel : channels) {
+            if (channel.messageType().isInstance(packet)) {
+                messages.add(new BedrockPacketMessage<>(packet));
+            } else {
+                ByteBuf buffer = Unpooled.buffer();
+                definition.getSerializer().serialize(buffer, this.session.getUpstream().getCodecHelper(), packet);
+                messages.addAll(this.createMessages(channel, new ByteBufMessageBuffer(ByteBufCodec.INSTANCE_LE, buffer)));
+            }
         }
 
-        return this.handleMessages(channel, messages, direction);
+        for (NetworkChannel channel : channels) {
+            boolean handled = this.handleMessages(channel, messages, direction);
+            if (!handled) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @SuppressWarnings("unchecked")
@@ -286,7 +295,13 @@ public class GeyserNetworkManager implements NetworkManager {
 
         for (Message<T> message : messages) {
             for (MessageDefinition<?, ?> def : ordered) {
-                if (!(channel instanceof BaseNetworkChannel base) || !base.messageType().isInstance(message)) {
+                if (!(channel instanceof BaseNetworkChannel base)) {
+                    continue;
+                }
+
+                if (message instanceof Message.PacketWrapped<?, ?> wrapped && !base.messageType().isInstance(wrapped.packet())) {
+                    continue;
+                } else if (!(message instanceof Message.PacketWrapped<?, ?>) && !base.messageType().isInstance(message)) {
                     continue;
                 }
 
@@ -376,7 +391,7 @@ public class GeyserNetworkManager implements NetworkManager {
 
         if (channel.isPacket() && channel instanceof PacketChannel packetChannel) {
             int packetId = packetChannel.packetId();
-            this.packetChannels.put(packetId, packetChannel);
+            this.packetChannels.computeIfAbsent(packetId, key -> new ArrayList<>()).add(packetChannel);
         }
     }
 

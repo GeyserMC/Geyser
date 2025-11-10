@@ -32,7 +32,7 @@ import org.geysermc.geyser.api.network.message.DataType;
 import org.geysermc.geyser.api.network.message.MessageBuffer;
 import org.geysermc.geyser.api.network.message.MessageCodec;
 
-public record ByteBufMessageBuffer(MessageCodec<ByteBufMessageBuffer> codec, ByteBuf buffer) implements MessageBuffer {
+public record ByteBufMessageBuffer(MessageCodec<ByteBufMessageBuffer> codec, ByteBuf buffer) implements MessageBuffer.Wrapped<ByteBuf> {
 
     public ByteBufMessageBuffer(MessageCodec<ByteBufMessageBuffer> codec) {
         this(codec, Unpooled.buffer());

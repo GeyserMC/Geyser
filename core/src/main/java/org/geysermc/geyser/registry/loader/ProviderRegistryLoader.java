@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.registry.loader;
 
+import io.netty.buffer.ByteBuf;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.api.bedrock.camera.CameraFade;
 import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
@@ -42,6 +43,7 @@ import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.network.NetworkChannel;
 import org.geysermc.geyser.api.network.message.Message;
+import org.geysermc.geyser.api.network.message.MessageCodec;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
@@ -66,6 +68,7 @@ import org.geysermc.geyser.network.ExtensionNetworkChannel;
 import org.geysermc.geyser.network.ExternalNetworkChannel;
 import org.geysermc.geyser.network.PacketChannel;
 import org.geysermc.geyser.network.message.BedrockPacketMessage;
+import org.geysermc.geyser.network.message.ByteBufCodec;
 import org.geysermc.geyser.network.message.JavaPacketMessage;
 import org.geysermc.geyser.pack.option.GeyserPriorityOption;
 import org.geysermc.geyser.pack.option.GeyserSubpackOption;
@@ -77,7 +80,9 @@ import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
 
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Registers the provider data from the provider.
@@ -132,6 +137,29 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
             } else {
                 throw new IllegalArgumentException("Unsupported packet type: " + args[0].getClass().getName());
             }
+        });
+
+        providers.put(MessageCodec.class, args -> {
+            if (args.length < 1) {
+                throw new IllegalArgumentException("MessageCodec requires at least one argument, got " + args.length);
+            }
+
+            Set<MessageCodec.EncoderOptions> options = new HashSet<>();
+            if (args.length > 1 && args[1] instanceof MessageCodec.EncoderOptions[] encoderOptions) {
+                options = new HashSet<>(Arrays.asList(encoderOptions));
+            }
+
+            if (args[0] instanceof Class<?> wrapperType) {
+                if (wrapperType == ByteBuf.class) {
+                    if (options.contains(MessageCodec.EncoderOptions.LITTLE_ENDIAN)) {
+                        return ByteBufCodec.INSTANCE_LE;
+                    } else {
+                        return ByteBufCodec.INSTANCE;
+                    }
+                }
+            }
+
+            throw new IllegalArgumentException("Unsupported codec type: " + args[0]);
         });
 
         providers.put(NetworkChannel.class, args -> {

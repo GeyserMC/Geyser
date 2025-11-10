@@ -67,4 +67,20 @@ public interface MessageBuffer {
      * @return the length of the buffer
      */
     int length();
+
+    /**
+     * Represents a buffer that wraps an internal buffer type.
+     *
+     * @param <T> the internal buffer type
+     */
+    interface Wrapped<T> extends MessageBuffer {
+
+        /**
+         * Gets the internal buffer.
+         *
+         * @return the internal buffer
+         */
+        @NonNull
+        T buffer();
+    }
 }
