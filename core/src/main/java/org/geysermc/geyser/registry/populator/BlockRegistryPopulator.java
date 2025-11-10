@@ -175,8 +175,7 @@ public final class BlockRegistryPopulator {
                 GeyserImpl.getInstance().getLogger().debug("Added " + customBlockStates.size() + " custom block states to v" + protocolVersion + " palette.");
 
                 // The palette is sorted by the FNV1 64-bit hash of the name
-                // As of latest, we now use hashed block ids, which means we no longer need to sort this in the correct order.
-//                blockStates.sort((a, b) -> Long.compareUnsigned(fnv164(a.getString("name")), fnv164(b.getString("name"))));
+                blockStates.sort((a, b) -> Long.compareUnsigned(fnv164(a.getString("name")), fnv164(b.getString("name"))));
             }
 
             final Remapper stateMapper = blockMappers.get(palette);
@@ -187,7 +186,7 @@ public final class BlockRegistryPopulator {
                 NbtMap tag = blockStates.get(i);
                 NbtMap remappedTag = stateMapper.remap(tag);
 
-                GeyserBedrockBlock block = new GeyserBedrockBlock(BlockHashUtils.toHash(remappedTag), remappedTag);
+                GeyserBedrockBlock block = new GeyserBedrockBlock(BlockHashUtils.toHash(remappedTag), i, remappedTag);
                 if (blockStateOrderedMap.put(tag, block) != null) { // Not a typo, use the latest block tag.
                     throw new AssertionError("Duplicate block states in Bedrock palette: " + tag);
                 }
@@ -325,7 +324,7 @@ public final class BlockRegistryPopulator {
                 // Get the tag needed for non-empty flower pots
                 if (javaPottable.contains(block)) {
                     // Specifically NOT putIfAbsent - mangrove propagule breaks otherwise
-                    flowerPotBlocks.put(block, blockStates.get(bedrockDefinition.getRuntimeId()));
+                    flowerPotBlocks.put(block, blockStates.get(bedrockDefinition.getActualRuntimeId()));
                 }
 
                 javaToVanillaBedrockBlocks[javaRuntimeId] = vanillaBedrockDefinition;

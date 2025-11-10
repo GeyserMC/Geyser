@@ -358,7 +358,7 @@ public class ItemRegistryPopulator {
 
                 BlockDefinition bedrockBlock = null;
                 Integer firstBlockRuntimeId = entry.getValue().getFirstBlockRuntimeId();
-                BlockDefinition customBlockItemOverride = null;
+                GeyserBedrockBlock customBlockItemOverride = null;
                 if (firstBlockRuntimeId != null) {
                     BlockDefinition blockOverride = bedrockBlockIdOverrides.get(bedrockIdentifier);
 
@@ -379,7 +379,7 @@ public class ItemRegistryPopulator {
                         bedrockBlock = blockOverride;
                     } else {
                         // Try to get an example block runtime ID from the creative contents packet, for Bedrock identifier obtaining
-                        int aValidBedrockBlockId = blacklistedIdentifiers.getOrDefault(bedrockIdentifier, customBlockItemOverride != null ? customBlockItemOverride.getRuntimeId() : -1);
+                        int aValidBedrockBlockId = blacklistedIdentifiers.getOrDefault(bedrockIdentifier, customBlockItemOverride != null ? customBlockItemOverride.getActualRuntimeId() : -1);
                         if (aValidBedrockBlockId == -1 && customBlockItemOverride == null) {
                             // Fallback
                             if (!noBlockDefinitions.contains(entry.getValue().getBedrockIdentifier())) {

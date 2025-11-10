@@ -31,17 +31,22 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 
 @Getter
 public class GeyserBedrockBlock implements BlockDefinition {
-    private final int hashedId;
+    private final int hashedId, runtimeId;
     private final NbtMap state;
 
-    public GeyserBedrockBlock(int hashedId, NbtMap state) {
+    public GeyserBedrockBlock(int hashedId, int runtimeId, NbtMap state) {
         this.hashedId = hashedId;
+        this.runtimeId = runtimeId;
         this.state = state;
     }
 
     @Override
     public int getRuntimeId() {
         return this.hashedId;
+    }
+
+    public int getActualRuntimeId() {
+        return this.runtimeId;
     }
 
     @Override
