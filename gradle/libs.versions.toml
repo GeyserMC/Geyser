@@ -34,7 +34,7 @@ bungeecord-api = "1.21-R0.1"
 velocity = "3.4.0-SNAPSHOT"
 viaproxy = "3.3.2-SNAPSHOT"
 fabric-loader = "0.17.2"
-fabric-api = "0.133.14+1.21.9"
+fabric-api = "0.136.0+1.21.10"
 fabric-permissions-api = "0.4.1"
 neoforge-minecraft = "21.10.0-beta"
 mixin = "0.8.5"
@@ -46,13 +46,14 @@ mockito = "5.+"
 indra = "4.0.0"
 shadow = "9.2.2"
 architectury-plugin = "3.4-SNAPSHOT"
-architectury-loom = "1.11-SNAPSHOT"
+architectury-loom = "1.13.457"
 minotaur = "2.8.10"
 lombok = "9.1.0"
 blossom = "2.2.0"
 runtask = "3.0.2"
 runpaperversion = "1.21.10"
 runvelocityversion = "3.4.0-SNAPSHOT"
+fabric-loom-companion = "1.13.4"
 
 [libraries]
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
@@ -153,6 +154,7 @@ shadow = { group = "com.gradleup.shadow", name = "com.gradleup.shadow.gradle.plu
 architectury-plugin = { group = "architectury-plugin", name = "architectury-plugin.gradle.plugin", version.ref = "architectury-plugin" }
 architectury-loom = { group = "dev.architectury.loom", name = "dev.architectury.loom.gradle.plugin", version.ref = "architectury-loom" }
 minotaur = { group = "com.modrinth.minotaur", name = "Minotaur", version.ref = "minotaur" }
+fabric-loom-companion = { group = "net.fabricmc.fabric-loom-companion", name = "net.fabricmc.fabric-loom-companion.gradle.plugin", version.ref = "fabric-loom-companion" }
 
 [plugins]
 indra = { id = "net.kyori.indra", version.ref = "indra" }

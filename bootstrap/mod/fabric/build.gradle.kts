@@ -8,6 +8,16 @@ architectury {
     fabric()
 }
 
+loom {
+    mods {
+        create("geyser-fabric") {
+            sourceSet(sourceSets.main.get())
+            sourceSet("main", projects.mod)
+            sourceSet("main", projects.core)
+        }
+    }
+}
+
 dependencies {
     modImplementation(libs.fabric.loader)
     modApi(libs.fabric.api)
