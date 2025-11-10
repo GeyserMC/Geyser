@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.common.util.VarInts;
 import org.geysermc.geyser.api.network.message.MessageCodec;
 
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 public class ByteBufCodecLE implements MessageCodec<ByteBufMessageBuffer> {
 
@@ -121,6 +122,11 @@ public class ByteBufCodecLE implements MessageCodec<ByteBufMessageBuffer> {
     }
 
     @Override
+    public @NonNull UUID readUuid(@NonNull ByteBufMessageBuffer buffer) {
+        return new UUID(buffer.buffer().readLongLE(), buffer.buffer().readLongLE());
+    }
+
+    @Override
     public void writeBoolean(@NonNull ByteBufMessageBuffer buffer, boolean value) {
         buffer.buffer().writeBoolean(value);
     }
@@ -180,6 +186,12 @@ public class ByteBufCodecLE implements MessageCodec<ByteBufMessageBuffer> {
         byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
         VarInts.writeUnsignedInt(buffer.buffer(), bytes.length);
         buffer.buffer().writeBytes(bytes);
+    }
+
+    @Override
+    public void writeUuid(@NonNull ByteBufMessageBuffer buffer, @NonNull UUID uuid) {
+        buffer.buffer().writeLongLE(uuid.getMostSignificantBits());
+        buffer.buffer().writeLongLE(uuid.getLeastSignificantBits());
     }
 
     @Override

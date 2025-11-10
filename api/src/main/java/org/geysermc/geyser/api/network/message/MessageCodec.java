@@ -28,6 +28,8 @@ package org.geysermc.geyser.api.network.message;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 
+import java.util.UUID;
+
 /**
  * A codec for encoding and decoding messages.
  * 
@@ -144,10 +146,19 @@ public interface MessageCodec<T extends MessageBuffer> {
     String readString(@NonNull T buffer, int maxLength);
 
     /**
+     * Reads a UUID from the {@link T buffer}.
+     *
+     * @param buffer the buffer to read from
+     * @return the UUID read
+     */
+    @NonNull
+    UUID readUuid(@NonNull T buffer);
+
+    /**
      * Writes a boolean value to the {@link T buffer}.
      *
      * @param buffer the buffer to write to
-     * @param value  the boolean value to write
+     * @param value the boolean value to write
      */
     void writeBoolean(@NonNull T buffer, boolean value);
 
@@ -155,7 +166,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * Writes a byte value to the {@link T buffer}.
      *
      * @param buffer the buffer to write to
-     * @param value  the byte value to write
+     * @param value the byte value to write
      */
     void writeByte(@NonNull T buffer, byte value);
 
@@ -163,7 +174,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * Writes a short value to the {@link T buffer}.
      *
      * @param buffer the buffer to write to
-     * @param value  the short value to write
+     * @param value the short value to write
      */
     void writeShort(@NonNull T buffer, short value);
 
@@ -171,7 +182,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * Writes an integer value to the {@link T buffer}.
      *
      * @param buffer the buffer to write to
-     * @param value  the integer value to write
+     * @param value the integer value to write
      */
     void writeInt(@NonNull T buffer, int value);
 
@@ -179,7 +190,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * Writes a float value to the {@link T buffer}.
      *
      * @param buffer the buffer to write to
-     * @param value  the float value to write
+     * @param value the float value to write
      */
     void writeFloat(@NonNull T buffer, float value);
 
@@ -187,7 +198,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * Writes a double value to the {@link T buffer}.
      *
      * @param buffer the buffer to write to
-     * @param value  the double value to write
+     * @param value the double value to write
      */
     void writeDouble(@NonNull T buffer, double value);
 
@@ -195,7 +206,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * Writes a long value to the {@link T buffer}.
      *
      * @param buffer the buffer to write to
-     * @param value  the long value to write
+     * @param value the long value to write
      */
     void writeLong(@NonNull T buffer, long value);
 
@@ -203,7 +214,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * Writes a variable-length integer to the {@link T buffer}.
      *
      * @param buffer the buffer to write to
-     * @param value  the variable-length integer to write
+     * @param value the variable-length integer to write
      */
     void writeVarInt(@NonNull T buffer, int value);
 
@@ -211,7 +222,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * Writes an unsigned variable-length integer to the {@link T buffer}.
      *
      * @param buffer the buffer to write to
-     * @param value  the unsigned variable-length integer to write
+     * @param value the unsigned variable-length integer to write
      */
     void writeUnsignedVarInt(@NonNull T buffer, int value);
 
@@ -219,7 +230,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * Writes a variable-length long to the {@link T buffer}.
      *
      * @param buffer the buffer to write to
-     * @param value  the variable-length long to write
+     * @param value the variable-length long to write
      */
     void writeVarLong(@NonNull T buffer, long value);
 
@@ -227,7 +238,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * Writes an unsigned variable-length long to the {@link T buffer}.
      *
      * @param buffer the buffer to write to
-     * @param value  the unsigned variable-length long to write
+     * @param value the unsigned variable-length long to write
      */
     void writeUnsignedVarLong(@NonNull T buffer, long value);
 
@@ -235,9 +246,17 @@ public interface MessageCodec<T extends MessageBuffer> {
      * Writes a string to the {@link T buffer}.
      *
      * @param buffer the buffer to write to
-     * @param value  the string to write
+     * @param value the string to write
      */
     void writeString(@NonNull T buffer, @NonNull String value);
+    
+    /**
+     * Writes a UUID to the {@link T buffer}.
+     *
+     * @param buffer the buffer to write to
+     * @param uuid the UUID to write
+     */
+    void writeUuid(@NonNull T buffer, @NonNull UUID uuid);
 
     /**
      * Creates a new {@link T buffer} instance.

@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Represents a data type that can be sent or received over the network.
@@ -88,6 +89,10 @@ public final class DataType<T> {
      * Note: Strings are encoded in UTF-8 format.
      */
     public static final DataType<String> STRING = of(MessageCodec::readString, MessageCodec::writeString);
+    /**
+     * A DataType for reading and writing UUIDs.
+     */
+    public static final DataType<UUID> UUID = of(MessageCodec::readUuid, MessageCodec::writeUuid);
 
     private final Reader<T> reader;
     private final Writer<T> writer;
