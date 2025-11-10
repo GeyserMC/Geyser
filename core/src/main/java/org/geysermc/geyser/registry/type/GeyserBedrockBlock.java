@@ -25,25 +25,23 @@
 
 package org.geysermc.geyser.registry.type;
 
+import lombok.Getter;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 
+@Getter
 public class GeyserBedrockBlock implements BlockDefinition {
-    private final int runtimeId;
+    private final int hashedId;
     private final NbtMap state;
 
-    public GeyserBedrockBlock(int runtimeId, NbtMap state) {
-        this.runtimeId = runtimeId;
+    public GeyserBedrockBlock(int hashedId, NbtMap state) {
+        this.hashedId = hashedId;
         this.state = state;
     }
 
     @Override
     public int getRuntimeId() {
-        return runtimeId;
-    }
-
-    public NbtMap getState() {
-        return state;
+        return this.hashedId;
     }
 
     @Override
