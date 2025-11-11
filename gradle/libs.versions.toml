@@ -2,7 +2,7 @@
 base-api = "1.0.2"
 bstats = "3.1.0"
 cumulus = "1.1.2"
-configurate = "4.2.0-GeyserMC-SNAPSHOT"
+configurate = "4.2.0-GeyserMC-20251111.004649-11"
 erosion = "1.1-20240521.000109-3"
 events = "1.1-SNAPSHOT"
 yaml = "2.2"
