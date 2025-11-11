@@ -27,6 +27,7 @@ package org.geysermc.geyser.configuration;
 
 import org.geysermc.geyser.GeyserImpl;
 import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
 import org.spongepowered.configurate.transformation.TransformAction;
 
@@ -91,13 +92,17 @@ public class ConfigMigrations {
             .addAction(path("add-non-bedrock-items"), renameAndMove("gameplay", "enable-custom-content"))
             .addAction(path("above-bedrock-nether-building"), renameAndMove("gameplay", "nether-roof-workaround"))
             .addAction(path("xbox-achievements-enabled"), moveTo("gameplay"))
-            .addAction(path("max-visible-custom-skulls"), moveTo("gameplay"))
-            .addAction(path("allow-custom-skulls"), (path, value) -> {
-                if (!value.getBoolean()) {
-                    value.raw(0);
-                    return new Object[]{ "gameplay", "max-visible-custom-skulls" };
+            // NOTE: We're not explicitly removing the allow-custom-skulls option, it will already be removed since it
+            // won't be written back. If we remove it, we can't query the value of it!
+            .addAction(path("max-visible-custom-skulls"), (path, value) -> {
+                ConfigurationNode parent = value.parent();
+                if (parent != null && parent.isMap()) {
+                    ConfigurationNode allowCustomSkulls = parent.childrenMap().get("allow-custom-skulls");
+                    if (allowCustomSkulls != null && !allowCustomSkulls.getBoolean()) {
+                        value.set(0);
+                    }
                 }
-                return null;
+                return new Object[]{ "gameplay", "max-visible-custom-skulls" };
             })
             .addAction(path("emote-offhand-workaround"), (path,  value) -> {
                 if (value.getBoolean()) {

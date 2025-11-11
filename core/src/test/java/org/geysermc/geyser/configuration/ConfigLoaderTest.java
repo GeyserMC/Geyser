@@ -97,6 +97,11 @@ public class ConfigLoaderTest {
     }
 
     @Test
+    void allowCustomSkullsMigration() throws Exception {
+        testConfiguration("allow-custom-skulls");
+    }
+
+    @Test
     void testInvalidConfig() throws Exception {
         streamResourceFiles(CONFIG_PREFIX + "/invalid").forEach(resource -> {
             try {
