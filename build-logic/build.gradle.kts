@@ -25,5 +25,5 @@ dependencies {
     implementation(libs.architectury.plugin)
     implementation(libs.architectury.loom)
     implementation(libs.minotaur)
-    implementation(libs.fabric.loom.companion)
+    implementation(libs.loom.companion)
 }

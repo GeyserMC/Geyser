@@ -10,8 +10,8 @@ plugins {
     alias(libs.plugins.blossom)
     id("geyser.publish-conventions")
     id("io.freefair.lombok")
-    // Allows fabric runServer task to work correctly
-    id("net.fabricmc.fabric-loom-companion")
+    // Allows fabric/neoforge runServer gradle tasks to work correctly
+    id("dev.architectury.loom-companion")
 }
 
 dependencies {
