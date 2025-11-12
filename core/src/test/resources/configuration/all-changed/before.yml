@@ -138,7 +138,7 @@ default-locale: en_uk
 cache-images: 10
 
 # Allows custom skulls to be displayed. Keeping them enabled may cause a performance decrease on older/weaker devices.
-allow-custom-skulls: false
+allow-custom-skulls: true
 
 # The maximum number of custom skulls to be displayed per player. Increasing this may decrease performance on weaker devices.
 # Setting this to -1 will cause all custom skulls to be displayed regardless of distance or number.
