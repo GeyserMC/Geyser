@@ -84,7 +84,7 @@ gameplay:
   nether-roof-workaround: false
 
   # Whether to allow Bedrock Edition emotes to be sent to other Bedrock Edition players.
-  emotes-enabled: true
+  emotes-enabled: false
 
   # Which item to use to mark unavailable slots in a Bedrock player inventory. Examples of this are the 2x2 crafting grid while in creative,
   # or custom inventory menus with sizes different from the usual 3x9. A barrier block is the default item.
@@ -119,7 +119,7 @@ gameplay:
   # The maximum number of custom skulls to be displayed per player. Increasing this may decrease performance on weaker devices.
   # A value of 0 will disable all custom skulls.
   # Setting this to -1 will cause all custom skulls to be displayed regardless of distance or number.
-  max-visible-custom-skulls: 128
+  max-visible-custom-skulls: 0
 
   # The radius in blocks around the player in which custom skulls are displayed.
   custom-skull-render-distance: 32

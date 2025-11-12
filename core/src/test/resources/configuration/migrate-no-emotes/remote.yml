@@ -21,15 +21,21 @@ bedrock:
   # Since Minecraft: Bedrock Edition uses UDP, this port must allow UDP traffic.
   port: 19132
 
-  # Some hosting services change your Java port everytime you start the server and require the same port to be used for Bedrock.
-  # This option makes the Bedrock port the same as the Java port every time you start the server.
-  clone-remote-port: false
-
 # Network settings for the Java server connection
 java:
+  # The IP address of the Java Edition server.
+  address: 127.0.0.1
+
+  # The port of the Java Edition server.
+  port: 25565
+
   # What type of authentication Bedrock players will be checked against when logging into the Java server.
   # Can be "floodgate" (see https://wiki.geysermc.org/floodgate/), "online", or "offline".
   auth-type: online
+
+  # Whether to forward the hostname that the Bedrock client used to connect over to the Java server.
+  # This is designed to be used for forced hosts on proxies.
+  forward-hostname: false
 
 # MOTD settings
 motd:
@@ -48,12 +54,7 @@ motd:
   # Whether to relay the player count and max players from the Java server to Bedrock players.
   passthrough-player-counts: true
 
-  # Whether to use server API methods to determine the Java server's MOTD and ping passthrough.
-  # There is no need to disable this unless your MOTD or player count does not appear properly.
-  integrated-ping-passthrough: true
-
   # How often to ping the Java server to refresh MOTD and player count, in seconds.
-  # Only relevant if integrated-ping-passthrough is disabled.
   ping-passthrough-interval: 3
 
 # Gameplay options that affect Bedrock players
@@ -84,7 +85,7 @@ gameplay:
   nether-roof-workaround: false
 
   # Whether to allow Bedrock Edition emotes to be sent to other Bedrock Edition players.
-  emotes-enabled: true
+  emotes-enabled: false
 
   # Which item to use to mark unavailable slots in a Bedrock player inventory. Examples of this are the 2x2 crafting grid while in creative,
   # or custom inventory menus with sizes different from the usual 3x9. A barrier block is the default item.
@@ -119,7 +120,7 @@ gameplay:
   # The maximum number of custom skulls to be displayed per player. Increasing this may decrease performance on weaker devices.
   # A value of 0 will disable all custom skulls.
   # Setting this to -1 will cause all custom skulls to be displayed regardless of distance or number.
-  max-visible-custom-skulls: 128
+  max-visible-custom-skulls: 0
 
   # The radius in blocks around the player in which custom skulls are displayed.
   custom-skull-render-distance: 32
@@ -185,17 +186,6 @@ advanced:
     # IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!
     use-haproxy-protocol: false
 
-    # Whether to connect directly into the Java server without creating a TCP connection.
-    # This should only be disabled if a plugin that interfaces with packets or the network does not work correctly with Geyser.
-    # If enabled, the remote address and port sections are ignored.
-    # If disabled, expect performance decrease and latency increase.
-    use-direct-connection: true
-
-    # Whether Geyser should attempt to disable packet compression (from the Java Server to Geyser) for Bedrock players.
-    # This should be a benefit as there is no need to compress data when Java packets aren't being handled over the network.
-    # This requires use-direct-connection to be true.
-    disable-compression: true
-
   # Advanced networking options for Geyser's Bedrock listener
   bedrock:
     # The port to broadcast to Bedrock clients with the MOTD that they should use to connect to the server.
@@ -229,6 +219,15 @@ advanced:
     # Disabling Bedrock authentication for other use-cases is NOT SUPPORTED, as it allows anyone to spoof usernames, and is therefore a security risk.
     # All Floodgate functionality (including skin uploading and account linking) will also not work when this option is disabled.
     validate-bedrock-login: true
+
+# bStats is a stat tracker that is entirely anonymous and tracks only basic information
+# about Geyser, such as how many people are online, how many servers are using Geyser,
+# what OS is being used, etc. You can learn more about bStats here: https://bstats.org/.
+# https://bstats.org/plugin/server-implementation/GeyserMC
+enable-metrics: true
+
+# The bstats metrics uuid. Do not touch!
+metrics-uuid: 00000000-0000-0000-0000-000000000000
 
 # If debug messages should be sent through console
 debug-mode: false

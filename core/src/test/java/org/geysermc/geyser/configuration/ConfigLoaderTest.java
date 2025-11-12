@@ -102,6 +102,11 @@ public class ConfigLoaderTest {
     }
 
     @Test
+    void testNoEmotesMigration() throws Exception {
+        testConfiguration("migrate-no-emotes");
+    }
+
+    @Test
     void testInvalidConfig() throws Exception {
         streamResourceFiles(CONFIG_PREFIX + "/invalid").forEach(resource -> {
             try {

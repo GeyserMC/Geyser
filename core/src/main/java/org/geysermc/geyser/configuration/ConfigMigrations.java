@@ -32,6 +32,7 @@ import org.spongepowered.configurate.transformation.ConfigurationTransformation;
 import org.spongepowered.configurate.transformation.TransformAction;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -105,9 +106,24 @@ public class ConfigMigrations {
                 return new Object[]{ "gameplay", "max-visible-custom-skulls" };
             })
             .addAction(path("emote-offhand-workaround"), (path,  value) -> {
-                if (value.getBoolean()) {
-                    GeyserImpl.getInstance().getLogger().warning("The emote-offhand-workaround has been replaced with an official Geyser extension!");
+                String previous = value.getString();
+                if (!Objects.equals(previous, "disabled") && GeyserImpl.getInstance() != null) {
+                    GeyserImpl.getInstance().getLogger().warning("The emote-offhand-workaround option has been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/EmoteOffhandExtension/");
                 }
+                if (Objects.equals(previous, "no-emotes")) {
+                    value.set(false);
+                    return new Object[]{ "gameplay", "emotes-enabled" };
+                }
+                return null;
+            })
+
+            // For the warning!
+            .addAction(path("allow-third-party-capes"), (node, value) -> {
+                GeyserImpl.getInstance().getLogger().warning("Third-party ears/capes have been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/ThirdPartyCosmetics");
+                return null;
+            })
+            .addAction(path("allow-third-party-ears"), (node, value) -> {
+                GeyserImpl.getInstance().getLogger().warning("Third-party ears/capes have been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/ThirdPartyCosmetics");
                 return null;
             })
 

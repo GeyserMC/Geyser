@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
 import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.ClientEmoteEvent;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -40,6 +41,10 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
     public void translate(GeyserSession session, EmotePacket packet) {
         // For the future: could have a method that exposes which players will see the emote
         ClientEmoteEvent event = new ClientEmoteEvent(session, packet.getEmoteId());
+        if (!GeyserImpl.getInstance().config().gameplay().emotesEnabled()) {
+            event.setCancelled(true);
+        }
+
         session.getGeyser().eventBus().fire(event);
         if (event.isCancelled()) {
             return;
