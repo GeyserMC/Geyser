@@ -45,7 +45,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
 
     @Override
     public void translate(GeyserSession session, ContainerClosePacket packet) {
-        GeyserImpl.getInstance().getLogger().debug(session, packet.toString());
+        GeyserImpl.getInstance().getLogger().info(session.getDebugInfo() + " ticks? " + session.getClientTicks() + " " + packet.toString());
         byte bedrockId = packet.getId();
 
         //Client wants close confirmation
@@ -86,6 +86,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
         }
 
         session.setPendingOrCurrentBedrockInventoryId(-1);
+        session.getInventoryTransactionFuture().runCurrentIfPresent();
 
         if (holder != null) {
             // Send close confirmation to Java edition if container closing is client-initiated

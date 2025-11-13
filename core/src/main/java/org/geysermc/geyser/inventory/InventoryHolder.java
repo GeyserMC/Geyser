@@ -130,7 +130,7 @@ public final class InventoryHolder<T extends Inventory> {
     }
 
     public void translateRequests(List<ItemStackRequest> requests) {
-        this.translator.translateRequests(session, inventory, requests);
+        this.translator.translateRequests(session, inventory, requests, true);
     }
 
     public GeyserSession session() {
