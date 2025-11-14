@@ -112,7 +112,7 @@ public class ConfigMigrations {
                 }
                 if (Objects.equals(previous, "no-emotes")) {
                     value.set(false);
-                    return new Object[]{ "gameplay", "emotes-enabled" };
+                    return new Object[]{ "gameplay", "show-emotes" };
                 }
                 return null;
             })

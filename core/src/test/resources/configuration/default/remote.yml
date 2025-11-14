@@ -84,8 +84,8 @@ gameplay:
   # The main downside to this is that the entire Nether will have the same red fog rather than having different fog for each biome.
   nether-roof-workaround: false
 
-  # Whether to allow Bedrock Edition emotes to be sent to other Bedrock Edition players.
-  emotes-enabled: true
+  # Whether to show Bedrock Edition emotes to other Bedrock Edition players.
+  show-emotes: true
 
   # Which item to use to mark unavailable slots in a Bedrock player inventory. Examples of this are the 2x2 crafting grid while in creative,
   # or custom inventory menus with sizes different from the usual 3x9. A barrier block is the default item.

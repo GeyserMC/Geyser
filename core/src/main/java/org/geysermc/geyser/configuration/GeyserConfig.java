@@ -287,7 +287,7 @@ public interface GeyserConfig {
         boolean netherRoofWorkaround();
 
         @Comment("""
-            Whether to allow Bedrock Edition emotes to be sent to other Bedrock Edition players.
+            Whether to show Bedrock Edition emotes to other Bedrock Edition players.
             """)
         @DefaultBoolean(true)
         boolean emotesEnabled();
