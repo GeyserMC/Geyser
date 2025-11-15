@@ -586,6 +586,43 @@ public class SkinProvider {
             });
     }
 
+    /**
+     * Fix Mojang cape ARGB color channel bug for Bedrock clients
+     * Mojang capes appear blue on Bedrock due to incorrect color interpretation
+     */
+    private static BufferedImage fixMojangCapeColors(BufferedImage original) {
+        if (original == null) {
+            return null;
+        }
+        
+        int width = original.getWidth();
+        int height = original.getHeight();
+        
+        BufferedImage fixed = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int pixel = original.getRGB(x, y);
+                
+                // Extract ARGB components
+                int alpha = (pixel >> 24) & 0xFF;
+                int red = (pixel >> 16) & 0xFF;
+                int green = (pixel >> 8) & 0xFF;
+                int blue = pixel & 0xFF;
+                
+                // Reconstruct with proper alpha channel
+                if (alpha == 0) {
+                    fixed.setRGB(x, y, 0x00000000);
+                } else {
+                    int newPixel = (alpha << 24) | (red << 16) | (green << 8) | blue;
+                    fixed.setRGB(x, y, newPixel);
+                }
+            }
+        }
+        
+        return fixed;
+    }
+
     private static BufferedImage downloadImage(String imageUrl) throws IOException {
         HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
         con.setRequestProperty("User-Agent", WebUtils.getUserAgent());
@@ -597,6 +634,12 @@ public class SkinProvider {
         if (image == null) {
             throw new IllegalArgumentException("Failed to read image from: %s".formatted(imageUrl));
         }
+        
+        // Fix Mojang cape color bug for Bedrock clients
+        if (imageUrl.contains("textures.minecraft.net") || imageUrl.contains("cape.minecraft.net")) {
+            image = fixMojangCapeColors(image);
+        }
+        
         return image;
     }
 
