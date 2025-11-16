@@ -12,12 +12,12 @@ plugins {
 // These are provided by Minecraft/modded platforms already, no need to include them
 provided("com.google.code.gson", "gson")
 provided("com.google.guava", ".*")
-provided("org.slf4j", "slf4j-api")
-provided("com.nukkitx.fastutil", ".*")
-provided("org.cloudburstmc.fastutil.maps", ".*")
-provided("org.cloudburstmc.fastutil.sets", ".*")
-provided("org.cloudburstmc.fastutil.commons", ".*")
-provided("org.cloudburstmc.fastutil", ".*")
+//provided("org.slf4j", "slf4j-api")
+//provided("com.nukkitx.fastutil", ".*")
+//provided("org.cloudburstmc.fastutil.maps", ".*")
+//provided("org.cloudburstmc.fastutil.sets", ".*")
+//provided("org.cloudburstmc.fastutil.commons", ".*")
+//provided("org.cloudburstmc.fastutil", ".*")
 provided("org.checkerframework", "checker-qual")
 provided("io.netty", "netty-transport-classes-epoll")
 provided("io.netty", "netty-transport-native-epoll")
@@ -34,10 +34,6 @@ provided("io.netty", "netty-transport")
 provided("io.netty", "netty-codec")
 provided("io.netty", "netty-codec-base")
 provided("org.ow2.asm", "asm")
-
-// cloud-fabric/cloud-neoforge jij's all cloud depends already
-provided("org.incendo", ".*")
-provided("io.leangen.geantyref", "geantyref")
 
 architectury {
     minecraft = libs.minecraft.get().version as String

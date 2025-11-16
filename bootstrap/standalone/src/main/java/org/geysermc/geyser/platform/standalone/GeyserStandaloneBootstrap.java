@@ -330,6 +330,11 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         return false;
     }
 
+    @Override
+    public boolean isStandaloneCommandManager() {
+        return true;
+    }
+
     /**
      * Get the {@link BeanPropertyDefinition}s for the given class
      *

@@ -45,6 +45,13 @@ dependencies {
     // Include all transitive deps of core via JiJ
     includeTransitive(projects.core)
 
+    compileOnly(libs.adapters)
+    include(libs.adapters)
+    include(libs.adapters.world.neoforge.v1213)
+    include(libs.adapters.world.neoforge.v1206)
+    include(libs.adapters.command.neoforge.v1215)
+    include(libs.adapters.command.neoforge.v1206)
+
     modImplementation(libs.cloud.neoforge)
     include(libs.cloud.neoforge)
 }

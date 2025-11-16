@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,36 +23,37 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.spigot.world.manager;
+package org.geysermc.geyser.platform.mod.world;
 
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.data.MappingData;
 import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
-import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
+import net.minecraft.SharedConstants;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import org.geysermc.geyser.adapters.WorldAdapter;
 import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.platform.spigot.GeyserSpigotPlugin;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Used when block IDs need to be translated to the latest version
- */
-public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorldManager {
-
+public class GeyserLegacyNativeModWorldManager extends GeyserNativeModWorldManager {
     private final Int2IntMap oldToNewBlockId;
 
-    public GeyserSpigotLegacyNativeWorldManager(GeyserSpigotPlugin plugin) {
-        super(plugin);
+    public GeyserLegacyNativeModWorldManager(WorldAdapter<ServerLevel> adapter, MinecraftServer server) {
+        super(adapter, server);
         IntList allBlockStates = adapter.getAllBlockStates();
         oldToNewBlockId = new Int2IntOpenHashMap(allBlockStates.size());
-        ProtocolVersion serverVersion = plugin.getServerProtocolVersion();
-        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(GameProtocol.getJavaProtocolVersion(),
-                serverVersion.getVersion());
+
+        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(
+                GameProtocol.getJavaProtocolVersion(),
+                SharedConstants.getProtocolVersion()
+        );
+
         Objects.requireNonNull(protocolList, "protocolList cannot be null");
         for (int oldBlockId : allBlockStates) {
             int newBlockId = oldBlockId;

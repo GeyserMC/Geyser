@@ -29,19 +29,24 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.adapters.PlatformAdapters;
+import org.geysermc.geyser.adapters.WorldAdapter;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfiguration;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
-import org.geysermc.geyser.platform.mod.world.GeyserModWorldManager;
+import org.geysermc.geyser.platform.mod.world.GeyserLegacyNativeModWorldManager;
+import org.geysermc.geyser.platform.mod.world.GeyserNativeModWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 
@@ -54,7 +59,6 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 public abstract class GeyserModBootstrap implements GeyserBootstrap {
-
     @Getter
     private static GeyserModBootstrap instance;
 
@@ -85,6 +89,15 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         }
         this.geyserLogger.setDebug(geyserConfig.isDebugMode());
         GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
+
+        if (!ModConstants.isModernVersion() && !this.platform.testViaPresent(this)) {
+            this.geyserLogger.error("-------------------------------------------------------------------------");
+            this.geyserLogger.error("The current server version is not supported unless ViaVersion is present!");
+            this.geyserLogger.error("Geyser will not start unless you add ViaVersion!");
+            this.geyserLogger.error("-------------------------------------------------------------------------");
+            return;
+        }
+
         this.geyser = GeyserImpl.load(this.platform.platformType(), this);
     }
 
@@ -104,7 +117,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
         GeyserImpl.start();
 
-        if (geyserConfig.isLegacyPingPassthrough()) {
+        if (geyserConfig.isLegacyPingPassthrough() || !ModConstants.isModernVersion()) {
             this.geyserPingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
             this.geyserPingPassthrough = new ModPingPassthrough(server, geyserLogger);
@@ -115,12 +128,19 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
             return;
         }
 
-        this.geyserWorldManager = new GeyserModWorldManager(server);
+        WorldAdapter<ServerLevel> worldAdapter = (WorldAdapter<ServerLevel>) PlatformAdapters.getWorldAdapter();
+        if (worldAdapter == null) {
+            this.geyserWorldManager = new GeyserWorldManager();
+        } else {
+            this.geyserWorldManager = ModConstants.isModernVersion() ?
+                    new GeyserNativeModWorldManager(worldAdapter, server) :
+                    new GeyserLegacyNativeModWorldManager(worldAdapter, server);
+        }
 
         // We want to do this late in the server startup process to allow other mods
         // To do their job injecting, then connect into *that*
-        this.geyserInjector = new GeyserModInjector(server, this.platform);
-        if (isServer()) {
+        this.geyserInjector = ModConstants.isModernVersion() ? new GeyserModInjector(server, this.platform) : null;
+        if (isServer() && this.geyserInjector != null) {
             this.geyserInjector.initializeLocalChannel(this);
         }
     }
@@ -166,7 +186,7 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     @Override
     public WorldManager getWorldManager() {
-        return geyserWorldManager;
+        return geyserWorldManager == null ? DEFAULT_CHUNK_MANAGER : geyserWorldManager;
     }
 
     @Override
@@ -194,12 +214,12 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
 
     @Override
     public SocketAddress getSocketAddress() {
-        return this.geyserInjector.getServerSocketAddress();
+        return this.geyserInjector == null ? null : this.geyserInjector.getServerSocketAddress();
     }
 
     @Override
     public int getServerPort() {
-        if (isServer()) {
+        if (isServer() && ModConstants.isModernVersion()) {
             return ((GeyserServerPortGetter) server).geyser$getServerPort();
         } else {
             // Set in the IntegratedServerMixin
@@ -212,6 +232,11 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     @Override
     public boolean testFloodgatePluginPresent() {
         return this.platform.testFloodgatePluginPresent(this);
+    }
+
+    @Override
+    public boolean isStandaloneCommandManager() {
+        return !ModConstants.isModernVersion();
     }
 
     @Nullable

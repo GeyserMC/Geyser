@@ -99,8 +99,7 @@ public class CommandRegistry implements EventRegistrar {
 
     private static final String GEYSER_ROOT_PERMISSION = "geyser.command";
 
-    public final static boolean STANDALONE_COMMAND_MANAGER = GeyserImpl.getInstance().getPlatformType() == PlatformType.STANDALONE ||
-        GeyserImpl.getInstance().getPlatformType() == PlatformType.VIAPROXY;
+    public final static boolean STANDALONE_COMMAND_MANAGER = GeyserImpl.getInstance().getBootstrap().isStandaloneCommandManager();
 
     protected final GeyserImpl geyser;
     private final CommandManager<GeyserCommandSource> cloud;

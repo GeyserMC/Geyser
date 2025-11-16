@@ -254,3 +254,4 @@ locales/
 /languages/
 /custom-skulls.yml
 /permissions.yml
+.kotlin/

@@ -31,18 +31,19 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.adapters.CommandManagerAdapter;
+import org.geysermc.geyser.adapters.PlatformAdapters;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.command.standalone.StandaloneCloudCommandManager;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
 import org.geysermc.geyser.platform.mod.command.ModCommandSource;
+import org.geysermc.geyser.text.ChatColor;
 import org.incendo.cloud.CommandManager;
-import org.incendo.cloud.execution.ExecutionCoordinator;
-import org.incendo.cloud.fabric.FabricServerCommandManager;
 
 public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInitializer {
 
@@ -52,6 +53,12 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
 
     @Override
     public void onInitialize() {
+        // We love workarounds! Fabric doesn't allow us to have our adapters init before this, so we'll force it!
+        FabricLoader.getInstance().getEntrypointContainers("geyser:adapter", ModInitializer.class)
+            .forEach(entrypoint -> entrypoint.getEntrypoint().onInitialize());
+
+        CommandManagerAdapter<?, ?> commandManagerAdapter = PlatformAdapters.getCommandManagerAdapter();
+
         if (isServer()) {
             // Set as an event, so we can get the proper IP and port if needed
             ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
@@ -73,22 +80,30 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
             }
         });
 
-        ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserModUpdateListener.onPlayReady(handler.getPlayer()));
+        ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> {
+            ServerPlayer player = handler.getPlayer();
+
+            GeyserModUpdateListener.onPlayReady(player, commandManagerAdapter);
+        });
 
         this.onGeyserInitialize();
 
-        var sourceConverter = CommandSourceConverter.layered(
-                CommandSourceStack.class,
-                id -> getServer().getPlayerList().getPlayer(id),
-                ServerPlayer::createCommandSourceStack,
-                () -> getServer().createCommandSourceStack(), // NPE if method reference is used, since server is not available yet
-                ModCommandSource::new
-        );
-        CommandManager<GeyserCommandSource> cloud = new FabricServerCommandManager<>(
-                ExecutionCoordinator.simpleCoordinator(),
-                sourceConverter
-        );
-        this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud, false)); // applying root permission would be a breaking change because we can't register permission defaults
+        if (getGeyser() == null) return;
+
+        CommandManager<GeyserCommandSource> cloud;
+
+        if (commandManagerAdapter != null) {
+            cloud = commandManagerAdapter.getCommandManager(
+                ModCommandSource::new,
+                CommandSourceConverter::layered,
+                message -> GeyserImpl.getInstance().getLogger().info(ChatColor.toANSI(message + ChatColor.RESET))
+            );
+        } else { // Fallback to the standalone manager, this *shouldn't* happen, since there should be an adapter for all versions of Minecraft this will load on
+            cloud = new StandaloneCloudCommandManager(GeyserImpl.getInstance());
+            GeyserImpl.getInstance().getLogger().warning("No CommandManagerAdapter was found. Permissions will be handled by a standalone file. Commands will only be accessible to Geyser users.");
+        }
+
+        this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud));
     }
 
     @Override

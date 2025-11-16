@@ -31,9 +31,16 @@ dependencies {
     // Let's shade in our own api/common module
     shadowBundle(projects.api)
     shadowBundle(projects.common)
+    shadowBundle(libs.netty.handler)
 
-    modImplementation(libs.cloud.fabric)
-    include(libs.cloud.fabric)
+    compileOnly(libs.adapters)
+    include(libs.adapters)
+    include(libs.adapters.world.fabric.v1213)
+    include(libs.adapters.world.fabric.v1206)
+    include(libs.adapters.command.fabric.v1215)
+    include(libs.adapters.command.fabric.v1206)
+
+    include(libs.cloud.core)
     include(libs.fabric.permissions.api)
 }
 

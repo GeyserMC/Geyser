@@ -31,21 +31,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.adapters.WorldAdapter;
-import org.geysermc.geyser.adapters.paper.PaperAdapters;
-import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
+import org.geysermc.geyser.adapters.PlatformAdapters;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
     protected final WorldAdapter<World> adapter;
 
-    public GeyserSpigotNativeWorldManager(Plugin plugin, boolean isPaper) {
+    public GeyserSpigotNativeWorldManager(Plugin plugin) {
         super(plugin);
-        if (isPaper) {
-            adapter = PaperAdapters.getWorldAdapter();
-        } else {
-            adapter = SpigotAdapters.getWorldAdapter();
-        }
+        //noinspection unchecked We know this is fine, we register the adapter beforehand
+        adapter = (WorldAdapter<World>) PlatformAdapters.getWorldAdapter();
     }
 
     @Override

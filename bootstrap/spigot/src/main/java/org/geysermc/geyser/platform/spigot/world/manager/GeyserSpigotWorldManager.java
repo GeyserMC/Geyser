@@ -137,14 +137,4 @@ public class GeyserSpigotWorldManager extends WorldManager {
             apply.accept(pot.getShards().stream().map(material -> material.getKey().toString()).toList());
         }, block);
     }
-
-    /**
-     * This should be set to true if we are post-1.13 but before the latest version, and we should convert the old block state id
-     * to the current one.
-     *
-     * @return whether there is a difference between client block state and server block state that requires extra processing
-     */
-    public boolean isLegacy() {
-        return false;
-    }
 }

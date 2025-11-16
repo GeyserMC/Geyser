@@ -81,6 +81,11 @@ public class GeyserFabricPlatform implements GeyserModPlatform {
     }
 
     @Override
+    public boolean testViaPresent(@NonNull GeyserModBootstrap bootstrap) {
+        return FabricLoader.getInstance().isModLoaded("viafabric");
+    }
+
+    @Override
     public @Nullable InputStream resolveResource(@NonNull String resource) {
         // We need to handle this differently, because Fabric shares the classloader across multiple mods
         Path path = this.mod.findPath(resource).orElse(null);

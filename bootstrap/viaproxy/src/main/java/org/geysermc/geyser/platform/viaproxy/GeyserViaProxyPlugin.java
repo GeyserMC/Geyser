@@ -259,6 +259,11 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
         return false;
     }
 
+    @Override
+    public boolean isStandaloneCommandManager() {
+        return true;
+    }
+
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean loadConfig() {
         try {
