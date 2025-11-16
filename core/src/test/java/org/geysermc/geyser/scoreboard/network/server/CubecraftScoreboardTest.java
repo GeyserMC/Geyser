@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.scoreboard.network.server;
 
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacket;
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketMatch;
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
+import static org.geysermc.geyser.util.AssertUtils.assertNextPacket;
+import static org.geysermc.geyser.util.AssertUtils.assertNextPacketMatch;
+import static org.geysermc.geyser.util.AssertUtils.assertNoNextPacket;
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnPlayer;
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
 import static org.junit.jupiter.api.Assertions.assertEquals;

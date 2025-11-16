@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,58 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.scoreboard.network.util;
+package org.geysermc.geyser.api.network.message;
 
-import org.geysermc.geyser.GeyserLogger;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
-public class EmptyGeyserLogger implements GeyserLogger {
-    @Override
-    public void severe(String message) {
+/**
+ * A factory interface for creating messages from a given message buffer.
+ *
+ * @param <T> the type of the message buffer
+ * @param <M> the type of the message
+ * @since 2.9.1
+ */
+@FunctionalInterface
+public interface MessageFactory<T extends MessageBuffer, M extends Message<T>> {
 
-    }
-
-    @Override
-    public void severe(String message, Throwable error) {
-
-    }
-
-    @Override
-    public void error(String message) {
-
-    }
-
-    @Override
-    public void error(String message, Throwable error) {
-
-    }
-
-    @Override
-    public void warning(String message) {
-
-    }
-
-    @Override
-    public void info(String message) {
-
-    }
-
-    @Override
-    public void debug(String message) {
-
-    }
-
-    @Override
-    public void debug(String message, Object... arguments) {
-
-    }
-
-    @Override
-    public void setDebug(boolean debug) {
-
-    }
-
-    @Override
-    public boolean isDebug() {
-        return false;
-    }
+    /**
+     * Creates a new message from the provided buffer.
+     *
+     * @param buffer the buffer to create the message from
+     * @return a new message created from the buffer
+     */
+    @NonNull
+    M create(@NonNull T buffer);
 }
