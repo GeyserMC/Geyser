@@ -41,12 +41,18 @@ import org.geysermc.geyser.api.extension.ExtensionLogger;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.extension.exception.InvalidDescriptionException;
 import org.geysermc.geyser.api.extension.exception.InvalidExtensionException;
+import org.geysermc.geyser.api.language.LanguageProvider;
+import org.geysermc.geyser.api.language.LocaleManager;
 import org.geysermc.geyser.extension.event.GeyserExtensionEventBus;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.ThrowingBiConsumer;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -59,10 +65,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
@@ -123,7 +133,52 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
     private GeyserExtensionContainer setup(Extension extension, GeyserExtensionDescription description, Path dataFolder, ExtensionEventBus eventBus) {
         GeyserExtensionLogger logger = new GeyserExtensionLogger(GeyserImpl.getInstance().getLogger(), description.id());
-        return new GeyserExtensionContainer(extension, dataFolder, description, this, logger, eventBus);
+        GeyserExtensionContainer container = new GeyserExtensionContainer(extension, dataFolder, description, this, logger, eventBus);
+
+        try {
+            for (URL url : ((URLClassLoader) extension.getClass().getClassLoader()).getURLs()) {
+                File file = new File(url.toURI());
+                JarFile jarFile = new JarFile(file);
+                JarEntry languagesEntry = jarFile.getJarEntry("languages/");
+
+                if (languagesEntry != null && languagesEntry.isDirectory()) {
+                    Map<String, Map<Object, Object>> translationStrings = new HashMap<>();
+
+                    for (JarEntry entry : jarFile.stream().toList()) {
+                        if (entry.getName().startsWith("languages/") && entry.getName().endsWith(".properties")) {
+                            String localeCode = entry.getName().substring(entry.getName().indexOf('/') + 1, entry.getName().length() - 11).toLowerCase(Locale.ROOT);
+
+                            Properties properties = new Properties();
+                            properties.load(jarFile.getInputStream(entry));
+
+                            if (!properties.isEmpty())
+                                translationStrings.put(localeCode, new HashMap<>(properties));
+                        }
+                    }
+
+                    eventBus.subscribe(GeyserDefineCustomTranslationsEvent.class, event -> {
+                        event.register(localeManager -> {
+                            String localeCode = localeManager.getLocaleCode().toLowerCase(Locale.ROOT);
+                            if (translationStrings.containsKey(localeCode)) {
+                                translationStrings.get(localeCode).forEach(
+                                    (key, value) ->
+                                        localeManager.registerTranslationString(
+                                            key.toString(),
+                                            value.toString()
+                                        )
+                                );
+                            }
+                        });
+                    });
+                }
+
+                jarFile.close();
+            }
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().error("Unable to load locale files from extension.", e);
+        }
+
+        return container;
     }
 
     public GeyserExtensionDescription extensionDescription(Path path) throws InvalidDescriptionException {
