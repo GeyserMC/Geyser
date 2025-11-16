@@ -635,6 +635,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * If the current player is flying
      */
+    @Setter
     private boolean flying = false;
 
     /**
@@ -1320,26 +1321,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public void stopSneaking(boolean updateMetaData) {
         disableBlocking();
-
         setSneaking(false, updateMetaData);
-    }
-
-    public void setSpinAttack(boolean spinAttack) {
-        switchPose(spinAttack, EntityFlag.DAMAGE_NEARBY_MOBS, Pose.SPIN_ATTACK);
-    }
-
-    public void setGliding(boolean gliding) {
-        switchPose(gliding, EntityFlag.GLIDING, Pose.FALL_FLYING);
     }
 
     private void setSneaking(boolean sneaking, boolean update) {
         this.sneaking = sneaking;
 
-        // Update pose and bounding box on our end
-        if (!flying) {
-            // The pose and bounding box should not be updated if the player is flying
-            setSneakingPose(sneaking);
-        }
+        playerEntity.setFlag(EntityFlag.SNEAKING, sneaking);
         collisionManager.updateScaffoldingFlags(false);
 
         if (update) {
@@ -1352,38 +1340,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
     }
 
-    private void setSneakingPose(boolean sneaking) {
-        if (this.pose == Pose.SNEAKING && !sneaking) {
-            this.pose = Pose.STANDING;
-            playerEntity.setBoundingBoxHeight(playerEntity.getDefinition().height());
-        } else if (sneaking) {
-            this.pose = Pose.SNEAKING;
-            playerEntity.setBoundingBoxHeight(1.5f);
-        }
-        playerEntity.setFlag(EntityFlag.SNEAKING, sneaking);
-    }
-
-    public void setSwimming(boolean swimming) {
-        if (!swimming && playerEntity.getFlag(EntityFlag.CRAWLING)) {
-            // Do not update bounding box.
-            playerEntity.setFlag(EntityFlag.SWIMMING, false);
-            playerEntity.updateBedrockMetadata();
-            return;
-        }
-        switchPose(swimming, EntityFlag.SWIMMING, Pose.SWIMMING);
-    }
-
-    public void setCrawling(boolean crawling) {
-        switchPose(crawling, EntityFlag.CRAWLING, Pose.SWIMMING);
-    }
-
-    private void switchPose(boolean value, EntityFlag flag, Pose pose) {
-        this.pose = value ? pose : this.pose == pose ? Pose.STANDING : this.pose;
-        playerEntity.setDimensionsFromPose(this.pose);
-        playerEntity.setFlag(flag, value);
-        playerEntity.updateBedrockMetadata();
-    }
-
     public void setNoClip(boolean noClip) {
         if (this.noClip == noClip) {
             return;
@@ -1391,16 +1347,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.noClip = noClip;
         this.sendAdventureSettings();
-    }
-
-    public void setFlying(boolean flying) {
-        this.flying = flying;
-
-        if (sneaking) {
-            // update bounding box as it is not reduced when flying
-            setSneakingPose(!flying);
-            playerEntity.updateBedrockMetadata();
-        }
     }
 
     public void setGameMode(GameMode newGamemode) {
@@ -2228,7 +2174,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public float getEyeHeight() {
-        return switch (pose) {
+        return switch (this.pose) {
             case SNEAKING -> 1.27f;
             case SWIMMING,
                  FALL_FLYING, // Elytra
