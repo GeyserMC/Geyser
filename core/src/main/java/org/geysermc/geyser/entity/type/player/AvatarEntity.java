@@ -350,7 +350,7 @@ public class AvatarEntity extends LivingEntity {
                 height = 0.6f;
                 width = definition.width();
             }
-            case DYING, SLEEPING -> {
+            case DYING -> {
                 height = 0.2f;
                 width = 0.2f;
             }
