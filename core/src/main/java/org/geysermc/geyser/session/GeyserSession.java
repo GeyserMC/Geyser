@@ -750,7 +750,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Accessors(fluent = true)
     @Setter
-    private boolean includedPackActive = false;
+    private boolean integratedPackActive = false;
 
     private final Set<InputLocksFlag> inputLocksSet = EnumSet.noneOf(InputLocksFlag.class);
     private boolean inputLockDirty;

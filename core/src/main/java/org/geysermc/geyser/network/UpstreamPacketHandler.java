@@ -236,7 +236,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             // Can happen if an error occurs in the resource pack event; that'll disconnect the player
             return PacketSignal.HANDLED;
         }
-        session.includedPackActive(resourcePackLoadEvent.isIntegratedPackActive());
+        session.integratedPackActive(resourcePackLoadEvent.isIntegratedPackActive());
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         resourcePacksInfo.getResourcePackInfos().addAll(this.resourcePackLoadEvent.infoPacketEntries());

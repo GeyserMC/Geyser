@@ -29,89 +29,129 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
+import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
+import org.geysermc.geyser.api.pack.exception.ResourcePackException;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
-import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 import org.geysermc.geyser.event.type.GeyserDefineResourcePacksEventImpl;
+import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.ResourcePackHolder;
+import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public interface GeyserIntegratedPackUtil {
 
-    GeyserImpl instance = GeyserImpl.getInstance();
-    UUID PACK_UUID = UUID.fromString("e5f5c938-a701-11eb-b2a3-047d7bb283ba");
     Path CACHE = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache");
     Path PACK_PATH = CACHE.resolve("GeyserIntegratedPack.mcpack");
-    AtomicBoolean PACK_ENABLED = new AtomicBoolean(false);
+    UUID OPTIONAL_PACK_UUID = UUID.fromString("e5f5c938-a701-11eb-b2a3-047d7bb283ba");
+    UUID INTEGRATED_PACK_UUID = UUID.fromString("2254393d-8430-45b0-838a-bd397828c765");
+    AtomicReference<ResourcePackManifest.Version> INTEGRATED_PACK_VERSION = new AtomicReference<>();
+    AtomicBoolean PACK_ENABLED = new AtomicBoolean(GeyserImpl.getInstance().config().gameplay().enableIntegratedPack());
 
     default void registerGeyserPack(GeyserDefineResourcePacksEventImpl event) {
-        if (!instance.config().gameplay().enableIntegratedPack()) {
+        if (!GeyserImpl.getInstance().config().gameplay().enableIntegratedPack()) {
             return;
-        }
-
-        var pack = event.getPacks().get(PACK_UUID);
-        if (pack != null) {
-            if (pack.codec() instanceof UrlPackCodec) {
-                // Must ensure correct place in pack stack
-                pack.optionHolder().put(ResourcePackOption.Type.PRIORITY, PriorityOption.HIGH);
-                instance.getLogger().info("Not adding our own copy of the integrated pack due to url pack codec presence!");
-                PACK_ENABLED.set(true);
-                return;
-            }
-            warnOptionalPackPresent(warnMessageLocation(pack.codec()));
-            getPacks().remove(PACK_UUID);
         }
 
         try {
             Files.createDirectories(CACHE);
             Files.copy(GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("GeyserIntegratedPack.mcpack"),
                 PACK_PATH, StandardCopyOption.REPLACE_EXISTING);
-            event.register(ResourcePack.create(PathPackCodec.path(PACK_PATH)), PriorityOption.HIGH);
-            PACK_ENABLED.set(true);
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().error("Could not copy over Geyser integrated resource pack!", e);
+            PACK_ENABLED.set(false);
+            return;
+        }
+
+        GeyserResourcePack integrated = ResourcePackLoader.readPack(PACK_PATH).build();
+        INTEGRATED_PACK_VERSION.set(integrated.manifest().header().version());
+
+        try {
+            event.getPacks().put(INTEGRATED_PACK_UUID, ResourcePackHolder.of(integrated));
+            event.registerOptions(INTEGRATED_PACK_UUID, PriorityOption.LOW);
+            PACK_ENABLED.set(true);
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().error("Could not register GeyserIntegratedPack!", e);
+            PACK_ENABLED.set(false);
         }
     }
 
-    default boolean handlePossibleOptionalPack(ResourcePack pack) {
+    /**
+     * Pre-processes a resource pack about to be registered
+     * @param pack the pack to check
+     * @throws ResourcePackException if duplicate was discovered
+     */
+    default void preProcessPack(GeyserResourcePack pack) {
         if (!PACK_ENABLED.get()) {
-            return false;
+            return;
         }
-        if (!Objects.equals(pack.uuid(), PACK_UUID)) {
-            return false;
+
+        if (Objects.equals(pack.uuid(), INTEGRATED_PACK_UUID)) {
+            handleDuplicateIntegratedPack(pack);
+            return;
         }
-        if (pack.codec() instanceof UrlPackCodec) {
-            getPacks().remove(PACK_UUID);
-            instance.getLogger().info("Overriding our own integrated pack with url pack codec delivered pack!");
-            return false;
+
+        if (Objects.equals(pack.uuid(), OPTIONAL_PACK_UUID)) {
+            handleOptionalPack(pack);
         }
-        warnOptionalPackPresent(warnMessageLocation(pack.codec()));
-        return true;
     }
 
-    Map<UUID, ResourcePackHolder> getPacks();
+    default void handleDuplicateIntegratedPack(ResourcePack duplicate) {
+        ResourcePackManifest.Version version = duplicate.manifest().header().version();
+        if (duplicate.codec() instanceof UrlPackCodec) {
+            if (Objects.equals(version, INTEGRATED_PACK_VERSION.get())) {
+                GeyserImpl.getInstance().getLogger().debug("Found GeyserIntegratedPack sent via UrlPackCodec (version: %s)!".formatted(version));
+            } else {
+                GeyserImpl.getInstance().getLogger().warning("Found GeyserIntegratedPack sent via UrlPackCodec, but the version differs! " +
+                    "(found: %s, expected: %s). Skipping our own, but things may not work as expected!".formatted(duplicate, INTEGRATED_PACK_VERSION.get()));
+            }
+            unregisterIntegratedPack();
+            PACK_ENABLED.set(true);
+            return;
+        }
+
+        throw new ResourcePackException(ResourcePackException.Cause.DUPLICATE);
+    }
+
+    default void handleOptionalPack(ResourcePack pack) {
+        // Gracefully handle optional pack presence to avoid issues
+        if (pack.codec() instanceof UrlPackCodec) {
+            GeyserImpl.getInstance().getLogger().warning("Detected GeyserOptionalPack sent via the UrlPackCodec! Please migrate to sending the " +
+                "GeyserIntegratedPack instead - it will be required in the future for advanced features to work correctly!");
+        } else {
+            GeyserImpl.getInstance().getLogger().warning("Detected GeyserOptionalPack! " +
+                "It should be removed " + warnMessageLocation(pack.codec()) + ", as Geyser now includes an improved version of this resource pack by default!"
+            );
+        }
+        GeyserImpl.getInstance().getLogger().warning("Disabling the integrated pack...");
+        unregisterIntegratedPack();
+        PACK_ENABLED.set(false);
+    }
 
     default String warnMessageLocation(PackCodec codec) {
         if (codec instanceof PathPackCodec pathPackCodec) {
-            return "(found in: %s)".formatted(instance.getBootstrap().getConfigFolder().relativize(pathPackCodec.path()));
+            try {
+                // try to create nicer /packs/xyz.mcpack path if possible
+                return "(found in: %s)".formatted(GeyserImpl.getInstance().getBootstrap().getConfigFolder().relativize(pathPackCodec.path()));
+            } catch (Exception e) {
+                return "(found in: %s)".formatted(pathPackCodec.path());
+            }
         }
         return "(registered with codec: %s)".formatted(codec);
     }
 
-    default void warnOptionalPackPresent(String message) {
-        instance.getLogger().warning("Detected duplicate GeyserOptionalPack registration! " +
-            " It should be removed " + message + ", as Geyser now includes an improved version of this resource pack by default!"
-        );
-    }
+    void unregisterIntegratedPack();
+
+    boolean integratedPackRegistered();
 
     default boolean isIntegratedPackActive() {
-        return instance.config().gameplay().enableIntegratedPack() && getPacks().containsKey(PACK_UUID);
+        return GeyserImpl.getInstance().config().gameplay().enableIntegratedPack() && integratedPackRegistered();
     }
 }

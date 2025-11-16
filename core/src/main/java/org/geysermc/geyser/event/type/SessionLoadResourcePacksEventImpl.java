@@ -27,6 +27,7 @@ package org.geysermc.geyser.event.type;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.packet.ResourcePackStackPacket;
@@ -61,6 +62,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
      * The packs for this Session. A {@link ResourcePackHolder} may contain resource pack options registered
      * during the {@link org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent}.
      */
+    @Getter
     private final Map<UUID, ResourcePackHolder> packs;
 
     /**
@@ -87,9 +89,6 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     @Override
     public boolean register(@NonNull ResourcePack resourcePack) {
         try {
-            if (handlePossibleOptionalPack(resourcePack)) {
-                return false;
-            }
             register(resourcePack, PriorityOption.NORMAL);
         } catch (ResourcePackException e) {
             GeyserImpl.getInstance().getLogger().error("An exception occurred while registering resource pack: " + e.getMessage(), e);
@@ -105,9 +104,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
             throw new ResourcePackException(ResourcePackException.Cause.UNKNOWN_IMPLEMENTATION);
         }
 
-        if (handlePossibleOptionalPack(resourcePack)) {
-            return;
-        }
+        preProcessPack(pack);
 
         UUID uuid = resourcePack.uuid();
         if (packs.containsKey(uuid)) {
@@ -184,6 +181,16 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         holder.validateAndAdd(pack, options);
     }
 
+    @Override
+    public void unregisterIntegratedPack() {
+        unregister(INTEGRATED_PACK_UUID);
+    }
+
+    @Override
+    public boolean integratedPackRegistered() {
+        return packs.containsKey(INTEGRATED_PACK_UUID);
+    }
+
     // Methods used internally for e.g. ordered packs, or resource pack entries
 
     public List<ResourcePackStackPacket.Entry> orderedPacks() {
@@ -249,10 +256,5 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
             return urlPackCodec.url();
         }
         return "";
-    }
-
-    @Override
-    public Map<UUID, ResourcePackHolder> getPacks() {
-        return packs;
     }
 }
