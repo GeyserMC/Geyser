@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.configuration;
 
+import org.geysermc.geyser.GeyserBootstrap;
+import org.geysermc.geyser.GeyserImpl;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
@@ -33,7 +35,7 @@ import org.spongepowered.configurate.transformation.TransformAction;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import static org.spongepowered.configurate.NodePath.path;
 import static org.spongepowered.configurate.transformation.TransformAction.remove;
@@ -41,7 +43,7 @@ import static org.spongepowered.configurate.transformation.TransformAction.renam
 
 public class ConfigMigrations {
 
-    public static final Function<Class<? extends GeyserConfig>, ConfigurationTransformation.Versioned> TRANSFORMER = (configClass) ->
+    public static final BiFunction<Class<? extends GeyserConfig>, GeyserBootstrap, ConfigurationTransformation.Versioned> TRANSFORMER = (configClass, bootstrap) ->
         ConfigurationTransformation.versionedBuilder()
         .versionKey("config-version")
         .addVersion(5, ConfigurationTransformation.builder()
@@ -105,9 +107,27 @@ public class ConfigMigrations {
                 return new Object[]{ "gameplay", "max-visible-custom-skulls" };
             })
             .addAction(path("emote-offhand-workaround"), (path,  value) -> {
-                if (Objects.equals(value.getString(), "no-emotes")) {
+                String previous = value.getString();
+                if (!Objects.equals(previous, "disabled") && bootstrap != null) {
+                    bootstrap.getGeyserLogger().warning("The emote-offhand-workaround option has been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/EmoteOffhandExtension/");
+                }
+                if (Objects.equals(previous, "no-emotes")) {
                     value.set(false);
                     return new Object[]{ "gameplay", "show-emotes" };
+                }
+                return null;
+            })
+
+            // For the warning!
+            .addAction(path("allow-third-party-capes"), (node, value) -> {
+                if (bootstrap != null) {
+                    bootstrap.getGeyserLogger().warning("Third-party ears/capes have been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/ThirdPartyCosmetics");
+                }
+                return null;
+            })
+            .addAction(path("allow-third-party-ears"), (node, value) -> {
+                if (bootstrap != null) {
+                    GeyserImpl.getInstance().getLogger().warning("Third-party ears/capes have been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/ThirdPartyCosmetics");
                 }
                 return null;
             })

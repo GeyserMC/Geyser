@@ -131,7 +131,7 @@ public final class ConfigLoader {
         CommentedConfigurationNode node = loader.load();
         boolean originallyEmpty = !configFile.exists() || node.isNull();
 
-        ConfigurationTransformation.Versioned migrations = ConfigMigrations.TRANSFORMER.apply(configClass);
+        ConfigurationTransformation.Versioned migrations = ConfigMigrations.TRANSFORMER.apply(configClass, bootstrap);
         int currentVersion = migrations.version(node);
         migrations.apply(node);
         int newVersion = migrations.version(node);

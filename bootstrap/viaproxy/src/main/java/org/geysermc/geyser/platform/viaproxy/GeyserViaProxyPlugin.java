@@ -36,6 +36,7 @@ import net.raphimc.viaproxy.plugins.events.ConsoleCommandEvent;
 import net.raphimc.viaproxy.plugins.events.ProxyStartEvent;
 import net.raphimc.viaproxy.plugins.events.ProxyStopEvent;
 import net.raphimc.viaproxy.plugins.events.ShouldVerifyOnlineModeEvent;
+import net.raphimc.viaproxy.plugins.events.ViaProxyLoadedEvent;
 import net.raphimc.viaproxy.plugins.events.types.ITyped;
 import net.raphimc.viaproxy.protocoltranslator.viaproxy.ViaProxyConfig;
 import org.apache.logging.log4j.LogManager;
@@ -81,16 +82,18 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     @Override
     public void onEnable() {
         ROOT_FOLDER.mkdirs();
-
-        GeyserLocale.init(this);
-        this.onGeyserInitialize();
-
         ViaProxy.EVENT_MANAGER.register(this);
     }
 
     @Override
     public void onDisable() {
         this.onGeyserShutdown();
+    }
+
+    @EventHandler
+    private void onViaProxyLoaded(ViaProxyLoadedEvent event) {
+        GeyserLocale.init(this);
+        this.onGeyserInitialize();
     }
 
     @EventHandler
@@ -296,6 +299,7 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
             .configFile(new File(ROOT_FOLDER, "config.yml"))
             .load(configClass);
         if (config != null) {
+            this.geyserConfig = (GeyserPluginConfig) config;
             config.java().authType(Files.isRegularFile(getFloodgateKeyPath()) ? AuthType.FLOODGATE : AuthType.OFFLINE);
         }
         return config;
