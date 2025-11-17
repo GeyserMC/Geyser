@@ -26,7 +26,6 @@
 package org.geysermc.geyser.configuration;
 
 import org.geysermc.geyser.GeyserBootstrap;
-import org.geysermc.geyser.GeyserImpl;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
@@ -127,7 +126,7 @@ public class ConfigMigrations {
             })
             .addAction(path("allow-third-party-ears"), (node, value) -> {
                 if (bootstrap != null) {
-                    GeyserImpl.getInstance().getLogger().warning("Third-party ears/capes have been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/ThirdPartyCosmetics");
+                    bootstrap.getGeyserLogger().warning("Third-party ears/capes have been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/ThirdPartyCosmetics");
                 }
                 return null;
             })
