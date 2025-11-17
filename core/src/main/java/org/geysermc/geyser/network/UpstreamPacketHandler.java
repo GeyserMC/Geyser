@@ -247,7 +247,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         resourcePacksInfo.setWorldTemplateId(UUID.randomUUID());
         resourcePacksInfo.setWorldTemplateVersion("*");
 
-        GeyserImpl.getInstance().getLogger().info(resourcePacksInfo.toString());
         session.sendUpstreamPacket(resourcePacksInfo);
 
         GeyserLocale.loadGeyserLocale(session.locale());
@@ -300,6 +299,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
                 session.sendUpstreamPacket(stackPacket);
             }
+            case REFUSED -> session.disconnect("disconnectionScreen.resourcePack");
             default -> {
                 GeyserImpl.getInstance().getLogger().debug("received unknown status packet: " + packet);
                 session.disconnect("disconnectionScreen.resourcePack");

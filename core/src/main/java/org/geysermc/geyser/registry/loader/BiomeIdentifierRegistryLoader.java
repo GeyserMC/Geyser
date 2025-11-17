@@ -45,7 +45,7 @@ public class BiomeIdentifierRegistryLoader implements RegistryLoader<String, Obj
         // crashes the client. Therefore, we need to have a list of all valid Bedrock biome IDs with which we can use from.
         // The server sends the corresponding Java network IDs, so we don't need to worry about that now.
 
-        // Reference variable for Jackson to read off of
+        // Reference variable for Gson to read off of
         Type biomeEntriesType = new TypeToken<Map<String, BiomeEntry>>() { }.getType();
         Map<String, BiomeEntry> biomeEntries;
 

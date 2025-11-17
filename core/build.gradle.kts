@@ -30,7 +30,9 @@ dependencies {
     // Network libraries
     implementation(libs.websocket)
 
-    api(libs.bundles.protocol)
+    api(libs.bundles.protocol) {
+        exclude("com.fasterxml.jackson.core", "jackson-annotations")
+    }
 
     api(libs.minecraftauth) {
         exclude("com.google.code.gson", "gson")

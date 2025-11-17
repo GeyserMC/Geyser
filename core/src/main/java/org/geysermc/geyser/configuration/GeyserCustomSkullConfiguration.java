@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Objects;
 
 @ConfigSerializable
-@SuppressWarnings("FieldMayBeFinal") // Jackson requires that the fields are not final
 public class GeyserCustomSkullConfiguration {
     private List<String> playerUsernames;
 
