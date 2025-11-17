@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.configuration;
 
-import org.geysermc.geyser.GeyserImpl;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
@@ -106,24 +105,10 @@ public class ConfigMigrations {
                 return new Object[]{ "gameplay", "max-visible-custom-skulls" };
             })
             .addAction(path("emote-offhand-workaround"), (path,  value) -> {
-                String previous = value.getString();
-                if (!Objects.equals(previous, "disabled") && GeyserImpl.getInstance() != null) {
-                    GeyserImpl.getInstance().getLogger().warning("The emote-offhand-workaround option has been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/EmoteOffhandExtension/");
-                }
-                if (Objects.equals(previous, "no-emotes")) {
+                if (Objects.equals(value.getString(), "no-emotes")) {
                     value.set(false);
                     return new Object[]{ "gameplay", "show-emotes" };
                 }
-                return null;
-            })
-
-            // For the warning!
-            .addAction(path("allow-third-party-capes"), (node, value) -> {
-                GeyserImpl.getInstance().getLogger().warning("Third-party ears/capes have been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/ThirdPartyCosmetics");
-                return null;
-            })
-            .addAction(path("allow-third-party-ears"), (node, value) -> {
-                GeyserImpl.getInstance().getLogger().warning("Third-party ears/capes have been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/ThirdPartyCosmetics");
                 return null;
             })
 
