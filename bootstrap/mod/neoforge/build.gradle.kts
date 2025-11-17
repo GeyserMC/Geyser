@@ -30,6 +30,9 @@ dependencies {
     // Let's shade in our own api
     shadowBundle(projects.api)
 
+    // this one is particularly dumb
+    shadowBundle(libs.configurate.`interface`)
+
     // cannot be shaded, since neoforge will complain if floodgate-neoforge tries to provide this
     include(projects.common)
 
