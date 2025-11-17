@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,11 +23,36 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.entity.type.player;
+package org.geysermc.geyser.api.entity;
 
-import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.geysermc.geyser.api.util.Identifier;
 
-public interface GeyserPlayerEntity extends GeyserEntity {
+/**
+ * Represents a Bedrock entity definition.
+ */
+public interface GeyserEntityDefinition {
 
-    // TODO expose skin data here??
+    /**
+     * @return the Bedrock entity identifier
+     */
+    Identifier identifier();
+
+    /**
+     * @return the width of the entity
+     */
+    float width();
+
+    /**
+     * @return the height of the entity
+     */
+    float height();
+
+    /**
+     * The vertical offset applied by Geyser
+     * to entities to ensure they don't clip
+     * in the ground due to Java vs Bedrock differences.
+     *
+     * @return the offset of the entity
+     */
+    float offset();
 }

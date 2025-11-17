@@ -29,19 +29,16 @@ import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.api.util.Identifier;
 
-public interface CustomEntityDefinition {
+/**
+ * Represents a custom entity definition
+ */
+public interface CustomEntityDefinition extends GeyserEntityDefinition, PredicateHolder<EntitySpawnPredicateContext> {
 
-    Identifier bedrockIdentifier();
-
-    float width();
-
-    float height();
-
-    float offset();
-
-    static Builder builder(@NonNull String bedrockIdentifier, @NonNull JavaEntityType vanillaType) {
+    static Builder builder(@NonNull Identifier bedrockIdentifier, @NonNull JavaEntityType vanillaType) {
         return GeyserApi.api().provider(Builder.class, bedrockIdentifier, vanillaType);
     }
 

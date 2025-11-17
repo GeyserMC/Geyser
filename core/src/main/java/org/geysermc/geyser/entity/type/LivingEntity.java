@@ -553,7 +553,7 @@ public class LivingEntity extends Entity {
             if (equippable != null) {
                 return slot == equippable.slot() &&
                     canUseSlot(slot) &&
-                    EntityUtils.equipmentUsableByEntity(session, equippable, this.definition.entityType());
+                    EntityUtils.equipmentUsableByEntity(session, equippable, type);
             } else {
                 return slot == EquipmentSlot.MAIN_HAND && canUseSlot(EquipmentSlot.MAIN_HAND);
             }

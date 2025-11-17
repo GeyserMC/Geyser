@@ -116,6 +116,7 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Jav
         return type instanceof BuiltinEntityType builtin ? ofVanilla(builtin) : of(type.id());
     }
 
+    @SuppressWarnings("ConstantValue")
     public static GeyserEntityType createCustomAndRegister(@NonNull Identifier javaIdentifier, @NonNegative int javaId) {
         Objects.requireNonNull(javaIdentifier, "javaIdentifier may not be null");
         if (javaIdentifier.vanilla()) {

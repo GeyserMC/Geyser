@@ -50,6 +50,11 @@ public interface EntityData {
     @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
 
     /**
+     * Returns a {@link GeyserEntity} to e.g. update entity properties.
+     */
+    @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaUuid(@NonNegative UUID javaUuid);
+
+    /**
      * Displays a player entity as emoting to this client.
      *
      * @param emoter the player entity emoting
@@ -62,6 +67,7 @@ public interface EntityData {
      *
      * @return the {@link GeyserPlayerEntity} of this connection
      */
+    // TODO move to GeyserConnection
     @NonNull GeyserPlayerEntity playerEntity();
 
     /**
@@ -73,6 +79,7 @@ public interface EntityData {
      * @param owner the owner of the lock
      * @return if the movement is locked after this method call
      */
+    // TODO move to GeyserConnection
     boolean lockMovement(boolean lock, @NonNull UUID owner);
 
     /**
@@ -80,11 +87,13 @@ public interface EntityData {
      *
      * @return whether the movement is locked
      */
+    // TODO move to GeyserConnection
     boolean isMovementLocked();
 
     /**
      * Sends a request to the Java server to switch the items in the main and offhand.
      * There is no guarantee of the server accepting the request.
      */
+    // TODO move to GeyserConnection
     void switchHands();
 }

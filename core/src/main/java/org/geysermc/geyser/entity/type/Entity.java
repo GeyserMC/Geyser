@@ -43,12 +43,12 @@ import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
-import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
+import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
@@ -114,6 +114,8 @@ public class Entity implements GeyserEntity {
 
     protected EntityDefinition<?> definition;
 
+    protected GeyserEntityType type;
+
     /**
      * Indicates if the entity has been initialized and spawned
      */
@@ -152,8 +154,9 @@ public class Entity implements GeyserEntity {
 
     protected final GeyserEntityPropertyManager propertyManager;
 
-    public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public Entity(GeyserSession session, GeyserEntityType type, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         this.session = session;
+        this.type = type;
         this.definition = definition;
         this.displayName = standardDisplayName();
 
@@ -491,7 +494,7 @@ public class Entity implements GeyserEntity {
     }
 
     protected String standardDisplayName() {
-        return EntityUtils.translatedEntityName(definition.entityType(), session);
+        return EntityUtils.translatedEntityName(type, session);
     }
 
     protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
@@ -817,5 +820,15 @@ public class Entity implements GeyserEntity {
                 session.sendUpstreamPacket(packet);
             }
         }
+    }
+
+    @Override
+    public @NonNull UUID uuid() {
+        return uuid;
+    }
+
+    @Override
+    public Vector3f position() {
+        return this.position.down(definition.offset());
     }
 }

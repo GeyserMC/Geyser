@@ -28,11 +28,13 @@ package org.geysermc.geyser.api.entity.type;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -45,6 +47,17 @@ public interface GeyserEntity {
      */
     @NonNegative
     int javaId();
+
+    /**
+     * @return the entity uuid that the server has assigned to this entity
+     */
+    @NonNull
+    UUID uuid();
+
+    /**
+     * @return the position of the entity, as it is known to the Java server.
+     */
+    Vector3f position();
 
     /**
      * Updates an entity property with a new value.

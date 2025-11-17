@@ -25,18 +25,43 @@
 
 package org.geysermc.geyser.api.event.lifecycle;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
+import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 
-import java.util.List;
+import java.util.Collection;
 
+/**
+ * Called when entities are defined within Geyser.
+ * <p>
+ * This event can be used to add custom entities to Geyser.
+ * Entity definitions can be created using the builder provided
+ * inside of {@link GeyserEntityDefinition}.
+ */
 public interface GeyserDefineCustomEntitiesEvent extends Event {
 
-    List<CustomEntityDefinition> existingCustomEntityDefinitions();
+    /**
+     * Gets an immutable list of registered custom entity definitions.
+     *
+     * @return an immutable collection of registered custom entity definitions
+     */
+    Collection<CustomEntityDefinition> customEntities();
 
+    /**
+     * Registers a custom entity definition from its builder
+     * @param builder the custom entity definition builder
+     */
     default void register(CustomEntityDefinition.Builder builder) {
         register(builder.build());
     }
 
-    void register(CustomEntityDefinition customEntityDefinition);
+    void register(@NonNull CustomEntityDefinition customEntityDefinition);
+
+    /**
+     * Registers a non-vanilla entity type
+     * @param javaEntityType
+     */
+    void register(@NonNull JavaEntityType javaEntityType);
 }

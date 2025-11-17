@@ -36,17 +36,26 @@ import org.geysermc.geyser.api.util.Identifier;
 public interface JavaEntityType {
 
     /**
-     * @return the identifier of the type
+     * @return the Java identifier of the type
      */
     Identifier identifier();
 
     /**
-     * @return the
+     * @return the numeric Java entity type id
      */
     int javaId();
 
+    /**
+     * @return whether this entity exists in the vanilla base game
+     */
     boolean vanilla();
 
+    /**
+     * Compares two entity identifiers.
+     *
+     * @param javaIdentifier the other entity identifier
+     * @return true if the entity identifier is the same
+     */
     default boolean is(Identifier javaIdentifier) {
         return identifier().equals(javaIdentifier);
     }
@@ -55,6 +64,7 @@ public interface JavaEntityType {
         return GeyserApi.api().provider(JavaEntityType.class, javaIdentifier);
     }
 
+    // TODO move to event???
     static JavaEntityType createAndRegister(@NonNull Identifier javaIdentifier, @NonNegative int javaId) {
         return GeyserApi.api().provider(JavaEntityType.class, javaIdentifier, javaId);
     }

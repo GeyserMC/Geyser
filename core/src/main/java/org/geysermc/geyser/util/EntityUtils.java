@@ -360,7 +360,7 @@ public final class EntityUtils {
 
     public static String translatedEntityName(@Nullable GeyserEntityType type, @NonNull GeyserSession session) {
         // default fallback value as used in Minecraft Java
-        if (type == null) {
+        if (type == null || type.isUnregistered()) {
             return "entity.unregistered_sadface";
         } else if (type.is(BuiltinEntityType.PLAYER)) {
             return "Player"; // the player's name is always shown instead

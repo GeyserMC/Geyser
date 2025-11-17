@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
@@ -1269,13 +1270,22 @@ public final class EntityDefinitions {
         // entities would be initialized before these events are called
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomEntitiesEvent() {
             @Override
-            public List<CustomEntityDefinition> existingCustomEntityDefinitions() {
+            public List<CustomEntityDefinition> customEntities() {
                 return Collections.unmodifiableList(Registries.CUSTOM_ENTITY_DEFINITIONS.get());
             }
 
             @Override
-            public void register(CustomEntityDefinition customEntityDefinition) {
-                Registries.CUSTOM_ENTITY_DEFINITIONS.register(Registries.CUSTOM_ENTITY_DEFINITIONS.get().size(), customEntityDefinition);
+            public void register(@NonNull CustomEntityDefinition customEntityDefinition) {
+                Objects.requireNonNull(customEntityDefinition);
+                if (!(customEntityDefinition instanceof GeyserCustomEntityDefinition<?> geyserCustomEntityDefinition)) {
+                    throw new IllegalStateException("Unknown custom entity definition: " + customEntityDefinition);
+                }
+                Registries.CUSTOM_ENTITY_DEFINITIONS.register(Registries.CUSTOM_ENTITY_DEFINITIONS.get().size(), geyserCustomEntityDefinition);
+            }
+
+            @Override
+            public void register(@NonNull JavaEntityType javaEntityType) {
+                // TODO???
             }
         });
 

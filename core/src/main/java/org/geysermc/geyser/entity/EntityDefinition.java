@@ -31,6 +31,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
@@ -38,7 +40,6 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -54,7 +55,7 @@ import java.util.function.BiConsumer;
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public abstract class EntityDefinition<T extends Entity> extends EntityDefinitionBase<T> {
+public abstract class EntityDefinition<T extends Entity> extends EntityDefinitionBase<T> implements GeyserEntityDefinition {
     private final EntityFactory<T> factory;
     private final String bedrockIdentifier;
     private final GeyserEntityProperties registeredProperties;
@@ -67,7 +68,10 @@ public abstract class EntityDefinition<T extends Entity> extends EntityDefinitio
         this.registeredProperties = registeredProperties;
     }
 
-    public abstract boolean is(BuiltinEntityType type);
+    @Override
+    public Identifier identifier() {
+        return Identifier.of(bedrockIdentifier);
+    }
 
     @Setter
     @Accessors(fluent = true, chain = true)
