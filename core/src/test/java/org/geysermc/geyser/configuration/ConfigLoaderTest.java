@@ -107,6 +107,11 @@ public class ConfigLoaderTest {
     }
 
     @Test
+    void testChewsOldConfig() throws Exception {
+        testConfiguration("chew");
+    }
+
+    @Test
     void testInvalidConfig() throws Exception {
         streamResourceFiles(CONFIG_PREFIX + "/invalid").forEach(resource -> {
             try {

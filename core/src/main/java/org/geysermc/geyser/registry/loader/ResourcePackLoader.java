@@ -130,6 +130,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             try {
                 defineEvent.register(readPack(path).build());
             } catch (Exception e) {
+                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", path));
                 e.printStackTrace();
             }
         }
