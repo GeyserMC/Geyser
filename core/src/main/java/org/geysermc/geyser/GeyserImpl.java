@@ -36,6 +36,8 @@ import lombok.Getter;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.raphimc.minecraftauth.msa.data.MsaConstants;
+import net.raphimc.minecraftauth.msa.model.MsaApplicationConfig;
 import org.bstats.MetricsBase;
 import org.bstats.charts.AdvancedPie;
 import org.bstats.charts.DrilldownPie;
@@ -146,9 +148,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     public static final boolean IS_DEV = BuildData.isDevBuild();
 
     /**
-     * Oauth client ID for Microsoft authentication
+     * Oauth config for Microsoft authentication
      */
-    public static final String OAUTH_CLIENT_ID = "204cefd1-4818-4de1-b98d-513fae875d88";
+    public static final MsaApplicationConfig OAUTH_CONFIG = new MsaApplicationConfig("204cefd1-4818-4de1-b98d-513fae875d88", MsaConstants.SCOPE_OFFLINE_ACCESS);
 
     private static final Pattern IP_REGEX = Pattern.compile("\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b");
 
