@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity.type;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.AddPaintingPacket;
+import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.level.PaintingType;
 import org.geysermc.geyser.session.GeyserSession;
@@ -43,8 +44,8 @@ public class PaintingEntity extends HangingEntity {
     private int paintingId = -1; // Ideally this would be the default painting Java uses in their metadata, but seems to depend on the current paintings loaded in the registry
     private Direction direction = Direction.SOUTH; // Default to SOUTH direction, like on Java - entity metadata should correct this when necessary
 
-    public PaintingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public PaintingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override

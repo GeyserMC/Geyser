@@ -35,7 +35,7 @@ import org.geysermc.geyser.session.GeyserSession;
 public class EnderDragonPartEntity extends Entity {
 
     public EnderDragonPartEntity(GeyserSession session, int entityId, long geyserId, float width, float height) {
-        super(session, entityId, geyserId, null, EntityDefinitions.ENDER_DRAGON_PART, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
+        super(session, entityId, geyserId, null, EntityDefinitions.ENDER_DRAGON_PART, EntityDefinitions.ENDER_DRAGON.bedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
 
         dirtyMetadata.put(EntityDataTypes.WIDTH, width);
         dirtyMetadata.put(EntityDataTypes.HEIGHT, height);

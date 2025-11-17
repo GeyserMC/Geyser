@@ -27,16 +27,14 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.predicate.context.entity.EntitySpawnPredicateContext;
+import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.GeyserCustomEntityDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.FallingBlockEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.HangingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.impl.predicate.GeyserEntitySpawnPredicateContext;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
@@ -111,10 +109,12 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             return;
         }
 
+        BedrockEntityDefinition bedrockDefinition = definition.bedrockDefinition();
+
         Entity entity;
         if (type.is(BuiltinEntityType.FALLING_BLOCK)) {
             entity = new FallingBlockEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
-                    position, motion, yaw, pitch, headYaw, ((FallingBlockData) packet.getData()).getId());
+                    bedrockDefinition, position, motion, yaw, pitch, headYaw, ((FallingBlockData) packet.getData()).getId());
         } else if (type.is(BuiltinEntityType.FISHING_BOBBER)) {
             // Fishing bobbers need the owner for the line
             int ownerEntityId = ((ProjectileData) packet.getData()).getOwnerId();
@@ -122,13 +122,13 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             // Java clients only spawn fishing hooks with a player as its owner
             if (owner instanceof PlayerEntity) {
                 entity = new FishingHookEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
-                        position, motion, yaw, pitch, headYaw, (PlayerEntity) owner);
+                        bedrockDefinition, position, motion, yaw, pitch, headYaw, (PlayerEntity) owner);
             } else {
                 return;
             }
         } else {
             entity = definition.factory().create(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                    packet.getUuid(), definition, position, motion, yaw, pitch, headYaw);
+                    packet.getUuid(), definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
 
             // This is done over entity metadata in modern versions, but is still sent over network in the spawn packet
             if (entity instanceof HangingEntity hanging) {
@@ -147,12 +147,13 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
     }
 
     private static EntityDefinition<?> getEntityDefinition(GeyserSession session, GeyserEntityType entityType, ClientboundAddEntityPacket packet) {
-        EntitySpawnPredicateContext context = new GeyserEntitySpawnPredicateContext(session, entityType, packet);
-        for (GeyserCustomEntityDefinition<?> customEntityDefinition : Registries.CUSTOM_ENTITY_DEFINITIONS) {
-            if (customEntityDefinition.test(context)) {
-                return customEntityDefinition;
-            }
-        }
-        return Registries.ENTITY_DEFINITIONS.get(context.entityType());
+//        EntitySpawnPredicateContext context = new GeyserEntitySpawnPredicateContext(session, entityType, packet);
+//        for (GeyserCustomEntityDefinition<?> customEntityDefinition : Registries.CUSTOM_ENTITY_DEFINITIONS) {
+//            if (customEntityDefinition.test(context)) {
+//                return customEntityDefinition;
+//            }
+//        }
+        // TODO custom entities mf
+        return Registries.ENTITY_DEFINITIONS.get(entityType);
     }
 }

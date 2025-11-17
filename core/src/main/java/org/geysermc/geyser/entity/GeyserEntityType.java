@@ -60,7 +60,7 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Jav
     }
 
     private GeyserEntityType(BuiltinEntityType builtin) {
-        this(Identifier.of(builtin.name().toLowerCase(Locale.ROOT)), builtin.id());
+        this(IdentifierImpl.of(builtin.name().toLowerCase(Locale.ROOT)), builtin.id());
     }
 
     private GeyserEntityType(int javaId) {

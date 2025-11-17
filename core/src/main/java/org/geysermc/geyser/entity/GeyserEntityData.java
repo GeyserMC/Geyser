@@ -59,6 +59,13 @@ public class GeyserEntityData implements EntityData {
     }
 
     @Override
+    public @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaUuid(@NonNegative UUID javaUuid) {
+        CompletableFuture<GeyserEntity> future = new CompletableFuture<>();
+        session.ensureInEventLoop(() -> future.complete(null)); // TODO CE
+        return future;
+    }
+
+    @Override
     public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId) {
         Objects.requireNonNull(emoter, "emoter must not be null!");
         Entity entity = (Entity) emoter;

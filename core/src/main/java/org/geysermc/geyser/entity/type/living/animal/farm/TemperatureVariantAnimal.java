@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type.living.animal.farm;
 
 import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
@@ -46,9 +47,9 @@ public abstract class TemperatureVariantAnimal extends AnimalEntity implements V
 
     public static final RegistryCache.RegistryReader<BuiltInVariant> VARIANT_READER = VariantHolder.reader(BuiltInVariant.class, BuiltInVariant.TEMPERATE);
 
-    public TemperatureVariantAnimal(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition,
+    public TemperatureVariantAnimal(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, BedrockEntityDefinition bedrockDefinition,
                                     Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+        super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override

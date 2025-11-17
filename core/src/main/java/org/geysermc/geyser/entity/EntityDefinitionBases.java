@@ -104,8 +104,8 @@ public final class EntityDefinitionBases {
             .addTranslator(MetadataTypes.DIRECTION, HangingEntity::setDirectionMetadata)
             .build();
         BOAT = EntityDefinitionBase.baseInherited(BoatEntity.class, ENTITY)
-            .height(0.6f).width(1.6f)
-            .offset(0.35f)
+//            .height(0.6f).width(1.6f) TODO CE
+//            .offset(0.35f)
             .addTranslator(MetadataTypes.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_TICKS, entityMetadata.getValue())) // Time since last hit
             .addTranslator(MetadataTypes.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_DIRECTION, entityMetadata.getValue())) // Rocking direction
             .addTranslator(MetadataTypes.FLOAT, (boatEntity, entityMetadata) ->
@@ -128,8 +128,8 @@ public final class EntityDefinitionBases {
             .addTranslator(MetadataTypes.OPTIONAL_BLOCK_POS, LivingEntity::setBedPosition)
             .build();
         AVATAR = EntityDefinitionBase.baseInherited(AvatarEntity.class, LIVING_ENTITY)
-            .height(1.8f).width(0.6f)
-            .offset(1.62f)
+//            .height(1.8f).width(0.6f) TODO CE
+//            .offset(1.62f)
             .addTranslator(null) // Player main hand
             .addTranslator(MetadataTypes.BYTE, AvatarEntity::setSkinVisibility)
             .build();

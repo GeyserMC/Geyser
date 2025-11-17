@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
@@ -71,9 +72,9 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
     private final float ROWING_SPEED = 0.1f;
 
-    public BoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, BoatVariant variant) {
+    public BoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, BoatVariant variant) {
         // Initial rotation is incorrect
-        super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw + 90, 0, yaw + 90);
+        super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position.add(0d, bedrockDefinition.offset(), 0d), motion, yaw + 90, 0, yaw + 90);
         this.variant = variant;
 
         dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
@@ -93,7 +94,7 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     @Override
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // We don't include the rotation (y) as it causes the boat to appear sideways
-        setPosition(position.add(0d, this.definition.offset(), 0d));
+        setPosition(position.add(0d, this.bedrockDefinition.offset(), 0d));
         setYaw(yaw + 90);
         setHeadYaw(yaw + 90);
         setOnGround(isOnGround);
@@ -102,7 +103,7 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
         moveEntityPacket.setRuntimeEntityId(geyserId);
         if (session.getPlayerEntity().getVehicle() == this && session.getPlayerEntity().isRidingInFront()) {
             // Minimal glitching when ClientboundMoveVehiclePacket is sent
-            moveEntityPacket.setPosition(position.up(EntityDefinitions.PLAYER.offset() - this.definition.offset()));
+            moveEntityPacket.setPosition(position.up(EntityDefinitions.PLAYER.bedrockDefinition().offset() - this.bedrockDefinition.offset()));
         } else {
             moveEntityPacket.setPosition(this.position);
         }

@@ -47,7 +47,7 @@ public class JavaSetEntityDataTranslator extends PacketTranslator<ClientboundSet
             if (metadata.getId() >= definition.translators().size()) {
                 if (session.getGeyser().config().debugMode()) {
                     // Minecraft client just ignores these
-                    session.getGeyser().getLogger().warning("Metadata ID " + metadata.getId() + " is out of bounds of known entity metadata size " + definition.translators().size() + " for entity type " + entity.getDefinition().entityType());
+                    session.getGeyser().getLogger().warning("Metadata ID " + metadata.getId() + " is out of bounds of known entity metadata size " + definition.translators().size() + " for entity type " + entity.getDefinition().type());
                     session.getGeyser().getLogger().debug(metadata.toString());
                 }
                 continue;

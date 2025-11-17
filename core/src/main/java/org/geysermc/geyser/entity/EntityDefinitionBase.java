@@ -40,15 +40,14 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTyp
 import java.util.List;
 import java.util.function.BiConsumer;
 
-@Getter
-@Accessors(fluent = true)
 @EqualsAndHashCode
 @ToString
 public class EntityDefinitionBase<T extends Entity> {
-    private final float width;
-    private final float height;
-    private final float offset;
-    private final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
+    final float width;
+    final float height;
+    final float offset;
+    @Getter @Accessors(fluent = true)
+    protected final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
 
     public EntityDefinitionBase(float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
         this.width = width;
@@ -64,7 +63,7 @@ public class EntityDefinitionBase<T extends Entity> {
     // Unused param so Java knows what entity we're talking about
     @SuppressWarnings("unused")
     public static <T extends Entity> Builder<T> baseInherited(Class<T> clazz, EntityDefinitionBase<? super T> parent) {
-        return new Builder<>(parent.width(), parent.height(), parent.offset(), new ObjectArrayList<>(parent.translators()));
+        return new Builder<T>(parent.width, parent.height, parent.offset, new ObjectArrayList<>(parent.translators));
     }
 
     @SuppressWarnings("unchecked")
@@ -76,7 +75,7 @@ public class EntityDefinitionBase<T extends Entity> {
         }
 
         if (translator.acceptedType() != metadata.getType()) {
-            GeyserImpl.getInstance().getLogger().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getDefinition().bedrockIdentifier());
+            GeyserImpl.getInstance().getLogger().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getDefinition().type());
             if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
                 GeyserImpl.getInstance().getLogger().debug(metadata.toString());
             }

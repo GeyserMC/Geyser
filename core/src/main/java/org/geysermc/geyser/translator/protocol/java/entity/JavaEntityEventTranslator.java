@@ -216,7 +216,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case VILLAGER_SWEAT:
                 LevelEventPacket levelEventPacket = new LevelEventPacket();
                 levelEventPacket.setType(ParticleType.WATER_SPLASH);
-                levelEventPacket.setPosition(entity.getPosition().up(entity.getDefinition().height()));
+                levelEventPacket.setPosition(entity.getPosition().up(entity.getBedrockDefinition().height()));
                 session.sendUpstreamPacket(levelEventPacket);
                 return;
             case IRON_GOLEM_EMPTY_HAND:

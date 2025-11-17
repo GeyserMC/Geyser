@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity.type.living;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
+import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -42,8 +43,8 @@ public class SquidEntity extends AgeableWaterEntity implements Tickable {
 
     private CompletableFuture<Boolean> inWater = CompletableFuture.completedFuture(Boolean.FALSE);
 
-    public SquidEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public SquidEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override

@@ -168,7 +168,7 @@ public class WorldBorder {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Move the player back, but allow gravity to take place
             // Teleported = true makes going back better, but disconnects the player from their mounted entity
-            playerEntity.moveAbsolute(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.offset()), playerEntity.getPosition().getZ()),
+            playerEntity.moveAbsolute(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.bedrockDefinition().offset()), playerEntity.getPosition().getZ()),
                     playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
         }
         return isInWorldBorder;
@@ -325,7 +325,7 @@ public class WorldBorder {
     }
 
     private void drawWall(Vector3f position, boolean drawWallX) {
-        int initialY = (int) (position.getY() - EntityDefinitions.PLAYER.offset() - 1);
+        int initialY = (int) (position.getY() - EntityDefinitions.PLAYER.bedrockDefinition().offset() - 1);
         for (int y = initialY; y < (initialY + 5); y++) {
             if (drawWallX) {
                 float x = position.getX();

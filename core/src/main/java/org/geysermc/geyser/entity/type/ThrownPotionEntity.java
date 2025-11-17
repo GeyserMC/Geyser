@@ -29,6 +29,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.session.GeyserSession;
@@ -45,8 +46,8 @@ import java.util.UUID;
 public class ThrownPotionEntity extends ThrowableItemEntity {
     private static final EnumSet<Potion> NON_ENCHANTED_POTIONS = EnumSet.of(Potion.WATER, Potion.MUNDANE, Potion.THICK, Potion.AWKWARD);
 
-    public ThrownPotionEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public ThrownPotionEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
@@ -72,7 +73,7 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
                     }
                 }
 
-                boolean isLingering = definition.entityType().is(BuiltinEntityType.LINGERING_POTION);
+                boolean isLingering = definition.type().is(BuiltinEntityType.LINGERING_POTION);
                 setFlag(EntityFlag.LINGERING, isLingering);
             }
         }

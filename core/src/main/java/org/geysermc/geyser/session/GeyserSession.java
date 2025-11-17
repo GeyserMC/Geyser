@@ -2179,7 +2179,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                  FALL_FLYING, // Elytra
                  SPIN_ATTACK -> 0.4f; // Trident spin attack
             case SLEEPING -> 0.2f;
-            default -> EntityDefinitions.PLAYER.offset(); // 1.62F
+            default -> EntityDefinitions.PLAYER.bedrockDefinition().offset(); // 1.62F
         };
     }
 

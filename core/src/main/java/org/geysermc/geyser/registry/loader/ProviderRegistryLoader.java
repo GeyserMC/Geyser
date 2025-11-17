@@ -47,8 +47,6 @@ import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.api.pack.option.SubpackOption;
 import org.geysermc.geyser.api.pack.option.UrlFallbackOption;
 import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.geyser.entity.GeyserCustomEntityDefinition;
-import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.impl.IdentifierImpl;
@@ -113,9 +111,9 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(CameraFade.Builder.class, args -> new GeyserCameraFade.Builder());
         providers.put(CameraPosition.Builder.class, args -> new GeyserCameraPosition.Builder());
 
-        // entities
-        providers.put(JavaEntityType.class, args -> args.length == 1 ? GeyserEntityType.ofVanilla((Identifier) args[0]) : GeyserEntityType.createCustomAndRegister((Identifier) args[0], (int) args[1]));
-        providers.put(CustomEntityDefinition.class, args -> GeyserCustomEntityDefinition.inherited((String) args[0], (JavaEntityType) args[1]));
+        // entities TODO CE
+        //providers.put(JavaEntityType.class, args -> args.length == 1 ? GeyserEntityType.ofVanilla((Identifier) args[0]) : GeyserEntityType.createCustomAndRegister((Identifier) args[0], (int) args[1]));
+        //providers.put(CustomEntityDefinition.class, args -> GeyserCustomEntityDefinition.inherited((String) args[0], (JavaEntityType) args[1]));
 
         return providers;
     }

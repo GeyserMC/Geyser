@@ -218,7 +218,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         double lavaHeight = getFluidHeightAndApplyMovement(ctx, iter, Fluid.LAVA, vehicle.getSession().getDimensionType().ultrawarm() ? 0.007 : 0.007 / 3, min.getY());
 
         // Apply upward motion if the vehicle is a Strider, and it is submerged in lava
-        if (lavaHeight > 0 && vehicle.getDefinition().entityType().is(BuiltinEntityType.STRIDER)) {
+        if (lavaHeight > 0 && vehicle.getDefinition().type().is(BuiltinEntityType.STRIDER)) {
             Vector3i blockPos = ctx.centerPos().toInt();
             if (!CollisionManager.FLUID_COLLISION.isBelow(blockPos.getY(), boundingBox) || ctx.getBlock(blockPos.up()).is(Blocks.LAVA)) {
                 vehicle.setMotion(vehicle.getMotion().mul(0.5f).add(0, 0.05f, 0));

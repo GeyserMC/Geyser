@@ -266,28 +266,28 @@ public final class EntityUtils {
              */
             EntityDefinition<?> passengerDefinition = passenger.getDefinition();
             if (mountDefinition.is(BuiltinEntityType.PLAYER)) {
-                yOffset -= EntityDefinitions.PLAYER.offset();
+                yOffset -= EntityDefinitions.PLAYER.bedrockDefinition().offset();
             }
             if (passengerDefinition.is(BuiltinEntityType.PLAYER)) {
-                yOffset += EntityDefinitions.PLAYER.offset();
+                yOffset += EntityDefinitions.PLAYER.bedrockDefinition().offset();
             }
             if (mountDefinition.is(BuiltinEntityType.MINECART) || mountDefinition.is(BuiltinEntityType.HOPPER_MINECART) || mountDefinition.is(BuiltinEntityType.TNT_MINECART)
                 || mountDefinition.is(BuiltinEntityType.CHEST_MINECART) || mountDefinition.is(BuiltinEntityType.FURNACE_MINECART)
                 || mountDefinition.is(BuiltinEntityType.SPAWNER_MINECART) || mountDefinition.is(BuiltinEntityType.COMMAND_BLOCK_MINECART)) {
-                yOffset -= mount.getDefinition().height() * 0.5f;
+                yOffset -= mount.getDefinition().bedrockDefinition().height() * 0.5f;
             }
             if (passengerDefinition.is(BuiltinEntityType.MINECART) || passengerDefinition.is(BuiltinEntityType.HOPPER_MINECART) || passengerDefinition.is(BuiltinEntityType.TNT_MINECART)
                 || passengerDefinition.is(BuiltinEntityType.CHEST_MINECART) || passengerDefinition.is(BuiltinEntityType.FURNACE_MINECART) || passengerDefinition.is(BuiltinEntityType.SPAWNER_MINECART)
                 || passengerDefinition.is(BuiltinEntityType.COMMAND_BLOCK_MINECART) || passengerDefinition.is(BuiltinEntityType.SHULKER)) {
-                yOffset += passenger.getDefinition().height() * 0.5f;
+                yOffset += passenger.getDefinition().bedrockDefinition().height() * 0.5f;
             } else if (passengerDefinition.is(BuiltinEntityType.FALLING_BLOCK)) {
                 yOffset += 0.995f;
             }
             if (mount instanceof BoatEntity) {
-                yOffset -= mount.getDefinition().height() * 0.5f;
+                yOffset -= mount.getDefinition().bedrockDefinition().height() * 0.5f;
             }
             if (passenger instanceof BoatEntity) {
-                yOffset += passenger.getDefinition().height() * 0.5f;
+                yOffset += passenger.getDefinition().bedrockDefinition().height() * 0.5f;
             }
             if (mount instanceof ArmorStandEntity armorStand) {
                 yOffset -= armorStand.getYOffset();

@@ -176,7 +176,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatE
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -1251,16 +1250,16 @@ public final class EntityDefinitions {
     }
 
     private static VanillaEntityDefinition<BoatEntity> buildBoat(EntityDefinitionBase<BoatEntity> base, BuiltinEntityType BuiltinEntityType, BoatEntity.BoatVariant variant) {
-        return VanillaEntityDefinition.inherited((session, javaId, bedrockId, uuid, definition, position, motion, yaw, pitch, headYaw) ->
-            new BoatEntity(session, javaId, bedrockId, uuid, definition, position, motion, yaw, variant), base)
+        return VanillaEntityDefinition.inherited((session, javaId, bedrockId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw) ->
+            new BoatEntity(session, javaId, bedrockId, uuid, definition, bedrockDefinition, position, motion, yaw, variant), base)
             .type(BuiltinEntityType)
             .bedrockIdentifier("minecraft:boat")
             .build();
     }
 
     private static VanillaEntityDefinition<ChestBoatEntity> buildChestBoat(EntityDefinitionBase<ChestBoatEntity> base, BuiltinEntityType BuiltinEntityType, BoatEntity.BoatVariant variant) {
-        return VanillaEntityDefinition.inherited((session, javaId, bedrockId, uuid, definition, position, motion, yaw, pitch, headYaw) ->
-                new ChestBoatEntity(session, javaId, bedrockId, uuid, definition, position, motion, yaw, variant), base)
+        return VanillaEntityDefinition.inherited((session, javaId, bedrockId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw) ->
+                new ChestBoatEntity(session, javaId, bedrockId, uuid, definition, bedrockDefinition, position, motion, yaw, variant), base)
             .type(BuiltinEntityType)
             .bedrockIdentifier("minecraft:chest_boat")
             .build();
@@ -1271,7 +1270,7 @@ public final class EntityDefinitions {
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomEntitiesEvent() {
             @Override
             public List<CustomEntityDefinition> customEntities() {
-                return Collections.unmodifiableList(Registries.CUSTOM_ENTITY_DEFINITIONS.get());
+                return null; // TODO Collections.unmodifiableList(Registries.CUSTOM_ENTITY_DEFINITIONS.get());
             }
 
             @Override
@@ -1353,9 +1352,10 @@ public final class EntityDefinitions {
             }
 
             @Override
+            // TODO breaking change!!!
             public Collection<GeyserEntityProperty<?>> properties(@NonNull Identifier identifier) {
                 Objects.requireNonNull(identifier);
-                var definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(identifier.toString());
+                var definition = Registries.BEDROCK_ENTITY_DEFINITIONS.get(identifier);
                 if (definition == null) {
                     throw new IllegalArgumentException("Unknown entity type: " + identifier);
                 }
@@ -1363,15 +1363,15 @@ public final class EntityDefinitions {
             }
         });
 
-        for (var definition : Registries.ENTITY_DEFINITIONS.get().values()) {
-            if (!definition.registeredProperties().isEmpty()) { // TODO Null or empty check??
-                Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(definition.identifier()));
+        for (var definition : Registries.BEDROCK_ENTITY_DEFINITIONS.get().values()) {
+            if (definition.registeredProperties() != null) {
+                Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(definition.identifier().toString()));
             }
         }
     }
 
     private static <T> void registerProperty(Identifier entityType, PropertyType<T, ?> property) {
-        var definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityType.toString());
+        var definition = Registries.BEDROCK_ENTITY_DEFINITIONS.get(entityType);
         if (definition == null) {
             throw new IllegalArgumentException("Unknown entity type: " + entityType);
         }

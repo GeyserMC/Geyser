@@ -249,7 +249,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         // As of 1.21, Paper does not have any additional range checks that would inconvenience normal players.
                         Vector3f playerPosition = session.getPlayerEntity().getPosition();
-                        playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
+                        playerPosition = playerPosition.down(EntityDefinitions.PLAYER.bedrockDefinition().offset() - session.getEyeHeight());
 
                         if (!canInteractWithBlock(session, playerPosition, packetBlockPosition)) {
                             BlockUtils.restoreCorrectBlock(session, blockPos);

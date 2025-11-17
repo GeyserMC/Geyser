@@ -49,7 +49,7 @@ public class TrialSpawnerBlockEntityTranslator extends BlockEntityTranslator {
         NbtMapBuilder spawnData = NbtMap.builder();
         EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityData.getString("id"));
         if (definition != null) {
-            spawnData.putString("TypeId", definition.bedrockIdentifier());
+            spawnData.putString("TypeId", definition.bedrockDefinition().identifier().toString());
         }
         spawnData.putInt("Weight", entityData.getInt("Size", 1)); // ??? presumably since these are the only other two extra attributes
         bedrockNbt.putCompound("spawn_data", spawnData.build());

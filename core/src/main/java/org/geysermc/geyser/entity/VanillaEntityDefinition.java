@@ -30,8 +30,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.factory.EntityFactory;
-import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.registry.Registries;
@@ -50,9 +50,8 @@ import java.util.function.BiConsumer;
 public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<T> {
     private final GeyserEntityType entityType;
 
-    public VanillaEntityDefinition(EntityFactory<T> factory, GeyserEntityType entityType, String bedrockIdentifier,
-                                   float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
-        super(factory, bedrockIdentifier, width, height, offset, registeredProperties, translators);
+    public VanillaEntityDefinition(EntityFactory<T> factory, GeyserEntityType entityType, BedrockEntityDefinition bedrockDefinition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+        super(factory, entityType, bedrockDefinition, translators);
         this.entityType = entityType;
     }
 
@@ -66,7 +65,7 @@ public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<
     }
 
     public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, EntityDefinitionBase<? super T> parent) {
-        return new Builder<>(factory, parent.width(), parent.height(), parent.offset(), new ObjectArrayList<>(parent.translators()));
+        return new Builder<>(factory, parent.width, parent.height, parent.offset, new ObjectArrayList<>(parent.translators));
     }
 
     public static class Builder<T extends Entity> extends EntityDefinition.Builder<T> {
@@ -134,23 +133,33 @@ public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<
             return build(true);
         }
 
-        private void validateTypeAndIdentifier() {
-            if (type == null) {
-                throw new IllegalStateException("Missing entity type!");
-            } else if (bedrockIdentifier == null) {
-                bedrockIdentifier = type.identifier().toString();
-            }
-        }
+        // TODO CE
+//        private void validateTypeAndIdentifier() {
+//            if (type == null) {
+//                throw new IllegalStateException("Missing entity type!");
+//            } else if (bedrockIdentifier == null) {
+//                bedrockIdentifier = type.identifier().toString();
+//            }
+//        }
 
         /**
          * @param register whether to register this entity in the Registries for entity types. Generally this should be
          * set to false if we're not expecting this entity to spawn from the network.
          */
         public VanillaEntityDefinition<T> build(boolean register) {
-            validateTypeAndIdentifier();
+            //validateTypeAndIdentifier();
 
-            GeyserEntityProperties registeredProperties = propertiesBuilder == null ? null : propertiesBuilder.build();
-            VanillaEntityDefinition<T> definition = new VanillaEntityDefinition<>(factory, type, bedrockIdentifier, width, height, offset, registeredProperties, translators);
+            BedrockEntityDefinition bedrockDefinition = BedrockEntityDefinition.builder()
+                .height(height)
+                .width(width)
+                .properties(propertiesBuilder)
+                .offset(offset)
+                .identifier(Identifier.of(bedrockIdentifier))
+                .build();
+            // TODO TEST!!!
+            Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(Identifier.of(bedrockIdentifier), bedrockDefinition);
+
+            VanillaEntityDefinition<T> definition = new VanillaEntityDefinition<>(factory, type, bedrockDefinition, translators);
             if (register && definition.entityType() != null) {
                 Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
                 Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent(type.identifier().toString(), definition);

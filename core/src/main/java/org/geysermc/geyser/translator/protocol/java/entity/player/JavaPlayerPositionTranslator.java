@@ -58,7 +58,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
         position = position.add(
             packet.getRelatives().contains(PositionElement.X) ? entity.getPosition().getX() : 0,
-            packet.getRelatives().contains(PositionElement.Y) ? entity.getPosition().getY() - EntityDefinitions.PLAYER.offset() : 0,
+            packet.getRelatives().contains(PositionElement.Y) ? entity.getPosition().getY() - EntityDefinitions.PLAYER.bedrockDefinition().offset() : 0,
             packet.getRelatives().contains(PositionElement.Z) ? entity.getPosition().getZ() : 0);
 
         float newPitch = MathUtils.clamp(packet.getXRot() + (packet.getRelatives().contains(PositionElement.X_ROT) ? entity.getPitch() : 0), -90, 90);
@@ -116,9 +116,9 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             return;
         }
 
-        session.getGeyser().getLogger().debug("Teleport (" + teleportId + ") from " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityDefinitions.PLAYER.offset()) + " " + entity.getPosition().getZ());
+        session.getGeyser().getLogger().debug("Teleport (" + teleportId + ") from " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityDefinitions.PLAYER.bedrockDefinition().offset()) + " " + entity.getPosition().getZ());
 
-        Vector3f lastPlayerPosition = entity.getPosition().down(EntityDefinitions.PLAYER.offset());
+        Vector3f lastPlayerPosition = entity.getPosition().down(EntityDefinitions.PLAYER.bedrockDefinition().offset());
         float lastPlayerPitch = entity.getPitch();
         float lastPlayerYaw = entity.getYaw();
         Vector3f teleportDestination = position.toFloat();
@@ -155,7 +155,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             session.setUnconfirmedTeleport(new TeleportCache(teleportDestination, deltaMovement, newPitch, newYaw, teleportId, type));
         }
 
-        session.getGeyser().getLogger().debug("to " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityDefinitions.PLAYER.offset()) + " " + entity.getPosition().getZ());
+        session.getGeyser().getLogger().debug("to " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityDefinitions.PLAYER.bedrockDefinition().offset()) + " " + entity.getPosition().getZ());
     }
 
     private void acceptTeleport(GeyserSession session, Vector3d position, float yaw, float pitch, int id) {

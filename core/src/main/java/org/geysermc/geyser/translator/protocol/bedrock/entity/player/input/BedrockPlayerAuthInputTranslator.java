@@ -327,7 +327,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
             if (vehicle instanceof BoatEntity) {
                 // Remove some Y position to prevents boats flying up
-                vehiclePosition = vehiclePosition.down(vehicle.getDefinition().offset());
+                vehiclePosition = vehiclePosition.down(vehicle.getBedrockDefinition().offset());
             }
 
             vehicle.setPosition(vehiclePosition);

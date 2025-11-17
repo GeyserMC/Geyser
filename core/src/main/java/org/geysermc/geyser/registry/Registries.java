@@ -37,9 +37,11 @@ import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.entity.JavaEntityType;
+import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.entity.BedrockEntityDefinition;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserCustomEntityDefinition;
-import org.geysermc.geyser.entity.VanillaEntityDefinition;
+import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.pack.ResourcePackHolder;
@@ -126,9 +128,11 @@ public final class Registries {
      */
     // Is a Reference2ObjectMap since GeyserEntityType, the implementation of JavaEntityType, only ever keeps one instance per registered entity type
     // TODO rename to VANILLA_ENTITY_DEFINITIONS
-    public static final SimpleMappedRegistry<JavaEntityType, VanillaEntityDefinition<?>> ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(Reference2ObjectOpenHashMap::new));
+    public static final SimpleMappedRegistry<GeyserEntityType, EntityDefinition<?>> ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(Reference2ObjectOpenHashMap::new));
 
     public static final ListRegistry<GeyserCustomEntityDefinition<?>> CUSTOM_ENTITY_DEFINITIONS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
+
+    public static final SimpleMappedRegistry<Identifier, BedrockEntityDefinition> BEDROCK_ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
      * A registry holding a list of all the known entity properties to be sent to the client after start game.
@@ -138,7 +142,7 @@ public final class Registries {
     /**
      * A map containing all Java entity identifiers and their respective Geyser definitions
      */
-    public static final SimpleMappedRegistry<String, VanillaEntityDefinition<?>> JAVA_ENTITY_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
+    public static final SimpleMappedRegistry<String, EntityDefinition<?>> JAVA_ENTITY_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
      * A registry containing all the Java packet translators.

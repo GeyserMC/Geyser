@@ -61,7 +61,7 @@ public class SkullPlayerEntity extends AvatarEntity {
     private Vector3i skullPosition;
 
     public SkullPlayerEntity(GeyserSession session, long geyserId) {
-        super(session, 0, geyserId, UUID.randomUUID(), EntityDefinitions.PLAYER, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, "");
+        super(session, 0, geyserId, UUID.randomUUID(), EntityDefinitions.PLAYER, EntityDefinitions.PLAYER.bedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, "");
     }
 
     @Override

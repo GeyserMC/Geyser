@@ -31,8 +31,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
@@ -40,12 +38,13 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 
 import java.util.List;
 import java.util.function.BiConsumer;
 
 /**
- * Represents data for an entity. This includes properties such as height and width, as well as the list of entity
+ * Represents data for an entity. This includes the default bedrock entity definition, as well as the list of Java entity
  * metadata translators needed to translate the properties sent from the server. The translators are structured in such
  * a way that inserting a new one (for example in version updates) is convenient.
  *
@@ -55,23 +54,19 @@ import java.util.function.BiConsumer;
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public abstract class EntityDefinition<T extends Entity> extends EntityDefinitionBase<T> implements GeyserEntityDefinition {
+public abstract class EntityDefinition<T extends Entity> extends EntityDefinitionBase<T> {
     private final EntityFactory<T> factory;
-    private final String bedrockIdentifier;
-    private final GeyserEntityProperties registeredProperties;
+    private final GeyserEntityType type;
+    private BedrockEntityDefinition bedrockDefinition;
 
-    public EntityDefinition(EntityFactory<T> factory, String bedrockIdentifier,
-                            float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
-        super(width, height, offset, translators);
+    public EntityDefinition(EntityFactory<T> factory, GeyserEntityType type, BedrockEntityDefinition bedrockDefinition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+        super(bedrockDefinition.width(), bedrockDefinition.height(), bedrockDefinition.offset(), translators);
+        this.type = type;
         this.factory = factory;
-        this.bedrockIdentifier = bedrockIdentifier;
-        this.registeredProperties = registeredProperties;
+        this.bedrockDefinition = bedrockDefinition;
     }
 
-    @Override
-    public Identifier identifier() {
-        return Identifier.of(bedrockIdentifier);
-    }
+    public abstract boolean is(BuiltinEntityType builtinEntityType);
 
     @Setter
     @Accessors(fluent = true, chain = true)
@@ -89,9 +84,6 @@ public abstract class EntityDefinition<T extends Entity> extends EntityDefinitio
         protected Builder(EntityFactory<T> factory, float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
             super(width, height, offset, translators);
             this.factory = factory;
-            this.width = width;
-            this.height = height;
-            this.offset = offset;
         }
 
         @Override

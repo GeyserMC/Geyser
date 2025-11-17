@@ -99,7 +99,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
             long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
             Vector3f pos = session.getPlayerEntity().getPosition().sub(0, 3, 0);
 
-            Entity villager = new Entity(session, 0, geyserId, null, EntityDefinitions.VILLAGER, pos, Vector3f.ZERO, 0f, 0f, 0f) {
+            Entity villager = new Entity(session, 0, geyserId, null, EntityDefinitions.VILLAGER, EntityDefinitions.VILLAGER.bedrockDefinition(), pos, Vector3f.ZERO, 0f, 0f, 0f) {
                 @Override
                 protected void initializeMetadata() {
                     dirtyMetadata.put(EntityDataTypes.SCALE, 0f);
