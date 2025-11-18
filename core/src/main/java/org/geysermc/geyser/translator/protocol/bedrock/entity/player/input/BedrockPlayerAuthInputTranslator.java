@@ -83,10 +83,10 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             switch (input) {
                 case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
                 case PERFORM_ITEM_STACK_REQUEST -> session.getPlayerInventoryHolder().translateRequests(List.of(packet.getItemStackRequest()));
-                case START_SWIMMING -> session.setSwimming(true);
-                case STOP_SWIMMING -> session.setSwimming(false);
-                case START_CRAWLING -> session.setCrawling(true);
-                case STOP_CRAWLING -> session.setCrawling(false);
+                case START_SWIMMING -> entity.setFlag(EntityFlag.SWIMMING, true);
+                case STOP_SWIMMING -> entity.setFlag(EntityFlag.SWIMMING, false);
+                case START_CRAWLING -> entity.setFlag(EntityFlag.CRAWLING, true);
+                case STOP_CRAWLING -> entity.setFlag(EntityFlag.CRAWLING, false);
                 case START_SPRINTING -> {
                     if (!leftOverInputData.contains(PlayerAuthInputData.STOP_SPRINTING)) {
                         if (!session.isSprinting()) {
@@ -140,11 +140,11 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                                 session.setFlying(false);
                                 session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
                             }
-                            session.setGliding(true);
+                            entity.setFlag(EntityFlag.GLIDING, true);
                             session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_ELYTRA_FLYING));
                         } else {
                             entity.forceFlagUpdate();
-                            session.setGliding(false);
+                            entity.setFlag(EntityFlag.GLIDING, false);
                             // return to flying if we can't start gliding
                             if (session.isFlying()) {
                                 session.sendAdventureSettings();
@@ -152,14 +152,14 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                         }
                     }
                 }
-                case START_SPIN_ATTACK -> session.setSpinAttack(true);
-                case STOP_SPIN_ATTACK -> session.setSpinAttack(false);
+                case START_SPIN_ATTACK -> entity.setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, true);
+                case STOP_SPIN_ATTACK -> entity.setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, false);
                 case STOP_GLIDING -> {
                     // Java doesn't allow elytra gliding to stop mid-air.
                     boolean shouldBeGliding = entity.isGliding() && entity.canStartGliding();
                     // Always update; Bedrock can get real weird if the gliding state is mismatching
                     entity.forceFlagUpdate();
-                    session.setGliding(shouldBeGliding);
+                    entity.setFlag(EntityFlag.GLIDING, shouldBeGliding);
                 }
                 case MISSED_SWING -> {
                     session.setLastAirHitTick(session.getTicks());
@@ -182,6 +182,10 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 }
             }
         }
+
+        // The player will calculate the "desired" pose at the end of every tick, if this pose still invalid then
+        // it will consider the smaller pose, but we don't need to calculate that, we can go off what the client sent us.
+        entity.setPose(entity.getDesiredPose());
 
         // Vehicle input is send before player movement
         processVehicleInput(session, packet, wasJumping);
