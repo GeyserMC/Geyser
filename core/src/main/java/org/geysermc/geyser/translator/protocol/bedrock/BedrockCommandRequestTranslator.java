@@ -26,8 +26,6 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.CommandRequestPacket;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;

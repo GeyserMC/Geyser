@@ -88,9 +88,9 @@ public abstract class MappingsReader {
         }
 
         return new CustomRenderOffsets.OffsetXYZ(
-            tmpNode.get("x").getAsFloat(),
-            tmpNode.get("y").getAsFloat(),
-            tmpNode.get("z").getAsFloat()
+                tmpNode.get("x").getAsFloat(),
+                tmpNode.get("y").getAsFloat(),
+                tmpNode.get("z").getAsFloat()
         );
     }
 }

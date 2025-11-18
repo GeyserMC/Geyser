@@ -23,27 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.util;
+package org.geysermc.geyser.configuration;
 
-import net.raphimc.minecraftauth.util.logging.ILogger;
-import org.geysermc.geyser.GeyserImpl;
+import io.leangen.geantyref.TypeToken;
+import org.spongepowered.configurate.serialize.ScalarSerializer;
+import org.spongepowered.configurate.serialize.Scalars;
+import org.spongepowered.configurate.serialize.SerializationException;
 
-public class MinecraftAuthLogger implements ILogger {
+import java.lang.reflect.Type;
+import java.util.Locale;
+import java.util.function.Predicate;
 
-    public static final MinecraftAuthLogger INSTANCE = new MinecraftAuthLogger();
-
-    @Override
-    public void info(String message) {
-        GeyserImpl.getInstance().getLogger().debug(message);
+/**
+ * Ensures enum values are written to lowercase. {@link Scalars#ENUM} will read enum values
+ * in any case.
+ */
+final class LowercaseEnumSerializer extends ScalarSerializer<Enum<?>> {
+    LowercaseEnumSerializer() {
+        super(new TypeToken<Enum<?>>() {});
     }
 
     @Override
-    public void warn(String message) {
-        GeyserImpl.getInstance().getLogger().warning(message);
+    public Enum<?> deserialize(Type type, Object obj) throws SerializationException {
+        return Scalars.ENUM.deserialize(type, obj);
     }
 
     @Override
-    public void error(String message) {
-        GeyserImpl.getInstance().getLogger().error(message);
+    protected Object serialize(Enum<?> item, Predicate<Class<?>> typeSupported) {
+        return item.name().toLowerCase(Locale.ROOT);
     }
 }

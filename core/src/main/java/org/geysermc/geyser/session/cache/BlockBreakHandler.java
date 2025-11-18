@@ -515,7 +515,7 @@ public class BlockBreakHandler {
 
     protected boolean mayBreak(float progress, boolean bedrockDestroyed) {
         // We're tolerant here to account for e.g. obsidian breaking speeds not matching 1:1 :(
-        return (serverSideBlockBreaking && progress >= 1.0F) || (bedrockDestroyed && progress >= 0.7F);
+        return (serverSideBlockBreaking && progress >= 1.0F) || (bedrockDestroyed && progress >= 0.65F);
     }
 
     protected void destroyBlock(BlockState state, Vector3i vector, Direction direction, boolean instamine) {

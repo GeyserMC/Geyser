@@ -124,20 +124,19 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
         GeyserLoadResourcePacksEvent event = new GeyserLoadResourcePacksEvent(resourcePacks);
         GeyserImpl.getInstance().eventBus().fire(event);
 
+        GeyserDefineResourcePacksEventImpl defineEvent = new GeyserDefineResourcePacksEventImpl(packMap);
+
         for (Path path : event.resourcePacks()) {
             try {
-                GeyserResourcePack pack = readPack(path).build();
-                packMap.put(pack.uuid(), ResourcePackHolder.of(pack));
+                defineEvent.register(readPack(path).build());
             } catch (Exception e) {
+                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", path));
                 e.printStackTrace();
             }
         }
 
         // Load all remote resource packs from the config before firing the new event
-        // TODO configurate
-        //packMap.putAll(loadRemotePacks());
-
-        GeyserDefineResourcePacksEventImpl defineEvent = new GeyserDefineResourcePacksEventImpl(packMap);
+        loadRemotePacks(defineEvent);
         GeyserImpl.getInstance().eventBus().fire(defineEvent);
 
         // After loading the new resource packs: let's clean up the old url packs
@@ -225,7 +224,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
         }
     }
 
-    private Map<UUID, ResourcePackHolder> loadRemotePacks() {
+    private void loadRemotePacks(GeyserDefineResourcePacksEventImpl event) {
         GeyserImpl instance = GeyserImpl.getInstance();
         // Unable to make this a static variable, as the test would fail
         final Path cachedDirectory = instance.getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
@@ -235,19 +234,14 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
                 Files.createDirectories(cachedDirectory);
             } catch (IOException e) {
                 instance.getLogger().error("Could not create remote pack cache directory", e);
-                return new Object2ObjectOpenHashMap<>();
+                return;
             }
         }
 
-        //List<String> remotePackUrls = instance.getConfig().getResourcePackUrls();
-        List<String> remotePackUrls = List.of();
-        Map<UUID, ResourcePackHolder> packMap = new Object2ObjectOpenHashMap<>();
-
+        List<String> remotePackUrls = instance.config().advanced().resourcePackUrls();
         for (String url : remotePackUrls) {
             try {
-                GeyserUrlPackCodec codec = new GeyserUrlPackCodec(url);
-                GeyserResourcePack pack = codec.create();
-                packMap.put(pack.uuid(), ResourcePackHolder.of(pack));
+                event.register(new GeyserUrlPackCodec(url).create());
             } catch (Throwable e) {
                 instance.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url));
                 instance.getLogger().error(e.getMessage());
@@ -256,8 +250,6 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
                 }
             }
         }
-
-        return packMap;
     }
 
     /**

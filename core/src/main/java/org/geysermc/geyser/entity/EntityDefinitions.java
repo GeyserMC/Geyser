@@ -1339,7 +1339,7 @@ public final class EntityDefinitions {
         });
 
         for (var definition : Registries.ENTITY_DEFINITIONS.get().values()) {
-            if (definition.registeredProperties() != null) {
+            if (!definition.registeredProperties().isEmpty()) {
                 Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(definition.identifier()));
             }
         }

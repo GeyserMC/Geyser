@@ -25,10 +25,11 @@
 
 package org.geysermc.geyser.registry.populator;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.google.common.collect.SortedSetMultimap;
+import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -89,8 +90,10 @@ import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 import org.geysermc.geyser.registry.type.PaletteItem;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.geyser.util.JsonUtils;
 
 import java.io.InputStream;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -210,17 +213,17 @@ public class ItemRegistryPopulator {
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
-        TypeReference<Map<String, GeyserMappingItem>> mappingItemsType = new TypeReference<>() { };
+        Type mappingItemsType = new TypeToken<Map<String, GeyserMappingItem>>() { }.getType();
 
         Map<String, GeyserMappingItem> items;
         try (InputStream stream = bootstrap.getResourceOrThrow("mappings/items.json")) {
             // Load item mappings from Java Edition to Bedrock Edition
-            items = GeyserImpl.JSON_MAPPER.readValue(stream, mappingItemsType);
+            items = JsonUtils.fromJson(stream, mappingItemsType);
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java runtime item IDs", e);
         }
 
-        boolean customItemsAllowed = bootstrap.getGeyserConfig().isAddNonBedrockItems();
+        boolean customItemsAllowed = GeyserImpl.getInstance().config().gameplay().enableCustomContent();
 
         Multimap<Identifier, CustomItemDefinition> customItems = MultimapBuilder.hashKeys().arrayListValues().build();
         Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems = MultimapBuilder.hashKeys().arrayListValues().build();
@@ -234,11 +237,11 @@ public class ItemRegistryPopulator {
 
         /* Load item palette */
         for (PaletteVersion palette : paletteVersions) {
-            TypeReference<List<PaletteItem>> paletteEntriesType = new TypeReference<>() {};
+            Type paletteEntriesType = new TypeToken<List<PaletteItem>>() { }.getType();
 
             List<PaletteItem> itemEntries;
             try (InputStream stream = bootstrap.getResourceOrThrow(String.format("bedrock/runtime_item_states.%s.json", palette.version()))) {
-                itemEntries = GeyserImpl.JSON_MAPPER.readValue(stream, paletteEntriesType);
+                itemEntries = JsonUtils.fromJson(stream, paletteEntriesType);
             } catch (Exception e) {
                 throw new AssertionError("Unable to load Bedrock runtime item IDs", e);
             }

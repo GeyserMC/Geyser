@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.bedrock.entity.player.input;
 
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.InputMode;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
@@ -40,6 +41,7 @@ import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -81,10 +83,10 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             switch (input) {
                 case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
                 case PERFORM_ITEM_STACK_REQUEST -> session.getPlayerInventoryHolder().translateRequests(List.of(packet.getItemStackRequest()));
-                case START_SWIMMING -> session.setSwimming(true);
-                case STOP_SWIMMING -> session.setSwimming(false);
-                case START_CRAWLING -> session.setCrawling(true);
-                case STOP_CRAWLING -> session.setCrawling(false);
+                case START_SWIMMING -> entity.setFlag(EntityFlag.SWIMMING, true);
+                case STOP_SWIMMING -> entity.setFlag(EntityFlag.SWIMMING, false);
+                case START_CRAWLING -> entity.setFlag(EntityFlag.CRAWLING, true);
+                case STOP_CRAWLING -> entity.setFlag(EntityFlag.CRAWLING, false);
                 case START_SPRINTING -> {
                     if (!leftOverInputData.contains(PlayerAuthInputData.STOP_SPRINTING)) {
                         if (!session.isSprinting()) {
@@ -138,11 +140,11 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                                 session.setFlying(false);
                                 session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
                             }
-                            session.setGliding(true);
+                            entity.setFlag(EntityFlag.GLIDING, true);
                             session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_ELYTRA_FLYING));
                         } else {
                             entity.forceFlagUpdate();
-                            session.setGliding(false);
+                            entity.setFlag(EntityFlag.GLIDING, false);
                             // return to flying if we can't start gliding
                             if (session.isFlying()) {
                                 session.sendAdventureSettings();
@@ -150,14 +152,14 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                         }
                     }
                 }
-                case START_SPIN_ATTACK -> session.setSpinAttack(true);
-                case STOP_SPIN_ATTACK -> session.setSpinAttack(false);
+                case START_SPIN_ATTACK -> entity.setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, true);
+                case STOP_SPIN_ATTACK -> entity.setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, false);
                 case STOP_GLIDING -> {
                     // Java doesn't allow elytra gliding to stop mid-air.
                     boolean shouldBeGliding = entity.isGliding() && entity.canStartGliding();
                     // Always update; Bedrock can get real weird if the gliding state is mismatching
                     entity.forceFlagUpdate();
-                    session.setGliding(shouldBeGliding);
+                    entity.setFlag(EntityFlag.GLIDING, shouldBeGliding);
                 }
                 case MISSED_SWING -> {
                     session.setLastAirHitTick(session.getTicks());
@@ -180,6 +182,10 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 }
             }
         }
+
+        // The player will calculate the "desired" pose at the end of every tick, if this pose still invalid then
+        // it will consider the smaller pose, but we don't need to calculate that, we can go off what the client sent us.
+        entity.setPose(entity.getDesiredPose());
 
         // Vehicle input is send before player movement
         processVehicleInput(session, packet, wasJumping);
@@ -270,11 +276,31 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         }
 
         if (sendMovement) {
-            vehicle.setOnGround(packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
+            // We only need to determine onGround status this way for client predicted vehicles.
+            // For other vehicle, Geyser already handle it in VehicleComponent or the Java server handle it.
+            if (packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE)) {
+                Vector3f position = vehicle.getPosition();
+
+                if (vehicle instanceof BoatEntity) {
+                    position = position.down(vehicle.getDefinition().offset());
+                }
+
+                final BoundingBox box = new BoundingBox(
+                    position.up(vehicle.getBoundingBoxHeight() / 2f).toDouble(),
+                    vehicle.getBoundingBoxWidth(), vehicle.getBoundingBoxHeight(), vehicle.getBoundingBoxWidth()
+                );
+
+                // Manually calculate the vertical collision ourselves, the VERTICAL_COLLISION input data is inaccurate inside a vehicle!
+                Vector3d movement = session.getPlayerEntity().getLastTickEndVelocity().toDouble();
+                Vector3d correctedMovement = session.getCollisionManager().correctMovementForCollisions(movement, box, true, false);
+
+                vehicle.setOnGround(correctedMovement.getY() != movement.getY() && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
+            }
+
             Vector3f vehiclePosition = packet.getPosition();
             Vector2f vehicleRotation = packet.getVehicleRotation();
             if (vehicleRotation == null) {
-                return; // If the client just got in or out of a vehicle for example.
+                return; // If the client just got in or out of a vehicle for example. Or if this vehicle isn't client predicted.
             }
 
             if (session.getWorldBorder().isPassingIntoBorderBoundaries(vehiclePosition, false)) {

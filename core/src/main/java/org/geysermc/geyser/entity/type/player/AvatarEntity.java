@@ -322,15 +322,19 @@ public class AvatarEntity extends LivingEntity {
                 setFlag(EntityFlag.SWIMMING, true);
             } else {
                 setFlag(EntityFlag.CRAWLING, true);
+
                 // Look at https://github.com/GeyserMC/Geyser/issues/5316, we're fixing this by spoofing player pitch to 0.
-                updateRotation(this.yaw, 0, this.onGround);
+                // Don't do this for session player however, as that teleport them back and messed up their rotation.
+                if (!(this instanceof SessionPlayerEntity)) {
+                    updateRotation(this.yaw, 0, this.onGround);
+                }
             }
         }
     }
 
     @Override
     public void setPitch(float pitch) {
-        super.setPitch(getFlag(EntityFlag.CRAWLING) ? 0 : pitch);
+        super.setPitch(getFlag(EntityFlag.CRAWLING) && !(this instanceof SessionPlayerEntity) ? 0 : pitch);
     }
 
     @Override

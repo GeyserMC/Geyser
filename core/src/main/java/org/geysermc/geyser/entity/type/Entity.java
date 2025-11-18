@@ -167,7 +167,7 @@ public class Entity implements GeyserEntity {
 
         this.valid = false;
 
-        this.propertyManager = definition.registeredProperties() == null ? null : new GeyserEntityPropertyManager(definition.registeredProperties());
+        this.propertyManager = definition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(definition.registeredProperties());
 
         setPosition(position);
         setAirSupply(getMaxAir());
@@ -220,7 +220,7 @@ public class Entity implements GeyserEntity {
 
         flagsDirty = false;
 
-        if (session.getGeyser().getConfig().isDebugMode() && PRINT_ENTITY_SPAWN_DEBUG) {
+        if (session.getGeyser().config().debugMode() && PRINT_ENTITY_SPAWN_DEBUG) {
             EntityType type = definition.entityType();
             String name = type != null ? type.name() : getClass().getSimpleName();
             session.getGeyser().getLogger().debug("Spawned entity " + name + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
