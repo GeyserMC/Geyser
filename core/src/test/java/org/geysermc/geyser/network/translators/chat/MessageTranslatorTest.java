@@ -73,8 +73,8 @@ public class MessageTranslatorTest {
         messages.put("{\"translate\":\"tt{''{tt\"}", "tt{''{tt");
         messages.put("{\"translate\":\"tt{{''}}tt\"}", "tt{{''}}tt");
 
-        messages.put("{\"text\":\"\",\"extra\":[{\"text\":\"Tesing end of string\n formatting character§\",\"color\":\"yellow\"}]}",
-            "§r§eTesing end of string\n§e formatting character");
+        messages.put("{\"text\":\"\",\"extra\":[{\"text\":\"Testing end of string\n formatting character§\",\"color\":\"yellow\"}]}",
+            "§r§eTesting end of string\n§e formatting character");
 
         MessageTranslator.init();
     }
