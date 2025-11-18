@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,28 +23,34 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.configuration;
+package org.geysermc.geyser.util.metrics;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import org.geysermc.geyser.GeyserImpl;
 
-import java.io.IOException;
+public final class ProvidedMetricsPlatform implements MetricsPlatform {
 
-public enum EmoteOffhandWorkaroundOption {
-    NO_EMOTES,
-    EMOTES_AND_OFFHAND,
-    DISABLED;
+    @Override
+    public boolean enabled() {
+        return GeyserImpl.getInstance().config().enableMetrics();
+    }
 
-    public static class Deserializer extends JsonDeserializer<EmoteOffhandWorkaroundOption> {
-        @Override
-        public EmoteOffhandWorkaroundOption deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-            String value = p.getValueAsString();
-            return switch (value) {
-                case "no-emotes" -> NO_EMOTES;
-                case "emotes-and-offhand" -> EMOTES_AND_OFFHAND;
-                default -> DISABLED;
-            };
-        }
+    @Override
+    public String serverUuid() {
+        return GeyserImpl.getInstance().config().metricsUuid().toString();
+    }
+
+    @Override
+    public boolean logFailedRequests() {
+        return GeyserImpl.getInstance().config().debugMode();
+    }
+
+    @Override
+    public boolean logSentData() {
+        return GeyserImpl.getInstance().config().debugMode();
+    }
+
+    @Override
+    public boolean logResponseStatusText() {
+        return GeyserImpl.getInstance().config().debugMode();
     }
 }

@@ -17,7 +17,7 @@ dependencies {
     shadowBundle(projects.core)
     includeTransitive(projects.core)
 
-    // These are NOT transitively included, and instead shadowed + relocated.
+    // These are NOT transitively included, and instead shadowed (+ relocated, if not under the org.geyser namespace).
     // Avoids fabric complaining about non-SemVer versioning
     shadowBundle(libs.protocol.connection)
     shadowBundle(libs.protocol.common)

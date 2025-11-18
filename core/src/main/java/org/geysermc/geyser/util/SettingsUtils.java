@@ -54,8 +54,8 @@ public class SettingsUtils {
 
         // Let's store these to avoid issues
         boolean showCoordinates = session.getPreferencesCache().isAllowShowCoordinates();
-        boolean cooldownShown = CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED;
-        boolean customSkulls = session.getGeyser().getConfig().isAllowCustomSkulls();
+        boolean cooldownShown = session.getGeyser().config().gameplay().showCooldown() != CooldownUtils.CooldownType.DISABLED;
+        boolean customSkulls = session.getGeyser().config().gameplay().maxVisibleCustomSkulls() != 0;
 
         // Only show the client title if any of the client settings are available
         boolean showClientSettings = showCoordinates || cooldownShown || customSkulls;

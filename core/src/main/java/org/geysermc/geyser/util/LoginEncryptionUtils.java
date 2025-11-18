@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.raphimc.minecraftauth.msa.model.MsaDeviceCode;
 import org.cloudburstmc.protocol.bedrock.data.auth.AuthPayload;
 import org.cloudburstmc.protocol.bedrock.data.auth.CertificateChainPayload;
@@ -55,8 +52,6 @@ import java.security.PublicKey;
 import java.util.function.BiConsumer;
 
 public class LoginEncryptionUtils {
-    private static final ObjectMapper JSON_MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-
     private static boolean HAS_SENT_ENCRYPTION_MESSAGE = false;
 
     public static void encryptPlayerConnection(GeyserSession session, LoginPacket loginPacket) {
@@ -71,7 +66,7 @@ public class LoginEncryptionUtils {
 
             geyser.getLogger().debug(String.format("Is player data signed? %s", result.signed()));
 
-            if (!result.signed() && !session.getGeyser().getConfig().isEnableProxyConnections()) {
+            if (!result.signed() && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
                 return;
             }
@@ -97,8 +92,7 @@ public class LoginEncryptionUtils {
                 throw new IllegalStateException("Client data isn't signed by the given chain data");
             }
 
-            JsonNode clientDataJson = JSON_MAPPER.readTree(clientDataPayload);
-            BedrockClientData data = JSON_MAPPER.convertValue(clientDataJson, BedrockClientData.class);
+            BedrockClientData data = JsonUtils.fromJson(clientDataPayload, BedrockClientData.class);
             data.setOriginalString(jwt);
             session.setClientData(data);
 
@@ -106,7 +100,7 @@ public class LoginEncryptionUtils {
                 startEncryptionHandshake(session, identityPublicKey);
             } catch (Throwable e) {
                 // An error can be thrown on older Java 8 versions about an invalid key
-                if (geyser.getConfig().isDebugMode()) {
+                if (geyser.config().debugMode()) {
                     e.printStackTrace();
                 }
 
@@ -225,7 +219,7 @@ public class LoginEncryptionUtils {
                 .append("\n%xbox.signin.enterCode\n")
                 .append(ChatColor.GREEN)
                 .append(msCode.getUserCode());
-        int timeout = session.getGeyser().getConfig().getPendingAuthenticationTimeout();
+        int timeout = session.getGeyser().config().pendingAuthenticationTimeout();
         if (timeout != 0) {
             message.append("\n\n")
                     .append(ChatColor.RESET)

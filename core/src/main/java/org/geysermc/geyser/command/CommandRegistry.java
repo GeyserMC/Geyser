@@ -99,8 +99,8 @@ public class CommandRegistry implements EventRegistrar {
 
     private static final String GEYSER_ROOT_PERMISSION = "geyser.command";
 
-    public final static boolean STANDALONE_COMMAND_MANAGER = GeyserImpl.getInstance().getPlatformType() == PlatformType.STANDALONE ||
-        GeyserImpl.getInstance().getPlatformType() == PlatformType.VIAPROXY;
+    public final static boolean STANDALONE_COMMAND_MANAGER = GeyserImpl.getInstance().platformType() == PlatformType.STANDALONE ||
+        GeyserImpl.getInstance().platformType() == PlatformType.VIAPROXY;
 
     protected final GeyserImpl geyser;
     private final CommandManager<GeyserCommandSource> cloud;
@@ -171,7 +171,7 @@ public class CommandRegistry implements EventRegistrar {
         registerBuiltInCommand(new CustomOptionsCommand("options", "geyser.commands.options.desc", "geyser.command.options"));
         registerBuiltInCommand(new QuickActionsCommand("quickactions", "geyser.commands.quickactions.desc", "geyser.command.quickactions"));
 
-        if (this.geyser.getPlatformType() == PlatformType.STANDALONE) {
+        if (this.geyser.platformType() == PlatformType.STANDALONE) {
             registerBuiltInCommand(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
         }
 

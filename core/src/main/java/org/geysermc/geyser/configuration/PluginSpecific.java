@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,28 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.bungeecord;
+package org.geysermc.geyser.configuration;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Getter;
-import net.md_5.bungee.api.plugin.Plugin;
-import org.geysermc.geyser.FloodgateKeyLoader;
-import org.geysermc.geyser.configuration.GeyserJacksonConfiguration;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.nio.file.Path;
-
-@Getter
-@JsonIgnoreProperties(ignoreUnknown = true)
-public final class GeyserBungeeConfiguration extends GeyserJacksonConfiguration {
-    @JsonIgnore
-    private Path floodgateKeyPath;
-
-    public void loadFloodgate(GeyserBungeePlugin plugin) {
-        Plugin floodgate = plugin.getProxy().getPluginManager().getPlugin("floodgate");
-        Path geyserDataFolder = plugin.getDataFolder().toPath();
-        Path floodgateDataFolder = floodgate != null ? floodgate.getDataFolder().toPath() : null;
-
-        floodgateKeyPath = FloodgateKeyLoader.getKeyPath(this, floodgateDataFolder, geyserDataFolder, plugin.getGeyserLogger());
-    }
+/**
+ * Add to a config value to indicate this field is only for plugin versions of Geyser,
+ * or vice-versa.
+ */
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface PluginSpecific {
+    boolean forPlugin() default true;
 }
