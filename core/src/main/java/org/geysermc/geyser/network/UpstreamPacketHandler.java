@@ -429,7 +429,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             // Also flushes packets
             // Avoids bursting slower / delayed clients
             session.sendUpstreamPacketImmediately(data);
-            GeyserImpl.getInstance().getScheduledThread().schedule(this::processNextChunk, PACKET_SEND_DELAY, TimeUnit.MILLISECONDS);
+            session.scheduleInEventLoop(this::processNextChunk, PACKET_SEND_DELAY, TimeUnit.MILLISECONDS);
         } else {
             session.sendUpstreamPacket(data);
         }
