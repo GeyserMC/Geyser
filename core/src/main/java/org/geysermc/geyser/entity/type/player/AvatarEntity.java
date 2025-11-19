@@ -334,7 +334,7 @@ public class AvatarEntity extends LivingEntity {
 
     @Override
     public void setPitch(float pitch) {
-        super.setPitch(getFlag(EntityFlag.CRAWLING) && !(this instanceof SessionPlayerEntity) ? 0 : pitch);
+        super.setPitch(getFlag(EntityFlag.CRAWLING) ? 0 : pitch);
     }
 
     @Override

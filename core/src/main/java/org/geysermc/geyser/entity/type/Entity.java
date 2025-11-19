@@ -72,7 +72,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.Collections;
-import java.util.EnumSet;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -142,7 +142,7 @@ public class Entity implements GeyserEntity {
      * think they are set to false.
      */
     @Getter(AccessLevel.NONE)
-    protected final EnumSet<EntityFlag> flags = EnumSet.noneOf(EntityFlag.class);
+    protected final EnumMap<EntityFlag, Boolean> flags = new EnumMap<>(EntityFlag.class);
     /**
      * Indicates if flags have been updated and need to be sent to the client.
      */
@@ -362,14 +362,19 @@ public class Entity implements GeyserEntity {
     }
 
     public final boolean getFlag(EntityFlag flag) {
-        return this.flags.contains(flag);
+        Boolean value = this.flags.get(flag);
+        return value != null && value;
     }
 
     /**
      * Updates a flag value and determines if the flags would need synced with the Bedrock client.
      */
     public final void setFlag(EntityFlag flag, boolean value) {
-        flagsDirty |= value ? this.flags.add(flag) : this.flags.remove(flag);
+        Boolean previous = this.flags.get(flag);
+        if (previous == null || value != previous) {
+            flagsDirty = true;
+        }
+        this.flags.put(flag, value);
     }
 
     /**
