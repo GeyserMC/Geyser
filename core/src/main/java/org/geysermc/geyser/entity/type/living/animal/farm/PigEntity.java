@@ -29,7 +29,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Tickable;
@@ -116,8 +115,7 @@ public class PigEntity extends TemperatureVariantAnimal implements Tickable, Cli
                 vehicleComponent.tickBoost();
             }
         } else { // getHand() for session player seems to always return air
-            ItemDefinition itemDefinition = session.getItemMappings().getStoredItems().carrotOnAStick().getBedrockDefinition();
-            if (player.getHand().getDefinition() == itemDefinition || player.getOffhand().getDefinition() == itemDefinition) {
+            if (player.isHolding(Items.CARROT_ON_A_STICK)) {
                 vehicleComponent.tickBoost();
             }
         }

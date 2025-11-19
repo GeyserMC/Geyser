@@ -43,6 +43,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
+import org.geysermc.mcprotocollib.auth.GameProfile;
 
 import java.io.IOException;
 import java.util.*;
@@ -66,12 +67,20 @@ public class SkullCache {
 
     public SkullCache(GeyserSession session) {
         this.session = session;
-        this.maxVisibleSkulls = session.getGeyser().getConfig().getMaxVisibleCustomSkulls();
+        this.maxVisibleSkulls = session.getGeyser().config().gameplay().maxVisibleCustomSkulls();
         this.cullingEnabled = this.maxVisibleSkulls != -1;
 
         // Normal skulls are not rendered beyond 64 blocks
-        int distance = Math.min(session.getGeyser().getConfig().getCustomSkullRenderDistance(), 64);
+        int distance = Math.min(session.getGeyser().config().gameplay().customSkullRenderDistance(), 64);
         this.skullRenderDistanceSquared = distance * distance;
+    }
+
+    public Skull putSkull(Vector3i position, GameProfile resolved, BlockState blockState) {
+        GameProfile.Property textures = resolved.getProperty("textures");
+        if (textures != null) {
+            return putSkull(position, resolved.getId(), textures.getValue(), blockState);
+        }
+        return null;
     }
 
     public Skull putSkull(Vector3i position, UUID uuid, String texturesProperty, BlockState blockState) {
@@ -90,7 +99,7 @@ public class SkullCache {
                 }
             } catch (IOException e) {
                 session.getGeyser().getLogger().debug("Player skull with invalid Skin tag: " + position + " Textures: " + texturesProperty);
-                if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+                if (GeyserImpl.getInstance().config().debugMode()) {
                     e.printStackTrace();
                 }
             }

@@ -31,6 +31,7 @@ import lombok.experimental.Accessors;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
+import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
@@ -54,7 +55,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
                                                  float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
 
     public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, EntityDefinition<? super T> parent) {
-        return new Builder<>(factory, parent.entityType, parent.identifier, parent.width, parent.height, parent.offset, parent.registeredProperties, new ObjectArrayList<>(parent.translators));
+        return new Builder<>(factory, parent.entityType, parent.identifier, parent.width, parent.height, parent.offset, new ObjectArrayList<>(parent.translators));
     }
 
     public static <T extends Entity> Builder<T> builder(EntityFactory<T> factory) {
@@ -71,7 +72,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
 
         if (translator.acceptedType() != metadata.getType()) {
             GeyserImpl.getInstance().getLogger().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getDefinition().entityType());
-            if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+            if (GeyserImpl.getInstance().config().debugMode()) {
                 GeyserImpl.getInstance().getLogger().debug(metadata.toString());
             }
             return;
@@ -89,7 +90,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
         private float width;
         private float height;
         private float offset = 0.00001f;
-        private GeyserEntityProperties registeredProperties;
+        private GeyserEntityProperties.Builder propertiesBuilder;
         private final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
 
         private Builder(EntityFactory<T> factory) {
@@ -97,14 +98,13 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             translators = new ObjectArrayList<>();
         }
 
-        public Builder(EntityFactory<T> factory, EntityType type, String identifier, float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+        public Builder(EntityFactory<T> factory, EntityType type, String identifier, float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
             this.factory = factory;
             this.type = type;
             this.identifier = identifier;
             this.width = width;
             this.height = height;
             this.offset = offset;
-            this.registeredProperties = registeredProperties;
             this.translators = translators;
         }
 
@@ -131,8 +131,11 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             return this;
         }
 
-        public Builder<T> properties(GeyserEntityProperties registeredProperties) {
-            this.registeredProperties = registeredProperties;
+        public Builder<T> property(PropertyType<?, ?> propertyType) {
+            if (this.propertiesBuilder == null) {
+                this.propertiesBuilder = new GeyserEntityProperties.Builder(this.identifier);
+            }
+            propertiesBuilder.add(propertyType);
             return this;
         }
 
@@ -158,13 +161,11 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             if (identifier == null && type != null) {
                 identifier = "minecraft:" + type.name().toLowerCase(Locale.ROOT);
             }
+            GeyserEntityProperties registeredProperties = propertiesBuilder == null ? new GeyserEntityProperties() : propertiesBuilder.build();
             EntityDefinition<T> definition = new EntityDefinition<>(factory, type, identifier, width, height, offset, registeredProperties, translators);
             if (register && definition.entityType() != null) {
                 Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
                 Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent("minecraft:" + type.name().toLowerCase(Locale.ROOT), definition);
-                if (definition.registeredProperties() != null) {
-                    Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(identifier));
-                }
             }
             return definition;
         }

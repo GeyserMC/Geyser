@@ -36,6 +36,7 @@ import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.ChestType;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.ChestBlock;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.network.GameProtocol;
@@ -46,8 +47,8 @@ public class SingleChestInventoryTranslator extends ChestInventoryTranslator<Gen
 
     public SingleChestInventoryTranslator(int size) {
         super(size, 27);
-        this.holder = new BlockInventoryHolder(Blocks.CHEST.defaultBlockState().withValue(Properties.CHEST_TYPE, ChestType.SINGLE), ContainerType.CONTAINER,
-                Blocks.ENDER_CHEST, Blocks.TRAPPED_CHEST, Blocks.BARREL) {
+        this.holder = new BlockInventoryHolder(Blocks.CHEST.defaultBlockState().withValue(Properties.CHEST_TYPE, ChestType.SINGLE),
+            ChestBlock.class, ContainerType.CONTAINER, Blocks.ENDER_CHEST, Blocks.BARREL) {
             @Override
             protected boolean isValidBlock(GeyserSession session, Vector3i position, BlockState blockState) {
                 if (blockState.is(Blocks.ENDER_CHEST) || blockState.is(Blocks.BARREL)) {

@@ -44,8 +44,10 @@ import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.api.pack.option.SubpackOption;
 import org.geysermc.geyser.api.pack.option.UrlFallbackOption;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.impl.camera.GeyserCameraFade;
 import org.geysermc.geyser.impl.camera.GeyserCameraPosition;
 import org.geysermc.geyser.item.GeyserCustomItemData;
@@ -74,6 +76,9 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
 
     @Override
     public Map<Class<?>, ProviderSupplier> load(Map<Class<?>, ProviderSupplier> providers) {
+        // misc
+        providers.put(Identifier.class, args -> IdentifierImpl.of((String) args[0], (String) args[1]));
+
         // commands
         providers.put(Command.Builder.class, args -> new GeyserExtensionCommand.Builder<>((Extension) args[0]));
 

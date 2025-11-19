@@ -66,7 +66,7 @@ public class CreeperEntity extends MonsterEntity {
     @NonNull
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (session.getTagCache().is(ItemTag.CREEPER_IGNITERS, itemInHand)) {
+        if (itemInHand.is(session, ItemTag.CREEPER_IGNITERS)) {
             return InteractiveTag.IGNITE_CREEPER;
         } else {
             return super.testMobInteraction(hand, itemInHand);
@@ -76,7 +76,7 @@ public class CreeperEntity extends MonsterEntity {
     @NonNull
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (session.getTagCache().is(ItemTag.CREEPER_IGNITERS, itemInHand)) {
+        if (itemInHand.is(session, ItemTag.CREEPER_IGNITERS)) {
             // Ignite creeper - as of 1.19.3
             session.playSoundEvent(SoundEvent.IGNITE, position);
             return InteractionResult.SUCCESS;

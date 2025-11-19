@@ -44,7 +44,7 @@ public class NumberRangeInput extends DialogInput<Float> {
     private final float initial;
     private final float step;
 
-    public NumberRangeInput(GeyserSession session, NbtMap map) {
+    public NumberRangeInput(Optional<GeyserSession> session, NbtMap map) {
         super(session, map);
         start = map.getFloat("start");
         end = map.getFloat("end");
