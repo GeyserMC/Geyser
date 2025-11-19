@@ -194,12 +194,13 @@ public class ItemRegistryPopulator {
         Map<Item, Item> eightOneEightFallbacks = new HashMap<>(eightOneNineFallbacks);
         eightOneEightFallbacks.put(Items.MUSIC_DISC_LAVA_CHICKEN, Items.MUSIC_DISC_CHIRP);
 
-        List<PaletteVersion> paletteVersions = new ArrayList<>(4);
+        List<PaletteVersion> paletteVersions = new ArrayList<>(6);
         paletteVersions.add(new PaletteVersion("1_21_90", Bedrock_v818.CODEC.getProtocolVersion(), eightOneEightFallbacks, Conversion844_827::remapItem));
         paletteVersions.add(new PaletteVersion("1_21_93", Bedrock_v819.CODEC.getProtocolVersion(), eightOneNineFallbacks, Conversion844_827::remapItem));
         paletteVersions.add(new PaletteVersion("1_21_100", Bedrock_v827.CODEC.getProtocolVersion(), eightTwoSevenFallbacks, Conversion844_827::remapItem));
         paletteVersions.add(new PaletteVersion("1_21_110", Bedrock_v844.CODEC.getProtocolVersion()));
         paletteVersions.add(new PaletteVersion("1_21_120", Bedrock_v859.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_120", 860));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
