@@ -3,6 +3,7 @@ base-api = "1.0.2"
 bstats = "3.1.0"
 cumulus = "1.1.2"
 configurate = "4.2.0-GeyserMC-20251111.004649-11"
+configurate-core = "4.2.0-GeyserMC-20251111.004649-12"
 erosion = "1.1-20240521.000109-3"
 events = "1.1-SNAPSHOT"
 yaml = "2.2"
@@ -68,6 +69,7 @@ erosion-common = { group = "org.geysermc.erosion", name = "common", version.ref 
 
 yaml = { module = "org.yaml:snakeyaml", version.ref = "yaml" }
 
+configurate-core = { module = "org.spongepowered:configurate-core", version.ref = "configurate-core" }
 configurate-interface-ap = { module = "org.spongepowered:configurate-extra-interface-ap", version.ref = "configurate" }
 configurate-interface = { module = "org.spongepowered:configurate-extra-interface", version.ref = "configurate" }
 configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
