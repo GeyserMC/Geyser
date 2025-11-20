@@ -46,6 +46,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.CooldownUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
@@ -185,7 +186,14 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
         // The player will calculate the "desired" pose at the end of every tick, if this pose still invalid then
         // it will consider the smaller pose, but we don't need to calculate that, we can go off what the client sent us.
-        entity.setPose(entity.getDesiredPose());
+        // Also set the session pose directly and set the metadata directly since we don't want setPose method inside entity to change
+        // the current entity flag again.
+        final Pose pose = entity.getDesiredPose();
+        if (pose != session.getPose()) {
+            session.setPose(pose);
+            entity.setDimensionsFromPose(session.getPose());
+            entity.updateBedrockMetadata();
+        }
 
         // Vehicle input is send before player movement
         processVehicleInput(session, packet, wasJumping);

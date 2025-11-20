@@ -261,7 +261,7 @@ public interface GeyserConfig {
             Please note: if the cooldown is enabled, some users may see a black box during the cooldown sequence, like below:
             https://geysermc.org/img/external/cooldown_indicator.png
             This can be disabled by going into Bedrock settings under the accessibility tab and setting "Text Background Opacity" to 0
-            This setting can be set to "title", "actionbar" or "false\"""")
+            This setting can be set to "title", "actionbar" or "disabled\"""")
         default CooldownUtils.CooldownType showCooldown() {
             return CooldownUtils.CooldownType.TITLE;
         }
