@@ -3,7 +3,7 @@ loaderVersion="[1,)"
 license="MIT"
 [[mods]]
 modId="geyser_neoforge"
-version="${version}"
+version="${file.jarVersion}"
 displayName="Geyser"
 displayURL="https://geysermc.org/"
 logoFile= "../assets/geyser/icon.png"
