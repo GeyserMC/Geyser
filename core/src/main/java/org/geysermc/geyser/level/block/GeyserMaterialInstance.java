@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,14 +33,18 @@ import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 public class GeyserMaterialInstance implements MaterialInstance {
     private final String texture;
     private final String renderMethod;
+    private final String tintMethod;
     private final boolean faceDimming;
     private final boolean ambientOcclusion;
+    private final boolean isotropic;
 
     GeyserMaterialInstance(Builder builder) {
         this.texture = builder.texture;
         this.renderMethod = builder.renderMethod;
+        this.tintMethod = builder.tintMethod;
         this.faceDimming = builder.faceDimming;
         this.ambientOcclusion = builder.ambientOcclusion;
+        this.isotropic = builder.isotropic;
     }
 
     @Override
@@ -54,6 +58,11 @@ public class GeyserMaterialInstance implements MaterialInstance {
     }
 
     @Override
+    public @Nullable String tintMethod() {
+        return tintMethod;
+    }
+
+    @Override
     public boolean faceDimming() {
         return faceDimming;
     }
@@ -63,11 +72,18 @@ public class GeyserMaterialInstance implements MaterialInstance {
         return ambientOcclusion;
     }
 
+    @Override
+    public boolean isotropic() {
+        return isotropic;
+    }
+
     public static class Builder implements MaterialInstance.Builder {
         private String texture;
         private String renderMethod;
+        private String tintMethod;
         private boolean faceDimming;
         private boolean ambientOcclusion;
+        private boolean isotropic;
 
         @Override
         public Builder texture(@Nullable String texture) {
@@ -82,6 +98,12 @@ public class GeyserMaterialInstance implements MaterialInstance {
         }
 
         @Override
+        public Builder tintMethod(@Nullable String tintMethod) {
+            this.tintMethod = tintMethod;
+            return this;
+        }
+
+        @Override
         public Builder faceDimming(boolean faceDimming) {
             this.faceDimming = faceDimming;
             return this;
@@ -90,6 +112,12 @@ public class GeyserMaterialInstance implements MaterialInstance {
         @Override
         public Builder ambientOcclusion(boolean ambientOcclusion) {
             this.ambientOcclusion = ambientOcclusion;
+            return this;
+        }
+
+        @Override
+        public MaterialInstance.Builder isotropic(boolean isotropic) {
+            this.isotropic = isotropic;
             return this;
         }
 
