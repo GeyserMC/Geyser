@@ -273,7 +273,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     // We must spawn the white world
                     session.connect();
                 }
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.connect", session.getAuthData().name()));
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.connect", session.getAuthData().name() +
+                    " (" + session.protocolVersion() + ")"));
             }
             case SEND_PACKS -> {
                 if (packet.getPackIds().isEmpty()) {

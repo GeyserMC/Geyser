@@ -276,6 +276,11 @@ public class SessionPlayerEntity extends PlayerEntity {
         }
     }
 
+    @Override
+    public void setPitch(float pitch) {
+        this.pitch = pitch;
+    }
+
     public float getMaxHealth() {
         return maxHealth;
     }

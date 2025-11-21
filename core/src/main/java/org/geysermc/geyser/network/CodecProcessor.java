@@ -42,11 +42,6 @@ import org.cloudburstmc.protocol.bedrock.codec.v712.serializer.MobArmorEquipment
 import org.cloudburstmc.protocol.bedrock.codec.v748.serializer.InventoryContentSerializer_v748;
 import org.cloudburstmc.protocol.bedrock.codec.v748.serializer.InventorySlotSerializer_v748;
 import org.cloudburstmc.protocol.bedrock.codec.v776.serializer.BossEventSerializer_v776;
-import org.cloudburstmc.protocol.bedrock.codec.v818.serializer.LoginSerializer_v818;
-import org.cloudburstmc.protocol.bedrock.data.auth.AuthPayload;
-import org.cloudburstmc.protocol.bedrock.data.auth.AuthType;
-import org.cloudburstmc.protocol.bedrock.data.auth.CertificateChainPayload;
-import org.cloudburstmc.protocol.bedrock.data.auth.TokenPayload;
 import org.cloudburstmc.protocol.bedrock.packet.AnvilDamagePacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BossEventPacket;
@@ -64,7 +59,6 @@ import org.cloudburstmc.protocol.bedrock.packet.GameTestRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LabTablePacket;
-import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MapCreateLockedCopyPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MapInfoRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
@@ -89,13 +83,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SettingsCommandPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SimpleEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubChunkRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
-import org.cloudburstmc.protocol.common.util.Preconditions;
 import org.cloudburstmc.protocol.common.util.VarInts;
-import org.jose4j.json.JsonUtil;
-import org.jose4j.lang.JoseException;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Processes the Bedrock codec to remove or modify unused or unsafe packets and fields.
@@ -254,38 +242,6 @@ class CodecProcessor {
         }
     };
 
-    private static final BedrockPacketSerializer<LoginPacket> LOGIN_PACKET_BEDROCK_PACKET_SERIALIZER = new LoginSerializer_v818() {
-
-        @Override
-        protected AuthPayload readAuthJwt(String authJwt) {
-            try {
-                Map<String, Object> payload = JsonUtil.parseJson(authJwt);
-                Preconditions.checkArgument(payload.containsKey("AuthenticationType"), "Missing AuthenticationType in JWT");
-                int authTypeOrdinal = ((Number)payload.get("AuthenticationType")).intValue();
-                if (authTypeOrdinal >= 0 && authTypeOrdinal < AuthType.values().length - 1) {
-                    AuthType authType = AuthType.values()[authTypeOrdinal + 1];
-                    if (payload.containsKey("Certificate") && payload.get("Certificate") instanceof String certJson && !certJson.isEmpty()) {
-                        Map<String, Object> certData = JsonUtil.parseJson(certJson);
-                        if (certData.containsKey("chain") && certData.get("chain") instanceof List) {
-                            List<String> chain = (List)certData.get("chain");
-                            return new CertificateChainPayload(chain, authType);
-                        } else {
-                            throw new IllegalArgumentException("Invalid Certificate chain in JWT");
-                        }
-                    } else if (payload.containsKey("Token") && payload.get("Token") instanceof String token && !token.isEmpty()) {
-                        return new TokenPayload(token, authType);
-                    } else {
-                        throw new IllegalArgumentException("Invalid AuthPayload in JWT");
-                    }
-                } else {
-                    throw new IllegalArgumentException("Invalid AuthenticationType ordinal: " + authTypeOrdinal);
-                }
-            } catch (JoseException e) {
-                throw new IllegalArgumentException("Failed to parse auth payload", e);
-            }
-        }
-    };
-
     @SuppressWarnings("unchecked")
     static BedrockCodec processCodec(BedrockCodec codec) {
         BedrockPacketSerializer<BossEventPacket> bossEventSerializer;
@@ -347,11 +303,6 @@ class CodecProcessor {
                 codecBuilder
                     .updateSerializer(RiderJumpPacket.class, ILLEGAL_SERIALIZER)
                     .updateSerializer(PlayerInputPacket.class, ILLEGAL_SERIALIZER);
-            }
-
-            // TODO remove once global api is updated
-            if (codec.getProtocolVersion() >= 818) {
-                codecBuilder.updateSerializer(LoginPacket.class, LOGIN_PACKET_BEDROCK_PACKET_SERIALIZER);
             }
 
             if (!Boolean.getBoolean("Geyser.ReceiptPackets")) {

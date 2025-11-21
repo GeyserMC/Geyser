@@ -41,6 +41,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
@@ -317,8 +318,7 @@ public class AvatarEntity extends LivingEntity {
 
         if (pose == Pose.SWIMMING) {
             // This is just for, so we know if player is swimming or crawling.
-            // TODO test, changed from position (field) to position() (method), which adds offset
-            if (session.getGeyser().getWorldManager().blockAt(session, position.toInt()).is(Blocks.WATER)) {
+            if (session.getGeyser().getWorldManager().blockAt(session, position.down(EntityDefinitions.PLAYER.offset()).toInt()).is(Blocks.WATER)) {
                 setFlag(EntityFlag.SWIMMING, true);
             } else {
                 setFlag(EntityFlag.CRAWLING, true);
@@ -334,7 +334,7 @@ public class AvatarEntity extends LivingEntity {
 
     @Override
     public void setPitch(float pitch) {
-        super.setPitch(getFlag(EntityFlag.CRAWLING) && !(this instanceof SessionPlayerEntity) ? 0 : pitch);
+        super.setPitch(getFlag(EntityFlag.CRAWLING) ? 0 : pitch);
     }
 
     @Override

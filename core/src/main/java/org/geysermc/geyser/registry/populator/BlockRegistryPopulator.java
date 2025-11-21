@@ -34,7 +34,6 @@ import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -128,7 +127,9 @@ public final class BlockRegistryPopulator {
                 .put(ObjectIntPair.of("1_21_90", Bedrock_v819.CODEC.getProtocolVersion()), Conversion827_819::remapBlock)
                 .put(ObjectIntPair.of("1_21_100", Bedrock_v827.CODEC.getProtocolVersion()), Conversion844_827::remapBlock)
                 .put(ObjectIntPair.of("1_21_110", Bedrock_v844.CODEC.getProtocolVersion()), tag -> tag)
+                 // 1.21.110 -> 1.21.12x doesn't change the block palette
                 .put(ObjectIntPair.of("1_21_110", Bedrock_v859.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_21_110", 860), tag -> tag)
             .build();
 
         // We can keep this strong as nothing should be garbage collected

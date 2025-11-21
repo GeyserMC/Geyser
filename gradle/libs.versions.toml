@@ -3,6 +3,7 @@ base-api = "1.0.2"
 bstats = "3.1.0"
 cumulus = "1.1.2"
 configurate = "4.2.0-GeyserMC-20251111.004649-11"
+configurate-core = "4.2.0-GeyserMC-20251111.004649-12"
 erosion = "1.1-20240521.000109-3"
 events = "1.1-SNAPSHOT"
 yaml = "2.2"
@@ -12,10 +13,10 @@ guava = "29.0-jre"
 gson = "2.3.1" # Provided by Spigot 1.8.8 TODO bump to 2.8.1 or similar (Spigot 1.16.5 version) after Merge
 gson-runtime = "2.10.1"
 websocket = "1.5.1"
-protocol-connection = "3.0.0.Beta10-20251014.180344-2"
-protocol-common = "3.0.0.Beta10-20251014.180344-2"
-protocol-codec = "3.0.0.Beta10-20251014.180344-2"
-raknet = "1.0.0.CR3-20250811.214335-20"
+protocol-connection = "3.0.0.Beta11-20251105.180808-3"
+protocol-common = "3.0.0.Beta11-20251105.180808-2"
+protocol-codec = "3.0.0.Beta11-20251105.180808-3"
+raknet = "1.0.0.CR3-20251031.125212-22"
 minecraftauth = "5.0.0"
 mcprotocollib = "1.21.9-20251029.184056-18"
 adventure = "4.25.0"
@@ -69,6 +70,7 @@ erosion-common = { group = "org.geysermc.erosion", name = "common", version.ref 
 
 yaml = { module = "org.yaml:snakeyaml", version.ref = "yaml" }
 
+configurate-core = { module = "org.spongepowered:configurate-core", version.ref = "configurate-core" }
 configurate-interface-ap = { module = "org.spongepowered:configurate-extra-interface-ap", version.ref = "configurate" }
 configurate-interface = { module = "org.spongepowered:configurate-extra-interface", version.ref = "configurate" }
 configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate" }
