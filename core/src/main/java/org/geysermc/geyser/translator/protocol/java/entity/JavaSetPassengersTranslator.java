@@ -29,7 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
@@ -59,7 +59,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             if (passenger == session.getPlayerEntity()) {
                 session.getPlayerEntity().setVehicle(entity);
                 // We need to confirm teleports before entering a vehicle, or else we will likely exit right out
-                session.confirmTeleport(passenger.getPosition().down(EntityDefinitions.PLAYER.bedrockDefinition().offset()));
+                session.confirmTeleport(passenger.getPosition().down(VanillaEntities.PLAYER_ENTITY_OFFSET));
 
                 if (entity instanceof ClientVehicle clientVehicle) {
                     clientVehicle.getVehicleComponent().onMount();
@@ -125,8 +125,8 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
 
         entity.setPassengers(newPassengers);
 
-        if (entity.getDefinition().is(BuiltinEntityType.HORSE) || entity.getDefinition().is(BuiltinEntityType.SKELETON_HORSE) || entity.getDefinition().is(BuiltinEntityType.DONKEY)
-            || entity.getDefinition().is(BuiltinEntityType.MULE) || entity.getDefinition().is(BuiltinEntityType.RAVAGER)) {
+        if (entity.getJavaDefinition().is(BuiltinEntityType.HORSE) || entity.getJavaDefinition().is(BuiltinEntityType.SKELETON_HORSE) || entity.getJavaDefinition().is(BuiltinEntityType.DONKEY)
+            || entity.getJavaDefinition().is(BuiltinEntityType.MULE) || entity.getJavaDefinition().is(BuiltinEntityType.RAVAGER)) {
             entity.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 181.0f);
             entity.updateBedrockMetadata();
         }

@@ -27,7 +27,7 @@ package org.geysermc.geyser.translator.level.block.entity;
 
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -47,9 +47,9 @@ public class TrialSpawnerBlockEntityTranslator extends BlockEntityTranslator {
             return;
         }
         NbtMapBuilder spawnData = NbtMap.builder();
-        EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityData.getString("id"));
+        EntityTypeDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityData.getString("id"));
         if (definition != null) {
-            spawnData.putString("TypeId", definition.bedrockDefinition().identifier().toString());
+            spawnData.putString("TypeId", definition.defaultBedrockDefinition().identifier().toString());
         }
         spawnData.putInt("Weight", entityData.getInt("Size", 1)); // ??? presumably since these are the only other two extra attributes
         bedrockNbt.putCompound("spawn_data", spawnData.build());

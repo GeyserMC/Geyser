@@ -42,14 +42,14 @@ import java.util.function.BiConsumer;
 
 @EqualsAndHashCode
 @ToString
-public class EntityDefinitionBase<T extends Entity> {
+public class VanillaEntityBase<T extends Entity> {
     final float width;
     final float height;
     final float offset;
     @Getter @Accessors(fluent = true)
     protected final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
 
-    public EntityDefinitionBase(float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+    public VanillaEntityBase(float width, float height, float offset, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
         this.width = width;
         this.height = height;
         this.offset = offset;
@@ -62,7 +62,7 @@ public class EntityDefinitionBase<T extends Entity> {
 
     // Unused param so Java knows what entity we're talking about
     @SuppressWarnings("unused")
-    public static <T extends Entity> Builder<T> baseInherited(Class<T> clazz, EntityDefinitionBase<? super T> parent) {
+    public static <T extends Entity> Builder<T> baseInherited(Class<T> clazz, VanillaEntityBase<? super T> parent) {
         return new Builder<T>(parent.width, parent.height, parent.offset, new ObjectArrayList<>(parent.translators));
     }
 
@@ -75,8 +75,8 @@ public class EntityDefinitionBase<T extends Entity> {
         }
 
         if (translator.acceptedType() != metadata.getType()) {
-            GeyserImpl.getInstance().getLogger().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getDefinition().type());
-            if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+            GeyserImpl.getInstance().getLogger().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getJavaDefinition().type());
+            if (GeyserImpl.getInstance().config().debugMode()) {
                 GeyserImpl.getInstance().getLogger().debug(metadata.toString());
             }
             return;
@@ -134,8 +134,8 @@ public class EntityDefinitionBase<T extends Entity> {
             return this;
         }
 
-        public EntityDefinitionBase<T> build() {
-            return new EntityDefinitionBase<>(width, height, offset, translators);
+        public VanillaEntityBase<T> build() {
+            return new VanillaEntityBase<>(width, height, offset, translators);
         }
     }
 }

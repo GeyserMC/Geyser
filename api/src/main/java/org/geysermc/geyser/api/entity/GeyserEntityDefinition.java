@@ -25,7 +25,10 @@
 
 package org.geysermc.geyser.api.entity;
 
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.util.Identifier;
+
+import java.util.List;
 
 /**
  * Represents a Bedrock entity definition.
@@ -36,6 +39,11 @@ public interface GeyserEntityDefinition {
      * @return the Bedrock entity identifier
      */
     Identifier identifier();
+
+    /**
+     * @return the properties registered for this entity type
+     */
+    List<GeyserEntityProperty<?>> properties();
 
     /**
      * @return the width of the entity
@@ -55,4 +63,9 @@ public interface GeyserEntityDefinition {
      * @return the offset of the entity
      */
     float offset();
+
+    /**
+     * @return whether this entity is a vanilla entity
+     */
+    boolean vanilla();
 }

@@ -47,10 +47,10 @@ import java.util.function.BiConsumer;
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<T> {
+public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T> {
     private final GeyserEntityType entityType;
 
-    public VanillaEntityDefinition(EntityFactory<T> factory, GeyserEntityType entityType, BedrockEntityDefinition bedrockDefinition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+    public VanillaEntityType(EntityFactory<T> factory, GeyserEntityType entityType, BedrockEntityDefinition bedrockDefinition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
         super(factory, entityType, bedrockDefinition, translators);
         this.entityType = entityType;
     }
@@ -64,11 +64,11 @@ public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<
         return new Builder<>(factory);
     }
 
-    public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, EntityDefinitionBase<? super T> parent) {
+    public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, VanillaEntityBase<? super T> parent) {
         return new Builder<>(factory, parent.width, parent.height, parent.offset, new ObjectArrayList<>(parent.translators));
     }
 
-    public static class Builder<T extends Entity> extends EntityDefinition.Builder<T> {
+    public static class Builder<T extends Entity> extends EntityTypeDefinition.Builder<T> {
         protected GeyserEntityType type;
 
         protected Builder(EntityFactory<T> factory) {
@@ -129,25 +129,24 @@ public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<
         }
 
         @Override
-        public VanillaEntityDefinition<T> build() {
+        public VanillaEntityType<T> build() {
             return build(true);
         }
 
-        // TODO CE
-//        private void validateTypeAndIdentifier() {
-//            if (type == null) {
-//                throw new IllegalStateException("Missing entity type!");
-//            } else if (bedrockIdentifier == null) {
-//                bedrockIdentifier = type.identifier().toString();
-//            }
-//        }
+        private void validateTypeAndIdentifier() {
+            if (type == null) {
+                throw new IllegalStateException("Missing entity type!");
+            } else if (bedrockIdentifier == null) {
+                bedrockIdentifier = type.identifier().toString();
+            }
+        }
 
         /**
          * @param register whether to register this entity in the Registries for entity types. Generally this should be
          * set to false if we're not expecting this entity to spawn from the network.
          */
-        public VanillaEntityDefinition<T> build(boolean register) {
-            //validateTypeAndIdentifier();
+        public VanillaEntityType<T> build(boolean register) {
+            validateTypeAndIdentifier();
 
             BedrockEntityDefinition bedrockDefinition = BedrockEntityDefinition.builder()
                 .height(height)
@@ -159,7 +158,7 @@ public class VanillaEntityDefinition<T extends Entity> extends EntityDefinition<
             // TODO TEST!!!
             Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(Identifier.of(bedrockIdentifier), bedrockDefinition);
 
-            VanillaEntityDefinition<T> definition = new VanillaEntityDefinition<>(factory, type, bedrockDefinition, translators);
+            VanillaEntityType<T> definition = new VanillaEntityType<>(factory, type, bedrockDefinition, translators);
             if (register && definition.entityType() != null) {
                 Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
                 Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent(type.identifier().toString(), definition);

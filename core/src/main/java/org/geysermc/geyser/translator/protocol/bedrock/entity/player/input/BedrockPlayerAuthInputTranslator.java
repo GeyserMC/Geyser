@@ -290,7 +290,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 Vector3f position = vehicle.getPosition();
 
                 if (vehicle instanceof BoatEntity) {
-                    position = position.down(vehicle.getDefinition().offset());
+                    position = position.down(vehicle.definition().offset());
                 }
 
                 final BoundingBox box = new BoundingBox(
@@ -327,7 +327,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
             if (vehicle instanceof BoatEntity) {
                 // Remove some Y position to prevents boats flying up
-                vehiclePosition = vehiclePosition.down(vehicle.getBedrockDefinition().offset());
+                vehiclePosition = vehiclePosition.down(vehicle.definition().offset());
             }
 
             vehicle.setPosition(vehiclePosition);

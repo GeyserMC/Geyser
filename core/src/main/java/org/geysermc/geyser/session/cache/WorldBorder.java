@@ -35,7 +35,7 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import lombok.Getter;
 import lombok.Setter;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -168,7 +168,7 @@ public class WorldBorder {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Move the player back, but allow gravity to take place
             // Teleported = true makes going back better, but disconnects the player from their mounted entity
-            playerEntity.moveAbsolute(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.bedrockDefinition().offset()), playerEntity.getPosition().getZ()),
+            playerEntity.moveAbsolute(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - VanillaEntities.PLAYER_ENTITY_OFFSET), playerEntity.getPosition().getZ()),
                     playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
         }
         return isInWorldBorder;
@@ -325,7 +325,7 @@ public class WorldBorder {
     }
 
     private void drawWall(Vector3f position, boolean drawWallX) {
-        int initialY = (int) (position.getY() - EntityDefinitions.PLAYER.bedrockDefinition().offset() - 1);
+        int initialY = (int) (position.getY() - VanillaEntities.PLAYER_ENTITY_OFFSET - 1);
         for (int y = initialY; y < (initialY + 5); y++) {
             if (drawWallX) {
                 float x = position.getX();

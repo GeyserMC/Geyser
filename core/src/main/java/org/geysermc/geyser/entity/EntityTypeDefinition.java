@@ -54,23 +54,23 @@ import java.util.function.BiConsumer;
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public abstract class EntityDefinition<T extends Entity> extends EntityDefinitionBase<T> {
+public abstract class EntityTypeDefinition<T extends Entity> extends VanillaEntityBase<T> {
     private final EntityFactory<T> factory;
     private final GeyserEntityType type;
-    private BedrockEntityDefinition bedrockDefinition;
+    private final BedrockEntityDefinition defaultBedrockDefinition;
 
-    public EntityDefinition(EntityFactory<T> factory, GeyserEntityType type, BedrockEntityDefinition bedrockDefinition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
-        super(bedrockDefinition.width(), bedrockDefinition.height(), bedrockDefinition.offset(), translators);
+    public EntityTypeDefinition(EntityFactory<T> factory, GeyserEntityType type, BedrockEntityDefinition defaultBedrockDefinition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+        super(defaultBedrockDefinition.width(), defaultBedrockDefinition.height(), defaultBedrockDefinition.offset(), translators);
         this.type = type;
         this.factory = factory;
-        this.bedrockDefinition = bedrockDefinition;
+        this.defaultBedrockDefinition = defaultBedrockDefinition;
     }
 
     public abstract boolean is(BuiltinEntityType builtinEntityType);
 
     @Setter
     @Accessors(fluent = true, chain = true)
-    public static abstract class Builder<T extends Entity> extends EntityDefinitionBase.Builder<T> {
+    public static abstract class Builder<T extends Entity> extends VanillaEntityBase.Builder<T> {
         protected final EntityFactory<T> factory;
         protected String bedrockIdentifier;
         @Setter(AccessLevel.NONE)

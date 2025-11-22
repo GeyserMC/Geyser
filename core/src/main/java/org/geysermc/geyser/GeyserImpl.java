@@ -73,7 +73,7 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
@@ -252,7 +252,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         RegistryCache.init();
 
         /* Initialize translators */
-        EntityDefinitions.init();
+        VanillaEntities.init();
         MessageTranslator.init();
 
         // Download the latest asset list and cache it

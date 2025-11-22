@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
@@ -55,6 +56,14 @@ public interface GeyserEntity {
     UUID uuid();
 
     /**
+     * @return the Bedrock entity definition
+     */
+    GeyserEntityDefinition definition();
+
+    /**
+     * The position of this entity, without the Bedrock edition offset
+     * defined in the Bedrock entity definition.
+     *
      * @return the position of the entity, as it is known to the Java server.
      */
     Vector3f position();

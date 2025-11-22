@@ -29,8 +29,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.type.living.AgeableEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
@@ -43,7 +43,7 @@ import java.util.UUID;
 
 public class AbstractMerchantEntity extends AgeableEntity {
 
-    public AbstractMerchantEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public AbstractMerchantEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityTypeDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -56,7 +56,7 @@ public class AbstractMerchantEntity extends AgeableEntity {
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!itemInHand.is(Items.VILLAGER_SPAWN_EGG)
-                && (definition != EntityDefinitions.VILLAGER || !getFlag(EntityFlag.SLEEPING) && ((VillagerEntity) this).isCanTradeWith())) {
+                && (javaDefinition != VanillaEntities.VILLAGER || !getFlag(EntityFlag.SLEEPING) && ((VillagerEntity) this).isCanTradeWith())) {
             // An additional check we know cannot work
             if (!isBaby()) {
                 return InteractiveTag.TRADE;
@@ -69,8 +69,8 @@ public class AbstractMerchantEntity extends AgeableEntity {
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!itemInHand.is(Items.VILLAGER_SPAWN_EGG)
-                && (definition != EntityDefinitions.VILLAGER || !getFlag(EntityFlag.SLEEPING))
-                && (definition != EntityDefinitions.WANDERING_TRADER || !getFlag(EntityFlag.BABY))) {
+                && (javaDefinition != VanillaEntities.VILLAGER || !getFlag(EntityFlag.SLEEPING))
+                && (javaDefinition != VanillaEntities.WANDERING_TRADER || !getFlag(EntityFlag.BABY))) {
             // Trading time
             return InteractionResult.SUCCESS;
         } else {

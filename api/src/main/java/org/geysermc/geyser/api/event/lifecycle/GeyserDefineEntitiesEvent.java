@@ -28,8 +28,8 @@ package org.geysermc.geyser.api.event.lifecycle;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
 import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Collection;
 
@@ -40,14 +40,12 @@ import java.util.Collection;
  * Entity definitions can be created using the builder provided
  * inside of {@link GeyserEntityDefinition}.
  */
-public interface GeyserDefineCustomEntitiesEvent extends Event {
+public interface GeyserDefineEntitiesEvent extends Event {
 
     /**
-     * Gets an immutable list of registered custom entity definitions.
-     *
-     * @return an immutable collection of registered custom entity definitions
+     * @return an immutable collection of all registered entity definitions
      */
-    Collection<CustomEntityDefinition> customEntities();
+    Collection<GeyserEntityDefinition> entities();
 
     /**
      * Registers a custom entity definition from its builder
@@ -57,11 +55,17 @@ public interface GeyserDefineCustomEntitiesEvent extends Event {
         register(builder.build());
     }
 
+    /**
+     * Registers a custom entity definition
+     * @param customEntityDefinition the custom entity definition to register
+     */
     void register(@NonNull CustomEntityDefinition customEntityDefinition);
 
     /**
-     * Registers a non-vanilla entity type
-     * @param javaEntityType
+     * Registers a non-vanilla Java entity type.
+     *
+     * @param javaEntityType the identifier of the Java entity type
+     * @param javaId the network id of this entity type
      */
-    void register(@NonNull JavaEntityType javaEntityType);
+    void registerEntityType(@NonNull Identifier javaEntityType, int javaId);
 }

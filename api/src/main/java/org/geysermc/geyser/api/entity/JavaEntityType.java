@@ -25,9 +25,6 @@
 
 package org.geysermc.geyser.api.entity;
 
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.Identifier;
 
 /**
@@ -58,14 +55,5 @@ public interface JavaEntityType {
      */
     default boolean is(Identifier javaIdentifier) {
         return identifier().equals(javaIdentifier);
-    }
-
-    static JavaEntityType ofVanilla(@NonNull Identifier javaIdentifier) {
-        return GeyserApi.api().provider(JavaEntityType.class, javaIdentifier);
-    }
-
-    // TODO move to event???
-    static JavaEntityType createAndRegister(@NonNull Identifier javaIdentifier, @NonNegative int javaId) {
-        return GeyserApi.api().provider(JavaEntityType.class, javaIdentifier, javaId);
     }
 }

@@ -39,8 +39,8 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.GeyserCustomEntityDefinition;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
+import org.geysermc.geyser.entity.GeyserCustomEntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.item.type.Item;
@@ -127,10 +127,9 @@ public final class Registries {
      * A map containing all entity types and their respective Geyser definitions
      */
     // Is a Reference2ObjectMap since GeyserEntityType, the implementation of JavaEntityType, only ever keeps one instance per registered entity type
-    // TODO rename to VANILLA_ENTITY_DEFINITIONS
-    public static final SimpleMappedRegistry<GeyserEntityType, EntityDefinition<?>> ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(Reference2ObjectOpenHashMap::new));
+    public static final SimpleMappedRegistry<GeyserEntityType, EntityTypeDefinition<?>> ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(Reference2ObjectOpenHashMap::new));
 
-    public static final ListRegistry<GeyserCustomEntityDefinition<?>> CUSTOM_ENTITY_DEFINITIONS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
+    public static final ListRegistry<GeyserCustomEntityTypeDefinition<?>> CUSTOM_ENTITY_DEFINITIONS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
     public static final SimpleMappedRegistry<Identifier, BedrockEntityDefinition> BEDROCK_ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
@@ -142,7 +141,7 @@ public final class Registries {
     /**
      * A map containing all Java entity identifiers and their respective Geyser definitions
      */
-    public static final SimpleMappedRegistry<String, EntityDefinition<?>> JAVA_ENTITY_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
+    public static final SimpleMappedRegistry<String, EntityTypeDefinition<?>> JAVA_ENTITY_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     /**
      * A registry containing all the Java packet translators.

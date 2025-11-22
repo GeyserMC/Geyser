@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity.type;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -47,7 +48,7 @@ import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
@@ -85,8 +86,9 @@ public class Entity implements GeyserEntity {
     private static final boolean PRINT_ENTITY_SPAWN_DEBUG = Boolean.parseBoolean(System.getProperty("Geyser.PrintEntitySpawnDebug", "false"));
 
     protected final GeyserSession session;
-    protected final BedrockEntityDefinition bedrockDefinition;
-    protected EntityDefinition<?> definition;
+    @Accessors(fluent = true)
+    protected final BedrockEntityDefinition definition;
+    protected EntityTypeDefinition<?> javaDefinition;
 
     protected int entityId;
     protected final long geyserId;
@@ -152,11 +154,11 @@ public class Entity implements GeyserEntity {
 
     protected final GeyserEntityPropertyManager propertyManager;
 
-    public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, BedrockEntityDefinition bedrockDefinition,
+    public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityTypeDefinition<?> definition, BedrockEntityDefinition bedrockDefinition,
                   Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         this.session = session;
-        this.definition = definition;
-        this.bedrockDefinition = bedrockDefinition;
+        this.javaDefinition = definition;
+        this.definition = bedrockDefinition;
         this.displayName = standardDisplayName();
 
         this.entityId = entityId;
@@ -200,7 +202,7 @@ public class Entity implements GeyserEntity {
 
     public void spawnEntity() {
         AddEntityPacket addEntityPacket = new AddEntityPacket();
-        addEntityPacket.setIdentifier(bedrockDefinition.identifier().toString());
+        addEntityPacket.setIdentifier(definition.identifier().toString());
         addEntityPacket.setRuntimeEntityId(geyserId);
         addEntityPacket.setUniqueEntityId(geyserId);
         addEntityPacket.setPosition(position);
@@ -223,7 +225,7 @@ public class Entity implements GeyserEntity {
         flagsDirty = false;
 
         if (session.getGeyser().config().debugMode() && PRINT_ENTITY_SPAWN_DEBUG) {
-            session.getGeyser().getLogger().debug("Spawned entity " + definition.type() + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
+            session.getGeyser().getLogger().debug("Spawned entity " + javaDefinition.type() + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
         }
     }
 
@@ -493,7 +495,7 @@ public class Entity implements GeyserEntity {
     }
 
     protected String standardDisplayName() {
-        return EntityUtils.translatedEntityName(definition.type(), session);
+        return EntityUtils.translatedEntityName(javaDefinition.type(), session);
     }
 
     protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
@@ -573,8 +575,8 @@ public class Entity implements GeyserEntity {
      */
     protected void setDimensionsFromPose(Pose pose) {
         // No flexibility options for basic entities
-        setBoundingBoxHeight(bedrockDefinition.height());
-        setBoundingBoxWidth(bedrockDefinition.width());
+        setBoundingBoxHeight(definition.height());
+        setBoundingBoxWidth(definition.width());
     }
 
     public boolean setBoundingBoxHeight(float height) {
@@ -786,7 +788,7 @@ public class Entity implements GeyserEntity {
         }
 
         Objects.requireNonNull(consumer);
-        GeyserEntityProperties propertyDefinitions = bedrockDefinition.registeredProperties();
+        GeyserEntityProperties propertyDefinitions = definition.registeredProperties();
         consumer.accept(new BatchPropertyUpdater() {
             @Override
             public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
@@ -828,6 +830,6 @@ public class Entity implements GeyserEntity {
 
     @Override
     public Vector3f position() {
-        return this.position.down(bedrockDefinition.offset());
+        return this.position.down(definition.offset());
     }
 }

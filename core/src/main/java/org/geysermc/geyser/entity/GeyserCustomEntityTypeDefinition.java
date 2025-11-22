@@ -23,20 +23,35 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.predicate.context.entity;
+package org.geysermc.geyser.entity;
 
-import org.geysermc.geyser.api.entity.JavaEntityType;
-import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+import org.geysermc.geyser.entity.factory.EntityFactory;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 
-import java.util.UUID;
+import java.util.List;
 
-public interface EntitySpawnContext extends MinecraftPredicateContext {
+@Getter
+@Accessors(fluent = true)
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+// TODO CHANGE TO ONLY APPLY THIS TO NON-VANILLA TYPES!
+public class GeyserCustomEntityTypeDefinition<T extends Entity> extends EntityTypeDefinition<T> {
 
-    JavaEntityType entityType();
+    public GeyserCustomEntityTypeDefinition(EntityFactory<T> factory, GeyserEntityType type, BedrockEntityDefinition definition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+        super(factory, type, definition, translators);
+    }
 
-    int entityId();
+    @Override
+    public boolean is(BuiltinEntityType builtinEntityType) {
+        return false;
+    }
 
-    UUID entityUuid();
-
-    int data();
+    // TODO:
+    // - handle
 }

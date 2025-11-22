@@ -30,33 +30,71 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.api.util.Identifier;
 
 /**
- * Represents a custom entity definition
+ * Represents a custom entity definition.
  */
-public interface CustomEntityDefinition extends GeyserEntityDefinition, PredicateHolder<EntitySpawnPredicateContext> {
+public interface CustomEntityDefinition extends GeyserEntityDefinition {
 
-    static Builder builder(@NonNull Identifier bedrockIdentifier, @NonNull JavaEntityType vanillaType) {
-        return GeyserApi.api().provider(Builder.class, bedrockIdentifier, vanillaType);
+    @Override
+    default boolean vanilla() {
+        return false;
+    }
+
+    /**
+     * Creates a builder for a custom entity definition.
+     *
+     * @param bedrockIdentifier the Bedrock entity identifier
+     * @return a new builder
+     */
+    static Builder builder(@NonNull Identifier bedrockIdentifier) {
+        return GeyserApi.api().provider(Builder.class, bedrockIdentifier);
     }
 
     interface Builder {
 
+        /**
+         * Sets the width of this entity.
+         *
+         * @param width the width of this entity
+         * @return the builder
+         */
         @This
         Builder width(@Positive float width);
 
+        /**
+         * Sets the height of this entity.
+         *
+         * @param height the height of this entity
+         * @return the builder
+         */
         @This
         Builder height(@Positive float height);
 
+        /**
+         * Sets the height and with of this entity.
+         *
+         * @param value the width and height
+         * @return the builder
+         */
         @This
         Builder heightAndWidth(@Positive float value);
 
+        /**
+         * Sets the offset of this entity.
+         *
+         * @param offset the offset of this entity
+         * @return the builder
+         */
         @This
         Builder offset(@Positive float offset);
 
-        @Override
+        /**
+         * Builds the entity definition.
+         *
+         * @return the entity definition
+         */
         CustomEntityDefinition build();
     }
 }

@@ -31,7 +31,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -118,10 +118,10 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
             // As of 1.19.3, spawners can be empty
             builder.put("EntityIdentifier", entityId);
 
-            EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);
+            EntityTypeDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);
             if (definition != null) {
-                builder.putFloat("DisplayEntityWidth", definition.bedrockDefinition().width());
-                builder.putFloat("DisplayEntityHeight", definition.bedrockDefinition().height());
+                builder.putFloat("DisplayEntityWidth", definition.defaultBedrockDefinition().width());
+                builder.putFloat("DisplayEntityHeight", definition.defaultBedrockDefinition().height());
                 builder.putFloat("DisplayEntityScale", 1.0f);
             }
         }

@@ -33,8 +33,8 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
@@ -89,7 +89,7 @@ public class ArmorStandEntity extends LivingEntity {
      */
     private boolean positionUpdateRequired = false;
 
-    public ArmorStandEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+    public ArmorStandEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityTypeDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
     }
 
@@ -158,8 +158,8 @@ public class ArmorStandEntity extends LivingEntity {
                 setBoundingBoxWidth(0.0f);
                 setBoundingBoxHeight(0.0f);
             } else {
-                setBoundingBoxWidth(bedrockDefinition.width());
-                setBoundingBoxHeight(bedrockDefinition.height());
+                setBoundingBoxWidth(definition.width());
+                setBoundingBoxHeight(definition.height());
             }
 
             updateMountOffset();
@@ -345,7 +345,7 @@ public class ArmorStandEntity extends LivingEntity {
                 // Create the second entity. It doesn't need to worry about the items, but it does need to worry about
                 // the metadata as it will hold the name tag.
                 secondEntity = new ArmorStandEntity(session, 0, session.getEntityCache().getNextEntityId().incrementAndGet(), null,
-                        EntityDefinitions.ARMOR_STAND, EntityDefinitions.ARMADILLO.bedrockDefinition(), position, motion, getYaw(), getPitch(), getHeadYaw());
+                        VanillaEntities.ARMOR_STAND, VanillaEntities.ARMADILLO.defaultBedrockDefinition(), position, motion, getYaw(), getPitch(), getHeadYaw());
                 secondEntity.primaryEntity = false;
             }
             // Copy metadata
@@ -422,7 +422,7 @@ public class ArmorStandEntity extends LivingEntity {
         if (!positionRequiresOffset || isMarker || secondEntity != null) {
             return 0;
         }
-        return bedrockDefinition.height() * getScale();
+        return definition.height() * getScale();
     }
 
     /**

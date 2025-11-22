@@ -35,7 +35,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftRecipeAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.inventory.*;
 import org.geysermc.geyser.inventory.updater.InventoryUpdater;
@@ -99,7 +99,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
             long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
             Vector3f pos = session.getPlayerEntity().getPosition().sub(0, 3, 0);
 
-            Entity villager = new Entity(session, 0, geyserId, null, EntityDefinitions.VILLAGER, EntityDefinitions.VILLAGER.bedrockDefinition(), pos, Vector3f.ZERO, 0f, 0f, 0f) {
+            Entity villager = new Entity(session, 0, geyserId, null, VanillaEntities.VILLAGER, VanillaEntities.VILLAGER.defaultBedrockDefinition(), pos, Vector3f.ZERO, 0f, 0f, 0f) {
                 @Override
                 protected void initializeMetadata() {
                     dirtyMetadata.put(EntityDataTypes.SCALE, 0f);

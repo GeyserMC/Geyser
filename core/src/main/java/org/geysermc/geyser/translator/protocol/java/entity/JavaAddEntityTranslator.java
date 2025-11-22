@@ -25,10 +25,15 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.JavaEntityType;
+import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.FallingBlockEntity;
@@ -50,6 +55,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.object.WardenData;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+
 @Translator(packet = ClientboundAddEntityPacket.class)
 public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEntityPacket> {
 
@@ -63,7 +71,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             return;
         }
 
-        EntityDefinition<?> definition = getEntityDefinition(session, type, packet);
+        EntityTypeDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(type);
         if (definition == null) {
             session.getGeyser().getLogger().warning("Could not find an entity definition for add entity packet " + packet);
             return;
@@ -76,7 +84,6 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         float headYaw = packet.getHeadYaw();
 
         if (type.is(BuiltinEntityType.PLAYER)) {
-
             PlayerEntity entity;
             if (packet.getUuid().equals(session.getPlayerEntity().getUuid())) {
                 // Server is sending a fake version of the current player
@@ -109,7 +116,38 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             return;
         }
 
-        BedrockEntityDefinition bedrockDefinition = definition.bedrockDefinition();
+        BedrockEntityDefinition bedrockDefinition = definition.defaultBedrockDefinition();
+        AtomicReference<GeyserEntityDefinition> eventDefinition = new AtomicReference<>(bedrockDefinition);
+        GeyserImpl.getInstance().getEventBus().fire(new ServerSpawnEntityEvent(session) {
+
+            @Override
+            public int entityId() {
+                return packet.getEntityId();
+            }
+
+            @Override
+            public @NonNull UUID uuid() {
+                return packet.getUuid();
+            }
+
+            @Override
+            public @NonNull JavaEntityType entityType() {
+                return type;
+            }
+
+            @Override
+            public @Nullable GeyserEntityDefinition entityDefinition() {
+                return eventDefinition.get();
+            }
+
+            @Override
+            public void entityDefinition(@Nullable GeyserEntityDefinition entityDefinition) {
+                eventDefinition.set(entityDefinition);
+            }
+        });
+
+        if (eventDefinition.get() != bedrockDefinition) {
+        }
 
         Entity entity;
         if (type.is(BuiltinEntityType.FALLING_BLOCK)) {
@@ -144,16 +182,5 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         }
 
         session.getEntityCache().spawnEntity(entity);
-    }
-
-    private static EntityDefinition<?> getEntityDefinition(GeyserSession session, GeyserEntityType entityType, ClientboundAddEntityPacket packet) {
-//        EntitySpawnPredicateContext context = new GeyserEntitySpawnPredicateContext(session, entityType, packet);
-//        for (GeyserCustomEntityDefinition<?> customEntityDefinition : Registries.CUSTOM_ENTITY_DEFINITIONS) {
-//            if (customEntityDefinition.test(context)) {
-//                return customEntityDefinition;
-//            }
-//        }
-        // TODO custom entities mf
-        return Registries.ENTITY_DEFINITIONS.get(entityType);
     }
 }
