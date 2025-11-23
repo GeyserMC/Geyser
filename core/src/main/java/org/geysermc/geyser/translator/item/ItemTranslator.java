@@ -188,7 +188,7 @@ public final class ItemTranslator {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
         // Populates default components that aren't sent over the network
-        DataComponents components = javaItem.gatherComponents(customComponents);
+        DataComponents components = javaItem.gatherComponents(session.getComponentCache(), customComponents);
         TooltipOptions tooltip = TooltipOptions.fromComponents(components);
 
         // Translate item-specific components
@@ -239,7 +239,7 @@ public final class ItemTranslator {
             translatePlayerHead(session, components.get(DataComponentTypes.PROFILE), builder);
         }
 
-        translateCustomItem(components, builder, bedrockItem);
+        translateCustomItem(session, count, components, builder, bedrockItem);
 
         // Translate the canDestroy and canPlaceOn Java components
         AdventureModePredicate canDestroy = components.get(DataComponentTypes.CAN_BREAK);
@@ -536,7 +536,7 @@ public final class ItemTranslator {
             }
         }
 
-        ItemDefinition definition = CustomItemTranslator.getCustomItem(itemStack.getComponents(), mapping);
+        ItemDefinition definition = CustomItemTranslator.getCustomItem(session, itemStack.getAmount(), itemStack.getAllComponents(), mapping);
         if (definition == null) {
             // No custom item
             return itemDefinition;
@@ -604,8 +604,8 @@ public final class ItemTranslator {
     /**
      * Translates the custom model data of an item
      */
-    public static void translateCustomItem(DataComponents components, ItemData.Builder builder, ItemMapping mapping) {
-        ItemDefinition definition = CustomItemTranslator.getCustomItem(components, mapping);
+    public static void translateCustomItem(GeyserSession session, int stackSize, DataComponents components, ItemData.Builder builder, ItemMapping mapping) {
+        ItemDefinition definition = CustomItemTranslator.getCustomItem(session, stackSize, components, mapping);
         if (definition != null) {
             builder.definition(definition);
             builder.blockDefinition(null);
