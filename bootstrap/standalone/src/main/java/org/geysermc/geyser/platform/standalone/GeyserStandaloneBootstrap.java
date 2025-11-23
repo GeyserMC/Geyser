@@ -197,7 +197,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     @Override
     public <T extends GeyserConfig> T loadConfig(Class<T> configClass) {
         return new ConfigLoader(this)
-            .configFile(new File(getConfigFolder().toFile(), configFilename))
+            .configFile(new File(configFilename))
             .transformer(this::handleArgsConfigOptions)
             .load(configClass);
     }
