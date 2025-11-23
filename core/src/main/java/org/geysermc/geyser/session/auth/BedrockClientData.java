@@ -177,12 +177,4 @@ public final class BedrockClientData {
             };
         }
     }
-
-//    private static final class IntToEnumDeserializer implements JsonDeserializer<Enum<?>> {
-//        @Override
-//        public Enum<?> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-//            System.out.println(typeOfT.getClass().getTypeParameters()[0]);
-//            return DeviceOs.fromId(json.getAsInt());
-//        }
-//    }
 }
