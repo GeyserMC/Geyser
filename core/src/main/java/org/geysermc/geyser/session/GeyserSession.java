@@ -747,6 +747,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean allowVibrantVisuals = true;
 
     @Accessors(fluent = true)
+    @Setter
     private boolean hasAcceptedCodeOfConduct = false;
 
     @Accessors(fluent = true)
