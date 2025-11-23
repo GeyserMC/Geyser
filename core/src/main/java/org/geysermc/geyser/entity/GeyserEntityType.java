@@ -53,12 +53,6 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Jav
     private static final Int2ObjectMap<GeyserEntityType> CUSTOM = new Int2ObjectOpenHashMap<>();
     private static final Object2ObjectMap<Identifier, GeyserEntityType> CUSTOM_BY_IDENTIFIER = new Object2ObjectOpenHashMap<>();
 
-    public GeyserEntityType {
-        if (!VANILLA.containsValue(this) && !CUSTOM.containsKey(javaId)) {
-            throw new IllegalCallerException("Public constructor of GeyserEntityType should not be used; use one of the static factory methods instead");
-        }
-    }
-
     private GeyserEntityType(BuiltinEntityType builtin) {
         this(IdentifierImpl.of(builtin.name().toLowerCase(Locale.ROOT)), builtin.id());
     }

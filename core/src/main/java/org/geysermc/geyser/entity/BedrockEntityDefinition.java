@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.util.Identifier;
@@ -102,7 +103,7 @@ public class BedrockEntityDefinition implements GeyserEntityDefinition {
             return this;
         }
 
-        public Builder properties(GeyserEntityProperties.Builder propertiesBuilder) {
+        public Builder properties(GeyserEntityProperties.@Nullable Builder propertiesBuilder) {
             this.propertiesBuilder = propertiesBuilder;
             return this;
         }

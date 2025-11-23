@@ -87,7 +87,7 @@ public class Entity implements GeyserEntity {
 
     protected final GeyserSession session;
     @Accessors(fluent = true)
-    protected final BedrockEntityDefinition definition;
+    protected BedrockEntityDefinition definition;
     protected EntityTypeDefinition<?> javaDefinition;
 
     protected int entityId;
@@ -152,7 +152,7 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.PROTECTED) // For players
     private boolean flagsDirty = false;
 
-    protected final GeyserEntityPropertyManager propertyManager;
+    protected final @Nullable GeyserEntityPropertyManager propertyManager;
 
     public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityTypeDefinition<?> definition, BedrockEntityDefinition bedrockDefinition,
                   Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
@@ -171,7 +171,7 @@ public class Entity implements GeyserEntity {
 
         this.valid = false;
         // TODO null or empty check
-        this.propertyManager = bedrockDefinition.registeredProperties() == null ? null : new GeyserEntityPropertyManager(bedrockDefinition.registeredProperties());
+        this.propertyManager = bedrockDefinition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(bedrockDefinition.registeredProperties());
 
         setPosition(position);
         setAirSupply(getMaxAir());

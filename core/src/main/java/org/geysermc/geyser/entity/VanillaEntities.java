@@ -168,6 +168,7 @@ import org.geysermc.geyser.entity.type.living.monster.raid.VindicatorEntity;
 import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.entity.type.player.MannequinEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTypes;
@@ -335,10 +336,6 @@ public final class VanillaEntities {
      * Is not sent over the network
      */
     public static final VanillaEntityType<EnderDragonPartEntity> ENDER_DRAGON_PART;
-    /**
-     * Special Bedrock type
-     */
-    public static final VanillaEntityType<WitherSkullEntity> WITHER_SKULL_DANGEROUS;
 
     public static final float PLAYER_ENTITY_OFFSET;
 
@@ -469,7 +466,7 @@ public final class VanillaEntities {
             INTERACTION = VanillaEntityType.inherited(InteractionEntity::new, entityBase)
                     .type(BuiltinEntityType.INTERACTION)
                     .heightAndWidth(1.0f) // default size until server specifies otherwise
-                    .bedrockIdentifier("minecraft:armor_stand")
+                    .bedrockDefinition(ARMOR_STAND.defaultBedrockDefinition())
                     .addTranslator(MetadataTypes.FLOAT, InteractionEntity::setWidth)
                     .addTranslator(MetadataTypes.FLOAT, InteractionEntity::setHeight)
                     .addTranslator(MetadataTypes.BOOLEAN, InteractionEntity::setResponse)
@@ -613,8 +610,19 @@ public final class VanillaEntities {
                     .heightAndWidth(0.3125f)
                     .addTranslator(MetadataTypes.BOOLEAN, WitherSkullEntity::setDangerous)
                     .build();
-            WITHER_SKULL_DANGEROUS = VanillaEntityType.inherited(WITHER_SKULL.factory(), WITHER_SKULL)
-                    .build(false);
+
+            // Bedrock exclusive entity
+            IdentifierImpl dangerousSkull = IdentifierImpl.of("wither_skull_dangerous");
+            BedrockEntityDefinition bedrockDefinition = BedrockEntityDefinition.builder()
+                .height(WITHER_SKULL.height)
+                .width(WITHER_SKULL.width)
+                .offset(WITHER_SKULL.offset)
+                .identifier(dangerousSkull)
+                .build();
+            Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(dangerousSkull, bedrockDefinition);
+
+//            WITHER_SKULL_DANGEROUS = VanillaEntityType.inherited(WITHER_SKULL.factory(), WITHER_SKULL)
+//                    .build(false);
         }
 
         // Boats
@@ -1246,7 +1254,7 @@ public final class VanillaEntities {
 
         // As of 1.18 these don't track entity data at all
         ENDER_DRAGON_PART = VanillaEntityType.<EnderDragonPartEntity>builder(null)
-                .bedrockIdentifier("minecraft:armor_stand") // Emulated
+                .bedrockDefinition(ARMOR_STAND.defaultBedrockDefinition()) // Emulated
                 .build(false); // Never sent over the network
 
         PLAYER_ENTITY_OFFSET = PLAYER.defaultBedrockDefinition().offset();

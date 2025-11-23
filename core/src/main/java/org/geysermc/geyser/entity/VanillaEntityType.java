@@ -70,6 +70,7 @@ public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T>
 
     public static class Builder<T extends Entity> extends EntityTypeDefinition.Builder<T> {
         protected GeyserEntityType type;
+        protected BedrockEntityDefinition bedrockDefinition;
 
         protected Builder(EntityFactory<T> factory) {
             super(factory);
@@ -128,6 +129,11 @@ public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T>
             return (Builder<T>) super.addTranslator(translator);
         }
 
+        public Builder<T> bedrockDefinition(BedrockEntityDefinition bedrockDefinition) {
+            this.bedrockDefinition = bedrockDefinition;
+            return this;
+        }
+
         @Override
         public VanillaEntityType<T> build() {
             return build(true);
@@ -136,8 +142,17 @@ public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T>
         private void validateTypeAndIdentifier() {
             if (type == null) {
                 throw new IllegalStateException("Missing entity type!");
-            } else if (bedrockIdentifier == null) {
-                bedrockIdentifier = type.identifier().toString();
+            }
+
+            if (bedrockDefinition == null) {
+                bedrockDefinition = BedrockEntityDefinition.builder()
+                    .height(height)
+                    .width(width)
+                    .properties(propertiesBuilder)
+                    .offset(offset)
+                    .identifier(Identifier.of(bedrockIdentifier))
+                    .build();
+                Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(Identifier.of(bedrockIdentifier), bedrockDefinition);
             }
         }
 
@@ -147,16 +162,6 @@ public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T>
          */
         public VanillaEntityType<T> build(boolean register) {
             validateTypeAndIdentifier();
-
-            BedrockEntityDefinition bedrockDefinition = BedrockEntityDefinition.builder()
-                .height(height)
-                .width(width)
-                .properties(propertiesBuilder)
-                .offset(offset)
-                .identifier(Identifier.of(bedrockIdentifier))
-                .build();
-            // TODO TEST!!!
-            Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(Identifier.of(bedrockIdentifier), bedrockDefinition);
 
             VanillaEntityType<T> definition = new VanillaEntityType<>(factory, type, bedrockDefinition, translators);
             if (register && definition.entityType() != null) {
