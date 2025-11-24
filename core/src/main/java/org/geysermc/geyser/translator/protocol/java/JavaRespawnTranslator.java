@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
@@ -57,6 +58,8 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
         }
 
         session.setSpawned(false);
+        entity.setMotion(Vector3f.ZERO);
+        entity.setLastTickEndVelocity(Vector3f.ZERO);
 
         entity.setHealth(entity.getMaxHealth());
         entity.getAttributes().put(GeyserAttributeType.HEALTH, entity.createHealthAttribute());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,17 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.collision;
+package org.geysermc.geyser.translator.collision.fixes;
 
 import lombok.EqualsAndHashCode;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.collision.BlockCollision;
+import org.geysermc.geyser.translator.collision.CollisionRemapper;
 
 @EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "glass_pane$|iron_bars$", usesParams = true, passDefaultBoxes = true)
 public class GlassPaneAndIronBarsCollision extends BlockCollision {
+    private final static double MAX_PUSH_DISTANCE = 0.0625 + CollisionManager.COLLISION_TOLERANCE * 1.01;
+
     /**
      * 1 = north
      * 2 = east
@@ -68,46 +74,23 @@ public class GlassPaneAndIronBarsCollision extends BlockCollision {
     }
 
     @Override
-    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
-        boolean result = super.correctPosition(session, x, y, z, playerCollision);
-        playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);
-        playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
-        playerCollision.setSizeZ(playerCollision.getSizeZ() - 0.0001);
-
-        if (this.checkIntersection(x, y, z, playerCollision)) {
-            double newMiddleX = x;
-            double newMiddleZ = z;
-
-            switch (facing) {
-                case 1 -> newMiddleZ += 0.8625; // North
-                case 2 -> newMiddleX += 0.1375; // East
-                case 3 -> newMiddleZ += 0.1375; // South
-                case 4 -> newMiddleX += 0.8625; // West
-                case 5 -> { // North, East
-                    newMiddleZ += 0.8625;
-                    newMiddleX += 0.1375;
-                }
-                case 6 -> { // East, South
-                    newMiddleX += 0.1375;
-                    newMiddleZ += 0.1375;
-                }
-                case 7 -> { // South, West
-                    newMiddleZ += 0.1375;
-                    newMiddleX += 0.8625;
-                }
-                case 8 -> { // West, North
-                    newMiddleX += 0.8625;
-                    newMiddleZ += 0.8625;
-                }
-            }
-
-            playerCollision.setMiddleX(newMiddleX);
-            playerCollision.setMiddleZ(newMiddleZ);
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision) {
+        // Check for glass pane/iron bars bug (pane/iron bars is 0.5 blocks thick on Bedrock but 0.5625 on Java when only 1 side is connected).
+        // Also, we want to flip the direction since the direction here is indicating the block side the glass is connected to.
+        if (this.facing == 2 || this.facing == 6 || this.facing == 5) { // East
+            blockCollision.pushOutOfBoundingBox(playerCollision, Direction.WEST, MAX_PUSH_DISTANCE);
         }
 
-        playerCollision.setSizeX(playerCollision.getSizeX() + 0.0001);
-        playerCollision.setSizeY(playerCollision.getSizeY() + 0.0001);
-        playerCollision.setSizeZ(playerCollision.getSizeZ() + 0.0001);
-        return result;
+        if (this.facing == 1 || this.facing == 5 || this.facing == 8) { // North.
+            blockCollision.pushOutOfBoundingBox(playerCollision, Direction.SOUTH, MAX_PUSH_DISTANCE);
+        }
+
+        if (this.facing == 3 || this.facing == 6 || this.facing == 7) { // South
+            blockCollision.pushOutOfBoundingBox(playerCollision, Direction.NORTH, MAX_PUSH_DISTANCE);
+        }
+
+        if (this.facing == 4 || this.facing == 7 || this.facing == 8) { // West
+            blockCollision.pushOutOfBoundingBox(playerCollision, Direction.EAST, MAX_PUSH_DISTANCE);
+        }
     }
 }
