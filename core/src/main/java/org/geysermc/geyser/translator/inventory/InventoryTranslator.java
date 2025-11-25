@@ -253,7 +253,11 @@ public abstract class InventoryTranslator<Type extends Inventory> {
         return rejectRequest(request);
     }
 
-    public final void translateRequests(GeyserSession session, Type inventory, List<ItemStackRequest> requests, boolean firstTime) {
+    public final void translateRequests(GeyserSession session, Type inventory, List<ItemStackRequest> requests) {
+        this.translateRequests(session, inventory, requests, true);
+    }
+
+    private void translateRequests(GeyserSession session, Type inventory, List<ItemStackRequest> requests, boolean firstTime) {
         boolean refresh = false;
 
         // If we get another request, we're not closing the inventory and should run the queued request asap
@@ -274,9 +278,10 @@ public abstract class InventoryTranslator<Type extends Inventory> {
         });
 
         if (mustDelay) {
-            GeyserImpl.getInstance().getLogger().warning("Delaying action until we know if this is actually an inventory close! " + requests);
+            // We cannot clearly differentiate shift-clicking a single stack...
+            // So we try to guess and delay the processing (at least 10 ticks) until we either get a new inventory transaction,
+            // or until we know the inventory wasn't closed
             session.getInventoryTransactionFuture().schedule(() -> {
-                    GeyserImpl.getInstance().getLogger().warning("DELAY FINISHED!");
                     if (session.getPendingOrCurrentBedrockInventoryId() == inventory.getBedrockId()) {
                         translateRequests(session, inventory, requests, false);
                     } else {
@@ -292,7 +297,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                         }
                     }
                 },
-                800,
+                750,
                 TimeUnit.MILLISECONDS
             );
             return;
@@ -1032,7 +1037,6 @@ public abstract class InventoryTranslator<Type extends Inventory> {
         if (throwError && GeyserImpl.getInstance().config().debugMode()) {
             new Throwable("DEBUGGING: ItemStackRequest rejected " + request.toString()).printStackTrace();
         }
-        GeyserImpl.getInstance().getLogger().info("REJEEEEEEEEEEECTING");
         return new ItemStackResponse(ItemStackResponseStatus.ERROR, request.getRequestId(), Collections.emptyList());
     }
 

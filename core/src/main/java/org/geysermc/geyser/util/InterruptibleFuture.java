@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.concurrent.ScheduledFuture;
@@ -34,15 +35,15 @@ public class InterruptibleFuture {
 
     private final GeyserSession session;
 
-    private ScheduledFuture<?> future = null;
-    private Runnable runnable = null;
+    private @Nullable ScheduledFuture<?> future = null;
+    private @Nullable Runnable runnable = null;
 
     public InterruptibleFuture(GeyserSession session) {
         this.session = session;
     }
 
     public void runCurrentIfPresent() {
-        if (future != null && future.cancel(false)) {
+        if (future != null && future.cancel(false) && runnable != null) {
             runnable.run();
         }
 
