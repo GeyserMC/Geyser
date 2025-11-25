@@ -43,16 +43,10 @@ import java.util.List;
 public class BedrockEntityDefinition implements GeyserEntityDefinition {
     private final @NonNull Identifier identifier;
     private final @NonNull GeyserEntityProperties registeredProperties;
-    private final float width;
-    private final float height;
-    private final float offset;
 
-    public BedrockEntityDefinition(@NonNull Identifier identifier, @NonNull GeyserEntityProperties registeredProperties, float width, float height, float offset) {
+    public BedrockEntityDefinition(@NonNull Identifier identifier, @NonNull GeyserEntityProperties registeredProperties) {
         this.identifier = identifier;
         this.registeredProperties = registeredProperties;
-        this.width = width;
-        this.height = height;
-        this.offset = offset;
     }
 
     public static Builder builder() {
@@ -74,28 +68,10 @@ public class BedrockEntityDefinition implements GeyserEntityDefinition {
 
     public static class Builder {
         private Identifier identifier;
-        private float width;
-        private float height;
-        private float offset = 0.00001f;
         @Setter(AccessLevel.NONE)
         protected GeyserEntityProperties.Builder propertiesBuilder;
 
         public Builder() {
-        }
-
-        public Builder height(float height) {
-            this.height = height;
-            return this;
-        }
-
-        public Builder width(float width) {
-            this.width = width;
-            return this;
-        }
-
-        public Builder offset(float offset) {
-            this.offset = offset + 0.00001f;
-            return this;
         }
 
         public Builder identifier(Identifier identifier) {
@@ -109,7 +85,7 @@ public class BedrockEntityDefinition implements GeyserEntityDefinition {
         }
 
         BedrockEntityDefinition build() {
-            return new BedrockEntityDefinition(identifier, propertiesBuilder != null ? propertiesBuilder.build() : new GeyserEntityProperties(), width, height, offset);
+            return new BedrockEntityDefinition(identifier, propertiesBuilder != null ? propertiesBuilder.build() : new GeyserEntityProperties());
         }
     }
 

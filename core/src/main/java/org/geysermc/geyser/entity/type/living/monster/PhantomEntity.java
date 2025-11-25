@@ -25,27 +25,22 @@
 
 package org.geysermc.geyser.entity.type.living.monster;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityTypeDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.FlyingEntity;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
-import java.util.UUID;
-
 public class PhantomEntity extends FlyingEntity {
-    public PhantomEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityTypeDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
+    public PhantomEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     public void setPhantomScale(IntEntityMetadata entityMetadata) {
         int size = entityMetadata.getPrimitiveValue();
         float modelScale = 1f + 0.15f * size;
-        float boundsScale = (1f + (0.2f * size) / definition.width()) / modelScale;
+        float boundsScale = (1f + (0.2f * size) / width) / modelScale;
 
-        setBoundingBoxWidth(boundsScale * definition.width());
-        setBoundingBoxHeight(boundsScale * definition.height());
+        setBoundingBoxWidth(boundsScale * width);
+        setBoundingBoxHeight(boundsScale * height);
         setScale(modelScale);
     }
 

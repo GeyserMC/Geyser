@@ -26,19 +26,14 @@
 package org.geysermc.geyser.entity.type.living.animal;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityTypeDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.Tag;
-
-import java.util.UUID;
 
 public class PolarBearEntity extends AnimalEntity {
 
-    public PolarBearEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityTypeDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
+    public PolarBearEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override

@@ -54,13 +54,13 @@ import java.util.function.BiConsumer;
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public abstract class EntityTypeDefinition<T extends Entity> extends VanillaEntityBase<T> {
+public abstract class EntityTypeDefinition<T extends Entity> extends EntityTypeBase<T> {
     private final EntityFactory<T> factory;
     private final GeyserEntityType type;
     private final BedrockEntityDefinition defaultBedrockDefinition;
 
-    public EntityTypeDefinition(EntityFactory<T> factory, GeyserEntityType type, BedrockEntityDefinition defaultBedrockDefinition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
-        super(defaultBedrockDefinition.width(), defaultBedrockDefinition.height(), defaultBedrockDefinition.offset(), translators);
+    public EntityTypeDefinition(EntityFactory<T> factory, GeyserEntityType type, float width, float height, float offset, BedrockEntityDefinition defaultBedrockDefinition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+        super(width, height, offset, translators);
         this.type = type;
         this.factory = factory;
         this.defaultBedrockDefinition = defaultBedrockDefinition;
@@ -70,7 +70,7 @@ public abstract class EntityTypeDefinition<T extends Entity> extends VanillaEnti
 
     @Setter
     @Accessors(fluent = true, chain = true)
-    public static abstract class Builder<T extends Entity> extends VanillaEntityBase.Builder<T> {
+    public static abstract class Builder<T extends Entity> extends EntityTypeBase.Builder<T> {
         protected final EntityFactory<T> factory;
         protected String bedrockIdentifier;
         @Setter(AccessLevel.NONE)

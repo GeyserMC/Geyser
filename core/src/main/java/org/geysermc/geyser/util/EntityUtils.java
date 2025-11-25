@@ -112,7 +112,7 @@ public final class EntityUtils {
 
         float height = mount.getBoundingBoxHeight();
         float mountedHeightOffset = height * 0.75f;
-        EntityTypeDefinition<?> definition = mount.getJavaDefinition();
+        EntityTypeDefinition<?> definition = mount.getJavaTypeDefinition();
         if (definition.is(BuiltinEntityType.CAMEL)) {
             boolean isBaby = mount.getFlag(EntityFlag.BABY);
             mountedHeightOffset = height - (isBaby ? 0.35f : 0.6f);
@@ -149,7 +149,7 @@ public final class EntityUtils {
 
     private static float getHeightOffset(Entity passenger) {
         boolean isBaby;
-        EntityTypeDefinition<?> definition = passenger.getJavaDefinition();
+        EntityTypeDefinition<?> definition = passenger.getJavaTypeDefinition();
         if (definition.is(BuiltinEntityType.ALLAY) || definition.is(BuiltinEntityType.VEX)) {
             return 0.4f;
         } else if (definition.is(BuiltinEntityType.SKELETON) || definition.is(BuiltinEntityType.STRAY) || definition.is(BuiltinEntityType.WITHER_SKELETON)) {
@@ -176,7 +176,7 @@ public final class EntityUtils {
             return -0.35f;
         } else if (definition.is(BuiltinEntityType.SHULKER)) {
             Entity vehicle = passenger.getVehicle();
-            if (vehicle instanceof BoatEntity || vehicle.getJavaDefinition() == VanillaEntities.MINECART) {
+            if (vehicle instanceof BoatEntity || vehicle.getJavaTypeDefinition() == VanillaEntities.MINECART) {
                 return 0.1875f - getMountedHeightOffset(vehicle);
             }
         }
@@ -199,7 +199,7 @@ public final class EntityUtils {
             float xOffset = 0;
             float yOffset = mountedHeightOffset + heightOffset;
             float zOffset = 0;
-            EntityTypeDefinition<?> mountDefinition = mount.getJavaDefinition();
+            EntityTypeDefinition<?> mountDefinition = mount.getJavaTypeDefinition();
             if (mountDefinition.is(BuiltinEntityType.CAMEL)) {
                 zOffset = 0.5f;
                 if (passengers > 1) {
@@ -267,7 +267,7 @@ public final class EntityUtils {
              * Horses are tinier
              * Players, Minecarts, and Boats have different origins
              */
-            EntityTypeDefinition<?> passengerDefinition = passenger.getJavaDefinition();
+            EntityTypeDefinition<?> passengerDefinition = passenger.getJavaTypeDefinition();
             if (mountDefinition.is(BuiltinEntityType.PLAYER)) {
                 yOffset -= VanillaEntities.PLAYER_ENTITY_OFFSET;
             }
@@ -277,20 +277,20 @@ public final class EntityUtils {
             if (mountDefinition.is(BuiltinEntityType.MINECART) || mountDefinition.is(BuiltinEntityType.HOPPER_MINECART) || mountDefinition.is(BuiltinEntityType.TNT_MINECART)
                 || mountDefinition.is(BuiltinEntityType.CHEST_MINECART) || mountDefinition.is(BuiltinEntityType.FURNACE_MINECART)
                 || mountDefinition.is(BuiltinEntityType.SPAWNER_MINECART) || mountDefinition.is(BuiltinEntityType.COMMAND_BLOCK_MINECART)) {
-                yOffset -= mount.getJavaDefinition().defaultBedrockDefinition().height() * 0.5f;
+                yOffset -= mount.height() * 0.5f;
             }
             if (passengerDefinition.is(BuiltinEntityType.MINECART) || passengerDefinition.is(BuiltinEntityType.HOPPER_MINECART) || passengerDefinition.is(BuiltinEntityType.TNT_MINECART)
                 || passengerDefinition.is(BuiltinEntityType.CHEST_MINECART) || passengerDefinition.is(BuiltinEntityType.FURNACE_MINECART) || passengerDefinition.is(BuiltinEntityType.SPAWNER_MINECART)
                 || passengerDefinition.is(BuiltinEntityType.COMMAND_BLOCK_MINECART) || passengerDefinition.is(BuiltinEntityType.SHULKER)) {
-                yOffset += passenger.getJavaDefinition().defaultBedrockDefinition().height() * 0.5f;
+                yOffset += passenger.height() * 0.5f;
             } else if (passengerDefinition.is(BuiltinEntityType.FALLING_BLOCK)) {
                 yOffset += 0.995f;
             }
             if (mount instanceof BoatEntity) {
-                yOffset -= mount.getJavaDefinition().defaultBedrockDefinition().height() * 0.5f;
+                yOffset -= mount.height() * 0.5f;
             }
             if (passenger instanceof BoatEntity) {
-                yOffset += passenger.getJavaDefinition().defaultBedrockDefinition().height() * 0.5f;
+                yOffset += passenger.height() * 0.5f;
             }
             if (mount instanceof ArmorStandEntity armorStand) {
                 yOffset -= armorStand.getYOffset();

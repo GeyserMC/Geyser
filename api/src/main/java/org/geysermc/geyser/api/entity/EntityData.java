@@ -63,11 +63,8 @@ public interface EntityData {
     void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
 
     /**
-     * Gets the {@link GeyserPlayerEntity} of this connection.
-     *
-     * @return the {@link GeyserPlayerEntity} of this connection
+     * @deprecated use {@link GeyserConnection#playerEntity()}
      */
-    // TODO move to GeyserConnection
     @NonNull GeyserPlayerEntity playerEntity();
 
     /**
@@ -79,7 +76,6 @@ public interface EntityData {
      * @param owner the owner of the lock
      * @return if the movement is locked after this method call
      */
-    // TODO move to GeyserConnection
     boolean lockMovement(boolean lock, @NonNull UUID owner);
 
     /**
@@ -87,13 +83,10 @@ public interface EntityData {
      *
      * @return whether the movement is locked
      */
-    // TODO move to GeyserConnection
     boolean isMovementLocked();
 
     /**
-     * Sends a request to the Java server to switch the items in the main and offhand.
-     * There is no guarantee of the server accepting the request.
+     * @deprecated use {@link GeyserConnection#requestHandSwap()} ()}
      */
-    // TODO move to GeyserConnection
     void switchHands();
 }

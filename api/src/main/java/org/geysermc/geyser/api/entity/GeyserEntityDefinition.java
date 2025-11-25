@@ -46,25 +46,6 @@ public interface GeyserEntityDefinition {
     List<GeyserEntityProperty<?>> properties();
 
     /**
-     * @return the width of the entity
-     */
-    float width();
-
-    /**
-     * @return the height of the entity
-     */
-    float height();
-
-    /**
-     * The vertical offset applied by Geyser
-     * to entities to ensure they don't clip
-     * in the ground due to Java vs Bedrock differences.
-     *
-     * @return the offset of the entity
-     */
-    float offset();
-
-    /**
      * @return whether this entity is a vanilla entity
      */
     boolean vanilla();

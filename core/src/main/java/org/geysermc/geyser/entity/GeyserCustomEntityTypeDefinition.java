@@ -40,18 +40,15 @@ import java.util.List;
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-// TODO CHANGE TO ONLY APPLY THIS TO NON-VANILLA TYPES!
+// TODO
 public class GeyserCustomEntityTypeDefinition<T extends Entity> extends EntityTypeDefinition<T> {
 
     public GeyserCustomEntityTypeDefinition(EntityFactory<T> factory, GeyserEntityType type, BedrockEntityDefinition definition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
-        super(factory, type, definition, translators);
+        super(factory, type, 0, 0,0, definition, translators);
     }
 
     @Override
     public boolean is(BuiltinEntityType builtinEntityType) {
         return false;
     }
-
-    // TODO:
-    // - handle
 }

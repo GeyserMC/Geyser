@@ -26,7 +26,6 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -34,8 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
-import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityTypeDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.InteractionResult;
@@ -46,8 +44,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-
-import java.util.UUID;
 
 /**
  * Item frames are an entity in Java but a block entity in Bedrock.
@@ -80,8 +76,8 @@ public class ItemFrameEntity extends HangingEntity {
      */
     private boolean changed = true;
 
-    public ItemFrameEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityTypeDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
+    public ItemFrameEntity(EntitySpawnContext context) {
+        super(context);
 
         blockDefinition = buildBlockDefinition(Direction.SOUTH); // Default to SOUTH direction, like on Java - entity metadata should correct this when necessary
         bedrockPosition = Vector3i.from(position.getFloorX(), position.getFloorY(), position.getFloorZ());
@@ -177,7 +173,7 @@ public class ItemFrameEntity extends HangingEntity {
         builder.putInt("y", bedrockPosition.getY());
         builder.putInt("z", bedrockPosition.getZ());
         builder.putByte("isMovable", (byte) 1);
-        builder.putString("id", this.javaDefinition.type().is(BuiltinEntityType.GLOW_ITEM_FRAME) ? "GlowItemFrame" : "ItemFrame");
+        builder.putString("id", this.javaTypeDefinition.is(BuiltinEntityType.GLOW_ITEM_FRAME) ? "GlowItemFrame" : "ItemFrame");
         return builder.build();
     }
 
@@ -223,7 +219,7 @@ public class ItemFrameEntity extends HangingEntity {
 
     private BlockDefinition buildBlockDefinition(Direction direction) {
         NbtMapBuilder blockBuilder = NbtMap.builder()
-            .putString("name", this.javaDefinition.type().is(BuiltinEntityType.GLOW_ITEM_FRAME) ? "minecraft:glow_frame" : "minecraft:frame");
+            .putString("name", this.javaTypeDefinition.is(BuiltinEntityType.GLOW_ITEM_FRAME) ? "minecraft:glow_frame" : "minecraft:frame");
         NbtMapBuilder statesBuilder = NbtMap.builder()
             .putInt("facing_direction", direction.ordinal())
             .putByte("item_frame_map_bit", (byte) 0)

@@ -28,6 +28,4 @@ package org.geysermc.geyser.api.entity.type.player;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 
 public interface GeyserPlayerEntity extends GeyserEntity {
-
-    // TODO expose skin data here??
 }

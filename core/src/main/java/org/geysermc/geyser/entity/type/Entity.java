@@ -44,6 +44,7 @@ import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
@@ -53,6 +54,7 @@ import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.item.Items;
@@ -87,8 +89,8 @@ public class Entity implements GeyserEntity {
 
     protected final GeyserSession session;
     @Accessors(fluent = true)
-    protected BedrockEntityDefinition definition;
-    protected EntityTypeDefinition<?> javaDefinition;
+    protected BedrockEntityDefinition bedrockDefinition;
+    protected EntityTypeDefinition<?> javaTypeDefinition;
 
     protected int entityId;
     protected final long geyserId;
@@ -152,22 +154,32 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.PROTECTED) // For players
     private boolean flagsDirty = false;
 
+    @Accessors(fluent = true)
+    protected float width;
+    @Accessors(fluent = true)
+    protected float height;
+    @Accessors(fluent = true)
+    protected float offset;
+
     protected final @Nullable GeyserEntityPropertyManager propertyManager;
 
-    public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityTypeDefinition<?> definition, BedrockEntityDefinition bedrockDefinition,
-                  Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        this.session = session;
-        this.javaDefinition = definition;
-        this.definition = bedrockDefinition;
+    public Entity(EntitySpawnContext context) {
+        this.session = context.session();
+        this.javaTypeDefinition = context.entityTypeDefinition();
+        this.bedrockDefinition = context.bedrockEntityDefinition();
         this.displayName = standardDisplayName();
 
-        this.entityId = entityId;
-        this.geyserId = geyserId;
-        this.uuid = uuid;
-        this.motion = motion;
-        this.yaw = yaw;
-        this.pitch = pitch;
-        this.headYaw = headYaw;
+        this.entityId = context.javaId();
+        this.geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
+        this.uuid = context.uuid();
+        this.motion = context.motion();
+        this.yaw = context.yaw();
+        this.pitch = context.pitch();
+        this.headYaw = context.headYaw();
+
+        this.width = context.width();
+        this.height = context.height();
+        this.offset = context.offset();
 
         this.valid = false;
         // TODO null or empty check
@@ -202,7 +214,7 @@ public class Entity implements GeyserEntity {
 
     public void spawnEntity() {
         AddEntityPacket addEntityPacket = new AddEntityPacket();
-        addEntityPacket.setIdentifier(definition.identifier().toString());
+        addEntityPacket.setIdentifier(bedrockDefinition.identifier().toString());
         addEntityPacket.setRuntimeEntityId(geyserId);
         addEntityPacket.setUniqueEntityId(geyserId);
         addEntityPacket.setPosition(position);
@@ -225,7 +237,7 @@ public class Entity implements GeyserEntity {
         flagsDirty = false;
 
         if (session.getGeyser().config().debugMode() && PRINT_ENTITY_SPAWN_DEBUG) {
-            session.getGeyser().getLogger().debug("Spawned entity " + javaDefinition.type() + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
+            session.getGeyser().getLogger().debug("Spawned entity " + javaTypeDefinition.type() + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
         }
     }
 
@@ -495,7 +507,7 @@ public class Entity implements GeyserEntity {
     }
 
     protected String standardDisplayName() {
-        return EntityUtils.translatedEntityName(javaDefinition.type(), session);
+        return EntityUtils.translatedEntityName(javaTypeDefinition.type(), session);
     }
 
     protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
@@ -575,8 +587,8 @@ public class Entity implements GeyserEntity {
      */
     protected void setDimensionsFromPose(Pose pose) {
         // No flexibility options for basic entities
-        setBoundingBoxHeight(definition.height());
-        setBoundingBoxWidth(definition.width());
+        setBoundingBoxHeight(height);
+        setBoundingBoxWidth(width);
     }
 
     public boolean setBoundingBoxHeight(float height) {
@@ -788,7 +800,7 @@ public class Entity implements GeyserEntity {
         }
 
         Objects.requireNonNull(consumer);
-        GeyserEntityProperties propertyDefinitions = definition.registeredProperties();
+        GeyserEntityProperties propertyDefinitions = bedrockDefinition.registeredProperties();
         consumer.accept(new BatchPropertyUpdater() {
             @Override
             public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
@@ -829,7 +841,12 @@ public class Entity implements GeyserEntity {
     }
 
     @Override
+    public GeyserEntityDefinition definition() {
+        return bedrockDefinition;
+    }
+
+    @Override
     public Vector3f position() {
-        return this.position.down(definition.offset());
+        return this.position.down(offset);
     }
 }

@@ -25,9 +25,26 @@
 
 package org.geysermc.geyser.entity;
 
+import org.geysermc.geyser.impl.IdentifierImpl;
+
+/**
+ * Most Bedrock entities are registered in {@link VanillaEntities} - however, some are
+ * done here to be able to re-use the same bedrock entity across multiple Java types
+ */
 public class BedrockEntityDefinitions {
 
     // TODO re-usable Bedrock entity definitions??????????
     // Or rather... looking up otherwise??
+    public static final BedrockEntityDefinition ARMOR_STAND;
+
+    static {
+        ARMOR_STAND = BedrockEntityDefinition.builder()
+            .identifier(IdentifierImpl.of("armor_stand"))
+            .build();
+    }
+
+    public static void init() {
+        // no-op
+    }
 
 }

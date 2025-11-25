@@ -125,8 +125,8 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
 
         entity.setPassengers(newPassengers);
 
-        if (entity.getJavaDefinition().is(BuiltinEntityType.HORSE) || entity.getJavaDefinition().is(BuiltinEntityType.SKELETON_HORSE) || entity.getJavaDefinition().is(BuiltinEntityType.DONKEY)
-            || entity.getJavaDefinition().is(BuiltinEntityType.MULE) || entity.getJavaDefinition().is(BuiltinEntityType.RAVAGER)) {
+        if (entity.getJavaTypeDefinition().is(BuiltinEntityType.HORSE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.SKELETON_HORSE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.DONKEY)
+            || entity.getJavaTypeDefinition().is(BuiltinEntityType.MULE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.RAVAGER)) {
             entity.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 181.0f);
             entity.updateBedrockMetadata();
         }

@@ -58,7 +58,7 @@ public interface GeyserConnection extends Connection, CommandSource {
 
     /**
      * Exposes the {@link EntityData} for this connection.
-     * It allows you to get entities by their Java entity ID, show emotes, and get the player entity.
+     * It allows you to look up other entities through various methods.
      *
      * @return the EntityData for this connection.
      */
@@ -238,4 +238,17 @@ public interface GeyserConnection extends Connection, CommandSource {
     @Deprecated
     @NonNull
     Set<String> fogEffects();
+
+    /**
+     * Gets the {@link GeyserPlayerEntity} of this connection.
+     *
+     * @return the {@link GeyserPlayerEntity} of this connection
+     */
+    @NonNull GeyserPlayerEntity playerEntity();
+
+    /**
+     * Sends a request to the Java server to switch the items in the main and offhand.
+     * There is no guarantee of the server accepting the request.
+     */
+    void requestHandSwap();
 }

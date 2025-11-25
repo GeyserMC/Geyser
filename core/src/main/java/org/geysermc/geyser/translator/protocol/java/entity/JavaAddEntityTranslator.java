@@ -25,16 +25,11 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.entity.JavaEntityType;
-import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
-import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.FallingBlockEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
@@ -55,9 +50,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.object.WardenData;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
-
 @Translator(packet = ClientboundAddEntityPacket.class)
 public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEntityPacket> {
 
@@ -77,19 +69,12 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             return;
         }
 
-        Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
-        Vector3f motion = packet.getMovement().toFloat();
-        float yaw = packet.getYaw();
-        float pitch = packet.getPitch();
-        float headYaw = packet.getHeadYaw();
-
+        EntitySpawnContext context = EntitySpawnContext.fromPacket(session, definition, packet);
         if (type.is(BuiltinEntityType.PLAYER)) {
             PlayerEntity entity;
             if (packet.getUuid().equals(session.getPlayerEntity().getUuid())) {
                 // Server is sending a fake version of the current player
-                entity = new PlayerEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                        session.getPlayerEntity().getUuid(), position, motion, yaw, pitch, headYaw, session.getPlayerEntity().getUsername(),
-                        session.getPlayerEntity().getTexturesProperty());
+                entity = new PlayerEntity(context, session.getPlayerEntity().getUsername(), session.getPlayerEntity().getTexturesProperty());
             } else {
                 entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
                 if (entity == null) {
@@ -100,11 +85,11 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
                 }
 
                 entity.setEntityId(packet.getEntityId());
-                entity.setPosition(position);
-                entity.setYaw(yaw);
-                entity.setPitch(pitch);
-                entity.setHeadYaw(headYaw);
-                entity.setMotion(motion);
+                entity.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
+                entity.setYaw(packet.getYaw());
+                entity.setPitch(packet.getPitch());
+                entity.setHeadYaw(packet.getHeadYaw());
+                entity.setMotion(packet.getMovement().toFloat());
             }
 
             entity.sendPlayer();
@@ -116,57 +101,27 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             return;
         }
 
-        BedrockEntityDefinition bedrockDefinition = definition.defaultBedrockDefinition();
-        AtomicReference<GeyserEntityDefinition> eventDefinition = new AtomicReference<>(bedrockDefinition);
-        GeyserImpl.getInstance().getEventBus().fire(new ServerSpawnEntityEvent(session) {
-
-            @Override
-            public int entityId() {
-                return packet.getEntityId();
-            }
-
-            @Override
-            public @NonNull UUID uuid() {
-                return packet.getUuid();
-            }
-
-            @Override
-            public @NonNull JavaEntityType entityType() {
-                return type;
-            }
-
-            @Override
-            public @Nullable GeyserEntityDefinition entityDefinition() {
-                return eventDefinition.get();
-            }
-
-            @Override
-            public void entityDefinition(@Nullable GeyserEntityDefinition entityDefinition) {
-                eventDefinition.set(entityDefinition);
-            }
-        });
-
-        if (eventDefinition.get() != bedrockDefinition) {
+        context.callEvent();
+        if (context.bedrockEntityDefinition() == null) {
+            // TODO log warn
+            return;
         }
 
         Entity entity;
         if (type.is(BuiltinEntityType.FALLING_BLOCK)) {
-            entity = new FallingBlockEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
-                    bedrockDefinition, position, motion, yaw, pitch, headYaw, ((FallingBlockData) packet.getData()).getId());
+            entity = new FallingBlockEntity(context, ((FallingBlockData) packet.getData()).getId());
         } else if (type.is(BuiltinEntityType.FISHING_BOBBER)) {
             // Fishing bobbers need the owner for the line
             int ownerEntityId = ((ProjectileData) packet.getData()).getOwnerId();
             Entity owner = session.getEntityCache().getEntityByJavaId(ownerEntityId);
             // Java clients only spawn fishing hooks with a player as its owner
             if (owner instanceof PlayerEntity) {
-                entity = new FishingHookEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(), packet.getUuid(),
-                        bedrockDefinition, position, motion, yaw, pitch, headYaw, (PlayerEntity) owner);
+                entity = new FishingHookEntity(context, (PlayerEntity) owner);
             } else {
                 return;
             }
         } else {
-            entity = definition.factory().create(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                    packet.getUuid(), definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
+            entity = definition.factory().create(context);
 
             // This is done over entity metadata in modern versions, but is still sent over network in the spawn packet
             if (entity instanceof HangingEntity hanging) {

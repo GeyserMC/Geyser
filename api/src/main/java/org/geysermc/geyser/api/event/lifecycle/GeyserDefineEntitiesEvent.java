@@ -67,5 +67,5 @@ public interface GeyserDefineEntitiesEvent extends Event {
      * @param javaEntityType the identifier of the Java entity type
      * @param javaId the network id of this entity type
      */
-    void registerEntityType(@NonNull Identifier javaEntityType, int javaId);
+    void registerEntityType(@NonNull Identifier javaEntityType, int javaId, CustomEntityDefinition defaultDefinition);
 }

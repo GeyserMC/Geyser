@@ -120,8 +120,8 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
 
             EntityTypeDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);
             if (definition != null) {
-                builder.putFloat("DisplayEntityWidth", definition.defaultBedrockDefinition().width());
-                builder.putFloat("DisplayEntityHeight", definition.defaultBedrockDefinition().height());
+                builder.putFloat("DisplayEntityWidth", definition.width());
+                builder.putFloat("DisplayEntityHeight", definition.height());
                 builder.putFloat("DisplayEntityScale", 1.0f);
             }
         }

@@ -340,7 +340,7 @@ public final class VanillaEntities {
     public static final float PLAYER_ENTITY_OFFSET;
 
     static {
-        VanillaEntityBase<Entity> entityBase = EntityTypeDefinition.baseBuilder(Entity.class)
+        EntityTypeBase<Entity> entityBase = EntityTypeDefinition.baseBuilder(Entity.class)
                 .addTranslator(MetadataTypes.BYTE, Entity::setFlags)
                 .addTranslator(MetadataTypes.INT, Entity::setAir) // Air/bubbles
                 .addTranslator(MetadataTypes.OPTIONAL_COMPONENT, Entity::setDisplayName)
@@ -435,7 +435,7 @@ public final class VanillaEntities {
                     .addTranslator(MetadataTypes.INT, TNTEntity::setFuseLength)
                     .build();
 
-            VanillaEntityBase<DisplayBaseEntity> displayBase = VanillaEntityBase.baseInherited(DisplayBaseEntity.class, entityBase)
+            EntityTypeBase<DisplayBaseEntity> displayBase = EntityTypeBase.baseInherited(DisplayBaseEntity.class, entityBase)
                     .addTranslator(null) // Interpolation delay
                     .addTranslator(null) // Transformation interpolation duration
                     .addTranslator(null) // Position/Rotation interpolation duration
@@ -454,7 +454,7 @@ public final class VanillaEntities {
                     .build();
             TEXT_DISPLAY = VanillaEntityType.inherited(TextDisplayEntity::new, displayBase)
                     .type(BuiltinEntityType.TEXT_DISPLAY)
-                    .bedrockIdentifier("minecraft:armor_stand")
+                    .bedrockDefinition(BedrockEntityDefinitions.ARMOR_STAND)
                     .offset(-0.5f)
                     .addTranslator(MetadataTypes.COMPONENT, TextDisplayEntity::setText)
                     .addTranslator(null) // Line width
@@ -466,13 +466,13 @@ public final class VanillaEntities {
             INTERACTION = VanillaEntityType.inherited(InteractionEntity::new, entityBase)
                     .type(BuiltinEntityType.INTERACTION)
                     .heightAndWidth(1.0f) // default size until server specifies otherwise
-                    .bedrockDefinition(ARMOR_STAND.defaultBedrockDefinition())
+                    .bedrockDefinition(BedrockEntityDefinitions.ARMOR_STAND)
                     .addTranslator(MetadataTypes.FLOAT, InteractionEntity::setWidth)
                     .addTranslator(MetadataTypes.FLOAT, InteractionEntity::setHeight)
                     .addTranslator(MetadataTypes.BOOLEAN, InteractionEntity::setResponse)
                     .build();
 
-            VanillaEntityBase<FireballEntity> fireballBase = VanillaEntityBase.baseInherited(FireballEntity.class, entityBase)
+            EntityTypeBase<FireballEntity> fireballBase = EntityTypeBase.baseInherited(FireballEntity.class, entityBase)
                     .addTranslator(null) // Item
                     .build();
             FIREBALL = VanillaEntityType.inherited(FireballEntity::new, fireballBase)
@@ -484,7 +484,7 @@ public final class VanillaEntities {
                     .heightAndWidth(0.3125f)
                     .build();
 
-            VanillaEntityBase<ThrowableItemEntity> throwableItemBase = VanillaEntityBase.baseInherited(ThrowableItemEntity.class, entityBase)
+            EntityTypeBase<ThrowableItemEntity> throwableItemBase = EntityTypeBase.baseInherited(ThrowableItemEntity.class, entityBase)
                     .addTranslator(MetadataTypes.ITEM_STACK, ThrowableItemEntity::setItem)
                     .build();
             EGG = VanillaEntityType.inherited(ThrowableEggEntity::new, throwableItemBase)
@@ -528,7 +528,7 @@ public final class VanillaEntities {
                     .heightAndWidth(0.3125f)
                     .build();
 
-            VanillaEntityBase<AbstractArrowEntity> abstractArrowBase = VanillaEntityBase.baseInherited(AbstractArrowEntity.class, entityBase)
+            EntityTypeBase<AbstractArrowEntity> abstractArrowBase = EntityTypeBase.baseInherited(AbstractArrowEntity.class, entityBase)
                     .addTranslator(MetadataTypes.BYTE, AbstractArrowEntity::setArrowFlags)
                     .addTranslator(null) // "Piercing level"
                     .addTranslator(null) // If the arrow is in the ground
@@ -550,7 +550,7 @@ public final class VanillaEntities {
                     .addTranslator(MetadataTypes.BOOLEAN, (tridentEntity, entityMetadata) -> tridentEntity.setFlag(EntityFlag.ENCHANTED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                     .build();
 
-            VanillaEntityBase<HangingEntity> hangingEntityBase = VanillaEntityBase.baseInherited(HangingEntity.class, entityBase)
+            EntityTypeBase<HangingEntity> hangingEntityBase = EntityTypeBase.baseInherited(HangingEntity.class, entityBase)
                 .addTranslator(MetadataTypes.DIRECTION, HangingEntity::setDirectionMetadata)
                 .build();
 
@@ -614,9 +614,6 @@ public final class VanillaEntities {
             // Bedrock exclusive entity
             IdentifierImpl dangerousSkull = IdentifierImpl.of("wither_skull_dangerous");
             BedrockEntityDefinition bedrockDefinition = BedrockEntityDefinition.builder()
-                .height(WITHER_SKULL.height)
-                .width(WITHER_SKULL.width)
-                .offset(WITHER_SKULL.offset)
                 .identifier(dangerousSkull)
                 .build();
             Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(dangerousSkull, bedrockDefinition);
@@ -627,7 +624,7 @@ public final class VanillaEntities {
 
         // Boats
         {
-            VanillaEntityBase<BoatEntity> boatBase = VanillaEntityBase.baseInherited(BoatEntity.class, entityBase)
+            EntityTypeBase<BoatEntity> boatBase = EntityTypeBase.baseInherited(BoatEntity.class, entityBase)
                 .height(0.6f).width(1.6f)
                 .offset(0.35f)
                 .addTranslator(MetadataTypes.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_TICKS, entityMetadata.getValue())) // Time since last hit
@@ -651,7 +648,7 @@ public final class VanillaEntities {
             SPRUCE_BOAT = buildBoat(boatBase, BuiltinEntityType.SPRUCE_BOAT, BoatEntity.BoatVariant.SPRUCE);
             PALE_OAK_BOAT = buildBoat(boatBase, BuiltinEntityType.PALE_OAK_BOAT, BoatEntity.BoatVariant.PALE_OAK);
 
-            VanillaEntityBase<ChestBoatEntity> chestBoatBase = VanillaEntityBase.baseInherited(ChestBoatEntity.class, boatBase)
+            EntityTypeBase<ChestBoatEntity> chestBoatBase = EntityTypeBase.baseInherited(ChestBoatEntity.class, boatBase)
                 .build();
 
             ACACIA_CHEST_BOAT = buildChestBoat(chestBoatBase, BuiltinEntityType.ACACIA_CHEST_BOAT, BoatEntity.BoatVariant.ACACIA);
@@ -666,7 +663,7 @@ public final class VanillaEntities {
             PALE_OAK_CHEST_BOAT = buildChestBoat(chestBoatBase, BuiltinEntityType.PALE_OAK_CHEST_BOAT, BoatEntity.BoatVariant.PALE_OAK);
         }
 
-        VanillaEntityBase<LivingEntity> livingEntityBase = VanillaEntityBase.baseInherited(LivingEntity.class, entityBase)
+        EntityTypeBase<LivingEntity> livingEntityBase = EntityTypeBase.baseInherited(LivingEntity.class, entityBase)
                 .addTranslator(MetadataTypes.BYTE, LivingEntity::setLivingEntityFlags)
                 .addTranslator(MetadataTypes.FLOAT, LivingEntity::setHealth)
                 .addTranslator(MetadataTypes.PARTICLES, LivingEntity::setParticles)
@@ -679,6 +676,7 @@ public final class VanillaEntities {
 
         ARMOR_STAND = VanillaEntityType.inherited(ArmorStandEntity::new, livingEntityBase)
                 .type(BuiltinEntityType.ARMOR_STAND)
+                .bedrockDefinition(BedrockEntityDefinitions.ARMOR_STAND)
                 .height(1.975f).width(0.5f)
                 .addTranslator(MetadataTypes.BYTE, ArmorStandEntity::setArmorStandFlags)
                 .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setHeadRotation)
@@ -689,7 +687,7 @@ public final class VanillaEntities {
                 .addTranslator(MetadataTypes.ROTATIONS, ArmorStandEntity::setRightLegRotation)
                 .build();
 
-        VanillaEntityBase<AvatarEntity> avatarEntityBase = VanillaEntityBase.baseInherited(AvatarEntity.class, livingEntityBase)
+        EntityTypeBase<AvatarEntity> avatarEntityBase = EntityTypeBase.baseInherited(AvatarEntity.class, livingEntityBase)
             .height(1.8f).width(0.6f)
             .offset(1.62f)
             .addTranslator(null) // Player main hand
@@ -711,7 +709,7 @@ public final class VanillaEntities {
                 .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, PlayerEntity::setRightParrot)
                 .build();
 
-        VanillaEntityBase<MobEntity> mobEntityBase = VanillaEntityBase.baseInherited(MobEntity.class, livingEntityBase)
+        EntityTypeBase<MobEntity> mobEntityBase = EntityTypeBase.baseInherited(MobEntity.class, livingEntityBase)
                 .addTranslator(MetadataTypes.BYTE, MobEntity::setMobFlags)
                 .build();
 
@@ -921,7 +919,7 @@ public final class VanillaEntities {
                     .type(BuiltinEntityType.MAGMA_CUBE)
                     .build();
 
-            VanillaEntityBase<AbstractFishEntity> abstractFishEntityBase = VanillaEntityBase.baseInherited(AbstractFishEntity.class, mobEntityBase)
+            EntityTypeBase<AbstractFishEntity> abstractFishEntityBase = EntityTypeBase.baseInherited(AbstractFishEntity.class, mobEntityBase)
                     .addTranslator(null) // From bucket
                     .build();
             COD = VanillaEntityType.inherited(AbstractFishEntity::new, abstractFishEntityBase)
@@ -949,7 +947,7 @@ public final class VanillaEntities {
                     .addTranslator(MetadataTypes.INT, TropicalFishEntity::setFishVariant)
                     .build();
 
-            VanillaEntityBase<BasePiglinEntity> abstractPiglinEntityBase = VanillaEntityBase.baseInherited(BasePiglinEntity.class, mobEntityBase)
+            EntityTypeBase<BasePiglinEntity> abstractPiglinEntityBase = EntityTypeBase.baseInherited(BasePiglinEntity.class, mobEntityBase)
                     .addTranslator(MetadataTypes.BOOLEAN, BasePiglinEntity::setImmuneToZombification)
                     .build();
             PIGLIN = VanillaEntityType.inherited(PiglinEntity::new, abstractPiglinEntityBase)
@@ -964,10 +962,10 @@ public final class VanillaEntities {
                     .height(1.95f).width(0.6f)
                     .build();
 
-            VanillaEntityBase<RaidParticipantEntity> raidParticipantEntityBase = VanillaEntityBase.baseInherited(RaidParticipantEntity.class, mobEntityBase)
+            EntityTypeBase<RaidParticipantEntity> raidParticipantEntityBase = EntityTypeBase.baseInherited(RaidParticipantEntity.class, mobEntityBase)
                     .addTranslator(null) // Celebrating //TODO
                     .build();
-            VanillaEntityBase<SpellcasterIllagerEntity> spellcasterEntityBase = VanillaEntityBase.baseInherited(SpellcasterIllagerEntity.class, raidParticipantEntityBase)
+            EntityTypeBase<SpellcasterIllagerEntity> spellcasterEntityBase = EntityTypeBase.baseInherited(SpellcasterIllagerEntity.class, raidParticipantEntityBase)
                     .addTranslator(MetadataTypes.BYTE, SpellcasterIllagerEntity::setSpellType)
                     .build();
             EVOKER = VanillaEntityType.inherited(SpellcasterIllagerEntity::new, spellcasterEntityBase)
@@ -1003,7 +1001,7 @@ public final class VanillaEntities {
                     .build();
         }
 
-        VanillaEntityBase<AgeableEntity> ageableEntityBase = VanillaEntityBase.baseInherited(AgeableEntity.class, mobEntityBase)
+        EntityTypeBase<AgeableEntity> ageableEntityBase = EntityTypeBase.baseInherited(AgeableEntity.class, mobEntityBase)
                 .addTranslator(MetadataTypes.BOOLEAN, AgeableEntity::setBaby)
                 .build();
 
@@ -1178,7 +1176,7 @@ public final class VanillaEntities {
 
         // Horses
         {
-            VanillaEntityBase<AbstractHorseEntity> abstractHorseEntityBase = VanillaEntityBase.baseInherited(AbstractHorseEntity.class, ageableEntityBase)
+            EntityTypeBase<AbstractHorseEntity> abstractHorseEntityBase = EntityTypeBase.baseInherited(AbstractHorseEntity.class, ageableEntityBase)
                     .addTranslator(MetadataTypes.BYTE, AbstractHorseEntity::setHorseFlags)
                     .build();
             CAMEL = VanillaEntityType.inherited(CamelEntity::new, abstractHorseEntityBase)
@@ -1200,7 +1198,7 @@ public final class VanillaEntities {
                     .type(BuiltinEntityType.ZOMBIE_HORSE)
                     .height(1.6f).width(1.3965f)
                     .build();
-            VanillaEntityBase<ChestedHorseEntity> chestedHorseEntityBase = VanillaEntityBase.baseInherited(ChestedHorseEntity.class, abstractHorseEntityBase)
+            EntityTypeBase<ChestedHorseEntity> chestedHorseEntityBase = EntityTypeBase.baseInherited(ChestedHorseEntity.class, abstractHorseEntityBase)
                     .addTranslator(MetadataTypes.BOOLEAN, (horseEntity, entityMetadata) -> horseEntity.setFlag(EntityFlag.CHESTED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                     .build();
             DONKEY = VanillaEntityType.inherited(ChestedHorseEntity::new, chestedHorseEntityBase)
@@ -1223,7 +1221,7 @@ public final class VanillaEntities {
                     .build();
         }
 
-        VanillaEntityBase<TameableEntity> tameableEntityBase = VanillaEntityBase.baseInherited(TameableEntity.class, ageableEntityBase)
+        EntityTypeBase<TameableEntity> tameableEntityBase = EntityTypeBase.baseInherited(TameableEntity.class, ageableEntityBase)
                 .addTranslator(MetadataTypes.BYTE, TameableEntity::setTameableFlags)
                 .addTranslator(MetadataTypes.OPTIONAL_LIVING_ENTITY_REFERENCE, TameableEntity::setOwner)
                 .build();
@@ -1254,25 +1252,23 @@ public final class VanillaEntities {
 
         // As of 1.18 these don't track entity data at all
         ENDER_DRAGON_PART = VanillaEntityType.<EnderDragonPartEntity>builder(null)
-                .bedrockDefinition(ARMOR_STAND.defaultBedrockDefinition()) // Emulated
+                .bedrockDefinition(BedrockEntityDefinitions.ARMOR_STAND) // Emulated
                 .build(false); // Never sent over the network
 
-        PLAYER_ENTITY_OFFSET = PLAYER.defaultBedrockDefinition().offset();
+        PLAYER_ENTITY_OFFSET = PLAYER.offset();
 
         Registries.JAVA_ENTITY_IDENTIFIERS.get().put("minecraft:marker", null); // We don't need an entity definition for this as it is never sent over the network
     }
 
-    private static VanillaEntityType<BoatEntity> buildBoat(VanillaEntityBase<BoatEntity> base, BuiltinEntityType BuiltinEntityType, BoatEntity.BoatVariant variant) {
-        return VanillaEntityType.inherited((session, javaId, bedrockId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw) ->
-            new BoatEntity(session, javaId, bedrockId, uuid, definition, bedrockDefinition, position, motion, yaw, variant), base)
+    private static VanillaEntityType<BoatEntity> buildBoat(EntityTypeBase<BoatEntity> base, BuiltinEntityType BuiltinEntityType, BoatEntity.BoatVariant variant) {
+        return VanillaEntityType.inherited(context -> new BoatEntity(context, variant), base)
             .type(BuiltinEntityType)
             .bedrockIdentifier("minecraft:boat")
             .build();
     }
 
-    private static VanillaEntityType<ChestBoatEntity> buildChestBoat(VanillaEntityBase<ChestBoatEntity> base, BuiltinEntityType BuiltinEntityType, BoatEntity.BoatVariant variant) {
-        return VanillaEntityType.inherited((session, javaId, bedrockId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw) ->
-                new ChestBoatEntity(session, javaId, bedrockId, uuid, definition, bedrockDefinition, position, motion, yaw, variant), base)
+    private static VanillaEntityType<ChestBoatEntity> buildChestBoat(EntityTypeBase<ChestBoatEntity> base, BuiltinEntityType BuiltinEntityType, BoatEntity.BoatVariant variant) {
+        return VanillaEntityType.inherited(context -> new ChestBoatEntity(context, variant), base)
             .type(BuiltinEntityType)
             .bedrockIdentifier("minecraft:chest_boat")
             .build();
@@ -1297,7 +1293,7 @@ public final class VanillaEntities {
             }
 
             @Override
-            public void registerEntityType(@NonNull Identifier javaEntityType, int javaId) {
+            public void registerEntityType(@NonNull Identifier javaEntityType, int javaId, CustomEntityDefinition definition) {
                 GeyserEntityType.createCustomAndRegister(javaEntityType, javaId);
 
                 // TODO allow extending vanilla entities?

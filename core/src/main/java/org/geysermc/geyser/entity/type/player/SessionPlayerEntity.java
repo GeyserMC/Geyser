@@ -40,6 +40,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
@@ -131,7 +132,8 @@ public class SessionPlayerEntity extends PlayerEntity {
     private float javaYaw;
 
     public SessionPlayerEntity(GeyserSession session) {
-        super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
+        super(new EntitySpawnContext(session, VanillaEntities.PLAYER, -1, null, VanillaEntities.PLAYER.defaultBedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO,
+            0, 0, 0, VanillaEntities.PLAYER.height(), VanillaEntities.PLAYER.width(), VanillaEntities.PLAYER.offset(), 1), null, null);
 
         valid = true;
     }
@@ -163,7 +165,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
-        session.getCollisionManager().updatePlayerBoundingBox(this.position.down(definition.offset()));
+        session.getCollisionManager().updatePlayerBoundingBox(this.position.down(offset));
     }
 
     @Override
@@ -175,7 +177,7 @@ public class SessionPlayerEntity extends PlayerEntity {
                 session.setNoClip(false);
             }
         }
-        this.position = position.add(0, definition.offset(), 0);
+        this.position = position.add(0, offset, 0);
     }
 
     /**
@@ -471,8 +473,8 @@ public class SessionPlayerEntity extends PlayerEntity {
             entity.setBoundingBoxHeight(0.5625F);
             entity.updateBedrockMetadata();
         } else if (entity == null && this.vehicle instanceof BoatEntity) {
-            this.vehicle.setBoundingBoxWidth(this.vehicle.getJavaDefinition().defaultBedrockDefinition().width());
-            this.vehicle.setBoundingBoxHeight(this.vehicle.getJavaDefinition().defaultBedrockDefinition().height());
+            this.vehicle.setBoundingBoxWidth(this.vehicle.width());
+            this.vehicle.setBoundingBoxHeight(this.vehicle.height());
             this.vehicle.updateBedrockMetadata();
         }
 

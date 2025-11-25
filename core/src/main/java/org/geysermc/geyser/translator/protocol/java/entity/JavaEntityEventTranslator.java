@@ -39,7 +39,6 @@ import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.EvokerFangsEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
@@ -55,6 +54,7 @@ import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundEntityEventPacket;
 
 import java.util.Collections;
@@ -109,7 +109,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                     for (int i = 0; i < 6; i++) {
                         session.sendUpstreamPacket(particlePacket);
                     }
-                } else if (entity.getJavaDefinition() == VanillaEntities.SNOWBALL) {
+                } else if (entity.getJavaTypeDefinition().is(BuiltinEntityType.SNOWBALL)) {
                     LevelEventPacket particlePacket = new LevelEventPacket();
                     particlePacket.setType(ParticleType.SNOWBALL_POOF);
                     particlePacket.setPosition(entity.getPosition());
@@ -198,7 +198,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
 
                 return;
             case SHEEP_GRAZE_OR_TNT_CART_EXPLODE:
-                if (entity.getJavaDefinition() == VanillaEntities.SHEEP) {
+                if (entity.getJavaTypeDefinition().is(BuiltinEntityType.SHEEP)) {
                     entityEventPacket.setType(EntityEventType.EAT_GRASS);
                 } else {
                     entityEventPacket.setType(EntityEventType.PRIME_TNT_MINECART);
@@ -216,23 +216,23 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case VILLAGER_SWEAT:
                 LevelEventPacket levelEventPacket = new LevelEventPacket();
                 levelEventPacket.setType(ParticleType.WATER_SPLASH);
-                levelEventPacket.setPosition(entity.getPosition().up(entity.definition().height()));
+                levelEventPacket.setPosition(entity.getPosition().up(entity.height()));
                 session.sendUpstreamPacket(levelEventPacket);
                 return;
             case IRON_GOLEM_EMPTY_HAND:
                 entityEventPacket.setType(EntityEventType.GOLEM_FLOWER_WITHDRAW);
                 break;
             case ATTACK:
-                if (entity.getJavaDefinition() == VanillaEntities.IRON_GOLEM || entity.getJavaDefinition() == VanillaEntities.EVOKER_FANGS
-                        || entity.getJavaDefinition() == VanillaEntities.WARDEN) {
+                if (entity.getJavaTypeDefinition().is(BuiltinEntityType.IRON_GOLEM) || entity.getJavaTypeDefinition().is(BuiltinEntityType.EVOKER_FANGS)
+                        || entity.getJavaTypeDefinition().is(BuiltinEntityType.WARDEN)) {
                     entityEventPacket.setType(EntityEventType.ATTACK_START);
-                    if (entity.getJavaDefinition() == VanillaEntities.EVOKER_FANGS) {
+                    if (entity.getJavaTypeDefinition().is(BuiltinEntityType.EVOKER_FANGS)) {
                         ((EvokerFangsEntity) entity).setAttackStarted();
                     }
                 }
                 break;
             case RABBIT_JUMP_OR_MINECART_SPAWNER_DELAY_RESET:
-                if (entity.getJavaDefinition() == VanillaEntities.RABBIT) {
+                if (entity.getJavaTypeDefinition().is(BuiltinEntityType.RABBIT)) {
                     // This doesn't match vanilla Bedrock behavior but I'm unsure how to make it better
                     // I assume part of the problem is that Bedrock uses a duration and Java just says the rabbit is jumping
                     SetEntityDataPacket dataPacket = new SetEntityDataPacket();
@@ -266,12 +266,12 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 }
                 return;
             case GOAT_LOWERING_HEAD:
-                if (entity.getJavaDefinition() == VanillaEntities.GOAT) {
+                if (entity.getJavaTypeDefinition().is(BuiltinEntityType.GOAT)) {
                     entityEventPacket.setType(EntityEventType.ATTACK_START);
                 }
                 break;
             case GOAT_STOP_LOWERING_HEAD:
-                if (entity.getJavaDefinition() == VanillaEntities.GOAT) {
+                if (entity.getJavaTypeDefinition().is(BuiltinEntityType.GOAT)) {
                     entityEventPacket.setType(EntityEventType.ATTACK_STOP);
                 }
                 break;
@@ -283,7 +283,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 }
                 break;
             case WARDEN_RECEIVE_SIGNAL:
-                if (entity.getJavaDefinition() == VanillaEntities.WARDEN) {
+                if (entity.getJavaTypeDefinition().is(BuiltinEntityType.WARDEN)) {
                     entityEventPacket.setType(EntityEventType.VIBRATION_DETECTED);
                 }
                 break;

@@ -48,23 +48,23 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Boolea
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 
 public final class VanillaEntityBases {
-    public static final VanillaEntityBase<Entity> ENTITY;
-    public static final VanillaEntityBase<DisplayBaseEntity> DISPLAY;
-    public static final VanillaEntityBase<FireballEntity> FIREBALL;
-    public static final VanillaEntityBase<ThrowableItemEntity> THROWABLE;
-    public static final VanillaEntityBase<HangingEntity> HANGING;
-    public static final VanillaEntityBase<BoatEntity> BOAT;
-    public static final VanillaEntityBase<ChestBoatEntity> CHEST_BOAT;
-    public static final VanillaEntityBase<LivingEntity> LIVING_ENTITY;
-    public static final VanillaEntityBase<AvatarEntity> AVATAR;
-    public static final VanillaEntityBase<MobEntity> MOB;
-    public static final VanillaEntityBase<AbstractFishEntity> FISH;
-    public static final VanillaEntityBase<BasePiglinEntity> PIGLIN;
-    public static final VanillaEntityBase<RaidParticipantEntity> RAID_PARTICIPANT;
-    public static final VanillaEntityBase<SpellcasterIllagerEntity> SPELLCASTER;
-    public static final VanillaEntityBase<AgeableEntity> AGEABLE;
-    public static final VanillaEntityBase<AbstractHorseEntity> HORSE;
-    public static final VanillaEntityBase<TameableEntity> TAMABLE;
+    public static final EntityTypeBase<Entity> ENTITY;
+    public static final EntityTypeBase<DisplayBaseEntity> DISPLAY;
+    public static final EntityTypeBase<FireballEntity> FIREBALL;
+    public static final EntityTypeBase<ThrowableItemEntity> THROWABLE;
+    public static final EntityTypeBase<HangingEntity> HANGING;
+    public static final EntityTypeBase<BoatEntity> BOAT;
+    public static final EntityTypeBase<ChestBoatEntity> CHEST_BOAT;
+    public static final EntityTypeBase<LivingEntity> LIVING_ENTITY;
+    public static final EntityTypeBase<AvatarEntity> AVATAR;
+    public static final EntityTypeBase<MobEntity> MOB;
+    public static final EntityTypeBase<AbstractFishEntity> FISH;
+    public static final EntityTypeBase<BasePiglinEntity> PIGLIN;
+    public static final EntityTypeBase<RaidParticipantEntity> RAID_PARTICIPANT;
+    public static final EntityTypeBase<SpellcasterIllagerEntity> SPELLCASTER;
+    public static final EntityTypeBase<AgeableEntity> AGEABLE;
+    public static final EntityTypeBase<AbstractHorseEntity> HORSE;
+    public static final EntityTypeBase<TameableEntity> TAMABLE;
 
     static {
         ENTITY = EntityTypeDefinition.baseBuilder(Entity.class)
@@ -77,7 +77,7 @@ public final class VanillaEntityBases {
             .addTranslator(MetadataTypes.POSE, (entity, entityMetadata) -> entity.setPose(entityMetadata.getValue()))
             .addTranslator(MetadataTypes.INT, Entity::setFreezing)
             .build();
-        DISPLAY = VanillaEntityBase.baseInherited(DisplayBaseEntity.class, ENTITY)
+        DISPLAY = EntityTypeBase.baseInherited(DisplayBaseEntity.class, ENTITY)
             .addTranslator(null) // Interpolation delay
             .addTranslator(null) // Transformation interpolation duration
             .addTranslator(null) // Position/Rotation interpolation duration
@@ -94,16 +94,16 @@ public final class VanillaEntityBases {
             .addTranslator(null) // Height
             .addTranslator(null) // Glow color override
             .build();
-        FIREBALL = VanillaEntityBase.baseInherited(FireballEntity.class, ENTITY)
+        FIREBALL = EntityTypeBase.baseInherited(FireballEntity.class, ENTITY)
             .addTranslator(null) // Item
             .build();
-        THROWABLE = VanillaEntityBase.baseInherited(ThrowableItemEntity.class, ENTITY)
+        THROWABLE = EntityTypeBase.baseInherited(ThrowableItemEntity.class, ENTITY)
             .addTranslator(MetadataTypes.ITEM_STACK, ThrowableItemEntity::setItem)
             .build();
-        HANGING = VanillaEntityBase.baseInherited(HangingEntity.class, ENTITY)
+        HANGING = EntityTypeBase.baseInherited(HangingEntity.class, ENTITY)
             .addTranslator(MetadataTypes.DIRECTION, HangingEntity::setDirectionMetadata)
             .build();
-        BOAT = VanillaEntityBase.baseInherited(BoatEntity.class, ENTITY)
+        BOAT = EntityTypeBase.baseInherited(BoatEntity.class, ENTITY)
             .height(0.6f).width(1.6f)
             .offset(0.35f)
             .addTranslator(MetadataTypes.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_TICKS, entityMetadata.getValue())) // Time since last hit
@@ -115,9 +115,9 @@ public final class VanillaEntityBases {
             .addTranslator(MetadataTypes.BOOLEAN, BoatEntity::setPaddlingRight)
             .addTranslator(MetadataTypes.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.BOAT_BUBBLE_TIME, entityMetadata.getValue())) // May not actually do anything
             .build();
-        CHEST_BOAT = VanillaEntityBase.baseInherited(ChestBoatEntity.class, BOAT)
+        CHEST_BOAT = EntityTypeBase.baseInherited(ChestBoatEntity.class, BOAT)
             .build();
-        LIVING_ENTITY = VanillaEntityBase.baseInherited(LivingEntity.class, ENTITY)
+        LIVING_ENTITY = EntityTypeBase.baseInherited(LivingEntity.class, ENTITY)
             .addTranslator(MetadataTypes.BYTE, LivingEntity::setLivingEntityFlags)
             .addTranslator(MetadataTypes.FLOAT, LivingEntity::setHealth)
             .addTranslator(MetadataTypes.PARTICLES, LivingEntity::setParticles)
@@ -127,34 +127,34 @@ public final class VanillaEntityBases {
             .addTranslator(null) // Stinger count
             .addTranslator(MetadataTypes.OPTIONAL_BLOCK_POS, LivingEntity::setBedPosition)
             .build();
-        AVATAR = VanillaEntityBase.baseInherited(AvatarEntity.class, LIVING_ENTITY)
+        AVATAR = EntityTypeBase.baseInherited(AvatarEntity.class, LIVING_ENTITY)
             .height(1.8f).width(0.6f)
             .offset(1.62f)
             .addTranslator(null) // Player main hand
             .addTranslator(MetadataTypes.BYTE, AvatarEntity::setSkinVisibility)
             .build();
-        MOB = VanillaEntityBase.baseInherited(MobEntity.class, LIVING_ENTITY)
+        MOB = EntityTypeBase.baseInherited(MobEntity.class, LIVING_ENTITY)
             .addTranslator(MetadataTypes.BYTE, MobEntity::setMobFlags)
             .build();
-        FISH = VanillaEntityBase.baseInherited(AbstractFishEntity.class, MOB)
+        FISH = EntityTypeBase.baseInherited(AbstractFishEntity.class, MOB)
             .addTranslator(null) // From bucket
             .build();
-        PIGLIN = VanillaEntityBase.baseInherited(BasePiglinEntity.class, MOB)
+        PIGLIN = EntityTypeBase.baseInherited(BasePiglinEntity.class, MOB)
             .addTranslator(MetadataTypes.BOOLEAN, BasePiglinEntity::setImmuneToZombification)
             .build();
-        RAID_PARTICIPANT = VanillaEntityBase.baseInherited(RaidParticipantEntity.class, MOB)
+        RAID_PARTICIPANT = EntityTypeBase.baseInherited(RaidParticipantEntity.class, MOB)
             .addTranslator(null) // Celebrating //TODO
             .build();
-        SPELLCASTER = VanillaEntityBase.baseInherited(SpellcasterIllagerEntity.class, RAID_PARTICIPANT)
+        SPELLCASTER = EntityTypeBase.baseInherited(SpellcasterIllagerEntity.class, RAID_PARTICIPANT)
             .addTranslator(MetadataTypes.BYTE, SpellcasterIllagerEntity::setSpellType)
             .build();
-        AGEABLE = VanillaEntityBase.baseInherited(AgeableEntity.class, MOB)
+        AGEABLE = EntityTypeBase.baseInherited(AgeableEntity.class, MOB)
             .addTranslator(MetadataTypes.BOOLEAN, AgeableEntity::setBaby)
             .build();
-        HORSE = VanillaEntityBase.baseInherited(AbstractHorseEntity.class, AGEABLE)
+        HORSE = EntityTypeBase.baseInherited(AbstractHorseEntity.class, AGEABLE)
             .addTranslator(MetadataTypes.BYTE, AbstractHorseEntity::setHorseFlags)
             .build();
-        TAMABLE = VanillaEntityBase.baseInherited(TameableEntity.class, AGEABLE)
+        TAMABLE = EntityTypeBase.baseInherited(TameableEntity.class, AGEABLE)
             .addTranslator(MetadataTypes.BYTE, TameableEntity::setTameableFlags)
             .addTranslator(MetadataTypes.OPTIONAL_LIVING_ENTITY_REFERENCE, TameableEntity::setOwner)
             .build();

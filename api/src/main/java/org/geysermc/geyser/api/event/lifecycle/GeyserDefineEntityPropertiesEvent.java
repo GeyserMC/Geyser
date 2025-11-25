@@ -84,7 +84,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * so far for the given entity type. This includes entity properties used for vanilla gameplay,
      * such as those used for creaking animations.
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @return an unmodifiable collection of registered properties
      * 
      * @since 2.9.0
@@ -94,7 +94,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
     /**
      * Registers a {@code float}-backed entity property.
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param min the minimum allowed value (inclusive)
      * @param max the maximum allowed value (inclusive)
@@ -109,7 +109,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * Registers a {@code float}-backed entity property with a default value set to the minimum value.
      * @see #registerFloatProperty(Identifier, Identifier, float, float, Float)
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param min the minimum allowed value (inclusive)
      * @param max the maximum allowed value (inclusive)
@@ -124,7 +124,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
     /**
      * Registers an {@code int}-backed entity property.
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param min the minimum allowed value (inclusive)
      * @param max the maximum allowed value (inclusive)
@@ -138,7 +138,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
     /**
      * Registers an {@code int}-backed entity property with a default value set to the minimum value.
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param min the minimum allowed value (inclusive)
      * @param max the maximum allowed value (inclusive)
@@ -153,7 +153,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
     /**
      * Registers a {@code boolean}-backed entity property.
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param defaultValue the default boolean value
      * @return the created boolean property handle
@@ -166,7 +166,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * Registers a {@code boolean}-backed entity property with a default of {@code false}.
      * @see #registerBooleanProperty(Identifier, Identifier, boolean)
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @return the created boolean property
      * @since 2.9.0
@@ -182,7 +182,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * the first enum value is set as the default.
      * @see GeyserEnumEntityProperty for further limitations
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param enumClass the enum class that defines allowed values
      * @param defaultValue the default enum value, or {@code null} for the first enum value to be the default
@@ -197,7 +197,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * Registers a typed {@linkplain Enum enum}-backed entity property with the first value set as the default.
      * @see #registerEnumProperty(Identifier, Identifier, Class, Enum)
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param enumClass the enum class that defines allowed values
      * @param <E> the enum type
@@ -215,7 +215,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * on entity spawn. The default must be one of the values in {@code values}.
      * @see GeyserStringEnumProperty
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param values the allowed string values
      * @param defaultValue the default string value, or {@code null} for the first value to be used
@@ -229,7 +229,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * Registers a string-backed "enum-like" entity property with the first value as the default.
      * @see #registerEnumProperty(Identifier, Identifier, List, String)
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param values the allowed string values
      * @return the created string-enum property handle

@@ -27,21 +27,17 @@ package org.geysermc.geyser.entity.type;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityTypeDefinition;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 
-import java.util.UUID;
-
 public class AbstractArrowEntity extends Entity {
 
-    public AbstractArrowEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityTypeDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
+    public AbstractArrowEntity(EntitySpawnContext context) {
+        super(context);
 
         // Set the correct texture if using the resource pack
-        setFlag(EntityFlag.BRIBED, definition.type().is(BuiltinEntityType.SPECTRAL_ARROW));
+        setFlag(EntityFlag.BRIBED, javaTypeDefinition.type().is(BuiltinEntityType.SPECTRAL_ARROW));
 
         setMotion(motion);
     }

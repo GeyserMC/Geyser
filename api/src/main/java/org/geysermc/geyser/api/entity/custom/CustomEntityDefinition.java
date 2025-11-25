@@ -25,9 +25,7 @@
 
 package org.geysermc.geyser.api.entity.custom;
 
-import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.util.Identifier;
@@ -54,41 +52,7 @@ public interface CustomEntityDefinition extends GeyserEntityDefinition {
 
     interface Builder {
 
-        /**
-         * Sets the width of this entity.
-         *
-         * @param width the width of this entity
-         * @return the builder
-         */
-        @This
-        Builder width(@Positive float width);
-
-        /**
-         * Sets the height of this entity.
-         *
-         * @param height the height of this entity
-         * @return the builder
-         */
-        @This
-        Builder height(@Positive float height);
-
-        /**
-         * Sets the height and with of this entity.
-         *
-         * @param value the width and height
-         * @return the builder
-         */
-        @This
-        Builder heightAndWidth(@Positive float value);
-
-        /**
-         * Sets the offset of this entity.
-         *
-         * @param offset the offset of this entity
-         * @return the builder
-         */
-        @This
-        Builder offset(@Positive float offset);
+        // TODO needed?
 
         /**
          * Builds the entity definition.

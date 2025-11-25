@@ -26,23 +26,18 @@
 package org.geysermc.geyser.entity.type.living;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityTypeDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
-import java.util.UUID;
-
 public class IronGolemEntity extends GolemEntity {
 
-    public IronGolemEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityTypeDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
+    public IronGolemEntity(EntitySpawnContext context) {
+        super(context);
         // Indicate that we should show cracks through a resource pack
         setFlag(EntityFlag.BRIBED, true);
         // Required, or else the overlay is black

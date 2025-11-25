@@ -26,11 +26,9 @@
 package org.geysermc.geyser.entity.type.living;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityTypeDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Leashable;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -48,16 +46,14 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
-import java.util.UUID;
-
 public class MobEntity extends LivingEntity implements Leashable {
     /**
      * If another mob is holding this mob by a leash, this variable tracks their Bedrock entity ID.
      */
     private long leashHolderBedrockId;
 
-    public MobEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityTypeDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
+    public MobEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override

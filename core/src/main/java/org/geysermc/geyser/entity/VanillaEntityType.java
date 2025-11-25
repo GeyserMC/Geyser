@@ -50,8 +50,8 @@ import java.util.function.BiConsumer;
 public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T> {
     private final GeyserEntityType entityType;
 
-    public VanillaEntityType(EntityFactory<T> factory, GeyserEntityType entityType, BedrockEntityDefinition bedrockDefinition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
-        super(factory, entityType, bedrockDefinition, translators);
+    public VanillaEntityType(EntityFactory<T> factory, GeyserEntityType entityType, float width, float height, float offset, BedrockEntityDefinition bedrockDefinition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+        super(factory, entityType, width, height, offset, bedrockDefinition, translators);
         this.entityType = entityType;
     }
 
@@ -64,7 +64,7 @@ public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T>
         return new Builder<>(factory);
     }
 
-    public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, VanillaEntityBase<? super T> parent) {
+    public static <T extends Entity> Builder<T> inherited(EntityFactory<T> factory, EntityTypeBase<? super T> parent) {
         return new Builder<>(factory, parent.width, parent.height, parent.offset, new ObjectArrayList<>(parent.translators));
     }
 
@@ -139,31 +139,24 @@ public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T>
             return build(true);
         }
 
-        private void validateTypeAndIdentifier() {
+        /**
+         * @param register whether to register this entity in the Registries for entity types. Generally this should be
+         * set to false if we're not expecting this entity to spawn from the network.
+         */
+        public VanillaEntityType<T> build(boolean register) {
             if (type == null) {
                 throw new IllegalStateException("Missing entity type!");
             }
 
             if (bedrockDefinition == null) {
                 bedrockDefinition = BedrockEntityDefinition.builder()
-                    .height(height)
-                    .width(width)
                     .properties(propertiesBuilder)
-                    .offset(offset)
                     .identifier(Identifier.of(bedrockIdentifier))
                     .build();
                 Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(Identifier.of(bedrockIdentifier), bedrockDefinition);
             }
-        }
 
-        /**
-         * @param register whether to register this entity in the Registries for entity types. Generally this should be
-         * set to false if we're not expecting this entity to spawn from the network.
-         */
-        public VanillaEntityType<T> build(boolean register) {
-            validateTypeAndIdentifier();
-
-            VanillaEntityType<T> definition = new VanillaEntityType<>(factory, type, bedrockDefinition, translators);
+            VanillaEntityType<T> definition = new VanillaEntityType<>(factory, type, width, height, offset, bedrockDefinition, translators);
             if (register && definition.entityType() != null) {
                 Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
                 Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent(type.identifier().toString(), definition);

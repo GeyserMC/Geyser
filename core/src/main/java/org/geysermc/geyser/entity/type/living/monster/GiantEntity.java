@@ -25,17 +25,12 @@
 
 package org.geysermc.geyser.entity.type.living.monster;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityTypeDefinition;
-import org.geysermc.geyser.session.GeyserSession;
-
-import java.util.UUID;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 
 public class GiantEntity extends MonsterEntity {
 
-    public GiantEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityTypeDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
+    public GiantEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override

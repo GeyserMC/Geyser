@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.event.java;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
@@ -81,4 +82,36 @@ public abstract class ServerSpawnEntityEvent extends ConnectionEvent {
      */
     public abstract void entityDefinition(@Nullable GeyserEntityDefinition entityDefinition);
 
+    /**
+     * @return the width of the entity
+     */
+    public abstract float width();
+
+    /**
+     * @return the height of the entity
+     */
+    public abstract float height();
+
+    /**
+     * The vertical offset applied by Geyser to ensure the Bedrock entity doesn't clip
+     * into the ground due to Java vs Bedrock differences.
+     *
+     * @return the offset of the entity
+     */
+    public abstract float offset();
+
+    /**
+     * Sets the width of the entity.
+     */
+    public abstract void width(@NonNegative float width);
+
+    /**
+     * Sets the height of the entity.
+     */
+    public abstract void height(@NonNegative float height);
+
+    /**
+     * Sets the vertical offset applied by Geyser to avoid clipping
+     */
+    public abstract void offset(@NonNegative float offset);
 }

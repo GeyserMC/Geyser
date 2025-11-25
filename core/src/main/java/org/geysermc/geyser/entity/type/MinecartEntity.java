@@ -30,10 +30,8 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
-import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.VanillaEntities;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.MathUtils;
@@ -44,7 +42,6 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.Clie
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 
 public class MinecartEntity extends Entity implements Tickable {
     private static final int POS_ROT_LERP_TICKS = 3;
@@ -60,8 +57,9 @@ public class MinecartEntity extends Entity implements Tickable {
     private int cachedStepDelay;
     private float cachedDelta;
 
-    public MinecartEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityTypeDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position.add(0d, bedrockDefinition.offset(), 0d), motion, yaw, pitch, headYaw);
+    public MinecartEntity(EntitySpawnContext context) {
+        super(context);
+        setPosition(position.up(offset));
     }
 
     public void setCustomBlock(IntEntityMetadata entityMetadata) {
@@ -114,7 +112,7 @@ public class MinecartEntity extends Entity implements Tickable {
             moveEntityPacket.setRuntimeEntityId(geyserId);
 
             moveEntityPacket.setX(position.getX());
-            moveEntityPacket.setY(position.getY() + definition.offset());
+            moveEntityPacket.setY(position.getY() + offset());
             moveEntityPacket.setZ(position.getZ());
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
@@ -202,7 +200,7 @@ public class MinecartEntity extends Entity implements Tickable {
 
     @Override
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position.add(0d, this.definition.offset(), 0d), yaw, pitch, headYaw, isOnGround, teleported);
+        super.moveAbsolute(position.up(offset), yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     @Override
@@ -220,7 +218,7 @@ public class MinecartEntity extends Entity implements Tickable {
 
     @Override
     protected InteractiveTag testInteraction(Hand hand) {
-        if (javaDefinition == VanillaEntities.CHEST_MINECART || javaDefinition == VanillaEntities.HOPPER_MINECART) {
+        if (javaTypeDefinition == VanillaEntities.CHEST_MINECART || javaTypeDefinition == VanillaEntities.HOPPER_MINECART) {
             return InteractiveTag.OPEN_CONTAINER;
         } else {
             if (session.isSneaking()) {
@@ -237,7 +235,7 @@ public class MinecartEntity extends Entity implements Tickable {
 
     @Override
     public InteractionResult interact(Hand hand) {
-        if (javaDefinition == VanillaEntities.CHEST_MINECART || javaDefinition == VanillaEntities.HOPPER_MINECART) {
+        if (javaTypeDefinition == VanillaEntities.CHEST_MINECART || javaTypeDefinition == VanillaEntities.HOPPER_MINECART) {
             // Opening the UI of this minecart
             return InteractionResult.SUCCESS;
         } else {

@@ -32,16 +32,13 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.AddItemEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
-import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityTypeDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class ItemEntity extends ThrowableEntity {
@@ -49,8 +46,8 @@ public class ItemEntity extends ThrowableEntity {
 
     private CompletableFuture<Integer> waterLevel = CompletableFuture.completedFuture(-1);
 
-    public ItemEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityTypeDefinition<?> definition, BedrockEntityDefinition bedrockDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, bedrockDefinition, position, motion, yaw, pitch, headYaw);
+    public ItemEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override
@@ -62,7 +59,7 @@ public class ItemEntity extends ThrowableEntity {
         AddItemEntityPacket itemPacket = new AddItemEntityPacket();
         itemPacket.setRuntimeEntityId(geyserId);
         itemPacket.setUniqueEntityId(geyserId);
-        itemPacket.setPosition(position.add(0d, this.definition.offset(), 0d));
+        itemPacket.setPosition(position.add(0d, offset(), 0d));
         itemPacket.setMotion(motion);
         itemPacket.setFromFishing(false);
         itemPacket.setItemInHand(item);
@@ -113,10 +110,10 @@ public class ItemEntity extends ThrowableEntity {
 
     @Override
     protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        float offset = definition.offset();
+        float offset = offset();
         if (waterLevel.join() == 0) { // Item is in a full block of water
             // Move the item entity down so it doesn't float above the water
-            offset = -definition.offset();
+            offset = -offset();
         }
         super.moveAbsoluteImmediate(position.add(0, offset, 0), 0, 0, 0, isOnGround, teleported);
         this.position = position;
