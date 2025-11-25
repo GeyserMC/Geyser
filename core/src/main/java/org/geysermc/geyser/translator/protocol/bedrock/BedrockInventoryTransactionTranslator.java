@@ -63,6 +63,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.ButtonBlock;
 import org.geysermc.geyser.level.block.type.CauldronBlock;
+import org.geysermc.geyser.level.block.type.DoorBlock;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -173,7 +174,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         final Vector3i packetBlockPosition = packet.getBlockPosition();
                         Vector3i blockPos = BlockUtils.getBlockPosition(packetBlockPosition, Direction.getUntrusted(packet, InventoryTransactionPacket::getBlockFace));
 
-                        if (session.getGeyser().getConfig().isDisableBedrockScaffolding()) {
+                        if (session.getGeyser().config().gameplay().disableBedrockScaffolding()) {
                             float yaw = session.getPlayerEntity().getYaw();
                             boolean isGodBridging = switch (packet.getBlockFace()) {
                                 case 2 -> yaw <= -135f || yaw > 135f;
@@ -279,6 +280,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         // Buttons on Java Edition cannot be interacted with when they are powered
                         if (blockState.block() instanceof ButtonBlock && blockState.getValue(Properties.POWERED)) {
                             return;
+                        }
+
+                        if (blockState.block() instanceof DoorBlock) {
+                            // See DoorBlock#updateBlock: ensure server-side lower-half door updates are translated
+                            session.setLastLowerDoorPosition(null);
                         }
 
                         if (packet.getItemInHand() != null && session.getItemMappings().getMapping(packet.getItemInHand()).getJavaItem() instanceof SpawnEggItem) {

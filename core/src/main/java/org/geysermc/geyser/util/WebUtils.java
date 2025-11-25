@@ -25,8 +25,10 @@
 
 package org.geysermc.geyser.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
@@ -84,18 +86,22 @@ public class WebUtils {
     }
 
     /**
-     * Makes a web request to the given URL and returns the body as a {@link JsonNode}.
+     * Makes a web request to the given URL and returns the body as a {@link JsonObject}.
      *
      * @param reqURL URL to fetch
      * @return the response as JSON
      */
-    public static JsonNode getJson(String reqURL) throws IOException {
+    public static JsonObject getJson(String reqURL) throws IOException {
         HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
         con.setRequestProperty("User-Agent", getUserAgent());
         con.setConnectTimeout(10000);
         con.setReadTimeout(10000);
         checkResponseCode(con);
-        return GeyserImpl.JSON_MAPPER.readTree(con.getInputStream());
+        try (InputStreamReader isr = new InputStreamReader(con.getInputStream());
+             JsonReader reader = GeyserImpl.GSON.newJsonReader(isr)) {
+            //noinspection deprecation
+            return new JsonParser().parse(reader).getAsJsonObject();
+        }
     }
 
     /**
@@ -105,14 +111,24 @@ public class WebUtils {
      * @param fileLocation Location to save on disk
      */
     public static void downloadFile(String reqURL, String fileLocation) {
+        downloadFile(reqURL, Paths.get(fileLocation));
+    }
+
+    /**
+     * Downloads a file from the given URL and saves it to disk
+     *
+     * @param reqURL File to fetch
+     * @param path Location to save on disk as a path
+     */
+    public static void downloadFile(String reqURL, Path path) {
         try {
             HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
             con.setRequestProperty("User-Agent", getUserAgent());
             checkResponseCode(con);
             InputStream in = con.getInputStream();
-            Files.copy(in, Paths.get(fileLocation), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
-            throw new RuntimeException("Unable to download and save file: " + fileLocation + " (" + reqURL + ")", e);
+            throw new RuntimeException("Unable to download and save file: " + path.toAbsolutePath() + " (" + reqURL + ")", e);
         }
     }
 
@@ -132,7 +148,7 @@ public class WebUtils {
 
             con.setConnectTimeout(10000);
             con.setReadTimeout(10000);
-            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().getPlatformType().platformName() + "/" + GeyserImpl.VERSION);
+            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION);
             con.setInstanceFollowRedirects(true);
 
             int responseCode = con.getResponseCode();
@@ -362,7 +378,7 @@ public class WebUtils {
                 return ((String) attr.get(0)).split(" ");
             }
         } catch (Exception | NoClassDefFoundError ex) { // Check for a NoClassDefFoundError to prevent Android crashes
-            if (geyser.getConfig().isDebugMode()) {
+            if (geyser.config().debugMode()) {
                 geyser.getLogger().debug("Exception while trying to find an SRV record for the remote host.");
                 ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
             }
@@ -393,6 +409,6 @@ public class WebUtils {
     }
 
     public static String getUserAgent() {
-        return "Geyser-" + GeyserImpl.getInstance().getPlatformType().platformName() + "/" + GeyserImpl.VERSION;
+        return "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION;
     }
 }
