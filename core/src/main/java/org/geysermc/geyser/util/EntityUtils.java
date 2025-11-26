@@ -563,7 +563,7 @@ public final class EntityUtils {
         });
 
         for (var definition : Registries.BEDROCK_ENTITY_DEFINITIONS.get().values()) {
-            if (definition.registeredProperties() != null) {
+            if (!definition.registeredProperties().isEmpty()) {
                 Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(definition.identifier().toString()));
             }
         }

@@ -145,25 +145,27 @@ public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T>
          * set to false if we're not expecting this entity to spawn from the network.
          */
         public VanillaEntityType<T> build(boolean register) {
-            if (register && type == null) {
-                throw new IllegalStateException("Missing entity type!");
-            }
-
-            if (bedrockDefinition == null) {
-                Identifier identifier = bedrockIdentifier == null ? type.identifier() : IdentifierImpl.parse(bedrockIdentifier);
-                if (Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(identifier)) {
-                    throw new IllegalStateException("Duplicate bedrock identifier: " + bedrockIdentifier);
+            if (register) {
+                if (type == null) {
+                    throw new IllegalStateException("Missing entity type!");
                 }
 
-                bedrockDefinition = BedrockEntityDefinition.builder()
-                    .properties(propertiesBuilder)
-                    .identifier(identifier)
-                    .build();
-                Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(identifier, bedrockDefinition);
+                if (bedrockDefinition == null) {
+                    Identifier identifier = bedrockIdentifier == null ? type.identifier() : IdentifierImpl.parse(bedrockIdentifier);
+                    if (Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(identifier)) {
+                        throw new IllegalStateException("Duplicate bedrock identifier: " + bedrockIdentifier);
+                    }
+
+                    bedrockDefinition = BedrockEntityDefinition.builder()
+                        .properties(propertiesBuilder)
+                        .identifier(identifier)
+                        .build();
+                    Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(identifier, bedrockDefinition);
+                }
             }
 
             VanillaEntityType<T> definition = new VanillaEntityType<>(factory, type, width, height, offset, bedrockDefinition, translators);
-            if (register && definition.entityType() != null) {
+            if (register && type != null) {
                 Registries.JAVA_ENTITY_TYPES.get().putIfAbsent(definition.entityType(), definition);
                 Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent(type.identifier().toString(), definition);
             }
