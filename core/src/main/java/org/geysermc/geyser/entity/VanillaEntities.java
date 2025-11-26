@@ -25,26 +25,9 @@
 
 package org.geysermc.geyser.entity;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
-import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
-import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
-import org.geysermc.geyser.api.entity.property.type.GeyserStringEnumProperty;
-import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
-import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.factory.EntityFactory;
-import org.geysermc.geyser.entity.properties.type.BooleanProperty;
-import org.geysermc.geyser.entity.properties.type.EnumProperty;
-import org.geysermc.geyser.entity.properties.type.FloatProperty;
-import org.geysermc.geyser.entity.properties.type.IntProperty;
-import org.geysermc.geyser.entity.properties.type.PropertyType;
-import org.geysermc.geyser.entity.properties.type.StringEnumProperty;
 import org.geysermc.geyser.entity.type.AbstractArrowEntity;
 import org.geysermc.geyser.entity.type.AbstractWindChargeEntity;
 import org.geysermc.geyser.entity.type.AreaEffectCloudEntity;
@@ -171,15 +154,11 @@ import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
 
 public final class VanillaEntities {
     public static final VanillaEntityType<BoatEntity> ACACIA_BOAT;
@@ -504,12 +483,12 @@ public final class VanillaEntities {
             SPLASH_POTION = VanillaEntityType.inherited(ThrownPotionEntity::new, throwableItemBase)
                     .type(BuiltinEntityType.SPLASH_POTION)
                     .heightAndWidth(0.25f)
-                    .bedrockIdentifier("minecraft:splash_potion")
+                    .bedrockDefinition(BedrockEntityDefinitions.SPLASH_POTION)
                     .build();
             LINGERING_POTION = VanillaEntityType.inherited(ThrownPotionEntity::new, throwableItemBase)
                 .type(BuiltinEntityType.LINGERING_POTION)
                 .heightAndWidth(0.25f)
-                .bedrockIdentifier("minecraft:splash_potion")
+                .bedrockDefinition(BedrockEntityDefinitions.SPLASH_POTION)
                 .build();
             SNOWBALL = VanillaEntityType.inherited(ThrowableItemEntity::new, throwableItemBase)
                     .type(BuiltinEntityType.SNOWBALL)
@@ -536,12 +515,13 @@ public final class VanillaEntities {
             ARROW = VanillaEntityType.inherited(ArrowEntity::new, abstractArrowBase)
                     .type(BuiltinEntityType.ARROW)
                     .heightAndWidth(0.25f)
+                    .bedrockDefinition(BedrockEntityDefinitions.ARROW)
                     .addTranslator(MetadataTypes.INT, ArrowEntity::setPotionEffectColor)
                     .build();
             SPECTRAL_ARROW = VanillaEntityType.inherited(AbstractArrowEntity::new, abstractArrowBase)
                     .type(BuiltinEntityType.SPECTRAL_ARROW)
                     .heightAndWidth(0.25f)
-                    .bedrockIdentifier("minecraft:arrow")
+                    .bedrockDefinition(BedrockEntityDefinitions.ARROW)
                     .build();
             TRIDENT = VanillaEntityType.inherited(TridentEntity::new, abstractArrowBase) // TODO remove class
                     .type(BuiltinEntityType.TRIDENT)
@@ -573,6 +553,7 @@ public final class VanillaEntities {
                     .type(BuiltinEntityType.MINECART)
                     .height(0.7f).width(0.98f)
                     .offset(0.35f)
+                    .bedrockDefinition(BedrockEntityDefinitions.MINECART)
                     .addTranslator(MetadataTypes.INT, (minecartEntity, entityMetadata) -> minecartEntity.getDirtyMetadata().put(EntityDataTypes.STRUCTURAL_INTEGRITY, entityMetadata.getValue()))
                     .addTranslator(MetadataTypes.INT, (minecartEntity, entityMetadata) -> minecartEntity.getDirtyMetadata().put(EntityDataTypes.HURT_DIRECTION, entityMetadata.getValue())) // Direction in which the minecart is shaking
                     .addTranslator(MetadataTypes.FLOAT, (minecartEntity, entityMetadata) ->
@@ -591,7 +572,7 @@ public final class VanillaEntities {
                     .build();
             FURNACE_MINECART = VanillaEntityType.inherited(FurnaceMinecartEntity::new, MINECART)
                     .type(BuiltinEntityType.FURNACE_MINECART)
-                    .bedrockIdentifier("minecraft:minecart")
+                    .bedrockDefinition(BedrockEntityDefinitions.MINECART)
                     .addTranslator(MetadataTypes.BOOLEAN, FurnaceMinecartEntity::setHasFuel)
                     .build();
             HOPPER_MINECART = VanillaEntityType.inherited(MINECART.factory(), MINECART)
@@ -599,7 +580,7 @@ public final class VanillaEntities {
                     .build();
             SPAWNER_MINECART = VanillaEntityType.inherited(SpawnerMinecartEntity::new, MINECART)
                     .type(BuiltinEntityType.SPAWNER_MINECART)
-                    .bedrockIdentifier("minecraft:minecart")
+                    .bedrockDefinition(BedrockEntityDefinitions.MINECART)
                     .build();
             TNT_MINECART = VanillaEntityType.inherited(MINECART.factory(), MINECART)
                     .type(BuiltinEntityType.TNT_MINECART)
@@ -617,9 +598,6 @@ public final class VanillaEntities {
                 .identifier(dangerousSkull)
                 .build();
             Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(dangerousSkull, bedrockDefinition);
-
-//            WITHER_SKULL_DANGEROUS = VanillaEntityType.inherited(WITHER_SKULL.factory(), WITHER_SKULL)
-//                    .build(false);
         }
 
         // Boats
@@ -791,7 +769,7 @@ public final class VanillaEntities {
                     .type(BuiltinEntityType.GIANT)
                     .height(1.8f).width(1.6f)
                     .offset(1.62f)
-                    .bedrockIdentifier("minecraft:zombie")
+                    .bedrockDefinition(BedrockEntityDefinitions.ZOMBIE)
                     .build();
             IRON_GOLEM = VanillaEntityType.inherited(IronGolemEntity::new, mobEntityBase)
                     .type(BuiltinEntityType.IRON_GOLEM)
@@ -872,6 +850,7 @@ public final class VanillaEntities {
                     .type(BuiltinEntityType.ZOMBIE)
                     .height(1.8f).width(0.6f)
                     .offset(1.62f)
+                    .bedrockDefinition(BedrockEntityDefinitions.ZOMBIE)
                     .addTranslator(MetadataTypes.BOOLEAN, ZombieEntity::setZombieBaby)
                     .addTranslator(null) // "set special type", doesn't do anything
                     .addTranslator(MetadataTypes.BOOLEAN, ZombieEntity::setConvertingToDrowned)
@@ -971,12 +950,12 @@ public final class VanillaEntities {
             EVOKER = VanillaEntityType.inherited(SpellcasterIllagerEntity::new, spellcasterEntityBase)
                     .type(BuiltinEntityType.EVOKER)
                     .height(1.95f).width(0.6f)
-                    .bedrockIdentifier("minecraft:evocation_illager")
+                    .bedrockDefinition(BedrockEntityDefinitions.EVOCATION_ILLAGER)
                     .build();
             ILLUSIONER = VanillaEntityType.inherited(SpellcasterIllagerEntity::new, spellcasterEntityBase)
                     .type(BuiltinEntityType.ILLUSIONER)
                     .height(1.95f).width(0.6f)
-                    .bedrockIdentifier("minecraft:evocation_illager")
+                    .bedrockDefinition(BedrockEntityDefinitions.EVOCATION_ILLAGER)
                     .build();
             PILLAGER = VanillaEntityType.inherited(PillagerEntity::new, raidParticipantEntityBase)
                     .type(BuiltinEntityType.PILLAGER)
@@ -1139,7 +1118,7 @@ public final class VanillaEntities {
 
             VanillaEntityType<AbstractMerchantEntity> abstractVillagerEntityBase = VanillaEntityType.inherited(AbstractMerchantEntity::new, ageableEntityBase)
                     .addTranslator(null) // Unhappy ticks
-                    .build();
+                    .build(false);
             VILLAGER = VanillaEntityType.inherited(VillagerEntity::new, abstractVillagerEntityBase)
                     .type(BuiltinEntityType.VILLAGER)
                     .height(1.8f).width(0.6f)
@@ -1212,12 +1191,13 @@ public final class VanillaEntities {
             LLAMA = VanillaEntityType.inherited(LlamaEntity::new, chestedHorseEntityBase)
                     .type(BuiltinEntityType.LLAMA)
                     .height(1.87f).width(0.9f)
+                    .bedrockDefinition(BedrockEntityDefinitions.LLAMA)
                     .addTranslator(MetadataTypes.INT, LlamaEntity::setStrength)
                     .addTranslator(MetadataTypes.INT, (entity, entityMetadata) -> entity.getDirtyMetadata().put(EntityDataTypes.VARIANT, entityMetadata.getValue()))
                     .build();
             TRADER_LLAMA = VanillaEntityType.inherited(TraderLlamaEntity::new, LLAMA)
                     .type(BuiltinEntityType.TRADER_LLAMA)
-                    .bedrockIdentifier("minecraft:llama")
+                    .bedrockDefinition(BedrockEntityDefinitions.LLAMA)
                     .build();
         }
 
@@ -1263,132 +1243,19 @@ public final class VanillaEntities {
     private static VanillaEntityType<BoatEntity> buildBoat(EntityTypeBase<BoatEntity> base, BuiltinEntityType BuiltinEntityType, BoatEntity.BoatVariant variant) {
         return VanillaEntityType.inherited(context -> new BoatEntity(context, variant), base)
             .type(BuiltinEntityType)
-            .bedrockIdentifier("minecraft:boat")
+            .bedrockDefinition(BedrockEntityDefinitions.BOAT)
             .build();
     }
 
     private static VanillaEntityType<ChestBoatEntity> buildChestBoat(EntityTypeBase<ChestBoatEntity> base, BuiltinEntityType BuiltinEntityType, BoatEntity.BoatVariant variant) {
         return VanillaEntityType.inherited(context -> new ChestBoatEntity(context, variant), base)
             .type(BuiltinEntityType)
-            .bedrockIdentifier("minecraft:chest_boat")
+            .bedrockDefinition(BedrockEntityDefinitions.CHEST_BOAT)
             .build();
     }
 
     public static void init() {
-        // entities would be initialized before these events are called
-        GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntitiesEvent() {
-
-            @Override
-            public Collection<GeyserEntityDefinition> entities() {
-                return Collections.unmodifiableCollection(Registries.BEDROCK_ENTITY_DEFINITIONS.get().values());
-            }
-
-            @Override
-            public void register(@NonNull CustomEntityDefinition customEntityDefinition) {
-                Objects.requireNonNull(customEntityDefinition);
-                if (!(customEntityDefinition instanceof GeyserCustomEntityTypeDefinition<?> geyserCustomEntityDefinition)) {
-                    throw new IllegalStateException("Unknown custom entity definition: " + customEntityDefinition);
-                }
-                Registries.CUSTOM_ENTITY_DEFINITIONS.register(Registries.CUSTOM_ENTITY_DEFINITIONS.get().size(), geyserCustomEntityDefinition);
-            }
-
-            @Override
-            public void registerEntityType(@NonNull Identifier javaEntityType, int javaId, CustomEntityDefinition definition) {
-                GeyserEntityType.createCustomAndRegister(javaEntityType, javaId);
-
-                // TODO allow extending vanilla entities?
-
-            }
-        });
-
-        GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {
-            @Override
-            public GeyserFloatEntityProperty registerFloatProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, float min, float max, @Nullable Float defaultValue) {
-                Objects.requireNonNull(identifier);
-                Objects.requireNonNull(propertyId);
-                if (propertyId.vanilla()) {
-                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
-                }
-                FloatProperty property = new FloatProperty(propertyId, max, min, defaultValue);
-                registerProperty(identifier, property);
-                return property;
-            }
-
-            @Override
-            public IntProperty registerIntegerProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, int min, int max, @Nullable Integer defaultValue) {
-                Objects.requireNonNull(identifier);
-                Objects.requireNonNull(propertyId);
-                if (propertyId.vanilla()) {
-                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
-                }
-                IntProperty property = new IntProperty(propertyId, max, min, defaultValue);
-                registerProperty(identifier, property);
-                return property;
-            }
-
-            @Override
-            public BooleanProperty registerBooleanProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, boolean defaultValue) {
-                Objects.requireNonNull(identifier);
-                Objects.requireNonNull(propertyId);
-                if (propertyId.vanilla()) {
-                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
-                }
-                BooleanProperty property = new BooleanProperty(propertyId, defaultValue);
-                registerProperty(identifier, property);
-                return property;
-            }
-
-            @Override
-            public <E extends Enum<E>> EnumProperty<E> registerEnumProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, @NonNull Class<E> enumClass, @Nullable E defaultValue) {
-                Objects.requireNonNull(identifier);
-                Objects.requireNonNull(propertyId);
-                Objects.requireNonNull(enumClass);
-                if (propertyId.vanilla()) {
-                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
-                }
-                EnumProperty<E> property = new EnumProperty<>(propertyId, enumClass, defaultValue == null ? enumClass.getEnumConstants()[0] : defaultValue);
-                registerProperty(identifier, property);
-                return property;
-            }
-
-            @Override
-            public GeyserStringEnumProperty registerEnumProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, @NonNull List<String> values, @Nullable String defaultValue) {
-                Objects.requireNonNull(identifier);
-                Objects.requireNonNull(propertyId);
-                Objects.requireNonNull(values);
-                if (propertyId.vanilla()) {
-                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
-                }
-                StringEnumProperty property = new StringEnumProperty(propertyId, values, defaultValue);
-                registerProperty(identifier, property);
-                return property;
-            }
-
-            @Override
-            public Collection<GeyserEntityProperty<?>> properties(@NonNull Identifier identifier) {
-                Objects.requireNonNull(identifier);
-                var definition = Registries.BEDROCK_ENTITY_DEFINITIONS.get(identifier);
-                if (definition == null) {
-                    throw new IllegalArgumentException("Unknown entity type: " + identifier);
-                }
-                return List.copyOf(definition.registeredProperties().getProperties());
-            }
-        });
-
-        for (var definition : Registries.BEDROCK_ENTITY_DEFINITIONS.get().values()) {
-            if (definition.registeredProperties() != null) {
-                Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(definition.identifier().toString()));
-            }
-        }
-    }
-
-    private static <T> void registerProperty(Identifier entityType, PropertyType<T, ?> property) {
-        var definition = Registries.BEDROCK_ENTITY_DEFINITIONS.get(entityType);
-        if (definition == null) {
-            throw new IllegalArgumentException("Unknown entity type: " + entityType);
-        }
-
-        definition.registeredProperties().add(entityType.toString(), property);
+        EntityUtils.callEntityEvents();
     }
 
     private VanillaEntities() {

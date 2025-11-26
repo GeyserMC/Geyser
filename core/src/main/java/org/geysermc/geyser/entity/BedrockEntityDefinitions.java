@@ -32,15 +32,26 @@ import org.geysermc.geyser.impl.IdentifierImpl;
  * done here to be able to re-use the same bedrock entity across multiple Java types
  */
 public class BedrockEntityDefinitions {
-
-    // TODO re-usable Bedrock entity definitions??????????
-    // Or rather... looking up otherwise??
     public static final BedrockEntityDefinition ARMOR_STAND;
+    public static final BedrockEntityDefinition ARROW;
+    public static final BedrockEntityDefinition BOAT;
+    public static final BedrockEntityDefinition CHEST_BOAT;
+    public static final BedrockEntityDefinition EVOCATION_ILLAGER;
+    public static final BedrockEntityDefinition LLAMA;
+    public static final BedrockEntityDefinition MINECART;
+    public static final BedrockEntityDefinition SPLASH_POTION;
+    public static final BedrockEntityDefinition ZOMBIE;
 
     static {
-        ARMOR_STAND = BedrockEntityDefinition.builder()
-            .identifier(IdentifierImpl.of("armor_stand"))
-            .build();
+        ARMOR_STAND = BedrockEntityDefinition.of(IdentifierImpl.of("armor_stand"));
+        ARROW = BedrockEntityDefinition.of(IdentifierImpl.of("arrow"));
+        BOAT = BedrockEntityDefinition.of(IdentifierImpl.of("boat"));
+        CHEST_BOAT = BedrockEntityDefinition.of(IdentifierImpl.of("chest_boat"));
+        EVOCATION_ILLAGER = BedrockEntityDefinition.of(IdentifierImpl.of("evocation_illager"));
+        LLAMA = BedrockEntityDefinition.of(IdentifierImpl.of("llama"));
+        MINECART = BedrockEntityDefinition.of(IdentifierImpl.of("minecraft"));
+        SPLASH_POTION = BedrockEntityDefinition.of(IdentifierImpl.of("splash_position"));
+        ZOMBIE = BedrockEntityDefinition.of(IdentifierImpl.of("zombie"));
     }
 
     public static void init() {

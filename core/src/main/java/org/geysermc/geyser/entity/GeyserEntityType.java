@@ -29,14 +29,18 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.JavaEntityType;
+import org.geysermc.geyser.api.entity.custom.CustomJavaEntityType;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.impl.IdentifierImpl;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
@@ -46,7 +50,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-public record GeyserEntityType(Identifier identifier, int javaId) implements JavaEntityType {
+public record GeyserEntityType(Identifier identifier, int javaId) implements CustomJavaEntityType, JavaEntityType {
     private static final Identifier UNREGISTERED = IdentifierImpl.of(Constants.GEYSER_CUSTOM_NAMESPACE, "unregistered_sadface");
 
     private static final Map<BuiltinEntityType, GeyserEntityType> VANILLA = new EnumMap<>(BuiltinEntityType.class);
@@ -68,6 +72,33 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Jav
     @Override
     public boolean vanilla() {
         return VANILLA.containsValue(this);
+    }
+
+    @Override
+    public float width() {
+        var definition = Registries.JAVA_ENTITY_TYPES.get(this);
+        if (definition == null) {
+            throw new IllegalStateException("No entity definition registered for " + this);
+        }
+        return definition.width();
+    }
+
+    @Override
+    public float height() {
+        var definition = Registries.JAVA_ENTITY_TYPES.get(this);
+        if (definition == null) {
+            throw new IllegalStateException("No entity definition registered for " + this);
+        }
+        return definition.height();
+    }
+
+    @Override
+    public @Nullable GeyserEntityDefinition defaultBedrockDefinition() {
+        var definition = Registries.JAVA_ENTITY_TYPES.get(this);
+        if (definition == null) {
+            throw new IllegalStateException("No entity definition registered for " + this);
+        }
+        return definition.defaultBedrockDefinition();
     }
 
     public boolean is(EntityType type) {
@@ -111,8 +142,10 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Jav
     }
 
     @SuppressWarnings("ConstantValue")
-    public static GeyserEntityType createCustomAndRegister(@NonNull Identifier javaIdentifier, @NonNegative int javaId) {
-        Objects.requireNonNull(javaIdentifier, "javaIdentifier may not be null");
+    public static GeyserEntityType createCustomAndRegister(Builder builder) {
+        Identifier javaIdentifier = Objects.requireNonNull(builder.identifier, "javaIdentifier may not be null");
+        int javaId = builder.javaId;
+
         if (javaIdentifier.vanilla()) {
             throw new IllegalArgumentException("Cannot register custom entity type in vanilla namespace!" + javaIdentifier);
         } else if (javaId < 0) {
@@ -126,5 +159,66 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Jav
         CUSTOM.put(javaId, type);
         CUSTOM_BY_IDENTIFIER.put(javaIdentifier, type);
         return type;
+    }
+
+    @Getter
+    public static class Builder implements CustomJavaEntityType.Builder {
+        private Identifier identifier;
+        private int javaId;
+        private float width;
+        private float height;
+        private GeyserEntityDefinition defaultBedrockDefinition;
+
+        @Override
+        public CustomJavaEntityType.Builder type(@NonNull Identifier entityType) {
+            Objects.requireNonNull(entityType, "entityType may not be null");
+            if (entityType.vanilla()) {
+                throw new IllegalArgumentException("Cannot register custom entity type in vanilla namespace!" + entityType);
+            }
+            if (CUSTOM_BY_IDENTIFIER.containsKey(entityType)) {
+                throw new IllegalArgumentException("Custom entity type with identifier " + entityType + " already exists!");
+            }
+            this.identifier = entityType;
+            return this;
+        }
+
+        @Override
+        public CustomJavaEntityType.Builder javaId(int javaId) {
+            if (javaId < 0) {
+                throw new IllegalArgumentException("Invalid custom entity type id (may not be negative): " + javaId);
+            }
+            if (javaId < BuiltinEntityType.VALUES.length) {
+                throw new IllegalArgumentException("Invalid custom entity type id (conflicts with vanilla entity type): " + javaId);
+            }
+            if (CUSTOM.containsKey(javaId)) {
+                throw new IllegalArgumentException("Custom entity type with id " + javaId + " already exists!");
+            }
+            this.javaId = javaId;
+            return this;
+        }
+
+        @Override
+        public CustomJavaEntityType.Builder width(@NonNegative float width) {
+            if (width < 0) {
+                throw new IllegalArgumentException("Invalid custom entity type width (may not be negative): " + width);
+            }
+            this.width = width;
+            return this;
+        }
+
+        @Override
+        public CustomJavaEntityType.Builder height(@NonNegative float height) {
+            if (height < 0) {
+                throw new IllegalArgumentException("Invalid custom entity type height (may not be negative): " + height);
+            }
+            this.height = height;
+            return this;
+        }
+
+        @Override
+        public CustomJavaEntityType.Builder defaultBedrockDefinition(@Nullable GeyserEntityDefinition defaultBedrockDefinition) {
+            this.defaultBedrockDefinition = defaultBedrockDefinition;
+            return this;
+        }
     }
 }

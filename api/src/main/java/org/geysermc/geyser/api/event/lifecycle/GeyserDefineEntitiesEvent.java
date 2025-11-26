@@ -29,9 +29,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
 import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
-import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.entity.custom.CustomJavaEntityType;
 
 import java.util.Collection;
+import java.util.function.Consumer;
 
 /**
  * Called when entities are defined within Geyser.
@@ -64,8 +65,7 @@ public interface GeyserDefineEntitiesEvent extends Event {
     /**
      * Registers a non-vanilla Java entity type.
      *
-     * @param javaEntityType the identifier of the Java entity type
-     * @param javaId the network id of this entity type
+     * @param builderConsumer the builder for the non-vanilla type
      */
-    void registerEntityType(@NonNull Identifier javaEntityType, int javaId, CustomEntityDefinition defaultDefinition);
+    void registerEntityType(Consumer<CustomJavaEntityType.Builder> builderConsumer);
 }

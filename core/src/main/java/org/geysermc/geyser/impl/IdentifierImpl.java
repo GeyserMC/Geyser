@@ -45,6 +45,15 @@ public record IdentifierImpl(Key identifier) implements Identifier {
         }
     }
 
+    public static IdentifierImpl parse(String value) {
+        Objects.requireNonNull(value, "value cannot be null!");
+        try {
+            return new IdentifierImpl(MinecraftKey.key(value));
+        } catch (InvalidKeyException exception) {
+            throw new IllegalArgumentException(exception);
+        }
+    }
+
     // FIXME using the identifier interface from the API breaks tests
     public static IdentifierImpl of(String value) {
         return of(Identifier.DEFAULT_NAMESPACE, value);

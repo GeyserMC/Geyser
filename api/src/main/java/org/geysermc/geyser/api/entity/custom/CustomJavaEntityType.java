@@ -23,55 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.entity;
+package org.geysermc.geyser.api.entity.custom;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.api.util.Identifier;
 
-/**
- * Represents a Java edition entity type
- */
-public interface JavaEntityType {
+public interface CustomJavaEntityType extends JavaEntityType {
 
-    /**
-     * @return the Java identifier of the type
-     */
-    Identifier identifier();
+    @Override
+    default boolean vanilla() {
+        return false;
+    };
 
-    /**
-     * @return the numeric Java entity type id
-     */
-    int javaId();
+    interface Builder {
 
-    /**
-     * @return whether this entity exists in the vanilla base game
-     */
-    boolean vanilla();
+        Builder type(Identifier entityType);
 
-    /**
-     * @return the width of the Java entity
-     */
-    float width();
+        Builder javaId(int javaId);
 
-    /**
-     * @return the height of the Java entity
-     */
-    float height();
+        Builder width(@NonNegative float width);
 
-    /**
-     * Compares two entity identifiers.
-     *
-     * @param javaIdentifier the other entity identifier
-     * @return true if the entity identifier is the same
-     */
-    default boolean is(Identifier javaIdentifier) {
-        return identifier().equals(javaIdentifier);
-    }
+        Builder height(@NonNegative float height);
 
-    @Nullable GeyserEntityDefinition defaultBedrockDefinition();
-
-    static JavaEntityType ofVanilla(Identifier identifier) {
-        return GeyserApi.api().provider(JavaEntityType.class, identifier);
+        Builder defaultBedrockDefinition(@Nullable GeyserEntityDefinition defaultBedrockDefinition);
     }
 }

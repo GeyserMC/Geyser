@@ -34,6 +34,7 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -144,21 +145,26 @@ public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T>
          * set to false if we're not expecting this entity to spawn from the network.
          */
         public VanillaEntityType<T> build(boolean register) {
-            if (type == null) {
+            if (register && type == null) {
                 throw new IllegalStateException("Missing entity type!");
             }
 
             if (bedrockDefinition == null) {
+                Identifier identifier = bedrockIdentifier == null ? type.identifier() : IdentifierImpl.parse(bedrockIdentifier);
+                if (Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(identifier)) {
+                    throw new IllegalStateException("Duplicate bedrock identifier: " + bedrockIdentifier);
+                }
+
                 bedrockDefinition = BedrockEntityDefinition.builder()
                     .properties(propertiesBuilder)
-                    .identifier(Identifier.of(bedrockIdentifier))
+                    .identifier(identifier)
                     .build();
-                Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(Identifier.of(bedrockIdentifier), bedrockDefinition);
+                Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(identifier, bedrockDefinition);
             }
 
             VanillaEntityType<T> definition = new VanillaEntityType<>(factory, type, width, height, offset, bedrockDefinition, translators);
             if (register && definition.entityType() != null) {
-                Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);
+                Registries.JAVA_ENTITY_TYPES.get().putIfAbsent(definition.entityType(), definition);
                 Registries.JAVA_ENTITY_IDENTIFIERS.get().putIfAbsent(type.identifier().toString(), definition);
             }
             return definition;

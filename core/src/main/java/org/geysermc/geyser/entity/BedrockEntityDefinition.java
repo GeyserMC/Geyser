@@ -53,6 +53,10 @@ public class BedrockEntityDefinition implements GeyserEntityDefinition {
         return new Builder();
     }
 
+    public static BedrockEntityDefinition of(Identifier identifier) {
+        return builder().identifier(identifier).build();
+    }
+
     @Override
     public List<GeyserEntityProperty<?>> properties() {
         if (registeredProperties.isEmpty()) {

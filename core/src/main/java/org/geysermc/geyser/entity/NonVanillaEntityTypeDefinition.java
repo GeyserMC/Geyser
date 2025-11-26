@@ -41,9 +41,9 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 // TODO
-public class GeyserCustomEntityTypeDefinition<T extends Entity> extends EntityTypeDefinition<T> {
+public class NonVanillaEntityTypeDefinition<T extends Entity> extends EntityTypeDefinition<T> {
 
-    public GeyserCustomEntityTypeDefinition(EntityFactory<T> factory, GeyserEntityType type, BedrockEntityDefinition definition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
+    public NonVanillaEntityTypeDefinition(EntityFactory<T> factory, GeyserEntityType type, BedrockEntityDefinition definition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
         super(factory, type, 0, 0,0, definition, translators);
     }
 

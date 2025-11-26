@@ -29,13 +29,31 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
+import org.geysermc.geyser.api.entity.custom.CustomJavaEntityType;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserStringEnumProperty;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
-import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.GeyserEntityType;
+import org.geysermc.geyser.entity.VanillaEntities;
+import org.geysermc.geyser.entity.properties.type.BooleanProperty;
+import org.geysermc.geyser.entity.properties.type.EnumProperty;
+import org.geysermc.geyser.entity.properties.type.FloatProperty;
+import org.geysermc.geyser.entity.properties.type.IntProperty;
+import org.geysermc.geyser.entity.properties.type.PropertyType;
+import org.geysermc.geyser.entity.properties.type.StringEnumProperty;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -46,6 +64,7 @@ import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
@@ -56,11 +75,19 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 public final class EntityUtils {
 
+    private static final AtomicInteger RUNTIME_ID_ALLOCATOR = new AtomicInteger(100000);
     public static final float PLAYER_ENTITY_OFFSET = 1.62F;
 
     /**
@@ -390,6 +417,165 @@ public final class EntityUtils {
                 (long) uuid[2] << 32 | ((long) uuid[3] & 0xFFFFFFFFL));
         }
         return null;
+    }
+
+    public static void callEntityEvents() {
+        // entities would be initialized before these events are called
+        List<BedrockEntityDefinition> customEntities = new ArrayList<>();
+        GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntitiesEvent() {
+
+            @Override
+            public Collection<GeyserEntityDefinition> entities() {
+                return Collections.unmodifiableCollection(Registries.BEDROCK_ENTITY_DEFINITIONS.get().values());
+            }
+
+            @Override
+            public void register(@NonNull CustomEntityDefinition customEntityDefinition) {
+                Objects.requireNonNull(customEntityDefinition);
+                if (!(customEntityDefinition instanceof BedrockEntityDefinition definition)) {
+                    throw new IllegalStateException("Unknown custom entity definition: " + customEntityDefinition);
+                }
+                if (Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(definition.identifier())) {
+                    throw new IllegalStateException("Duplicate custom entity definition: " + customEntityDefinition);
+                }
+                Registries.BEDROCK_ENTITY_DEFINITIONS.register(definition.identifier(), definition);
+                customEntities.add(definition);
+            }
+
+            @Override
+            public void registerEntityType(Consumer<CustomJavaEntityType.Builder> consumer) {
+                var builder = new GeyserEntityType.Builder();
+                consumer.accept(builder);
+
+                var type = GeyserEntityType.createCustomAndRegister(builder);
+
+                Registries.JAVA_ENTITY_TYPES.register(type, null);
+                Registries.JAVA_ENTITY_IDENTIFIERS.register(type.identifier().toString(), null);
+
+                var defaultBedrockDefinition = type.defaultBedrockDefinition();
+                if (defaultBedrockDefinition != null && !isRegistered(defaultBedrockDefinition)
+                        && defaultBedrockDefinition instanceof CustomEntityDefinition customEntityDefinition) {
+                    register(customEntityDefinition);
+                }
+            }
+
+            public boolean isRegistered(GeyserEntityDefinition definition) {
+                return Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(definition.identifier());
+            }
+        });
+
+        if (!customEntities.isEmpty()) {
+            NbtMap nbt = Registries.BEDROCK_ENTITY_IDENTIFIERS.get();
+            List<NbtMap> idlist = new ArrayList<>(nbt.getList("idlist", NbtType.COMPOUND));
+
+            for (BedrockEntityDefinition definition : customEntities) {
+                idlist.add(NbtMap.builder()
+                    .putBoolean("hasSpawnEgg", false)
+                    .putString("id", definition.identifier().toString())
+                    .putBoolean("summonable", true)
+                    .putString("bid", "")
+                    .putInt("rid", RUNTIME_ID_ALLOCATOR.getAndIncrement())
+                    .putBoolean("experimental", false)
+                    .build());
+                GeyserImpl.getInstance().getLogger().debug("Registered custom entity " + definition.identifier());
+            }
+
+            NbtMap newIdentifiers = nbt.toBuilder()
+                .putList("idlist", NbtType.COMPOUND, idlist)
+                .build();
+
+            Registries.BEDROCK_ENTITY_IDENTIFIERS.set(newIdentifiers);
+            GeyserImpl.getInstance().getLogger().debug("Registered " + customEntities.size() + " custom entities");
+        }
+
+        GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {
+            @Override
+            public GeyserFloatEntityProperty registerFloatProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, float min, float max, @Nullable Float defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                FloatProperty property = new FloatProperty(propertyId, max, min, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public IntProperty registerIntegerProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, int min, int max, @Nullable Integer defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                IntProperty property = new IntProperty(propertyId, max, min, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public BooleanProperty registerBooleanProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, boolean defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                BooleanProperty property = new BooleanProperty(propertyId, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public <E extends Enum<E>> EnumProperty<E> registerEnumProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, @NonNull Class<E> enumClass, @Nullable E defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                Objects.requireNonNull(enumClass);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                EnumProperty<E> property = new EnumProperty<>(propertyId, enumClass, defaultValue == null ? enumClass.getEnumConstants()[0] : defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public GeyserStringEnumProperty registerEnumProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, @NonNull List<String> values, @Nullable String defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                Objects.requireNonNull(values);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                StringEnumProperty property = new StringEnumProperty(propertyId, values, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public Collection<GeyserEntityProperty<?>> properties(@NonNull Identifier identifier) {
+                Objects.requireNonNull(identifier);
+                var definition = Registries.BEDROCK_ENTITY_DEFINITIONS.get(identifier);
+                if (definition == null) {
+                    throw new IllegalArgumentException("Unknown entity type: " + identifier);
+                }
+                return List.copyOf(definition.registeredProperties().getProperties());
+            }
+        });
+
+        for (var definition : Registries.BEDROCK_ENTITY_DEFINITIONS.get().values()) {
+            if (definition.registeredProperties() != null) {
+                Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(definition.identifier().toString()));
+            }
+        }
+    }
+
+    private static <T> void registerProperty(Identifier entityType, PropertyType<T, ?> property) {
+        var definition = Registries.BEDROCK_ENTITY_DEFINITIONS.get(entityType);
+        if (definition == null) {
+            throw new IllegalArgumentException("Unknown entity type: " + entityType);
+        }
+
+        definition.registeredProperties().add(entityType.toString(), property);
     }
 
     private EntityUtils() {
