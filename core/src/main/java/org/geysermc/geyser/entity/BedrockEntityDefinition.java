@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -41,6 +42,7 @@ import java.util.Objects;
 
 @Getter
 @Accessors(fluent = true)
+@ToString
 public class BedrockEntityDefinition implements GeyserEntityDefinition {
     private final @NonNull Identifier identifier;
     private final @NonNull GeyserEntityProperties registeredProperties;
@@ -101,5 +103,4 @@ public class BedrockEntityDefinition implements GeyserEntityDefinition {
             return new BedrockEntityDefinition(identifier, propertiesBuilder != null ? propertiesBuilder.build() : new GeyserEntityProperties());
         }
     }
-
 }

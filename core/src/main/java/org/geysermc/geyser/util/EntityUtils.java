@@ -271,7 +271,7 @@ public final class EntityUtils {
                     }
                 }
             } else if (mountDefinition.is(BuiltinEntityType.HAPPY_GHAST)) {
-                int seatingIndex = Math.min(index, 4);
+                int seatingIndex = Math.min(index, 3);
                 xOffset = HappyGhastEntity.X_OFFSETS[seatingIndex];
                 yOffset = 3.4f;
                 zOffset = HappyGhastEntity.Z_OFFSETS[seatingIndex];
