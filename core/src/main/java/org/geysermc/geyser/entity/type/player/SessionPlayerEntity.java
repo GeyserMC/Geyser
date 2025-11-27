@@ -132,8 +132,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     private float javaYaw;
 
     public SessionPlayerEntity(GeyserSession session) {
-        super(new EntitySpawnContext(session, VanillaEntities.PLAYER, -1, null, VanillaEntities.PLAYER.defaultBedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO,
-            0, 0, 0, VanillaEntities.PLAYER.height(), VanillaEntities.PLAYER.width(), VanillaEntities.PLAYER.offset(), 1), null, null);
+        super(new EntitySpawnContext(session, VanillaEntities.PLAYER, -1, null), null, null);
 
         valid = true;
     }

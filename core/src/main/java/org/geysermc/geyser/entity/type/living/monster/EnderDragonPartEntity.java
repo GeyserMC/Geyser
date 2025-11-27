@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.entity.type.living.monster;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.BedrockEntityDefinitions;
@@ -46,7 +45,6 @@ public class EnderDragonPartEntity extends Entity {
     }
 
     public static EntitySpawnContext dragonPartSpawnContext(GeyserSession session, int entityId, long geyserId, float width, float height) {
-        return new EntitySpawnContext(session, VanillaEntities.ENDER_DRAGON_PART, entityId, null,
-            BedrockEntityDefinitions.ARMOR_STAND, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, height, width, 0, geyserId);
+        return new EntitySpawnContext(session, VanillaEntities.ENDER_DRAGON_PART, entityId, BedrockEntityDefinitions.ARMOR_STAND, height, width, geyserId);
     }
 }

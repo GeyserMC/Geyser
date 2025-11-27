@@ -59,7 +59,7 @@ public class WitherEntity extends MonsterEntity {
         int entityId = entityMetadata.getPrimitiveValue();
         Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
         if (entity != null) {
-            dirtyMetadata.put(entityData, entity.getGeyserId());
+            dirtyMetadata.put(entityData, entity.geyserId());
         } else {
             dirtyMetadata.put(entityData, (long) 0);
         }

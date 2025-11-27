@@ -870,7 +870,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         upstream.sendPacket(setCommandsEnabledPacket);
 
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-        attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
+        attributesPacket.setRuntimeEntityId(getPlayerEntity().geyserId());
         // Default move speed
         // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
         attributesPacket.setAttributes(Collections.singletonList(
@@ -1724,8 +1724,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
 
         StartGamePacket startGamePacket = new StartGamePacket();
-        startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
-        startGamePacket.setRuntimeEntityId(playerEntity.getGeyserId());
+        startGamePacket.setUniqueEntityId(playerEntity.geyserId());
+        startGamePacket.setRuntimeEntityId(playerEntity.geyserId());
         startGamePacket.setPlayerGameType(EntityUtils.toBedrockGamemode(gameMode));
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
@@ -1854,7 +1854,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             if (unconfirmedTeleport.getTeleportType() == TeleportCache.TeleportType.KEEP_VELOCITY) {
                 SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
-                entityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+                entityMotionPacket.setRuntimeEntityId(playerEntity.geyserId());
                 entityMotionPacket.setMotion(unconfirmedTeleport.getVelocity());
                 this.sendUpstreamPacket(entityMotionPacket);
             }
@@ -2002,7 +2002,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send an AdventureSettingsPacket to the client with the latest flags
      */
     public void sendAdventureSettings() {
-        long bedrockId = playerEntity.getGeyserId();
+        long bedrockId = playerEntity.geyserId();
         // Set command permission if OP permission level is high enough
         // This allows mobile players access to a GUI for doing commands. The commands there do not change above OPERATOR
         // and all commands there are accessible with OP permission level 2
@@ -2153,7 +2153,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 player.getEmotes().add(piece);
             }
             EmoteListPacket emoteList = new EmoteListPacket();
-            emoteList.setRuntimeEntityId(player.getPlayerEntity().getGeyserId());
+            emoteList.setRuntimeEntityId(player.getPlayerEntity().geyserId());
             emoteList.getPieceIds().addAll(pieces);
             player.sendUpstreamPacket(emoteList);
         }

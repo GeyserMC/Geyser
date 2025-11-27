@@ -45,7 +45,7 @@ public class JavaDamageEventTranslator extends PacketTranslator<ClientboundDamag
 
         // We can probably actually map damage types.
         EntityEventPacket entityEventPacket = new EntityEventPacket();
-        entityEventPacket.setRuntimeEntityId(entity.getGeyserId());
+        entityEventPacket.setRuntimeEntityId(entity.geyserId());
         entityEventPacket.setType(EntityEventType.HURT);
         session.sendUpstreamPacket(entityEventPacket);
     }

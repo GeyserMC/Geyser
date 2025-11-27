@@ -34,7 +34,7 @@ public class ZoglinEntity extends MonsterEntity {
 
     public ZoglinEntity(EntitySpawnContext context) {
         super(context);
-        dirtyMetadata.put(EntityDataTypes.TARGET_EID, session.getPlayerEntity().getGeyserId());
+        dirtyMetadata.put(EntityDataTypes.TARGET_EID, session.getPlayerEntity().geyserId());
     }
 
     public void setBaby(BooleanEntityMetadata entityMetadata) {

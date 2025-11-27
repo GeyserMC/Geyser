@@ -27,19 +27,17 @@ package org.geysermc.geyser.api.event.java;
 
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.event.Cancellable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.JavaEntityType;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
-import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
+import org.geysermc.geyser.api.event.bedrock.SessionSpawnEntityEvent;
 
 import java.util.UUID;
 
 /**
- * Called when the downstream server spawns an entity.
+ * Called when the downstream server spawns a non-player entity.
  */
-public abstract class ServerSpawnEntityEvent extends ConnectionEvent {
+public abstract class ServerSpawnEntityEvent extends SessionSpawnEntityEvent implements Cancellable {
 
     public ServerSpawnEntityEvent(@NonNull GeyserConnection connection) {
         super(connection);
@@ -67,30 +65,24 @@ public abstract class ServerSpawnEntityEvent extends ConnectionEvent {
     public abstract @NonNull JavaEntityType entityType();
 
     /**
-     * Gets the entity definition sent to the connection when the entity is spawned.
-     *
-     * @return the entity definition sent to the connection when the entity is spawned
-     */
-    public abstract @Nullable GeyserEntityDefinition entityDefinition();
-
-    /**
-     * Sets the entity definition sent to the connection when the entity is spawned.
-     * This entity definition MUST have been registered in the {@link GeyserDefineEntitiesEvent} before
-     * using it here!
-     *
-     * @param entityDefinition the entity definition sent to the connection when the entity is spawned
-     */
-    public abstract void entityDefinition(@Nullable GeyserEntityDefinition entityDefinition);
-
-    /**
      * @return the width of the entity
      */
     public abstract float width();
 
     /**
+     * Sets the width of the entity.
+     */
+    public abstract void width(@NonNegative float width);
+
+    /**
      * @return the height of the entity
      */
     public abstract float height();
+
+    /**
+     * Sets the height of the entity.
+     */
+    public abstract void height(@NonNegative float height);
 
     /**
      * The vertical offset applied by Geyser to ensure the Bedrock entity doesn't clip
@@ -99,16 +91,6 @@ public abstract class ServerSpawnEntityEvent extends ConnectionEvent {
      * @return the offset of the entity
      */
     public abstract float offset();
-
-    /**
-     * Sets the width of the entity.
-     */
-    public abstract void width(@NonNegative float width);
-
-    /**
-     * Sets the height of the entity.
-     */
-    public abstract void height(@NonNegative float height);
 
     /**
      * Sets the vertical offset applied by Geyser to avoid clipping

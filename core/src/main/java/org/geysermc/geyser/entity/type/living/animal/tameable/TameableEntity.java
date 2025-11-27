@@ -72,7 +72,7 @@ public abstract class TameableEntity extends AnimalEntity {
                 ownerBedrockId = Long.MAX_VALUE;
             } else {
                 // Translate to entity ID
-                ownerBedrockId = entity.getGeyserId();
+                ownerBedrockId = entity.geyserId();
             }
         } else {
             // Reset

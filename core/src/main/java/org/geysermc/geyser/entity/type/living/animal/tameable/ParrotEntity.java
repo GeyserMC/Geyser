@@ -64,7 +64,7 @@ public class ParrotEntity extends TameableEntity {
             return InteractiveTag.FEED;
         } else if (isPoisonousFood(itemInHand)) {
             return InteractiveTag.FEED;
-        } else if (onGround && tame && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
+        } else if (onGround && tame && ownerBedrockId == session.getPlayerEntity().geyserId()) {
             // Sitting/standing
             return getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
         }
@@ -79,7 +79,7 @@ public class ParrotEntity extends TameableEntity {
             return InteractionResult.SUCCESS;
         } else if (isPoisonousFood(itemInHand)) {
             return InteractionResult.SUCCESS;
-        } else if (onGround && tame && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
+        } else if (onGround && tame && ownerBedrockId == session.getPlayerEntity().geyserId()) {
             // Sitting/standing
             return InteractionResult.SUCCESS;
         }

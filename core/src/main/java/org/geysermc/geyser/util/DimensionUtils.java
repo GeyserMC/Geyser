@@ -71,7 +71,7 @@ public class DimensionUtils {
         for (Effect effect : entityEffects) {
             MobEffectPacket mobEffectPacket = new MobEffectPacket();
             mobEffectPacket.setEvent(MobEffectPacket.Event.REMOVE);
-            mobEffectPacket.setRuntimeEntityId(player.getGeyserId());
+            mobEffectPacket.setRuntimeEntityId(player.geyserId());
             mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(effect));
             session.sendUpstreamPacket(mobEffectPacket);
         }
@@ -146,7 +146,7 @@ public class DimensionUtils {
         // initial chunks are sent, prior to the client acknowledgement
         // Note: send this before chunks are sent. Fixed https://github.com/GeyserMC/Geyser/issues/3421
         PlayerActionPacket ackPacket = new PlayerActionPacket();
-        ackPacket.setRuntimeEntityId(player.getGeyserId());
+        ackPacket.setRuntimeEntityId(player.geyserId());
         ackPacket.setAction(PlayerActionType.DIMENSION_CHANGE_SUCCESS);
         ackPacket.setBlockPosition(Vector3i.ZERO);
         ackPacket.setResultPosition(Vector3i.ZERO);

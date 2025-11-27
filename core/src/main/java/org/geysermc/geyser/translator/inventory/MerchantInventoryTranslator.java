@@ -113,7 +113,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
 
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             EntityLinkData.Type type = EntityLinkData.Type.PASSENGER;
-            linkPacket.setEntityLink(new EntityLinkData(session.getPlayerEntity().getGeyserId(), context.geyserId(), type, true, false, 0f));
+            linkPacket.setEntityLink(new EntityLinkData(session.getPlayerEntity().geyserId(), context.geyserId(), type, true, false, 0f));
             session.sendUpstreamPacket(linkPacket);
 
             container.setVillager(villager);

@@ -74,7 +74,7 @@ public class GeyserMockContextScoreboard {
 
         // SessionPlayerEntity loads stuff in like blocks, which is not what we want
         var playerEntity = context.mock(SessionPlayerEntity.class);
-        when(playerEntity.getGeyserId()).thenReturn(1L);
+        when(playerEntity.geyserId()).thenReturn(1L);
         when(playerEntity.getUsername()).thenReturn("Tim203");
         when(session.getPlayerEntity()).thenReturn(playerEntity);
 

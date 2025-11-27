@@ -45,7 +45,7 @@ public class BasePiglinEntity extends MonsterEntity {
     public void setMobFlags(ByteEntityMetadata entityMetadata) {
         super.setMobFlags(entityMetadata);
         byte xd = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityDataTypes.TARGET_EID, (xd & 4) == 4 ? session.getPlayerEntity().getGeyserId() : 0);
+        dirtyMetadata.put(EntityDataTypes.TARGET_EID, (xd & 4) == 4 ? session.getPlayerEntity().geyserId() : 0);
     }
 
     public void setImmuneToZombification(BooleanEntityMetadata entityMetadata) {

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.entity.type;
 
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -44,21 +45,28 @@ import java.util.function.Consumer;
  */
 public interface GeyserEntity {
     /**
-     * @return the entity ID that the server has assigned to this entity.
+     * @return the entity ID that the server has assigned to this entity, or null if none is present
      */
     @NonNegative
     int javaId();
 
     /**
-     * @return the entity uuid that the server has assigned to this entity
+     * @return the Geyser entity id that the Bedrock client sees
      */
-    @NonNull
+    @Positive
+    long geyserId();
+
+    /**
+     * @return the entity uuid that the server has assigned to this entity,
+     *      or null if none is assigned
+     */
+    @Nullable
     UUID uuid();
 
     /**
      * @return the Bedrock entity definition
      */
-    GeyserEntityDefinition definition();
+    @NonNull GeyserEntityDefinition definition();
 
     /**
      * The position of this entity, without the Bedrock edition offset
@@ -66,7 +74,22 @@ public interface GeyserEntity {
      *
      * @return the position of the entity, as it is known to the Java server.
      */
-    Vector3f position();
+    @NonNull Vector3f position();
+
+    /**
+     * @return the width of the entity
+     */
+    float width();
+
+    /**
+     * @return the height of the entity
+     */
+    float height();
+
+    /**
+     * @return the offset of the entity
+     */
+    float offset();
 
     /**
      * Updates an entity property with a new value.

@@ -160,7 +160,9 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
                 return;
             }
             // The parrot is a separate entity in Bedrock, but part of the player entity in Java
-            ParrotEntity parrot = new ParrotEntity(EntitySpawnContext.inherited(session, VanillaEntities.PARROT, this, position));
+            EntitySpawnContext context = EntitySpawnContext.inherited(session, VanillaEntities.PARROT, this, position);
+            context.callParrotEvent(this, variant.getAsInt(), !isLeft);
+            ParrotEntity parrot = new ParrotEntity(context);
             parrot.spawnEntity();
             parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, variant.getAsInt());
             // Different position whether the parrot is left or right
@@ -170,7 +172,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
             parrot.updateBedrockMetadata();
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             EntityLinkData.Type type = isLeft ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
-            linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.getGeyserId(), type, false, false, 0f));
+            linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.geyserId(), type, false, false, 0f));
             // Delay, or else spawned-in players won't get the link
             // TODO: Find a better solution.
             session.scheduleInEventLoop(() -> session.sendUpstreamPacket(linkPacket), 500, TimeUnit.MILLISECONDS);

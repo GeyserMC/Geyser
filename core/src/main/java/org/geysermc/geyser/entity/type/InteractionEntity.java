@@ -92,7 +92,7 @@ public class InteractionEntity extends Entity {
         // but the bedrock client won't arm swing itself because of our armor stand workaround
         if (response) {
             AnimatePacket animatePacket = new AnimatePacket();
-            animatePacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+            animatePacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
             animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
             session.sendUpstreamPacket(animatePacket);
 

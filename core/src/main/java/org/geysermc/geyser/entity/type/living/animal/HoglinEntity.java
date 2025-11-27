@@ -39,7 +39,7 @@ public class HoglinEntity extends AnimalEntity {
 
     public HoglinEntity(EntitySpawnContext context) {
         super(context);
-        dirtyMetadata.put(EntityDataTypes.TARGET_EID, session.getPlayerEntity().getGeyserId());
+        dirtyMetadata.put(EntityDataTypes.TARGET_EID, session.getPlayerEntity().geyserId());
         setFlag(EntityFlag.SHAKING, isShaking());
     }
 

@@ -40,7 +40,7 @@ public class GuardianEntity extends MonsterEntity {
         int entityId = entityMetadata.getPrimitiveValue();
         Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
         if (entity != null) {
-            dirtyMetadata.put(EntityDataTypes.TARGET_EID, entity.getGeyserId());
+            dirtyMetadata.put(EntityDataTypes.TARGET_EID, entity.geyserId());
         } else {
             dirtyMetadata.put(EntityDataTypes.TARGET_EID, (long) 0);
         }

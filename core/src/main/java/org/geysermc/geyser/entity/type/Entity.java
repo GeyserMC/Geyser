@@ -45,6 +45,8 @@ import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.data.BatchEntityDataUpdater;
+import org.geysermc.geyser.api.entity.data.GeyserEntityData;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
@@ -93,6 +95,7 @@ public class Entity implements GeyserEntity {
     protected EntityTypeDefinition<?> javaTypeDefinition;
 
     protected int entityId;
+    @Accessors(fluent = true)
     protected final long geyserId;
     protected UUID uuid;
     /**
@@ -170,7 +173,7 @@ public class Entity implements GeyserEntity {
         this.displayName = standardDisplayName();
 
         this.entityId = context.javaId();
-        this.geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
+        this.geyserId = context.geyserId() == null ? session.getEntityCache().getNextEntityId().incrementAndGet() : context.geyserId();
         this.uuid = context.uuid();
         this.motion = context.motion();
         this.yaw = context.yaw();
@@ -182,13 +185,15 @@ public class Entity implements GeyserEntity {
         this.offset = context.offset();
 
         this.valid = false;
-        // TODO null or empty check
         this.propertyManager = bedrockDefinition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(bedrockDefinition.registeredProperties());
 
-        setPosition(position);
+        setPosition(context.position());
         setAirSupply(getMaxAir());
 
         initializeMetadata();
+
+        // Allow API users to do things pre-spawn
+        context.geyserEntityFuture().complete(this);
     }
 
     /**
@@ -708,7 +713,7 @@ public class Entity implements GeyserEntity {
      */
     protected InteractiveTag testInteraction(Hand hand) {
         if (isAlive() && this instanceof Leashable leashable) {
-            if (leashable.leashHolderBedrockId() == session.getPlayerEntity().getGeyserId()) {
+            if (leashable.leashHolderBedrockId() == session.getPlayerEntity().geyserId()) {
                 // Note this might be client side. Has yet to be an issue though, as of Java 1.21.
                 return InteractiveTag.REMOVE_LEASH;
             }
@@ -736,7 +741,7 @@ public class Entity implements GeyserEntity {
                 return InteractionResult.SUCCESS;
             }
         } else if (isAlive() && this instanceof Leashable leashable) {
-            if (leashable.leashHolderBedrockId() == session.getPlayerEntity().getGeyserId()) {
+            if (leashable.leashHolderBedrockId() == session.getPlayerEntity().geyserId()) {
                 // Note this might also update client side (a theoretical Geyser/client desync and Java parity issue).
                 // Has yet to be an issue though, as of Java 1.21.
                 return InteractionResult.SUCCESS;
@@ -754,7 +759,7 @@ public class Entity implements GeyserEntity {
     public boolean hasLeashesToDrop() {
         BoundingBox searchBB = new BoundingBox(position.getX(), position.getY(), position.getZ(), 32, 32, 32);
         List<Leashable> leashedInRange = session.getEntityCache().getEntities().values().stream()
-            .filter(entity -> entity instanceof Leashable leashablex && leashablex.leashHolderBedrockId() == this.getGeyserId())
+            .filter(entity -> entity instanceof Leashable leashablex && leashablex.leashHolderBedrockId() == this.geyserId())
             .filter(entity -> {
                 BoundingBox leashedBB = new BoundingBox(entity.position.toDouble(), entity.boundingBoxWidth, entity.boundingBoxHeight, entity.boundingBoxWidth);
                 return searchBB.checkIntersection(leashedBB);
@@ -824,7 +829,7 @@ public class Entity implements GeyserEntity {
 
         if (propertyManager.hasProperties()) {
             SetEntityDataPacket packet = new SetEntityDataPacket();
-            packet.setRuntimeEntityId(getGeyserId());
+            packet.setRuntimeEntityId(geyserId());
             propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
             propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
             if (immediate) {
@@ -836,17 +841,17 @@ public class Entity implements GeyserEntity {
     }
 
     @Override
-    public @NonNull UUID uuid() {
+    public @Nullable UUID uuid() {
         return uuid;
     }
 
     @Override
-    public GeyserEntityDefinition definition() {
+    public @NonNull GeyserEntityDefinition definition() {
         return bedrockDefinition;
     }
 
     @Override
-    public Vector3f position() {
+    public @NonNull Vector3f position() {
         return this.position.down(offset);
     }
 }

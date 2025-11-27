@@ -101,7 +101,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             return;
         }
 
-        context.callEvent();
+        context.callServerSpawnEvent();
         if (context.bedrockEntityDefinition() == null) {
             // TODO log warn
             return;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,22 +23,33 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living.monster;
+package org.geysermc.geyser.api.event.bedrock;
 
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 
-public class VexEntity extends MonsterEntity {
+/**
+ * Called when the Java server attaches parrots to a player.
+ */
+public abstract class SessionAttachParrotsEvent extends SessionSpawnEntityEvent {
 
-    public VexEntity(EntitySpawnContext context) {
-        super(context);
+    public SessionAttachParrotsEvent(@NonNull GeyserConnection connection) {
+        super(connection);
     }
 
-    public void setVexFlags(ByteEntityMetadata entityMetadata) {
-        byte xd = entityMetadata.getPrimitiveValue();
-        // Set the target to the player to force the attack animation
-        // even if the player isn't the target as we dont get the target on Java
-        dirtyMetadata.put(EntityDataTypes.TARGET_EID, (xd & 0x01) == 0x01 ? session.getPlayerEntity().geyserId() : 0);
-    }
+    /**
+     * @return the player with bird friends
+     */
+    public abstract GeyserPlayerEntity player();
+
+    /**
+     * @return the parrot variant
+     */
+    public abstract int variant();
+
+    /**
+     * @return true if parrot is on the right shoulder, left otherwise
+     */
+    public abstract boolean right();
 }

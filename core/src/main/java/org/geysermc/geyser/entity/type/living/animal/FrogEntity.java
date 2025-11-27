@@ -69,7 +69,7 @@ public class FrogEntity extends AnimalEntity implements VariantIntHolder {
         if (entityId.isPresent()) {
             Entity entity = session.getEntityCache().getEntityByJavaId(entityId.getAsInt());
             if (entity != null) {
-                dirtyMetadata.put(EntityDataTypes.TARGET_EID, entity.getGeyserId());
+                dirtyMetadata.put(EntityDataTypes.TARGET_EID, entity.geyserId());
             }
         } else {
             dirtyMetadata.put(EntityDataTypes.TARGET_EID, 0L);

@@ -111,7 +111,7 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
         UpdateEquipPacket updateEquipPacket = new UpdateEquipPacket();
         updateEquipPacket.setWindowId((short) packet.getContainerId());
         updateEquipPacket.setWindowType((short) ContainerType.HORSE.getId());
-        updateEquipPacket.setUniqueEntityId(entity.getGeyserId());
+        updateEquipPacket.setUniqueEntityId(entity.geyserId());
 
         NbtMapBuilder builder = NbtMap.builder();
         List<NbtMap> slots = new ArrayList<>();

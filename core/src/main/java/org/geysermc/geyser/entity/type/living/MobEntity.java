@@ -35,7 +35,6 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.SpawnEggItem;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.ItemUtils;
@@ -78,7 +77,7 @@ public class MobEntity extends LivingEntity implements Leashable {
         if (!isAlive()) {
             // dead lol
             return InteractiveTag.NONE;
-        } else if (leashHolderBedrockId == session.getPlayerEntity().getGeyserId()) {
+        } else if (leashHolderBedrockId == session.getPlayerEntity().geyserId()) {
             return InteractiveTag.REMOVE_LEASH;
         } else {
             GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);

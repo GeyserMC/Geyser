@@ -37,14 +37,19 @@ import org.cloudburstmc.protocol.common.util.TriFunction;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.JavaEntityType;
+import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.event.bedrock.SessionAttachParrotsEvent;
 import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Getter
 @Setter
@@ -64,27 +69,46 @@ public class EntitySpawnContext {
     private float height;
     private float width;
     private float offset;
-    private long geyserId;
+    private @Nullable Long geyserId;
+    private CompletableFuture<@Nullable GeyserEntity> geyserEntityFuture;
 
-    public static final TriFunction<GeyserSession, UUID, EntityTypeDefinition<?>, EntitySpawnContext> DUMMY_CONTEXT = ((session, uuid, definition) ->
-        new EntitySpawnContext(session, definition, 0, uuid, definition.defaultBedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, definition.height(),
-                definition.width(), definition.offset(), session.getEntityCache().getNextEntityId().incrementAndGet()));
+    public static final TriFunction<GeyserSession, UUID, EntityTypeDefinition<?>, EntitySpawnContext> DUMMY_CONTEXT = ((session, uuid, definition) -> {
+        return new EntitySpawnContext(session, definition, 0, uuid);
+    });
+
+    public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> type, int javaId, UUID uuid) {
+        this(session, type, javaId, uuid, type.defaultBedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0,
+            type.height(), type.width(), type.offset(), null, new CompletableFuture<>());
+    }
+
+    public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> type, int entityId, BedrockEntityDefinition definition, float height, float width, long geyserId) {
+        this(session, type, entityId, null, definition, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, height, width, 0, geyserId, null);
+    }
 
     public static EntitySpawnContext fromPacket(GeyserSession session, EntityTypeDefinition<?> definition, ClientboundAddEntityPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = packet.getMovement().toFloat();
         return new EntitySpawnContext(session, definition, packet.getEntityId(), packet.getUuid(), definition.defaultBedrockDefinition(),
-            position, motion, packet.getYaw(), packet.getPitch(), packet.getHeadYaw(), definition.height(), definition.width(), definition.offset(), 0);
+            position, motion, packet.getYaw(), packet.getPitch(), packet.getHeadYaw(), definition.height(), definition.width(), definition.offset(), null, new CompletableFuture<>());
     }
 
     public static EntitySpawnContext inherited(GeyserSession session, EntityTypeDefinition<?> definition, Entity base, Vector3f position) {
-        return new EntitySpawnContext(session, definition, 0, null, definition.defaultBedrockDefinition(), position,
-            base.getMotion(), base.getYaw(), base.getPitch(), base.getHeadYaw(), definition.height(), definition.width(), definition.offset(),
-            session.getEntityCache().getNextEntityId().incrementAndGet());
+        return new EntitySpawnContext(session, definition, 0, null, definition.defaultBedrockDefinition(), position, base.getMotion(), base.getYaw(),
+            base.getPitch(), base.getHeadYaw(), definition.height(), definition.width(), definition.offset(), null, new CompletableFuture<>());
     }
 
-    public void callEvent() {
+    public void callServerSpawnEvent() {
         GeyserImpl.getInstance().getEventBus().fire(new ServerSpawnEntityEvent(session) {
+
+            @Override
+            public boolean isCancelled() {
+                return bedrockEntityDefinition == null;
+            }
+
+            @Override
+            public void setCancelled(boolean cancelled) {
+                bedrockEntityDefinition = null;
+            }
 
             @Override
             public int entityId() {
@@ -99,6 +123,36 @@ public class EntitySpawnContext {
             @Override
             public @NonNull JavaEntityType entityType() {
                 return entityTypeDefinition.type();
+            }
+
+            @Override
+            public float width() {
+                return width;
+            }
+
+            @Override
+            public void width(@NonNegative float newWidth) {
+                width = newWidth;
+            }
+
+            @Override
+            public float height() {
+                return height;
+            }
+
+            @Override
+            public void height(@NonNegative float newHeight) {
+                height = newHeight;
+            }
+
+            @Override
+            public float offset() {
+                return offset;
+            }
+
+            @Override
+            public void offset(@NonNegative float newOffset) {
+                offset = newOffset;
             }
 
             @Override
@@ -120,33 +174,60 @@ public class EntitySpawnContext {
             }
 
             @Override
-            public float width() {
-                return width;
+            public CompletableFuture<@Nullable GeyserEntity> futureEntity() {
+                return geyserEntityFuture;
+            }
+        });
+    }
+
+    public void callParrotEvent(PlayerEntity player, int variant, boolean right) {
+        GeyserImpl.getInstance().eventBus().fire(new SessionAttachParrotsEvent(session) {
+            @Override
+            public GeyserPlayerEntity player() {
+                return player;
             }
 
             @Override
-            public float height() {
-                return height;
+            public int variant() {
+                return variant;
             }
 
             @Override
-            public float offset() {
-                return offset;
+            public boolean right() {
+                return right;
             }
 
             @Override
-            public void width(@NonNegative float newWidth) {
-                width = newWidth;
+            public @Nullable GeyserEntityDefinition entityDefinition() {
+                return bedrockEntityDefinition;
             }
 
             @Override
-            public void height(@NonNegative float newHeight) {
-                height = newHeight;
+            public void entityDefinition(@Nullable GeyserEntityDefinition entityDefinition) {
+                if (entityDefinition == null) {
+                    bedrockEntityDefinition = null;
+                } else {
+                    if (entityDefinition instanceof BedrockEntityDefinition bed) {
+                        bedrockEntityDefinition = bed;
+                    } else {
+                        throw new IllegalStateException("Unknown implementation of GeyserEntityDefinition");
+                    }
+                }
             }
 
             @Override
-            public void offset(@NonNegative float newOffset) {
-                offset = newOffset;
+            public CompletableFuture<@Nullable GeyserEntity> futureEntity() {
+                return geyserEntityFuture;
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return bedrockEntityDefinition == null;
+            }
+
+            @Override
+            public void setCancelled(boolean cancelled) {
+                bedrockEntityDefinition = null;
             }
         });
     }

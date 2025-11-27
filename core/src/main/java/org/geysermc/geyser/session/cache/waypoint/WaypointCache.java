@@ -81,7 +81,7 @@ public final class WaypointCache {
             // distance
             PlayerLocationPacket locationPacket = new PlayerLocationPacket();
             locationPacket.setType(PlayerLocationPacket.Type.HIDE);
-            locationPacket.setTargetEntityId(player.getGeyserId());
+            locationPacket.setTargetEntityId(player.geyserId());
             session.sendUpstreamPacket(locationPacket);
         }
     }
@@ -114,7 +114,7 @@ public final class WaypointCache {
 
         Optional<UUID> uuid = Optional.ofNullable(waypoint.uuid());
         Optional<PlayerEntity> player = uuid.flatMap(id -> Optional.ofNullable(session.getEntityCache().getPlayerEntity(id)));
-        OptionalLong playerId = player.stream().mapToLong(PlayerEntity::getGeyserId).findFirst();
+        OptionalLong playerId = player.stream().mapToLong(PlayerEntity::geyserId).findFirst();
 
         GeyserWaypoint tracked = GeyserWaypoint.create(session, uuid, playerId, waypoint);
         if (tracked != null) {
