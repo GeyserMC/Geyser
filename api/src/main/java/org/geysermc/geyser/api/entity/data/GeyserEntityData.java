@@ -23,42 +23,32 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.lifecycle;
+package org.geysermc.geyser.api.entity.data;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.event.Event;
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
-import org.geysermc.geyser.api.entity.custom.CustomJavaEntityType;
-import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.GeyserApi;
 
-import java.util.Collection;
-import java.util.function.Consumer;
-
-/**
- * Called when entities are defined within Geyser.
- * <p>
- * This event can be used to add custom entities to Geyser.
- * Entity definitions can be created using the builder provided
- * inside of {@link GeyserEntityDefinition}.
- */
-public interface GeyserDefineEntitiesEvent extends Event {
+public interface GeyserEntityData<T> {
 
     /**
-     * @return an immutable collection of all registered entity definitions
+     * @return the type class
      */
-    Collection<GeyserEntityDefinition> entities();
+    Class<T> typeClass();
 
     /**
-     * Registers a custom entity definition
-     * @param identifier the identifier of the custom entity to register
+     * @return the name of this entity data type
      */
-    CustomEntityDefinition register(@NonNull Identifier identifier);
+    String name();
 
     /**
-     * Registers a non-vanilla Java entity type.
+     * Creates a new Geyser entity data type.
      *
-     * @param builderConsumer the builder for the non-vanilla type
+     * @param typeClass the class of the value type
+     * @param name the name of the entity data type
+     * @throws IllegalArgumentException if such a type does not exist
+     * @return this instance
+     * @param <T> the value type
      */
-    void registerEntityType(Consumer<CustomJavaEntityType.Builder> builderConsumer);
+    static <T> GeyserEntityData<T> of(Class<T> typeClass, String name) {
+        return GeyserApi.api().provider(GeyserEntityData.class, typeClass, name);
+    }
 }

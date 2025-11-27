@@ -23,20 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.entity.custom;
+package org.geysermc.geyser.api.entity.data;
 
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
-import org.geysermc.geyser.api.util.Identifier;
+@FunctionalInterface
+public interface BatchEntityDataUpdater {
 
-/**
- * Represents a custom entity definition.
- * To register, use {@link GeyserDefineEntitiesEvent#register(Identifier)}
- */
-public interface CustomEntityDefinition extends GeyserEntityDefinition {
-
-    @Override
-    default boolean vanilla() {
-        return false;
-    }
+    <T> void updateMetadata(GeyserEntityData<T> type, T value);
 }

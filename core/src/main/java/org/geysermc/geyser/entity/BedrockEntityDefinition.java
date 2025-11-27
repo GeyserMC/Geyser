@@ -33,9 +33,11 @@ import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
+import org.geysermc.geyser.registry.Registries;
 
 import java.util.List;
 import java.util.Objects;
@@ -43,7 +45,7 @@ import java.util.Objects;
 @Getter
 @Accessors(fluent = true)
 @ToString
-public class BedrockEntityDefinition implements GeyserEntityDefinition {
+public class BedrockEntityDefinition implements CustomEntityDefinition, GeyserEntityDefinition {
     private final @NonNull Identifier identifier;
     private final @NonNull GeyserEntityProperties registeredProperties;
 
@@ -60,7 +62,11 @@ public class BedrockEntityDefinition implements GeyserEntityDefinition {
         return builder().identifier(identifier).build();
     }
 
-    public static BedrockEntityDefinition ofCustom(@NonNull Identifier identifier) {
+    public static BedrockEntityDefinition api(@NonNull Identifier identifier) {
+        if (Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(identifier)) {
+            return Registries.BEDROCK_ENTITY_DEFINITIONS.get().get(identifier);
+        }
+
         Objects.requireNonNull(identifier, "identifier");
         if (identifier.vanilla()) {
             throw new IllegalArgumentException("Cannot register custom entity in vanilla namespace! " + identifier);

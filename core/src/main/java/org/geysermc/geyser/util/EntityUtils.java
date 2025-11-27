@@ -430,16 +430,18 @@ public final class EntityUtils {
             }
 
             @Override
-            public void register(@NonNull CustomEntityDefinition customEntityDefinition) {
-                Objects.requireNonNull(customEntityDefinition);
-                if (!(customEntityDefinition instanceof BedrockEntityDefinition definition)) {
-                    throw new IllegalStateException("Unknown custom entity definition: " + customEntityDefinition);
+            public CustomEntityDefinition register(@NonNull Identifier identifier) {
+                Objects.requireNonNull(identifier);
+                if (Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(identifier)) {
+                    throw new IllegalStateException("Duplicate custom entity definition: " + identifier);
                 }
-                if (Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(definition.identifier())) {
-                    throw new IllegalStateException("Duplicate custom entity definition: " + customEntityDefinition);
+                if (identifier.vanilla()) {
+                    throw new IllegalStateException("Cannot register custom entity in vanilla namespace! " + identifier);
                 }
-                Registries.BEDROCK_ENTITY_DEFINITIONS.register(definition.identifier(), definition);
+                BedrockEntityDefinition definition = BedrockEntityDefinition.api(identifier);
+                Registries.BEDROCK_ENTITY_DEFINITIONS.register(identifier, definition);
                 customEntities.add(definition);
+                return definition;
             }
 
             @Override
@@ -449,15 +451,13 @@ public final class EntityUtils {
 
                 var type = GeyserEntityType.createCustomAndRegister(builder);
 
+                var defaultBedrockDefinition = type.defaultBedrockDefinition();
+                if (defaultBedrockDefinition != null && !isRegistered(defaultBedrockDefinition)) {
+                    throw new IllegalStateException("Default bedrock entity definition has not been registered!");
+                }
                 // TODO register non-vanilla properly!
                 Registries.JAVA_ENTITY_TYPES.register(type, null);
                 Registries.JAVA_ENTITY_IDENTIFIERS.register(type.identifier().toString(), null);
-
-                var defaultBedrockDefinition = type.defaultBedrockDefinition();
-                if (defaultBedrockDefinition != null && !isRegistered(defaultBedrockDefinition)
-                        && defaultBedrockDefinition instanceof CustomEntityDefinition customEntityDefinition) {
-                    register(customEntityDefinition);
-                }
             }
 
             public boolean isRegistered(GeyserEntityDefinition definition) {
@@ -486,7 +486,7 @@ public final class EntityUtils {
                 .build();
 
             Registries.BEDROCK_ENTITY_IDENTIFIERS.set(newIdentifiers);
-            GeyserImpl.getInstance().getLogger().debug("Registered " + customEntities.size() + " custom entities");
+            GeyserImpl.getInstance().getLogger().info("Registered " + customEntities.size() + " custom entities");
         }
 
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {

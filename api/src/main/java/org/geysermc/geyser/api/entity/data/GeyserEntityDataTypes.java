@@ -23,20 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.entity.custom;
+package org.geysermc.geyser.api.entity.data;
 
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
-import org.geysermc.geyser.api.util.Identifier;
-
-/**
- * Represents a custom entity definition.
- * To register, use {@link GeyserDefineEntitiesEvent#register(Identifier)}
- */
-public interface CustomEntityDefinition extends GeyserEntityDefinition {
-
-    @Override
-    default boolean vanilla() {
-        return false;
-    }
+public final class GeyserEntityDataTypes {
+    public static final GeyserEntityData<Byte> COLOR = GeyserEntityData.of(Byte.class, "COLOR");
+    public static final GeyserEntityData<Integer> VARIANT = GeyserEntityData.of(Integer.class, "VARIANT");
+    public static final GeyserEntityData<Float> WIDTH = GeyserEntityData.of(Float.class, "WIDTH");
+    public static final GeyserEntityData<Float> HEIGHT = GeyserEntityData.of(Float.class, "HEIGHT");
+    public static final GeyserEntityData<Float> SCALE = GeyserEntityData.of(Float.class, "SCALE");
 }

@@ -34,12 +34,18 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandOverloadData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParam;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.event.EventRegistrar;
+import org.geysermc.geyser.api.event.java.ServerAttachParrotsEvent;
+import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.defaults.AdvancedTooltipsCommand;
@@ -58,6 +64,8 @@ import org.geysermc.geyser.command.defaults.SettingsCommand;
 import org.geysermc.geyser.command.defaults.StatisticsCommand;
 import org.geysermc.geyser.command.defaults.StopCommand;
 import org.geysermc.geyser.command.defaults.VersionCommand;
+import org.geysermc.geyser.entity.BedrockEntityDefinitions;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.event.type.GeyserDefineCommandsEventImpl;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.session.GeyserSession;
@@ -83,6 +91,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.geysermc.geyser.command.GeyserCommand.DEFAULT_ROOT_COMMAND;
 
@@ -214,6 +223,30 @@ public class CommandRegistry implements EventRegistrar {
 
         // Wait for the right moment (depends on the platform) to register permissions.
         geyser.eventBus().subscribe(this, GeyserRegisterPermissionsEvent.class, this::onRegisterPermissions);
+
+        AtomicReference<CustomEntityDefinition> definition = new AtomicReference<>();
+
+        geyser.eventBus().subscribe(this, GeyserDefineEntitiesEvent.class, event -> {
+            definition.set(event.register(Identifier.of("sample", "robot")));
+        });
+
+        geyser.eventBus().subscribe(this, ServerSpawnEntityEvent.class, event -> {
+            if (event.entityType().is(Identifier.of("armor_stand"))) {
+                event.entityDefinition(definition.get());
+
+                event.futureEntity().whenComplete((entity, throwable) -> {
+                    if (entity != null) {
+                        var a = (Entity) entity;
+                        a.getDirtyMetadata().put(EntityDataTypes.SCALE, 0.5F);
+                        a.updateBedrockMetadata();
+                    }
+                });
+            }
+        });
+
+        geyser.eventBus().subscribe(this, ServerAttachParrotsEvent.class, event -> {
+           event.entityDefinition(BedrockEntityDefinitions.CHEST_BOAT);
+        });
     }
 
     /**

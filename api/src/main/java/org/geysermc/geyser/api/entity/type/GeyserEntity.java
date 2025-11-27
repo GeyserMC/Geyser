@@ -32,6 +32,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.data.BatchEntityDataUpdater;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
@@ -114,6 +115,14 @@ public interface GeyserEntity {
     default void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer) {
         this.updatePropertiesBatched(consumer, false);
     }
+
+    /**
+     * Updates Bedrock metadata, like scale, height, width and other entity metadata
+     * @see BatchEntityDataUpdater
+     *
+     * @param consumer a batch updater
+     */
+    void updateEntityDataBatched(Consumer<BatchEntityDataUpdater> consumer);
 
     /**
      * Updates multiple properties with just one update packet, which can be sent immediately to the client.

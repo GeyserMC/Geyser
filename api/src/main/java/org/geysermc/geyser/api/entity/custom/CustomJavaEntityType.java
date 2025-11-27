@@ -79,8 +79,7 @@ public interface CustomJavaEntityType extends JavaEntityType {
          * The default Bedrock edition entity definition.
          * You can define custom Bedrock entities, or use vanilla definitions
          * obtainable via the {@link GeyserDefineEntitiesEvent#entities()} collection.
-         * Calling this method with a non-registered {@link CustomEntityDefinition} will
-         * register it too.
+         * This entity has to be registered before calling this method!
          *
          * @param defaultBedrockDefinition the default Bedrock definition
          * @return this builder

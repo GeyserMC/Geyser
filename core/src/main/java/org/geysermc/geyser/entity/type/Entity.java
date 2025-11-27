@@ -854,4 +854,17 @@ public class Entity implements GeyserEntity {
     public @NonNull Vector3f position() {
         return this.position.down(offset);
     }
+
+    @Override
+    public void updateEntityDataBatched(Consumer<BatchEntityDataUpdater> consumer) {
+        Objects.requireNonNull(consumer);
+        consumer.accept(new BatchEntityDataUpdater() {
+
+            @Override
+            public <T> void updateMetadata(GeyserEntityData<T> type, T value) {
+                // TODO
+                // ideally we just support any type cloudburst lib supports
+            }
+        });
+    }
 }
