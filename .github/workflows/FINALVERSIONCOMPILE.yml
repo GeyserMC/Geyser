@@ -1,0 +1,48 @@
+name: Compilar Geyser Modificado (Puerto 25565)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Forzar Puerto 25565 (Corrección del Bug)
+        run: |
+          # Definimos la ruta del archivo
+          archivo="bootstrap/bungeecord/src/main/java/org/geysermc/geyser/platform/bungeecord/GeyserBungeePlugin.java"
+          
+          # CORRECCIÓN: Ahora buscamos específicamente la línea que tiene "mapToInt"
+          # Esto asegura que solo modificamos el método del puerto y no el de la dirección IP.
+          sed -i 's/return findCompatibleListener().*mapToInt.*;/return 25565;/g' $archivo
+          
+          # Verificamos que el cambio se hizo correctamente mostrando el archivo en consola
+          echo "--- Verificación del código modificado ---"
+          grep -C 5 "getServerPort" $archivo
+
+      - name: Dar permisos al compilador
+        run: chmod +x gradlew
+
+      - name: Compilar con Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+
+      - name: Subir el archivo compilado
+        uses: actions/upload-artifact@v4
+        with:
+          name: Geyser-Bungee-Puerto-25565
+          path: bootstrap/bungeecord/build/libs/*jar
