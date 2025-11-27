@@ -23,18 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.bedrock;
+package org.geysermc.geyser.api.event.java;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.event.bedrock.SessionSpawnEntityEvent;
 
 /**
  * Called when the Java server attaches parrots to a player.
  */
-public abstract class SessionAttachParrotsEvent extends SessionSpawnEntityEvent {
+public abstract class ServerAttachParrotsEvent extends SessionSpawnEntityEvent {
 
-    public SessionAttachParrotsEvent(@NonNull GeyserConnection connection) {
+    public ServerAttachParrotsEvent(@NonNull GeyserConnection connection) {
         super(connection);
     }
 

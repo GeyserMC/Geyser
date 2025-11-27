@@ -37,6 +37,7 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Accessors(fluent = true)
@@ -54,6 +55,14 @@ public class BedrockEntityDefinition implements GeyserEntityDefinition {
     }
 
     public static BedrockEntityDefinition of(Identifier identifier) {
+        return builder().identifier(identifier).build();
+    }
+
+    public static BedrockEntityDefinition ofCustom(@NonNull Identifier identifier) {
+        Objects.requireNonNull(identifier, "identifier");
+        if (identifier.vanilla()) {
+            throw new IllegalArgumentException("Cannot register custom entity in vanilla namespace! " + identifier);
+        }
         return builder().identifier(identifier).build();
     }
 

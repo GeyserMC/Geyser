@@ -52,7 +52,12 @@ public interface EntityData {
     /**
      * Returns a {@link GeyserEntity} to e.g. update entity properties.
      */
-    @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaUuid(@NonNegative UUID javaUuid);
+    @NonNull CompletableFuture<@Nullable GeyserEntity> entityByUuid(@NonNegative UUID javaUuid);
+
+    /**
+     * Returns a {@link GeyserEntity} based on a Geyser entity id
+     */
+    @NonNull CompletableFuture<@Nullable GeyserEntity> entityByGeyserId(@NonNegative long geyserId);
 
     /**
      * Displays a player entity as emoting to this client.
@@ -65,6 +70,7 @@ public interface EntityData {
     /**
      * @deprecated use {@link GeyserConnection#playerEntity()}
      */
+    @Deprecated
     @NonNull GeyserPlayerEntity playerEntity();
 
     /**
@@ -86,7 +92,8 @@ public interface EntityData {
     boolean isMovementLocked();
 
     /**
-     * @deprecated use {@link GeyserConnection#requestHandSwap()} ()}
+     * @deprecated use {@link GeyserConnection#requestHandSwap()}
      */
+    @Deprecated
     void switchHands();
 }

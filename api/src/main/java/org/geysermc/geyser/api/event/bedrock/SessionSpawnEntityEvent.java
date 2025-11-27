@@ -33,12 +33,13 @@ import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
+import org.geysermc.geyser.api.event.java.ServerAttachParrotsEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
- * See {@link ServerSpawnEntityEvent} and {@link SessionAttachParrotsEvent}
+ * See {@link ServerSpawnEntityEvent} and {@link ServerAttachParrotsEvent}
  */
 public abstract class SessionSpawnEntityEvent extends ConnectionEvent implements Cancellable {
 

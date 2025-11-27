@@ -28,6 +28,7 @@ package org.geysermc.geyser.api.event.lifecycle;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.event.Event;
+import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.property.type.GeyserBooleanEntityProperty;
@@ -63,7 +64,7 @@ import java.util.function.Consumer;
  * }</pre>
  *
  * Retrieving entity instances is possible with the {@link EntityData#entityByJavaId(int)} method, or
- * {@link EntityData#playerEntity()} for the connection player entity.
+ * {@link GeyserConnection#playerEntity()} for the connection player entity.
  * To update the value of a property on a specific entity, use {@link GeyserEntity#updateProperty(GeyserEntityProperty, Object)},
  * or {@link GeyserEntity#updatePropertiesBatched(Consumer)} to update multiple properties efficiently at once.
  *

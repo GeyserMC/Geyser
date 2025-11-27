@@ -46,19 +46,7 @@ public interface CustomEntityDefinition extends GeyserEntityDefinition {
      * @param bedrockIdentifier the Bedrock entity identifier
      * @return a new builder
      */
-    static Builder builder(@NonNull Identifier bedrockIdentifier) {
-        return GeyserApi.api().provider(Builder.class, bedrockIdentifier);
-    }
-
-    interface Builder {
-
-        // TODO needed?
-
-        /**
-         * Builds the entity definition.
-         *
-         * @return the entity definition
-         */
-        CustomEntityDefinition build();
+    static CustomEntityDefinition create(@NonNull Identifier bedrockIdentifier) {
+        return GeyserApi.api().provider(CustomEntityDefinition.class, bedrockIdentifier);
     }
 }

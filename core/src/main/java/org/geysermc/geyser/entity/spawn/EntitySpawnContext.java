@@ -39,7 +39,7 @@ import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
-import org.geysermc.geyser.api.event.bedrock.SessionAttachParrotsEvent;
+import org.geysermc.geyser.api.event.java.ServerAttachParrotsEvent;
 import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
@@ -181,7 +181,7 @@ public class EntitySpawnContext {
     }
 
     public void callParrotEvent(PlayerEntity player, int variant, boolean right) {
-        GeyserImpl.getInstance().eventBus().fire(new SessionAttachParrotsEvent(session) {
+        GeyserImpl.getInstance().eventBus().fire(new ServerAttachParrotsEvent(session) {
             @Override
             public GeyserPlayerEntity player() {
                 return player;

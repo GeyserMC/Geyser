@@ -49,14 +49,6 @@ public interface GeyserDefineEntitiesEvent extends Event {
     Collection<GeyserEntityDefinition> entities();
 
     /**
-     * Registers a custom entity definition from its builder
-     * @param builder the custom entity definition builder
-     */
-    default void register(CustomEntityDefinition.Builder builder) {
-        register(builder.build());
-    }
-
-    /**
      * Registers a custom entity definition
      * @param customEntityDefinition the custom entity definition to register
      */

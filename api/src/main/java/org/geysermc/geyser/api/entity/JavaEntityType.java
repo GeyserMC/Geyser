@@ -69,8 +69,21 @@ public interface JavaEntityType {
         return identifier().equals(javaIdentifier);
     }
 
+    /**
+     * Gets the default Bedrock entity definition, if available,
+     * that is associated with this Minecraft: Java Edition entity type.
+     *
+     * @return the default Bedrock entity definition
+     */
     @Nullable GeyserEntityDefinition defaultBedrockDefinition();
 
+    /**
+     * Returns the JavaEntityType representation of a built-in vanilla Java entity type.
+     *
+     * @param identifier the Java Edition entity type identifier
+     * @throws IllegalArgumentException if such an entity does not exist
+     * @return the Java Edition entity type for the vanilla entity type
+     */
     static JavaEntityType ofVanilla(Identifier identifier) {
         return GeyserApi.api().provider(JavaEntityType.class, identifier);
     }

@@ -449,6 +449,7 @@ public final class EntityUtils {
 
                 var type = GeyserEntityType.createCustomAndRegister(builder);
 
+                // TODO register non-vanilla properly!
                 Registries.JAVA_ENTITY_TYPES.register(type, null);
                 Registries.JAVA_ENTITY_IDENTIFIERS.register(type.identifier().toString(), null);
 

@@ -29,25 +29,62 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.JavaEntityType;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
 import org.geysermc.geyser.api.util.Identifier;
 
+/**
+ * Represents a custom Minecraft: Java Edition entity type.
+ * This can only be used with modded servers!
+ */
 public interface CustomJavaEntityType extends JavaEntityType {
 
     @Override
     default boolean vanilla() {
         return false;
-    };
+    }
 
     interface Builder {
 
+        /**
+         * The entity type's identifier. It cannot be in the Minecraft namespace
+         * for custom entities!
+         *
+         * @param entityType the identifier
+         * @return this builder
+         */
         Builder type(Identifier entityType);
 
+        /**
+         * The entity type's numeric network id.
+         * @param javaId the java id
+         * @return this builder
+         */
         Builder javaId(int javaId);
 
+        /**
+         * The width of this entity.
+         * @param width the width of this entity
+         * @return this builder
+         */
         Builder width(@NonNegative float width);
 
+        /**
+         * The height of this entity
+         * @param height the height
+         * @return this builder
+         */
         Builder height(@NonNegative float height);
 
+        /**
+         * The default Bedrock edition entity definition.
+         * You can define custom Bedrock entities, or use vanilla definitions
+         * obtainable via the {@link GeyserDefineEntitiesEvent#entities()} collection.
+         * Calling this method with a non-registered {@link CustomEntityDefinition} will
+         * register it too.
+         *
+         * @param defaultBedrockDefinition the default Bedrock definition
+         * @return this builder
+         */
         Builder defaultBedrockDefinition(@Nullable GeyserEntityDefinition defaultBedrockDefinition);
     }
 }
