@@ -1,0 +1,49 @@
+name: Compilar Geyser Modificado
+
+# Se ejecuta manualmente o cada vez que tú sincronices tu Fork con el original
+on:
+  workflow_dispatch: # Permite darle al botón "Run" manualmente
+  schedule:
+    - cron: '0 8 * * *' # (Opcional) Ejecutar automáticamente todos los días a las 8am
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive # ¡Importante! Geyser necesita submódulos
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21' # Geyser requiere Java moderno
+          distribution: 'temurin'
+
+      - name: Aplicar tu modificación (Líneas 289-291)
+        # Aquí usamos 'sed' para cambiar las líneas específicas por tu código del puerto 25565.
+        # Ajusta el texto dentro de las comillas si tu código Java necesita algo específico.
+        run: |
+          archivo="bootstrap/bungeecord/src/main/java/org/geysermc/geyser/platform/bungeecord/GeyserBungeePlugin.java"
+          
+          # Esta instrucción reemplaza las líneas 289 a 291 con tu nuevo código
+          # ¡Asegúrate de que la sintaxis Java sea correcta!
+          sed -i '289,291c\        // Modificacion automatica para puerto 25565\n        config.setPort(25565);' $archivo
+          
+          echo "--- Verificación del cambio ---"
+          sed -n '285,295p' $archivo # Muestra el cambio en el log para que confirmes que funcionó
+
+      - name: Dar permisos al compilador
+        run: chmod +x gradlew
+
+      - name: Compilar con Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: build
+
+      - name: Subir el archivo compilado
+        uses: actions/upload-artifact@v4
+        with:
+          name: Geyser-Bungee-Modificado
+          path: bootstrap/bungeecord/build/libs/*jar
