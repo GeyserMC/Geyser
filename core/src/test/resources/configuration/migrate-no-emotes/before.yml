@@ -128,7 +128,7 @@ disable-bedrock-scaffolding: false
 # disabled - the default/fallback, which doesn't apply this workaround
 # no-emotes - emotes will NOT be sent to other Bedrock clients and offhand will be swapped. This effectively disables all emotes from being seen.
 # emotes-and-offhand - emotes will be sent to Bedrock clients and offhand will be swapped
-emote-offhand-workaround: "disabled"
+emote-offhand-workaround: "no-emotes"
 
 # The default locale if we dont have the one the client requested. Uncomment to not use the default system language.
 # default-locale: en_us
@@ -138,7 +138,7 @@ emote-offhand-workaround: "disabled"
 cache-images: 0
 
 # Allows custom skulls to be displayed. Keeping them enabled may cause a performance decrease on older/weaker devices.
-allow-custom-skulls: true
+allow-custom-skulls: false
 
 # The maximum number of custom skulls to be displayed per player. Increasing this may decrease performance on weaker devices.
 # Setting this to -1 will cause all custom skulls to be displayed regardless of distance or number.
@@ -187,7 +187,7 @@ metrics:
   # If metrics should be enabled
   enabled: true
   # UUID of server, don't change!
-  uuid: generateduuid
+  uuid: 00000000-0000-0000-0000-000000000000
 
 # ADVANCED OPTIONS - DO NOT TOUCH UNLESS YOU KNOW WHAT YOU ARE DOING!
 

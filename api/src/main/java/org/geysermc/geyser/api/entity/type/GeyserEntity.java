@@ -62,7 +62,23 @@ public interface GeyserEntity {
     /**
      * Updates multiple properties with just one update packet.
      * @see BatchPropertyUpdater
+     *
+     * @param consumer a batch updater
      * @since 2.9.0
      */
-    void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer);
+    default void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer) {
+        this.updatePropertiesBatched(consumer, false);
+    }
+
+    /**
+     * Updates multiple properties with just one update packet, which can be sent immediately to the client.
+     * Usually, sending updates immediately is not required except for specific situations where packet batching
+     * would result in update order issues.
+     * @see BatchPropertyUpdater
+     *
+     * @param consumer a batch updater
+     * @param immediate whether this update should be sent immediately
+     * @since 2.9.1
+     */
+    void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer, boolean immediate);
 }

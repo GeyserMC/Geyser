@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -253,6 +253,12 @@ public class MessageTranslator {
                     output.append(c);
 
                     if (c == ChatColor.ESCAPE) {
+                        // If the string ends with a formatting character, remove and skip
+                        if (i >= finalLegacyString.length() - 1) {
+                            output = output.deleteCharAt(output.length() - 1);
+                            continue;
+                        }
+
                         char newColor = finalLegacyString.charAt(i + 1);
                         if (newColor == 'r') {
                             lastColors = new StringBuilder();
@@ -438,7 +444,7 @@ public class MessageTranslator {
             textPacket.setMessage(MessageTranslator.convertMessage(withDecoration.build(), session.locale()));
         } else {
             session.getGeyser().getLogger().debug("Likely illegal chat type detection found.");
-            if (session.getGeyser().getConfig().isDebugMode()) {
+            if (session.getGeyser().config().debugMode()) {
                 Thread.dumpStack();
             }
             textPacket.setMessage(MessageTranslator.convertMessage(message, session.locale()));

@@ -236,11 +236,6 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    protected void setGliding(boolean value) {
-        session.setGliding(value);
-    }
-
-    @Override
     protected void setSneaking(boolean value) {
         if (value) {
             session.startSneaking(false);
@@ -248,11 +243,6 @@ public class SessionPlayerEntity extends PlayerEntity {
             session.setShouldSendSneak(false);
             session.stopSneaking(false);
         }
-    }
-
-    @Override
-    protected void setSpinAttack(boolean value) {
-        session.setSpinAttack(value);
     }
 
     /**
@@ -279,7 +269,16 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void setPose(Pose pose) {
         super.setPose(pose);
-        session.setPose(pose);
+
+        if (pose != session.getPose()) {
+            session.setPose(pose);
+            updateBedrockMetadata();
+        }
+    }
+
+    @Override
+    public void setPitch(float pitch) {
+        this.pitch = pitch;
     }
 
     public float getMaxHealth() {

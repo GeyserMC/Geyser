@@ -41,6 +41,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
@@ -317,13 +318,16 @@ public class AvatarEntity extends LivingEntity {
 
         if (pose == Pose.SWIMMING) {
             // This is just for, so we know if player is swimming or crawling.
-            // TODO test, changed from position (field) to position() (method), which adds offset
-            if (session.getGeyser().getWorldManager().blockAt(session, position.toInt()).is(Blocks.WATER)) {
+            if (session.getGeyser().getWorldManager().blockAt(session, position.down(EntityDefinitions.PLAYER.offset()).toInt()).is(Blocks.WATER)) {
                 setFlag(EntityFlag.SWIMMING, true);
             } else {
                 setFlag(EntityFlag.CRAWLING, true);
+
                 // Look at https://github.com/GeyserMC/Geyser/issues/5316, we're fixing this by spoofing player pitch to 0.
-                updateRotation(this.yaw, 0, this.onGround);
+                // Don't do this for session player however, as that teleport them back and messed up their rotation.
+                if (!(this instanceof SessionPlayerEntity)) {
+                    updateRotation(this.yaw, 0, this.onGround);
+                }
             }
         }
     }

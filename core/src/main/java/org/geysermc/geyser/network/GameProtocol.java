@@ -88,7 +88,8 @@ public final class GameProtocol {
         register(Bedrock_v819.CODEC, "1.21.93", "1.21.94");
         register(Bedrock_v827.CODEC, "1.21.100", "1.21.101");
         register(Bedrock_v844.CODEC, "1.21.111", "1.21.112", "1.21.113", "1.21.114");
-        register(Bedrock_v859.CODEC, "1.21.120");
+        register(Bedrock_v859.CODEC, "1.21.120", "1.21.121", "1.21.122", "1.21.123");
+        register(Bedrock_v859.CODEC.toBuilder().protocolVersion(860).minecraftVersion("1.21.124").build());
 
         MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.get(SUPPORTED_BEDROCK_VERSIONS.size() - 1);
         DEFAULT_BEDROCK_VERSION = latestBedrock.versionString();

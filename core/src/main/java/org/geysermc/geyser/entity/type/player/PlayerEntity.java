@@ -30,6 +30,7 @@ import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
@@ -42,6 +43,7 @@ import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 
 import java.util.Collections;
@@ -236,5 +238,20 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     @Override
     public Vector3f position() {
         return this.position.down(definition.offset());
+    }
+
+    // From 1.21.8 code, should be correct since some pose should be prioritized.
+    public Pose getDesiredPose() {
+        if (this.getBedPosition() != null) {
+            return Pose.SLEEPING;
+        } else if (this.getFlag(EntityFlag.SWIMMING) || this.getFlag(EntityFlag.CRAWLING)) {
+            return Pose.SWIMMING;
+        } else if (this.getFlag(EntityFlag.GLIDING)) {
+            return Pose.FALL_FLYING;
+        } else if (this.getFlag(EntityFlag.DAMAGE_NEARBY_MOBS)) {
+            return Pose.SPIN_ATTACK;
+        } else {
+            return this.getFlag(EntityFlag.SNEAKING) && !session.isFlying() ? Pose.SNEAKING : Pose.STANDING;
+        }
     }
 }

@@ -226,7 +226,13 @@ public class LivingEntity extends Entity {
     }
 
     public void setHealth(FloatEntityMetadata entityMetadata) {
-        this.health = entityMetadata.getPrimitiveValue();
+        // The server can send health value early, causing health to be larger than maxHealth, which can freaks out Bedrock client
+        // in some weird way, eg: https://github.com/GeyserMC/Geyser/issues/5918 or it could be intentional....  Either way
+        // we do this to account for it, since currently it seems like Java client doesn't care while Bedrock does.
+        this.health = Math.max(0, entityMetadata.getPrimitiveValue());
+        if (this.health > this.maxHealth) {
+            this.maxHealth = this.health;
+        }
 
         AttributeData healthData = createHealthAttribute();
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();

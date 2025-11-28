@@ -74,6 +74,9 @@ public class JavaLoginFinishedTranslator extends PacketTranslator<ClientboundLog
         session.setToken(null);
         session.getClientData().setOriginalString(null);
 
+        // Reset code of conduct accepted state, mirrors Java Edition
+        session.hasAcceptedCodeOfConduct(false);
+
         // configuration phase stuff that the vanilla client replies with after receiving the GameProfilePacket
         session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(Key.key("brand"), PluginMessageUtils.getGeyserBrandData()), ProtocolState.CONFIGURATION);
         session.sendJavaClientSettings();
