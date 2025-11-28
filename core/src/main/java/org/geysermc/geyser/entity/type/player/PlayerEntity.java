@@ -93,7 +93,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     public void despawnEntity() {
         super.despawnEntity();
 
-        if (playerListPacketSent) {
+        if (playerListPacketSent && session.shouldLimitPlayerlistEntries()) {
             playerListPacketSent = false;
             PlayerListUtils.batchSendPlayerList(session, List.of(new PlayerListPacket.Entry(getTabListUuid())), PlayerListPacket.Action.REMOVE);
         }
