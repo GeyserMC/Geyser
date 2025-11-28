@@ -87,13 +87,6 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
                     return;
                 }
 
-                if (!entity.isPlayerListPacketSent()) {
-                    PlayerListPacket.Entry playerListEntry = SkinManager.buildCachedEntry(session, entity);
-                    session.getWaypointCache().listPlayer(entity);
-                    entity.setPlayerListPacketSent(true);
-                    PlayerListUtils.batchSendPlayerList(session, List.of(playerListEntry), PlayerListPacket.Action.ADD);
-                }
-
                 entity.setEntityId(packet.getEntityId());
                 entity.setPosition(position);
                 entity.setYaw(yaw);
@@ -107,6 +100,13 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             // Otherwise, it tries to load various resources
             if (!EnvironmentUtils.IS_UNIT_TESTING) {
                 SkinManager.requestAndHandleSkinAndCape(entity, session, null);
+            }
+
+            if (!entity.isPlayerListPacketSent()) {
+                PlayerListPacket.Entry playerListEntry = SkinManager.buildCachedEntry(session, entity);
+                session.getWaypointCache().listPlayer(entity);
+                entity.setPlayerListPacketSent(true);
+                PlayerListUtils.batchSendPlayerList(session, List.of(playerListEntry), PlayerListPacket.Action.ADD);
             }
             return;
         }
