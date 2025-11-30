@@ -26,24 +26,19 @@
 package org.geysermc.geyser.entity;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import lombok.AllArgsConstructor;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
-import org.geysermc.geyser.entity.type.Entity;
 
 import java.util.Map;
 
 /**
  * A wrapper for temporarily storing entity metadata that will be sent to Bedrock.
  */
-@AllArgsConstructor
 public final class GeyserDirtyMetadata {
-    private final Entity entity;
     private final Map<EntityDataType<?>, Object> metadata = new Object2ObjectLinkedOpenHashMap<>();
 
     public <T> void put(EntityDataType<T> entityData, T value) {
         metadata.put(entityData, value);
-        entity.getMetadata().put(entityData, value);
     }
 
     /**

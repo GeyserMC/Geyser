@@ -145,7 +145,7 @@ public class Entity implements GeyserEntity {
     /**
      * A container to store temporary metadata before it's sent to Bedrock.
      */
-    protected final GeyserDirtyMetadata dirtyMetadata = new GeyserDirtyMetadata(this);
+    protected final GeyserDirtyMetadata dirtyMetadata = new GeyserDirtyMetadata();
     /**
      * A container storing all current metadata for an entity.
      */
@@ -413,7 +413,7 @@ public class Entity implements GeyserEntity {
             return;
         }
 
-        if (dirtyMetadata.hasEntries() || flagsDirty) {
+        if (dirtyMetadata.hasEntries() || flagsDirty || (propertyManager != null && propertyManager.hasProperties())) {
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(geyserId);
             if (flagsDirty) {
@@ -837,20 +837,20 @@ public class Entity implements GeyserEntity {
         });
 
         if (propertyManager.hasProperties()) {
-            SetEntityDataPacket packet = new SetEntityDataPacket();
-            packet.setRuntimeEntityId(geyserId());
-            propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
-            propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
             if (immediate) {
+                SetEntityDataPacket packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(geyserId());
+                propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
+                propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
                 session.sendUpstreamPacketImmediately(packet);
             } else {
-                session.sendUpstreamPacket(packet);
+                session.getEntityCache().markDirty(this);
             }
         }
     }
 
     public void offset(float offset) {
-        // TODO queue!!
+        // TODO queue?
         if (isValid()) {
             this.moveRelative(0, offset, 0, 0, 0, isOnGround());
         }
@@ -875,6 +875,7 @@ public class Entity implements GeyserEntity {
     public <T> void update(@NonNull GeyserEntityDataType<T> dataType, @Nullable T value) {
         if (dataType instanceof GeyserEntityDataImpl<T> geyserEntityDataImpl) {
             geyserEntityDataImpl.update(this, value);
+            session.getEntityCache().markDirty(this);
         } else {
             throw new IllegalArgumentException("Invalid data type: " + dataType.getClass().getSimpleName());
         }

@@ -125,8 +125,8 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfig;
-import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.GeyserEntityData;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -235,6 +235,7 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1260,6 +1261,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             Entity vehicle = playerEntity.getVehicle();
             if (vehicle instanceof ClientVehicle clientVehicle && vehicle.isValid()) {
                 clientVehicle.getVehicleComponent().tickVehicle();
+            }
+
+            for (Iterator<Entity> it = entityCache.getDirtyEntities().iterator(); it.hasNext(); ) {
+                it.next().updateBedrockMetadata();
+                it.remove();
             }
 
             for (Tickable entity : entityCache.getTickableEntities()) {
