@@ -31,8 +31,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.entity.data.BatchEntityDataUpdater;
+import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
+import org.geysermc.geyser.api.entity.data.GeyserEntityDataTypes;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
@@ -59,7 +60,7 @@ public interface GeyserEntity {
 
     /**
      * @return the entity uuid that the server has assigned to this entity,
-     *      or null if none is assigned
+     * or null if none is assigned
      */
     @Nullable
     UUID uuid();
@@ -78,19 +79,24 @@ public interface GeyserEntity {
     @NonNull Vector3f position();
 
     /**
-     * @return the width of the entity
+     * Queries the current value of a given {@link GeyserEntityDataType}.
+     *
+     * @see GeyserEntityDataTypes
+     * @param dataType the entity data type to query
+     * @return the value, or null if not set
+     * @param <T> the type of the value
      */
-    float width();
+    <T> @Nullable T value(@NonNull GeyserEntityDataType<T> dataType);
 
     /**
-     * @return the height of the entity
+     * Updates an entity property with a new value.
+     * If the new value is null, the property is reset to the default value.
+     *
+     * @param dataType an entity data type, such as from {@link GeyserEntityDataTypes}
+     * @param value the new property value
+     * @param <T> the type of the value
      */
-    float height();
-
-    /**
-     * @return the offset of the entity
-     */
-    float offset();
+     <T> void update(@NonNull GeyserEntityDataType<T> dataType, @Nullable T value);
 
     /**
      * Updates an entity property with a new value.
@@ -107,9 +113,9 @@ public interface GeyserEntity {
 
     /**
      * Updates multiple properties with just one update packet.
-     * @see BatchPropertyUpdater
      *
      * @param consumer a batch updater
+     * @see BatchPropertyUpdater
      * @since 2.9.0
      */
     default void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer) {
@@ -117,21 +123,13 @@ public interface GeyserEntity {
     }
 
     /**
-     * Updates Bedrock metadata, like scale, height, width and other entity metadata
-     * @see BatchEntityDataUpdater
-     *
-     * @param consumer a batch updater
-     */
-    void updateEntityDataBatched(Consumer<BatchEntityDataUpdater> consumer);
-
-    /**
      * Updates multiple properties with just one update packet, which can be sent immediately to the client.
      * Usually, sending updates immediately is not required except for specific situations where packet batching
      * would result in update order issues.
-     * @see BatchPropertyUpdater
      *
      * @param consumer a batch updater
      * @param immediate whether this update should be sent immediately
+     * @see BatchPropertyUpdater
      * @since 2.9.1
      */
     void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer, boolean immediate);

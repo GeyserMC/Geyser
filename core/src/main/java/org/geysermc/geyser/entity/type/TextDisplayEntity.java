@@ -59,7 +59,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
-        super.moveRelative(relX, relY + offset(), relZ, yaw, pitch, isOnGround);
+        super.moveRelative(relX, relY + offset, relZ, yaw, pitch, isOnGround);
     }
 
     /**

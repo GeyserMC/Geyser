@@ -29,14 +29,14 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.event.Cancellable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
-import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
 import org.geysermc.geyser.api.event.java.ServerAttachParrotsEvent;
+import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 /**
  * See {@link ServerSpawnEntityEvent} and {@link ServerAttachParrotsEvent}
@@ -52,7 +52,7 @@ public abstract class SessionSpawnEntityEvent extends ConnectionEvent implements
      *
      * @return the entity definition sent to the connection when the entity is spawned
      */
-    public abstract @Nullable GeyserEntityDefinition entityDefinition();
+    public abstract @Nullable GeyserEntityDefinition definition();
 
     /**
      * Sets the entity definition sent to the connection when the entity is spawned.
@@ -61,10 +61,14 @@ public abstract class SessionSpawnEntityEvent extends ConnectionEvent implements
      *
      * @param entityDefinition the entity definition sent to the connection when the entity is spawned
      */
-    public abstract void entityDefinition(@Nullable GeyserEntityDefinition entityDefinition);
+    public abstract void definition(@Nullable GeyserEntityDefinition entityDefinition);
 
     /**
-     * @return the GeyserEntity once it is created, or null if the spawn event is cancelled
+     * Adds a consumer for the {@link GeyserEntity} that will be called once the entity is created,
+     * assuming that it hasn't been cancelled.
+     * Using this method, you can modify the entities' entity properties, scale, with, and other entity data.
+     *
+     * @param consumer the consumer for the new GeyserEntity
      */
-    public abstract CompletableFuture<@Nullable GeyserEntity> futureEntity();
+    public abstract void preSpawnConsumer(Consumer<@NonNull GeyserEntity> consumer);
 }

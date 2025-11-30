@@ -29,22 +29,23 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
-
-import java.util.List;
 
 @Getter
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-// TODO
-public class NonVanillaEntityTypeDefinition<T extends Entity> extends EntityTypeDefinition<T> {
+public class NonVanillaEntityTypeDefinition extends EntityTypeDefinition<Entity> {
 
-    public NonVanillaEntityTypeDefinition(EntityFactory<T> factory, GeyserEntityType type, BedrockEntityDefinition definition, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
-        super(factory, type, 0, 0,0, definition, translators);
+    /*
+    Soooooooooooooo this is fun.
+    - How should we expose entity metadata translators?
+    - Extending "vanilla" classes / entities??? Geyser uses instanceof checks...
+     */
+
+    public NonVanillaEntityTypeDefinition(GeyserEntityType.Builder builder, GeyserEntityType entityType) {
+        super(Entity::new, entityType, builder.getWidth(), builder.getHeight(), 0f, builder.getDefaultBedrockDefinition(), VanillaEntityBases.ENTITY.translators);
     }
 
     @Override

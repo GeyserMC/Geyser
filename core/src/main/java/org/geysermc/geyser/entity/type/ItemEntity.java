@@ -59,7 +59,7 @@ public class ItemEntity extends ThrowableEntity {
         AddItemEntityPacket itemPacket = new AddItemEntityPacket();
         itemPacket.setRuntimeEntityId(geyserId);
         itemPacket.setUniqueEntityId(geyserId);
-        itemPacket.setPosition(position.add(0d, offset(), 0d));
+        itemPacket.setPosition(position.add(0d, offset, 0d));
         itemPacket.setMotion(motion);
         itemPacket.setFromFishing(false);
         itemPacket.setItemInHand(item);
@@ -110,10 +110,10 @@ public class ItemEntity extends ThrowableEntity {
 
     @Override
     protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        float offset = offset();
+        float offset = super.offset;
         if (waterLevel.join() == 0) { // Item is in a full block of water
             // Move the item entity down so it doesn't float above the water
-            offset = -offset();
+            offset = -offset;
         }
         super.moveAbsoluteImmediate(position.add(0, offset, 0), 0, 0, 0, isOnGround, teleported);
         this.position = position;

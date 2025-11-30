@@ -42,22 +42,28 @@ import java.util.concurrent.CompletableFuture;
 public interface EntityData {
 
     /**
+     * @deprecated use {@link #byGeyserId(long)}
+     */
+    @Deprecated
+    @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
+
+    /**
      * Returns a {@link GeyserEntity} to e.g. make them play an emote.
      *
      * @param javaId the Java entity ID to look up
      * @return a {@link GeyserEntity} if present in this connection's entity tracker
      */
-    @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
+    @Nullable GeyserEntity byJavaId(@NonNegative int javaId);
 
     /**
      * Returns a {@link GeyserEntity} to e.g. update entity properties.
      */
-    @NonNull CompletableFuture<@Nullable GeyserEntity> entityByUuid(@NonNegative UUID javaUuid);
+    @Nullable GeyserEntity byUuid(@NonNull UUID javaUuid);
 
     /**
      * Returns a {@link GeyserEntity} based on a Geyser entity id
      */
-    @NonNull CompletableFuture<@Nullable GeyserEntity> entityByGeyserId(@NonNegative long geyserId);
+    @Nullable GeyserEntity byGeyserId(@NonNegative long geyserId);
 
     /**
      * Displays a player entity as emoting to this client.

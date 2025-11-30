@@ -43,15 +43,15 @@ public class BedrockEntityDefinitions {
     public static final BedrockEntityDefinition ZOMBIE;
 
     static {
-        ARMOR_STAND = BedrockEntityDefinition.of(IdentifierImpl.of("armor_stand"));
-        ARROW = BedrockEntityDefinition.of(IdentifierImpl.of("arrow"));
-        BOAT = BedrockEntityDefinition.of(IdentifierImpl.of("boat"));
-        CHEST_BOAT = BedrockEntityDefinition.of(IdentifierImpl.of("chest_boat"));
-        EVOCATION_ILLAGER = BedrockEntityDefinition.of(IdentifierImpl.of("evocation_illager"));
-        LLAMA = BedrockEntityDefinition.of(IdentifierImpl.of("llama"));
-        MINECART = BedrockEntityDefinition.of(IdentifierImpl.of("minecraft"));
-        SPLASH_POTION = BedrockEntityDefinition.of(IdentifierImpl.of("splash_position"));
-        ZOMBIE = BedrockEntityDefinition.of(IdentifierImpl.of("zombie"));
+        ARMOR_STAND = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("armor_stand"));
+        ARROW = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("arrow"));
+        BOAT = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("boat"));
+        CHEST_BOAT = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("chest_boat"));
+        EVOCATION_ILLAGER = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("evocation_illager"));
+        LLAMA = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("llama"));
+        MINECART = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("minecraft"));
+        SPLASH_POTION = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("splash_position"));
+        ZOMBIE = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("zombie"));
     }
 
     public static void init() {

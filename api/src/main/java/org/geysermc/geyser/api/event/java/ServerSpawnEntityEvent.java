@@ -25,11 +25,10 @@
 
 package org.geysermc.geyser.api.event.java;
 
-import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Cancellable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.entity.JavaEntityType;
+import org.geysermc.geyser.api.entity.definition.JavaEntityType;
 import org.geysermc.geyser.api.event.bedrock.SessionSpawnEntityEvent;
 
 import java.util.UUID;
@@ -63,37 +62,4 @@ public abstract class ServerSpawnEntityEvent extends SessionSpawnEntityEvent imp
      * @return the Java edition entity type of the entity being spawned
      */
     public abstract @NonNull JavaEntityType entityType();
-
-    /**
-     * @return the width of the entity
-     */
-    public abstract float width();
-
-    /**
-     * Sets the width of the entity.
-     */
-    public abstract void width(@NonNegative float width);
-
-    /**
-     * @return the height of the entity
-     */
-    public abstract float height();
-
-    /**
-     * Sets the height of the entity.
-     */
-    public abstract void height(@NonNegative float height);
-
-    /**
-     * The vertical offset applied by Geyser to ensure the Bedrock entity doesn't clip
-     * into the ground due to Java vs Bedrock differences.
-     *
-     * @return the offset of the entity
-     */
-    public abstract float offset();
-
-    /**
-     * Sets the vertical offset applied by Geyser to avoid clipping
-     */
-    public abstract void offset(@NonNegative float offset);
 }

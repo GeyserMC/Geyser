@@ -32,8 +32,8 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
@@ -45,7 +45,7 @@ import java.util.Objects;
 @Getter
 @Accessors(fluent = true)
 @ToString
-public class BedrockEntityDefinition implements CustomEntityDefinition, GeyserEntityDefinition {
+public class BedrockEntityDefinition implements GeyserEntityDefinition, CustomEntityDefinition {
     private final @NonNull Identifier identifier;
     private final @NonNull GeyserEntityProperties registeredProperties;
 
@@ -58,18 +58,19 @@ public class BedrockEntityDefinition implements CustomEntityDefinition, GeyserEn
         return new Builder();
     }
 
-    public static BedrockEntityDefinition of(Identifier identifier) {
+    public static BedrockEntityDefinition ofVanilla(Identifier identifier) {
         return builder().identifier(identifier).build();
     }
 
-    public static BedrockEntityDefinition api(@NonNull Identifier identifier) {
+    public static BedrockEntityDefinition getOrCreate(@NonNull Identifier identifier) {
+        Objects.requireNonNull(identifier, "identifier");
         if (Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(identifier)) {
             return Registries.BEDROCK_ENTITY_DEFINITIONS.get().get(identifier);
         }
 
         Objects.requireNonNull(identifier, "identifier");
         if (identifier.vanilla()) {
-            throw new IllegalArgumentException("Cannot register custom entity in vanilla namespace! " + identifier);
+            throw new IllegalArgumentException("Cannot create custom entity in vanilla namespace! " + identifier);
         }
         return builder().identifier(identifier).build();
     }
@@ -85,6 +86,11 @@ public class BedrockEntityDefinition implements CustomEntityDefinition, GeyserEn
     @Override
     public boolean vanilla() {
         return identifier.vanilla();
+    }
+
+    @Override
+    public boolean registered() {
+        return Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(identifier);
     }
 
     public static class Builder {

@@ -112,7 +112,7 @@ public class MinecartEntity extends Entity implements Tickable {
             moveEntityPacket.setRuntimeEntityId(geyserId);
 
             moveEntityPacket.setX(position.getX());
-            moveEntityPacket.setY(position.getY() + offset());
+            moveEntityPacket.setY(position.getY() + offset);
             moveEntityPacket.setZ(position.getZ());
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);

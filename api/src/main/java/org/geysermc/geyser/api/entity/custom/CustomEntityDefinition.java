@@ -25,18 +25,28 @@
 
 package org.geysermc.geyser.api.entity.custom;
 
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.util.Identifier;
 
 /**
- * Represents a custom entity definition.
- * To register, use {@link GeyserDefineEntitiesEvent#register(Identifier)}
+ * Represents a custom entity definition for a non-vanilla, custom Bedrock entity.
  */
 public interface CustomEntityDefinition extends GeyserEntityDefinition {
 
     @Override
     default boolean vanilla() {
         return false;
+    }
+
+    /**
+     * Creates or retrieves a GeyserEntityDefinition by the Bedrock entity type identifier.
+     *
+     * @param identifier the Bedrock entity identifier
+     * @return the GeyserEntityDefinition
+     */
+    static @NonNull CustomEntityDefinition of(@NonNull Identifier identifier) {
+        return GeyserApi.api().provider(GeyserEntityDefinition.class, identifier);
     }
 }

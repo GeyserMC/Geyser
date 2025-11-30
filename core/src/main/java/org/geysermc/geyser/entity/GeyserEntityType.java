@@ -35,9 +35,9 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.Constants;
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.entity.JavaEntityType;
 import org.geysermc.geyser.api.entity.custom.CustomJavaEntityType;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.definition.JavaEntityType;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.registry.Registries;
@@ -50,7 +50,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-public record GeyserEntityType(Identifier identifier, int javaId) implements CustomJavaEntityType, JavaEntityType {
+public record GeyserEntityType(Identifier identifier, int javaId) implements JavaEntityType, CustomJavaEntityType {
     private static final Identifier UNREGISTERED = IdentifierImpl.of(Constants.GEYSER_CUSTOM_NAMESPACE, "unregistered_sadface");
 
     private static final Map<BuiltinEntityType, GeyserEntityType> VANILLA = new EnumMap<>(BuiltinEntityType.class);
@@ -141,7 +141,6 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Cus
         return type instanceof BuiltinEntityType builtin ? ofVanilla(builtin) : of(type.id());
     }
 
-    @SuppressWarnings("ConstantValue")
     public static GeyserEntityType createCustomAndRegister(Builder builder) {
         Identifier javaIdentifier = Objects.requireNonNull(builder.identifier, "javaIdentifier may not be null");
         int javaId = builder.javaId;
@@ -167,10 +166,10 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Cus
         private int javaId;
         private float width;
         private float height;
-        private GeyserEntityDefinition defaultBedrockDefinition;
+        private BedrockEntityDefinition defaultBedrockDefinition;
 
         @Override
-        public CustomJavaEntityType.Builder type(@NonNull Identifier entityType) {
+        public Builder type(@NonNull Identifier entityType) {
             Objects.requireNonNull(entityType, "entityType may not be null");
             if (entityType.vanilla()) {
                 throw new IllegalArgumentException("Cannot register custom entity type in vanilla namespace!" + entityType);
@@ -183,7 +182,7 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Cus
         }
 
         @Override
-        public CustomJavaEntityType.Builder javaId(int javaId) {
+        public Builder javaId(int javaId) {
             if (javaId < 0) {
                 throw new IllegalArgumentException("Invalid custom entity type id (may not be negative): " + javaId);
             }
@@ -198,7 +197,7 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Cus
         }
 
         @Override
-        public CustomJavaEntityType.Builder width(@NonNegative float width) {
+        public Builder width(@NonNegative float width) {
             if (width < 0) {
                 throw new IllegalArgumentException("Invalid custom entity type width (may not be negative): " + width);
             }
@@ -207,7 +206,7 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Cus
         }
 
         @Override
-        public CustomJavaEntityType.Builder height(@NonNegative float height) {
+        public Builder height(@NonNegative float height) {
             if (height < 0) {
                 throw new IllegalArgumentException("Invalid custom entity type height (may not be negative): " + height);
             }
@@ -216,8 +215,14 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Cus
         }
 
         @Override
-        public CustomJavaEntityType.Builder defaultBedrockDefinition(@Nullable GeyserEntityDefinition defaultBedrockDefinition) {
-            this.defaultBedrockDefinition = defaultBedrockDefinition;
+        public Builder defaultBedrockDefinition(@Nullable GeyserEntityDefinition defaultBedrockDefinition) {
+            if (defaultBedrockDefinition == null) {
+                this.defaultBedrockDefinition = null;
+            } else if (defaultBedrockDefinition instanceof BedrockEntityDefinition bedrockEntityDefinition) {
+                this.defaultBedrockDefinition = bedrockEntityDefinition;
+            } else {
+                throw new IllegalArgumentException("Invalid default geyser definition: " + defaultBedrockDefinition);
+            }
             return this;
         }
     }

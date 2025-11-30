@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,6 +35,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -44,9 +46,8 @@ import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.entity.data.BatchEntityDataUpdater;
-import org.geysermc.geyser.api.entity.data.GeyserEntityData;
+import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
@@ -59,6 +60,7 @@ import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.impl.entity.GeyserEntityDataImpl;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -79,6 +81,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -142,7 +145,12 @@ public class Entity implements GeyserEntity {
     /**
      * A container to store temporary metadata before it's sent to Bedrock.
      */
-    protected final GeyserDirtyMetadata dirtyMetadata = new GeyserDirtyMetadata();
+    protected final GeyserDirtyMetadata dirtyMetadata = new GeyserDirtyMetadata(this);
+    /**
+     * A container storing all current metadata for an entity.
+     */
+    protected final Map<EntityDataType<?>, Object> metadata = new Object2ObjectLinkedOpenHashMap<>();
+
     /**
      * The entity flags for the Bedrock entity.
      * These must always be saved - if flags are updated and the other values aren't present, the Bedrock client will
@@ -161,7 +169,6 @@ public class Entity implements GeyserEntity {
     protected float width;
     @Accessors(fluent = true)
     protected float height;
-    @Accessors(fluent = true)
     protected float offset;
 
     protected final @Nullable GeyserEntityPropertyManager propertyManager;
@@ -193,7 +200,9 @@ public class Entity implements GeyserEntity {
         initializeMetadata();
 
         // Allow API users to do things pre-spawn
-        context.geyserEntityFuture().complete(this);
+        if (context.consumers() != null) {
+            context.consumers().forEach(consumer -> consumer.accept(this));
+        }
     }
 
     /**
@@ -840,6 +849,13 @@ public class Entity implements GeyserEntity {
         }
     }
 
+    public void offset(float offset) {
+        // TODO queue!!
+        if (isValid()) {
+            this.moveRelative(0, offset, 0, 0, 0, isOnGround());
+        }
+    }
+
     @Override
     public @Nullable UUID uuid() {
         return uuid;
@@ -856,15 +872,20 @@ public class Entity implements GeyserEntity {
     }
 
     @Override
-    public void updateEntityDataBatched(Consumer<BatchEntityDataUpdater> consumer) {
-        Objects.requireNonNull(consumer);
-        consumer.accept(new BatchEntityDataUpdater() {
+    public <T> void update(@NonNull GeyserEntityDataType<T> dataType, @Nullable T value) {
+        if (dataType instanceof GeyserEntityDataImpl<T> geyserEntityDataImpl) {
+            geyserEntityDataImpl.update(this, value);
+        } else {
+            throw new IllegalArgumentException("Invalid data type: " + dataType.getClass().getSimpleName());
+        }
+    }
 
-            @Override
-            public <T> void updateMetadata(GeyserEntityData<T> type, T value) {
-                // TODO
-                // ideally we just support any type cloudburst lib supports
-            }
-        });
+    @Override
+    public <T> T value(@NonNull GeyserEntityDataType<T> dataType) {
+        if (dataType instanceof GeyserEntityDataImpl<T> geyserEntityDataImpl) {
+            return geyserEntityDataImpl.value(this);
+        } else {
+            throw new IllegalArgumentException("Invalid data type: " + dataType.getClass().getSimpleName());
+        }
     }
 }

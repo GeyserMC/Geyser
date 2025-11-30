@@ -111,7 +111,7 @@ public class AvatarEntity extends LivingEntity {
         addPlayerPacket.setUsername(username);
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
-        addPlayerPacket.setPosition(position.sub(0, offset(), 0));
+        addPlayerPacket.setPosition(position());
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(ItemTranslator.translateToBedrock(session, getMainHandItem()));

@@ -59,17 +59,19 @@ public class GeyserEntityData implements EntityData {
     }
 
     @Override
-    public @NonNull CompletableFuture<@Nullable GeyserEntity> entityByUuid(@NonNegative UUID javaUuid) {
-        CompletableFuture<GeyserEntity> future = new CompletableFuture<>();
-        session.ensureInEventLoop(() -> future.complete(session.getEntityCache().getEntityByUuid(javaUuid)));
-        return future;
+    public @Nullable GeyserEntity byJavaId(@NonNegative int javaId) {
+        return session.getEntityCache().getEntityByJavaId(javaId);
     }
 
     @Override
-    public @NonNull CompletableFuture<@Nullable GeyserEntity> entityByGeyserId(@NonNegative long geyserId) {
-        CompletableFuture<GeyserEntity> future = new CompletableFuture<>();
-        session.ensureInEventLoop(() -> future.complete(session.getEntityCache().getEntityByGeyserId(geyserId)));
-        return future;
+    public @Nullable GeyserEntity byUuid(@NonNull UUID javaUuid) {
+        Objects.requireNonNull(javaUuid, "javaUuid");
+        return session.getEntityCache().getEntityByUuid(javaUuid);
+    }
+
+    @Override
+    public @Nullable GeyserEntity byGeyserId(@NonNegative long geyserId) {
+        return session.getEntityCache().getEntityByGeyserId(geyserId);
     }
 
     @Override

@@ -146,7 +146,7 @@ final class BedrockMovePlayer {
                 final BoundingBox entityBoundingBox = new BoundingBox(0, 0, 0, other.getBoundingBoxWidth(), other.getBoundingBoxHeight(), other.getBoundingBoxWidth());
 
                 // Also offset the position down for boat as their position is offset.
-                entityBoundingBox.translate(other.getPosition().down(other instanceof BoatEntity ? other.offset() : 0).toDouble());
+                entityBoundingBox.translate(other.getPosition().down(other instanceof BoatEntity ? other.getOffset() : 0).toDouble());
 
                 if (entityBoundingBox.checkIntersection(boundingBox)) {
                     possibleOnGround = true;

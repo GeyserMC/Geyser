@@ -35,9 +35,8 @@ import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.entity.custom.CustomJavaEntityType;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
 import org.geysermc.geyser.api.entity.property.type.GeyserStringEnumProperty;
@@ -47,6 +46,7 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
+import org.geysermc.geyser.entity.NonVanillaEntityTypeDefinition;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.properties.type.BooleanProperty;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
@@ -430,18 +430,20 @@ public final class EntityUtils {
             }
 
             @Override
-            public CustomEntityDefinition register(@NonNull Identifier identifier) {
-                Objects.requireNonNull(identifier);
-                if (Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(identifier)) {
-                    throw new IllegalStateException("Duplicate custom entity definition: " + identifier);
+            public void register(@NonNull GeyserEntityDefinition entityDefinition) {
+                Objects.requireNonNull(entityDefinition);
+                if (!(entityDefinition instanceof BedrockEntityDefinition bedrockEntityDefinition)) {
+                    throw new IllegalArgumentException("EntityDefinition must not be a custom implementation of BedrockEntityDefinition! Found " + entityDefinition.getClass().getSimpleName());
                 }
-                if (identifier.vanilla()) {
-                    throw new IllegalStateException("Cannot register custom entity in vanilla namespace! " + identifier);
+
+                if (Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsValue(bedrockEntityDefinition)) {
+                    throw new IllegalStateException("Duplicate custom entity definition: " + entityDefinition);
                 }
-                BedrockEntityDefinition definition = BedrockEntityDefinition.api(identifier);
-                Registries.BEDROCK_ENTITY_DEFINITIONS.register(identifier, definition);
-                customEntities.add(definition);
-                return definition;
+                if (bedrockEntityDefinition.vanilla()) {
+                    throw new IllegalStateException("Cannot register entity in vanilla namespace! " + bedrockEntityDefinition.identifier());
+                }
+                Registries.BEDROCK_ENTITY_DEFINITIONS.register(bedrockEntityDefinition.identifier(), bedrockEntityDefinition);
+                customEntities.add(bedrockEntityDefinition);
             }
 
             @Override
@@ -455,9 +457,10 @@ public final class EntityUtils {
                 if (defaultBedrockDefinition != null && !isRegistered(defaultBedrockDefinition)) {
                     throw new IllegalStateException("Default bedrock entity definition has not been registered!");
                 }
-                // TODO register non-vanilla properly!
-                Registries.JAVA_ENTITY_TYPES.register(type, null);
-                Registries.JAVA_ENTITY_IDENTIFIERS.register(type.identifier().toString(), null);
+
+                NonVanillaEntityTypeDefinition definition = new NonVanillaEntityTypeDefinition(builder, type);
+                Registries.JAVA_ENTITY_TYPES.register(type, definition);
+                Registries.JAVA_ENTITY_IDENTIFIERS.register(type.identifier().toString(), definition);
             }
 
             public boolean isRegistered(GeyserEntityDefinition definition) {

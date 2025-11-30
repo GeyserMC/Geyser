@@ -26,29 +26,42 @@
 package org.geysermc.geyser.api.entity.data;
 
 import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.entity.type.GeyserEntity;
 
-public interface GeyserEntityData<T> {
+/**
+ * Represents a type of entity data that can be sent for an entity.
+ * <p>
+ * Entity data types define the kind of value stored for a particular piece of metadata,
+ * such as a {@code Byte}, {@code Integer}, {@code Float}; and the name associated with them.
+ * <p>
+ * Unlike custom items or blocks, it is possible to update entity metadata at runtime,
+ * which can be done using {@link GeyserEntity#update(GeyserEntityDataType, Object)}.
+ *
+ * @param <T> the value type associated with this entity data type
+ */
+public interface GeyserEntityDataType<T> {
 
     /**
-     * @return the type class
+     * Gets the Java class representing the value type associated with this data type.
+     *
+     * @return the class of the value used by this entity data type
      */
     Class<T> typeClass();
 
     /**
+     * Gets the unique name of this data type.
+     * <p>
+     * The name is used internally to identify and register the data type so it can be
+     * referenced when reading or writing entity metadata.
+     *
      * @return the name of this entity data type
      */
     String name();
 
     /**
-     * Creates a new Geyser entity data type.
-     *
-     * @param typeClass the class of the value type
-     * @param name the name of the entity data type
-     * @throws IllegalArgumentException if such a type does not exist
-     * @return this instance
-     * @param <T> the value type
+     * For API usage only; use the types defined in {@link GeyserEntityDataTypes}
      */
-    static <T> GeyserEntityData<T> of(Class<T> typeClass, String name) {
-        return GeyserApi.api().provider(GeyserEntityData.class, typeClass, name);
+    static <T> GeyserEntityDataType<T> of(Class<T> typeClass, String name) {
+        return GeyserApi.api().provider(GeyserEntityDataType.class, typeClass, name);
     }
 }

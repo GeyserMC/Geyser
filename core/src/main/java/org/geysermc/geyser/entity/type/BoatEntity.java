@@ -92,7 +92,7 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     @Override
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // We don't include the rotation (y) as it causes the boat to appear sideways
-        setPosition(position.add(0d, offset(), 0d));
+        setPosition(position.add(0d, offset, 0d));
         setYaw(yaw + 90);
         setHeadYaw(yaw + 90);
         setOnGround(isOnGround);
@@ -101,7 +101,7 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
         moveEntityPacket.setRuntimeEntityId(geyserId);
         if (session.getPlayerEntity().getVehicle() == this && session.getPlayerEntity().isRidingInFront()) {
             // Minimal glitching when ClientboundMoveVehiclePacket is sent
-            moveEntityPacket.setPosition(position.up(VanillaEntities.PLAYER_ENTITY_OFFSET - offset()));
+            moveEntityPacket.setPosition(position.up(VanillaEntities.PLAYER_ENTITY_OFFSET - offset));
         } else {
             moveEntityPacket.setPosition(this.position);
         }

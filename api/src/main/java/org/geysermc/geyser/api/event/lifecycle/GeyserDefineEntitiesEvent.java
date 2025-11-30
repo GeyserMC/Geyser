@@ -27,10 +27,8 @@ package org.geysermc.geyser.api.event.lifecycle;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.entity.custom.CustomJavaEntityType;
-import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 
 import java.util.Collection;
 import java.util.function.Consumer;
@@ -51,9 +49,9 @@ public interface GeyserDefineEntitiesEvent extends Event {
 
     /**
      * Registers a custom entity definition
-     * @param identifier the identifier of the custom entity to register
+     * @param definition the custom entity definition to register
      */
-    CustomEntityDefinition register(@NonNull Identifier identifier);
+    void register(@NonNull GeyserEntityDefinition definition);
 
     /**
      * Registers a non-vanilla Java entity type.

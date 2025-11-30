@@ -23,15 +23,20 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.entity;
+package org.geysermc.geyser.api.entity.definition;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.List;
 
 /**
  * Represents a Bedrock entity definition.
+ * Custom Bedrock entity definitions must be registered in the
+ * {@link GeyserDefineEntitiesEvent} before usage!
  */
 public interface GeyserEntityDefinition {
 
@@ -49,4 +54,19 @@ public interface GeyserEntityDefinition {
      * @return whether this entity is a vanilla entity
      */
     boolean vanilla();
+
+    /**
+     * @return whether this definition has been registered
+     */
+    boolean registered();
+
+    /**
+     * Creates or retrieves a GeyserEntityDefinition by the Bedrock entity type identifier.
+     *
+     * @param identifier the Bedrock entity identifier
+     * @return the GeyserEntityDefinition
+     */
+    static @NonNull GeyserEntityDefinition of(@NonNull Identifier identifier) {
+        return GeyserApi.api().provider(GeyserEntityDefinition.class, identifier);
+    }
 }

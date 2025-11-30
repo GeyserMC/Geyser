@@ -41,13 +41,8 @@ public class TNTEntity extends Entity implements Tickable {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
-        super.moveRelative(relX, relY + offset(), relZ, yaw, pitch, isOnGround);
-    }
-
-    @Override
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position.add(Vector3f.from(0, offset(), 0)), yaw, pitch, headYaw, isOnGround, teleported);
+        super.moveAbsolute(position.add(Vector3f.from(0, offset, 0)), yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     public void setFuseLength(IntEntityMetadata entityMetadata) {

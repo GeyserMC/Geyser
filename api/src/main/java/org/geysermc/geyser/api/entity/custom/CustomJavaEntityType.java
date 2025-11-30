@@ -27,8 +27,8 @@ package org.geysermc.geyser.api.entity.custom;
 
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.entity.GeyserEntityDefinition;
-import org.geysermc.geyser.api.entity.JavaEntityType;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.definition.JavaEntityType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
 import org.geysermc.geyser.api.util.Identifier;
 

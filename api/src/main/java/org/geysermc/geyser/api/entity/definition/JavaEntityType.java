@@ -23,10 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.entity;
+package org.geysermc.geyser.api.entity.definition;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.Identifier;
 
 /**
@@ -76,15 +75,4 @@ public interface JavaEntityType {
      * @return the default Bedrock entity definition
      */
     @Nullable GeyserEntityDefinition defaultBedrockDefinition();
-
-    /**
-     * Returns the JavaEntityType representation of a built-in vanilla Java entity type.
-     *
-     * @param identifier the Java Edition entity type identifier
-     * @throws IllegalArgumentException if such an entity does not exist
-     * @return the Java Edition entity type for the vanilla entity type
-     */
-    static JavaEntityType ofVanilla(Identifier identifier) {
-        return GeyserApi.api().provider(JavaEntityType.class, identifier);
-    }
 }
