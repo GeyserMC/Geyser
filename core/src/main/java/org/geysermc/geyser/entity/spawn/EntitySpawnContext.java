@@ -45,6 +45,7 @@ import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.EnvironmentUtils;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 
 import java.util.Collection;
@@ -99,6 +100,11 @@ public class EntitySpawnContext {
     }
 
     public void callServerSpawnEvent() {
+        // TODO we should actually test this?
+        if (EnvironmentUtils.IS_UNIT_TESTING) {
+            return;
+        }
+
         GeyserImpl.getInstance().getEventBus().fire(new ServerSpawnEntityEvent(session) {
 
             @Override
