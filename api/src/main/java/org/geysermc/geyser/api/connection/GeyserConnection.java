@@ -180,9 +180,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @param emoter the player entity emoting.
      * @param emoteId the emote ID to send to this client.
-     * @deprecated use {@link EntityData#showEmote(GeyserPlayerEntity, String)} instead
      */
-    @Deprecated
     void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
 
     /**
@@ -250,5 +248,5 @@ public interface GeyserConnection extends Connection, CommandSource {
      * Sends a request to the Java server to switch the items in the main and offhand.
      * There is no guarantee of the server accepting the request.
      */
-    void requestHandSwap();
+    void switchHands();
 }

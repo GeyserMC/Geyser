@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.entity.spawn;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -56,7 +55,6 @@ import java.util.function.Consumer;
 @Getter
 @Setter
 @Accessors(fluent = true)
-@AllArgsConstructor
 public class EntitySpawnContext {
     private final GeyserSession session;
     private final EntityTypeDefinition<?> entityTypeDefinition;
@@ -80,29 +78,51 @@ public class EntitySpawnContext {
 
     public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> type, int javaId, UUID uuid) {
         this(session, type, javaId, uuid, type.defaultBedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0,
-            type.height(), type.width(), type.offset(), null, null);
+            type.height(), type.width(), type.offset(), null);
     }
 
     public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> type, int entityId, BedrockEntityDefinition definition, float height, float width, long geyserId) {
-        this(session, type, entityId, null, definition, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, height, width, 0, geyserId, null);
+        this(session, type, entityId, null, definition, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, height, width, 0, geyserId);
     }
 
     public static EntitySpawnContext fromPacket(GeyserSession session, EntityTypeDefinition<?> definition, ClientboundAddEntityPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = packet.getMovement().toFloat();
         return new EntitySpawnContext(session, definition, packet.getEntityId(), packet.getUuid(), definition.defaultBedrockDefinition(),
-            position, motion, packet.getYaw(), packet.getPitch(), packet.getHeadYaw(), definition.height(), definition.width(), definition.offset(), null, null);
+            position, motion, packet.getYaw(), packet.getPitch(), packet.getHeadYaw(), definition.height(), definition.width(), definition.offset(), null);
     }
 
     public static EntitySpawnContext inherited(GeyserSession session, EntityTypeDefinition<?> definition, Entity base, Vector3f position) {
         return new EntitySpawnContext(session, definition, 0, null, definition.defaultBedrockDefinition(), position, base.getMotion(), base.getYaw(),
-            base.getPitch(), base.getHeadYaw(), definition.height(), definition.width(), definition.offset(), null, null);
+            base.getPitch(), base.getHeadYaw(), definition.height(), definition.width(), definition.offset(), null);
     }
 
-    public void callServerSpawnEvent() {
-        // TODO we should actually test this?
+    public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> definition, int javaId, UUID uuid, BedrockEntityDefinition bedrockEntityDefinition, Vector3f position,
+                              Vector3f motion, float yaw, float pitch, float headYaw, float height, float width, float offset, @Nullable Long geyserId) {
+        this.session = session;
+        this.entityTypeDefinition = definition;
+        this.javaId = javaId;
+        this.uuid = uuid;
+        this.bedrockEntityDefinition = bedrockEntityDefinition;
+        this.position = position;
+        this.motion = motion;
+        this.yaw = yaw;
+        this.pitch = pitch;
+        this.headYaw = headYaw;
+        this.height = height;
+        this.width = width;
+        this.offset = offset;
+        this.geyserId = geyserId;
+        this.consumers = null;
+    }
+
+    /**
+     * @return true if an entity should be spawned
+     */
+    public boolean callServerSpawnEvent() {
+        // TODO add tests
         if (EnvironmentUtils.IS_UNIT_TESTING) {
-            return;
+            return true;
         }
 
         GeyserImpl.getInstance().getEventBus().fire(new ServerSpawnEntityEvent(session) {
@@ -158,9 +178,11 @@ public class EntitySpawnContext {
                 consumers.add(consumer);
             }
         });
+
+        return bedrockEntityDefinition != null;
     }
 
-    public void callParrotEvent(PlayerEntity player, int variant, boolean right) {
+    public boolean callParrotEvent(PlayerEntity player, int variant, boolean right) {
         GeyserImpl.getInstance().eventBus().fire(new ServerAttachParrotsEvent(session) {
             @Override
             public GeyserPlayerEntity player() {
@@ -213,5 +235,7 @@ public class EntitySpawnContext {
                 consumers.add(consumer);
             }
         });
+
+        return bedrockEntityDefinition != null;
     }
 }

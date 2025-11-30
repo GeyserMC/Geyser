@@ -55,7 +55,7 @@ public class DisplayBaseEntity extends Entity {
         // On JE: custom name does not override text display.
     }
 
-    public void setTranslation(EntityMetadata<Vector3f, ?> translationMeta){
+    public void setTranslation(EntityMetadata<Vector3f, ?> translationMeta) {
         this.baseTranslation = translationMeta.getValue();
         if (this.baseTranslation == null) {
             return;

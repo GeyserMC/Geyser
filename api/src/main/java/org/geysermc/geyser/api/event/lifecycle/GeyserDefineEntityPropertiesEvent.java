@@ -41,7 +41,6 @@ import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Lifecycle event fired during Geyser's startup to allow custom entity properties
@@ -63,10 +62,9 @@ import java.util.function.Consumer;
  * }
  * }</pre>
  *
- * Retrieving entity instances is possible with the {@link EntityData#entityByJavaId(int)} method, or
+ * Retrieving entity instances is possible with, for example, the {@link EntityData#byJavaId(int)} method, or
  * {@link GeyserConnection#playerEntity()} for the connection player entity.
- * To update the value of a property on a specific entity, use {@link GeyserEntity#updateProperty(GeyserEntityProperty, Object)},
- * or {@link GeyserEntity#updatePropertiesBatched(Consumer)} to update multiple properties efficiently at once.
+ * To update the value of a property on a specific entity, use {@link GeyserEntity#updateProperty(GeyserEntityProperty, Object)}.
  *
  * <p><b>Notes:</b>
  * <ul>

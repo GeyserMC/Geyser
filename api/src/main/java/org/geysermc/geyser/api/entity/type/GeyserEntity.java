@@ -112,12 +112,9 @@ public interface GeyserEntity {
     }
 
     /**
-     * Updates multiple properties with just one update packet.
-     *
-     * @param consumer a batch updater
-     * @see BatchPropertyUpdater
-     * @since 2.9.0
+     * @deprecated - use {@link #updateProperty(GeyserEntityProperty, Object)} instead
      */
+    @Deprecated
     default void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer) {
         this.updatePropertiesBatched(consumer, false);
     }

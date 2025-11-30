@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.entity.custom.CustomJavaEntityType;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
@@ -430,13 +431,17 @@ public final class EntityUtils {
             }
 
             @Override
-            public void register(@NonNull GeyserEntityDefinition entityDefinition) {
+            public Collection<CustomEntityDefinition> customEntities() {
+                return Collections.unmodifiableCollection(customEntities);
+            }
+
+            @Override
+            public void register(@NonNull CustomEntityDefinition entityDefinition) {
                 Objects.requireNonNull(entityDefinition);
                 if (!(entityDefinition instanceof BedrockEntityDefinition bedrockEntityDefinition)) {
                     throw new IllegalArgumentException("EntityDefinition must not be a custom implementation of BedrockEntityDefinition! Found " + entityDefinition.getClass().getSimpleName());
                 }
-
-                if (Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsValue(bedrockEntityDefinition)) {
+                if (entityDefinition.registered()) {
                     throw new IllegalStateException("Duplicate custom entity definition: " + entityDefinition);
                 }
                 if (bedrockEntityDefinition.vanilla()) {

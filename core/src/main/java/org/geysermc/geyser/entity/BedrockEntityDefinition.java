@@ -26,10 +26,7 @@
 package org.geysermc.geyser.entity;
 
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.Setter;
-import lombok.ToString;
-import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
@@ -42,17 +39,10 @@ import org.geysermc.geyser.registry.Registries;
 import java.util.List;
 import java.util.Objects;
 
-@Getter
-@Accessors(fluent = true)
-@ToString
-public class BedrockEntityDefinition implements GeyserEntityDefinition, CustomEntityDefinition {
-    private final @NonNull Identifier identifier;
-    private final @NonNull GeyserEntityProperties registeredProperties;
-
-    public BedrockEntityDefinition(@NonNull Identifier identifier, @NonNull GeyserEntityProperties registeredProperties) {
-        this.identifier = identifier;
-        this.registeredProperties = registeredProperties;
-    }
+public record BedrockEntityDefinition(
+    @NonNull Identifier identifier,
+    @NonNull GeyserEntityProperties registeredProperties
+) implements GeyserEntityDefinition, CustomEntityDefinition {
 
     public static Builder builder() {
         return new Builder();

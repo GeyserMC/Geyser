@@ -2403,7 +2403,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public void requestHandSwap() {
+    public void switchHands() {
         requestOffhandSwap();
     }
 

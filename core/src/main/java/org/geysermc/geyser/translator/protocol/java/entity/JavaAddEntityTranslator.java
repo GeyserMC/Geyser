@@ -101,8 +101,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             return;
         }
 
-        context.callServerSpawnEvent();
-        if (context.bedrockEntityDefinition() == null) {
+        if (!context.callServerSpawnEvent()) {
             // TODO log warn
             return;
         }
@@ -134,6 +133,11 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             if (wardenData.isEmerging()) {
                 entity.setPose(Pose.EMERGING);
             }
+        }
+
+        // Call pre-spawn consumer
+        if (context.consumers() != null) {
+            context.consumers().forEach(consumer -> consumer.accept(entity));
         }
 
         session.getEntityCache().spawnEntity(entity);

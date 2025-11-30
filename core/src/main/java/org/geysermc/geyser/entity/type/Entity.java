@@ -108,6 +108,9 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.NONE)
     protected String nametag = "";
 
+    /**
+     * The entity position, WITH vertical offset
+     */
     protected Vector3f position;
     protected Vector3f motion;
 
@@ -194,21 +197,18 @@ public class Entity implements GeyserEntity {
         this.valid = false;
         this.propertyManager = bedrockDefinition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(bedrockDefinition.registeredProperties());
 
-        setPosition(context.position());
+        setPosition(context.position().up(offset));
         setAirSupply(getMaxAir());
 
         initializeMetadata();
-
-        // Allow API users to do things pre-spawn
-        if (context.consumers() != null) {
-            context.consumers().forEach(consumer -> consumer.accept(this));
-        }
     }
 
     /**
      * Called on entity spawn. Used to populate the entity metadata and flags with default values.
      */
     protected void initializeMetadata() {
+        dirtyMetadata.put(EntityDataTypes.WIDTH, width);
+        dirtyMetadata.put(EntityDataTypes.HEIGHT, height);
         dirtyMetadata.put(EntityDataTypes.SCALE, 1f);
         dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
         dirtyMetadata.put(EntityDataTypes.AIR_SUPPLY_MAX, getMaxAir());
@@ -698,8 +698,6 @@ public class Entity implements GeyserEntity {
     public boolean isAlive() {
         return this.valid;
     }
-
-
 
     /**
      * Update the suggestion that the client currently has on their screen for this entity (for example, "Feed" or "Ride")

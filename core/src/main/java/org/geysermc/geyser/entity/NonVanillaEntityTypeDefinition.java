@@ -38,12 +38,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityTy
 @ToString(callSuper = true)
 public class NonVanillaEntityTypeDefinition extends EntityTypeDefinition<Entity> {
 
-    /*
-    Soooooooooooooo this is fun.
-    - How should we expose entity metadata translators?
-    - Extending "vanilla" classes / entities??? Geyser uses instanceof checks...
-     */
-
     public NonVanillaEntityTypeDefinition(GeyserEntityType.Builder builder, GeyserEntityType entityType) {
         super(Entity::new, entityType, builder.getWidth(), builder.getHeight(), 0f, builder.getDefaultBedrockDefinition(), VanillaEntityBases.ENTITY.translators);
     }

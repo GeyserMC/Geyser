@@ -84,6 +84,6 @@ public interface CustomJavaEntityType extends JavaEntityType {
          * @param defaultBedrockDefinition the default Bedrock definition
          * @return this builder
          */
-        Builder defaultBedrockDefinition(@Nullable GeyserEntityDefinition defaultBedrockDefinition);
+        Builder definition(@Nullable GeyserEntityDefinition defaultBedrockDefinition);
     }
 }

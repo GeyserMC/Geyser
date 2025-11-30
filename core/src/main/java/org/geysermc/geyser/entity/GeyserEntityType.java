@@ -215,7 +215,7 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Jav
         }
 
         @Override
-        public Builder defaultBedrockDefinition(@Nullable GeyserEntityDefinition defaultBedrockDefinition) {
+        public Builder definition(@Nullable GeyserEntityDefinition defaultBedrockDefinition) {
             if (defaultBedrockDefinition == null) {
                 this.defaultBedrockDefinition = null;
             } else if (defaultBedrockDefinition instanceof BedrockEntityDefinition bedrockEntityDefinition) {

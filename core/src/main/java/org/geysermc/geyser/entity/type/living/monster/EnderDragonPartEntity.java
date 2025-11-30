@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.entity.type.living.monster;
 
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.BedrockEntityDefinitions;
 import org.geysermc.geyser.entity.VanillaEntities;
@@ -37,11 +36,13 @@ public class EnderDragonPartEntity extends Entity {
 
     public EnderDragonPartEntity(GeyserSession session, int entityId, long geyserId, float width, float height) {
         super(dragonPartSpawnContext(session, entityId, geyserId, width, height));
+    }
 
-        dirtyMetadata.put(EntityDataTypes.WIDTH, width);
-        dirtyMetadata.put(EntityDataTypes.HEIGHT, height);
+    @Override
+    protected void initializeMetadata() {
         setFlag(EntityFlag.INVISIBLE, true);
         setFlag(EntityFlag.FIRE_IMMUNE, true);
+        super.initializeMetadata();
     }
 
     public static EntitySpawnContext dragonPartSpawnContext(GeyserSession session, int entityId, long geyserId, float width, float height) {
