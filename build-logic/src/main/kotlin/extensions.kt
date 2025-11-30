@@ -24,6 +24,7 @@
  */
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import net.kyori.indra.git.IndraGitExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
@@ -33,6 +34,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.the
 import java.io.File
 import java.net.URL
 
@@ -113,6 +115,16 @@ open class DownloadFilesTask : DefaultTask() {
         }
     }
 }
+
+fun Project.branchName(): String =
+    the<IndraGitExtension>().branchName() ?: System.getenv("BRANCH_NAME") ?: "local/dev"
+
+fun Project.shouldAddBranchName(): Boolean {
+    return branchName() !in arrayOf("master", "local/dev")
+}
+
+fun Project.versionWithBranchName(): String =
+    branchName().replace(Regex("[^0-9A-Za-z-_]"), "-") + '-' + version
 
 private fun calcExclusion(section: String, bit: Int, excludedOn: Int): String =
     if (excludedOn and bit > 0) section else ""
