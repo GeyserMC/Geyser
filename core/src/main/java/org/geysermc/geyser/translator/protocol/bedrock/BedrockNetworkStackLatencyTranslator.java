@@ -71,7 +71,7 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
             session.scheduleInEventLoop(() -> {
                 // Hack to fix the url image loading bug
                 UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-                attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                attributesPacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
 
                 AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
                 if (attribute != null) {

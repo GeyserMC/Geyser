@@ -73,7 +73,7 @@ public class JavaSetHealthTranslator extends PacketTranslator<ClientboundSetHeal
         entity.getAttributes().put(GeyserAttributeType.SATURATION, saturationAttribute);
         attributes.add(saturationAttribute);
 
-        attributesPacket.setRuntimeEntityId(entity.getGeyserId());
+        attributesPacket.setRuntimeEntityId(entity.geyserId());
         session.sendUpstreamPacket(attributesPacket);
     }
 }

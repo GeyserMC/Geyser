@@ -46,7 +46,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Boolea
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.CollisionRule;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamAction;
@@ -152,7 +152,7 @@ public class ScoreboardIssueTests {
                 setPlayerTeamTranslator,
                 new ClientboundSetPlayerTeamPacket("npc_team_1297", TeamAction.ADD_PLAYER, new String[]{ "1297" }));
 
-            context.translate(addEntityTranslator, new ClientboundAddEntityPacket(1297, npcUuid, EntityType.PLAYER, 1, 2, 3, 4, 5, 6));
+            context.translate(addEntityTranslator, new ClientboundAddEntityPacket(1297, npcUuid, BuiltinEntityType.PLAYER, 1, 2, 3, 4, 5, 6));
             // then it updates the displayed skin parts, which isn't relevant for us
 
             assertNextPacketMatch(context, AddPlayerPacket.class, packet -> {
@@ -171,7 +171,7 @@ public class ScoreboardIssueTests {
             var hologramUuid = UUID.fromString("b1586291-5f68-44dc-847d-6c123c5b8cbf");
             context.translate(
                 addEntityTranslator,
-                new ClientboundAddEntityPacket(1298, hologramUuid, EntityType.ARMOR_STAND, 6, 5, 4, 3, 2, 1));
+                new ClientboundAddEntityPacket(1298, hologramUuid, BuiltinEntityType.ARMOR_STAND, 6, 5, 4, 3, 2, 1));
 
             assertNextPacketMatch(context, AddEntityPacket.class, packet -> {
                 assertEquals(4, packet.getRuntimeEntityId());

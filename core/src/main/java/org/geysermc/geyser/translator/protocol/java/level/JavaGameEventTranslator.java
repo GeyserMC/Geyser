@@ -88,7 +88,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 if (session.getPlayerEntity().isOnGround() && gameMode == GameMode.SPECTATOR) {
                     // Fix a bug where the player has glitched movement and thinks they are still on the ground
                     MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-                    movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+                    movePlayerPacket.setRuntimeEntityId(entity.geyserId());
                     movePlayerPacket.setPosition(entity.getPosition());
                     movePlayerPacket.setRotation(entity.getBedrockRotation());
                     movePlayerPacket.setOnGround(false);
@@ -109,7 +109,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                     case FIRST_TIME -> {
                         ShowCreditsPacket showCreditsPacket = new ShowCreditsPacket();
                         showCreditsPacket.setStatus(ShowCreditsPacket.Status.START_CREDITS);
-                        showCreditsPacket.setRuntimeEntityId(entity.getGeyserId());
+                        showCreditsPacket.setRuntimeEntityId(entity.geyserId());
                         session.sendUpstreamPacket(showCreditsPacket);
                     }
                 }
@@ -120,7 +120,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 EntityEventPacket eventPacket = new EntityEventPacket();
                 eventPacket.setType(EntityEventType.ELDER_GUARDIAN_CURSE);
                 eventPacket.setData(0);
-                eventPacket.setRuntimeEntityId(entity.getGeyserId());
+                eventPacket.setRuntimeEntityId(entity.geyserId());
                 session.sendUpstreamPacket(eventPacket);
                 break;
             case IMMEDIATE_RESPAWN:

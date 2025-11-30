@@ -28,21 +28,19 @@ package org.geysermc.geyser.entity.type;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 
 import java.util.Optional;
-import java.util.UUID;
 
 public class DisplayBaseEntity extends Entity {
 
     private @Nullable Vector3f baseTranslation;
 
-    public DisplayBaseEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public DisplayBaseEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override
@@ -57,7 +55,7 @@ public class DisplayBaseEntity extends Entity {
         // On JE: custom name does not override text display.
     }
 
-    public void setTranslation(EntityMetadata<Vector3f, ?> translationMeta){
+    public void setTranslation(EntityMetadata<Vector3f, ?> translationMeta) {
         this.baseTranslation = translationMeta.getValue();
         if (this.baseTranslation == null) {
             return;

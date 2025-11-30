@@ -174,7 +174,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     if (packet.getInputMode().equals(InputMode.TOUCH)) {
                         AnimatePacket animatePacket = new AnimatePacket();
                         animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
-                        animatePacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                        animatePacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
                         session.sendUpstreamPacket(animatePacket);
                     }
 
@@ -290,7 +290,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 Vector3f position = vehicle.getPosition();
 
                 if (vehicle instanceof BoatEntity) {
-                    position = position.down(vehicle.getDefinition().offset());
+                    position = position.down(vehicle.getOffset());
                 }
 
                 final BoundingBox box = new BoundingBox(
@@ -327,7 +327,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
             if (vehicle instanceof BoatEntity) {
                 // Remove some Y position to prevents boats flying up
-                vehiclePosition = vehiclePosition.down(vehicle.getDefinition().offset());
+                vehiclePosition = vehiclePosition.down(vehicle.getOffset());
             }
 
             vehicle.setPosition(vehiclePosition);

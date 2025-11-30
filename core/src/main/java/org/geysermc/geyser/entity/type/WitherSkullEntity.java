@@ -25,19 +25,17 @@
 
 package org.geysermc.geyser.entity.type;
 
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.impl.IdentifierImpl;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSession;
-
-import java.util.UUID;
 
 public class WitherSkullEntity extends FireballEntity {
     private boolean isCharged;
+    private static final IdentifierImpl DANGEROUS_SKULL = IdentifierImpl.of("wither_skull_dangerous");
 
-    public WitherSkullEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public WitherSkullEntity(EntitySpawnContext context) {
+        super(context);
 
         this.futureTicks = 1;
     }
@@ -47,7 +45,7 @@ public class WitherSkullEntity extends FireballEntity {
         if (newDangerous != isCharged) {
             isCharged = newDangerous;
             // Is an entirely new entity in Bedrock but just a metadata type in Java
-            definition = isCharged ? EntityDefinitions.WITHER_SKULL_DANGEROUS : EntityDefinitions.WITHER_SKULL;
+            bedrockDefinition = isCharged ? Registries.BEDROCK_ENTITY_DEFINITIONS.get(DANGEROUS_SKULL) : javaTypeDefinition.defaultBedrockDefinition();
             despawnEntity();
             spawnEntity();
         }

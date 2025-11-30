@@ -25,21 +25,27 @@
 
 package org.geysermc.geyser.entity.type.living.monster;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.BedrockEntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class EnderDragonPartEntity extends Entity {
 
     public EnderDragonPartEntity(GeyserSession session, int entityId, long geyserId, float width, float height) {
-        super(session, entityId, geyserId, null, EntityDefinitions.ENDER_DRAGON_PART, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0);
+        super(dragonPartSpawnContext(session, entityId, geyserId, width, height));
+    }
 
-        dirtyMetadata.put(EntityDataTypes.WIDTH, width);
-        dirtyMetadata.put(EntityDataTypes.HEIGHT, height);
+    @Override
+    protected void initializeMetadata() {
         setFlag(EntityFlag.INVISIBLE, true);
         setFlag(EntityFlag.FIRE_IMMUNE, true);
+        super.initializeMetadata();
+    }
+
+    public static EntitySpawnContext dragonPartSpawnContext(GeyserSession session, int entityId, long geyserId, float width, float height) {
+        return new EntitySpawnContext(session, VanillaEntities.ENDER_DRAGON_PART, entityId, BedrockEntityDefinitions.ARMOR_STAND, height, width, geyserId);
     }
 }
