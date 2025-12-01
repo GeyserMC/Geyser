@@ -853,9 +853,10 @@ public class Entity implements GeyserEntity {
     }
 
     public void offset(float offset) {
+        this.offset = offset;
         // TODO queue?
         if (isValid()) {
-            this.moveRelative(0, offset, 0, 0, 0, isOnGround());
+            this.moveRelative(0, 0, 0, 0, 0, isOnGround());
         }
     }
 

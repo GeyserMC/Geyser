@@ -58,7 +58,6 @@ public record BedrockEntityDefinition(
             return Registries.BEDROCK_ENTITY_DEFINITIONS.get().get(identifier);
         }
 
-        Objects.requireNonNull(identifier, "identifier");
         if (identifier.vanilla()) {
             throw new IllegalArgumentException("Cannot create custom entity in vanilla namespace! " + identifier);
         }

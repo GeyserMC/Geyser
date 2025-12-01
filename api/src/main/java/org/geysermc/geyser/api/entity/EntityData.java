@@ -66,10 +66,7 @@ public interface EntityData {
     @Nullable GeyserEntity byGeyserId(@NonNegative long geyserId);
 
     /**
-     * Displays a player entity as emoting to this client.
-     *
-     * @param emoter the player entity emoting
-     * @param emoteId the emote ID to send to this client
+     * @deprecated use {@link GeyserConnection#showEmote(GeyserPlayerEntity, String)} instead
      */
     @Deprecated
     void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);

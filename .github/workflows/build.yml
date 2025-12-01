@@ -51,16 +51,7 @@ jobs:
             bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
 
       - name: Publish to Maven Repository
-        if: >-
-            ${{
-              success() &&
-              github.repository == 'GeyserMC/Geyser' &&
-              (
-                github.ref_name == 'master' ||
-                (github.event.pull_request &&
-                 contains(github.event.pull_request.labels.*.name, 'PR: Needs Testing'))
-              )
-            }}
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && (github.ref_name == 'master' || startsWith(github.ref_name, 'feature/')) }}
         run: ./gradlew publish
         env:
           BUILD_NUMBER: ${{ steps.release-info.outputs.curentRelease }}
