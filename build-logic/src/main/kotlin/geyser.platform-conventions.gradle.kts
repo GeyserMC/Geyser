@@ -11,7 +11,11 @@ tasks {
                 "id" to "geyser",
                 "name" to "Geyser",
                 "version" to project.version,
-                "description" to project.description,
+                // Must be this for gradle :neoforge:runServer task to work
+                "file" to mapOf(
+                    "jarVersion" to project.version
+                ),
+                "description" to project.description as String,
                 "url" to "https://geysermc.org",
                 "author" to "GeyserMC"
             )
