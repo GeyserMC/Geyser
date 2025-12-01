@@ -28,7 +28,6 @@ package org.geysermc.geyser.session.cache;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.GeyserImpl;
 
 /**
  * Represents a teleport ID and corresponding coordinates that need to be confirmed. <br>
@@ -69,7 +68,6 @@ public class TeleportCache {
     private int unconfirmedFor = 0;
 
     public boolean canConfirm(Vector3f position) {
-        GeyserImpl.getInstance().getLogger().info("TeleportCache_canConfirm " + position + " " + this.position);
         final float distanceX = Math.abs(this.position.getX() - position.getX());
         final float distanceY = Math.abs(this.position.getY() - position.getY());
         final float distanceZ = Math.abs(this.position.getZ() - position.getZ());

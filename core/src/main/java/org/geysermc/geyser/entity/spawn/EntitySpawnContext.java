@@ -161,13 +161,17 @@ public class EntitySpawnContext {
             public void definition(@Nullable GeyserEntityDefinition entityDefinition) {
                 if (entityDefinition == null) {
                     bedrockEntityDefinition = null;
-                } else {
-                    if (entityDefinition instanceof BedrockEntityDefinition bed) {
-                        bedrockEntityDefinition = bed;
-                    } else {
-                        throw new IllegalStateException("Unknown implementation of GeyserEntityDefinition");
-                    }
                 }
+
+                if (!(entityDefinition instanceof BedrockEntityDefinition definition)) {
+                    throw new IllegalStateException("Unknown implementation of GeyserEntityDefinition");
+                }
+
+                if (!entityDefinition.registered()) {
+                    throw new IllegalStateException("%s is not registered!".formatted(entityDefinition.identifier()));
+                }
+
+                bedrockEntityDefinition = definition;
             }
 
             @Override
@@ -208,13 +212,17 @@ public class EntitySpawnContext {
             public void definition(@Nullable GeyserEntityDefinition entityDefinition) {
                 if (entityDefinition == null) {
                     bedrockEntityDefinition = null;
-                } else {
-                    if (entityDefinition instanceof BedrockEntityDefinition bed) {
-                        bedrockEntityDefinition = bed;
-                    } else {
-                        throw new IllegalStateException("Unknown implementation of GeyserEntityDefinition");
-                    }
                 }
+
+                if (!(entityDefinition instanceof BedrockEntityDefinition definition)) {
+                    throw new IllegalStateException("Unknown implementation of GeyserEntityDefinition");
+                }
+
+                if (!entityDefinition.registered()) {
+                    throw new IllegalStateException("%s is not registered!".formatted(entityDefinition.identifier()));
+                }
+
+                bedrockEntityDefinition = definition;
             }
 
             @Override
