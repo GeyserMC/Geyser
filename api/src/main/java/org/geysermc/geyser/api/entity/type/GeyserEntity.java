@@ -47,7 +47,7 @@ import java.util.function.Consumer;
  */
 public interface GeyserEntity {
     /**
-     * @return the entity ID that the server has assigned to this entity, or null if none is present
+     * @return the entity ID that the server has assigned to this entity, or 0 if none is present
      */
     @NonNegative
     int javaId();
