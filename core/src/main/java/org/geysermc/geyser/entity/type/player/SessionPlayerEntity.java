@@ -31,7 +31,6 @@ import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -164,11 +163,11 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
-        session.getCollisionManager().updatePlayerBoundingBox(this.position.down(offset));
+        session.getCollisionManager().updatePlayerBoundingBox(this.position);
     }
 
     @Override
-    public void setPosition(Vector3f position) {
+    public Entity position(Vector3f position) {
         if (valid) { // Don't update during session init
             session.getCollisionManager().updatePlayerBoundingBox(position);
 
@@ -176,7 +175,8 @@ public class SessionPlayerEntity extends PlayerEntity {
                 session.setNoClip(false);
             }
         }
-        this.position = position.add(0, offset, 0);
+        this.position = position;
+        return this;
     }
 
     /**
@@ -193,7 +193,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
-        movePlayerPacket.setPosition(position);
+        movePlayerPacket.setPosition(bedrockPosition());
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
@@ -209,17 +209,13 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     /**
-     * Set the player's position without applying an offset or moving the bounding box
-     * This is used in BedrockMovePlayer which receives the player's position
-     * with the offset pre-applied
-     *
-     * @param position the new position of the Bedrock player
+     * Set the player's position from a position sent in a Bedrock packet
      */
-    public void setPositionManual(Vector3f position) {
-        this.position = position;
+    public void setPositionFromBedrock(Vector3f position) {
+        this.position = position.down(offset);
 
         // Player is "above" the void so they're not supposed to no clip.
-        if (session.isNoClip() && position.getY() - VanillaEntities.PLAYER_ENTITY_OFFSET >= session.getBedrockDimension().minY() - 5) {
+        if (session.isNoClip() && this.position.getY() >= session.getBedrockDimension().minY() - 5) {
             session.setNoClip(false);
         }
     }
@@ -490,7 +486,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     public float getJumpVelocity() {
         float velocity = 0.42F;
 
-        if (session.getGeyser().getWorldManager().blockAt(session, this.getPosition().sub(0, VanillaEntities.PLAYER_ENTITY_OFFSET + 0.1F, 0).toInt()).is(Blocks.HONEY_BLOCK)) {
+        if (session.getGeyser().getWorldManager().blockAt(session, this.position().down(0.1F).toInt()).is(Blocks.HONEY_BLOCK)) {
             velocity *= 0.6F;
         }
 
@@ -501,8 +497,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         if (session.getGameMode() == GameMode.SPECTATOR) {
             return false;
         }
-        Vector3i pos = getPosition().down(VanillaEntities.PLAYER_ENTITY_OFFSET).toInt();
-        BlockState state = session.getGeyser().getWorldManager().blockAt(session, pos);
+        BlockState state = session.getGeyser().getWorldManager().blockAt(session, position.toInt());
         if (state.block().is(session, BlockTag.CLIMBABLE)) {
             return true;
         }
@@ -511,7 +506,7 @@ public class SessionPlayerEntity extends PlayerEntity {
             if (!state.getValue(Properties.OPEN)) {
                 return false;
             } else {
-                BlockState belowState = session.getGeyser().getWorldManager().blockAt(session, pos.down());
+                BlockState belowState = session.getGeyser().getWorldManager().blockAt(session, position.toInt().down());
                 return belowState.is(Blocks.LADDER) && belowState.getValue(Properties.HORIZONTAL_FACING) == state.getValue(Properties.HORIZONTAL_FACING);
             }
         }

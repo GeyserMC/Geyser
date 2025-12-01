@@ -59,7 +59,6 @@ public class MinecartEntity extends Entity implements Tickable {
 
     public MinecartEntity(EntitySpawnContext context) {
         super(context);
-        setPosition(position.up(offset));
     }
 
     public void setCustomBlock(IntEntityMetadata entityMetadata) {
@@ -102,7 +101,7 @@ public class MinecartEntity extends Entity implements Tickable {
 
             Vector3f position = getCurrentLerpPosition(delta).toFloat();
             Vector3f movement = getCurrentLerpMovement(delta).toFloat();
-            setPosition(position);
+            position(position);
             setMotion(movement);
 
             setYaw(180.0F - getCurrentLerpYaw(delta));
@@ -199,8 +198,8 @@ public class MinecartEntity extends Entity implements Tickable {
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position.up(offset), yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     @Override

@@ -45,8 +45,17 @@ import java.util.function.BiConsumer;
 @Getter
 @Accessors(fluent = true)
 public class EntityTypeBase<T extends Entity> {
+    /**
+     * The width of the Java entity type.
+     */
     protected final float width;
+    /**
+     * The height of the Java entity type
+     */
     protected final float height;
+    /**
+     * The vertical offset for the default Bedrock entity.
+     */
     protected final float offset;
     protected final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
 

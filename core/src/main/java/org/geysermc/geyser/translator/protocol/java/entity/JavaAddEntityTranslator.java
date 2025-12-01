@@ -85,7 +85,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
                 }
 
                 entity.setEntityId(packet.getEntityId());
-                entity.setPosition(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
+                entity.position(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
                 entity.setYaw(packet.getYaw());
                 entity.setPitch(packet.getPitch());
                 entity.setHeadYaw(packet.getHeadYaw());
@@ -102,7 +102,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         }
 
         if (!context.callServerSpawnEvent()) {
-            // TODO log warn
+            GeyserImpl.getInstance().getLogger().debug(session, "Cancelled entity spawn (%s) at (%s)".formatted(type.identifier(), context.position()));
             return;
         }
 

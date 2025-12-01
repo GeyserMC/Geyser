@@ -84,8 +84,8 @@ public class SquidEntity extends AgeableWaterEntity implements Tickable {
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
         checkInWater();
     }
 

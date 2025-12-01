@@ -236,6 +236,6 @@ public class EntitySpawnContext {
             }
         });
 
-        return bedrockEntityDefinition != null;
+        return bedrockEntityDefinition == null;
     }
 }

@@ -68,9 +68,8 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     private final float ROWING_SPEED = 0.1f;
 
     public BoatEntity(EntitySpawnContext context, BoatVariant variant) {
-        // Initial rotation is incorrect
         super(context);
-        setPosition(position.up(offset));
+        // Initial rotation is incorrect
         setYaw(yaw + 90);
         setHeadYaw(yaw + 90);
         this.variant = variant;
@@ -90,9 +89,8 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // We don't include the rotation (y) as it causes the boat to appear sideways
-        setPosition(position.add(0d, offset, 0d));
         setYaw(yaw + 90);
         setHeadYaw(yaw + 90);
         setOnGround(isOnGround);
@@ -101,9 +99,10 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
         moveEntityPacket.setRuntimeEntityId(geyserId);
         if (session.getPlayerEntity().getVehicle() == this && session.getPlayerEntity().isRidingInFront()) {
             // Minimal glitching when ClientboundMoveVehiclePacket is sent
-            moveEntityPacket.setPosition(position.up(VanillaEntities.PLAYER_ENTITY_OFFSET - offset));
+            // TODO OFFSET
+            moveEntityPacket.setPosition(javaPosition.up(VanillaEntities.PLAYER_ENTITY_OFFSET - offset));
         } else {
-            moveEntityPacket.setPosition(this.position);
+            moveEntityPacket.setPosition(bedrockPosition());
         }
         moveEntityPacket.setRotation(getBedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
@@ -115,6 +114,7 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     /**
      * Move the boat without making the adjustments needed to translate from Java
      */
+    // TODO offset
     public void moveAbsoluteWithoutAdjustments(Vector3f position, float yaw, boolean isOnGround, boolean teleported) {
         super.moveAbsolute(position, yaw, 0, yaw, isOnGround, teleported);
     }

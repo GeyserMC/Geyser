@@ -113,14 +113,14 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         if (secondEntity != null) {
-            secondEntity.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
+            secondEntity.moveAbsolute(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
         }
         // Fake the height to be above where it is so the nametag appears in the right location
         float yOffset = getYOffset();
-        super.moveAbsolute(yOffset != 0 ? position.up(yOffset) : position , yaw, yaw, yaw, isOnGround, teleported);
-        this.position = position;
+        super.moveAbsolute(yOffset != 0 ? javaPosition.up(yOffset) : javaPosition, yaw, yaw, yaw, isOnGround, teleported);
+        this.position = javaPosition;
     }
 
     @Override

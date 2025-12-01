@@ -154,7 +154,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
         moveEntityPacket.setRotation(Vector3f.from(0, 0, bedRotation));
-        moveEntityPacket.setPosition(Vector3f.from(position.getX() + xOffset, position.getY(), position.getZ() + zOffset));
+        moveEntityPacket.setPosition(Vector3f.from(position.getX() + xOffset, position.getY() + offset, position.getZ() + zOffset));
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(false);
         session.sendUpstreamPacket(moveEntityPacket);

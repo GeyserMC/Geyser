@@ -82,10 +82,10 @@ public class FishingHookEntity extends ThrowableEntity {
     }
 
     @Override
-    protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        boundingBox.setMiddleX(position.getX());
-        boundingBox.setMiddleY(position.getY() + boundingBox.getSizeY() / 2);
-        boundingBox.setMiddleZ(position.getZ());
+    protected void moveAbsoluteImmediate(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        boundingBox.setMiddleX(javaPosition.getX());
+        boundingBox.setMiddleY(javaPosition.getY() + boundingBox.getSizeY() / 2);
+        boundingBox.setMiddleZ(javaPosition.getZ());
 
         boolean touchingWater = false;
         boolean collided = false;
@@ -100,7 +100,7 @@ public class FishingHookEntity extends ThrowableEntity {
             }
 
             double waterHeight = BlockStateValues.getWaterHeight(blockID);
-            if (waterHeight != -1 && position.getY() <= (iter.getY() + waterHeight)) {
+            if (waterHeight != -1 && javaPosition.getY() <= (iter.getY() + waterHeight)) {
                 touchingWater = true;
             }
         }
@@ -111,7 +111,7 @@ public class FishingHookEntity extends ThrowableEntity {
         inWater = touchingWater;
 
         if (!collided) {
-            super.moveAbsoluteImmediate(position, yaw, pitch, headYaw, isOnGround, teleported);
+            super.moveAbsoluteImmediate(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
         } else {
             super.moveAbsoluteImmediate(this.position, yaw, pitch, headYaw, true, true);
         }
@@ -125,7 +125,7 @@ public class FishingHookEntity extends ThrowableEntity {
             }
             PlaySoundPacket playSoundPacket = new PlaySoundPacket();
             playSoundPacket.setSound("random.splash");
-            playSoundPacket.setPosition(position);
+            playSoundPacket.setPosition(bedrockPosition());
             playSoundPacket.setVolume(volume);
             playSoundPacket.setPitch(1f + ThreadLocalRandom.current().nextFloat() * 0.3f);
             session.sendUpstreamPacket(playSoundPacket);

@@ -28,7 +28,6 @@ package org.geysermc.geyser.entity.type;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
@@ -54,12 +53,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     public TextDisplayEntity(EntitySpawnContext context) {
         super(context);
-        setPosition(position.up(offset));
-    }
-
-    @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
-        super.moveRelative(relX, relY + offset, relZ, yaw, pitch, isOnGround);
     }
 
     /**
@@ -76,13 +69,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     private float calculateLineOffset() {
         if (lineCount == 0) {
             return 0;
-        } 
+        }
         return LINE_HEIGHT_OFFSET * lineCount;
-    }
-
-    @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position.add(0, calculateLineOffset(), 0), yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     @Override
@@ -112,5 +100,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
             return;
         }
         lineCount = PlainTextComponentSerializer.plainText().serialize(text).split("\n").length;
+        setOffset(calculateLineOffset());
     }
 }

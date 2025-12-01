@@ -105,14 +105,14 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                     LevelEventPacket particlePacket = new LevelEventPacket();
                     particlePacket.setType(ParticleType.ICON_CRACK);
                     particlePacket.setData(ItemTranslator.getBedrockItemDefinition(session, egg.getItemStack()).getRuntimeId() << 16);
-                    particlePacket.setPosition(entity.getPosition());
+                    particlePacket.setPosition(entity.bedrockPosition());
                     for (int i = 0; i < 6; i++) {
                         session.sendUpstreamPacket(particlePacket);
                     }
                 } else if (entity.getJavaTypeDefinition().is(BuiltinEntityType.SNOWBALL)) {
                     LevelEventPacket particlePacket = new LevelEventPacket();
                     particlePacket.setType(ParticleType.SNOWBALL_POOF);
-                    particlePacket.setPosition(entity.getPosition());
+                    particlePacket.setPosition(entity.bedrockPosition());
                     for (int i = 0; i < 8; i++) {
                         session.sendUpstreamPacket(particlePacket);
                     }
@@ -138,7 +138,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                         // https://minecraft.wiki/w/Fishing_Rod#Hooking_mobs_and_other_entities
                         SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
                         motionPacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
-                        motionPacket.setMotion(hookOwner.getPosition().sub(session.getPlayerEntity().getPosition()).mul(0.1f));
+                        motionPacket.setMotion(hookOwner.bedrockPosition().sub(session.getPlayerEntity().bedrockPosition()).mul(0.1f));
                         session.sendUpstreamPacket(motionPacket);
                     }
                 }
@@ -152,7 +152,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case ZOMBIE_VILLAGER_CURE: // Played when a zombie bites the golden apple
                 LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
                 soundPacket.setSound(SoundEvent.REMEDY);
-                soundPacket.setPosition(entity.getPosition());
+                soundPacket.setPosition(entity.bedrockPosition());
                 soundPacket.setExtraData(-1);
                 soundPacket.setIdentifier("");
                 soundPacket.setRelativeVolumeDisabled(false);
@@ -183,7 +183,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
 
                 PlaySoundPacket playSoundPacket = new PlaySoundPacket();
                 playSoundPacket.setSound("random.totem");
-                playSoundPacket.setPosition(entity.getPosition());
+                playSoundPacket.setPosition(entity.bedrockPosition());
                 playSoundPacket.setVolume(1.0F);
                 playSoundPacket.setPitch(1.0F + (ThreadLocalRandom.current().nextFloat() * 0.1F) - 0.05F);
                 session.sendUpstreamPacket(playSoundPacket);
@@ -216,7 +216,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case VILLAGER_SWEAT:
                 LevelEventPacket levelEventPacket = new LevelEventPacket();
                 levelEventPacket.setType(ParticleType.WATER_SPLASH);
-                levelEventPacket.setPosition(entity.getPosition().up(entity.height()));
+                levelEventPacket.setPosition(entity.bedrockPosition().up(entity.height()));
                 session.sendUpstreamPacket(levelEventPacket);
                 return;
             case IRON_GOLEM_EMPTY_HAND:
@@ -250,7 +250,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case LIVING_EQUIPMENT_BREAK_OFF_HAND:
                 LevelSoundEventPacket equipmentBreakPacket = new LevelSoundEventPacket();
                 equipmentBreakPacket.setSound(SoundEvent.BREAK);
-                equipmentBreakPacket.setPosition(entity.getPosition());
+                equipmentBreakPacket.setPosition(entity.bedrockPosition());
                 equipmentBreakPacket.setExtraData(-1);
                 equipmentBreakPacket.setIdentifier("");
                 session.sendUpstreamPacket(equipmentBreakPacket);

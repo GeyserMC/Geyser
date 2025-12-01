@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.entity.type;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
@@ -37,12 +36,6 @@ public class TNTEntity extends Entity implements Tickable {
 
     public TNTEntity(EntitySpawnContext context) {
         super(context);
-        setPosition(position.up(offset));
-    }
-
-    @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position.add(Vector3f.from(0, offset, 0)), yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     public void setFuseLength(IntEntityMetadata entityMetadata) {

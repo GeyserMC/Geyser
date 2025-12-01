@@ -61,7 +61,8 @@ public class ThrowableEntity extends Entity implements Tickable {
         motion = motion.mul(drag).down(gravity);
     }
 
-    protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    // TODO offsets!!!
+    protected void moveAbsoluteImmediate(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(geyserId);
 
@@ -74,19 +75,19 @@ public class ThrowableEntity extends Entity implements Tickable {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
         }
 
-        if (this.position.getX() != position.getX()) {
+        if (this.position.getX() != javaPosition.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-            moveEntityDeltaPacket.setX(position.getX());
+            moveEntityDeltaPacket.setX(javaPosition.getX());
         }
-        if (this.position.getY() != position.getY()) {
+        if (this.position.getY() != javaPosition.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-            moveEntityDeltaPacket.setY(position.getY());
+            moveEntityDeltaPacket.setY(javaPosition.getY() + offset);
         }
-        if (this.position.getZ() != position.getZ()) {
+        if (this.position.getZ() != javaPosition.getZ()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-            moveEntityDeltaPacket.setZ(position.getZ());
+            moveEntityDeltaPacket.setZ(javaPosition.getZ());
         }
-        setPosition(position);
+        position(javaPosition);
 
         if (getYaw() != yaw) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
@@ -163,7 +164,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         if (javaTypeDefinition.is(BuiltinEntityType.ENDER_PEARL)) {
             LevelEventPacket particlePacket = new LevelEventPacket();
             particlePacket.setType(LevelEvent.PARTICLE_TELEPORT);
-            particlePacket.setPosition(position);
+            particlePacket.setPosition(bedrockPosition());
             session.sendUpstreamPacket(particlePacket);
         }
         super.despawnEntity();
@@ -176,9 +177,9 @@ public class ThrowableEntity extends Entity implements Tickable {
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        moveAbsoluteImmediate(position, yaw, pitch, headYaw, isOnGround, teleported);
-        lastJavaPosition = position;
+    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        moveAbsoluteImmediate(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
+        lastJavaPosition = javaPosition;
     }
 
     /**

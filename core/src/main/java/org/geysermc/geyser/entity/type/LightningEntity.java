@@ -44,14 +44,14 @@ public class LightningEntity extends Entity {
         ThreadLocalRandom random = ThreadLocalRandom.current();
 
         PlaySoundPacket thunderPacket = new PlaySoundPacket();
-        thunderPacket.setPosition(this.position);
+        thunderPacket.setPosition(this.bedrockPosition());
         thunderPacket.setSound("ambient.weather.thunder");
         thunderPacket.setPitch(0.8f + random.nextFloat() * 0.2f);
         thunderPacket.setVolume(10000f); // Really.
         session.sendUpstreamPacket(thunderPacket);
 
         PlaySoundPacket impactPacket = new PlaySoundPacket();
-        impactPacket.setPosition(this.position);
+        impactPacket.setPosition(this.bedrockPosition());
         impactPacket.setSound("ambient.weather.lightning.impact");
         impactPacket.setPitch(0.5f + random.nextFloat() * 0.2f);
         impactPacket.setVolume(2.0f);

@@ -64,7 +64,7 @@ public class CowEntity extends TemperatureVariantAnimal {
             return super.mobInteract(hand, itemInHand);
         }
 
-        session.playSoundEvent(SoundEvent.MILK, position);
+        session.playSoundEvent(SoundEvent.MILK, bedrockPosition());
         return InteractionResult.SUCCESS;
     }
 

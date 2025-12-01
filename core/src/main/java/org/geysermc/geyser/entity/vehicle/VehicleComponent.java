@@ -89,9 +89,9 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         double width = vehicle.getBoundingBoxWidth();
         double height = vehicle.getBoundingBoxHeight();
         this.boundingBox = new BoundingBox(
-                vehicle.getPosition().getX(),
-                vehicle.getPosition().getY() + height / 2,
-                vehicle.getPosition().getZ(),
+                vehicle.position().getX(),
+                vehicle.position().getY() + height / 2,
+                vehicle.position().getZ(),
                 width, height, width
         );
     }
@@ -742,19 +742,19 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
         }
 
-        if (vehicle.getPosition().getX() != bedrockPos.getX()) {
+        if (vehicle.position().getX() != bedrockPos.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
             moveEntityDeltaPacket.setX(bedrockPos.getX());
         }
-        if (vehicle.getPosition().getY() != bedrockPos.getY()) {
+        if (vehicle.position().getY() != bedrockPos.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
             moveEntityDeltaPacket.setY(bedrockPos.getY());
         }
-        if (vehicle.getPosition().getZ() != bedrockPos.getZ()) {
+        if (vehicle.position().getZ() != bedrockPos.getZ()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
             moveEntityDeltaPacket.setZ(bedrockPos.getZ());
         }
-        vehicle.setPosition(bedrockPos);
+        vehicle.position(bedrockPos);
 
         if (vehicle.getPitch() != lastRotation.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);

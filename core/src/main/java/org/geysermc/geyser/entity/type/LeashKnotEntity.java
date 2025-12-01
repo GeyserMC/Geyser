@@ -34,7 +34,8 @@ public class LeashKnotEntity extends Entity {
     public LeashKnotEntity(EntitySpawnContext context) {
         super(context);
         // Position is incorrect by default
-        setPosition(position.add(0.5f, 0.25f, 0.5f));
+        // TODO offset
+        position(position.add(0.5f, 0.25f, 0.5f));
     }
 
     @Override

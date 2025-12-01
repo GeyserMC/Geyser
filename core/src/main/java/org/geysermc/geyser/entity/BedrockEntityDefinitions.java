@@ -49,7 +49,7 @@ public class BedrockEntityDefinitions {
         CHEST_BOAT = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("chest_boat"));
         EVOCATION_ILLAGER = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("evocation_illager"));
         LLAMA = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("llama"));
-        MINECART = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("minecraft"));
+        MINECART = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("minecart"));
         SPLASH_POTION = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("splash_position"));
         ZOMBIE = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("zombie"));
     }

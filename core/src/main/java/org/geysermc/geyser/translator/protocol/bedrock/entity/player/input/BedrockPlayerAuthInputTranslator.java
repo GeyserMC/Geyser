@@ -287,11 +287,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             // We only need to determine onGround status this way for client predicted vehicles.
             // For other vehicle, Geyser already handle it in VehicleComponent or the Java server handle it.
             if (packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE)) {
-                Vector3f position = vehicle.getPosition();
-
-                if (vehicle instanceof BoatEntity) {
-                    position = position.down(vehicle.getOffset());
-                }
+                Vector3f position = vehicle.position();
 
                 final BoundingBox box = new BoundingBox(
                     position.up(vehicle.getBoundingBoxHeight() / 2f).toDouble(),
@@ -305,14 +301,15 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 vehicle.setOnGround(correctedMovement.getY() != movement.getY() && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
             }
 
-            Vector3f vehiclePosition = packet.getPosition();
+            Vector3f vehiclePosition = packet.getPosition().down(vehicle.getOffset());
             Vector2f vehicleRotation = packet.getVehicleRotation();
             if (vehicleRotation == null) {
                 return; // If the client just got in or out of a vehicle for example. Or if this vehicle isn't client predicted.
             }
 
             if (session.getWorldBorder().isPassingIntoBorderBoundaries(vehiclePosition, false)) {
-                Vector3f position = vehicle.getPosition();
+                Vector3f position = vehicle.position();
+                // TODO offset
                 if (vehicle instanceof BoatEntity boat) {
                     // Undo the changes usually applied to the boat
                     boat.moveAbsoluteWithoutAdjustments(position, vehicle.getYaw(), vehicle.isOnGround(), true);
@@ -325,12 +322,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 return;
             }
 
-            if (vehicle instanceof BoatEntity) {
-                // Remove some Y position to prevents boats flying up
-                vehiclePosition = vehiclePosition.down(vehicle.getOffset());
-            }
-
-            vehicle.setPosition(vehiclePosition);
+            vehicle.position(vehiclePosition);
             ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(
                 vehiclePosition.toDouble(),
                 vehicleRotation.getY() - 90, vehiclePosition.getX(), // TODO I wonder if this is related to the horse spinning bugs...

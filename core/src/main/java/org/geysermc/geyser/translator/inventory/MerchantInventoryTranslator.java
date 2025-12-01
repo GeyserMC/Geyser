@@ -99,7 +99,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
     public boolean prepareInventory(GeyserSession session, MerchantContainer container) {
         if (container.getVillager() == null) {
             var context = EntitySpawnContext.DUMMY_CONTEXT.apply(session, null, VanillaEntities.VILLAGER);
-            context.position(session.getPlayerEntity().getPosition().sub(0, 3, 0));
+            context.position(session.getPlayerEntity().position().sub(0, 3, 0));
 
             Entity villager = new Entity(context) {
                 @Override

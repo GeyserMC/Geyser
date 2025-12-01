@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.session.cache;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2d;
@@ -33,9 +35,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import lombok.Getter;
-import lombok.Setter;
-import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -137,7 +136,7 @@ public class WorldBorder {
      * @return true as long as the player entity is within the world limits.
      */
     public boolean isInsideBorderBoundaries() {
-        return isInsideBorderBoundaries(session.getPlayerEntity().getPosition());
+        return isInsideBorderBoundaries(session.getPlayerEntity().position());
     }
 
     public boolean isInsideBorderBoundaries(Vector3f position) {
@@ -151,7 +150,7 @@ public class WorldBorder {
      * warning blocks set.
      */
     public boolean isCloseToBorderBoundaries() {
-        Vector3f position = session.getPlayerEntity().getPosition();
+        Vector3f position = session.getPlayerEntity().position();
         return !(position.getX() > minX + CLOSE_TO_BORDER && position.getX() < maxX - CLOSE_TO_BORDER
                 && position.getZ() > minZ + CLOSE_TO_BORDER && position.getZ() < maxZ - CLOSE_TO_BORDER);
     }
@@ -160,6 +159,7 @@ public class WorldBorder {
      * Confirms that the entity is within world border boundaries when they move.
      * Otherwise, if {@code adjustPosition} is true, this function will push the player back.
      *
+     * @param newPosition the position as known to Java Edition - no offset
      * @return if this player was indeed against the world border. Will return false if no world border was defined for us.
      */
     public boolean isPassingIntoBorderBoundaries(Vector3f newPosition, boolean adjustPosition) {
@@ -168,8 +168,7 @@ public class WorldBorder {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Move the player back, but allow gravity to take place
             // Teleported = true makes going back better, but disconnects the player from their mounted entity
-            playerEntity.moveAbsolute(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - VanillaEntities.PLAYER_ENTITY_OFFSET), playerEntity.getPosition().getZ()),
-                    playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
+            playerEntity.moveAbsolute(Vector3f.from(playerEntity.position()), playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
         }
         return isInWorldBorder;
     }
@@ -177,7 +176,7 @@ public class WorldBorder {
     public boolean isPassingIntoBorderBoundaries(Vector3f newEntityPosition) {
         int entityX = GenericMath.floor(newEntityPosition.getX());
         int entityZ = GenericMath.floor(newEntityPosition.getZ());
-        Vector3f currentEntityPosition = session.getPlayerEntity().getPosition();
+        Vector3f currentEntityPosition = session.getPlayerEntity().bedrockPosition();
         // Make sure we can't move out of the world border, but if we're out of the world border, we can move in
         return (entityX == (int) minX && currentEntityPosition.getX() > newEntityPosition.getX()) ||
                 (entityX == (int) maxX && currentEntityPosition.getX() < newEntityPosition.getX()) ||
@@ -191,7 +190,7 @@ public class WorldBorder {
      * @return true as long the entity is within the world limits and not in the warning zone at the edge to the border.
      */
     public boolean isWithinWarningBoundaries() {
-        Vector3f entityPosition = session.getPlayerEntity().getPosition();
+        Vector3f entityPosition = session.getPlayerEntity().position();
         return entityPosition.getX() > warningMinX && entityPosition.getX() < warningMaxX && entityPosition.getZ() > warningMinZ && entityPosition.getZ() < warningMaxZ;
     }
 
@@ -305,7 +304,7 @@ public class WorldBorder {
             return;
         }
         currentWallTick = 0;
-        Vector3f entityPosition = session.getPlayerEntity().getPosition();
+        Vector3f entityPosition = session.getPlayerEntity().bedrockPosition();
         float particlePosX = entityPosition.getX();
         float particlePosY = entityPosition.getY();
         float particlePosZ = entityPosition.getZ();
@@ -325,7 +324,7 @@ public class WorldBorder {
     }
 
     private void drawWall(Vector3f position, boolean drawWallX) {
-        int initialY = (int) (position.getY() - VanillaEntities.PLAYER_ENTITY_OFFSET - 1);
+        int initialY = (int) (position.getY() - 1);
         for (int y = initialY; y < (initialY + 5); y++) {
             if (drawWallX) {
                 float x = position.getX();

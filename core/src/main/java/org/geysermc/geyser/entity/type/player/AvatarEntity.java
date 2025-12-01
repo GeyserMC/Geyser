@@ -40,8 +40,8 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
-import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.skin.SkinManager;
@@ -131,8 +131,8 @@ public class AvatarEntity extends LivingEntity {
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        setPosition(position);
+    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        position(javaPosition);
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
@@ -141,7 +141,7 @@ public class AvatarEntity extends LivingEntity {
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
-        movePlayerPacket.setPosition(this.position);
+        movePlayerPacket.setPosition(bedrockPosition());
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(this instanceof SessionPlayerEntity || teleported ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
@@ -168,7 +168,7 @@ public class AvatarEntity extends LivingEntity {
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
-        movePlayerPacket.setPosition(position);
+        movePlayerPacket.setPosition(bedrockPosition());
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(this instanceof SessionPlayerEntity ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
@@ -190,14 +190,15 @@ public class AvatarEntity extends LivingEntity {
     }
 
     @Override
-    public void setPosition(Vector3f position) {
+    public Entity position(Vector3f position) {
         if (this.bedPosition != null) {
             // As of Bedrock 1.21.22 and Fabric 1.21.1
             // Messes with Bedrock if we send this to the client itself, though.
-            super.setPosition(position.up(0.2f));
+            super.position(position.up(0.2f));
         } else {
-            super.setPosition(position.add(0, offset, 0));
+            super.position(position);
         }
+        return this;
     }
 
     @Override
@@ -206,7 +207,7 @@ public class AvatarEntity extends LivingEntity {
         if (bedPosition != null) {
             // Required to sync position of entity to bed
             // Fixes https://github.com/GeyserMC/Geyser/issues/3595 on vanilla 1.19.3 servers - did not happen on Paper
-            this.setPosition(bedPosition.toFloat());
+            this.position(bedPosition.toFloat());
 
             // TODO evaluate if needed
             int bed = session.getGeyser().getWorldManager().getBlockAt(session, bedPosition);
@@ -315,7 +316,7 @@ public class AvatarEntity extends LivingEntity {
 
         if (pose == Pose.SWIMMING) {
             // This is just for, so we know if player is swimming or crawling.
-            if (session.getGeyser().getWorldManager().blockAt(session, position.down(VanillaEntities.PLAYER_ENTITY_OFFSET).toInt()).is(Blocks.WATER)) {
+            if (session.getGeyser().getWorldManager().blockAt(session, position.toInt()).is(Blocks.WATER)) {
                 setFlag(EntityFlag.SWIMMING, true);
             } else {
                 setFlag(EntityFlag.CRAWLING, true);
