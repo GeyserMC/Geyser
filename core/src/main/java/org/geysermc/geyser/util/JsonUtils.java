@@ -49,7 +49,11 @@ public final class JsonUtils {
     }
 
     public static JsonObject parseJson(String s) {
-        return (JsonObject) new JsonParser().parse(s);
+        var output = new JsonParser().parse(s);
+        if (output instanceof JsonObject jsonObject) {
+            return jsonObject;
+        }
+        throw new IllegalArgumentException("Invalid JSON: " + s);
     }
 
     public static <T> T fromJson(InputStream stream, Type type) {

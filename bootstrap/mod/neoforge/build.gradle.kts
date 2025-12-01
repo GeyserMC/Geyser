@@ -40,8 +40,10 @@ dependencies {
     // Let's shade in our own api
     shadowBundle(projects.api)
 
-    // this one is particularly dumb
+    // shade + relocate these to avoid conflicts
     shadowBundle(libs.configurate.`interface`)
+    shadowBundle(libs.configurate.yaml)
+    shadowBundle(libs.configurate.core)
 
     // cannot be shaded, since neoforge will complain if floodgate-neoforge tries to provide this
     include(projects.common)
@@ -52,6 +54,8 @@ dependencies {
     modImplementation(libs.cloud.neoforge)
     include(libs.cloud.neoforge)
 }
+
+relocate("org.spongepowered.configurate")
 
 tasks.withType<Jar> {
     manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.neoforge.GeyserNeoForgeMain"
@@ -64,6 +68,10 @@ tasks {
 
     remapModrinthJar {
         archiveBaseName.set("geyser-neoforge")
+    }
+
+    shadowJar {
+        mergeServiceFiles()
     }
 }
 

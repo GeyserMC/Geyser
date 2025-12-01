@@ -353,7 +353,7 @@ public class ArmorStandEntity extends LivingEntity {
             secondEntity.positionRequiresOffset = true; // Offset should always be applied
             secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
             secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, isNameTagVisible ? (byte) 1 : (byte) 0);
-            secondEntity.flags.addAll(this.flags);
+            secondEntity.flags.putAll(this.flags);
             // Guarantee this copy is NOT invisible
             secondEntity.setFlag(EntityFlag.INVISIBLE, false);
             // Scale to 0 to show nametag

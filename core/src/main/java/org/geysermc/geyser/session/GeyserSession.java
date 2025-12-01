@@ -591,6 +591,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean placedBucket;
 
     /**
+     * Stores whether we've updated a lower door block
+     */
+    @Setter
+    private @Nullable Vector3i lastLowerDoorPosition = null;
+
+    /**
      * Counts how many ticks have occurred since an arm animation started.
      * -1 means there is no active arm swing
      */
@@ -747,6 +753,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean allowVibrantVisuals = true;
 
     @Accessors(fluent = true)
+    @Setter
     private boolean hasAcceptedCodeOfConduct = false;
 
     @Accessors(fluent = true)
