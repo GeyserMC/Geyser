@@ -50,7 +50,7 @@ public class BedrockEntityDefinitions {
         EVOCATION_ILLAGER = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("evocation_illager"));
         LLAMA = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("llama"));
         MINECART = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("minecart"));
-        SPLASH_POTION = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("splash_position"));
+        SPLASH_POTION = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("splash_potion"));
         ZOMBIE = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("zombie"));
     }
 

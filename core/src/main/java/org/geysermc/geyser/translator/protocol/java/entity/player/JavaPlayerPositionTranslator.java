@@ -31,7 +31,6 @@ import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RespawnPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TeleportCache;
@@ -64,8 +63,6 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
         final int teleportId = packet.getId();
 
-        GeyserImpl.getInstance().getLogger().info("teleport to " + position);
-
         acceptTeleport(session, position, newYaw, newPitch, teleportId);
 
         if (!session.isSpawned()) {
@@ -73,8 +70,6 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             entity.setYaw(packet.getYRot());
             entity.setPitch(packet.getXRot());
             entity.setHeadYaw(packet.getYRot());
-
-            GeyserImpl.getInstance().getLogger().info("BEDROCK POS: " + entity.bedrockPosition());
 
             RespawnPacket respawnPacket = new RespawnPacket();
             respawnPacket.setRuntimeEntityId(0); // Bedrock server behavior

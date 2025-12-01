@@ -740,7 +740,6 @@ public final class VanillaEntities {
             CREEPER = VanillaEntityType.inherited(CreeperEntity::new, mobEntityBase)
                     .type(BuiltinEntityType.CREEPER)
                     .height(1.7f).width(0.6f)
-                    .offset(1.62f)
                     .addTranslator(MetadataTypes.INT, CreeperEntity::setSwelling)
                     .addTranslator(MetadataTypes.BOOLEAN, (entity, entityMetadata) -> entity.setFlag(EntityFlag.POWERED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                     .addTranslator(MetadataTypes.BOOLEAN, CreeperEntity::setIgnited)
@@ -768,7 +767,6 @@ public final class VanillaEntities {
             GIANT = VanillaEntityType.inherited(GiantEntity::new, mobEntityBase)
                     .type(BuiltinEntityType.GIANT)
                     .height(1.8f).width(1.6f)
-                    .offset(1.62f)
                     .bedrockDefinition(BedrockEntityDefinitions.ZOMBIE)
                     .build();
             IRON_GOLEM = VanillaEntityType.inherited(IronGolemEntity::new, mobEntityBase)
@@ -779,7 +777,6 @@ public final class VanillaEntities {
             PHANTOM = VanillaEntityType.inherited(PhantomEntity::new, mobEntityBase)
                     .type(BuiltinEntityType.PHANTOM)
                     .height(0.5f).width(0.9f)
-                    .offset(0.6f)
                     .addTranslator(MetadataTypes.INT, PhantomEntity::setPhantomScale)
                     .build();
             SILVERFISH = VanillaEntityType.inherited(MonsterEntity::new, mobEntityBase)
@@ -796,7 +793,6 @@ public final class VanillaEntities {
             SKELETON = VanillaEntityType.inherited(SkeletonEntity::new, mobEntityBase)
                     .type(BuiltinEntityType.SKELETON)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .addTranslator(MetadataTypes.BOOLEAN, SkeletonEntity::setConvertingToStray)
                     .build();
             SNOW_GOLEM = VanillaEntityType.inherited(SnowGolemEntity::new, mobEntityBase)
@@ -807,7 +803,6 @@ public final class VanillaEntities {
             SPIDER = VanillaEntityType.inherited(SpiderEntity::new, mobEntityBase)
                     .type(BuiltinEntityType.SPIDER)
                     .height(0.9f).width(1.4f)
-                    .offset(1f)
                     .addTranslator(MetadataTypes.BYTE, SpiderEntity::setSpiderFlags)
                     .build();
             CAVE_SPIDER = VanillaEntityType.inherited(SpiderEntity::new, SPIDER)
@@ -817,7 +812,6 @@ public final class VanillaEntities {
             STRAY = VanillaEntityType.inherited(AbstractSkeletonEntity::new, mobEntityBase)
                     .type(BuiltinEntityType.STRAY)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .build();
             VEX = VanillaEntityType.inherited(VexEntity::new, mobEntityBase)
                     .type(BuiltinEntityType.VEX)
@@ -849,7 +843,6 @@ public final class VanillaEntities {
             ZOMBIE = VanillaEntityType.inherited(ZombieEntity::new, mobEntityBase)
                     .type(BuiltinEntityType.ZOMBIE)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .bedrockDefinition(BedrockEntityDefinitions.ZOMBIE)
                     .addTranslator(MetadataTypes.BOOLEAN, ZombieEntity::setZombieBaby)
                     .addTranslator(null) // "set special type", doesn't do anything
@@ -858,7 +851,6 @@ public final class VanillaEntities {
             ZOMBIE_VILLAGER = VanillaEntityType.inherited(ZombieVillagerEntity::new, ZOMBIE)
                     .type(BuiltinEntityType.ZOMBIE_VILLAGER)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .bedrockIdentifier("minecraft:zombie_villager_v2")
                     .addTranslator(MetadataTypes.BOOLEAN, ZombieVillagerEntity::setTransforming)
                     .addTranslator(MetadataTypes.VILLAGER_DATA, ZombieVillagerEntity::setZombieVillagerData)
@@ -866,7 +858,6 @@ public final class VanillaEntities {
             ZOMBIFIED_PIGLIN = VanillaEntityType.inherited(ZombifiedPiglinEntity::new, ZOMBIE) //TODO test how zombie entity metadata is handled?
                     .type(BuiltinEntityType.ZOMBIFIED_PIGLIN)
                     .height(1.95f).width(0.6f)
-                    .offset(1.62f)
                     .bedrockIdentifier("minecraft:zombie_pigman")
                     .build();
 
@@ -960,7 +951,6 @@ public final class VanillaEntities {
             PILLAGER = VanillaEntityType.inherited(PillagerEntity::new, raidParticipantEntityBase)
                     .type(BuiltinEntityType.PILLAGER)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .addTranslator(MetadataTypes.BOOLEAN, PillagerEntity::setChargingCrossbow)
                     .build();
             RAVAGER = VanillaEntityType.inherited(RavagerEntity::new, raidParticipantEntityBase)
@@ -970,12 +960,10 @@ public final class VanillaEntities {
             VINDICATOR = VanillaEntityType.inherited(VindicatorEntity::new, raidParticipantEntityBase)
                     .type(BuiltinEntityType.VINDICATOR)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .build();
             WITCH = VanillaEntityType.inherited(RaidParticipantEntity::new, raidParticipantEntityBase)
                     .type(BuiltinEntityType.WITCH)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .addTranslator(null) // Using item
                     .build();
         }
@@ -1122,14 +1110,12 @@ public final class VanillaEntities {
             VILLAGER = VanillaEntityType.inherited(VillagerEntity::new, abstractVillagerEntityBase)
                     .type(BuiltinEntityType.VILLAGER)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .bedrockIdentifier("minecraft:villager_v2")
                     .addTranslator(MetadataTypes.VILLAGER_DATA, VillagerEntity::setVillagerData)
                     .build();
             WANDERING_TRADER = VanillaEntityType.inherited(abstractVillagerEntityBase.factory(), abstractVillagerEntityBase)
                     .type(BuiltinEntityType.WANDERING_TRADER)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .build();
         }
 
