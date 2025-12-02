@@ -29,7 +29,6 @@ import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
@@ -218,14 +217,6 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     @Override
     public long leashHolderBedrockId() {
         return leashHolderBedrockId;
-    }
-
-    private void sendAnimationPacket(GeyserSession session, Entity rower, AnimatePacket.Action action, float rowTime) {
-        AnimatePacket packet = new AnimatePacket();
-        packet.setRuntimeEntityId(rower.getGeyserId());
-        packet.setAction(action);
-        packet.setRowingTime(rowTime);
-        session.sendUpstreamPacket(packet);
     }
 
     /**
