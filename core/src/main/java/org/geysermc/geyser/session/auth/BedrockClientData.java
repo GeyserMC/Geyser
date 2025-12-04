@@ -25,20 +25,28 @@
 
 package org.geysermc.geyser.session.auth;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import com.google.gson.TypeAdapter;
+import com.google.gson.TypeAdapterFactory;
 import com.google.gson.annotations.JsonAdapter;
 import com.google.gson.annotations.SerializedName;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import lombok.Getter;
 import lombok.Setter;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.floodgate.util.InputMode;
 import org.geysermc.floodgate.util.UiProfile;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.UUID;
 
 @Getter
@@ -55,7 +63,8 @@ public final class BedrockClientData {
     @SerializedName(value = "SkinId")
     private String skinId;
     @SerializedName(value = "SkinData")
-    private String skinData;
+    @JsonAdapter(value = StringToByteDeserializer.class)
+    private byte[] skinData;
     @SerializedName(value = "SkinImageHeight")
     private int skinImageHeight;
     @SerializedName(value = "SkinImageWidth")
@@ -72,9 +81,11 @@ public final class BedrockClientData {
     @SerializedName(value = "CapeOnClassicSkin")
     private boolean capeOnClassicSkin;
     @SerializedName(value = "SkinResourcePatch")
-    private String geometryName;
+    @JsonAdapter(value = StringToByteDeserializer.class)
+    private byte[] geometryName;
     @SerializedName(value = "SkinGeometryData")
-    private String geometryData;
+    @JsonAdapter(value = StringToByteDeserializer.class)
+    private byte[] geometryData;
     @SerializedName(value = "PersonaSkin")
     private boolean personaSkin;
     @SerializedName(value = "PremiumSkin")
@@ -85,14 +96,18 @@ public final class BedrockClientData {
     @SerializedName(value = "DeviceModel")
     private String deviceModel;
     @SerializedName(value = "DeviceOS")
+    @JsonAdapter(value = IntToEnumTypeFactory.class)
     private DeviceOs deviceOs;
     @SerializedName(value = "UIProfile")
+    @JsonAdapter(value = IntToEnumTypeFactory.class)
     private UiProfile uiProfile;
     @SerializedName(value = "GuiScale")
     private int guiScale;
     @SerializedName(value = "CurrentInputMode")
+    @JsonAdapter(value = IntToEnumTypeFactory.class)
     private InputMode currentInputMode;
     @SerializedName(value = "DefaultInputMode")
+    @JsonAdapter(value = IntToEnumTypeFactory.class)
     private InputMode defaultInputMode;
     @SerializedName("PlatformOnlineId")
     private String platformOnlineId;
@@ -136,7 +151,37 @@ public final class BedrockClientData {
     private static final class StringToByteDeserializer implements JsonDeserializer<byte[]> {
         @Override
         public byte[] deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-            return json.getAsString().getBytes(StandardCharsets.UTF_8);
+            return Base64.getDecoder().decode(json.getAsString().getBytes(StandardCharsets.UTF_8));
+        }
+    }
+
+    /**
+     * Creates a JSON parser that reads the incoming enum ordinal and converts it to the enum constant.
+     */
+    private static final class IntToEnumTypeFactory implements TypeAdapterFactory {
+        @Override
+        public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {
+            //noinspection unchecked
+            Class<T> rawType = (Class<T>) type.getRawType();
+            if (!rawType.isEnum()) {
+                return null;
+            }
+
+            T[] constants = rawType.getEnumConstants();
+            return new TypeAdapter<>() {
+                @Override
+                public void write(JsonWriter out, T value) {
+                }
+
+                @Override
+                public T read(JsonReader in) throws IOException {
+                    int ordinal = in.nextInt();
+                    if (ordinal < 0 || ordinal >= constants.length) {
+                        return null;
+                    }
+                    return constants[ordinal];
+                }
+            };
         }
     }
 }
