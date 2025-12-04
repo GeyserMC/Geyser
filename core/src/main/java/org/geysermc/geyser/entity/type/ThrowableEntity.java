@@ -30,12 +30,9 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
-
-import java.util.UUID;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 
 /**
  * Used as a class for any object-like entity that moves as a projectile
@@ -44,8 +41,8 @@ public class ThrowableEntity extends Entity implements Tickable {
 
     protected Vector3f lastJavaPosition;
 
-    public ThrowableEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public ThrowableEntity(EntitySpawnContext context) {
+        super(context);
         this.lastJavaPosition = position;
     }
 
@@ -64,7 +61,8 @@ public class ThrowableEntity extends Entity implements Tickable {
         motion = motion.mul(drag).down(gravity);
     }
 
-    protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    // TODO offsets!!!
+    protected void moveAbsoluteImmediate(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(geyserId);
 
@@ -77,19 +75,19 @@ public class ThrowableEntity extends Entity implements Tickable {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
         }
 
-        if (this.position.getX() != position.getX()) {
+        if (this.position.getX() != javaPosition.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-            moveEntityDeltaPacket.setX(position.getX());
+            moveEntityDeltaPacket.setX(javaPosition.getX());
         }
-        if (this.position.getY() != position.getY()) {
+        if (this.position.getY() != javaPosition.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-            moveEntityDeltaPacket.setY(position.getY());
+            moveEntityDeltaPacket.setY(javaPosition.getY() + offset);
         }
-        if (this.position.getZ() != position.getZ()) {
+        if (this.position.getZ() != javaPosition.getZ()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-            moveEntityDeltaPacket.setZ(position.getZ());
+            moveEntityDeltaPacket.setZ(javaPosition.getZ());
         }
-        setPosition(position);
+        position(javaPosition);
 
         if (getYaw() != yaw) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
@@ -119,20 +117,16 @@ public class ThrowableEntity extends Entity implements Tickable {
      */
     protected float getGravity() {
         if (getFlag(EntityFlag.HAS_GRAVITY)) {
-            switch (definition.entityType()) {
-                case LINGERING_POTION, SPLASH_POTION:
-                    return 0.05f;
-                case EXPERIENCE_BOTTLE:
-                    return 0.07f;
-                case FIREBALL:
-                case SHULKER_BULLET:
-                    return 0;
-                case SNOWBALL:
-                case EGG:
-                case ENDER_PEARL:
-                    return 0.03f;
-                case LLAMA_SPIT:
-                    return 0.06f;
+            if (javaTypeDefinition.is(BuiltinEntityType.LINGERING_POTION) || javaTypeDefinition.is(BuiltinEntityType.SPLASH_POTION)) {
+                return 0.05f;
+            } else if (javaTypeDefinition.is(BuiltinEntityType.EXPERIENCE_BOTTLE)) {
+                return 0.07f;
+            } else if (javaTypeDefinition.is(BuiltinEntityType.FIREBALL) || javaTypeDefinition.is(BuiltinEntityType.SHULKER_BULLET)) {
+                return 0;
+            } else if (javaTypeDefinition.is(BuiltinEntityType.SNOWBALL) || javaTypeDefinition.is(BuiltinEntityType.EGG) || javaTypeDefinition.is(BuiltinEntityType.ENDER_PEARL)) {
+                return 0.03f;
+            } else if (javaTypeDefinition.is(BuiltinEntityType.LLAMA_SPIT)) {
+                return 0.06f;
             }
         }
         return 0;
@@ -145,20 +139,13 @@ public class ThrowableEntity extends Entity implements Tickable {
         if (isInWater()) {
             return 0.8f;
         } else {
-            switch (definition.entityType()) {
-                case LINGERING_POTION, SPLASH_POTION:
-                case EXPERIENCE_BOTTLE:
-                case SNOWBALL:
-                case EGG:
-                case ENDER_PEARL:
-                case LLAMA_SPIT:
-                    return 0.99f;
-                case FIREBALL:
-                case SMALL_FIREBALL:
-                case DRAGON_FIREBALL:
-                    return 0.95f;
-                case SHULKER_BULLET:
-                    return 1;
+            if (javaTypeDefinition.is(BuiltinEntityType.LINGERING_POTION) || javaTypeDefinition.is(BuiltinEntityType.SPLASH_POTION) || javaTypeDefinition.is(BuiltinEntityType.EXPERIENCE_BOTTLE)
+                || javaTypeDefinition.is(BuiltinEntityType.SNOWBALL) || javaTypeDefinition.is(BuiltinEntityType.EGG) || javaTypeDefinition.is(BuiltinEntityType.ENDER_PEARL) || javaTypeDefinition.is(BuiltinEntityType.LLAMA_SPIT)) {
+                return 0.99f;
+            } else if (javaTypeDefinition.is(BuiltinEntityType.FIREBALL) || javaTypeDefinition.is(BuiltinEntityType.SMALL_FIREBALL) || javaTypeDefinition.is(BuiltinEntityType.DRAGON_FIREBALL)) {
+                return 0.95f;
+            } else if (javaTypeDefinition.is(BuiltinEntityType.SHULKER_BULLET)) {
+                return 1;
             }
         }
         return 1;
@@ -174,10 +161,10 @@ public class ThrowableEntity extends Entity implements Tickable {
 
     @Override
     public void despawnEntity() {
-        if (definition.entityType() == EntityType.ENDER_PEARL) {
+        if (javaTypeDefinition.is(BuiltinEntityType.ENDER_PEARL)) {
             LevelEventPacket particlePacket = new LevelEventPacket();
             particlePacket.setType(LevelEvent.PARTICLE_TELEPORT);
-            particlePacket.setPosition(position);
+            particlePacket.setPosition(bedrockPosition());
             session.sendUpstreamPacket(particlePacket);
         }
         super.despawnEntity();
@@ -190,9 +177,9 @@ public class ThrowableEntity extends Entity implements Tickable {
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        moveAbsoluteImmediate(position, yaw, pitch, headYaw, isOnGround, teleported);
-        lastJavaPosition = position;
+    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        moveAbsoluteImmediate(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
+        lastJavaPosition = javaPosition;
     }
 
     /**

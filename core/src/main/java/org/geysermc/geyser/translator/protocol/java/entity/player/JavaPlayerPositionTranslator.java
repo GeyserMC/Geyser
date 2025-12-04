@@ -31,7 +31,6 @@ import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RespawnPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TeleportCache;
@@ -54,12 +53,10 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         }
 
         final SessionPlayerEntity entity = session.getPlayerEntity();
-        Vector3d position = packet.getPosition();
-
-        position = position.add(
-            packet.getRelatives().contains(PositionElement.X) ? entity.getPosition().getX() : 0,
-            packet.getRelatives().contains(PositionElement.Y) ? entity.getPosition().getY() - EntityDefinitions.PLAYER.offset() : 0,
-            packet.getRelatives().contains(PositionElement.Z) ? entity.getPosition().getZ() : 0);
+        Vector3d position = packet.getPosition().add(
+            packet.getRelatives().contains(PositionElement.X) ? entity.position().getX() : 0,
+            packet.getRelatives().contains(PositionElement.Y) ? entity.position().getY() : 0,
+            packet.getRelatives().contains(PositionElement.Z) ? entity.position().getZ() : 0);
 
         float newPitch = MathUtils.clamp(packet.getXRot() + (packet.getRelatives().contains(PositionElement.X_ROT) ? entity.getPitch() : 0), -90, 90);
         float newYaw = packet.getYRot() + (packet.getRelatives().contains(PositionElement.Y_ROT) ? entity.getYaw() : 0);
@@ -69,22 +66,22 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         acceptTeleport(session, position, newYaw, newPitch, teleportId);
 
         if (!session.isSpawned()) {
-            entity.setPosition(position.toFloat());
+            entity.position(position.toFloat());
             entity.setYaw(packet.getYRot());
             entity.setPitch(packet.getXRot());
             entity.setHeadYaw(packet.getYRot());
 
             RespawnPacket respawnPacket = new RespawnPacket();
             respawnPacket.setRuntimeEntityId(0); // Bedrock server behavior
-            respawnPacket.setPosition(entity.getPosition());
+            respawnPacket.setPosition(entity.bedrockPosition());
             respawnPacket.setState(RespawnPacket.State.SERVER_READY);
             session.sendUpstreamPacket(respawnPacket);
 
             entity.updateBedrockMetadata();
 
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-            movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
-            movePlayerPacket.setPosition(entity.getPosition());
+            movePlayerPacket.setRuntimeEntityId(entity.geyserId());
+            movePlayerPacket.setPosition(entity.bedrockPosition());
             movePlayerPacket.setRotation(entity.getBedrockRotation());
             movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
             session.sendUpstreamPacket(movePlayerPacket);
@@ -116,9 +113,8 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             return;
         }
 
-        session.getGeyser().getLogger().debug("Teleport (" + teleportId + ") from " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityDefinitions.PLAYER.offset()) + " " + entity.getPosition().getZ());
-
-        Vector3f lastPlayerPosition = entity.getPosition().down(EntityDefinitions.PLAYER.offset());
+        Vector3f lastPlayerPosition = entity.position();
+        session.getGeyser().getLogger().debug("Teleport (" + teleportId + ") from " + lastPlayerPosition);
         float lastPlayerPitch = entity.getPitch();
         float lastPlayerYaw = entity.getYaw();
         Vector3f teleportDestination = position.toFloat();
@@ -141,7 +137,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
             // Our motion got reset by the teleport but the deltaMovement is not 0 so send a motion packet to fix that.
             SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
-            entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
+            entityMotionPacket.setRuntimeEntityId(entity.geyserId());
             entityMotionPacket.setMotion(entity.getMotion());
             session.sendUpstreamPacket(entityMotionPacket);
 
@@ -155,7 +151,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             session.setUnconfirmedTeleport(new TeleportCache(teleportDestination, deltaMovement, newPitch, newYaw, teleportId, type));
         }
 
-        session.getGeyser().getLogger().debug("to " + entity.getPosition().getX() + " " + (entity.getPosition().getY() - EntityDefinitions.PLAYER.offset()) + " " + entity.getPosition().getZ());
+        session.getGeyser().getLogger().debug("to " + entity.position());
     }
 
     private void acceptTeleport(GeyserSession session, Vector3d position, float yaw, float pitch, int id) {

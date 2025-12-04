@@ -26,18 +26,15 @@
 package org.geysermc.geyser.entity.type.living.animal;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.ArmadilloState;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class ArmadilloEntity extends AnimalEntity {
@@ -50,9 +47,8 @@ public class ArmadilloEntity extends AnimalEntity {
 
     private ArmadilloState armadilloState = ArmadilloState.IDLE;
 
-    public ArmadilloEntity(GeyserSession session, int entityId, long geyserId, UUID uuid,
-            EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public ArmadilloEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     public void setArmadilloState(ObjectEntityMetadata<ArmadilloState> entityMetadata) {

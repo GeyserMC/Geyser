@@ -71,7 +71,7 @@ public class DimensionUtils {
         for (Effect effect : entityEffects) {
             MobEffectPacket mobEffectPacket = new MobEffectPacket();
             mobEffectPacket.setEvent(MobEffectPacket.Event.REMOVE);
-            mobEffectPacket.setRuntimeEntityId(player.getGeyserId());
+            mobEffectPacket.setRuntimeEntityId(player.geyserId());
             mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(effect));
             session.sendUpstreamPacket(mobEffectPacket);
         }
@@ -130,7 +130,7 @@ public class DimensionUtils {
 
         setBedrockDimension(session, bedrockDimension);
 
-        session.getPlayerEntity().setPosition(pos);
+        session.getPlayerEntity().position(pos);
         session.setSpawned(false);
         session.setLastChunkPosition(null);
     }
@@ -146,7 +146,7 @@ public class DimensionUtils {
         // initial chunks are sent, prior to the client acknowledgement
         // Note: send this before chunks are sent. Fixed https://github.com/GeyserMC/Geyser/issues/3421
         PlayerActionPacket ackPacket = new PlayerActionPacket();
-        ackPacket.setRuntimeEntityId(player.getGeyserId());
+        ackPacket.setRuntimeEntityId(player.geyserId());
         ackPacket.setAction(PlayerActionType.DIMENSION_CHANGE_SUCCESS);
         ackPacket.setBlockPosition(Vector3i.ZERO);
         ackPacket.setResultPosition(Vector3i.ZERO);
@@ -155,7 +155,7 @@ public class DimensionUtils {
 
         // TODO - fix this hack of a fix by sending the final dimension switching logic after sections have been sent.
         // The client wants sections sent to it before it can successfully respawn.
-        ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), 3, true);
+        ChunkUtils.sendEmptyChunks(session, player.position().toInt(), 3, true);
     }
 
     public static void setBedrockDimension(GeyserSession session, int bedrockDimension) {

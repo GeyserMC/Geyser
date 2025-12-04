@@ -25,13 +25,9 @@
 
 package org.geysermc.geyser.entity.type;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-
-import java.util.UUID;
 
 /**
  * This class is used as a base for minecarts with a default block to display like furnaces and spawners
@@ -42,8 +38,8 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
     public int customBlockOffset = 0;
     public boolean showCustomBlock = false;
 
-    public DefaultBlockMinecartEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public DefaultBlockMinecartEntity(EntitySpawnContext context) {
+        super(context);
 
         dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) 1);
     }

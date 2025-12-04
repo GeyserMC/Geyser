@@ -59,6 +59,22 @@ public class GeyserEntityData implements EntityData {
     }
 
     @Override
+    public @Nullable GeyserEntity byJavaId(@NonNegative int javaId) {
+        return session.getEntityCache().getEntityByJavaId(javaId);
+    }
+
+    @Override
+    public @Nullable GeyserEntity byUuid(@NonNull UUID javaUuid) {
+        Objects.requireNonNull(javaUuid, "javaUuid");
+        return session.getEntityCache().getEntityByUuid(javaUuid);
+    }
+
+    @Override
+    public @Nullable GeyserEntity byGeyserId(@NonNegative long geyserId) {
+        return session.getEntityCache().getEntityByGeyserId(geyserId);
+    }
+
+    @Override
     public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId) {
         Objects.requireNonNull(emoter, "emoter must not be null!");
         Entity entity = (Entity) emoter;
@@ -67,7 +83,7 @@ public class GeyserEntityData implements EntityData {
         }
 
         EmotePacket packet = new EmotePacket();
-        packet.setRuntimeEntityId(entity.getGeyserId());
+        packet.setRuntimeEntityId(entity.geyserId());
         packet.setXuid("");
         packet.setPlatformId(""); // BDS sends empty
         packet.setEmoteId(emoteId);
