@@ -235,7 +235,6 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         availableCommandsPacket.getCommands().addAll(commandData);
 
         session.getGeyser().getLogger().debug("Sending command packet of " + commandData.size() + " commands");
-        GeyserImpl.getInstance().getLogger().info(availableCommandsPacket.toString());
 
         // Finally, send the commands to the client
         session.sendUpstreamPacket(availableCommandsPacket);
