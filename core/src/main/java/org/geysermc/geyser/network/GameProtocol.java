@@ -156,6 +156,10 @@ public final class GameProtocol {
         return protocolVersion >= Bedrock_v844.CODEC.getProtocolVersion();
     }
 
+    public static boolean is1_21_130orHigher(int protocolVersion) {
+        return protocolVersion >= Bedrock_v897.CODEC.getProtocolVersion();
+    }
+
     /**
      * Gets the supported Minecraft: Java Edition version names.
      *
