@@ -53,7 +53,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v827.Bedrock_v827;
 import org.cloudburstmc.protocol.bedrock.codec.v844.Bedrock_v844;
 import org.cloudburstmc.protocol.bedrock.codec.v859.Bedrock_v859;
 import org.cloudburstmc.protocol.bedrock.codec.v860.Bedrock_v860;
-import org.cloudburstmc.protocol.bedrock.codec.v897.Bedrock_v897;
+import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
@@ -213,7 +213,7 @@ public class ItemRegistryPopulator {
         paletteVersions.add(new PaletteVersion("1_21_110", Bedrock_v844.CODEC.getProtocolVersion()));
         paletteVersions.add(new PaletteVersion("1_21_120", Bedrock_v859.CODEC.getProtocolVersion()));
         paletteVersions.add(new PaletteVersion("1_21_120", Bedrock_v860.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("1_21_130", Bedrock_v897.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_130", Bedrock_v898.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
