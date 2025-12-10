@@ -75,7 +75,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
         Entity emoter = session.getEntityCache().getEntityByJavaId(emoterJavaId); // Must be ran on same thread
         if (emoter instanceof PlayerEntity) {
             EmotePacket packet = new EmotePacket();
-            packet.setRuntimeEntityId(emoter.getGeyserId());
+            packet.setRuntimeEntityId(emoter.geyserId());
             packet.setXuid(emoterXuid);
             packet.setPlatformId(""); // BDS sends empty
             packet.setEmoteId(emoteId);

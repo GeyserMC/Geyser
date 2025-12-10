@@ -25,16 +25,11 @@
 
 package org.geysermc.geyser.entity.type;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-
-import java.util.UUID;
 
 /**
  * Used as a class for any projectile entity that looks like an item
@@ -46,8 +41,8 @@ public class ThrowableItemEntity extends ThrowableEntity {
     private int age;
     private boolean invisible;
 
-    public ThrowableItemEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public ThrowableItemEntity(EntitySpawnContext context) {
+        super(context);
         setFlag(EntityFlag.INVISIBLE, true);
         invisible = false;
         age = 0;
@@ -66,8 +61,7 @@ public class ThrowableItemEntity extends ThrowableEntity {
         // Prevent projectiles from blocking the player's screen
         if (session.isTickingFrozen()) {
             // This may seem odd, but it matches java edition
-            Vector3f playerPos = session.getPlayerEntity().getPosition().down(EntityDefinitions.PLAYER.offset());
-            setInvisible(playerPos.distanceSquared(position.add(0, definition.offset(), 0)) < 12.25);
+            setInvisible(session.getPlayerEntity().bedrockPosition().distanceSquared(bedrockPosition()) < 12.25);
         } else {
             setInvisible(age < 2);
         }

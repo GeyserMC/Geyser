@@ -34,6 +34,9 @@ import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.definition.JavaEntityType;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
@@ -45,11 +48,14 @@ import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.api.pack.option.SubpackOption;
 import org.geysermc.geyser.api.pack.option.UrlFallbackOption;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.entity.BedrockEntityDefinition;
+import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.impl.camera.GeyserCameraFade;
 import org.geysermc.geyser.impl.camera.GeyserCameraPosition;
+import org.geysermc.geyser.impl.entity.GeyserEntityDataImpl;
 import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
@@ -108,6 +114,11 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         // cameras
         providers.put(CameraFade.Builder.class, args -> new GeyserCameraFade.Builder());
         providers.put(CameraPosition.Builder.class, args -> new GeyserCameraPosition.Builder());
+
+        // entities
+        providers.put(GeyserEntityDefinition.class, args -> BedrockEntityDefinition.getOrCreate((Identifier) args[0]));
+        providers.put(JavaEntityType.class, args -> GeyserEntityType.ofVanilla((Identifier) args[0]));
+        providers.put(GeyserEntityDataType.class, args -> GeyserEntityDataImpl.lookup((Class<?>) args[0], (String) args[1]));
 
         return providers;
     }

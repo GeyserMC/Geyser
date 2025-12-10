@@ -55,7 +55,7 @@ public class JavaSetEntityLinkTranslator extends PacketTranslator<ClientboundSet
             asLeashable.setLeashHolderBedrockId(-1L);
             holderId.updateBedrockMetadata();
             EntityEventPacket eventPacket = new EntityEventPacket();
-            eventPacket.setRuntimeEntityId(holderId.getGeyserId());
+            eventPacket.setRuntimeEntityId(holderId.geyserId());
             eventPacket.setType(EntityEventType.REMOVE_LEASH);
             eventPacket.setData(0);
             session.sendUpstreamPacket(eventPacket);
@@ -63,7 +63,7 @@ public class JavaSetEntityLinkTranslator extends PacketTranslator<ClientboundSet
         }
 
         holderId.setFlag(EntityFlag.LEASHED, true);
-        asLeashable.setLeashHolderBedrockId(attachedToId.getGeyserId());
+        asLeashable.setLeashHolderBedrockId(attachedToId.geyserId());
         holderId.updateBedrockMetadata();
     }
 }

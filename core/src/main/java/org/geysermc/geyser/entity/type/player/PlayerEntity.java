@@ -34,12 +34,13 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
@@ -66,9 +67,8 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
      */
     private boolean listed = false;
 
-    public PlayerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position,
-                        Vector3f motion, float yaw, float pitch, float headYaw, String username, @Nullable String texturesProperty) {
-        super(session, entityId, geyserId, uuid, EntityDefinitions.PLAYER, position, motion, yaw, pitch, headYaw, username);
+    public PlayerEntity(EntitySpawnContext context, String username, @Nullable String texturesProperty) {
+        super(context, username);
         this.texturesProperty = texturesProperty;
     }
 
@@ -111,13 +111,13 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsolute(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
         if (leftParrot != null) {
-            leftParrot.moveAbsolute(position, yaw, pitch, headYaw, true, teleported);
+            leftParrot.moveAbsolute(javaPosition, yaw, pitch, headYaw, true, teleported);
         }
         if (rightParrot != null) {
-            rightParrot.moveAbsolute(position, yaw, pitch, headYaw, true, teleported);
+            rightParrot.moveAbsolute(javaPosition, yaw, pitch, headYaw, true, teleported);
         }
     }
 
@@ -161,10 +161,17 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
                 return;
             }
             // The parrot is a separate entity in Bedrock, but part of the player entity in Java
-            ParrotEntity parrot = new ParrotEntity(session, 0, session.getEntityCache().getNextEntityId().incrementAndGet(),
-                    null, EntityDefinitions.PARROT, position, motion, getYaw(), getPitch(), getHeadYaw());
-            parrot.spawnEntity();
+            EntitySpawnContext context = EntitySpawnContext.inherited(session, VanillaEntities.PARROT, this, position);
+            if (context.callParrotEvent(this, variant.getAsInt(), !isLeft)) {
+                GeyserImpl.getInstance().getLogger().debug(session, "Cancelled parrot spawn as definition is null!");
+                return;
+            }
+            ParrotEntity parrot = new ParrotEntity(context);
             parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, variant.getAsInt());
+            if (context.consumers() != null) {
+                context.consumers().forEach(consumer -> consumer.accept(parrot));
+            }
+            parrot.spawnEntity();
             // Different position whether the parrot is left or right
             float offset = isLeft ? 0.4f : -0.4f;
             parrot.getDirtyMetadata().put(EntityDataTypes.SEAT_OFFSET, Vector3f.from(offset, -0.22, -0.1));
@@ -172,7 +179,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
             parrot.updateBedrockMetadata();
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             EntityLinkData.Type type = isLeft ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
-            linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.getGeyserId(), type, false, false, 0f));
+            linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.geyserId(), type, false, false, 0f));
             // Delay, or else spawned-in players won't get the link
             // TODO: Find a better solution.
             session.scheduleInEventLoop(() -> session.sendUpstreamPacket(linkPacket), 500, TimeUnit.MILLISECONDS);
@@ -220,11 +227,6 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
      */
     public UUID getTabListUuid() {
         return getUuid();
-    }
-
-    @Override
-    public Vector3f position() {
-        return this.position.down(definition.offset());
     }
 
     // From 1.21.8 code, should be correct since some pose should be prioritized.

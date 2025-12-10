@@ -26,10 +26,8 @@
 package org.geysermc.geyser.entity.type.player;
 
 import net.kyori.adventure.text.Component;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -37,12 +35,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvablePro
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 public class MannequinEntity extends AvatarEntity {
 
-    public MannequinEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw, "");
+    public MannequinEntity(EntitySpawnContext context) {
+        super(context, "");
     }
 
     public void setProfile(EntityMetadata<ResolvableProfile, ?> entityMetadata) {
