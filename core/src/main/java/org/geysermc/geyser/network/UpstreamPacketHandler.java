@@ -119,6 +119,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private boolean setCorrectCodec(int protocolVersion) {
         BedrockCodec packetCodec = GameProtocol.getBedrockCodec(protocolVersion);
+        // temp fix allowing 1.21.130 preview to join
+        if (protocolVersion == 897) {
+            packetCodec = GameProtocol.getBedrockCodec(898);
+        }
         if (packetCodec == null) {
             // None of our Bedrock codecs support this client version, so we can simply compare it to our default protocol.
             String supportedVersions = GameProtocol.getAllSupportedBedrockVersions();
