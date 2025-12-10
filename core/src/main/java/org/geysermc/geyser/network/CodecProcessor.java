@@ -83,7 +83,9 @@ import org.cloudburstmc.protocol.bedrock.packet.SettingsCommandPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SimpleEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubChunkRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
+import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.cloudburstmc.protocol.common.util.VarInts;
+import org.geysermc.geyser.network.codec.CustomTextPacketSerializer;
 
 /**
  * Processes the Bedrock codec to remove or modify unused or unsafe packets and fields.
@@ -303,6 +305,10 @@ class CodecProcessor {
                 codecBuilder
                     .updateSerializer(RiderJumpPacket.class, ILLEGAL_SERIALIZER)
                     .updateSerializer(PlayerInputPacket.class, ILLEGAL_SERIALIZER);
+            }
+
+            if (GameProtocol.is1_21_130orHigher(codec.getProtocolVersion())) {
+                codecBuilder.updateSerializer(TextPacket.class, CustomTextPacketSerializer.INSTANCE);
             }
 
             if (!Boolean.getBoolean("Geyser.ReceiptPackets")) {
