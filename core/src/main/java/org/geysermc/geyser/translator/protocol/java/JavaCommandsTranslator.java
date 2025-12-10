@@ -43,7 +43,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -124,7 +123,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     @Override
     public void translate(GeyserSession session, ClientboundCommandsPacket packet) {
         // Don't send command suggestions if they are disabled
-        if (GameProtocol.is1_21_130orHigher(session.protocolVersion()) || !session.getGeyser().config().gameplay().commandSuggestions()) {
+        if (!session.getGeyser().config().gameplay().commandSuggestions()) {
             session.getGeyser().getLogger().debug("Not sending translated command suggestions as they are disabled.");
 
             // Send a mostly empty packet so Bedrock doesn't override /help with its own, built-in help command.
