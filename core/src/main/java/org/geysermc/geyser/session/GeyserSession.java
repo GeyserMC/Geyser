@@ -718,8 +718,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * A cache of IDs from ClientboundKeepAlivePackets or ClientboundPingPacket that have been sent to the Bedrock client, but haven't been returned to the server.
-     * Only used if {@link GeyserConfiguration#isForwardPlayerPing()} is enabled.
-     * A cache of IDs from ClientboundKeepAlivePackets that have been sent to the Bedrock client, but haven't been returned to the server.
      * Only used if {@link GeyserConfig.GameplayConfig#forwardPlayerPing()} is enabled.
      */
     private final Queue<Runnable> latencyPingCache = new ConcurrentLinkedQueue<>();
