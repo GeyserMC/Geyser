@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.session.cache;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -38,6 +36,10 @@ import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.cumulus.component.util.ComponentType;
 import org.geysermc.cumulus.form.CustomForm;
+import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ModalFormRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
+import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
@@ -49,13 +51,13 @@ import org.geysermc.geyser.session.GeyserSession;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.geysermc.geyser.session.GeyserSession;
+
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @RequiredArgsConstructor
 public class FormCache {
-    private static final Gson GSON_TEMP = new Gson();
-
     /**
      * The magnitude of this doesn't actually matter, but it must be negative so that
      * BedrockNetworkStackLatencyTranslator can detect the hack.
@@ -65,10 +67,15 @@ public class FormCache {
     private final FormDefinitions formDefinitions = FormDefinitions.instance();
     private final AtomicInteger formIdCounter = new AtomicInteger(0);
     private final Int2ObjectMap<Form> forms = new Int2ObjectOpenHashMap<>();
+    private final IntList sentFormIds = new IntArrayList();
     private final GeyserSession session;
 
     public boolean hasFormOpen() {
-        return !forms.isEmpty();
+        // If forms is empty it implies that there are no forms to show
+        // so technically this returns "has forms to show" or "has open"
+        // Forms are only queued in specific circumstances, such as waiting on
+        // previous inventories to close
+        return !forms.isEmpty() && !sentFormIds.isEmpty();
     }
 
     public int addForm(Form form) {
@@ -87,6 +94,9 @@ public class FormCache {
 
     private void sendForm(int formId, Form form) {
         String jsonData = formDefinitions.codecFor(form).jsonData(form);
+
+        // Store that this form has been sent
+        sentFormIds.add(formId);
 
         ModalFormRequestPacket formRequestPacket = new ModalFormRequestPacket();
         formRequestPacket.setFormId(formId);
@@ -125,56 +135,30 @@ public class FormCache {
 
     public void handleResponse(ModalFormResponsePacket response) {
         Form form = forms.remove(response.getFormId());
+        this.sentFormIds.rem(response.getFormId());
         if (form == null) {
             return;
         }
 
-        String responseData = response.getFormData();
-        // TODO drop once 1.21.70 is no longer supported
-        if (form instanceof CustomForm customForm && GameProtocol.isTheOneVersionWithBrokenForms(session) && response.getCancelReason().isEmpty()) {
-            // Labels are no longer included as a json null, so we have to manually add them for now.
-            IntList labelIndexes = new IntArrayList();
-            for (int i = 0; i < customForm.content().size(); i++) {
-                var component = customForm.content().get(i);
-                if (component == null) {
-                    continue;
-                }
-                if (component.type() == ComponentType.LABEL) {
-                    labelIndexes.add(i);
-                }
-            }
-            if (!labelIndexes.isEmpty()) {
-                // If the form only has labels, the response is the literal
-                // null (with a newline char) instead of a json array
-                if (responseData.startsWith("null")) {
-                    List<Object> newResponse = new ArrayList<>();
-                    for (int i = 0; i < labelIndexes.size(); i++) {
-                        newResponse.add(null);
-                    }
-                    responseData = GSON_TEMP.toJson(newResponse);
-                } else {
-                    JsonArray responseDataArray = GSON_TEMP.fromJson(responseData, JsonArray.class);
-                    List<Object> newResponse = new ArrayList<>();
-
-                    int handledLabelCount = 0;
-                    for (int i = 0; i < responseDataArray.size() + labelIndexes.size(); i++) {
-                        if (labelIndexes.contains(i)) {
-                            newResponse.add(null);
-                            handledLabelCount++;
-                            continue;
-                        }
-                        newResponse.add(responseDataArray.get(i - handledLabelCount));
-                    }
-                    responseData = GSON_TEMP.toJson(newResponse);
-                }
-            }
-        }
-
         try {
             formDefinitions.definitionFor(form)
-                    .handleFormResponse(form, responseData);
+                    .handleFormResponse(form, response.getFormData());
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().error("Error while processing form response!", e);
+        }
+    }
+
+    public void closeForms() {
+        if (!forms.isEmpty()) {
+            // Check if there are any forms that have not been sent to the client yet
+            for (Int2ObjectMap.Entry<Form> entry : forms.int2ObjectEntrySet()) {
+                if (!sentFormIds.contains(entry.getIntKey())) {
+                    // This will send the form, but close it instantly with the packet later
+                    // ...thereby clearing our list!
+                    sendForm(entry.getIntKey(), entry.getValue());
+                }
+            }
+            session.sendUpstreamPacket(new ClientboundCloseFormPacket());
         }
     }
 }

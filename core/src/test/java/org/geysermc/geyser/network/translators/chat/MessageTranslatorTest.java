@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,15 +25,13 @@
 
 package org.geysermc.geyser.network.translators.chat;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class MessageTranslatorTest {
@@ -75,6 +73,9 @@ public class MessageTranslatorTest {
         messages.put("{\"translate\":\"tt{''{tt\"}", "tt{''{tt");
         messages.put("{\"translate\":\"tt{{''}}tt\"}", "tt{{''}}tt");
 
+        messages.put("{\"text\":\"\",\"extra\":[{\"text\":\"Testing end of string\n formatting character§\",\"color\":\"yellow\"}]}",
+            "§r§eTesting end of string\n§e formatting character");
+
         MessageTranslator.init();
     }
 
@@ -104,10 +105,5 @@ public class MessageTranslatorTest {
         Assertions.assertEquals("Strange", MessageTranslator.convertToPlainTextLenient("§rStrange", "en_US"), "Valid lenient JSON is not handled properly");
         Assertions.assertEquals("", MessageTranslator.convertToPlainTextLenient("", "en_US"), "Empty message is not handled properly");
         Assertions.assertEquals("     ", MessageTranslator.convertToPlainTextLenient("     ", "en_US"), "Whitespace is not preserved");
-    }
-
-    @Test
-    public void testNullTextPacket() {
-        DefaultComponentSerializer.get().deserialize("null");
     }
 }

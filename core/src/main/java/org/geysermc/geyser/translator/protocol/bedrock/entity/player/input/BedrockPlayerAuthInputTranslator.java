@@ -27,45 +27,37 @@ package org.geysermc.geyser.translator.protocol.bedrock.entity.player.input;
 
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
+import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.InputMode;
-import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTransaction;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
-import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
-import org.geysermc.geyser.level.block.type.Block;
-import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransactionTranslator;
 import org.geysermc.geyser.util.CooldownUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundClientTickEndPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Translator(packet = PlayerAuthInputPacket.class)
@@ -79,6 +71,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
+        session.getBlockBreakHandler().handlePlayerAuthInputPacket(packet);
 
         ServerboundPlayerCommandPacket sprintPacket = null;
 
@@ -90,22 +83,14 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             leftOverInputData.remove(input);
             switch (input) {
                 case PERFORM_ITEM_INTERACTION -> processItemUseTransaction(session, packet.getItemUseTransaction());
-                case PERFORM_BLOCK_ACTIONS -> BedrockBlockActions.translate(session, packet.getPlayerActions());
-                case START_SWIMMING -> session.setSwimming(true);
-                case STOP_SWIMMING -> session.setSwimming(false);
-                case START_CRAWLING -> session.setCrawling(true);
-                case STOP_CRAWLING -> session.setCrawling(false);
+                case PERFORM_ITEM_STACK_REQUEST -> session.getPlayerInventoryHolder().translateRequests(List.of(packet.getItemStackRequest()));
+                case START_SWIMMING -> entity.setFlag(EntityFlag.SWIMMING, true);
+                case STOP_SWIMMING -> entity.setFlag(EntityFlag.SWIMMING, false);
+                case START_CRAWLING -> entity.setFlag(EntityFlag.CRAWLING, true);
+                case STOP_CRAWLING -> entity.setFlag(EntityFlag.CRAWLING, false);
                 case START_SPRINTING -> {
                     if (!leftOverInputData.contains(PlayerAuthInputData.STOP_SPRINTING)) {
-                        // Check if the player is standing on but not surrounded by water; don't allow sprinting in that case
-                        // resolves <https://github.com/GeyserMC/Geyser/issues/1705>
-                        if (!GameProtocol.is1_21_80orHigher(session) && session.getCollisionManager().isPlayerTouchingWater() && !session.getCollisionManager().isPlayerInWater()) {
-                            // Update movement speed attribute to prevent sprinting on water. This is fixed in 1.21.80+ natively.
-                            UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-                            attributesPacket.setRuntimeEntityId(entity.getGeyserId());
-                            attributesPacket.getAttributes().addAll(entity.getAttributes().values());
-                            session.sendUpstreamPacket(attributesPacket);
-                        } else {
+                        if (!session.isSprinting()) {
                             sprintPacket = new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.START_SPRINTING);
                             session.setSprinting(true);
                         }
@@ -156,11 +141,11 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                                 session.setFlying(false);
                                 session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
                             }
-                            session.setGliding(true);
+                            entity.setFlag(EntityFlag.GLIDING, true);
                             session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_ELYTRA_FLYING));
                         } else {
                             entity.forceFlagUpdate();
-                            session.setGliding(false);
+                            entity.setFlag(EntityFlag.GLIDING, false);
                             // return to flying if we can't start gliding
                             if (session.isFlying()) {
                                 session.sendAdventureSettings();
@@ -168,14 +153,14 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                         }
                     }
                 }
-                case START_SPIN_ATTACK -> session.setSpinAttack(true);
-                case STOP_SPIN_ATTACK -> session.setSpinAttack(false);
+                case START_SPIN_ATTACK -> entity.setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, true);
+                case STOP_SPIN_ATTACK -> entity.setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, false);
                 case STOP_GLIDING -> {
                     // Java doesn't allow elytra gliding to stop mid-air.
                     boolean shouldBeGliding = entity.isGliding() && entity.canStartGliding();
                     // Always update; Bedrock can get real weird if the gliding state is mismatching
                     entity.forceFlagUpdate();
-                    session.setGliding(shouldBeGliding);
+                    entity.setFlag(EntityFlag.GLIDING, shouldBeGliding);
                 }
                 case MISSED_SWING -> {
                     session.setLastAirHitTick(session.getTicks());
@@ -199,6 +184,17 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             }
         }
 
+        // The player will calculate the "desired" pose at the end of every tick, if this pose still invalid then
+        // it will consider the smaller pose, but we don't need to calculate that, we can go off what the client sent us.
+        // Also set the session pose directly and set the metadata directly since we don't want setPose method inside entity to change
+        // the current entity flag again.
+        final Pose pose = entity.getDesiredPose();
+        if (pose != session.getPose()) {
+            session.setPose(pose);
+            entity.setDimensionsFromPose(session.getPose());
+            entity.updateBedrockMetadata();
+        }
+
         // Vehicle input is send before player movement
         processVehicleInput(session, packet, wasJumping);
 
@@ -208,6 +204,11 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         }
 
         BedrockMovePlayer.translate(session, packet);
+
+        // This is the best way send this since most modern anticheat will expect this to be in sync with the player movement packet.
+        if (session.isSpawned()) {
+            session.sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
+        }
 
         // Only set steering values when the vehicle is a boat and when the client is actually in it
         if (entity.getVehicle() instanceof BoatEntity && inputData.contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE)) {
@@ -221,51 +222,8 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
     private static void processItemUseTransaction(GeyserSession session, ItemUseTransaction transaction) {
         if (transaction.getActionType() == 2) {
-            int blockState = session.getGameMode() == GameMode.CREATIVE ?
-                session.getGeyser().getWorldManager().getBlockAt(session, transaction.getBlockPosition()) : session.getBreakingBlock();
-
             session.setLastBlockPlaced(null);
             session.setLastBlockPlacePosition(null);
-
-            // Same deal with vanilla block placing as above.
-            if (!session.getWorldBorder().isInsideBorderBoundaries()) {
-                BedrockInventoryTransactionTranslator.restoreCorrectBlock(session, transaction.getBlockPosition());
-                return;
-            }
-
-            Vector3f playerPosition = session.getPlayerEntity().getPosition();
-            playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
-
-            if (!BedrockInventoryTransactionTranslator.canInteractWithBlock(session, playerPosition, transaction.getBlockPosition())) {
-                BedrockInventoryTransactionTranslator.restoreCorrectBlock(session, transaction.getBlockPosition());
-                return;
-            }
-
-            int sequence = session.getWorldCache().nextPredictionSequence();
-            session.getWorldCache().markPositionInSequence(transaction.getBlockPosition());
-            // -1 means we don't know what block they're breaking
-            if (blockState == -1) {
-                blockState = Block.JAVA_AIR_ID;
-            }
-
-            LevelEventPacket blockBreakPacket = new LevelEventPacket();
-            blockBreakPacket.setType(LevelEvent.PARTICLE_DESTROY_BLOCK);
-            blockBreakPacket.setPosition(transaction.getBlockPosition().toFloat());
-            blockBreakPacket.setData(session.getBlockMappings().getBedrockBlockId(blockState));
-            session.sendUpstreamPacket(blockBreakPacket);
-            session.setBreakingBlock(-1);
-
-            Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, transaction.getBlockPosition());
-            if (itemFrameEntity != null) {
-                ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(itemFrameEntity.getEntityId(),
-                    InteractAction.ATTACK, session.isSneaking());
-                session.sendDownstreamGamePacket(attackPacket);
-                return;
-            }
-
-            PlayerAction action = session.getGameMode() == GameMode.CREATIVE ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING;
-            ServerboundPlayerActionPacket breakPacket = new ServerboundPlayerActionPacket(action, transaction.getBlockPosition(), Direction.VALUES[transaction.getBlockFace()], sequence);
-            session.sendDownstreamGamePacket(breakPacket);
         } else {
             session.getGeyser().getLogger().error("Unhandled item use transaction type!");
             if (session.getGeyser().getLogger().isDebug()) {
@@ -326,11 +284,31 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         }
 
         if (sendMovement) {
-            vehicle.setOnGround(packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
+            // We only need to determine onGround status this way for client predicted vehicles.
+            // For other vehicle, Geyser already handle it in VehicleComponent or the Java server handle it.
+            if (packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE)) {
+                Vector3f position = vehicle.getPosition();
+
+                if (vehicle instanceof BoatEntity) {
+                    position = position.down(vehicle.getDefinition().offset());
+                }
+
+                final BoundingBox box = new BoundingBox(
+                    position.up(vehicle.getBoundingBoxHeight() / 2f).toDouble(),
+                    vehicle.getBoundingBoxWidth(), vehicle.getBoundingBoxHeight(), vehicle.getBoundingBoxWidth()
+                );
+
+                // Manually calculate the vertical collision ourselves, the VERTICAL_COLLISION input data is inaccurate inside a vehicle!
+                Vector3d movement = session.getPlayerEntity().getLastTickEndVelocity().toDouble();
+                Vector3d correctedMovement = session.getCollisionManager().correctMovementForCollisions(movement, box, true, false);
+
+                vehicle.setOnGround(correctedMovement.getY() != movement.getY() && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
+            }
+
             Vector3f vehiclePosition = packet.getPosition();
             Vector2f vehicleRotation = packet.getVehicleRotation();
             if (vehicleRotation == null) {
-                return; // If the client just got in or out of a vehicle for example.
+                return; // If the client just got in or out of a vehicle for example. Or if this vehicle isn't client predicted.
             }
 
             if (session.getWorldBorder().isPassingIntoBorderBoundaries(vehiclePosition, false)) {

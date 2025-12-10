@@ -8,16 +8,21 @@ dependencies {
     annotationProcessor(libs.velocity.api)
     api(projects.core)
 
+    compileOnly(libs.velocity.proxy)
+    compileOnly(libs.netty.transport.native.io.uring)
+    compileOnly(libs.netty.transport.native.kqueue)
+
     compileOnlyApi(libs.velocity.api)
     api(libs.cloud.velocity)
 }
 
-platformRelocate("com.fasterxml.jackson")
 platformRelocate("it.unimi.dsi.fastutil")
 platformRelocate("net.kyori.adventure.text.serializer.gson.legacyimpl")
 platformRelocate("org.yaml")
+platformRelocate("org.spongepowered")
+platformRelocate("org.bstats")
 platformRelocate("org.incendo")
-platformRelocate("io.leangen.geantyref") // provided by cloud, should also be relocated
+platformRelocate("io.leangen.geantyref") // provided by cloud and Configurate, should also be relocated
         
 // These dependencies are already present on the platform
 provided(libs.velocity.api)

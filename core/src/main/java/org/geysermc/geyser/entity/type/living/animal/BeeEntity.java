@@ -32,6 +32,8 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.properties.type.BooleanProperty;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
@@ -42,6 +44,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEnt
 import java.util.UUID;
 
 public class BeeEntity extends AnimalEntity {
+
+    public static final BooleanProperty NECTAR_PROPERTY = new BooleanProperty(
+        IdentifierImpl.of("has_nectar"),
+        false
+    );
 
     public BeeEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -60,7 +67,7 @@ public class BeeEntity extends AnimalEntity {
         // If the bee has stung
         dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, (xd & 0x04) == 0x04 ? 1 : 0);
         // If the bee has nectar or not
-        propertyManager.add("minecraft:has_nectar", (xd & 0x08) == 0x08);
+        NECTAR_PROPERTY.apply(propertyManager, (xd & 0x08) == 0x08);
         updateBedrockEntityProperties();
     }
 

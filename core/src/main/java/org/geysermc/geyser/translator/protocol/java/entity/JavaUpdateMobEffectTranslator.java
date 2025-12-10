@@ -70,6 +70,7 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
         mobEffectPacket.setEvent(event);
         mobEffectPacket.setRuntimeEntityId(entity.getGeyserId());
         mobEffectPacket.setParticles(packet.isShowParticles());
+        mobEffectPacket.setAmbient(packet.isAmbient());
         mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(packet.getEffect()));
         session.sendUpstreamPacket(mobEffectPacket);
 

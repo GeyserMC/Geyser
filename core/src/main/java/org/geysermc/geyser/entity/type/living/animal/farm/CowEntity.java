@@ -54,7 +54,7 @@ public class CowEntity extends TemperatureVariantAnimal {
     @NonNull
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (getFlag(EntityFlag.BABY) || itemInHand.asItem() != Items.BUCKET) {
+        if (getFlag(EntityFlag.BABY) || !itemInHand.is(Items.BUCKET)) {
             return super.testMobInteraction(hand, itemInHand);
         }
 
@@ -64,7 +64,7 @@ public class CowEntity extends TemperatureVariantAnimal {
     @NonNull
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (getFlag(EntityFlag.BABY) || itemInHand.asItem() != Items.BUCKET) {
+        if (getFlag(EntityFlag.BABY) || !itemInHand.is(Items.BUCKET)) {
             return super.mobInteract(hand, itemInHand);
         }
 

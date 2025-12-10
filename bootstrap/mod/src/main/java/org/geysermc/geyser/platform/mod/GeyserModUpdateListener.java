@@ -26,17 +26,21 @@
 package org.geysermc.geyser.platform.mod;
 
 import net.minecraft.server.level.ServerPlayer;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.Permissions;
 import org.geysermc.geyser.platform.mod.command.ModCommandSource;
 import org.geysermc.geyser.util.VersionCheckUtils;
 
 public final class GeyserModUpdateListener {
     public static void onPlayReady(ServerPlayer player) {
-        // Should be creating this in the supplier, but we need it for the permission check.
-        // Not a big deal currently because ModCommandSource doesn't load locale, so don't need to try to wait for it.
-        ModCommandSource source = new ModCommandSource(player.createCommandSourceStack());
-        if (source.hasPermission(Permissions.CHECK_UPDATE)) {
-            VersionCheckUtils.checkForGeyserUpdate(() -> source);
+        // We could just not register the listener, but, this allows config reloading
+        if (GeyserImpl.getInstance().config().notifyOnNewBedrockUpdate()) {
+            // Should be creating this in the supplier, but we need it for the permission check.
+            // Not a big deal currently because ModCommandSource doesn't load locale, so don't need to try to wait for it.
+            ModCommandSource source = new ModCommandSource(player.createCommandSourceStack());
+            if (source.hasPermission(Permissions.CHECK_UPDATE)) {
+                VersionCheckUtils.checkForGeyserUpdate(() -> source);
+            }
         }
     }
 

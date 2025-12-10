@@ -44,7 +44,6 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.ListRegistry;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
@@ -152,19 +151,19 @@ public class JavaRegistries {
                                       RegistryIdentifierObjectMapper<T> identifierObjectMapper) implements JavaRegistryKey.RegistryLookup<T> {
 
         @Override
-        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, int networkId) {
+        public Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registryKey, int networkId) {
             return Optional.ofNullable(registry.get(networkId))
                 .map(value -> new RegistryEntryData<>(networkId, Objects.requireNonNull(objectIdentifierMapper.get(value)), value));
         }
 
         @Override
-        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, Key key) {
+        public Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registryKey, Key key) {
             Optional<T> object = identifierObjectMapper.get(key);
             return object.map(value -> new RegistryEntryData<>(networkMapper.get(value), key, value));
         }
 
         @Override
-        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, T object) {
+        public Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registryKey, T object) {
             int id = networkMapper.get(object);
             return Optional.ofNullable(registry.get(id))
                 .map(value -> new RegistryEntryData<>(id, Objects.requireNonNull(objectIdentifierMapper.get(value)), value));
@@ -174,22 +173,18 @@ public class JavaRegistries {
     private static class RegistryCacheLookup<T> implements JavaRegistryKey.RegistryLookup<T> {
 
         @Override
-        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, int networkId) {
-            return Optional.ofNullable(registry(session, registryKey).entryById(networkId));
+        public Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registryKey, int networkId) {
+            return registries.registry(registryKey).entryById(networkId);
         }
 
         @Override
-        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, Key key) {
-            return Optional.ofNullable(registry(session, registryKey).entryByKey(key));
+        public Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registryKey, Key key) {
+            return registries.registry(registryKey).entryByKey(key);
         }
 
         @Override
-        public Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T> registryKey, T object) {
-            return Optional.ofNullable(registry(session, registryKey).entryByValue(object));
-        }
-
-        private JavaRegistry<T> registry(GeyserSession session, JavaRegistryKey<T> key) {
-            return session.getRegistryCache().registry(key);
+        public Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registryKey, T object) {
+            return registries.registry(registryKey).entryByValue(object);
         }
     }
 }

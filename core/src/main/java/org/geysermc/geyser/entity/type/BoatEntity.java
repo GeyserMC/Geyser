@@ -29,11 +29,9 @@ import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -208,33 +206,17 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
 
         if (isPaddlingLeft) {
             paddleTimeLeft += ROWING_SPEED;
-            if (GameProtocol.is1_21_80orHigher(session)) {
-                dirtyMetadata.put(EntityDataTypes.ROW_TIME_LEFT, paddleTimeLeft);
-            } else {
-                sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_LEFT, paddleTimeLeft);
-            }
+            dirtyMetadata.put(EntityDataTypes.ROW_TIME_LEFT, paddleTimeLeft);
         }
         if (isPaddlingRight) {
             paddleTimeRight += ROWING_SPEED;
-            if (GameProtocol.is1_21_80orHigher(session)) {
-                dirtyMetadata.put(EntityDataTypes.ROW_TIME_RIGHT, paddleTimeRight);
-            } else {
-                sendAnimationPacket(session, rower, AnimatePacket.Action.ROW_RIGHT, paddleTimeRight);
-            }
+            dirtyMetadata.put(EntityDataTypes.ROW_TIME_RIGHT, paddleTimeRight);
         }
     }
 
     @Override
     public long leashHolderBedrockId() {
         return leashHolderBedrockId;
-    }
-
-    private void sendAnimationPacket(GeyserSession session, Entity rower, AnimatePacket.Action action, float rowTime) {
-        AnimatePacket packet = new AnimatePacket();
-        packet.setRuntimeEntityId(rower.getGeyserId());
-        packet.setAction(action);
-        packet.setRowingTime(rowTime);
-        session.sendUpstreamPacket(packet);
     }
 
     /**

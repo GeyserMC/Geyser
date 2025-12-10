@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
 import java.util.ArrayList;
@@ -76,6 +77,11 @@ public final class BedrockItemBuilder {
 
     public BedrockItemBuilder setDamage(int damage) {
         this.damage = OptionalInt.of(damage);
+        return this;
+    }
+
+    public BedrockItemBuilder addEnchantmentGlint() {
+        putList("ench", NbtType.COMPOUND, List.of());
         return this;
     }
 
@@ -140,6 +146,17 @@ public final class BedrockItemBuilder {
             return null;
         }
         return builder.build();
+    }
+
+    /**
+     * Creates item NBT to nest within NBT with name, count, damage, and tag set.
+     */
+    public static NbtMapBuilder createItemNbt(ItemData data) {
+        NbtMapBuilder builder = BedrockItemBuilder.createItemNbt(data.getDefinition().getIdentifier(), data.getCount(), data.getDamage());
+        if (data.getTag() != null) {
+            builder.putCompound("tag", data.getTag());
+        }
+        return builder;
     }
 
     /**

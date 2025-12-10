@@ -37,6 +37,7 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
+import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
@@ -85,6 +86,17 @@ public class AbstractHorseEntity extends AnimalEntity {
         // Shows the jump meter
         setFlag(EntityFlag.CAN_POWER_JUMP, saddled);
         super.updateSaddled(saddled);
+
+        if (this.passengers.contains(session.getPlayerEntity())) {
+            // We want to allow player to press jump again if pressing jump doesn't dismount the entity.
+            this.session.setLockInput(InputLocksFlag.JUMP, this.doesJumpDismount());
+            this.session.updateInputLocks();
+        }
+    }
+
+    @Override
+    public boolean doesJumpDismount() {
+        return !this.getFlag(EntityFlag.SADDLED);
     }
 
     public void setHorseFlags(ByteEntityMetadata entityMetadata) {
@@ -165,7 +177,7 @@ public class AbstractHorseEntity extends AnimalEntity {
                 return InteractiveTag.ATTACH_CHEST;
             }
 
-            if (additionalTestForInventoryOpen(itemInHand) || !isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.asItem() == Items.SADDLE) {
+            if (additionalTestForInventoryOpen(itemInHand) || !isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.is(Items.SADDLE)) {
                 // Will open the inventory to be saddled
                 return InteractiveTag.OPEN_CONTAINER;
             }
@@ -221,7 +233,7 @@ public class AbstractHorseEntity extends AnimalEntity {
             }
 
             // Note: yes, this code triggers for llamas too. lol (as of Java Edition 1.18.1)
-            if (additionalTestForInventoryOpen(itemInHand) || (!isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.asItem() == Items.SADDLE)) {
+            if (additionalTestForInventoryOpen(itemInHand) || (!isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.is(Items.SADDLE))) {
                 // Will open the inventory to be saddled
                 return InteractionResult.SUCCESS;
             }
@@ -245,6 +257,7 @@ public class AbstractHorseEntity extends AnimalEntity {
     }
 
     protected boolean additionalTestForInventoryOpen(@NonNull GeyserItemStack itemInHand) {
+        // TODO this doesn't seem right anymore... (as of Java 1.21.9)
         return itemInHand.asItem().javaIdentifier().endsWith("_horse_armor");
     }
 
@@ -260,7 +273,7 @@ public class AbstractHorseEntity extends AnimalEntity {
         } else if (!passengers.isEmpty()) {
             return testHorseInteraction(hand, itemInHand);
         } else {
-            if (Items.SADDLE == itemInHand.asItem()) {
+            if (itemInHand.is(Items.SADDLE)) {
                 return InteractiveTag.OPEN_CONTAINER;
             }
 

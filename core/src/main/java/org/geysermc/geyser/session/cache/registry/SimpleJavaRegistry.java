@@ -26,90 +26,25 @@
 package org.geysermc.geyser.session.cache.registry;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.kyori.adventure.key.Key;
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.List;
 
 public class SimpleJavaRegistry<T> implements JavaRegistry<T> {
-    protected final ObjectArrayList<RegistryEntryData<T>> values = new ObjectArrayList<>();
+    protected final ObjectArrayList<RegistryEntryData<T>> entries = new ObjectArrayList<>();
 
-    @Override
-    public T byId(@NonNegative int id) {
-        if (id < 0 || id >= this.values.size()) {
-            return null;
-        }
-        return this.values.get(id).data();
+    public void reset(List<RegistryEntryData<T>> entries) {
+        this.entries.clear();
+        this.entries.addAll(entries);
+        this.entries.trim();
     }
 
     @Override
-    public RegistryEntryData<T> entryById(@NonNegative int id) {
-        if (id < 0 || id >= this.values.size()) {
-            return null;
-        }
-        return this.values.get(id);
-    }
-
-    @Override
-    public T byKey(Key key) {
-        for (RegistryEntryData<T> entry : values) {
-            if (entry.key().equals(key)) {
-                return entry.data();
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public @Nullable RegistryEntryData<T> entryByKey(Key key) {
-        for (RegistryEntryData<T> entry : values) {
-            if (entry.key().equals(key)) {
-                return entry;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public int byValue(T value) {
-        for (int i = 0; i < this.values.size(); i++) {
-            if (values.get(i).data().equals(value)) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    @Override
-    public RegistryEntryData<T> entryByValue(T value) {
-        for (RegistryEntryData<T> entry : this.values) {
-            if (entry.data().equals(value)) {
-                return entry;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public void reset(List<RegistryEntryData<T>> values) {
-        this.values.clear();
-        this.values.addAll(values);
-        this.values.trim();
-    }
-
-    @Override
-    public List<Key> keys() {
-        return this.values.stream().map(RegistryEntryData::key).toList();
-    }
-
-    @Override
-    public List<T> values() {
-        return this.values.stream().map(RegistryEntryData::data).toList();
+    public List<RegistryEntryData<T>> entries() {
+        return entries;
     }
 
     @Override
     public String toString() {
-        return this.values.toString();
+        return entries.toString();
     }
 }

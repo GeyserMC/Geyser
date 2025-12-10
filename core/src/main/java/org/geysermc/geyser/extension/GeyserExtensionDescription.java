@@ -47,7 +47,8 @@ public record GeyserExtensionDescription(@NonNull String id,
                                          int majorApiVersion,
                                          int minorApiVersion,
                                          @NonNull String version,
-                                         @NonNull List<String> authors) implements ExtensionDescription {
+                                         @NonNull List<String> authors,
+                                         @NonNull Map<String, Dependency> dependencies) implements ExtensionDescription {
 
     private static final Yaml YAML = new Yaml(new CustomClassLoaderConstructor(Source.class.getClassLoader(), new LoaderOptions()));
 
@@ -94,7 +95,12 @@ public record GeyserExtensionDescription(@NonNull String id,
             authors.addAll(source.authors);
         }
 
-        return new GeyserExtensionDescription(id, name, main, humanApi, majorApi, minorApi, version, authors);
+        Map<String, Dependency> dependencies = new LinkedHashMap<>();
+        if (source.dependencies != null) {
+            dependencies.putAll(source.dependencies);
+        }
+
+        return new GeyserExtensionDescription(id, name, main, humanApi, majorApi, minorApi, version, authors, dependencies);
     }
 
     @NonNull
@@ -116,5 +122,17 @@ public record GeyserExtensionDescription(@NonNull String id,
         String version;
         String author;
         List<String> authors;
+        Map<String, Dependency> dependencies;
+    }
+
+    @Getter
+    @Setter
+    public static class Dependency {
+        boolean required = true; // Defaults to true
+        LoadOrder load = LoadOrder.BEFORE; // Defaults to ensure the dependency loads before this extension
+    }
+
+    public enum LoadOrder {
+        BEFORE, AFTER
     }
 }
