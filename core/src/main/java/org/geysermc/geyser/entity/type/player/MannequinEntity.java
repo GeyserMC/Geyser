@@ -26,10 +26,14 @@
 package org.geysermc.geyser.entity.type.player;
 
 import net.kyori.adventure.text.Component;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.skin.SkinManager;
+import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 
+import java.util.List;
 import java.util.Optional;
 
 public class MannequinEntity extends AvatarEntity {
@@ -39,7 +43,10 @@ public class MannequinEntity extends AvatarEntity {
     }
 
     public void setProfile(EntityMetadata<ResolvableProfile, ?> entityMetadata) {
-        setSkin(entityMetadata.getValue(), true, () -> {});
+        PlayerListUtils.batchSendPlayerList(session, List.of(SkinManager.buildCachedEntry(session, this)), PlayerListPacket.Action.ADD);
+        setSkin(entityMetadata.getValue(), true, () -> {
+            PlayerListUtils.batchSendPlayerList(session, List.of(new PlayerListPacket.Entry(uuid)), PlayerListPacket.Action.REMOVE);
+        });
     }
 
     @Override
