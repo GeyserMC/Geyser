@@ -23,43 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living.animal.farm;
+package org.geysermc.geyser.entity.type.living.animal.horse;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.properties.type.EnumProperty;
-import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
-import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
-import org.geysermc.geyser.impl.IdentifierImpl;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.RegistryCache;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
 
 import java.util.UUID;
 
-public abstract class TemperatureVariantAnimal extends AnimalEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
-
-    public static final EnumProperty<BuiltInVariant> TEMPERATE_VARIANT_PROPERTY = new EnumProperty<>(
-        IdentifierImpl.of("climate_variant"),
-        BuiltInVariant.class,
-        BuiltInVariant.TEMPERATE
-    );
-
-    public static final RegistryCache.RegistryReader<BuiltInVariant> VARIANT_READER = VariantHolder.reader(BuiltInVariant.class, BuiltInVariant.TEMPERATE);
-
-    public TemperatureVariantAnimal(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition,
-                                    Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+public class CamelHuskEntity extends CamelEntity {
+    public CamelHuskEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public void setBedrockVariant(BuiltInVariant variant) {
-        TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, variant);
-        updateBedrockEntityProperties();
-    }
-
-    public enum BuiltInVariant implements VariantHolder.BuiltIn {
-        TEMPERATE,
-        WARM,
-        COLD;
+    protected @Nullable Tag<Item> getFoodTag() {
+        return ItemTag.CAMEL_HUSK_FOOD;
     }
 }

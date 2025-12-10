@@ -47,14 +47,14 @@ import org.geysermc.geyser.translator.inventory.horse.LlamaInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundHorseScreenOpenPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundMountScreenOpenPacket;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@Translator(packet = ClientboundHorseScreenOpenPacket.class)
-public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundHorseScreenOpenPacket> {
+@Translator(packet = ClientboundMountScreenOpenPacket.class)
+public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundMountScreenOpenPacket> {
 
     private static final NbtMap ARMOR_SLOT;
     private static final NbtMap CARPET_SLOT;
@@ -102,7 +102,7 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundH
     }
 
     @Override
-    public void translate(GeyserSession session, ClientboundHorseScreenOpenPacket packet) {
+    public void translate(GeyserSession session, ClientboundMountScreenOpenPacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) {
             return;

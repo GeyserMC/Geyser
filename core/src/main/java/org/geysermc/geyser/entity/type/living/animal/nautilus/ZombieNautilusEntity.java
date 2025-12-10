@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,35 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living.animal.farm;
+package org.geysermc.geyser.entity.type.living.animal.nautilus;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
-import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
-import org.geysermc.geyser.session.cache.tags.ItemTag;
-import org.geysermc.geyser.session.cache.tags.Tag;
 
 import java.util.UUID;
 
-public class ChickenEntity extends TemperatureVariantAnimal {
-
-    public ChickenEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+public class ZombieNautilusEntity extends AbstractNautilusEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
+    public ZombieNautilusEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw, 1.1f);
     }
 
     @Override
-    @Nullable
-    protected Tag<Item> getFoodTag() {
-        return ItemTag.CHICKEN_FOOD;
+    public void setBedrockVariant(TemperatureVariantAnimal.BuiltInVariant variant) {
+        TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, variant);
+        updateBedrockEntityProperties();
     }
 
     @Override
-    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
-        return JavaRegistries.CHICKEN_VARIANT;
+    public JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> variantRegistry() {
+        return JavaRegistries.ZOMBIE_NAUTILUS_VARIANT;
     }
 }

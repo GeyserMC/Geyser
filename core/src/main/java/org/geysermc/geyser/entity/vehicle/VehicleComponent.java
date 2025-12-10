@@ -898,6 +898,29 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         return 1.0f;
     }
 
+    protected Fluid checkForFluid(VehicleContext ctx) {
+        Fluid result = Fluid.EMPTY;
+
+        BoundingBox box = boundingBox.clone();
+        box.expand(-0.001);
+
+        Vector3d min = box.getMin();
+        Vector3d max = box.getMax();
+
+        BlockPositionIterator iter = BlockPositionIterator.fromMinMax(min.getFloorX(), min.getFloorY(), min.getFloorZ(), max.getFloorX(), max.getFloorY(), max.getFloorZ());
+        for (iter.reset(); iter.hasNext(); iter.next()) {
+            BlockState blockState = ctx.getBlock(iter);
+            if (blockState.is(Blocks.WATER)) {
+                return Fluid.WATER; // Water takes priority over lava
+            }
+            if (blockState.is(Blocks.LAVA)) {
+                result = Fluid.LAVA;
+            }
+        }
+
+        return result;
+    }
+
     protected class VehicleContext {
         private Vector3d centerPos;
         private Vector3d cachePos;

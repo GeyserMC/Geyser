@@ -86,9 +86,6 @@ public final class GameProtocol {
 
     static {
         // Strict ordering
-        register(Bedrock_v818.CODEC, "1.21.90", "1.21.91", "1.21.92");
-        register(Bedrock_v819.CODEC, "1.21.93", "1.21.94");
-        register(Bedrock_v827.CODEC, "1.21.100", "1.21.101");
         register(Bedrock_v844.CODEC, "1.21.111", "1.21.112", "1.21.113", "1.21.114");
         register(Bedrock_v859.CODEC, "1.21.120", "1.21.121", "1.21.122", "1.21.123");
         register(Bedrock_v860.CODEC);
@@ -184,7 +181,7 @@ public final class GameProtocol {
      * @return the supported Minecraft: Java Edition version
      */
     public static String getJavaMinecraftVersion() {
-        return "1.21.10";
+        return "1.21.11";
     }
 
     /**

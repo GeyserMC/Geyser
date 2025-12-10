@@ -115,15 +115,19 @@ import org.geysermc.geyser.entity.type.living.animal.TurtleEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.ChickenEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.PigEntity;
-import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
+import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.CamelHuskEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.ChestedHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.HorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.SkeletonHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.TraderLlamaEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.ZombieHorseEntity;
+import org.geysermc.geyser.entity.type.living.animal.nautilus.AbstractNautilusEntity;
+import org.geysermc.geyser.entity.type.living.animal.nautilus.NautilusEntity;
+import org.geysermc.geyser.entity.type.living.animal.nautilus.ZombieNautilusEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.TameableEntity;
@@ -196,6 +200,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<BreezeEntity> BREEZE;
     public static final EntityDefinition<AbstractWindChargeEntity> BREEZE_WIND_CHARGE;
     public static final EntityDefinition<CamelEntity> CAMEL;
+    public static final EntityDefinition<CamelHuskEntity> CAMEL_HUSK;
     public static final EntityDefinition<CatEntity> CAT;
     public static final EntityDefinition<SpiderEntity> CAVE_SPIDER;
     public static final EntityDefinition<BoatEntity> CHERRY_BOAT;
@@ -262,6 +267,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<MinecartEntity> MINECART;
     public static final EntityDefinition<MooshroomEntity> MOOSHROOM;
     public static final EntityDefinition<ChestedHorseEntity> MULE;
+    public static final EntityDefinition<NautilusEntity> NAUTILUS;
     public static final EntityDefinition<BoatEntity> OAK_BOAT;
     public static final EntityDefinition<ChestBoatEntity> OAK_CHEST_BOAT;
     public static final EntityDefinition<OcelotEntity> OCELOT;
@@ -269,6 +275,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<BoatEntity> PALE_OAK_BOAT;
     public static final EntityDefinition<ChestBoatEntity> PALE_OAK_CHEST_BOAT;
     public static final EntityDefinition<PandaEntity> PANDA;
+    public static final EntityDefinition<AbstractSkeletonEntity> PARCHED;
     public static final EntityDefinition<ParrotEntity> PARROT;
     public static final EntityDefinition<PhantomEntity> PHANTOM;
     public static final EntityDefinition<PigEntity> PIG;
@@ -324,6 +331,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<ZoglinEntity> ZOGLIN;
     public static final EntityDefinition<ZombieEntity> ZOMBIE;
     public static final EntityDefinition<ZombieHorseEntity> ZOMBIE_HORSE;
+    public static final EntityDefinition<ZombieNautilusEntity> ZOMBIE_NAUTILUS;
     public static final EntityDefinition<ZombieVillagerEntity> ZOMBIE_VILLAGER;
     public static final EntityDefinition<ZombifiedPiglinEntity> ZOMBIFIED_PIGLIN;
 
@@ -829,6 +837,11 @@ public final class EntityDefinitions {
                     .height(1.8f).width(0.6f)
                     .offset(1.62f)
                     .build();
+            PARCHED = EntityDefinition.inherited(AbstractSkeletonEntity::new, mobEntityBase)
+                    .type(EntityType.PARCHED)
+                    .height(1.8f).width(0.6f)
+                    .offset(1.62f)
+                    .build();
             VEX = EntityDefinition.inherited(VexEntity::new, mobEntityBase)
                     .type(EntityType.VEX)
                     .height(0.8f).width(0.4f)
@@ -1173,6 +1186,9 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataTypes.BOOLEAN, CamelEntity::setDashing)
                     .addTranslator(MetadataTypes.LONG, CamelEntity::setLastPoseTick)
                     .build();
+            CAMEL_HUSK = EntityDefinition.inherited(CamelHuskEntity::new, CAMEL)
+                    .type(EntityType.CAMEL_HUSK)
+                    .build();
             HORSE = EntityDefinition.inherited(HorseEntity::new, abstractHorseEntityBase)
                     .type(EntityType.HORSE)
                     .height(1.6f).width(1.3965f)
@@ -1206,6 +1222,18 @@ public final class EntityDefinitions {
             TRADER_LLAMA = EntityDefinition.inherited(TraderLlamaEntity::new, LLAMA)
                     .type(EntityType.TRADER_LLAMA)
                     .identifier("minecraft:llama")
+                    .build();
+        }
+
+        // Nautilus
+        {
+            EntityDefinition<AbstractNautilusEntity> abstractNautilusBase = EntityDefinition.<AbstractNautilusEntity>inherited(null, ageableEntityBase) // No factory, is abstract
+                    .build();
+
+            NAUTILUS = EntityDefinition.inherited(NautilusEntity::new, abstractNautilusBase)
+                    .build();
+
+            ZOMBIE_NAUTILUS = EntityDefinition.inherited(ZombieNautilusEntity::new, abstractNautilusBase)
                     .build();
         }
 
