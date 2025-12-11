@@ -1234,7 +1234,7 @@ public final class EntityDefinitions {
         {
             EntityDefinition<AbstractNautilusEntity> abstractNautilusBase = EntityDefinition.<AbstractNautilusEntity>inherited(null, tameableEntityBase) // No factory, is abstract
                 .width(0.95f).height(0.875f)
-                .addTranslator(null)
+                .addTranslator(MetadataTypes.BOOLEAN, AbstractNautilusEntity::setBoost)
                 .build();
 
             NAUTILUS = EntityDefinition.inherited(NautilusEntity::new, abstractNautilusBase)

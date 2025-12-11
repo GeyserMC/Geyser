@@ -37,16 +37,19 @@ import org.geysermc.geyser.entity.type.living.animal.tameable.TameableEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.NautilusVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
+import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.block.Fluid;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
@@ -112,8 +115,27 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
         return super.testMobInteraction(hand, itemInHand);
     }
 
-    public void setBoost(IntEntityMetadata entityMetadata) {
-        vehicleComponent.startBoost(entityMetadata.getPrimitiveValue());
+    @Override
+    protected void updateSaddled(boolean saddled) {
+        setFlag(EntityFlag.CAN_DASH, saddled);
+        super.updateSaddled(saddled);
+
+        if (this.passengers.contains(session.getPlayerEntity())) {
+            // We want to allow player to press jump again if pressing jump doesn't dismount the entity.
+            this.session.setLockInput(InputLocksFlag.JUMP, this.doesJumpDismount());
+            this.session.updateInputLocks();
+        }
+    }
+
+    @Override
+    public boolean doesJumpDismount() {
+        return !this.getFlag(EntityFlag.SADDLED);
+    }
+
+    public void setBoost(BooleanEntityMetadata entityMetadata) {
+        if (entityMetadata.getPrimitiveValue()) {
+            vehicleComponent.setDashCooldown(40);
+        }
     }
 
     @Override
@@ -137,25 +159,16 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
             }
         }
 
-        if (session.getInputCache().wasJumping()) {
-            y += 0.5f;
-        }
-
-        return Vector3f.from(x, y, z).mul(3.9f * vehicleComponent.getMoveSpeed());
+        return Vector3f.from(x, y, z);
     }
 
     @Override
     public float getVehicleSpeed() {
-        return 0.0f; // Unused
+        return vehicleComponent.isInWater() ? 0.0325F * vehicleComponent.getMoveSpeed() : 0.02F * vehicleComponent.getMoveSpeed();
     }
 
     @Override
     public boolean isClientControlled() {
-        return false;
-    }
-
-    @Override
-    public boolean canClimb() {
-        return false;
+        return !this.passengers.isEmpty() && this.passengers.get(0) == session.getPlayerEntity();
     }
 }

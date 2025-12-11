@@ -25,49 +25,76 @@
 
 package org.geysermc.geyser.entity.vehicle;
 
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.type.living.animal.nautilus.AbstractNautilusEntity;
-import org.geysermc.geyser.level.block.Fluid;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.util.MathUtils;
 
-public class NautilusVehicleComponent extends BoostableVehicleComponent<AbstractNautilusEntity> {
+public class NautilusVehicleComponent extends VehicleComponent<AbstractNautilusEntity> {
+    private int dashCooldown;
+
     public NautilusVehicleComponent(AbstractNautilusEntity vehicle, float stepHeight, float defSpeed) {
         super(vehicle, stepHeight);
         this.moveSpeed = defSpeed;
     }
 
     @Override
+    public boolean isPushedByFluid() {
+        return false;
+    }
+
+    @Override
+    public void tickVehicle() {
+        vehicle.setFlag(EntityFlag.CAN_DASH, vehicle.getFlag(EntityFlag.SADDLED));
+        vehicle.setFlag(EntityFlag.HAS_DASH_COOLDOWN, this.dashCooldown > 0);
+        vehicle.updateBedrockMetadata();
+
+        super.tickVehicle();
+        if (this.dashCooldown > 0) {
+            this.dashCooldown--;
+        }
+    }
+
+    @Override
+    protected Vector3f getInputVector(VehicleComponent<AbstractNautilusEntity>.VehicleContext ctx, float speed, Vector3f input) {
+        Vector3f inputVelocity = super.getInputVector(ctx, speed, input);
+
+        SessionPlayerEntity player = vehicle.getSession().getPlayerEntity();
+        float jumpStrength = player.getVehicleJumpStrength();
+        player.setVehicleJumpStrength(0);
+
+        if (this.dashCooldown <= 0 && jumpStrength > 0) {
+            final Vector3f viewVector = MathUtils.calculateViewVector(vehicle.getPitch(), vehicle.getYaw());
+
+            float movementMultiplier = getVelocityMultiplier(ctx);
+            float strength = (float) (movementMultiplier + movementEfficiency * (1 - movementMultiplier));
+            float actualJumpStrength = (jumpStrength >= 90) ? 1.0F : (0.4F + 0.4F * jumpStrength / 90.0F);
+
+            inputVelocity = inputVelocity.add(viewVector.mul(((this.isInWater() ? 1.2F : 0.5F) * actualJumpStrength) * getMoveSpeed() * strength));
+            setDashCooldown(40);
+        }
+
+        return inputVelocity;
+    }
+
+    @Override
     protected void updateRotation() {
-        float yaw = vehicle.getYaw() + MathUtils.wrapDegrees(getRiddenRotation().getX() - vehicle.getYaw()) * 0.08f;
+        float yaw = vehicle.getYaw() + MathUtils.wrapDegrees(getRiddenRotation().getX() - vehicle.getYaw()) * 0.5F;
         vehicle.setYaw(yaw);
         vehicle.setHeadYaw(yaw);
     }
 
-    /**
-     * Called every session tick while the player is mounted on the vehicle.
-     */
-    public void tickVehicle() {
-        if (!vehicle.isClientControlled()) {
-            return;
-        }
-
-        VehicleContext ctx = new VehicleContext();
-        ctx.loadSurroundingBlocks();
-
-        // LivingEntity#travel
-        Fluid fluid = checkForFluid(ctx);
-        float drag = switch (fluid) {
-            case WATER -> 0.9f; // AbstractNautilus#travelInWater
-            case LAVA -> 0.5f; // LivingEntity#travelInLava
-            case EMPTY -> 1f; // TODO No drag it seems? Should probably check the block below, e.g. soul sand
-        };
-
-        travel(ctx, getRiddenSpeed(fluid));
-        vehicle.setMotion(vehicle.getMotion().mul(drag));
+    @Override
+    protected void waterMovement(VehicleComponent<AbstractNautilusEntity>.VehicleContext ctx) {
+        travel(ctx, vehicle.getVehicleSpeed());
+        this.vehicle.setMotion(this.vehicle.getMotion().mul(0.9f));
     }
 
-    // AbstractNautilus#getRiddenSpeed
-    private float getRiddenSpeed(Fluid fluid) {
-        return fluid == Fluid.WATER ? 0.0325F * this.getMoveSpeed() :
-                0.02F * this.getMoveSpeed();
+    public void setDashCooldown(int cooldown) {
+        this.dashCooldown = this.dashCooldown == 0 ? cooldown : this.dashCooldown;
+
+        vehicle.setFlag(EntityFlag.HAS_DASH_COOLDOWN, this.dashCooldown > 0);
+        vehicle.updateBedrockMetadata();
     }
 }

@@ -74,7 +74,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     protected float moveSpeed;
     protected double gravity;
     @Getter @Setter
-    protected double waterMovementEfficiency;
+    protected double waterMovementEfficiency, movementEfficiency;
     protected int effectLevitation;
     protected boolean effectSlowFalling;
     protected boolean effectWeaving;
@@ -85,6 +85,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         this.moveSpeed = (float) AttributeType.Builtin.MOVEMENT_SPEED.getDef();
         this.gravity = AttributeType.Builtin.GRAVITY.getDef();
         this.waterMovementEfficiency = AttributeType.Builtin.WATER_MOVEMENT_EFFICIENCY.getDef();
+        this.movementEfficiency = AttributeType.Builtin.WATER_MOVEMENT_EFFICIENCY.getDef();
 
         double width = vehicle.getBoundingBoxWidth();
         double height = vehicle.getBoundingBoxHeight();
@@ -163,6 +164,8 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         //
     }
 
+    @Getter
+    private boolean inWater;
     /**
      * Called every session tick while the player is mounted on the vehicle.
      */
@@ -175,6 +178,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         ctx.loadSurroundingBlocks();
 
         ObjectDoublePair<Fluid> fluidHeight = updateFluidMovement(ctx);
+        inWater = fluidHeight.left() == Fluid.WATER;
         switch (fluidHeight.left()) {
             case WATER -> waterMovement(ctx);
             case LAVA -> {
@@ -186,6 +190,10 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             }
             case EMPTY -> landMovement(ctx);
         }
+    }
+
+    public boolean isPushedByFluid() {
+        return true;
     }
 
     /**
@@ -330,7 +338,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             fluidBlocks++;
         }
 
-        if (!totalVelocity.equals(Vector3d.ZERO)) {
+        if (!totalVelocity.equals(Vector3d.ZERO) && isPushedByFluid()) {
             Vector3f motion = vehicle.getMotion();
 
             totalVelocity = javaNormalize(totalVelocity.mul(1.0 / fluidBlocks));
