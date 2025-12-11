@@ -30,8 +30,8 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemSt
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Container;
 
-public class HorseInventoryTranslator extends AbstractHorseInventoryTranslator {
-    public HorseInventoryTranslator(int size) {
+public class MountInventoryTranslator extends AbstractMountInventoryTranslator {
+    public MountInventoryTranslator(int size) {
         super(size);
     }
 

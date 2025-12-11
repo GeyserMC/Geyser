@@ -26,17 +26,17 @@
 package org.geysermc.geyser.translator.inventory.horse;
 
 import org.geysermc.geyser.inventory.Container;
-import org.geysermc.geyser.inventory.updater.HorseInventoryUpdater;
+import org.geysermc.geyser.inventory.updater.MountInventoryUpdater;
 import org.geysermc.geyser.inventory.updater.InventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.BaseInventoryTranslator;
 
-public abstract class AbstractHorseInventoryTranslator extends BaseInventoryTranslator<Container> {
+public abstract class AbstractMountInventoryTranslator extends BaseInventoryTranslator<Container> {
     private final InventoryUpdater updater;
 
-    public AbstractHorseInventoryTranslator(int size) {
+    public AbstractMountInventoryTranslator(int size) {
         super(size);
-        this.updater = HorseInventoryUpdater.INSTANCE;
+        this.updater = MountInventoryUpdater.INSTANCE;
     }
 
     @Override

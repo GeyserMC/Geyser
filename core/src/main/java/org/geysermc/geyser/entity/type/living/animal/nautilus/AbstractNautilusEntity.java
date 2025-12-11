@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.TrigMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.living.animal.tameable.TameableEntity;
@@ -62,6 +63,8 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
     public AbstractNautilusEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw, float defSpeed) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
         this.vehicleComponent = new NautilusVehicleComponent(this, 0.0f, defSpeed);
+
+        dirtyMetadata.put(EntityDataTypes.CONTAINER_SIZE, 2);
     }
 
     @Override

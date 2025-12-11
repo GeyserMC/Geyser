@@ -37,12 +37,13 @@ import org.geysermc.geyser.entity.type.living.animal.horse.ChestedHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.SkeletonHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.ZombieHorseEntity;
+import org.geysermc.geyser.entity.type.living.animal.nautilus.NautilusEntity;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.horse.DonkeyInventoryTranslator;
-import org.geysermc.geyser.translator.inventory.horse.HorseInventoryTranslator;
+import org.geysermc.geyser.translator.inventory.horse.MountInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.horse.LlamaInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -54,36 +55,24 @@ import java.util.Collections;
 import java.util.List;
 
 @Translator(packet = ClientboundMountScreenOpenPacket.class)
-public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundMountScreenOpenPacket> {
+public class JavaMountScreenOpenTranslator extends PacketTranslator<ClientboundMountScreenOpenPacket> {
+    private static final String[] ACCEPTED_HORSE_ARMORS = new String[] {"minecraft:horsearmorleather", "minecraft:horsearmoriron",
+        "minecraft:horsearmorgold", "minecraft:horsearmordiamond", "minecraft:copper_horse_armor", "minecraft:netherite_horse_armor"};
+    private static final String[] ACCEPTED_NAUTILUS_ARMORS = new String[] {"minecraft:copper_nautilus_armor", "minecraft:iron_nautilus_armor",
+        "minecraft:golden_nautilus_armor", "minecraft:diamond_nautilus_armor", "minecraft:netherite_nautilus_armor"};
 
-    private static final NbtMap ARMOR_SLOT;
-    private static final NbtMap CARPET_SLOT;
-    private static final NbtMap SADDLE_SLOT;
+
+    private static final NbtMap SADDLE_SLOT, CARPET_SLOT;
+    private static final NbtMap HORSE_ARMOR_SLOT, NAUTILUS_ARMOR_SLOT;
 
     static {
-        // Build the NBT mappings that Bedrock wants to lay out the GUI
-        String[] acceptedHorseArmorIdentifiers = new String[] {"minecraft:horsearmorleather", "minecraft:horsearmoriron",
-                "minecraft:horsearmorgold", "minecraft:horsearmordiamond"};
-        NbtMapBuilder armorBuilder = NbtMap.builder();
-        List<NbtMap> acceptedArmors = new ArrayList<>(4);
-        for (String identifier : acceptedHorseArmorIdentifiers) {
-            NbtMapBuilder acceptedItemBuilder = NbtMap.builder()
-                    .putShort("Aux", Short.MAX_VALUE)
-                    .putString("Name", identifier);
-            acceptedArmors.add(NbtMap.builder().putCompound("slotItem", acceptedItemBuilder.build()).build());
-        }
-        armorBuilder.putList("acceptedItems", NbtType.COMPOUND, acceptedArmors);
-        NbtMapBuilder armorItem = NbtMap.builder()
-                .putShort("Aux", Short.MAX_VALUE)
-                .putString("Name", "minecraft:horsearmoriron");
-        armorBuilder.putCompound("item", armorItem.build());
-        armorBuilder.putInt("slotNumber", 1);
-        ARMOR_SLOT = armorBuilder.build();
+        HORSE_ARMOR_SLOT = buildAcceptedArmorSlot(ACCEPTED_HORSE_ARMORS, "minecraft:horsearmoriron");
+        NAUTILUS_ARMOR_SLOT = buildAcceptedArmorSlot(ACCEPTED_NAUTILUS_ARMORS, "minecraft:nautilusarmor");
 
         NbtMapBuilder carpetBuilder = NbtMap.builder();
         NbtMapBuilder carpetItem = NbtMap.builder()
-                .putShort("Aux", Short.MAX_VALUE)
-                .putString("Name", "minecraft:carpet");
+            .putShort("Aux", Short.MAX_VALUE)
+            .putString("Name", "minecraft:carpet");
         List<NbtMap> acceptedCarpet = Collections.singletonList(NbtMap.builder().putCompound("slotItem", carpetItem.build()).build());
         carpetBuilder.putList("acceptedItems", NbtType.COMPOUND, acceptedCarpet);
         carpetBuilder.putCompound("item", carpetItem.build());
@@ -92,13 +81,33 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundM
 
         NbtMapBuilder saddleBuilder = NbtMap.builder();
         NbtMapBuilder acceptedSaddle = NbtMap.builder()
-                .putShort("Aux", Short.MAX_VALUE)
-                .putString("Name", "minecraft:saddle");
+            .putShort("Aux", Short.MAX_VALUE)
+            .putString("Name", "minecraft:saddle");
         List<NbtMap> acceptedItem = Collections.singletonList(NbtMap.builder().putCompound("slotItem", acceptedSaddle.build()).build());
         saddleBuilder.putList("acceptedItems", NbtType.COMPOUND, acceptedItem);
         saddleBuilder.putCompound("item", acceptedSaddle.build());
         saddleBuilder.putInt("slotNumber", 0);
         SADDLE_SLOT = saddleBuilder.build();
+    }
+
+    private static NbtMap buildAcceptedArmorSlot(String[] accepted, String name) {
+        NbtMapBuilder armorBuilder = NbtMap.builder();
+        List<NbtMap> acceptedArmors = new ArrayList<>(4);
+
+        for (String identifier : accepted) {
+            NbtMapBuilder acceptedItemBuilder = NbtMap.builder()
+                .putShort("Aux", Short.MAX_VALUE)
+                .putString("Name", identifier);
+            acceptedArmors.add(NbtMap.builder().putCompound("slotItem", acceptedItemBuilder.build()).build());
+        }
+
+        armorBuilder.putList("acceptedItems", NbtType.COMPOUND, acceptedArmors);
+        NbtMapBuilder armorItem = NbtMap.builder()
+            .putShort("Aux", Short.MAX_VALUE)
+            .putString("Name", name);
+        armorBuilder.putCompound("item", armorItem.build());
+        armorBuilder.putInt("slotNumber", 1);
+        return armorBuilder.build();
     }
 
     @Override
@@ -141,10 +150,12 @@ public class JavaHorseScreenOpenTranslator extends PacketTranslator<ClientboundM
             inventoryTranslator = new DonkeyInventoryTranslator(slotCount);
             slots.add(SADDLE_SLOT);
         } else {
-            inventoryTranslator = new HorseInventoryTranslator(slotCount);
+            inventoryTranslator = new MountInventoryTranslator(slotCount);
             slots.add(SADDLE_SLOT);
-            if (!(entity instanceof SkeletonHorseEntity || entity instanceof ZombieHorseEntity)) {
-                slots.add(ARMOR_SLOT);
+            if (entity instanceof NautilusEntity) {
+                slots.add(NAUTILUS_ARMOR_SLOT);
+            } else if (!(entity instanceof SkeletonHorseEntity || entity instanceof ZombieHorseEntity)) {
+                slots.add(HORSE_ARMOR_SLOT);
             }
         }
 
