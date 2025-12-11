@@ -384,7 +384,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
     // Mojmap: LivingEntity#travelInFluid
     protected void waterMovement(VehicleContext ctx) {
         double gravity = getGravity();
-        float drag = vehicle.getFlag(EntityFlag.SPRINTING) ? 0.9f : 0.8f; // 0.8f: getBaseMovementSpeedMultiplier
+        float drag = vehicle.getFlag(EntityFlag.SPRINTING) ? 0.9f : getWaterSlowDown();
         double originalY = ctx.centerPos().getY();
         boolean falling = vehicle.getMotion().getY() <= 0;
 
@@ -417,6 +417,10 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         if (horizontalCollision && shouldApplyFluidJumpBoost(ctx, originalY)) {
             vehicle.setMotion(Vector3f.from(vehicle.getMotion().getX(), 0.3f, vehicle.getMotion().getZ()));
         }
+    }
+
+    protected float getWaterSlowDown() {
+        return 0.8f;
     }
 
     protected void lavaMovement(VehicleContext ctx, double lavaHeight) {

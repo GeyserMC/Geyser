@@ -41,6 +41,7 @@ import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.vehicle.HorseVehicleComponent;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -250,7 +251,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             sendMovement = vehicle.getPassengers().size() == 1 || session.getPlayerEntity().isRidingInFront();
         }
 
-        if (vehicle instanceof AbstractHorseEntity && !vehicle.getFlag(EntityFlag.HAS_DASH_COOLDOWN)) {
+        if (vehicle instanceof AbstractHorseEntity horse && !vehicle.getFlag(EntityFlag.HAS_DASH_COOLDOWN)) {
             // Behavior verified as of Java Edition 1.21.3
             int currentJumpingTicks = session.getInputCache().getJumpingTicks();
             if (currentJumpingTicks < 0) {
@@ -269,6 +270,8 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     PlayerState.START_HORSE_JUMP, finalVehicleJumpStrength));
                 session.getInputCache().setJumpingTicks(-10);
                 session.getPlayerEntity().setVehicleJumpStrength(finalVehicleJumpStrength);
+
+                ((HorseVehicleComponent)horse.getVehicleComponent()).setAllowStandSliding(true);
             } else if (!wasJumping && holdingJump) {
                 session.getInputCache().setJumpingTicks(0);
                 session.getInputCache().setJumpScale(0);
