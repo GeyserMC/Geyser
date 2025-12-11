@@ -205,6 +205,9 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
         float yaw = vehicle.getYaw() - 90;
         final Vector3f motion = Vector3f.from(TrigMath.sin((-yaw * 0.017453292F)) * acceleration, 0, TrigMath.cos((yaw * 0.017453292F)) * acceleration);
         vehicle.setMotion(vehicle.getMotion().add(motion));
+
+        vehicle.getSession().setSteeringLeft(right && !left || up);
+        vehicle.getSession().setSteeringRight(left && !right || up);
     }
 
     private void floatBoat(final VehicleContext context) {

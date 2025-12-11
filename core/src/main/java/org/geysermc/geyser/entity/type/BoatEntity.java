@@ -196,6 +196,7 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
         if (session.getPlayerEntity().getVehicle() == this) {
             // For packet timing accuracy, we'll send the packets here, as that's what Java Edition 1.21.3 does.
+            System.out.println(session.isSteeringLeft() + "," + session.isSteeringRight());
             ServerboundPaddleBoatPacket steerPacket = new ServerboundPaddleBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
             session.sendDownstreamGamePacket(steerPacket);
             return;

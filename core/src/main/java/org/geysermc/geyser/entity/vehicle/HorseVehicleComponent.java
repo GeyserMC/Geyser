@@ -65,7 +65,7 @@ public class HorseVehicleComponent extends VehicleComponent<AbstractHorseEntity>
 
         Vector3f inputVelocity = super.getInputVector(ctx, speed, input);
 
-        if (vehicle.isOnGround()) {
+        if (vehicle.isOnGround() && jumpLeapStrength > 0) {
             if (jumpLeapStrength >= 90) {
                 jumpLeapStrength = 1.0f;
             } else {

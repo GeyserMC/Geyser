@@ -100,7 +100,7 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
         float jumpStrength = player.getVehicleJumpStrength();
         player.setVehicleJumpStrength(0);
 
-        if (vehicle.isOnGround()) {
+        if (vehicle.isOnGround() && jumpStrength > 0) {
             if (jumpStrength >= 90) {
                 jumpStrength = 1.0f;
             } else {
