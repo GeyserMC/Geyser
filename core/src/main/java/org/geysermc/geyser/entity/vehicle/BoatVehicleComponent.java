@@ -134,8 +134,6 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
         // This got ran twice in Boat entity for certain reason?
         applyBlockCollisionEffects(context);
         applyBlockCollisionEffects(context);
-
-        tickBubbleColumn();
     }
 
     @Override
@@ -182,41 +180,6 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
 
         ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos, vehicle.getYaw() - 90, vehicle.getPitch(), vehicle.isOnGround());
         vehicle.getSession().sendDownstreamPacket(moveVehiclePacket);
-    }
-
-    private void tickBubbleColumn() {
-//        if (level().isClientSide()) {
-//            int clientBubbleTime = getBubbleTime();
-//            if (clientBubbleTime > 0) {
-//                this.bubbleMultiplier += 0.05F;
-//            } else {
-//                this.bubbleMultiplier -= 0.1F;
-//            }
-//            this.bubbleMultiplier = Mth.clamp(this.bubbleMultiplier, 0.0F, 1.0F);
-//            this.bubbleAngleO = this.bubbleAngle;
-//            this.bubbleAngle = 10.0F * (float)Math.sin(0.5D * this.tickCount) * this.bubbleMultiplier;
-//        } else {
-//            if (!this.isAboveBubbleColumn)
-//                setBubbleTime(0);
-//            int bubbleTime = getBubbleTime();
-//            if (bubbleTime > 0) {
-//                bubbleTime--;
-//                setBubbleTime(bubbleTime);
-//                int diff = 60 - bubbleTime - 1;
-//                if (diff > 0 &&
-//                    bubbleTime == 0) {
-//                    setBubbleTime(0);
-//                    Vec3 movement = getDeltaMovement();
-//                    if (this.bubbleColumnDirectionIsDown) {
-//                        setDeltaMovement(movement.add(0.0D, -0.7D, 0.0D));
-//                        ejectPassengers();
-//                    } else {
-//                        setDeltaMovement(movement.x, hasPassenger(e -> e instanceof Player) ? 2.7D : 0.6D, movement.z);
-//                    }
-//                }
-//                this.isAboveBubbleColumn = false;
-//            }
-//        }
     }
 
     private void controlBoat() {

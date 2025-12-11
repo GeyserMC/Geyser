@@ -291,33 +291,24 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         if (sendMovement) {
             // We only need to determine onGround status this way for client predicted vehicles.
             // For other vehicle, Geyser already handle it in VehicleComponent or the Java server handle it.
-            if (inClientPredictedVehicle) {
-                Vector3f position = vehicle.getPosition();
+            Vector3f position = vehicle.getPosition();
+            final BoundingBox box = new BoundingBox(
+                position.down(vehicle instanceof BoatEntity ? vehicle.getDefinition().offset() : 0).up(vehicle.getBoundingBoxHeight() / 2f).toDouble(),
+                vehicle.getBoundingBoxWidth(), vehicle.getBoundingBoxHeight(), vehicle.getBoundingBoxWidth()
+            );
 
-                if (vehicle instanceof BoatEntity) {
-                    position = position.down(vehicle.getDefinition().offset());
-                }
-
-                final BoundingBox box = new BoundingBox(
-                    position.up(vehicle.getBoundingBoxHeight() / 2f).toDouble(),
-                    vehicle.getBoundingBoxWidth(), vehicle.getBoundingBoxHeight(), vehicle.getBoundingBoxWidth()
-                );
-
-                // Manually calculate the vertical collision ourselves, the VERTICAL_COLLISION input data is inaccurate inside a vehicle!
-                Vector3d movement = session.getPlayerEntity().getLastTickEndVelocity().toDouble();
-                Vector3d correctedMovement = session.getCollisionManager().correctMovementForCollisions(movement, box, true, false);
-
-                vehicle.setOnGround(correctedMovement.getY() != movement.getY() && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
-            }
+            // Manually calculate the vertical collision ourselves, the VERTICAL_COLLISION input data is inaccurate inside a vehicle!
+            Vector3d movement = session.getPlayerEntity().getLastTickEndVelocity().toDouble();
+            Vector3d correctedMovement = session.getCollisionManager().correctMovementForCollisions(movement, box, true, false);
+            vehicle.setOnGround(correctedMovement.getY() != movement.getY() && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
 
             Vector3f vehiclePosition = packet.getPosition();
             Vector2f vehicleRotation = packet.getVehicleRotation();
             if (vehicleRotation == null) {
-                return; // If the client just got in or out of a vehicle for example. Or if this vehicle isn't client predicted.
+                return; // If the client just got in or out of a vehicle for example.
             }
 
             if (session.getWorldBorder().isPassingIntoBorderBoundaries(vehiclePosition, false)) {
-                Vector3f position = vehicle.getPosition();
                 if (vehicle instanceof BoatEntity boat) {
                     // Undo the changes usually applied to the boat
                     boat.moveAbsoluteWithoutAdjustments(position, vehicle.getYaw(), vehicle.isOnGround(), true);
@@ -338,7 +329,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             vehicle.setPosition(vehiclePosition);
             ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(
                 vehiclePosition.toDouble(),
-                vehicleRotation.getY() - 90, vehiclePosition.getX(), // TODO I wonder if this is related to the horse spinning bugs...
+                vehicle instanceof BoatEntity ? vehicleRotation.getY() - 90 : vehicleRotation.getY(), vehiclePosition.getX(),
                 vehicle.isOnGround()
             );
             session.sendDownstreamGamePacket(moveVehiclePacket);
