@@ -1261,7 +1261,7 @@ public final class EntityDefinitions {
                 // "Begging" on wiki.vg, "Interested" in Nukkit - the tilt of the head
                 .addTranslator(MetadataTypes.BOOLEAN, (wolfEntity, entityMetadata) -> wolfEntity.setFlag(EntityFlag.INTERESTED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                 .addTranslator(MetadataTypes.INT, WolfEntity::setCollarColor)
-                .addTranslator(MetadataTypes.INT, WolfEntity::setWolfAngerTime)
+                .addTranslator(MetadataTypes.LONG, WolfEntity::setWolfAngerTime)
                 .addTranslator(MetadataTypes.WOLF_VARIANT, WolfEntity::setVariant)
                 .addTranslator(null) // sound variant; these aren't clientsided anyways... right??
                 .build();
