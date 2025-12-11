@@ -239,16 +239,17 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         if (vehicle == null) {
             return;
         }
+        boolean inClientPredictedVehicle = packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE);
         if (vehicle instanceof ClientVehicle) {
             session.getPlayerEntity().setVehicleInput(packet.getMotion());
         }
 
         boolean sendMovement = false;
         if (vehicle instanceof AbstractHorseEntity && !(vehicle instanceof LlamaEntity)) {
-            sendMovement = !(vehicle instanceof ClientVehicle);
+            sendMovement = inClientPredictedVehicle;
         } else if (vehicle instanceof BoatEntity) {
             // The player is either the only or the front rider.
-            sendMovement = vehicle.getPassengers().size() == 1 || session.getPlayerEntity().isRidingInFront();
+            sendMovement = inClientPredictedVehicle && (vehicle.getPassengers().size() == 1 || session.getPlayerEntity().isRidingInFront());
         }
 
         if (vehicle instanceof AbstractHorseEntity horse && !vehicle.getFlag(EntityFlag.HAS_DASH_COOLDOWN)) {
@@ -290,7 +291,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         if (sendMovement) {
             // We only need to determine onGround status this way for client predicted vehicles.
             // For other vehicle, Geyser already handle it in VehicleComponent or the Java server handle it.
-            if (packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE)) {
+            if (inClientPredictedVehicle) {
                 Vector3f position = vehicle.getPosition();
 
                 if (vehicle instanceof BoatEntity) {
