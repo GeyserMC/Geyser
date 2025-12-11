@@ -1231,10 +1231,14 @@ public final class EntityDefinitions {
                     .build();
 
             NAUTILUS = EntityDefinition.inherited(NautilusEntity::new, abstractNautilusBase)
-                    .build();
+                .type(EntityType.NAUTILUS)
+                .identifier("minecraft:nautilus")
+                .build();
 
             ZOMBIE_NAUTILUS = EntityDefinition.inherited(ZombieNautilusEntity::new, abstractNautilusBase)
-                    .build();
+                .type(EntityType.ZOMBIE_NAUTILUS)
+                .identifier("minecraft:zombie_nautilus")
+                .build();
         }
 
         EntityDefinition<TameableEntity> tameableEntityBase = EntityDefinition.<TameableEntity>inherited(null, ageableEntityBase) // No factory, is abstract
