@@ -61,12 +61,11 @@ public class HorseVehicleComponent extends VehicleComponent<AbstractHorseEntity>
         if (vehicle.isOnGround() && jumpLeapStrength == 0.0F && vehicle.getFlag(EntityFlag.STANDING) && !this.allowStandSliding) {
             return Vector3f.ZERO;
         }
+        player.setVehicleJumpStrength(0);
 
         Vector3f inputVelocity = super.getInputVector(ctx, speed, input);
 
-        if (jumpLeapStrength > 0) {
-            player.setVehicleJumpStrength(0);
-
+        if (vehicle.isOnGround()) {
             if (jumpLeapStrength >= 90) {
                 jumpLeapStrength = 1.0f;
             } else {
