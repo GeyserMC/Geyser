@@ -32,7 +32,7 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
+import org.geysermc.geyser.entity.type.living.animal.tameable.TameableEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.NautilusVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
@@ -54,7 +54,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 import java.util.UUID;
 
-public abstract class AbstractNautilusEntity extends AnimalEntity implements ClientVehicle {
+public abstract class AbstractNautilusEntity extends TameableEntity implements ClientVehicle {
     private HolderSet repairableItems = null;
     private boolean isCurseOfBinding = false;
     private final NautilusVehicleComponent vehicleComponent;

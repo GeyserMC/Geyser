@@ -1225,10 +1225,17 @@ public final class EntityDefinitions {
                     .build();
         }
 
+        EntityDefinition<TameableEntity> tameableEntityBase = EntityDefinition.<TameableEntity>inherited(null, ageableEntityBase) // No factory, is abstract
+                .addTranslator(MetadataTypes.BYTE, TameableEntity::setTameableFlags)
+                .addTranslator(MetadataTypes.OPTIONAL_LIVING_ENTITY_REFERENCE, TameableEntity::setOwner)
+                .build();
+
         // Nautilus
         {
-            EntityDefinition<AbstractNautilusEntity> abstractNautilusBase = EntityDefinition.<AbstractNautilusEntity>inherited(null, ageableEntityBase) // No factory, is abstract
-                    .build();
+            EntityDefinition<AbstractNautilusEntity> abstractNautilusBase = EntityDefinition.<AbstractNautilusEntity>inherited(null, tameableEntityBase) // No factory, is abstract
+                .width(0.95f).height(0.875f)
+                .addTranslator(null)
+                .build();
 
             NAUTILUS = EntityDefinition.inherited(NautilusEntity::new, abstractNautilusBase)
                 .type(EntityType.NAUTILUS)
@@ -1241,10 +1248,6 @@ public final class EntityDefinitions {
                 .build();
         }
 
-        EntityDefinition<TameableEntity> tameableEntityBase = EntityDefinition.<TameableEntity>inherited(null, ageableEntityBase) // No factory, is abstract
-                .addTranslator(MetadataTypes.BYTE, TameableEntity::setTameableFlags)
-                .addTranslator(MetadataTypes.OPTIONAL_LIVING_ENTITY_REFERENCE, TameableEntity::setOwner)
-                .build();
         CAT = EntityDefinition.inherited(CatEntity::new, tameableEntityBase)
                 .type(EntityType.CAT)
                 .height(0.35f).width(0.3f)
