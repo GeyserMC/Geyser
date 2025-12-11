@@ -102,6 +102,7 @@ public final class RegistryCache implements JavaRegistryProvider {
         register(JavaRegistries.PIG_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
         register(JavaRegistries.COW_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
         register(JavaRegistries.CHICKEN_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
+        register(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
 
         // Load from MCProtocolLib's classloader
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();

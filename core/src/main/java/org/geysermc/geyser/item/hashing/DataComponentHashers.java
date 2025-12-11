@@ -269,6 +269,8 @@ public class DataComponentHashers {
         register(DataComponentTypes.COW_VARIANT, RegistryHasher.COW_VARIANT);
         register(DataComponentTypes.CHICKEN_VARIANT, MinecraftHasher.KEY
             .registryCast((session, holder) -> holder.getOrCompute(id -> JavaRegistries.CHICKEN_VARIANT.key(session, id)))); // Why, Mojang?
+        register(DataComponentTypes.ZOMBIE_NAUTILUS_VARIANT, MinecraftHasher.KEY
+            .registryCast((session, holder) -> holder.getOrCompute(id -> JavaRegistries.ZOMBIE_NAUTILUS_VARIANT.key(session, id))));
         register(DataComponentTypes.FROG_VARIANT, RegistryHasher.FROG_VARIANT);
         register(DataComponentTypes.HORSE_VARIANT, RegistryHasher.HORSE_VARIANT);
         register(DataComponentTypes.PAINTING_VARIANT, RegistryHasher.PAINTING_VARIANT.cast(Holder::id)); // This can and will throw when a direct holder was received, which is still possible due to a bug in 1.21.6.
