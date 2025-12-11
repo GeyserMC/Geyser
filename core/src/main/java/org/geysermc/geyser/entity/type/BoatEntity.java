@@ -73,8 +73,8 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
 
     private long leashHolderBedrockId = -1;
 
-    // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
-    private final float ROWING_SPEED = 0.1f;
+    // This is the best value, I can't really found any value that doesn't look choppy and laggy or that is not too slow, blame bedrock.
+    private final float ROWING_SPEED = 0.04f;
 
     public BoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, BoatVariant variant) {
         // Initial rotation is incorrect
@@ -196,11 +196,15 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
         if (session.getPlayerEntity().getVehicle() == this) {
             // For packet timing accuracy, we'll send the packets here, as that's what Java Edition 1.21.3 does.
-            System.out.println(session.isSteeringLeft() + "," + session.isSteeringRight());
             ServerboundPaddleBoatPacket steerPacket = new ServerboundPaddleBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
             session.sendDownstreamGamePacket(steerPacket);
-            return;
+
+            // If the vehicle is not controlled by the client, then we will have to send the client the rowing time else the animation won't play!
+            if (session.isInClientPredictedVehicle()) {
+                return;
+            }
         }
+
         doTick = !doTick; // Run every other tick
         if (!doTick || passengers.isEmpty()) {
             return;
@@ -218,6 +222,10 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         if (isPaddlingRight) {
             paddleTimeRight += ROWING_SPEED;
             dirtyMetadata.put(EntityDataTypes.ROW_TIME_RIGHT, paddleTimeRight);
+        }
+
+        if (isPaddlingLeft || isPaddlingRight) {
+            updateBedrockMetadata();
         }
     }
 
