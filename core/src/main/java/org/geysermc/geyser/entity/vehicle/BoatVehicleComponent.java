@@ -259,7 +259,12 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
 
             this.deltaRotation *= frictionMutiplier;
             if (buoyancy > 0.0D) {
-                vehicle.setMotion(vehicle.getMotion().up((float) (buoyancy * 0.04f / 0.65f)));
+                Vector3f motion = vehicle.getMotion();
+                vehicle.setMotion(Vector3f.from(
+                    motion.getX(),
+                    (float) (motion.getY() + buoyancy * (this.gravity / 0.65)) * 0.75f,
+                    motion.getZ()
+                ));
             }
         }
     }
@@ -294,11 +299,13 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
 
     private float getGroundFriction(final VehicleContext context) {
         BoundingBox boatShape = getBoundingBox().clone();
+        // 0.001 high box extending downwards from the boat
+        boatShape.setMiddleY(boatShape.getMin(Axis.Y) - 0.0005);
+        boatShape.setSizeY(0.001);
+
         if (boatShape.isEmpty()) {
             return Float.NaN;
         }
-
-        boatShape.setMiddleY(boatShape.getMiddleY() - 0.001D);
 
         int x0 = GenericMath.floor(boatShape.getMin(Axis.X)) - 1;
         int x1 = GenericMath.ceil(boatShape.getMax(Axis.X)) + 1;

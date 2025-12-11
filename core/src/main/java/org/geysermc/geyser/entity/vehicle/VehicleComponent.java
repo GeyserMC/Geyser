@@ -922,7 +922,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
             // Reuse block cache if vehicle moved less than 1 block
             if (this.cachePos == null || this.cachePos.distanceSquared(this.centerPos) > 1) {
                 BoundingBox box = boundingBox.clone();
-                box.expand(2);
+                box.expand(2.0001);
 
                 Vector3i min = box.getMin().toInt();
                 Vector3i max = box.getMax().toInt();
