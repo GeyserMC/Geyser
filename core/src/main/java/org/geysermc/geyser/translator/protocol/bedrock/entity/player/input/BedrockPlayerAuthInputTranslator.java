@@ -68,6 +68,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         session.setClientTicks(packet.getTick());
+        session.setInClientPredictedVehicle(packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE) && entity.getVehicle() != null);
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
@@ -211,7 +212,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         }
 
         // Only set steering values when the vehicle is a boat and when the client is actually in it
-        if (entity.getVehicle() instanceof BoatEntity && inputData.contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE)) {
+        if (entity.getVehicle() instanceof BoatEntity) {
             boolean up = inputData.contains(PlayerAuthInputData.UP);
             // Yes. These are flipped. Welcome to Bedrock edition.
             // Hi random stranger. I am six days into updating for 1.21.3. How's it going?

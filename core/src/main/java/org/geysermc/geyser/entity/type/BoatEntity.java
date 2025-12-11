@@ -26,12 +26,16 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.vehicle.BoatVehicleComponent;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.vehicle.VehicleComponent;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -41,7 +45,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.Serve
 
 import java.util.UUID;
 
-public class BoatEntity extends Entity implements Leashable, Tickable {
+public class BoatEntity extends Entity implements Tickable, Leashable, ClientVehicle {
 
     /**
      * Required when IS_BUOYANT is sent in order for boats to work in the water. <br>
@@ -52,6 +56,8 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     private static final String BUOYANCY_DATA = "{\"apply_gravity\":true,\"base_buoyancy\":1.0,\"big_wave_probability\":0.02999999932944775," +
             "\"big_wave_speed\":10.0,\"drag_down_on_buoyancy_removed\":0.0,\"liquid_blocks\":[\"minecraft:water\"," +
             "\"minecraft:flowing_water\"],\"simulate_waves\":false}";
+
+    private final BoatVehicleComponent vehicleComponent = new BoatVehicleComponent(this, 0);
 
     private boolean isPaddlingLeft;
     private float paddleTimeLeft;
@@ -216,7 +222,27 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
 
     @Override
     public long leashHolderBedrockId() {
-        return leashHolderBedrockId;
+        return this.leashHolderBedrockId;
+    }
+
+    @Override
+    public VehicleComponent<?> getVehicleComponent() {
+        return this.vehicleComponent;
+    }
+
+    @Override
+    public Vector3f getRiddenInput(Vector2f input) {
+        return Vector3f.ZERO;
+    }
+
+    @Override
+    public float getVehicleSpeed() {
+        return 0;
+    }
+
+    @Override
+    public boolean isClientControlled() {
+        return !session.isInClientPredictedVehicle() && !passengers.isEmpty() && this.session.getPlayerEntity() == passengers.get(0);
     }
 
     /**
