@@ -65,13 +65,13 @@ public class NautilusVehicleComponent extends VehicleComponent<AbstractNautilusE
         player.setVehicleJumpStrength(0);
 
         if (this.dashCooldown <= 0 && jumpStrength > 0) {
-            final Vector3f viewVector = MathUtils.calculateViewVector(vehicle.getPitch(), vehicle.getYaw());
+            final Vector3f viewVector = MathUtils.calculateViewVector(player.getPitch(), player.getYaw());
 
             float movementMultiplier = getVelocityMultiplier(ctx);
             float strength = (float) (movementMultiplier + movementEfficiency * (1 - movementMultiplier));
-            float actualJumpStrength = (jumpStrength >= 90) ? 1.0F : (0.4F + 0.4F * jumpStrength / 90.0F);
+            jumpStrength = (jumpStrength >= 90) ? 1.0F : (0.4F + 0.4F * jumpStrength / 90.0F);
 
-            inputVelocity = inputVelocity.add(viewVector.mul(((this.isInWater() ? 1.2F : 0.5F) * actualJumpStrength) * getMoveSpeed() * strength));
+            inputVelocity = inputVelocity.add(viewVector.mul(((this.isInWater() ? 1.2F : 0.5F) * jumpStrength) * getMoveSpeed() * strength));
             setDashCooldown(40);
         }
 
