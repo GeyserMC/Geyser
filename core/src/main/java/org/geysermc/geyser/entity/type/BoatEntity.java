@@ -26,12 +26,16 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.vehicle.BoatVehicleComponent;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.vehicle.VehicleComponent;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -41,7 +45,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.Serve
 
 import java.util.UUID;
 
-public class BoatEntity extends Entity implements Leashable, Tickable {
+public class BoatEntity extends Entity implements Tickable, Leashable, ClientVehicle {
 
     /**
      * Required when IS_BUOYANT is sent in order for boats to work in the water. <br>
@@ -52,6 +56,8 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     private static final String BUOYANCY_DATA = "{\"apply_gravity\":true,\"base_buoyancy\":1.0,\"big_wave_probability\":0.02999999932944775," +
             "\"big_wave_speed\":10.0,\"drag_down_on_buoyancy_removed\":0.0,\"liquid_blocks\":[\"minecraft:water\"," +
             "\"minecraft:flowing_water\"],\"simulate_waves\":false}";
+
+    private final BoatVehicleComponent vehicleComponent = new BoatVehicleComponent(this, 0);
 
     private boolean isPaddlingLeft;
     private float paddleTimeLeft;
@@ -67,8 +73,8 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
 
     private long leashHolderBedrockId = -1;
 
-    // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
-    private final float ROWING_SPEED = 0.1f;
+    // This is the best value, I can't really found any value that doesn't look choppy and laggy or that is not too slow, blame bedrock.
+    private final float ROWING_SPEED = 0.04f;
 
     public BoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, BoatVariant variant) {
         // Initial rotation is incorrect
@@ -192,8 +198,13 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
             // For packet timing accuracy, we'll send the packets here, as that's what Java Edition 1.21.3 does.
             ServerboundPaddleBoatPacket steerPacket = new ServerboundPaddleBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
             session.sendDownstreamGamePacket(steerPacket);
-            return;
+
+            // If the vehicle is not controlled by the client, then we will have to send the client the rowing time else the animation won't play!
+            if (session.isInClientPredictedVehicle()) {
+                return;
+            }
         }
+
         doTick = !doTick; // Run every other tick
         if (!doTick || passengers.isEmpty()) {
             return;
@@ -212,11 +223,35 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
             paddleTimeRight += ROWING_SPEED;
             dirtyMetadata.put(EntityDataTypes.ROW_TIME_RIGHT, paddleTimeRight);
         }
+
+        if (isPaddlingLeft || isPaddlingRight) {
+            updateBedrockMetadata();
+        }
     }
 
     @Override
     public long leashHolderBedrockId() {
-        return leashHolderBedrockId;
+        return this.leashHolderBedrockId;
+    }
+
+    @Override
+    public VehicleComponent<?> getVehicleComponent() {
+        return this.vehicleComponent;
+    }
+
+    @Override
+    public Vector3f getRiddenInput(Vector2f input) {
+        return Vector3f.ZERO;
+    }
+
+    @Override
+    public float getVehicleSpeed() {
+        return 0;
+    }
+
+    @Override
+    public boolean isClientControlled() {
+        return !session.isInClientPredictedVehicle() && !passengers.isEmpty() && this.session.getPlayerEntity() == passengers.get(0);
     }
 
     /**
