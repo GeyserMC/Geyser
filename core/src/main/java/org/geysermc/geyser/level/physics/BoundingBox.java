@@ -194,6 +194,10 @@ public class BoundingBox implements Cloneable {
         };
     }
 
+    public boolean isEmpty() {
+        return getMax(Axis.X) - getMin(Axis.X) < 1.0E-7D || getMax(Axis.Y) - getMin(Axis.Y) < 1.0E-7D || getMax(Axis.Z) - getMin(Axis.Z) < 1.0E-7D;
+    }
+
     @SneakyThrows(CloneNotSupportedException.class)
     @Override
     public BoundingBox clone() {
