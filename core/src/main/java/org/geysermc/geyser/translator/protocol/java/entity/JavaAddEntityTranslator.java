@@ -65,7 +65,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
 
         EntityTypeDefinition<?> definition = Registries.JAVA_ENTITY_TYPES.get(type);
         if (definition == null) {
-            session.getGeyser().getLogger().warning("Could not find an entity definition for add entity packet " + packet);
+            session.getGeyser().getLogger().debug("Could not find an entity definition for add entity packet " + packet);
             return;
         }
 
