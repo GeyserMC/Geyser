@@ -168,6 +168,15 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
 
     @Override
     public boolean isClientControlled() {
-        return !this.passengers.isEmpty() && this.passengers.get(0) == session.getPlayerEntity();
+        return getFlag(EntityFlag.SADDLED) && !this.passengers.isEmpty() && this.passengers.get(0) == session.getPlayerEntity();
+    }
+
+    @Override
+    protected boolean canUseSlot(EquipmentSlot slot) {
+        if (slot != EquipmentSlot.SADDLE && slot != EquipmentSlot.BODY) {
+            return super.canUseSlot(slot);
+        } else {
+            return isAlive() && !isBaby() && getFlag(EntityFlag.TAMED);
+        }
     }
 }

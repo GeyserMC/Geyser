@@ -63,7 +63,9 @@ public class NautilusVehicleComponent extends VehicleComponent<AbstractNautilusE
         float jumpStrength = player.getVehicleJumpStrength();
         player.setVehicleJumpStrength(0);
 
-        if (this.dashCooldown <= 0 && jumpStrength > 0) {
+        // We don't check for dash cooldown here since we already send a vehicle jump packet beforehand, which the server can send us back
+        // the metadata that set dash cooldown before we can handle the input vector.
+        if (jumpStrength > 0) {
             final Vector3f viewVector = MathUtils.calculateViewVector(player.getPitch(), player.getYaw());
 
             float movementMultiplier = getVelocityMultiplier(ctx);
@@ -99,7 +101,6 @@ public class NautilusVehicleComponent extends VehicleComponent<AbstractNautilusE
 
     public void setDashCooldown(int cooldown) {
         this.dashCooldown = this.dashCooldown == 0 ? cooldown : this.dashCooldown;
-
         vehicle.setFlag(EntityFlag.HAS_DASH_COOLDOWN, this.dashCooldown > 0);
         vehicle.updateBedrockMetadata();
     }
