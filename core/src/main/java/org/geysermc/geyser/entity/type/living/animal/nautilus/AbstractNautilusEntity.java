@@ -42,7 +42,6 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.level.block.Fluid;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
@@ -50,7 +49,6 @@ import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -68,6 +66,7 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
         this.vehicleComponent = new NautilusVehicleComponent(this, 0.0f, defSpeed);
 
         dirtyMetadata.put(EntityDataTypes.CONTAINER_SIZE, 2);
+        setFlag(EntityFlag.WASD_CONTROLLED, true);
     }
 
     @Override
@@ -132,7 +131,7 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
         return !this.getFlag(EntityFlag.SADDLED);
     }
 
-    public void setBoost(BooleanEntityMetadata entityMetadata) {
+    public void setDashing(BooleanEntityMetadata entityMetadata) {
         if (entityMetadata.getPrimitiveValue()) {
             vehicleComponent.setDashCooldown(40);
         }

@@ -46,7 +46,6 @@ public class NautilusVehicleComponent extends VehicleComponent<AbstractNautilusE
 
     @Override
     public void tickVehicle() {
-        vehicle.setFlag(EntityFlag.CAN_DASH, vehicle.getFlag(EntityFlag.SADDLED));
         vehicle.setFlag(EntityFlag.HAS_DASH_COOLDOWN, this.dashCooldown > 0);
         vehicle.updateBedrockMetadata();
 
@@ -76,6 +75,13 @@ public class NautilusVehicleComponent extends VehicleComponent<AbstractNautilusE
         }
 
         return inputVelocity;
+    }
+
+    @Override
+    public void onDismount() {
+        vehicle.setFlag(EntityFlag.HAS_DASH_COOLDOWN, false);
+        vehicle.updateBedrockMetadata();
+        super.onDismount();
     }
 
     @Override
