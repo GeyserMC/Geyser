@@ -36,7 +36,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 
 public class HorseVehicleComponent extends VehicleComponent<AbstractHorseEntity> {
     @Setter
-    private float horseJumpStrength = 0.42f; // Not sent by vanilla Java server when spawned
+    private float horseJumpStrength = 0.7f; // Not sent by vanilla Java server when spawned
     private int effectJumpBoost;
     @Setter
     private boolean allowStandSliding;
@@ -75,7 +75,7 @@ public class HorseVehicleComponent extends VehicleComponent<AbstractHorseEntity>
             float jumpStrength = this.horseJumpStrength * getJumpVelocityMultiplier(ctx) + (this.effectJumpBoost * 0.1f);
             inputVelocity = Vector3f.from(inputVelocity.getX(), jumpStrength, inputVelocity.getZ());
 
-            if (inputVelocity.getZ() > 0.0) {
+            if (input.getZ() > 0.0) {
                 inputVelocity = inputVelocity.add(-0.4F * TrigMath.sin(vehicle.getYaw() * 0.017453292F) * jumpLeapStrength, 0.0, 0.4F * TrigMath.cos(vehicle.getYaw() * 0.017453292F) * jumpLeapStrength);
             }
         }

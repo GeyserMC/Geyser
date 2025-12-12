@@ -274,7 +274,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 session.getInputCache().setJumpingTicks(-10);
                 session.getPlayerEntity().setVehicleJumpStrength(finalVehicleJumpStrength);
 
-                ((HorseVehicleComponent)horse.getVehicleComponent()).setAllowStandSliding(true);
+                if (horse.getVehicleComponent() instanceof HorseVehicleComponent horseVehicleComponent) {
+                    horseVehicleComponent.setAllowStandSliding(true);
+                }
             } else if (!wasJumping && holdingJump) {
                 session.getInputCache().setJumpingTicks(0);
                 session.getInputCache().setJumpScale(0);
