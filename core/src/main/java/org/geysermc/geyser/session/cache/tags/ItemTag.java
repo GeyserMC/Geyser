@@ -122,11 +122,13 @@ public final class ItemTag {
     public static final Tag<Item> WOLF_FOOD = create("wolf_food");
     public static final Tag<Item> CAT_FOOD = create("cat_food");
     public static final Tag<Item> HORSE_FOOD = create("horse_food");
+    public static final Tag<Item> ZOMBIE_HORSE_FOOD = create("zombie_horse_food");
     public static final Tag<Item> HORSE_TEMPT_ITEMS = create("horse_tempt_items");
     public static final Tag<Item> HARNESSES = create("harnesses");
     public static final Tag<Item> HAPPY_GHAST_FOOD = create("happy_ghast_food");
     public static final Tag<Item> HAPPY_GHAST_TEMPT_ITEMS = create("happy_ghast_tempt_items");
     public static final Tag<Item> CAMEL_FOOD = create("camel_food");
+    public static final Tag<Item> CAMEL_HUSK_FOOD = create("camel_husk_food");
     public static final Tag<Item> ARMADILLO_FOOD = create("armadillo_food");
     public static final Tag<Item> CHICKEN_FOOD = create("chicken_food");
     public static final Tag<Item> FROG_FOOD = create("frog_food");
@@ -144,6 +146,9 @@ public final class ItemTag {
     public static final Tag<Item> PARROT_FOOD = create("parrot_food");
     public static final Tag<Item> PARROT_POISONOUS_FOOD = create("parrot_poisonous_food");
     public static final Tag<Item> AXOLOTL_FOOD = create("axolotl_food");
+    public static final Tag<Item> NAUTILUS_BUCKET_FOOD = create("nautilus_bucket_food");
+    public static final Tag<Item> NAUTILUS_FOOD = create("nautilus_food");
+    public static final Tag<Item> NAUTILUS_TAMING_ITEMS = create("nautilus_taming_items");
     public static final Tag<Item> NON_FLAMMABLE_WOOD = create("non_flammable_wood");
     public static final Tag<Item> BOATS = create("boats");
     public static final Tag<Item> CHEST_BOATS = create("chest_boats");
@@ -190,6 +195,7 @@ public final class ItemTag {
     public static final Tag<Item> HOES = create("hoes");
     public static final Tag<Item> PICKAXES = create("pickaxes");
     public static final Tag<Item> SHOVELS = create("shovels");
+    public static final Tag<Item> SPEARS = create("spears");
     public static final Tag<Item> BREAKS_DECORATED_POTS = create("breaks_decorated_pots");
     public static final Tag<Item> VILLAGER_PLANTABLE_SEEDS = create("villager_plantable_seeds");
     public static final Tag<Item> VILLAGER_PICKS_UP = create("villager_picks_up");
@@ -208,7 +214,8 @@ public final class ItemTag {
     public static final Tag<Item> ENCHANTABLE_CHEST_ARMOR = create("enchantable/chest_armor");
     public static final Tag<Item> ENCHANTABLE_HEAD_ARMOR = create("enchantable/head_armor");
     public static final Tag<Item> ENCHANTABLE_ARMOR = create("enchantable/armor");
-    public static final Tag<Item> ENCHANTABLE_SWORD = create("enchantable/sword");
+    public static final Tag<Item> ENCHANTABLE_MELEE_WEAPON = create("enchantable/melee_weapon");
+    public static final Tag<Item> ENCHANTABLE_SWEEPING = create("enchantable/sweeping");
     public static final Tag<Item> ENCHANTABLE_FIRE_ASPECT = create("enchantable/fire_aspect");
     public static final Tag<Item> ENCHANTABLE_SHARP_WEAPON = create("enchantable/sharp_weapon");
     public static final Tag<Item> ENCHANTABLE_WEAPON = create("enchantable/weapon");
@@ -216,6 +223,7 @@ public final class ItemTag {
     public static final Tag<Item> ENCHANTABLE_MINING_LOOT = create("enchantable/mining_loot");
     public static final Tag<Item> ENCHANTABLE_FISHING = create("enchantable/fishing");
     public static final Tag<Item> ENCHANTABLE_TRIDENT = create("enchantable/trident");
+    public static final Tag<Item> ENCHANTABLE_LUNGE = create("enchantable/lunge");
     public static final Tag<Item> ENCHANTABLE_DURABILITY = create("enchantable/durability");
     public static final Tag<Item> ENCHANTABLE_BOW = create("enchantable/bow");
     public static final Tag<Item> ENCHANTABLE_EQUIPPABLE = create("enchantable/equippable");

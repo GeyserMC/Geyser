@@ -797,9 +797,10 @@ public class Entity implements GeyserEntity {
             @Override
             public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
                 Objects.requireNonNull(property, "property must not be null!");
-                if (!(property instanceof PropertyType<T, ? extends EntityProperty> propertyType)) {
+                if (!(property instanceof PropertyType)) {
                     throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
                 }
+                PropertyType<T, ? extends EntityProperty> propertyType = (PropertyType<T, ?>) property;
                 int index = propertyDefinitions.getPropertyIndex(property.identifier().toString());
                 if (index < 0) {
                     throw new IllegalArgumentException("No property with the name " + property.identifier() + " has been registered.");

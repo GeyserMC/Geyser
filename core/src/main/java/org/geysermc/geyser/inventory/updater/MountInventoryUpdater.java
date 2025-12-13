@@ -34,8 +34,8 @@ import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 
 import java.util.Arrays;
 
-public class HorseInventoryUpdater extends InventoryUpdater {
-    public static final HorseInventoryUpdater INSTANCE = new HorseInventoryUpdater();
+public class MountInventoryUpdater extends InventoryUpdater {
+    public static final MountInventoryUpdater INSTANCE = new MountInventoryUpdater();
 
     @Override
     public void updateInventory(InventoryTranslator<?> translator, GeyserSession session, Inventory inventory) {
@@ -58,10 +58,11 @@ public class HorseInventoryUpdater extends InventoryUpdater {
             return true;
 
         InventorySlotPacket slotPacket = new InventorySlotPacket();
-        slotPacket.setContainerId(4); // Horse GUI?
+        slotPacket.setContainerId(inventory.getBedrockId());
         slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
         slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
         session.sendUpstreamPacket(slotPacket);
+
         return true;
     }
 }

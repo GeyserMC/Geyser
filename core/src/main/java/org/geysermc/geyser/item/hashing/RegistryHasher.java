@@ -67,10 +67,12 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentCo
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.JukeboxPlayable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.KineticWeapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ProvidesTrimMaterial;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SuspiciousStewEffect;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
@@ -328,6 +330,13 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("base", FLOAT, BlocksAttacks.ItemDamageFunction::base)
         .accept("factor", FLOAT, BlocksAttacks.ItemDamageFunction::factor));
 
+    MinecraftHasher<KineticWeapon.Condition> KINETIC_WEAPON_CONDITION = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("max_duration_ticks", MinecraftHasher.INT, KineticWeapon.Condition::maxDurationTicks)
+        .optional("min_speed", MinecraftHasher.FLOAT, KineticWeapon.Condition::minSpeed, 0.0F)
+        .optional("min_relative_speed", MinecraftHasher.FLOAT, KineticWeapon.Condition::minRelativeSpeed, 0.0F));
+
+    MinecraftHasher<SwingAnimation.Type> SWING_ANIMATION_TYPE = MinecraftHasher.fromEnum();
+
     MinecraftHasher<ProvidesTrimMaterial> PROVIDES_TRIM_MATERIAL = MinecraftHasher.either(TRIM_MATERIAL.holder(), ProvidesTrimMaterial::materialHolder, KEY, ProvidesTrimMaterial::materialLocation);
 
     MinecraftHasher<ArmorTrim> ARMOR_TRIM = MinecraftHasher.mapBuilder(builder -> builder
@@ -453,6 +462,18 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
     static <EnumConstant extends Enum<EnumConstant>> RegistryHasher<?> enumIdRegistry(EnumConstant[] values, Function<EnumConstant, Key> toKey) {
         MinecraftHasher<Integer> hasher = KEY.cast(i -> toKey.apply(values[i]));
         return hasher::hash;
+    }
+
+    /**
+     * Creates a hasher that hashes a {@code Holder<Key>}, also known as an {@code EitherHolder} in Mojmap.
+     *
+     * <p>Please note that a {@code Holder<Key>} is only a valid representation of an {@code EitherHolder} in MCPL if the stream codec of the {@code EitherHolder} does not support directly encoding unregistered values.</p>
+     *
+     * @param registry the registry the {@code Holder} is for.
+     * @return a hasher that hashes a {@code Holder<Key>} for the given registry.
+     */
+    static MinecraftHasher<Holder<Key>> eitherHolderHasher(JavaRegistryKey<?> registry) {
+        return MinecraftHasher.KEY.registryCast((registries, holder) -> holder.getOrCompute(id -> registry.key(registries, id)));
     }
 
     class RegistryHasherWithDirectHasher<DirectType> implements RegistryHasher<DirectType> {

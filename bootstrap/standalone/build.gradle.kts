@@ -34,6 +34,10 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     archiveBaseName.set("Geyser-Standalone")
 
     transform(Log4j2PluginsCacheFileTransformer())
+    // https://gradleup.com/shadow/configuration/merging/#handling-duplicates-strategy
+    filesMatching("META-INF/org/apache/logging/log4j/core/config/plugins/Log4j2Plugins.dat") {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
 }
 
 tasks.named<JavaExec>("run") {
