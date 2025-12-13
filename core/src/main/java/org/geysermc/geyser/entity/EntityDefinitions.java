@@ -1026,7 +1026,7 @@ public final class EntityDefinitions {
                     .heightAndWidth(0.6f)
                     .property(BeeEntity.NECTAR_PROPERTY)
                     .addTranslator(MetadataTypes.BYTE, BeeEntity::setBeeFlags)
-                    .addTranslator(MetadataTypes.INT, BeeEntity::setAngerTime)
+                    .addTranslator(MetadataTypes.LONG, BeeEntity::setAngerTime)
                     .build();
             CHICKEN = EntityDefinition.inherited(ChickenEntity::new, ageableEntityBase)
                     .type(EntityType.CHICKEN)
