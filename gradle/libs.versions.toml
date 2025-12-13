@@ -45,7 +45,6 @@ mixin = "0.8.5"
 mixinextras = "0.3.5"
 minecraft = "1.21.11"
 mockito = "5.+"
-runtask = "2.3.1"
 
 # plugin versions
 indra = "4.0.0"
@@ -57,8 +56,10 @@ minotaur = "2.8.10"
 lombok = "9.1.0"
 blossom = "2.2.0"
 runtask = "3.0.2"
-runpaperversion = "1.21.11" # Version only
-runvelocityversion = "3.4.0-SNAPSHOT" # Version only
+
+# run tasks versions
+runpaperversion = "1.21.11"
+runvelocityversion = "3.4.0-SNAPSHOT"
 
 [libraries]
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
