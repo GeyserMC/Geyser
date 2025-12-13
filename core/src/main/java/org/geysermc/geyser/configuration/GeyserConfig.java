@@ -281,6 +281,14 @@ public interface GeyserConfig {
         boolean disableBedrockScaffolding();
 
         @Comment("""
+            On Bedrock, analog input (joystick) allow player to move tiny bit to a certain direction unlike java where your speed
+            isn't customizable, so this options if enable will allow the bedrock player to move like that in a vehicle (eg: horse).
+            If not the Bedrock player will control vehicle like Java Edition, turning this on might flag anticheat!
+            """)
+        @DefaultBoolean(true)
+        boolean vehicleAnalogInput();
+
+        @Comment("""
             Bedrock prevents building and displaying blocks above Y127 in the Nether.
             This config option works around that by changing the Nether dimension ID to the End ID.
             The main downside to this is that the entire Nether will have the same red fog rather than having different fog for each biome.""")

@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.TrigMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -447,10 +448,24 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     public void setVehicleInput(Vector2f vehicleInput) {
-        this.vehicleInput = Vector2f.from(
-                MathUtils.clamp(vehicleInput.getX(), -1.0f, 1.0f),
-                MathUtils.clamp(vehicleInput.getY(), -1.0f, 1.0f)
+        vehicleInput = Vector2f.from(
+            MathUtils.clamp(vehicleInput.getX(), -1.0f, 1.0f),
+            MathUtils.clamp(vehicleInput.getY(), -1.0f, 1.0f)
         );
+
+        if (vehicleInput.lengthSquared() < 1e-16) { // If it's too small, don't register it as an input, since the math will assume that they're moving forward
+            this.vehicleInput = Vector2f.ZERO;
+        } else {
+            if (this.vehicle instanceof BoatEntity || !session.getGeyser().config().gameplay().vehicleAnalogInput()) {
+                // This need to be clamped to an angle dividable by 45 so that the player move in a general direction and not like analog direction.
+                final double yaw = Math.round((Math.toDegrees(Math.atan2(vehicleInput.getY(), vehicleInput.getX())) - 90.0) / 45f) * 45f;
+                // We have to pass this to MathUtils#closeToZero since it's could be 1.0e-16 for example even though it's supposed to be zero.
+                double x = MathUtils.closeToZero(-Math.sin(yaw * TrigMath.DEG_TO_RAD)), z = MathUtils.closeToZero(Math.cos(yaw * TrigMath.DEG_TO_RAD));
+                this.vehicleInput = Vector2f.from(Math.signum(x), Math.signum(z)); // Math#signum clamp these values back to -1/1 if needed.
+            } else {
+                this.vehicleInput = vehicleInput;
+            }
+        }
     }
 
     public void setVehicleJumpStrength(int vehicleJumpStrength) {
