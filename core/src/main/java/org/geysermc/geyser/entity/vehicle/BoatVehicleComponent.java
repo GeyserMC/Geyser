@@ -186,10 +186,10 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
         float acceleration = 0.0F;
 
         final Vector2f input = vehicle.getSession().getPlayerEntity().getVehicleInput();
-        boolean up = input.getY() > 0;
-        boolean down = input.getY() < 0;
-        boolean left = input.getX() > 0;
-        boolean right = input.getX() < 0;
+        boolean up = input.getY() > 0.35;
+        boolean down = input.getY() < -0.35;
+        boolean left = input.getX() > 0.35;
+        boolean right = input.getX() < -0.35;
 
         if (left) this.deltaRotation--;
         if (right) this.deltaRotation++;
