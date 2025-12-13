@@ -34,7 +34,6 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
-import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
@@ -153,12 +152,7 @@ public class InventoryUtils {
             holder.session().setPendingOrCurrentBedrockInventoryId(holder.bedrockId());
             if (holder.requiresOpeningDelay()) {
                 holder.pending(true);
-
-                NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-                latencyPacket.setFromServer(true);
-                latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
-                holder.session().sendUpstreamPacket(latencyPacket);
-
+                scheduleInventoryOpen(holder.session());
                 GeyserImpl.getInstance().getLogger().debug(holder.session(), "Queuing virtual inventory (%s)", debugInventory(holder));
             } else {
                 openAndUpdateInventory(holder);
@@ -498,5 +492,13 @@ public class InventoryUtils {
             ", bedrockId=" + inventory.getBedrockId() + ", size=" + inventory.getSize() +
             ", type=" + inventoryType + ", pending=" + holder.pending() +
             ", displayed=" + inventory.isDisplayed();
+    }
+
+    public static void scheduleInventoryOpen(GeyserSession session) {
+        session.sendNetworkLatencyStackPacket(MAGIC_VIRTUAL_INVENTORY_HACK, true, () -> {
+            if (session.getPendingOrCurrentBedrockInventoryId() != -1) {
+                InventoryUtils.openPendingInventory(session);
+            }
+        });
     }
 }
