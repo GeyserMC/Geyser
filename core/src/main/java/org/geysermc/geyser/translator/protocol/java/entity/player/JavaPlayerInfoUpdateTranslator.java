@@ -111,11 +111,17 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                 }
 
                 if (entry.isListed()) {
-                    PlayerListPacket.Entry playerListEntry = SkinManager.buildCachedEntry(session, entity);
-                    toAdd.add(playerListEntry);
-                    session.getWaypointCache().listPlayer(entity);
+                    if (entity.isValid() || !session.shouldLimitPlayerlistEntries()) {
+                        PlayerListPacket.Entry playerListEntry = SkinManager.buildCachedEntry(session, entity);
+                        toAdd.add(playerListEntry);
+                        session.getWaypointCache().listPlayer(entity);
+                        entity.setPlayerListPacketSent(true);
+                    }
                 } else {
-                    toRemove.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
+                    if (entity.isPlayerListPacketSent()) {
+                        toRemove.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
+                        entity.setPlayerListPacketSent(false);
+                    }
                     session.getWaypointCache().unlistPlayer(entity);
                 }
                 entity.setListed(entry.isListed());
