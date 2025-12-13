@@ -46,21 +46,19 @@ mixinextras = "0.3.5"
 minecraft = "1.21.11"
 mockito = "5.+"
 runtask = "2.3.1"
-runpaperversion = "1.21.11"
-runvelocityversion = "3.4.0-SNAPSHOT"
 
 # plugin versions
 indra = "4.0.0"
 shadow = "9.2.2"
-architectury-plugin = "3.4-SNAPSHOT"
+architectury-plugin = "3.4.162"
 architectury-loom = "1.13.457"
+loom-companion = "1.13.457"
 minotaur = "2.8.10"
 lombok = "9.1.0"
 blossom = "2.2.0"
 runtask = "3.0.2"
-runpaperversion = "1.21.10"
-runvelocityversion = "3.4.0-SNAPSHOT"
-loom-companion = "1.13.457"
+runpaperversion = "1.21.11" # Version only
+runvelocityversion = "3.4.0-SNAPSHOT" # Version only
 
 [libraries]
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
