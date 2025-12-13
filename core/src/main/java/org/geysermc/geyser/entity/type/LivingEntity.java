@@ -524,6 +524,11 @@ public class LivingEntity extends Entity {
                         clientVehicle.getVehicleComponent().setWaterMovementEfficiency(AttributeUtils.calculateValue(javaAttribute));
                     }
                 }
+                case MOVEMENT_EFFICIENCY -> {
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setMovementEfficiency(AttributeUtils.calculateValue(javaAttribute));
+                    }
+                }
             }
         }
     }

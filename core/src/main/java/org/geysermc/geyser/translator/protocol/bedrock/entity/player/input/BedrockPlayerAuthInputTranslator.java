@@ -39,6 +39,8 @@ import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
+import org.geysermc.geyser.entity.type.living.animal.nautilus.AbstractNautilusEntity;
+import org.geysermc.geyser.entity.type.living.animal.nautilus.NautilusEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.HorseVehicleComponent;
@@ -254,7 +256,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             sendMovement = inClientPredictedVehicle && (vehicle.getPassengers().size() == 1 || session.getPlayerEntity().isRidingInFront());
         }
 
-        if (vehicle instanceof AbstractHorseEntity horse && !vehicle.getFlag(EntityFlag.HAS_DASH_COOLDOWN)) {
+        if ((vehicle instanceof AbstractHorseEntity || vehicle instanceof AbstractNautilusEntity) && !vehicle.getFlag(EntityFlag.HAS_DASH_COOLDOWN)) {
             // Behavior verified as of Java Edition 1.21.3
             int currentJumpingTicks = session.getInputCache().getJumpingTicks();
             if (currentJumpingTicks < 0) {
@@ -274,7 +276,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 session.getInputCache().setJumpingTicks(-10);
                 session.getPlayerEntity().setVehicleJumpStrength(finalVehicleJumpStrength);
 
-                if (horse.getVehicleComponent() instanceof HorseVehicleComponent horseVehicleComponent) {
+                if (vehicle instanceof AbstractHorseEntity horse && horse.getVehicleComponent() instanceof HorseVehicleComponent horseVehicleComponent) {
                     horseVehicleComponent.setAllowStandSliding(true);
                 }
             } else if (!wasJumping && holdingJump) {

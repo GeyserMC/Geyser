@@ -32,6 +32,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Tickable;
+import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.vehicle.BoostableVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;

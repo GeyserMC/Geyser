@@ -29,7 +29,7 @@ import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
+import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
