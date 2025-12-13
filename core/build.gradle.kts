@@ -1,6 +1,7 @@
 import org.eclipse.jgit.api.Git
-import net.kyori.indra.git.RepositoryValueSource
 import org.eclipse.jgit.revwalk.RevWalk
+import net.kyori.indra.git.RepositoryValueSource
+
 import java.util.Properties
 
 plugins {
@@ -174,7 +175,7 @@ val generateGitProperties = tasks.register("generateGitProperties") {
             // remove comment line
             val lines = readLines()
             if (lines.isNotEmpty()) {
-                writeText(lines.drop(1).joinToString("\n"))
+                writeText(lines.drop(1).joinToString("\n", postfix = "\n"))
             }
         }
     }
