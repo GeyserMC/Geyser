@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.item.custom.v2.component.java;
 
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
@@ -52,8 +53,7 @@ public interface KineticWeapon {
     }
 
     static Condition condition(@NonNegative int maxDurationTicks, float minSpeed, float minRelativeSpeed) {
-        return Condition.builder()
-            .maxDurationTicks(maxDurationTicks)
+        return Condition.builder(maxDurationTicks)
             .minSpeed(minSpeed)
             .minRelativeSpeed(minRelativeSpeed)
             .build();
@@ -65,10 +65,25 @@ public interface KineticWeapon {
         Builder delayTicks(@NonNegative int delayTicks);
 
         @This
+        default Builder dismountConditions(Condition.@NonNull Builder dismountConditions) {
+            return dismountConditions(dismountConditions.build());
+        }
+
+        @This
         Builder dismountConditions(@Nullable Condition dismountConditions);
 
         @This
+        default Builder knockbackConditions(Condition.@NonNull Builder knockbackConditions) {
+            return knockbackConditions(knockbackConditions.build());
+        }
+
+        @This
         Builder knockbackConditions(@Nullable Condition knockbackConditions);
+
+        @This
+        default Builder damageConditions(Condition.@NonNull Builder damageConditions) {
+            return damageConditions(damageConditions.build());
+        }
 
         @This
         Builder damageConditions(@Nullable Condition damageConditions);
@@ -88,14 +103,11 @@ public interface KineticWeapon {
 
         float minRelativeSpeed();
 
-        static Builder builder() {
-            return GeyserApi.api().provider(Builder.class);
+        static Builder builder(@NonNegative int maxDurationTicks) {
+            return GeyserApi.api().provider(Builder.class, maxDurationTicks);
         }
 
         interface Builder extends GenericBuilder<Condition> {
-
-            @This
-            Builder maxDurationTicks(@NonNegative int maxDurationTicks);
 
             @This
             Builder minSpeed(float minSpeed);

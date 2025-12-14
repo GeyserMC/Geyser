@@ -46,12 +46,17 @@ import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.BlockPlacer;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.Chargeable;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.ThrowableComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.java.AttackRange;
 import org.geysermc.geyser.api.item.custom.v2.component.java.Consumable;
 import org.geysermc.geyser.api.item.custom.v2.component.java.Equippable;
 import org.geysermc.geyser.api.item.custom.v2.component.java.FoodProperties;
+import org.geysermc.geyser.api.item.custom.v2.component.java.KineticWeapon;
+import org.geysermc.geyser.api.item.custom.v2.component.java.PiercingWeapon;
 import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.SwingAnimation;
 import org.geysermc.geyser.api.item.custom.v2.component.java.ToolProperties;
 import org.geysermc.geyser.api.item.custom.v2.component.java.UseCooldown;
+import org.geysermc.geyser.api.item.custom.v2.component.java.UseEffects;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
@@ -76,7 +81,12 @@ import org.geysermc.geyser.impl.camera.GeyserCameraPosition;
 import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
+import org.geysermc.geyser.item.custom.impl.AttackRangeImpl;
+import org.geysermc.geyser.item.custom.impl.KineticWeaponImpl;
+import org.geysermc.geyser.item.custom.impl.PiercingWeaponImpl;
+import org.geysermc.geyser.item.custom.impl.SwingAnimationImpl;
 import org.geysermc.geyser.item.custom.impl.ThrowableComponentImpl;
+import org.geysermc.geyser.item.custom.impl.UseEffectsImpl;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserChargedProjectile;
 import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
@@ -157,13 +167,19 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(DataComponent.class, args -> dataComponentProvider((Identifier) args[0], (Predicate<?>) args[1], (Boolean) args[2]));
 
         // item components
+        providers.put(AttackRange.Builder.class, args -> new AttackRangeImpl.Builder());
         providers.put(Consumable.Builder.class, args -> new ConsumableImpl.Builder());
         providers.put(Equippable.Builder.class, args -> new EquippableImpl.Builder());
         providers.put(FoodProperties.Builder.class, args -> new FoodPropertiesImpl.Builder());
+        providers.put(KineticWeapon.Builder.class, args -> new KineticWeaponImpl.Builder());
+        providers.put(KineticWeapon.Condition.Builder.class, args -> new KineticWeaponImpl.ConditionImpl.Builder((Integer) args[0]));
+        providers.put(PiercingWeapon.class, args -> PiercingWeaponImpl.INSTANCE);
         providers.put(Repairable.Builder.class, args -> new RepairableImpl.Builder());
+        providers.put(SwingAnimation.Builder.class, args -> new SwingAnimationImpl.Builder());
         providers.put(ToolProperties.Builder.class, args -> new ToolPropertiesImpl.Builder());
         providers.put(ToolProperties.Rule.Builder.class, args -> new ToolPropertiesImpl.RuleImpl.Builder());
         providers.put(UseCooldown.Builder.class, args -> new UseCooldownImpl.Builder());
+        providers.put(UseEffects.Builder.class, args -> new UseEffectsImpl.Builder());
 
         // geyser components
         providers.put(Chargeable.Builder.class, args -> new ChargeableImpl.Builder());

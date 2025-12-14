@@ -70,6 +70,10 @@ import java.util.function.Consumer;
  * </ul>
  * For both of these cases proper accommodations have been made in the {@link CustomItemRegistryPopulator}.
  */
+// TODO PLEASE NOTE THAT WHILE 1.21.11 IS NOT IN THIS BRANCH, THE NEW COMPONENTS ARE NOT CONVERTED HERE YET.
+// TODO AS SOON AS 1.21.11 IS MERGED IN HERE, OR THIS IS IN 1.21.11, THE NEW COMPONENTS SHOULD BE CONVERTED HERE AND THE CONVERTED VALUES SHOULD BE USED IN THE CUSTOM ITEM REGISTRY POPULATOR (SEE TODOS THERE)
+// TODO THE COMPONENTS IN QUESTION ARE: ATTACK_RANGE, KINETIC_WEAPON, PIERCING_WEAPON, SWING_ANIMATION, AND USE_EFFECTS
+// TODO another one for good measure!
 public class ComponentConverters {
     private static final Map<DataComponent<?>, ResolvableComponentConverter<?>> converters = new HashMap<>();
 
