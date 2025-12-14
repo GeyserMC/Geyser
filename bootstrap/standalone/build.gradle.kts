@@ -44,16 +44,3 @@ tasks.named<JavaExec>("run") {
 
     standardInput = System.`in`
 }
-
-// Manual task to print the supported Java & Bedrock game versions as JSON. 
-// This is parsed by the CI to include in the Downloads API
-// Invoke with ./gradlew :standalone:printMinecraftVersions
-tasks.register<JavaExec>("printMinecraftVersions") {
-    group = "ci"
-    description = "Print supported Java & Bedrock versions"
-
-    classpath = sourceSets["main"].runtimeClasspath
-    mainClass.set("org.geysermc.geyser.platform.standalone.GeyserStandaloneBootstrap")
-
-    args("--print-minecraft-versions")
-}

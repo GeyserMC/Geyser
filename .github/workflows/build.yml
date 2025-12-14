@@ -32,23 +32,23 @@ jobs:
         with:
           setup-java_java-version: 21
 
-      # - name: Build Geyser
-      #   run: ./gradlew build
-      #   env:
-      #     BUILD_NUMBER: ${{ steps.release-info.outputs.curentRelease }}
+      - name: Build Geyser
+        run: ./gradlew build
+        env:
+          BUILD_NUMBER: ${{ steps.release-info.outputs.curentRelease }}
           
-      # - name: Archive Artifacts
-      #   uses: GeyserMC/actions/upload-multi-artifact@master
-      #   if: success()
-      #   with:
-      #     artifacts: |
-      #       bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
-      #       bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
-      #       bootstrap/standalone/build/libs/Geyser-Standalone.jar
-      #       bootstrap/spigot/build/libs/Geyser-Spigot.jar
-      #       bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
-      #       bootstrap/velocity/build/libs/Geyser-Velocity.jar
-      #       bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
+      - name: Archive Artifacts
+        uses: GeyserMC/actions/upload-multi-artifact@master
+        if: success()
+        with:
+          artifacts: |
+            bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
+            bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
+            bootstrap/standalone/build/libs/Geyser-Standalone.jar
+            bootstrap/spigot/build/libs/Geyser-Spigot.jar
+            bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
+            bootstrap/velocity/build/libs/Geyser-Velocity.jar
+            bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
 
       - name: Publish to Maven Repository
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
@@ -69,7 +69,7 @@ jobs:
         if: ${{ (success() || failure()) && github.repository == 'lukeeey/Geyser' }}
         id: get-minecraft-versions
         run: |
-          JSON=$(./gradlew -q :standalone:printMinecraftVersions --stacktrace)
+          JSON=$(java -jar bootstrap/standalone/build/libs/Geyser-Standalone.jar --print-minecraft-versions)
           echo "MINECRAFT_VERSIONS_JSON=$JSON" >> $GITHUB_OUTPUT
 
       - name: Get Release Metadata
