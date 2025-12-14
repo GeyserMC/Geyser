@@ -69,7 +69,7 @@ jobs:
         if: ${{ (success() || failure()) && github.repository == 'lukeeey/Geyser' }}
         id: get-minecraft-versions
         run: |
-          JSON=$(./gradlew -q :bootstrap:standalone:printMinecraftVersions)
+          JSON=$(./gradlew -q :standalone:printMinecraftVersions)
           echo "MINECRAFT_VERSIONS_JSON=$JSON" >> $GITHUB_OUTPUT
 
       - name: Get Release Metadata
