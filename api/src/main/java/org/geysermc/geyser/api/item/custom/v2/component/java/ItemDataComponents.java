@@ -121,6 +121,16 @@ public interface ItemDataComponents {
      */
     DataComponent<Boolean> ENCHANTMENT_GLINT_OVERRIDE = create("enchantment_glint_override");
 
+    DataComponent<AttackRange> ATTACK_RANGE = create("attack_range");
+
+    DataComponent<KineticWeapon> KINETIC_WEAPON = create("kinetic_weapon");
+
+    DataComponent<PiercingWeapon> PIERCING_WEAPON = create("piercing_weapon");
+
+    DataComponent<SwingAnimation> SWING_ANIMATION = create("swing_animation");
+
+    DataComponent<UseEffects> USE_EFFECTS = create("use_effects");
+
     private static <T> DataComponent<T> create(String id) {
         return create(id, t -> true);
     }
