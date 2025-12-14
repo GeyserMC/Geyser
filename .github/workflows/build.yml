@@ -69,7 +69,7 @@ jobs:
         if: ${{ (success() || failure()) && github.repository == 'lukeeey/Geyser' }}
         id: get-minecraft-versions
         run: |
-          JSON=$(java -jar bootstrap/standalone/build/libs/Geyser-Standalone.jar --print-minecraft-versions 2>/dev/null)
+          JSON=$(java -jar bootstrap/standalone/build/libs/Geyser-Standalone.jar --print-minecraft-versions | grep -m1 '^{')
           JSON_B64=$(echo "$JSON" | base64 -w 0)
           echo "MINECRAFT_VERSIONS_JSON=$JSON_B64" >> $GITHUB_OUTPUT
 
