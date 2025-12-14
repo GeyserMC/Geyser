@@ -1,0 +1,14 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.geyser.disable": {
+			"loop": true,
+			"override_previous_animation": true,
+			"bones": {
+				"root": {
+					"scale": 0
+				}
+			}
+		}
+	}
+}

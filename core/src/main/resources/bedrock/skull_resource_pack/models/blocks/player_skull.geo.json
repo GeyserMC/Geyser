@@ -1,0 +1,73 @@
+{
+    "format_version": "1.16.0",
+    "minecraft:geometry": [
+        {
+            "description": {
+                "identifier": "geometry.geyser.player_skull",
+                "texture_width": 48,
+                "texture_height": 16
+            },
+            "bones": [
+                {
+                    "name": "root",
+                    "binding": "c.item_slot == 'head' ? 'head' : q.item_slot_to_bone_name(c.item_slot)",
+                    "pivot": [0, 8, 0]
+                },
+                {
+                    "name": "root_x",
+                    "parent": "root",
+                    "pivot": [0, 8, 0]
+                },
+                {
+                    "name": "root_y",
+                    "parent": "root_x",
+                    "pivot": [0, 8, 0]
+                },
+                {
+                    "name": "root_z",
+                    "parent": "root_y",
+                    "pivot": [0, 8, 0]
+                },
+                {
+                    "name": "player_skull",
+                    "parent": "root_z",
+                    "pivot": [0, 24, 0],
+                    "cubes": [
+                        {
+                            "origin": [-4, 8, -4],
+                            "size": [8, 8, 8],
+                            "uv": {
+                                "north": {"uv": [8, 0], "uv_size": [8, 8]},
+                                "east": {"uv": [0, 0], "uv_size": [8, 8]},
+                                "south": {"uv": [24, 0], "uv_size": [8, 8]},
+                                "west": {"uv": [16, 0], "uv_size": [8, 8]},
+                                "up": {"uv": [32, 0], "uv_size": [8, 8]},
+                                "down": {"uv": [40, 8], "uv_size": [8, -8]}
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "player_skull_hat",
+                    "parent": "player_skull",
+                    "pivot": [0, 24, 0],
+                    "cubes": [
+                        {
+                            "origin": [-4, 8, -4],
+                            "size": [8, 8, 8],
+                            "inflate": 0.25,
+                            "uv": {
+                                "north": {"uv": [8, 8], "uv_size": [8, 8]},
+                                "east": {"uv": [0, 8], "uv_size": [8, 8]},
+                                "south": {"uv": [24, 8], "uv_size": [8, 8]},
+                                "west": {"uv": [16, 8], "uv_size": [8, 8]},
+                                "up": {"uv": [32, 8], "uv_size": [8, 8]},
+                                "down": {"uv": [40, 16], "uv_size": [8, -8]}
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
