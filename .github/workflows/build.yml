@@ -59,21 +59,21 @@ jobs:
           ORG_GRADLE_PROJECT_geysermcPassword: ${{ secrets.DEPLOY_PASS }}
         
       - name: Get Version
-        if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
+        if: ${{ (success() || failure()) && github.repository == 'lukeeey/Geyser' }}
         id: get-version
         run: |
           version=$(cat gradle.properties | grep -o "version=[0-9\\.]*" | cut -d"=" -f2)
           echo "VERSION=${version}" >> $GITHUB_OUTPUT
 
       - name: Get Supported Minecraft Versions
-        if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
+        if: ${{ (success() || failure()) && github.repository == 'lukeeey/Geyser' }}
         id: get-minecraft-versions
         run: |
           JSON=$(./gradlew -q :bootstrap:standalone:printMinecraftVersions)
           echo "MINECRAFT_VERSIONS_JSON=$JSON" >> $GITHUB_OUTPUT
 
       - name: Get Release Metadata
-        if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
+        if: ${{ (success() || failure()) && github.repository == 'lukeeey/Geyser' }}
         uses: lukeeey/actions/release@master
         id: metadata
         with:
