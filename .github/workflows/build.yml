@@ -1,4 +1,4 @@
-name: Build  .
+name: Build  
 
 on:
   workflow_dispatch:
@@ -71,7 +71,7 @@ jobs:
         run: |
           JSON=$(java -jar bootstrap/standalone/build/libs/Geyser-Standalone.jar --print-minecraft-versions)
           JSON_B64=$(echo "$JSON" | base64 -w 0)
-          echo "MINECRAFT_VERSIONS_JSON_B64=$JSON_B64" >> $GITHUB_OUTPUT
+          echo "MINECRAFT_VERSIONS_JSON=$JSON_B64" >> $GITHUB_OUTPUT
 
       - name: Get Release Metadata
         if: ${{ (success() || failure()) && github.repository == 'lukeeey/Geyser' }}
