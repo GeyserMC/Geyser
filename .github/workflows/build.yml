@@ -70,7 +70,8 @@ jobs:
         id: get-minecraft-versions
         run: |
           JSON=$(java -jar bootstrap/standalone/build/libs/Geyser-Standalone.jar --print-minecraft-versions)
-          echo "MINECRAFT_VERSIONS_JSON=$JSON" >> $GITHUB_OUTPUT
+          JSON_B64=$(echo "$JSON" | base64)
+          echo "MINECRAFT_VERSIONS_JSON_B64=$JSON_B64" >> $GITHUB_OUTPUT
 
       - name: Get Release Metadata
         if: ${{ (success() || failure()) && github.repository == 'lukeeey/Geyser' }}
