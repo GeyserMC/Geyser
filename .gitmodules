@@ -1,0 +1,6 @@
+[submodule "core/src/main/resources/mappings"]
+	path = core/src/main/resources/mappings
+	url = https://github.com/GeyserMC/mappings.git
+[submodule "core/src/main/resources/languages"]
+	path = core/src/main/resources/languages
+	url = https://github.com/GeyserMC/languages.git

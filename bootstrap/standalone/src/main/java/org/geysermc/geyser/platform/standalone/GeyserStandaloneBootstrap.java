@@ -150,8 +150,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             }
         }
         
-        bootstrap.useGui=useGuiOpts;
-        bootstrap.configFilename=configFilenameOpt;
+        bootstrap.useGui = useGuiOpts;
+        bootstrap.configFilename = configFilenameOpt;
         bootstrap.onGeyserInitialize();
     }
 
@@ -224,8 +224,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     }
 
     /**
-     * Check using {@link java.awt.GraphicsEnvironment} that we are a headless
-     * client
+     * Check using {@link java.awt.GraphicsEnvironment} that we are a headless client
      *
      * @return If the current environment is headless
      */
@@ -352,8 +351,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
             try {
                 setConfigOption(subNode, configKey.getValue());
-                geyserLogger.info(GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.set_config_option",
-                        configKey.getKey(), configKey.getValue()));
+                geyserLogger.info(GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.set_config_option", configKey.getKey(), configKey.getValue()));
             } catch (SerializationException e) {
                 geyserLogger.error("Failed to set config option: " + path);
             }
