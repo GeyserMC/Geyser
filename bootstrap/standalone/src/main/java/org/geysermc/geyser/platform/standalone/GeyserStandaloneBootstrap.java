@@ -54,11 +54,15 @@ import org.spongepowered.configurate.serialize.SerializationException;
 import com.google.gson.Gson;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.PrintStream;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -82,6 +86,17 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     public static void main(String[] args) {
         if (System.getProperty("io.netty.leakDetection.level") == null) {
             ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.DISABLED); // Can eat performance
+        }
+
+        // This is parsed by the CI to include in the Downloads API
+        if (List.of(args).contains("--print-minecraft-versions")) {
+             System.out.println(
+                new Gson().toJson(Map.of(
+                    "bedrock", GameProtocol.SUPPORTED_BEDROCK_VERSIONS.stream().map(MinecraftVersion::versionString).collect(Collectors.toList()),
+                    "java", GameProtocol.getJavaVersions()
+                ))
+            );
+            return;
         }
 
         System.setProperty("java.util.logging.manager", "org.apache.logging.log4j.jul.LogManager");
@@ -117,16 +132,6 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                     System.out.println("    -c, --config [file]    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.config"));
                     System.out.println("    -h, --help             " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.help"));
                     System.out.println("    --gui, --nogui         " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.gui"));
-                    return;
-                }
-                // This is parsed by the CI to include in the Downloads API
-                case "--print-minecraft-versions" -> {
-                    System.out.println(
-                        new Gson().toJson(Map.of(
-                            "bedrock", GameProtocol.SUPPORTED_BEDROCK_VERSIONS.stream().map(MinecraftVersion::versionString).collect(Collectors.toList()),
-                            "java", GameProtocol.getJavaVersions()
-                        ))
-                    );
                     return;
                 }
                 default -> {
