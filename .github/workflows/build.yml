@@ -65,6 +65,13 @@ jobs:
           version=$(cat gradle.properties | grep -o "version=[0-9\\.]*" | cut -d"=" -f2)
           echo "VERSION=${version}" >> $GITHUB_OUTPUT
 
+      - name: Get Supported Minecraft Versions
+        if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
+        id: get-minecraft-versions
+        run: |
+          JSON=$(./gradlew -q :bootstrap:standalone:printMinecraftVersions)
+          echo "MINECRAFT_VERSIONS_JSON=$JSON" >> $GITHUB_OUTPUT
+
       - name: Get Release Metadata
         if: ${{ (success() || failure()) && github.repository == 'GeyserMC/Geyser' }}
         uses: GeyserMC/actions/release@master
@@ -84,6 +91,7 @@ jobs:
           saveMetadata: true
           releaseProject: 'geyser'
           releaseVersion: ${{ steps.get-version.outputs.VERSION }}
+          minecraftVersions: ${{ steps.get-minecraft-versions.outputs.MINECRAFT_VERSIONS_JSON }}
 
       - name: Publish to Downloads API
         if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}

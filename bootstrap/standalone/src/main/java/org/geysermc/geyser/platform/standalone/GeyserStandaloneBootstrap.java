@@ -33,6 +33,7 @@ import org.apache.logging.log4j.core.Logger;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.standalone.StandaloneCloudCommandManager;
@@ -40,6 +41,7 @@ import org.geysermc.geyser.configuration.ConfigLoader;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.configuration.GeyserRemoteConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.standalone.gui.GeyserStandaloneGUI;
@@ -49,6 +51,8 @@ import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.NodePath;
 import org.spongepowered.configurate.serialize.SerializationException;
 
+import com.google.gson.Gson;
+
 import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.file.Path;
@@ -56,6 +60,7 @@ import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
@@ -114,6 +119,16 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                     System.out.println("    --gui, --nogui         " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.gui"));
                     return;
                 }
+                // This is parsed by the CI to include in the Downloads API
+                case "--print-minecraft-versions" -> {
+                    System.out.println(
+                        new Gson().toJson(Map.of(
+                            "bedrock", GameProtocol.SUPPORTED_BEDROCK_VERSIONS.stream().map(MinecraftVersion::versionString).collect(Collectors.toList()),
+                            "java", GameProtocol.getJavaVersions()
+                        ))
+                    );
+                    return;
+                }
                 default -> {
                     // We have likely added a config option argument
                     if (arg.startsWith("--")) {
@@ -129,8 +144,9 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
                 }
             }
         }
-        bootstrap.useGui = useGuiOpts;
-        bootstrap.configFilename = configFilenameOpt;
+        
+        bootstrap.useGui=useGuiOpts;
+        bootstrap.configFilename=configFilenameOpt;
         bootstrap.onGeyserInitialize();
     }
 
@@ -203,7 +219,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     }
 
     /**
-     * Check using {@link java.awt.GraphicsEnvironment} that we are a headless client
+     * Check using {@link java.awt.GraphicsEnvironment} that we are a headless
+     * client
      *
      * @return If the current environment is headless
      */
@@ -330,7 +347,8 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
 
             try {
                 setConfigOption(subNode, configKey.getValue());
-                geyserLogger.info(GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.set_config_option", configKey.getKey(), configKey.getValue()));
+                geyserLogger.info(GeyserLocale.getLocaleStringLog("geyser.bootstrap.args.set_config_option",
+                        configKey.getKey(), configKey.getValue()));
             } catch (SerializationException e) {
                 geyserLogger.error("Failed to set config option: " + path);
             }
