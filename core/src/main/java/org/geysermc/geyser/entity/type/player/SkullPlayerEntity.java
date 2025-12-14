@@ -28,12 +28,9 @@ package org.geysermc.geyser.entity.type.player;
 import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.data.GameType;
-import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -41,9 +38,10 @@ import org.geysermc.geyser.level.block.type.WallSkullBlock;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
-import org.geysermc.geyser.skin.SkullSkinManager;
-import org.geysermc.geyser.translator.item.ItemTranslator;
+import org.geysermc.geyser.skin.SkinManager;
+import org.geysermc.geyser.util.PlayerListUtils;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -84,10 +82,12 @@ public class SkullPlayerEntity extends AvatarEntity {
             updateBedrockMetadata();
 
             skullUUID = skull.getUuid();
+            PlayerListUtils.batchSendPlayerList(session, List.of(SkinManager.buildCachedEntry(session, this)), PlayerListPacket.Action.ADD);
             setSkin(skull.getTexturesProperty(), false, () -> session.scheduleInEventLoop(() -> {
                 // Delay to minimize split-second "player" pop-in
                 setFlag(EntityFlag.INVISIBLE, false);
                 updateBedrockMetadata();
+                PlayerListUtils.batchSendPlayerList(session, List.of(new PlayerListPacket.Entry(uuid)), PlayerListPacket.Action.REMOVE);
             }, 250, TimeUnit.MILLISECONDS));
         } else {
             // Just a rotation/position change

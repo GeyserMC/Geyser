@@ -37,6 +37,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.Blocks;
@@ -59,7 +60,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeT
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 
-public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
+public class VehicleComponent<T extends Entity & ClientVehicle> {
     private static final ObjectDoublePair<Fluid> EMPTY_FLUID_PAIR = ObjectDoublePair.of(Fluid.EMPTY, 0.0);
     private static final float MAX_LOGICAL_FLUID_HEIGHT = 8.0f / BlockStateValues.NUM_FLUID_LEVELS;
     private static final float BASE_SLIPPERINESS_CUBED = 0.6f * 0.6f * 0.6f;
@@ -383,7 +384,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
     // Mojmap: LivingEntity#travelInFluid
     protected void waterMovement(VehicleContext ctx) {
         double gravity = getGravity();
-        float drag = vehicle.getFlag(EntityFlag.SPRINTING) ? 0.9f : 0.8f; // 0.8f: getBaseMovementSpeedMultiplier
+        float drag = vehicle.getFlag(EntityFlag.SPRINTING) ? 0.9f : getWaterSlowDown();
         double originalY = ctx.centerPos().getY();
         boolean falling = vehicle.getMotion().getY() <= 0;
 
@@ -416,6 +417,10 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
         if (horizontalCollision && shouldApplyFluidJumpBoost(ctx, originalY)) {
             vehicle.setMotion(Vector3f.from(vehicle.getMotion().getX(), 0.3f, vehicle.getMotion().getZ()));
         }
+    }
+
+    protected float getWaterSlowDown() {
+        return 0.8f;
     }
 
     protected void lavaMovement(VehicleContext ctx, double lavaHeight) {
@@ -917,7 +922,7 @@ public class VehicleComponent<T extends LivingEntity & ClientVehicle> {
             // Reuse block cache if vehicle moved less than 1 block
             if (this.cachePos == null || this.cachePos.distanceSquared(this.centerPos) > 1) {
                 BoundingBox box = boundingBox.clone();
-                box.expand(2);
+                box.expand(2.0001);
 
                 Vector3i min = box.getMin().toInt();
                 Vector3i max = box.getMax().toInt();
