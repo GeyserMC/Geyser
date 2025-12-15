@@ -70,6 +70,9 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
     @Getter
     protected final BoundingBox boundingBox;
 
+    @Getter
+    private boolean inWater;
+
     protected float stepHeight;
     @Getter @Setter
     protected float moveSpeed;
@@ -165,8 +168,6 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         //
     }
 
-    @Getter
-    private boolean inWater;
     /**
      * Called every session tick while the player is mounted on the vehicle.
      */
