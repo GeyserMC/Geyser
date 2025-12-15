@@ -89,16 +89,19 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
         }
 
         if (getFlag(EntityFlag.TAMED)) {
-            if (itemInHand.asItem().javaIdentifier().endsWith("_nautilus_armor") && !getItemInSlot(EquipmentSlot.BODY).isEmpty() && !getFlag(EntityFlag.BABY)) {
-                return InteractiveTag.EQUIP_WOLF_ARMOR; // TODO
+            if (itemInHand.asItem().javaIdentifier().endsWith("_nautilus_armor") && getItemInSlot(EquipmentSlot.BODY).isEmpty() && !getFlag(EntityFlag.BABY)) {
+                return InteractiveTag.EQUIP_NAUTILUS_ARMOR;
             }
             if (itemInHand.is(Items.SHEARS) && !getItemInSlot(EquipmentSlot.BODY).isEmpty()
                     && (!isCurseOfBinding || session.getGameMode().equals(GameMode.CREATIVE))) {
-                return InteractiveTag.REMOVE_WOLF_ARMOR; // TODO
+                return InteractiveTag.REMOVE_NAUTILUS_ARMOR;
             }
             if (itemInHand.is(session, repairableItems) &&
                     !getItemInSlot(EquipmentSlot.BODY).isEmpty() && getItemInSlot(EquipmentSlot.BODY).isDamaged()) {
-                return InteractiveTag.REPAIR_WOLF_ARMOR; // TODO
+                return InteractiveTag.REPAIR_WOLF_ARMOR;
+            }
+            if (itemInHand.isEmpty()) {
+                return InteractiveTag.RIDE_HORSE; // Does not appear to be a specific interaction for Nautilus; needs ProxyPass verification
             }
         } else if (getFlag(EntityFlag.BABY) || getFlag(EntityFlag.TAMED)) {
             if (itemInHand.is(session, ItemTag.NAUTILUS_FOOD)) {
