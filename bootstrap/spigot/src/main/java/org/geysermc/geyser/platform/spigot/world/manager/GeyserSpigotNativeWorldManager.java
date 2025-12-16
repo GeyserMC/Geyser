@@ -30,6 +30,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.adapters.WorldAdapter;
 import org.geysermc.geyser.adapters.paper.PaperAdapters;
 import org.geysermc.geyser.adapters.spigot.SpigotAdapters;
@@ -67,6 +68,9 @@ public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
         } catch (NoSuchMethodError | NoClassDefFoundError e) {
             // Fallback for incompatible adapter versions (e.g., MC 1.21.11)
             // This happens when TagKey.location() is not available or NMS classes are missing
+            GeyserImpl.getInstance().getLogger().debug("Failed to retrieve biome suggestions from adapter: " 
+                    + e.getClass().getSimpleName() + " - " + e.getMessage() 
+                    + ". Biome suggestions will be unavailable for Bedrock players.");
             return null;
         }
     }
