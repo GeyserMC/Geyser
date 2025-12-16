@@ -79,7 +79,7 @@ public class ItemEntity extends ThrowableEntity {
         if (!isOnGround() || (motion.getX() * motion.getX() + motion.getZ() * motion.getZ()) > 0.00001) {
             float gravity = getGravity();
             motion = motion.down(gravity);
-            moveAbsoluteImmediate(position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
+            moveAbsoluteImmediate(position().add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
             float drag = getDrag();
             motion = motion.mul(drag, 0.98f, drag);
         }
@@ -118,7 +118,7 @@ public class ItemEntity extends ThrowableEntity {
             this.offset = Math.abs(offset);
         }
         super.moveAbsoluteImmediate(javaPosition, 0, 0, 0, isOnGround, teleported);
-        this.position = javaPosition;
+        position(javaPosition);
 
         waterLevel = session.getGeyser().getWorldManager().getBlockAtAsync(session, javaPosition.getFloorX(), javaPosition.getFloorY(), javaPosition.getFloorZ())
                 .thenApply(BlockStateValues::getWaterLevel);
@@ -137,7 +137,7 @@ public class ItemEntity extends ThrowableEntity {
     @Override
     protected float getDrag() {
         if (isOnGround()) {
-            Vector3i groundBlockPos = position.toInt().down();
+            Vector3i groundBlockPos = position().toInt().down();
             BlockState blockState = session.getGeyser().getWorldManager().blockAt(session, groundBlockPos);
             return BlockStateValues.getSlipperiness(blockState) * 0.98f;
         }

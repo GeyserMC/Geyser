@@ -1,5 +1,7 @@
 package org.geysermc.geyser.api.entity.data;
 
+import org.geysermc.geyser.api.entity.data.types.Hitbox;
+
 /**
  * Contains commonly used {@link GeyserEntityDataType} constants for built-in entity
  * metadata fields.
@@ -47,6 +49,12 @@ public final class GeyserEntityDataTypes {
      */
     public static final GeyserEntityDataType<Float> SCALE =
         GeyserEntityDataType.of(Float.class, "scale");
+
+    /**
+     * Represents custom hitboxes for entities
+     */
+    public static final GeyserListEntityDataType<Hitbox> HITBOXES =
+        GeyserListEntityDataType.of(Hitbox.class, "hitboxes");
 
     private GeyserEntityDataTypes() {
         // no-op

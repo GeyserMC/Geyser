@@ -43,7 +43,7 @@ public class ThrowableEntity extends Entity implements Tickable {
 
     public ThrowableEntity(EntitySpawnContext context) {
         super(context);
-        this.lastJavaPosition = position;
+        this.lastJavaPosition = position();
     }
 
     /**
@@ -55,7 +55,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         if (removedInVoid()) {
             return;
         }
-        moveAbsoluteImmediate(position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
+        moveAbsoluteImmediate(position().add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
         float drag = getDrag();
         float gravity = getGravity();
         motion = motion.mul(drag).down(gravity);
@@ -75,15 +75,15 @@ public class ThrowableEntity extends Entity implements Tickable {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
         }
 
-        if (this.position.getX() != javaPosition.getX()) {
+        if (this.position().getX() != javaPosition.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
             moveEntityDeltaPacket.setX(javaPosition.getX());
         }
-        if (this.position.getY() != javaPosition.getY()) {
+        if (this.position().getY() != javaPosition.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
             moveEntityDeltaPacket.setY(javaPosition.getY() + offset);
         }
-        if (this.position.getZ() != javaPosition.getZ()) {
+        if (this.position().getZ() != javaPosition.getZ()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
             moveEntityDeltaPacket.setZ(javaPosition.getZ());
         }
@@ -155,7 +155,7 @@ public class ThrowableEntity extends Entity implements Tickable {
      * @return true if this entity is currently in water.
      */
     protected boolean isInWater() {
-        int block = session.getGeyser().getWorldManager().getBlockAt(session, position.toInt());
+        int block = session.getGeyser().getWorldManager().getBlockAt(session, position().toInt());
         return BlockStateValues.getWaterLevel(block) != -1;
     }
 
@@ -173,7 +173,7 @@ public class ThrowableEntity extends Entity implements Tickable {
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         moveAbsoluteImmediate(lastJavaPosition.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
-        lastJavaPosition = position;
+        lastJavaPosition = position();
     }
 
     @Override
@@ -188,7 +188,7 @@ public class ThrowableEntity extends Entity implements Tickable {
      * @return true if the entity was removed
      */
     public boolean removedInVoid() {
-        if (position.getY() < session.getDimensionType().minY() - 64) {
+        if (position().getY() < session.getDimensionType().minY() - 64) {
             session.getEntityCache().removeEntity(this);
             return true;
         }

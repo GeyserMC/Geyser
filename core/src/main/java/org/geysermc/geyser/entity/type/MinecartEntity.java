@@ -194,7 +194,7 @@ public class MinecartEntity extends Entity implements Tickable {
     }
 
     private void updateCompletedStep() {
-        lastCompletedStep = new MinecartStep(position.toDouble(), motion.toDouble(), yaw, pitch, 0.0F);
+        lastCompletedStep = new MinecartStep(position().toDouble(), motion.toDouble(), yaw, pitch, 0.0F);
     }
 
     @Override

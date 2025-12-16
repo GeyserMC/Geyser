@@ -113,7 +113,9 @@ public class Entity implements GeyserEntity {
      * The entity position as it is known to the Java server
      */
     @Accessors(fluent = true)
-    protected Vector3f position;
+    private Vector3f position;
+    @Setter(AccessLevel.NONE)
+    private Vector3f bedrockPosition;
     protected Vector3f motion;
 
     /**
@@ -708,8 +710,13 @@ public class Entity implements GeyserEntity {
         return this.valid;
     }
 
+    public void position(Vector3f position) {
+        this.position = position;
+        this.bedrockPosition = position.up(offset);
+    }
+
     public Vector3f bedrockPosition() {
-        return position.up(offset);
+        return bedrockPosition;
     }
 
     /**
@@ -860,10 +867,10 @@ public class Entity implements GeyserEntity {
         }
     }
 
-    public void offset(float offset) {
+    public void offset(float offset, boolean teleport) {
         this.offset = offset;
         // TODO queue?
-        if (isValid()) {
+        if (isValid() && teleport) {
             this.moveRelative(0, 0, 0, 0, 0, isOnGround());
         }
     }

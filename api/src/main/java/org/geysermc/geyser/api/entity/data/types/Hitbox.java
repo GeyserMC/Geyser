@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,49 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type;
+package org.geysermc.geyser.api.entity.data.types;
 
-import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.util.InteractionResult;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.api.GeyserApi;
 
-public class LeashKnotEntity extends Entity {
+/**
+ * Represents an entity hitbox.
+ */
+public interface Hitbox {
 
-    public LeashKnotEntity(EntitySpawnContext context) {
-        super(context);
-        // Position is incorrect by default
-        // TODO offset
-        position(position().add(0.5f, 0.25f, 0.5f));
+    /**
+     * The min "corner" of the hitbox
+     * @return the vector of the corner
+     */
+    Vector3f min();
+
+    /**
+     * The max "corner" of the hitbox
+     * @return the vector of the corner
+     */
+    Vector3f max();
+
+    /**
+     * The pivot of the hitbox
+     * @return
+     */
+    Vector3f pivot();
+
+    static Builder builder() {
+        return GeyserApi.api().provider(Builder.class);
     }
 
-    @Override
-    public InteractionResult interact(Hand hand) {
-        // Un-leashing the knot
-        return InteractionResult.SUCCESS;
+    /**
+     * The builder for the hitbox
+     */
+    interface Builder {
+
+        Builder min(Vector3f min);
+
+        Builder max(Vector3f max);
+
+        Builder origin(Vector3f pivot);
+
+        Hitbox build();
     }
 }

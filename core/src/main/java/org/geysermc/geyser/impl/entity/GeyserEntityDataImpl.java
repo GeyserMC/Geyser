@@ -50,7 +50,7 @@ public class GeyserEntityDataImpl<T> implements GeyserEntityDataType<T> {
         TYPES.put("scale", new GeyserEntityDataImpl<>(Float.class, "scale", EntityDataTypes.SCALE));
 
         // "custom"
-        TYPES.put("vertical_offset", new GeyserEntityDataImpl<>(Float.class, "offset", Entity::offset, Entity::getOffset));
+        TYPES.put("vertical_offset", new GeyserEntityDataImpl<>(Float.class, "offset", (entity, value) -> entity.offset(value, true), Entity::getOffset));
     }
 
     public static GeyserEntityDataImpl<?> lookup(Class<?> clazz, String name) {

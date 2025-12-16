@@ -64,7 +64,7 @@ public class FireballEntity extends ThrowableEntity {
             newPosition = tickMovement(newPosition);
         }
         super.moveAbsoluteImmediate(newPosition, yaw, pitch, headYaw, isOnGround, teleported);
-        this.position = javaPosition;
+        position(javaPosition);
         this.motion = lastMotion;
     }
 
@@ -73,6 +73,6 @@ public class FireballEntity extends ThrowableEntity {
         if (removedInVoid()) {
             return;
         }
-        moveAbsoluteImmediate(tickMovement(position), getYaw(), getPitch(), getHeadYaw(), false, false);
+        moveAbsoluteImmediate(tickMovement(position()), getYaw(), getPitch(), getHeadYaw(), false, false);
     }
 }

@@ -128,7 +128,7 @@ public class SquidEntity extends AgeableWaterEntity implements Tickable {
         if (getFlag(EntityFlag.RIDING)) {
             inWater = CompletableFuture.completedFuture(false);
         } else {
-            inWater = session.getGeyser().getWorldManager().getBlockAtAsync(session, position.toInt())
+            inWater = session.getGeyser().getWorldManager().getBlockAtAsync(session, position().toInt())
                     .thenApply(block -> BlockStateValues.getWaterLevel(block) != -1);
         }
     }

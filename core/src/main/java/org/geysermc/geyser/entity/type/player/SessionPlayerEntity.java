@@ -163,11 +163,11 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
-        session.getCollisionManager().updatePlayerBoundingBox(this.position);
+        session.getCollisionManager().updatePlayerBoundingBox(position());
     }
 
     @Override
-    public Entity position(Vector3f position) {
+    public void position(Vector3f position) {
         if (valid) { // Don't update during session init
             session.getCollisionManager().updatePlayerBoundingBox(position);
 
@@ -175,8 +175,7 @@ public class SessionPlayerEntity extends PlayerEntity {
                 session.setNoClip(false);
             }
         }
-        this.position = position;
-        return this;
+        super.position(position);
     }
 
     /**
@@ -212,10 +211,10 @@ public class SessionPlayerEntity extends PlayerEntity {
      * Set the player's position from a position sent in a Bedrock packet
      */
     public void setPositionFromBedrock(Vector3f position) {
-        this.position = position.down(offset);
+        position(position.down(offset));
 
         // Player is "above" the void so they're not supposed to no clip.
-        if (session.isNoClip() && this.position.getY() >= session.getBedrockDimension().minY() - 5) {
+        if (session.isNoClip() && position().getY() >= session.getBedrockDimension().minY() - 5) {
             session.setNoClip(false);
         }
     }
@@ -497,7 +496,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         if (session.getGameMode() == GameMode.SPECTATOR) {
             return false;
         }
-        BlockState state = session.getGeyser().getWorldManager().blockAt(session, position.toInt());
+        BlockState state = session.getGeyser().getWorldManager().blockAt(session, position().toInt());
         if (state.block().is(session, BlockTag.CLIMBABLE)) {
             return true;
         }
@@ -506,7 +505,7 @@ public class SessionPlayerEntity extends PlayerEntity {
             if (!state.getValue(Properties.OPEN)) {
                 return false;
             } else {
-                BlockState belowState = session.getGeyser().getWorldManager().blockAt(session, position.toInt().down());
+                BlockState belowState = session.getGeyser().getWorldManager().blockAt(session, position().toInt().down());
                 return belowState.is(Blocks.LADDER) && belowState.getValue(Properties.HORIZONTAL_FACING) == state.getValue(Properties.HORIZONTAL_FACING);
             }
         }

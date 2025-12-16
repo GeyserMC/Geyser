@@ -113,7 +113,7 @@ public class FishingHookEntity extends ThrowableEntity {
         if (!collided) {
             super.moveAbsoluteImmediate(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
         } else {
-            super.moveAbsoluteImmediate(this.position, yaw, pitch, headYaw, true, true);
+            super.moveAbsoluteImmediate(this.position(), yaw, pitch, headYaw, true, true);
         }
     }
 
@@ -144,7 +144,7 @@ public class FishingHookEntity extends ThrowableEntity {
         float gravity = getGravity();
         motion = motion.down(gravity);
 
-        moveAbsoluteImmediate(position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
+        moveAbsoluteImmediate(position().add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
 
         float drag = getDrag();
         motion = motion.mul(drag);
@@ -162,7 +162,7 @@ public class FishingHookEntity extends ThrowableEntity {
      * @return true if this entity is currently in air.
      */
     protected boolean isInAir() {
-        int block = session.getGeyser().getWorldManager().getBlockAt(session, position.toInt());
+        int block = session.getGeyser().getWorldManager().getBlockAt(session, position().toInt());
         return block == Block.JAVA_AIR_ID;
     }
 

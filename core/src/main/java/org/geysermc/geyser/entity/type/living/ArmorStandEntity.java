@@ -92,11 +92,9 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void spawnEntity() {
-        Vector3f javaPosition = position;
         // Apply the offset if we're the second entity
-        position = position.up(getYOffset());
+        offset(getYOffset(), false);
         super.spawnEntity();
-        position = javaPosition;
     }
 
     @Override
@@ -109,7 +107,7 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveAbsolute(position.add(relX, relY, relZ), yaw, pitch, headYaw, onGround, false);
+        moveAbsolute(position().add(relX, relY, relZ), yaw, pitch, headYaw, onGround, false);
     }
 
     @Override
@@ -118,9 +116,8 @@ public class ArmorStandEntity extends LivingEntity {
             secondEntity.moveAbsolute(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
         }
         // Fake the height to be above where it is so the nametag appears in the right location
-        float yOffset = getYOffset();
-        super.moveAbsolute(yOffset != 0 ? javaPosition.up(yOffset) : javaPosition, yaw, yaw, yaw, isOnGround, teleported);
-        this.position = javaPosition;
+        offset(getYOffset(), false);
+        super.moveAbsolute(javaPosition, yaw, yaw, yaw, isOnGround, teleported);
     }
 
     @Override
@@ -240,7 +237,7 @@ public class ArmorStandEntity extends LivingEntity {
         super.updateBedrockMetadata();
         if (positionUpdateRequired) {
             positionUpdateRequired = false;
-            moveAbsolute(position, yaw, pitch, headYaw, onGround, true);
+            moveAbsolute(position(), yaw, pitch, headYaw, onGround, true);
         }
     }
 
@@ -341,8 +338,7 @@ public class ArmorStandEntity extends LivingEntity {
             if (secondEntity == null) {
                 // Create the second entity. It doesn't need to worry about the items, but it does need to worry about
                 // the metadata as it will hold the name tag.
-                // TODO
-                secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, VanillaEntities.ARMOR_STAND, this, position));
+                secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, VanillaEntities.ARMOR_STAND, this, position()));
                 secondEntity.primaryEntity = false;
             }
             // Copy metadata

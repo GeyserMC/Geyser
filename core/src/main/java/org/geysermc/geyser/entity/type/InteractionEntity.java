@@ -119,7 +119,7 @@ public class InteractionEntity extends Entity {
 
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveAbsolute(position.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
+        moveAbsolute(position().add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
     }
 
     @Override
@@ -141,7 +141,7 @@ public class InteractionEntity extends Entity {
         setBoundingBoxHeight(Math.min(height.getPrimitiveValue(), 64f));
 
         if (secondEntity != null) {
-            secondEntity.moveAbsolute(position.up(getBoundingBoxHeight()), yaw, pitch, onGround, true);
+            secondEntity.moveAbsolute(position().up(getBoundingBoxHeight()), yaw, pitch, onGround, true);
         }
     }
 
@@ -159,7 +159,7 @@ public class InteractionEntity extends Entity {
         }
 
         if (this.secondEntity == null) {
-            secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, VanillaEntities.ARMOR_STAND, this, position.up(getBoundingBoxHeight())));
+            secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, VanillaEntities.ARMOR_STAND, this, position().up(getBoundingBoxHeight())));
         }
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, isNameTagVisible ? (byte) 1 : (byte) 0);

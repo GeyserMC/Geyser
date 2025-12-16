@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type;
+package org.geysermc.geyser.api.entity.data;
 
-import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.util.InteractionResult;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.geyser.api.GeyserApi;
 
-public class LeashKnotEntity extends Entity {
+import java.util.List;
 
-    public LeashKnotEntity(EntitySpawnContext context) {
-        super(context);
-        // Position is incorrect by default
-        // TODO offset
-        position(position().add(0.5f, 0.25f, 0.5f));
-    }
+/**
+ * Represents a list of objects for an entity data types
+ * For example, there can be multiple hitboxes on an entity
+ *
+ * @param <T>
+ */
+public interface GeyserListEntityDataType<T> extends GeyserEntityDataType<List<T>> {
 
-    @Override
-    public InteractionResult interact(Hand hand) {
-        // Un-leashing the knot
-        return InteractionResult.SUCCESS;
+    Class<T> listTypeClass();
+
+    /**
+     * API usage only, use the types defined in {@link GeyserEntityDataTypes}
+     */
+    static <T> GeyserListEntityDataType<T> of(Class<T> typeClass, String name) {
+        return GeyserApi.api().provider(GeyserListEntityDataType.class, List.class, typeClass, name);
     }
 }

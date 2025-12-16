@@ -89,7 +89,6 @@ import java.util.function.Consumer;
 public final class EntityUtils {
 
     private static final AtomicInteger RUNTIME_ID_ALLOCATOR = new AtomicInteger(100000);
-    public static final float PLAYER_ENTITY_OFFSET = 1.62F;
 
     /**
      * A constant array of the two hands that a player can interact with an entity.
