@@ -65,6 +65,8 @@ public interface NodeReader<T> {
 
     NodeReader<Double> POSITIVE_DOUBLE = DOUBLE.validate(d -> d > 0, "number must be positive");
 
+    NodeReader<Float> FLOAT = DOUBLE.andThen(Double::floatValue);
+
     NodeReader<Boolean> BOOLEAN = node -> {
         // Not directly using getAsBoolean here since that doesn't convert integers and doesn't throw an error when the string is not "true" or "false"
         if (node.isString()) {
@@ -150,6 +152,10 @@ public interface NodeReader<T> {
 
     static NodeReader<Integer> boundedInt(int min, int max) {
         return INT.validate(i -> i >= min && i <= max, "integer must be in range [" + min + ", " + max + "]");
+    }
+
+    static NodeReader<Double> boundedDouble(double min, double max) {
+        return DOUBLE.validate(d -> d >= min && d <= max, "number must be in range [" + min + ", " + max + "]");
     }
 
     /**

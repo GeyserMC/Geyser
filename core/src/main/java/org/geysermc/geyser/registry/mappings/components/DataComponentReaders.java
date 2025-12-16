@@ -31,16 +31,22 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.item.custom.impl.PiercingWeaponImpl;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
+import org.geysermc.geyser.registry.mappings.components.readers.AttackRangeReader;
 import org.geysermc.geyser.registry.mappings.components.readers.BooleanComponentReader;
 import org.geysermc.geyser.registry.mappings.components.readers.ConsumableReader;
 import org.geysermc.geyser.registry.mappings.components.readers.EnchantableReader;
 import org.geysermc.geyser.registry.mappings.components.readers.EquippableReader;
 import org.geysermc.geyser.registry.mappings.components.readers.FoodPropertiesReader;
 import org.geysermc.geyser.registry.mappings.components.readers.IntComponentReader;
+import org.geysermc.geyser.registry.mappings.components.readers.KineticWeaponReader;
 import org.geysermc.geyser.registry.mappings.components.readers.RepairableReader;
+import org.geysermc.geyser.registry.mappings.components.readers.SwingAnimationReader;
 import org.geysermc.geyser.registry.mappings.components.readers.ToolPropertiesReader;
+import org.geysermc.geyser.registry.mappings.components.readers.UnitReader;
 import org.geysermc.geyser.registry.mappings.components.readers.UseCooldownReader;
+import org.geysermc.geyser.registry.mappings.components.readers.UseEffectsReader;
 import org.geysermc.geyser.util.MinecraftKey;
 
 import java.util.HashMap;
@@ -74,5 +80,10 @@ public class DataComponentReaders {
         READERS.put(MinecraftKey.key("tool"), new ToolPropertiesReader());
         READERS.put(MinecraftKey.key("repairable"), new RepairableReader());
         READERS.put(MinecraftKey.key("enchantment_glint_override"), new BooleanComponentReader(ItemDataComponents.ENCHANTMENT_GLINT_OVERRIDE));
+        READERS.put(MinecraftKey.key("attack_range"), new AttackRangeReader());
+        READERS.put(MinecraftKey.key("kinetic_weapon"), new KineticWeaponReader());
+        READERS.put(MinecraftKey.key("piercing_weapon"), new UnitReader<>(ItemDataComponents.PIERCING_WEAPON, PiercingWeaponImpl.INSTANCE));
+        READERS.put(MinecraftKey.key("swing_animation"), new SwingAnimationReader());
+        READERS.put(MinecraftKey.key("use_effects"), new UseEffectsReader());
     }
 }
