@@ -69,21 +69,29 @@ public class DataComponentReaders {
         reader.read(builder, element, "component " + key, baseContext);
     }
 
+    private static void register(DataComponentReader<?> reader) {
+        Key key = MinecraftKey.identifierToKey(reader.type().identifier());
+        if (READERS.containsKey(key)) {
+            throw new IllegalStateException("Duplicate component reader for component: " + reader.type().identifier());
+        }
+        READERS.put(key, reader);
+    }
+
     static {
-        READERS.put(MinecraftKey.key("consumable"), new ConsumableReader());
-        READERS.put(MinecraftKey.key("equippable"), new EquippableReader());
-        READERS.put(MinecraftKey.key("food"), new FoodPropertiesReader());
-        READERS.put(MinecraftKey.key("max_damage"), new IntComponentReader(ItemDataComponents.MAX_DAMAGE, 0));
-        READERS.put(MinecraftKey.key("max_stack_size"), new IntComponentReader(ItemDataComponents.MAX_STACK_SIZE, 1, 99));
-        READERS.put(MinecraftKey.key("use_cooldown"), new UseCooldownReader());
-        READERS.put(MinecraftKey.key("enchantable"), new EnchantableReader());
-        READERS.put(MinecraftKey.key("tool"), new ToolPropertiesReader());
-        READERS.put(MinecraftKey.key("repairable"), new RepairableReader());
-        READERS.put(MinecraftKey.key("enchantment_glint_override"), new BooleanComponentReader(ItemDataComponents.ENCHANTMENT_GLINT_OVERRIDE));
-        READERS.put(MinecraftKey.key("attack_range"), new AttackRangeReader());
-        READERS.put(MinecraftKey.key("kinetic_weapon"), new KineticWeaponReader());
-        READERS.put(MinecraftKey.key("piercing_weapon"), new UnitReader<>(ItemDataComponents.PIERCING_WEAPON, PiercingWeaponImpl.INSTANCE));
-        READERS.put(MinecraftKey.key("swing_animation"), new SwingAnimationReader());
-        READERS.put(MinecraftKey.key("use_effects"), new UseEffectsReader());
+        register(new ConsumableReader());
+        register(new EquippableReader());
+        register(new FoodPropertiesReader());
+        register(new IntComponentReader(ItemDataComponents.MAX_DAMAGE, 0));
+        register(new IntComponentReader(ItemDataComponents.MAX_STACK_SIZE, 1, 99));
+        register(new UseCooldownReader());
+        register(new EnchantableReader());
+        register(new ToolPropertiesReader());
+        register(new RepairableReader());
+        register(new BooleanComponentReader(ItemDataComponents.ENCHANTMENT_GLINT_OVERRIDE));
+        register(new AttackRangeReader());
+        register(new KineticWeaponReader());
+        register(new UnitReader<>(ItemDataComponents.PIERCING_WEAPON, PiercingWeaponImpl.INSTANCE));
+        register(new SwingAnimationReader());
+        register(new UseEffectsReader());
     }
 }
