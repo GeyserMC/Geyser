@@ -249,8 +249,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // As of 1.21, Paper does not have any additional range checks that would inconvenience normal players.
-                        Vector3f playerPosition = session.getPlayerEntity().position().down(session.getEyeHeight());
-                        if (!canInteractWithBlock(session, playerPosition, packetBlockPosition)) {
+                        Vector3f playerEyeHeight = session.getPlayerEntity().position().up(session.getEyeHeight());
+                        if (!canInteractWithBlock(session, playerEyeHeight, packetBlockPosition)) {
                             BlockUtils.restoreCorrectBlock(session, blockPos);
                             return;
                         }
@@ -555,17 +555,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         double additionalRangeCheck = blockInteractionRange + 1.0d;
 
         // AABB.<init>(BlockPos)
-        float minX = packetBlockPosition.getX();
-        float minY = packetBlockPosition.getY();
-        float minZ = packetBlockPosition.getZ();
-        float maxX = packetBlockPosition.getX() + 1;
-        float maxY = packetBlockPosition.getY() + 1;
-        float maxZ = packetBlockPosition.getZ() + 1;
+        double minX = packetBlockPosition.getX();
+        double minY = packetBlockPosition.getY();
+        double minZ = packetBlockPosition.getZ();
+        double maxX = packetBlockPosition.getX() + 1;
+        double maxY = packetBlockPosition.getY() + 1;
+        double maxZ = packetBlockPosition.getZ() + 1;
 
         // AABB#distanceToSqr
-        float diffX = Math.max(Math.max(minX - playerPosition.getX(), playerPosition.getX() - maxX), 0);
-        float diffY = Math.max(Math.max(minY - playerPosition.getY(), playerPosition.getY() - maxY), 0);
-        float diffZ = Math.max(Math.max(minZ - playerPosition.getZ(), playerPosition.getZ() - maxZ), 0);
+        double diffX = Math.max(Math.max(minX - playerPosition.getX(), playerPosition.getX() - maxX), 0);
+        double diffY = Math.max(Math.max(minY - playerPosition.getY(), playerPosition.getY() - maxY), 0);
+        double diffZ = Math.max(Math.max(minZ - playerPosition.getZ(), playerPosition.getZ() - maxZ), 0);
         return ((diffX * diffX) + (diffY * diffY) + (diffZ * diffZ)) < (additionalRangeCheck * additionalRangeCheck);
     }
 

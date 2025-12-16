@@ -489,9 +489,8 @@ public class BlockBreakHandler {
             }
         }
 
-        Vector3f playerPosition = session.getPlayerEntity().position();
-        playerPosition = playerPosition.down(session.getEyeHeight());
-        return BedrockInventoryTransactionTranslator.canInteractWithBlock(session, playerPosition, vector);
+        Vector3f playerEyeHeight = session.getPlayerEntity().position().up(session.getEyeHeight());
+        return BedrockInventoryTransactionTranslator.canInteractWithBlock(session, playerEyeHeight, vector);
     }
 
     protected boolean canDestroyBlock(BlockState state) {
