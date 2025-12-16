@@ -29,6 +29,7 @@ import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.InputInteractionModel;
 import org.cloudburstmc.protocol.bedrock.data.InputMode;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -243,7 +244,19 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         // TODO: Should we also check for protocol version here? If yes then this should be test on multiple platform first.
         boolean inClientPredictedVehicle = packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE);
         if (vehicle instanceof ClientVehicle) {
-            session.getPlayerEntity().setVehicleInput(packet.getMotion());
+            // Classic input mode for boat vehicle send PADDLE_LEFT/RIGHT instead of motion values.
+            boolean isMobileAndClassicMovement = packet.getInputMode() == InputMode.TOUCH && packet.getInputInteractionModel() == InputInteractionModel.CLASSIC;
+            if (isMobileAndClassicMovement && vehicle instanceof BoatEntity) {
+                // Press both left and right to move forward and press 1 to turn the boat.
+                boolean left = packet.getInputData().contains(PlayerAuthInputData.PADDLE_LEFT), right = packet.getInputData().contains(PlayerAuthInputData.PADDLE_RIGHT);
+                if (left && right) {
+                    session.getPlayerEntity().setVehicleInput(Vector2f.UNIT_Y);
+                } else {
+                    session.getPlayerEntity().setVehicleInput(Vector2f.UNIT_X.mul(left ? 1 : right ? -1 : 0));
+                }
+            } else {
+                session.getPlayerEntity().setVehicleInput(packet.getMotion());
+            }
         }
 
         boolean sendMovement = false;
