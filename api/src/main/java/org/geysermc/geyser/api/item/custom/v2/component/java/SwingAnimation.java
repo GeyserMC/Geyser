@@ -30,25 +30,61 @@ import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
 
+/**
+ * The swing animation component is used to specify the swing animation to play when attacking or interacting using the item.
+ *
+ * <p>Currently, only the duration property is supported on Bedrock.</p>
+ */
 public interface SwingAnimation {
 
+    /**
+     * The duration of the swing animation, in ticks. Defaults to 6.
+     *
+     * @return the duration of the swing animation, in ticks
+     */
     @Positive int duration();
 
+    /**
+     * Creates a builder for the swing animation component.
+     *
+     * @return a new builder
+     */
     static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
     }
 
+    /**
+     * Creates a swing animation component.
+     *
+     * @param duration the duration of the swing animation, in ticks
+     * @return the new swing animation component.
+     */
     static SwingAnimation of(@Positive int duration) {
         return builder()
             .duration(duration)
             .build();
     }
 
+    /**
+     * Builder for the swing animation component.
+     */
     interface Builder extends GenericBuilder<SwingAnimation> {
 
+        /**
+         * Sets the duration of the swing animation, in ticks.
+         *
+         * @param duration the duration of the swing animation, in ticks
+         * @see SwingAnimation#duration()
+         * @return this builder
+         */
         @This
         Builder duration(@Positive int duration);
 
+        /**
+         * Creates the swing animation component.
+         *
+         * @return the new component
+         */
         @Override
         SwingAnimation build();
     }

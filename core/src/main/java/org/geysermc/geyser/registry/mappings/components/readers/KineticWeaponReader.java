@@ -46,10 +46,7 @@ public class KineticWeaponReader extends DataComponentReader<KineticWeapon> {
     protected KineticWeapon readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
         return new KineticWeaponImpl(
             MappingsUtil.readOrDefault(element, "delay_ticks", NodeReader.NON_NEGATIVE_INT, 0, context),
-            readCondition(element, "dismount_conditions", context),
-            readCondition(element, "knockback_conditions", context),
-            readCondition(element, "damage_conditions", context),
-            MappingsUtil.readOrDefault(element, "damage_multiplier", NodeReader.FLOAT, 1.0F, context)
+            readCondition(element, "dismount_conditions", context)
         );
     }
 

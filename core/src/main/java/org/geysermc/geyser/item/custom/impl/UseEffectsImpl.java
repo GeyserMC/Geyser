@@ -28,18 +28,11 @@ package org.geysermc.geyser.item.custom.impl;
 import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.item.custom.v2.component.java.UseEffects;
 
-public record UseEffectsImpl(boolean interactVibrations, @IntRange(from = 0, to = 1) float speedMultiplier) implements UseEffects {
-    public static final UseEffects DEFAULT = new UseEffectsImpl(true, 0.2F);
+public record UseEffectsImpl(@IntRange(from = 0, to = 1) float speedMultiplier) implements UseEffects {
+    public static final UseEffects DEFAULT = new Builder().build();
 
     public static class Builder implements UseEffects.Builder {
-        private boolean interactVibrations = true;
         private float speedMultiplier = 0.2F;
-
-        @Override
-        public Builder interactVibrations(boolean interactVibrations) {
-            this.interactVibrations = interactVibrations;
-            return this;
-        }
 
         @Override
         public Builder speedMultiplier(@IntRange(from = 0, to = 1) float speedMultiplier) {
@@ -52,7 +45,7 @@ public record UseEffectsImpl(boolean interactVibrations, @IntRange(from = 0, to 
 
         @Override
         public UseEffects build() {
-            return new UseEffectsImpl(interactVibrations, speedMultiplier);
+            return new UseEffectsImpl(speedMultiplier);
         }
     }
 }

@@ -30,24 +30,60 @@ import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
 
+/**
+ * The use effects component is used to specify how the player behaves when using the item.
+ *
+ * <p>Currently, the {@code can_sprint} property is not supported on Bedrock.</p>
+ */
 public interface UseEffects {
 
-    boolean interactVibrations();
-
+    /**
+     * The speed multiplier to apply to the player while using the item. Defaults to 0.2.
+     *
+     * @return the speed multiplier to apply while using the item
+     */
     @IntRange(from = 0, to = 1) float speedMultiplier();
 
+    /**
+     * Creates a builder for the use effects component.
+     *
+     * @return a new builder
+     */
     static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
     }
 
+    /**
+     * Creates a use effects component.
+     *
+     * @param speedMultiplier the speed multiplier to apply while using the item
+     * @return the new use effects component.
+     */
+    static UseEffects of(@IntRange(from = 0, to = 1) float speedMultiplier) {
+        return builder()
+            .speedMultiplier(speedMultiplier)
+            .build();
+    }
+
+    /**
+     * Builder for the use effects component.
+     */
     interface Builder extends GenericBuilder<UseEffects> {
 
-        @This
-        Builder interactVibrations(boolean interactVibrations);
-
+        /**
+         * Sets the speed multiplier to apply while using the item.
+         *
+         * @param speedMultiplier the speed multiplier to apply while using the item
+         * @return this builder
+         */
         @This
         Builder speedMultiplier(@IntRange(from = 0, to = 1) float speedMultiplier);
 
+        /**
+         * Creates the use effects component.
+         *
+         * @return the new component
+         */
         @Override
         UseEffects build();
     }

@@ -30,39 +30,117 @@ import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
 
+/**
+ * The attack range component is used to specify the
+ * attack ranges of an item. Because of limitations on Bedrock, these only apply to items that also have
+ * a {@link ItemDataComponents#KINETIC_WEAPON} or a {@link ItemDataComponents#PIERCING_WEAPON} component.
+ */
 public interface AttackRange {
 
+    /**
+     * The minimum distance in blocks from the user to the target for the user to be able to attack that target. Defaults to 0.
+     *
+     * @return the minimum distance for attacks, in blocks
+     */
     @IntRange(from = 0, to = 64) float minReach();
 
+    /**
+     * The maximum distance in blocks from the user to the target for the user to be able to attack that target. Defaults to 3.
+     *
+     * @return the maximum distance for attacks, in blocks
+     */
     @IntRange(from = 0, to = 64) float maxReach();
 
+    /**
+     * The minimum distance in blocks from the user to the target for the user to be able to attack that target, if the user is in creative mode. Defaults to 0.
+     *
+     * @return the minimum distance for attacks made in creative mode, in blocks
+     */
     @IntRange(from = 0, to = 64) float minCreativeReach();
 
+    /**
+     * The maximum distance in blocks from the user to the target for the user to be able to attack that target, if the user is in creative mode. Defaults to 5.
+     *
+     * @return the maximum distance for attacks made in creative mode, in blocks
+     */
     @IntRange(from = 0, to = 64) float maxCreativeReach();
 
+    /**
+     * The margin applied to the target hitbox when attacking. Defaults to 0.3.
+     *
+     * @return the margin applied to the target hitbox when attacking
+     */
     @IntRange(from = 0, to = 1) float hitboxMargin();
 
+    /**
+     * Creates a builder for the attack range component.
+     *
+     * @return a new builder
+     */
     static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
     }
 
+    /**
+     * Builder for the attack range component.
+     */
     interface Builder extends GenericBuilder<AttackRange> {
 
+        /**
+         * Sets the minimum distance for attacks, in blocks.
+         *
+         * @param minReach the minimum distance for attacks, in blocks
+         * @see AttackRange#minReach()
+         * @return this builder
+         */
         @This
         Builder minReach(@IntRange(from = 0, to = 64) float minReach);
 
+        /**
+         * Sets the maximum distance for attacks, in blocks.
+         *
+         * @param maxReach the maximum distance for attacks, in blocks
+         * @see AttackRange#maxReach()
+         * @return this builder
+         */
         @This
         Builder maxReach(@IntRange(from = 0, to = 64) float maxReach);
 
+        /**
+         * Sets the minimum distance for attacks made in creative mode, in blocks.
+         *
+         * @param minCreativeReach the minimum distance for attacks made in creative mode, in blocks
+         * @see AttackRange#minCreativeReach()
+         * @return this builder
+         */
         @This
         Builder minCreativeReach(@IntRange(from = 0, to = 64) float minCreativeReach);
 
+        /**
+         * Sets the maximum distance for attacks made in creative mode, in blocks.
+         *
+         * @param maxCreativeReach the maximum distance for attacks made in creative mode, in blocks
+         * @see AttackRange#maxCreativeReach()
+         * @return this builder
+         */
         @This
         Builder maxCreativeReach(@IntRange(from = 0, to = 64) float maxCreativeReach);
 
+        /**
+         * Sets the margin applied to the target hitbox when attacking.
+         *
+         * @param hitboxMargin the margin applied to the target hitbox when attacking
+         * @see AttackRange#hitboxMargin()
+         * @return this builder
+         */
         @This
         Builder hitboxMargin(@IntRange(from = 0, to = 1) float hitboxMargin);
 
+        /**
+         * Creates the attack range component.
+         *
+         * @return the new component
+         */
         @Override
         AttackRange build();
     }

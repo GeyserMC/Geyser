@@ -29,15 +29,11 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.v2.component.java.KineticWeapon;
 
-public record KineticWeaponImpl(@NonNegative int delayTicks, @Nullable Condition dismountConditions, @Nullable Condition knockbackConditions,
-                                @Nullable Condition damageConditions, float damageMultiplier) implements KineticWeapon {
+public record KineticWeaponImpl(@NonNegative int delayTicks, @Nullable Condition dismountConditions) implements KineticWeapon {
 
     public static class Builder implements KineticWeapon.Builder {
         private int delayTicks = 0;
         private Condition dismountConditions = null;
-        private Condition knockbackConditions = null;
-        private Condition damageConditions = null;
-        private float damageMultiplier = 1.0F;
 
         @Override
         public Builder delayTicks(int delayTicks) {
@@ -55,26 +51,8 @@ public record KineticWeaponImpl(@NonNegative int delayTicks, @Nullable Condition
         }
 
         @Override
-        public Builder knockbackConditions(@Nullable Condition knockbackConditions) {
-            this.knockbackConditions = knockbackConditions;
-            return this;
-        }
-
-        @Override
-        public Builder damageConditions(@Nullable Condition damageConditions) {
-            this.damageConditions = damageConditions;
-            return this;
-        }
-
-        @Override
-        public Builder damageMultiplier(float damageMultiplier) {
-            this.damageMultiplier = damageMultiplier;
-            return this;
-        }
-
-        @Override
         public KineticWeapon build() {
-            return new KineticWeaponImpl(delayTicks, dismountConditions, knockbackConditions, damageConditions, damageMultiplier);
+            return new KineticWeaponImpl(delayTicks, dismountConditions);
         }
     }
 

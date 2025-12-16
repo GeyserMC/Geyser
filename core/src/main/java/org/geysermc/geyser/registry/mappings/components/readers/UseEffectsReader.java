@@ -44,7 +44,6 @@ public class UseEffectsReader extends DataComponentReader<UseEffects> {
     @Override
     protected UseEffects readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
         return new UseEffectsImpl(
-            MappingsUtil.readOrDefault(element, "interact_vibrations", NodeReader.BOOLEAN, true, context),
             MappingsUtil.readOrDefault(element, "speed_multiplier", NodeReader.boundedDouble(0.0, 1.0).andThen(Double::floatValue), 0.2F, context)
         );
     }

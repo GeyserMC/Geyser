@@ -615,13 +615,10 @@ public class CustomItemRegistryPopulator {
         NbtMapBuilder component = NbtMap.builder()
             .putShort("delay", (short) weapon.delayTicks())
             .putFloat("damage_modifier", 0.0F)
-            .putFloat("damage_multiplier", weapon.damageMultiplier());
+            .putFloat("damage_multiplier", 1.0F);
 
         addAttackRangeProperties(component, attackRange);
-
         addKineticConditionMap(component, "dismount_conditions", weapon.dismountConditions());
-        addKineticConditionMap(component, "knockback_conditions", weapon.knockbackConditions());
-        addKineticConditionMap(component, "damage_conditions", weapon.damageConditions());
 
         componentBuilder.putCompound("minecraft:kinetic_weapon", component.build());
     }
@@ -644,7 +641,6 @@ public class CustomItemRegistryPopulator {
         itemProperties.putInt("use_duration", (int) (useDuration * 20));
 
         componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
-            .putBoolean("emit_vibrations", effects.interactVibrations())
             .putFloat("movement_modifier", effects.speedMultiplier()) // TODO: test if this is 1-to-1 with Java, it probably isn't
             .putFloat("use_duration", useDuration)
             .build());

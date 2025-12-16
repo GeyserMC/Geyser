@@ -32,26 +32,58 @@ import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
 
+/**
+ * The kinetic weapon component is used to specify a spear-like attack when the item is in use.
+ */
 public interface KineticWeapon {
 
+    /**
+     * The minimum use time, in ticks, required for the weapon to be active. Defaults to 0.
+     *
+     * @return the minimum use time, in ticks, required for the weapon to be active
+     */
     @NonNegative int delayTicks();
 
+    /**
+     * The condition that has to meet for the attacker to dismount the target.
+     *
+     * @return the condition to dismount the target
+     */
     @Nullable Condition dismountConditions();
 
-    @Nullable Condition knockbackConditions();
-
-    @Nullable Condition damageConditions();
-
-    float damageMultiplier();
-
+    /**
+     * Creates a builder for the kinetic weapon component.
+     *
+     * @return a new builder
+     */
     static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
     }
 
+    /**
+     * Creates a new {@link Condition}.
+     *
+     * @param maxDurationTicks the time in ticks after which the condition is no longer checked
+     * @see Condition
+     * @see Condition#maxDurationTicks()
+     * @return the new {@link Condition}
+     */
     static Condition condition(@NonNegative int maxDurationTicks) {
         return condition(maxDurationTicks, 0.0F, 0.0F);
     }
 
+    /**
+     * Creates a new {@link Condition}.
+     *
+     * @param maxDurationTicks the time in ticks after which the condition is no longer checked
+     * @param minSpeed the minimum speed of the attacker, in blocks per second
+     * @param minRelativeSpeed the minimum relative speed between the attacker and the target, in blocks per second
+     * @see Condition
+     * @see Condition#maxDurationTicks()
+     * @see Condition#minSpeed()
+     * @see Condition#minRelativeSpeed()
+     * @return the new {@link Condition}
+     */
     static Condition condition(@NonNegative int maxDurationTicks, float minSpeed, float minRelativeSpeed) {
         return Condition.builder(maxDurationTicks)
             .minSpeed(minSpeed)
@@ -59,62 +91,116 @@ public interface KineticWeapon {
             .build();
     }
 
+    /**
+     * Builder for the kinetic weapon component.
+     */
     interface Builder extends GenericBuilder<KineticWeapon> {
 
+        /**
+         * Sets the minimum use time, in ticks, required for the weapon to be active.
+         *
+         * @param delayTicks the minimum use time, in ticks, required for the weapon to be active
+         * @see KineticWeapon#delayTicks()
+         * @return this builder
+         */
         @This
         Builder delayTicks(@NonNegative int delayTicks);
 
+        /**
+         * Shorthand for {@link Builder#dismountConditions(Condition)}.
+         */
         @This
         default Builder dismountConditions(Condition.@NonNull Builder dismountConditions) {
             return dismountConditions(dismountConditions.build());
         }
 
+        /**
+         * Sets the condition to dismount the target.
+         *
+         * @param dismountConditions the condition to dismount the target
+         * @see KineticWeapon#dismountConditions()
+         * @return this builder
+         */
         @This
         Builder dismountConditions(@Nullable Condition dismountConditions);
 
-        @This
-        default Builder knockbackConditions(Condition.@NonNull Builder knockbackConditions) {
-            return knockbackConditions(knockbackConditions.build());
-        }
-
-        @This
-        Builder knockbackConditions(@Nullable Condition knockbackConditions);
-
-        @This
-        default Builder damageConditions(Condition.@NonNull Builder damageConditions) {
-            return damageConditions(damageConditions.build());
-        }
-
-        @This
-        Builder damageConditions(@Nullable Condition damageConditions);
-
-        @This
-        Builder damageMultiplier(float damageMultiplier);
-
+        /**
+         * Creates the kinetic weapon component.
+         *
+         * @return the new component
+         */
         @Override
         KineticWeapon build();
     }
 
+    /**
+     * A condition used during the attack of a {@link KineticWeapon}/
+     */
     interface Condition {
 
+        /**
+         * The time in ticks after which the condition is no longer checked (and thus always fails), starting once {@link KineticWeapon#delayTicks()} has passed.
+         *
+         * @return the time in ticks after which the condition is no longer checked
+         */
         @NonNegative int maxDurationTicks();
 
+        /**
+         * The minimum speed of the attacker, in blocks per second, required for the condition to pass. Defaults to 0.
+         *
+         * @return the minimum speed of the attacker, in blocks per second
+         */
         float minSpeed();
 
+        /**
+         * The minimum relative speed between the attacker and the target, in blocks per second, required for the condition to pass. Defaults to 0.
+         *
+         * @return the minimum relative speed between the attacker and the target, in blocks per second
+         */
         float minRelativeSpeed();
 
+        /**
+         * Creates a builder for a {@link Condition}.
+         *
+         * @param maxDurationTicks the time in ticks after which the condition is no longer checked
+         * @see Condition
+         * @see Condition#maxDurationTicks()
+         * @return a new builder
+         */
         static Builder builder(@NonNegative int maxDurationTicks) {
             return GeyserApi.api().provider(Builder.class, maxDurationTicks);
         }
 
+        /**
+         * Builder for a {@link Condition}.
+         */
         interface Builder extends GenericBuilder<Condition> {
 
+            /**
+             * Sets the minimum speed of the attacker, in blocks per second.
+             *
+             * @param minSpeed the minimum speed of the attacker, in blocks per second
+             * @see Condition#minSpeed()
+             * @return this builder
+             */
             @This
             Builder minSpeed(float minSpeed);
 
+            /**
+             * Sets the minimum relative speed between the attacker and the target, in blocks per second.
+             *
+             * @param minRelativeSpeed the minimum relative speed between the attacker and the target, in blocks per second
+             * @see Condition#minRelativeSpeed()
+             * @return this builder
+             */
             @This
             Builder minRelativeSpeed(float minRelativeSpeed);
 
+            /**
+             * Creates the {@link Condition}.
+             *
+             * @return the new {@link Condition}
+             */
             @Override
             Condition build();
         }

@@ -121,14 +121,41 @@ public interface ItemDataComponents {
      */
     DataComponent<Boolean> ENCHANTMENT_GLINT_OVERRIDE = create("enchantment_glint_override");
 
+    /**
+     * Specifies the attack ranges of an item. Due to Bedrock limitations, only has an effect in combination with the {@link ItemDataComponents#KINETIC_WEAPON} or
+     * {@link ItemDataComponents#PIERCING_WEAPON} components.
+     *
+     * @see AttackRange
+     */
     DataComponent<AttackRange> ATTACK_RANGE = create("attack_range");
 
+    /**
+     * Specifies a spear-like attack when the item is in use. Only properties required on the Bedrock client are translated.
+     *
+     * @see KineticWeapon
+     */
     DataComponent<KineticWeapon> KINETIC_WEAPON = create("kinetic_weapon");
 
+    /**
+     * Specifies a stab-like attack when using the item. Only properties required on the Bedrock client are translated.
+     *
+     * @see PiercingWeapon
+     */
     DataComponent<PiercingWeapon> PIERCING_WEAPON = create("piercing_weapon");
 
+    /**
+     * Specifies the swing animation to play when attacking or interacting using the item. Due to Bedrock limitations, the actual animation played
+     * cannot be specified, only the duration of the animation.
+     *
+     * @see SwingAnimation
+     */
     DataComponent<SwingAnimation> SWING_ANIMATION = create("swing_animation");
 
+    /**
+     * Specifies how the player behaves when using the item. Due to Bedrock limitations, the {@code can_sprint} property cannot be translated.
+     *
+     * @see UseEffects
+     */
     DataComponent<UseEffects> USE_EFFECTS = create("use_effects");
 
     private static <T> DataComponent<T> create(String id) {
