@@ -29,6 +29,7 @@ import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.item.custom.v2.component.java.UseEffects;
 
 public record UseEffectsImpl(boolean interactVibrations, @IntRange(from = 0, to = 1) float speedMultiplier) implements UseEffects {
+    public static final UseEffects DEFAULT = new UseEffectsImpl(true, 0.2F);
 
     public static class Builder implements UseEffects.Builder {
         private boolean interactVibrations = true;

@@ -33,9 +33,17 @@ import java.util.Set;
 public interface DataComponentMap {
 
     /**
-     * @return  the value of the given component, or null if it is not in the map.
+     * @return the value of the given component, or null if it is not in the map.
      */
     <T> T get(DataComponent<T> type);
+
+    /**
+     * @return the value of the given component, or {@code fallback} if it is null.
+     */
+    default <T> T getOrDefault(DataComponent<T> type, T fallback) {
+        T value = get(type);
+        return value == null ? fallback : value;
+    }
 
     /**
      * @return all data components in this map.

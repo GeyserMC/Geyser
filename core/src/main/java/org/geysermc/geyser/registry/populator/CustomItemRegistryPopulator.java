@@ -44,8 +44,13 @@ import org.geysermc.geyser.api.item.custom.v2.component.geyser.BlockPlacer;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.Chargeable;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.ThrowableComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.java.AttackRange;
 import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.java.KineticWeapon;
+import org.geysermc.geyser.api.item.custom.v2.component.java.PiercingWeapon;
 import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.SwingAnimation;
+import org.geysermc.geyser.api.item.custom.v2.component.java.UseEffects;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
@@ -56,6 +61,8 @@ import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.impl.HoldersImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.custom.impl.AttackRangeImpl;
+import org.geysermc.geyser.item.custom.impl.UseEffectsImpl;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.NonVanillaItem;
@@ -93,8 +100,8 @@ public class CustomItemRegistryPopulator {
         Consumable.ItemUseAnimation.SPYGLASS, 10,
         Consumable.ItemUseAnimation.BRUSH, 12
     );
-    // This value has found to be closest to Java's item use speed modifier, after painstakingly comparing closely
-    private static final float ITEM_USE_SPEED_MODIFIER = 0.44F;
+    // default to high use duration to slow down the player
+    private static final float DEFAULT_ITEM_USE_DURATION = 1000.0F;
 
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<Identifier, CustomItemDefinition> customItems,
                                 Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems) {
@@ -278,19 +285,43 @@ public class CustomItemRegistryPopulator {
                 .build());
         }
 
-        Optional.ofNullable(context.components().get(DataComponentTypes.CONSUMABLE))
+        // TODO REPLACE EVERYTHING FROM HERE ON WITH MCPL COMPONENTS WHEN 1.21.11 IS HERE
+        AttackRange attackRange = context.definition().components().getOrDefault(ItemDataComponents.ATTACK_RANGE, AttackRangeImpl.DEFAULT);
+
+        KineticWeapon kineticWeapon = context.definition().components().get(ItemDataComponents.KINETIC_WEAPON);
+        if (kineticWeapon != null) {
+            computeKineticWeaponProperties(componentBuilder, kineticWeapon, attackRange);
+        }
+
+        PiercingWeapon piercingWeapon = context.definition().components().get(ItemDataComponents.PIERCING_WEAPON);
+        if (piercingWeapon != null) {
+            computePiercingWeaponProperties(componentBuilder, attackRange);
+        }
+
+        SwingAnimation swingAnimation = context.definition().components().get(ItemDataComponents.SWING_ANIMATION);
+        if (swingAnimation != null) {
+            computeSwingAnimationProperties(componentBuilder, swingAnimation);
+        }
+        // TODO END.
+
+        Optional<Consumable> consumableComponent = Optional.ofNullable(context.components().get(DataComponentTypes.CONSUMABLE))
             .or(() -> context.vanillaMapping().flatMap(mapping -> {
                 // If there is no consumable component, and the vanilla item is a trident, manually add a consumable component
                 // with a spear animation and a really high consume duration, to get the trident animation in 3rd-person working
                 if (mapping.getBedrockIdentifier().equals("minecraft:trident")) {
-                    return Optional.of(new Consumable(1000.0F, Consumable.ItemUseAnimation.SPEAR, null, false, List.of()));
+                    return Optional.of(new Consumable(DEFAULT_ITEM_USE_DURATION, Consumable.ItemUseAnimation.SPEAR, null, false, List.of()));
                 }
                 return Optional.empty();
-            }))
-            .ifPresent(consumable -> {
-                FoodProperties foodProperties = context.components().get(DataComponentTypes.FOOD);
-                computeConsumableProperties(consumable, foodProperties, itemProperties, componentBuilder);
-            });
+            }));
+
+        consumableComponent.ifPresent(consumable -> {
+            FoodProperties foodProperties = context.components().get(DataComponentTypes.FOOD);
+            computeConsumableProperties(consumable, foodProperties, itemProperties, componentBuilder);
+        });
+
+        computeUseEffectsProperties(itemProperties, componentBuilder,
+            context.definition().components().getOrDefault(ItemDataComponents.USE_EFFECTS, UseEffectsImpl.DEFAULT), // TODO same as above, all items have this component in 1.21.11
+            consumableComponent.map(Consumable::consumeSeconds));
 
         UseCooldown useCooldown = context.components().get(DataComponentTypes.USE_COOLDOWN);
         if (useCooldown != null) {
@@ -503,14 +534,6 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, Chargeable chargeable) {
-        // setting high use_duration to slow down the player
-        itemProperties.putInt("use_duration", Integer.MAX_VALUE);
-
-        componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
-            .putFloat("movement_modifier", ITEM_USE_SPEED_MODIFIER)
-            .putFloat("use_duration", 1000.0F)
-            .build());
-
         if (chargeable.chargeOnDraw()) {
             itemProperties.putInt("frame_count", 10);
         } else {
@@ -537,9 +560,6 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void computeConsumableProperties(Consumable consumable, @Nullable FoodProperties foodProperties, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
-        // this is the duration of the use animation in ticks; note that in behavior packs this is set as a float in seconds, but over the network it is an int in ticks
-        itemProperties.putInt("use_duration", (int) (consumable.consumeSeconds() * 20));
-
         Integer animationId = BEDROCK_ANIMATIONS.get(consumable.animation());
         if (animationId != null) {
             itemProperties.putInt("use_animation", animationId);
@@ -556,11 +576,6 @@ public class CustomItemRegistryPopulator {
             .putInt("nutrition", nutrition)
             .putFloat("saturation_modifier", saturationModifier)
             .putCompound("using_converts_to", NbtMap.EMPTY)
-            .build());
-
-        componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
-            .putFloat("movement_modifier", ITEM_USE_SPEED_MODIFIER)
-            .putFloat("use_duration", consumable.consumeSeconds())
             .build());
     }
 
@@ -594,6 +609,70 @@ public class CustomItemRegistryPopulator {
             .putFloat("duration", cooldown.seconds())
             .build()
         );
+    }
+
+    private static void computeKineticWeaponProperties(NbtMapBuilder componentBuilder, KineticWeapon weapon, AttackRange attackRange) {
+        NbtMapBuilder component = NbtMap.builder()
+            .putShort("delay", (short) weapon.delayTicks())
+            .putFloat("damage_modifier", 0.0F)
+            .putFloat("damage_multiplier", weapon.damageMultiplier());
+
+        addAttackRangeProperties(component, attackRange);
+
+        addKineticConditionMap(component, "dismount_conditions", weapon.dismountConditions());
+        addKineticConditionMap(component, "knockback_conditions", weapon.knockbackConditions());
+        addKineticConditionMap(component, "damage_conditions", weapon.damageConditions());
+
+        componentBuilder.putCompound("minecraft:kinetic_weapon", component.build());
+    }
+
+    private static void computePiercingWeaponProperties(NbtMapBuilder componentBuilder, AttackRange attackRange) {
+        componentBuilder.putCompound("minecraft:piercing_weapon", addAttackRangeProperties(NbtMap.builder(), attackRange).build());
+    }
+
+    private static void computeSwingAnimationProperties(NbtMapBuilder componentBuilder, SwingAnimation swingAnimation) {
+        componentBuilder.putCompound("minecraft:swing_duration", NbtMap.builder()
+            .putFloat("value", swingAnimation.duration() / 20.0F) // Java is in ticks, bedrock is in seconds
+            .build());
+    }
+
+    private static void computeUseEffectsProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder,
+                                                    UseEffects effects, Optional<Float> setUseDuration) {
+        float useDuration = setUseDuration.orElse(DEFAULT_ITEM_USE_DURATION);
+
+        // this is the duration of the use animation in ticks; note that in behavior packs this is set as a float in seconds, but over the network it is an int in ticks
+        itemProperties.putInt("use_duration", (int) (useDuration * 20));
+
+        componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
+            .putBoolean("emit_vibrations", effects.interactVibrations())
+            .putFloat("movement_modifier", effects.speedMultiplier()) // TODO: test if this is 1-to-1 with Java, it probably isn't
+            .putFloat("use_duration", useDuration)
+            .build());
+    }
+
+    private static NbtMapBuilder addAttackRangeProperties(NbtMapBuilder component, AttackRange attackRange) {
+        return component
+            .putCompound("reach", createReachMap(attackRange.minReach(), attackRange.maxReach()))
+            .putCompound("creative_reach", createReachMap(attackRange.minCreativeReach(), attackRange.maxCreativeReach()))
+            .putFloat("hitbox_margin", attackRange.hitboxMargin()); // TODO is this 1-to-1 with Java?
+    }
+
+    private static void addKineticConditionMap(NbtMapBuilder component, String key, KineticWeapon.@Nullable Condition condition) {
+        if (condition == null) {
+            return;
+        }
+        component.putCompound(key, NbtMap.builder()
+            .putShort("max_duration", (short) condition.maxDurationTicks())
+            .putFloat("min_speed", condition.minSpeed())
+            .putFloat("min_relative_speed", condition.minRelativeSpeed())
+            .build());
+    }
+
+    private static NbtMap createReachMap(float min, float max) {
+        return NbtMap.builder()
+            .putFloat("min", min)
+            .putFloat("max", max)
+            .build();
     }
 
     private static boolean isUnbreakableItem(CustomItemDefinition definition) {
