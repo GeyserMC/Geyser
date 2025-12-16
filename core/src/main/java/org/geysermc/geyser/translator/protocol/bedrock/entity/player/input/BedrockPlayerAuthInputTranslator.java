@@ -29,6 +29,7 @@ import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.InputInteractionModel;
 import org.cloudburstmc.protocol.bedrock.data.InputMode;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -41,6 +42,7 @@ import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.vehicle.HorseVehicleComponent;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -68,6 +70,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         session.setClientTicks(packet.getTick());
+        session.setInClientPredictedVehicle(packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE) && entity.getVehicle() != null);
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
@@ -211,7 +214,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         }
 
         // Only set steering values when the vehicle is a boat and when the client is actually in it
-        if (entity.getVehicle() instanceof BoatEntity && inputData.contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE)) {
+        if (entity.getVehicle() instanceof BoatEntity && session.isInClientPredictedVehicle()) {
             boolean up = inputData.contains(PlayerAuthInputData.UP);
             // Yes. These are flipped. Welcome to Bedrock edition.
             // Hi random stranger. I am six days into updating for 1.21.3. How's it going?
@@ -237,19 +240,34 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         if (vehicle == null) {
             return;
         }
+
+        // TODO: Should we also check for protocol version here? If yes then this should be test on multiple platform first.
+        boolean inClientPredictedVehicle = packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE);
         if (vehicle instanceof ClientVehicle) {
-            session.getPlayerEntity().setVehicleInput(packet.getMotion());
+            // Classic input mode for boat vehicle send PADDLE_LEFT/RIGHT instead of motion values.
+            boolean isMobileAndClassicMovement = packet.getInputMode() == InputMode.TOUCH && packet.getInputInteractionModel() == InputInteractionModel.CLASSIC;
+            if (isMobileAndClassicMovement && vehicle instanceof BoatEntity) {
+                // Press both left and right to move forward and press 1 to turn the boat.
+                boolean left = packet.getInputData().contains(PlayerAuthInputData.PADDLE_LEFT), right = packet.getInputData().contains(PlayerAuthInputData.PADDLE_RIGHT);
+                if (left && right) {
+                    session.getPlayerEntity().setVehicleInput(Vector2f.UNIT_Y);
+                } else {
+                    session.getPlayerEntity().setVehicleInput(Vector2f.UNIT_X.mul(left ? 1 : right ? -1 : 0));
+                }
+            } else {
+                session.getPlayerEntity().setVehicleInput(packet.getMotion());
+            }
         }
 
         boolean sendMovement = false;
         if (vehicle instanceof AbstractHorseEntity && !(vehicle instanceof LlamaEntity)) {
-            sendMovement = !(vehicle instanceof ClientVehicle);
+            sendMovement = inClientPredictedVehicle;
         } else if (vehicle instanceof BoatEntity) {
             // The player is either the only or the front rider.
-            sendMovement = vehicle.getPassengers().size() == 1 || session.getPlayerEntity().isRidingInFront();
+            sendMovement = inClientPredictedVehicle && (vehicle.getPassengers().size() == 1 || session.getPlayerEntity().isRidingInFront());
         }
 
-        if (vehicle instanceof AbstractHorseEntity && !vehicle.getFlag(EntityFlag.HAS_DASH_COOLDOWN)) {
+        if (vehicle instanceof AbstractHorseEntity horse && !vehicle.getFlag(EntityFlag.HAS_DASH_COOLDOWN)) {
             // Behavior verified as of Java Edition 1.21.3
             int currentJumpingTicks = session.getInputCache().getJumpingTicks();
             if (currentJumpingTicks < 0) {
@@ -268,6 +286,10 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     PlayerState.START_HORSE_JUMP, finalVehicleJumpStrength));
                 session.getInputCache().setJumpingTicks(-10);
                 session.getPlayerEntity().setVehicleJumpStrength(finalVehicleJumpStrength);
+
+                if (horse.getVehicleComponent() instanceof HorseVehicleComponent horseVehicleComponent) {
+                    horseVehicleComponent.setAllowStandSliding(true);
+                }
             } else if (!wasJumping && holdingJump) {
                 session.getInputCache().setJumpingTicks(0);
                 session.getInputCache().setJumpScale(0);
@@ -286,30 +308,24 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         if (sendMovement) {
             // We only need to determine onGround status this way for client predicted vehicles.
             // For other vehicle, Geyser already handle it in VehicleComponent or the Java server handle it.
-            if (packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE)) {
-                Vector3f position = vehicle.position();
+            Vector3f position = vehicle.position();
+            final BoundingBox box = new BoundingBox(
+                position.up(vehicle.getBoundingBoxHeight() / 2f).toDouble(),
+                vehicle.getBoundingBoxWidth(), vehicle.getBoundingBoxHeight(), vehicle.getBoundingBoxWidth()
+            );
 
-                final BoundingBox box = new BoundingBox(
-                    position.up(vehicle.getBoundingBoxHeight() / 2f).toDouble(),
-                    vehicle.getBoundingBoxWidth(), vehicle.getBoundingBoxHeight(), vehicle.getBoundingBoxWidth()
-                );
-
-                // Manually calculate the vertical collision ourselves, the VERTICAL_COLLISION input data is inaccurate inside a vehicle!
-                Vector3d movement = session.getPlayerEntity().getLastTickEndVelocity().toDouble();
-                Vector3d correctedMovement = session.getCollisionManager().correctMovementForCollisions(movement, box, true, false);
-
-                vehicle.setOnGround(correctedMovement.getY() != movement.getY() && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
-            }
+            // Manually calculate the vertical collision ourselves, the VERTICAL_COLLISION input data is inaccurate inside a vehicle!
+            Vector3d movement = session.getPlayerEntity().getLastTickEndVelocity().toDouble();
+            Vector3d correctedMovement = session.getCollisionManager().correctMovementForCollisions(movement, box, true, false);
+            vehicle.setOnGround(correctedMovement.getY() != movement.getY() && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
 
             Vector3f vehiclePosition = packet.getPosition().down(vehicle.getOffset());
             Vector2f vehicleRotation = packet.getVehicleRotation();
             if (vehicleRotation == null) {
-                return; // If the client just got in or out of a vehicle for example. Or if this vehicle isn't client predicted.
+                return; // If the client just got in or out of a vehicle for example.
             }
 
             if (session.getWorldBorder().isPassingIntoBorderBoundaries(vehiclePosition, false)) {
-                Vector3f position = vehicle.position();
-                // TODO offset
                 if (vehicle instanceof BoatEntity boat) {
                     // Undo the changes usually applied to the boat
                     boat.moveAbsoluteWithoutAdjustments(position, vehicle.getYaw(), vehicle.isOnGround(), true);
@@ -325,7 +341,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             vehicle.position(vehiclePosition);
             ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(
                 vehiclePosition.toDouble(),
-                vehicleRotation.getY() - 90, vehiclePosition.getX(), // TODO I wonder if this is related to the horse spinning bugs...
+                vehicle instanceof BoatEntity ? vehicleRotation.getY() - 90 : vehicleRotation.getY(), vehiclePosition.getX(),
                 vehicle.isOnGround()
             );
             session.sendDownstreamGamePacket(moveVehiclePacket);

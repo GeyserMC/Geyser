@@ -579,6 +579,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean steeringRight;
 
     /**
+     * Stores whether the player is inside a client predicted vehicle.
+     */
+    @Getter
+    @Setter
+    private boolean inClientPredictedVehicle;
+
+    /**
      * Store the last time the player interacted. Used to fix a right-click spam bug.
      * See <a href="https://github.com/GeyserMC/Geyser/issues/503">this</a> for context.
      */

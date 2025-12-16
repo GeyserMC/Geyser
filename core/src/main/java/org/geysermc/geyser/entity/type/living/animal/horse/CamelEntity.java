@@ -150,12 +150,6 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     }
 
     @Override
-    public Vector3f getRiddenInput(Vector2f input) {
-        input = input.mul(0.5f, input.getY() < 0 ? 0.25f : 1.0f);
-        return Vector3f.from(input.getX(), 0.0, input.getY());
-    }
-
-    @Override
     public boolean isClientControlled() {
         return getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.get(0) == session.getPlayerEntity();
     }
