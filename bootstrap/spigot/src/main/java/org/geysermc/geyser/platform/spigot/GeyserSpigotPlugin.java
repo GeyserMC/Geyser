@@ -205,6 +205,10 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             cloud.registerBrigadier();
         } catch (BukkitCommandManager.BrigadierInitializationException e) {
             geyserLogger.debug("Failed to initialize Brigadier support: " + e.getMessage());
+        } catch (ExceptionInInitializerError e) {
+            geyserLogger.debug("Failed to initialize Brigadier support due to NMS reflection error: " + e.getMessage());
+        } catch (Exception e) {
+            geyserLogger.debug("Failed to initialize Brigadier support: " + e.getClass().getSimpleName() + " - " + e.getMessage());
         }
 
         this.commandRegistry = new SpigotCommandRegistry(geyser, cloud);

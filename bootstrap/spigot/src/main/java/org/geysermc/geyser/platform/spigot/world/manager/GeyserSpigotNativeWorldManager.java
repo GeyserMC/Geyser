@@ -62,6 +62,12 @@ public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
     public String[] getBiomeIdentifiers(boolean withTags) {
         // Biome identifiers will basically always be the same for one server, since you have to re-send the
         // ClientboundLoginPacket to change the registry. Therefore, don't bother caching for each player.
-        return adapter.getBiomeSuggestions(withTags);
+        try {
+            return adapter.getBiomeSuggestions(withTags);
+        } catch (NoSuchMethodError | NoClassDefFoundError e) {
+            // Fallback for incompatible adapter versions (e.g., MC 1.21.11)
+            // This happens when TagKey.location() is not available or NMS classes are missing
+            return null;
+        }
     }
 }
