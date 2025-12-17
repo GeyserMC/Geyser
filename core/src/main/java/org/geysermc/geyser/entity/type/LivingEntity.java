@@ -29,6 +29,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
@@ -37,6 +38,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
@@ -79,7 +81,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class LivingEntity extends Entity {
+public class LivingEntity extends Entity implements Tickable {
     protected EnumMap<EquipmentSlot, GeyserItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
 
     @Getter(value = AccessLevel.NONE)
@@ -105,8 +107,12 @@ public class LivingEntity extends Entity {
     @Setter(AccessLevel.NONE)
     private float attributeScale;
 
+    private Vector3f lerpPosition;
+    private int lerpSteps;
+
     public LivingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+        this.lerpPosition = position;
     }
 
     public GeyserItemStack getItemInSlot(EquipmentSlot slot) {
@@ -354,6 +360,70 @@ public class LivingEntity extends Entity {
         }
 
         return super.interact(hand);
+    }
+
+    @Override
+    public void setPosition(Vector3f position) {
+        this.lerpPosition = position;
+        super.setPosition(position);
+    }
+
+    @Override
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        if (this instanceof ClientVehicle clientVehicle) {
+            if (clientVehicle.isClientControlled()) {
+                return;
+            }
+            clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
+        }
+
+
+        if (relX != 0 || relY != 0 || relZ != 0) {
+            setYaw(yaw);
+            setPitch(pitch);
+            setHeadYaw(headYaw);
+
+            this.lerpPosition = Vector3f.from(lerpPosition.getX() + relX, lerpPosition.getY() + relY, lerpPosition.getZ() + relZ);
+            this.lerpSteps = 3;
+        } else {
+            super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        }
+    }
+
+    @Override
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        setYaw(yaw);
+        setPitch(pitch);
+        setHeadYaw(headYaw);
+
+        this.lerpPosition = position;
+        if (position.distanceSquared(this.position) < 4096) { // Vanilla behaviour, lerp position if close enough!
+            this.lerpSteps = 3;
+        } else {
+            super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
+        }
+    }
+
+    @Override
+    public void tick() {
+        if (this.lerpSteps > 0) {
+            float time = 1.0f / this.lerpSteps;
+            float lerpXTotal = GenericMath.lerp(this.position.getX(), this.lerpPosition.getX(), time);
+            float lerpYTotal = GenericMath.lerp(this.position.getY(), this.lerpPosition.getY(), time);
+            float lerpZTotal = GenericMath.lerp(this.position.getZ(), this.lerpPosition.getZ(), time);
+            this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
+
+            // Since we already lerp position, use absolute to set the entity to the position, and send immediately so the client can catch up.
+            MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+            moveEntityPacket.setRuntimeEntityId(geyserId);
+            moveEntityPacket.setPosition(position);
+            moveEntityPacket.setRotation(getBedrockRotation());
+            moveEntityPacket.setOnGround(isOnGround());
+            moveEntityPacket.setTeleported(true);
+            session.sendUpstreamPacketImmediately(moveEntityPacket);
+
+            this.lerpSteps--;
+        }
     }
 
     @Override

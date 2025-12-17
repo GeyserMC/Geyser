@@ -259,6 +259,10 @@ public class Entity implements GeyserEntity {
     }
 
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    }
+
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         if (this instanceof ClientVehicle clientVehicle) {
             if (clientVehicle.isClientControlled()) {
                 return;
@@ -309,6 +313,10 @@ public class Entity implements GeyserEntity {
     }
 
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
+    }
+
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         setPosition(position);
         // Setters are intentional so it can be overridden in places like AbstractArrowEntity
         setYaw(yaw);

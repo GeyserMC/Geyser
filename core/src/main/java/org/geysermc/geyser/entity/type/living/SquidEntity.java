@@ -48,6 +48,7 @@ public class SquidEntity extends AgeableWaterEntity implements Tickable {
 
     @Override
     public void tick() {
+        super.tick();
         boolean pitchChanged;
         boolean yawChanged;
         float oldPitch = pitch;

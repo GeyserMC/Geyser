@@ -162,6 +162,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
 
     @Override
     public void tick() {
+        super.tick();
         effectTick();
         if (!getFlag(EntityFlag.NO_AI) && isAlive()) {
             pushSegment();

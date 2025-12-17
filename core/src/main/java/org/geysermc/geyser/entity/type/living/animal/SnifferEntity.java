@@ -103,6 +103,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
 
     @Override
     public void tick() {
+        super.tick();
         // The java client renders digging particles on its own, but bedrock does not
         if (digTicks > 0 && --digTicks < DIG_START && digTicks % 5 == 0) {
             Vector3f rot = Vector3f.createDirectionDeg(0, -getYaw()).mul(2.25f);
