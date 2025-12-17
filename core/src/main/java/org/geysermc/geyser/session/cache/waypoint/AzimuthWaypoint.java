@@ -68,8 +68,8 @@ public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
     private void updatePosition() {
         Vector3f playerPosition = session.getPlayerEntity().position();
         // Unit circle math!
-        float dx = (float) (Math.cos(angle) * WAYPOINT_DISTANCE);
-        float dz = (float) -(Math.sin(angle) * WAYPOINT_DISTANCE);
+        float dx = (float) -(Math.sin(angle) * WAYPOINT_DISTANCE);
+        float dz = (float) (Math.cos(angle) * WAYPOINT_DISTANCE);
         // Set Y to the player's Y since this waypoint always appears in the centre of the bar on Java
         position = Vector3f.from(playerPosition.getX() + dx, playerPosition.getY(), playerPosition.getZ() + dz);
     }
