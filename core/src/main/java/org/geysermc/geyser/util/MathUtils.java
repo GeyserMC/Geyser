@@ -47,6 +47,10 @@ public class MathUtils {
         return Vector3f.from(d1, e, i1);
     }
 
+    public static double closeToZero(double value) {
+        return Math.abs(value) < 1.0e-7 ? 0 : value;
+    }
+
     /**
      * Wrap the given float degrees to be between -180.0 and 180.0.
      * 
