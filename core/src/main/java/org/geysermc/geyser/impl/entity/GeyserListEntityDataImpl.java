@@ -26,6 +26,7 @@
 package org.geysermc.geyser.impl.entity;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.api.entity.data.GeyserListEntityDataType;
@@ -57,7 +58,7 @@ public class GeyserListEntityDataImpl<ListType> extends GeyserEntityDataImpl<Lis
     }
 
     @Override
-    public Class<ListType> listTypeClass() {
+    public @NonNull Class<ListType> listEntryClass() {
         return listTypeClass;
     }
 
@@ -74,7 +75,7 @@ public class GeyserListEntityDataImpl<ListType> extends GeyserEntityDataImpl<Lis
         if (type == null) {
             throw new IllegalArgumentException("Unknown entity data type: " + name);
         }
-        if (type.listTypeClass() == listTypeClass) {
+        if (type.listEntryClass() == listTypeClass) {
             return TYPES.get(name);
         }
         throw new IllegalArgumentException("Unknown entity data type: " + name);

@@ -25,24 +25,28 @@
 
 package org.geysermc.geyser.api.entity.data;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 
 import java.util.List;
 
 /**
- * Represents a list of objects for an entity data types
- * For example, there can be multiple hitboxes on an entity
+ * Represents a list of objects for specific entity data types.
+ * For example, there can be multiple hitboxes on an entity.
  *
- * @param <T>
+ * @param <T> the object type in the list
  */
 public interface GeyserListEntityDataType<T> extends GeyserEntityDataType<List<T>> {
 
-    Class<T> listTypeClass();
+    /**
+     * @return the class of the list entries
+     */
+    @NonNull Class<T> listEntryClass();
 
     /**
      * API usage only, use the types defined in {@link GeyserEntityDataTypes}
      */
-    static <T> GeyserListEntityDataType<T> of(Class<T> typeClass, String name) {
+    static <T> GeyserListEntityDataType<T> of(@NonNull Class<T> typeClass, @NonNull String name) {
         return GeyserApi.api().provider(GeyserListEntityDataType.class, List.class, typeClass, name);
     }
 }

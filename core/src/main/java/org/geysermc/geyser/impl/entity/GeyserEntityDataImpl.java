@@ -27,6 +27,7 @@ package org.geysermc.geyser.impl.entity;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.AllArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -97,12 +98,12 @@ public class GeyserEntityDataImpl<T> implements GeyserEntityDataType<T> {
     }
 
     @Override
-    public Class<T> typeClass() {
+    public @NonNull Class<T> typeClass() {
         return typeClass;
     }
 
     @Override
-    public String name() {
+    public @NonNull String name() {
         return name;
     }
 

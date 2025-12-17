@@ -102,7 +102,7 @@ public record HitboxImpl(
         }
 
         @Override
-        public Hitbox.Builder origin(Vector3f pivot) {
+        public Hitbox.Builder pivot(Vector3f pivot) {
             Objects.requireNonNull(pivot, "pivot");
             this.pivot = pivot;
             return this;

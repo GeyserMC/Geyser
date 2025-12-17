@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.entity.data.types;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.GeyserApi;
 
@@ -47,7 +48,7 @@ public interface Hitbox {
 
     /**
      * The pivot of the hitbox
-     * @return
+     * @return the pivot
      */
     Vector3f pivot();
 
@@ -60,12 +61,33 @@ public interface Hitbox {
      */
     interface Builder {
 
-        Builder min(Vector3f min);
+        /**
+         * Sets the min corner of the hitbox
+         * @param min the vector of the corner
+         * @return this builder
+         */
+        Builder min(@NonNull Vector3f min);
 
-        Builder max(Vector3f max);
+        /**
+         * Sets the max corner of the hitbox
+         * @param max the vector of the corner
+         * @return this builder
+         */
+        Builder max(@NonNull Vector3f max);
 
-        Builder origin(Vector3f pivot);
+        /**
+         * Sets the pivot of the hitbox
+         * @param pivot the pivot vector
+         * @return this builder
+         */
+        Builder pivot(@NonNull Vector3f pivot);
 
+        /**
+         * Builds this hitbox, defaulting to {@code Vector3f.ZERO} if
+         * any one vector was not provided.
+         *
+         * @return a new hitbox
+         */
         Hitbox build();
     }
 }
