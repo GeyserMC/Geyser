@@ -25,42 +25,29 @@
 
 package org.geysermc.geyser.translator.inventory.horse;
 
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
+import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.Container;
-import org.geysermc.geyser.inventory.updater.HorseInventoryUpdater;
-import org.geysermc.geyser.inventory.updater.InventoryUpdater;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.BaseInventoryTranslator;
 
-public abstract class AbstractHorseInventoryTranslator extends BaseInventoryTranslator<Container> {
-    private final InventoryUpdater updater;
-
-    public AbstractHorseInventoryTranslator(int size) {
+public class MountInventoryTranslator extends AbstractMountInventoryTranslator {
+    public MountInventoryTranslator(int size) {
         super(size);
-        this.updater = HorseInventoryUpdater.INSTANCE;
     }
 
     @Override
-    public boolean prepareInventory(GeyserSession session, Container container) {
-        return true;
+    public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
+        if (slotInfoData.getContainerName().getContainer() == ContainerSlotType.HORSE_EQUIP) {
+            return slotInfoData.getSlot();
+        }
+        return super.bedrockSlotToJava(slotInfoData);
     }
 
     @Override
-    public void openInventory(GeyserSession session, Container container) {
-    }
-
-    @Override
-    public void closeInventory(GeyserSession session, Container container, boolean force) {
-        // TODO find a way to implement
-        // Can cause inventory de-sync if the Java server requests an inventory close
-    }
-
-    @Override
-    public void updateInventory(GeyserSession session, Container container) {
-        updater.updateInventory(this, session, container);
-    }
-
-    @Override
-    public void updateSlot(GeyserSession session, Container container, int slot) {
-        updater.updateSlot(this, session, container, slot);
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
+        if (slot == 0 || slot == 1) {
+            return new BedrockContainerSlot(ContainerSlotType.HORSE_EQUIP, slot);
+        }
+        return super.javaSlotToBedrockContainer(slot, container);
     }
 }

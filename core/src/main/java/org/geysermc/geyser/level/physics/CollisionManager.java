@@ -166,7 +166,7 @@ public class CollisionManager {
         }
         // We need to parse the float as a string since casting a float to a double causes us to
         // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = Double.parseDouble(Float.toString(bedrockPosition.getY() - EntityDefinitions.PLAYER.offset()));
+        double javaY = Double.parseDouble(Float.toString(bedrockPosition.getY())) - EntityDefinitions.PLAYER.offset();
 
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY,
                 Double.parseDouble(Float.toString(bedrockPosition.getZ())));

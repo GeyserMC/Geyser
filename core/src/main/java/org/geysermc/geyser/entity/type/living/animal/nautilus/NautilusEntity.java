@@ -23,20 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.populator.conversion;
+package org.geysermc.geyser.entity.type.living.animal.nautilus;
 
-import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.session.GeyserSession;
 
-public class Conversion827_819 {
+import java.util.UUID;
 
-    public static NbtMap remapBlock(NbtMap nbtMap) {
-        nbtMap = Conversion844_827.remapBlock(nbtMap);
-
-        final String name = nbtMap.getString("name");
-        if (name.endsWith("copper_chest")) {
-            return ConversionHelper.withName(nbtMap, "chest");
-        }
-
-        return nbtMap;
+public class NautilusEntity extends AbstractNautilusEntity {
+    public NautilusEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw, 1.0f);
     }
 }

@@ -70,12 +70,15 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
     @Getter
     protected final BoundingBox boundingBox;
 
+    @Getter
+    private boolean inWater;
+
     protected float stepHeight;
     @Getter @Setter
     protected float moveSpeed;
     protected double gravity;
     @Getter @Setter
-    protected double waterMovementEfficiency;
+    protected double waterMovementEfficiency, movementEfficiency;
     protected int effectLevitation;
     protected boolean effectSlowFalling;
     protected boolean effectWeaving;
@@ -86,6 +89,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         this.moveSpeed = (float) AttributeType.Builtin.MOVEMENT_SPEED.getDef();
         this.gravity = AttributeType.Builtin.GRAVITY.getDef();
         this.waterMovementEfficiency = AttributeType.Builtin.WATER_MOVEMENT_EFFICIENCY.getDef();
+        this.movementEfficiency = AttributeType.Builtin.WATER_MOVEMENT_EFFICIENCY.getDef();
 
         double width = vehicle.getBoundingBoxWidth();
         double height = vehicle.getBoundingBoxHeight();
@@ -176,6 +180,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         ctx.loadSurroundingBlocks();
 
         ObjectDoublePair<Fluid> fluidHeight = updateFluidMovement(ctx);
+        inWater = fluidHeight.left() == Fluid.WATER;
         switch (fluidHeight.left()) {
             case WATER -> waterMovement(ctx);
             case LAVA -> {
@@ -187,6 +192,10 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
             }
             case EMPTY -> landMovement(ctx);
         }
+    }
+
+    public boolean isPushedByFluid() {
+        return true;
     }
 
     /**
@@ -331,7 +340,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
             fluidBlocks++;
         }
 
-        if (!totalVelocity.equals(Vector3d.ZERO)) {
+        if (!totalVelocity.equals(Vector3d.ZERO) && isPushedByFluid()) {
             Vector3f motion = vehicle.getMotion();
 
             totalVelocity = javaNormalize(totalVelocity.mul(1.0 / fluidBlocks));
@@ -901,6 +910,29 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         }
 
         return 1.0f;
+    }
+
+    protected Fluid checkForFluid(VehicleContext ctx) {
+        Fluid result = Fluid.EMPTY;
+
+        BoundingBox box = boundingBox.clone();
+        box.expand(-0.001);
+
+        Vector3d min = box.getMin();
+        Vector3d max = box.getMax();
+
+        BlockPositionIterator iter = BlockPositionIterator.fromMinMax(min.getFloorX(), min.getFloorY(), min.getFloorZ(), max.getFloorX(), max.getFloorY(), max.getFloorZ());
+        for (iter.reset(); iter.hasNext(); iter.next()) {
+            BlockState blockState = ctx.getBlock(iter);
+            if (blockState.is(Blocks.WATER)) {
+                return Fluid.WATER; // Water takes priority over lava
+            }
+            if (blockState.is(Blocks.LAVA)) {
+                result = Fluid.LAVA;
+            }
+        }
+
+        return result;
     }
 
     protected class VehicleContext {
