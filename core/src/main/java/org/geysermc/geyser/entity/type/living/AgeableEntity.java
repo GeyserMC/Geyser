@@ -25,18 +25,15 @@
 
 package org.geysermc.geyser.entity.type.living;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 
-import java.util.UUID;
-
 public class AgeableEntity extends CreatureEntity {
 
-    public AgeableEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public AgeableEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override
@@ -51,8 +48,8 @@ public class AgeableEntity extends CreatureEntity {
         setScale(isBaby ? getBabySize() : getAdultSize());
         setFlag(EntityFlag.BABY, isBaby);
 
-        setBoundingBoxHeight(definition.height() * (isBaby ? getBabySize() : getAdultSize()));
-        setBoundingBoxWidth(definition.width() * (isBaby ? getBabySize() : getAdultSize()));
+        setBoundingBoxHeight(height * (isBaby ? getBabySize() : getAdultSize()));
+        setBoundingBoxWidth(width * (isBaby ? getBabySize() : getAdultSize()));
     }
 
     /**

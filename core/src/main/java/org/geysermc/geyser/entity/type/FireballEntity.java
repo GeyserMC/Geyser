@@ -26,10 +26,7 @@
 package org.geysermc.geyser.entity.type;
 
 import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
-
-import java.util.UUID;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 
 public class FireballEntity extends ThrowableEntity {
     private final Vector3f acceleration;
@@ -39,8 +36,9 @@ public class FireballEntity extends ThrowableEntity {
      */
     protected int futureTicks = 3;
 
-    public FireballEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, Vector3f.ZERO, yaw, pitch, headYaw);
+    public FireballEntity(EntitySpawnContext context) {
+        super(context);
+        setMotion(Vector3f.ZERO);
 
         float magnitude = motion.length();
         if (magnitude != 0) {
@@ -58,15 +56,15 @@ public class FireballEntity extends ThrowableEntity {
     }
 
     @Override
-    protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    protected void moveAbsoluteImmediate(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // Advance the position by a few ticks before sending it to Bedrock
         Vector3f lastMotion = motion;
-        Vector3f newPosition = position;
+        Vector3f newPosition = javaPosition;
         for (int i = 0; i < futureTicks; i++) {
             newPosition = tickMovement(newPosition);
         }
         super.moveAbsoluteImmediate(newPosition, yaw, pitch, headYaw, isOnGround, teleported);
-        this.position = position;
+        position(javaPosition);
         this.motion = lastMotion;
     }
 
@@ -75,6 +73,6 @@ public class FireballEntity extends ThrowableEntity {
         if (removedInVoid()) {
             return;
         }
-        moveAbsoluteImmediate(tickMovement(position), getYaw(), getPitch(), getHeadYaw(), false, false);
+        moveAbsoluteImmediate(tickMovement(position()), getYaw(), getPitch(), getHeadYaw(), false, false);
     }
 }

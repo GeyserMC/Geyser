@@ -35,6 +35,8 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.entity.VanillaEntities;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -46,7 +48,12 @@ import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class SkullCache {
     private final int maxVisibleSkulls;
@@ -161,10 +168,10 @@ public class SkullCache {
     public void updateVisibleSkulls() {
         if (cullingEnabled) {
             // No need to recheck skull visibility for small movements
-            if (lastPlayerPosition != null && session.getPlayerEntity().getPosition().distanceSquared(lastPlayerPosition) < 4) {
+            if (lastPlayerPosition != null && session.getPlayerEntity().position().distanceSquared(lastPlayerPosition) < 4) {
                 return;
             }
-            lastPlayerPosition = session.getPlayerEntity().getPosition();
+            lastPlayerPosition = session.getPlayerEntity().position();
 
             inRangeSkulls.clear();
             for (Skull skull : skulls.values()) {
@@ -197,8 +204,7 @@ public class SkullCache {
         }
         if (!cullingEnabled || totalSkullEntities < maxVisibleSkulls) {
             // Create a new entity
-            long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
-            skull.entity = new SkullPlayerEntity(session, geyserId);
+            skull.entity = new SkullPlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, UUID.randomUUID(), VanillaEntities.PLAYER));
             skull.entity.spawnEntity();
             skull.entity.updateSkull(skull);
             totalSkullEntities++;
