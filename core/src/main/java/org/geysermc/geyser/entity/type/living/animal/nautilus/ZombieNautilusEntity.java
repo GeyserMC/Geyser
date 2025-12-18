@@ -23,43 +23,31 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living.animal.farm;
+package org.geysermc.geyser.entity.type.living.animal.nautilus;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.properties.type.EnumProperty;
-import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
+import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
-import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.RegistryCache;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 
 import java.util.UUID;
 
-public abstract class TemperatureVariantAnimal extends AnimalEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
-
-    public static final EnumProperty<BuiltInVariant> TEMPERATE_VARIANT_PROPERTY = new EnumProperty<>(
-        IdentifierImpl.of("climate_variant"),
-        BuiltInVariant.class,
-        BuiltInVariant.TEMPERATE
-    );
-
-    public static final RegistryCache.RegistryReader<BuiltInVariant> VARIANT_READER = VariantHolder.reader(BuiltInVariant.class, BuiltInVariant.TEMPERATE);
-
-    public TemperatureVariantAnimal(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition,
-                                    Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+public class ZombieNautilusEntity extends AbstractNautilusEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
+    public ZombieNautilusEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw, 1.1f);
     }
 
     @Override
-    public void setBedrockVariant(BuiltInVariant variant) {
-        TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, variant);
+    public void setBedrockVariant(TemperatureVariantAnimal.BuiltInVariant variant) {
+        TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, variant);
         updateBedrockEntityProperties();
     }
 
-    public enum BuiltInVariant implements VariantHolder.BuiltIn {
-        TEMPERATE,
-        WARM,
-        COLD;
+    @Override
+    public JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> variantRegistry() {
+        return JavaRegistries.ZOMBIE_NAUTILUS_VARIANT;
     }
 }

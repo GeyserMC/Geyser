@@ -1821,11 +1821,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
 
-        // Enable 2025 Content Drop 3 features on 1.21.100
-        if (GameProtocol.is1_21_100(this)) {
-            startGamePacket.getExperiments().add(new ExperimentData("y_2025_drop_3", true));
-        }
-
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
         startGamePacket.setServerEngine(""); // Do we want to fill this in?
