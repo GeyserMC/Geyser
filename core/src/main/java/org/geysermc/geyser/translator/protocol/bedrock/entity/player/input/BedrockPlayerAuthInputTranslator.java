@@ -254,7 +254,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 if (left && right) {
                     session.getPlayerEntity().setVehicleInput(Vector2f.UNIT_Y);
                 } else {
-                    session.getPlayerEntity().setVehicleInput(Vector2f.UNIT_X.mul(left ? 1 : right ? -1 : 0));
+                    session.getPlayerEntity().setVehicleInput(Vector2f.UNIT_X.mul(left ? -1 : right ? 1 : 0));
                 }
             } else {
                 session.getPlayerEntity().setVehicleInput(packet.getMotion());
