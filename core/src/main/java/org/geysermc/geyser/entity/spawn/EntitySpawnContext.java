@@ -161,10 +161,11 @@ public class EntitySpawnContext {
             public void definition(@Nullable GeyserEntityDefinition entityDefinition) {
                 if (entityDefinition == null) {
                     bedrockEntityDefinition = null;
+                    return;
                 }
 
                 if (!(entityDefinition instanceof BedrockEntityDefinition definition)) {
-                    throw new IllegalStateException("Unknown implementation of GeyserEntityDefinition");
+                    throw new IllegalStateException("Unknown implementation of GeyserEntityDefinition! Got: " + entityDefinition.getClass().getSimpleName());
                 }
 
                 if (!entityDefinition.registered()) {
@@ -212,10 +213,11 @@ public class EntitySpawnContext {
             public void definition(@Nullable GeyserEntityDefinition entityDefinition) {
                 if (entityDefinition == null) {
                     bedrockEntityDefinition = null;
+                    return;
                 }
 
                 if (!(entityDefinition instanceof BedrockEntityDefinition definition)) {
-                    throw new IllegalStateException("Unknown implementation of GeyserEntityDefinition");
+                    throw new IllegalStateException("Unknown implementation of GeyserEntityDefinition! Got: " + entityDefinition.getClass().getSimpleName());
                 }
 
                 if (!entityDefinition.registered()) {
