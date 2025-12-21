@@ -297,7 +297,8 @@ public class Entity implements GeyserEntity {
             clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
         }
 
-        position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+        // Use fluid setter to ensure bedrockPosition is updated
+        position(Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ));
 
         MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
