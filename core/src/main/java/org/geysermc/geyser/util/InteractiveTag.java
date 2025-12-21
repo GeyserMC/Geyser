@@ -80,7 +80,9 @@ public enum InteractiveTag {
     SCRAPE,
     WAX_ON,
     WAX_OFF,
-    DROP_ITEM;
+    DROP_ITEM,
+    EQUIP_NAUTILUS_ARMOR("equipnautilusarmor"),
+    REMOVE_NAUTILUS_ARMOR("removenautilusarmor");
 
     /**
      * The full string that should be passed on to the client.
