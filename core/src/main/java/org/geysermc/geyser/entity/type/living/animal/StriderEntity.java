@@ -146,6 +146,7 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
 
     @Override
     public void tick() {
+        super.tick();
         PlayerEntity player = getPlayerPassenger();
         if (player == null) {
             return;

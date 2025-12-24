@@ -42,5 +42,6 @@ public interface Tickable {
      * This function gets called every game tick as long as the
      * game tick loop isn't frozen.
      */
-    void tick();
+    default void tick() {
+    }
 }
