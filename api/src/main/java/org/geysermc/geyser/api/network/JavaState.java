@@ -26,34 +26,25 @@
 package org.geysermc.geyser.api.network;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.network.message.Message;
-import org.geysermc.geyser.api.network.message.MessageBuffer;
-
-import java.util.Set;
 
 /**
- * Represents the network manager responsible for handling network operations
- * for a {@link GeyserConnection}.
- *
- * @since 2.9.1
+ * Represents the state of a Java connection.
  */
-public interface NetworkManager {
+public interface JavaState {
 
     /**
-     * Gets the registered network channels.
+     * Gets the inbound protocol state.
      *
-     * @return the registered network channels
+     * @return the inbound protocol state
      */
     @NonNull
-    Set<NetworkChannel> registeredChannels();
+    ProtocolState inbound();
 
     /**
-     * Sends a message to this connection on the specified channel.
+     * Gets the outbound protocol state.
      *
-     * @param channel the channel to send the message on
-     * @param message the message to send
-     * @param direction the direction of the message (clientbound or serverbound)
+     * @return the outbound protocol state
      */
-    <T extends MessageBuffer> void send(@NonNull NetworkChannel channel, @NonNull Message<T> message, @NonNull MessageDirection direction);
+    @NonNull
+    ProtocolState outbound();
 }

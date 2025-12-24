@@ -109,11 +109,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private PacketSignal translateAndDefault(BedrockPacket packet) {
-        if (!this.session.getNetworkManager().handlePacket(packet, MessageDirection.SERVERBOUND)) {
+        if (!this.session.getNetwork().handleBedrockPacket(packet, MessageDirection.SERVERBOUND)) {
             return PacketSignal.HANDLED;
         }
 
-        Registries.BEDROCK_PACKET_TRANSLATORS.translate(packet.getClass(), packet, session, false);
+        Registries.BEDROCK_PACKET_TRANSLATORS.translate(packet.getClass(), packet, this.session, false);
         return PacketSignal.HANDLED; // PacketSignal.UNHANDLED will log a WARN publicly
     }
 

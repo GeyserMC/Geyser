@@ -27,8 +27,6 @@ package org.geysermc.geyser.network;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -38,9 +36,14 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockPacketDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.SessionDefineNetworkChannelsEvent;
+import org.geysermc.geyser.api.network.JavaState;
 import org.geysermc.geyser.api.network.MessageDirection;
+import org.geysermc.geyser.api.network.MessageFlag;
+import org.geysermc.geyser.api.network.Network;
 import org.geysermc.geyser.api.network.NetworkChannel;
-import org.geysermc.geyser.api.network.NetworkManager;
+import org.geysermc.geyser.api.network.PacketChannel;
+import org.geysermc.geyser.api.network.PacketFlag;
+import org.geysermc.geyser.api.network.ProtocolState;
 import org.geysermc.geyser.api.network.message.Message;
 import org.geysermc.geyser.api.network.message.MessageBuffer;
 import org.geysermc.geyser.api.network.message.MessageCodec;
@@ -50,26 +53,33 @@ import org.geysermc.geyser.network.message.BedrockPacketMessage;
 import org.geysermc.geyser.network.message.ByteBufCodec;
 import org.geysermc.geyser.network.message.ByteBufMessageBuffer;
 import org.geysermc.geyser.network.message.JavaPacketMessage;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.network.packet.Packet;
+import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
+import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-public class GeyserNetworkManager implements NetworkManager {
+public class GeyserNetwork implements Network {
     private final GeyserSession session;
+    private final GeyserJavaState javaState;
 
     private final Map<NetworkChannel, List<MessageDefinition<?, ?>>> definitions = new LinkedHashMap<>();
-    private final Int2ObjectMap<List<PacketChannel>> packetChannels = new Int2ObjectOpenHashMap<>();
+    private final Map<PacketEntry, List<PacketChannel>> packetChannels = new HashMap<>();
 
-    public GeyserNetworkManager(GeyserSession session) {
+    public GeyserNetwork(GeyserSession session) {
         this.session = session;
+        this.javaState = new GeyserJavaState(session);
 
         SessionDefineNetworkChannelsEvent event = new SessionDefineNetworkChannelsEvent(session) {
 
@@ -95,6 +105,10 @@ public class GeyserNetworkManager implements NetworkManager {
     @SuppressWarnings("unchecked")
     private <T extends MessageBuffer, M extends Message<T>> void onRegister(@NonNull NetworkChannel channel, @NonNull MessageCodec<? extends T> codec,
                                                                            @NonNull MessageFactory<T, M> messageFactory, NetworkDefinitionBuilder.@NonNull RegistrationImpl<M> registration) {
+        if (channel instanceof PacketChannelImpl packetChannel && packetChannel.isJava() && registration.protocolState() == null) {
+            throw new IllegalArgumentException("Java packet channels must specify a protocol state");
+        }
+
         MessageHandler<M> handler;
         int priority;
 
@@ -125,6 +139,7 @@ public class GeyserNetworkManager implements NetworkManager {
                 priority,
                 clientbound != null && clientbound.priority() != null ? clientbound.priority().value() : null,
                 serverbound != null && serverbound.priority() != null ? serverbound.priority().value() : null,
+                registration.protocolState(),
                 registration.tag(),
                 registration.beforeTag(),
                 registration.afterTag()
@@ -134,38 +149,84 @@ public class GeyserNetworkManager implements NetworkManager {
     }
 
     @Override
+    public @NonNull JavaState javaState() {
+        return this.javaState;
+    }
+
+    @Override
     @Nonnull
     public Set<NetworkChannel> registeredChannels() {
         return Set.copyOf(this.definitions.keySet());
     }
 
     @Override
-    public <T extends MessageBuffer> void send(@NonNull NetworkChannel channel, @NonNull Message<T> message, @NonNull MessageDirection direction) {
+    public <T extends MessageBuffer> void send(@NonNull NetworkChannel channel, @NonNull Message<T> message, @NonNull MessageDirection direction, @NonNull MessageFlag... flags) {
+        Set<MessageFlag> flagSet = Set.of(flags);
         if (channel.isPacket() && message instanceof Message.PacketBase<T> packetBase) {
             if (packetBase instanceof BedrockPacketMessage<?> packetMessage) {
-                this.session.sendUpstreamPacket(packetMessage.packet());
+                if (direction == MessageDirection.CLIENTBOUND) {
+                    if (flagSet.contains(PacketFlag.IMMEDIATE)) {
+                        this.session.sendUpstreamPacketImmediately(packetMessage.packet());
+                    } else {
+                        this.session.sendUpstreamPacket(packetMessage.packet());
+                    }
+                } else {
+                    this.session.getUpstream().getSession().getPacketHandler().handlePacket(packetMessage.packet());
+                }
             } else if (packetBase instanceof JavaPacketMessage<?> packetMessage) {
-                this.session.sendDownstreamPacket(packetMessage.packet());
+                MinecraftPacket javaPacket = packetMessage.packet();
+                if (direction == MessageDirection.CLIENTBOUND) {
+                    Registries.JAVA_PACKET_TRANSLATORS.translate(javaPacket.getClass(), javaPacket, this.session, true);
+                } else {
+                    this.session.sendDownstreamPacket(javaPacket);
+                }
             } else if (packetBase instanceof Message.Packet packet) {
-                PacketChannel packetChannel = (PacketChannel) channel;
+                PacketChannelImpl packetChannel = (PacketChannelImpl) channel;
                 int packetId = packetChannel.packetId();
 
-                ByteBufMessageBuffer buffer = ByteBufCodec.INSTANCE_LE.createBuffer();
-                packet.encode(buffer);
+                if (packetChannel.isJava()) {
+                    ByteBufMessageBuffer buffer = ByteBufCodec.INSTANCE.createBuffer();
+                    packet.encode(buffer);
 
-                BedrockCodec codec = this.session.getUpstream().getSession().getCodec();
-                BedrockCodecHelper helper = this.session.getUpstream().getCodecHelper();
+                    MinecraftProtocol protocol = this.session.getDownstream().getSession().getPacketProtocol();
+                    Packet javaPacket;
+                    if (direction == MessageDirection.CLIENTBOUND) {
+                        javaPacket = protocol.getInboundPacketRegistry().createClientboundPacket(packetId, buffer.buffer());
+                    } else {
+                        javaPacket = protocol.getOutboundPacketRegistry().createServerboundPacket(packetId, buffer.buffer());
+                    }
 
-                BedrockPacket bedrockPacket = codec.tryDecode(helper, buffer.buffer(), packetId);
-                if (bedrockPacket == null) {
-                    throw new IllegalArgumentException("No Bedrock packet definition found for packet ID: " + packetId);
-                }
+                    if (javaPacket == null) {
+                        throw new IllegalArgumentException("No Java packet definition found for packet ID: " + packetId);
+                    }
 
-                // Clientbound packets are sent upstream, serverbound packets are sent downstream
-                if (direction == MessageDirection.CLIENTBOUND) {
-                    this.session.sendUpstreamPacket(bedrockPacket);
+                    if (direction == MessageDirection.CLIENTBOUND) {
+                        Registries.JAVA_PACKET_TRANSLATORS.translate(javaPacket.getClass(), javaPacket, this.session, true);
+                    } else {
+                        this.session.sendDownstreamPacket(javaPacket);
+                    }
                 } else {
-                    this.session.getUpstream().getSession().getPacketHandler().handlePacket(bedrockPacket);
+                    ByteBufMessageBuffer buffer = ByteBufCodec.INSTANCE_LE.createBuffer();
+                    packet.encode(buffer);
+
+                    BedrockCodec codec = this.session.getUpstream().getSession().getCodec();
+                    BedrockCodecHelper helper = this.session.getUpstream().getCodecHelper();
+
+                    BedrockPacket bedrockPacket = codec.tryDecode(helper, buffer.buffer(), packetId);
+                    if (bedrockPacket == null) {
+                        throw new IllegalArgumentException("No Bedrock packet definition found for packet ID: " + packetId);
+                    }
+
+                    // Clientbound packets are sent upstream, serverbound packets are sent downstream
+                    if (direction == MessageDirection.CLIENTBOUND) {
+                        if (flagSet.contains(PacketFlag.IMMEDIATE)) {
+                            this.session.sendUpstreamPacketImmediately(bedrockPacket);
+                        } else {
+                            this.session.sendUpstreamPacket(bedrockPacket);
+                        }
+                    } else {
+                        this.session.getUpstream().getSession().getPacketHandler().handlePacket(bedrockPacket);
+                    }
                 }
             }
 
@@ -219,31 +280,70 @@ public class GeyserNetworkManager implements NetworkManager {
     }
 
     @NonNull
-    public List<PacketChannel> getPacketChannels(int packetId) {
-        return this.packetChannels.getOrDefault(packetId, List.of());
+    public List<PacketChannel> getPacketChannels(int packetId, boolean java) {
+        return this.packetChannels.getOrDefault(new PacketEntry(packetId, java), List.of());
     }
 
     @SuppressWarnings("unchecked")
-    public boolean handlePacket(BedrockPacket packet, MessageDirection direction) {
+    public boolean handleBedrockPacket(BedrockPacket packet, MessageDirection direction) {
         if (this.packetChannels.isEmpty()) {
             return true; // Avoid processing anything if we have nothing to handle
         }
 
         BedrockCodec codec = this.session.getUpstream().getSession().getCodec();
         BedrockPacketDefinition<BedrockPacket> definition = codec.getPacketDefinition((Class<BedrockPacket>) packet.getClass());
-        List<PacketChannel> channels = this.getPacketChannels(definition.getId());
+        List<PacketChannel> channels = this.getPacketChannels(definition.getId(), false);
         if (channels.isEmpty()) {
             return true;
         }
 
         List<Message<ByteBufMessageBuffer>> messages = new ArrayList<>();
         for (PacketChannel channel : channels) {
-            if (channel.messageType().isInstance(packet)) {
+            if (((PacketChannelImpl) channel).messageType().isInstance(packet)) {
                 messages.add(new BedrockPacketMessage<>(packet));
             } else {
                 ByteBuf buffer = Unpooled.buffer();
                 definition.getSerializer().serialize(buffer, this.session.getUpstream().getCodecHelper(), packet);
                 messages.addAll(this.createMessages(channel, new ByteBufMessageBuffer(ByteBufCodec.INSTANCE_LE, buffer)));
+            }
+        }
+
+        for (NetworkChannel channel : channels) {
+            boolean handled = this.handleMessages(channel, messages, direction);
+            if (!handled) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public boolean handleJavaPacket(MinecraftPacket packet, MessageDirection direction) {
+        if (this.packetChannels.isEmpty()) {
+            return true; // Avoid processing anything if we have nothing to handle
+        }
+
+        MinecraftProtocol protocol = this.session.getDownstream().getSession().getPacketProtocol();
+        int packetId;
+        if (direction == MessageDirection.CLIENTBOUND) {
+            packetId = protocol.getInboundPacketRegistry().getClientboundId(packet.getClass());
+        } else {
+            packetId = protocol.getOutboundPacketRegistry().getServerboundId(packet.getClass());
+        }
+
+        List<PacketChannel> channels = this.getPacketChannels(packetId, true);
+        if (channels.isEmpty()) {
+            return true;
+        }
+
+        List<Message<ByteBufMessageBuffer>> messages = new ArrayList<>();
+        for (PacketChannel channel : channels) {
+            if (((PacketChannelImpl) channel).messageType().isInstance(packet)) {
+                messages.add(new JavaPacketMessage<>(packet));
+            } else {
+                ByteBuf buffer = Unpooled.buffer();
+                packet.serialize(buffer);
+                messages.addAll(this.createMessages(channel, new ByteBufMessageBuffer(ByteBufCodec.INSTANCE, buffer)));
             }
         }
 
@@ -268,6 +368,14 @@ public class GeyserNetworkManager implements NetworkManager {
         List<MessageDefinition<?, ?>> ordered = new ArrayList<>();
         List<MessageDefinition<?, ?>> unpinnedBlock = new ArrayList<>();
         for (MessageDefinition<?, ?> def : rawList) {
+            // Ensure the packet states match
+            ProtocolState state = def.state;
+            if (direction == MessageDirection.CLIENTBOUND && state != null && state != this.javaState.inbound()) {
+                continue;
+            } else if (direction == MessageDirection.SERVERBOUND && state != null && state != this.javaState.outbound()) {
+                continue;
+            }
+
             boolean pinned = def.tag() != null || def.beforeTag() != null || def.afterTag() != null;
             if (pinned) {
                 // flush any accumulated unpinned block sorted by effective priority for this direction
@@ -391,8 +499,11 @@ public class GeyserNetworkManager implements NetworkManager {
 
         if (channel.isPacket() && channel instanceof PacketChannel packetChannel) {
             int packetId = packetChannel.packetId();
-            this.packetChannels.computeIfAbsent(packetId, key -> new ArrayList<>()).add(packetChannel);
+            this.packetChannels.computeIfAbsent(new PacketEntry(packetId, ((PacketChannelImpl) packetChannel).isJava()), key -> new ArrayList<>()).add(packetChannel);
         }
+    }
+    
+    public record PacketEntry(int packetId, boolean java) {
     }
 
     public record MessageDefinition<T extends MessageBuffer, M extends Message<T>>(
@@ -404,6 +515,7 @@ public class GeyserNetworkManager implements NetworkManager {
             int priority,
             @Nullable Integer clientboundPriority,
             @Nullable Integer serverboundPriority,
+            @Nullable ProtocolState state,
             @Nullable String tag,
             @Nullable String beforeTag,
             @Nullable String afterTag

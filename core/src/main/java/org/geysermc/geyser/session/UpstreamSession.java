@@ -48,7 +48,7 @@ public class UpstreamSession {
     private Queue<BedrockPacket> postStartGamePackets = new ArrayDeque<>();
 
     public void sendPacket(@NonNull BedrockPacket packet) {
-        if (!this.geyserSession.getNetworkManager().handlePacket(packet, MessageDirection.CLIENTBOUND)) {
+        if (!this.geyserSession.getNetwork().handleBedrockPacket(packet, MessageDirection.CLIENTBOUND)) {
             return;
         }
 
@@ -58,7 +58,7 @@ public class UpstreamSession {
     }
 
     public void sendPacketImmediately(@NonNull BedrockPacket packet) {
-        if (!this.geyserSession.getNetworkManager().handlePacket(packet, MessageDirection.CLIENTBOUND)) {
+        if (!this.geyserSession.getNetwork().handleBedrockPacket(packet, MessageDirection.CLIENTBOUND)) {
             return;
         }
 

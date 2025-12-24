@@ -28,6 +28,7 @@ package org.geysermc.geyser.network;
 import com.google.common.base.Preconditions;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.bedrock.SessionDefineNetworkChannelsEvent;
+import org.geysermc.geyser.api.network.ProtocolState;
 import org.geysermc.geyser.api.network.message.Message;
 import org.geysermc.geyser.api.network.message.MessageBuffer;
 import org.geysermc.geyser.api.network.message.MessageHandler;
@@ -37,6 +38,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 public class NetworkDefinitionBuilder<M extends Message<? extends MessageBuffer>> implements SessionDefineNetworkChannelsEvent.Builder.Initial<M> {
+    private ProtocolState protocolState;
     private HandlerEntry<M> handler;
     private SidedHandlerEntry<M> clientbound;
     private SidedHandlerEntry<M> serverbound;
@@ -50,6 +52,12 @@ public class NetworkDefinitionBuilder<M extends Message<? extends MessageBuffer>
 
     public NetworkDefinitionBuilder(@NonNull Consumer<RegistrationImpl<M>> registrationCallback) {
         this.registrationCallback = registrationCallback;
+    }
+
+    @Override
+    public @NonNull Initial<M> protocolState(@NonNull ProtocolState state) {
+        this.protocolState = Objects.requireNonNull(state, "state");
+        return this;
     }
 
     @Override
@@ -107,6 +115,7 @@ public class NetworkDefinitionBuilder<M extends Message<? extends MessageBuffer>
         Preconditions.checkState(!this.registered, "This message has already been registered");
         Preconditions.checkState(this.handler == null || (this.clientbound == null && this.serverbound == null), "Cannot register both bidirectional and sided handlers for the same message");
         RegistrationImpl<M> registration = new RegistrationImpl<>(
+                this.protocolState,
                 this.handler,
                 this.clientbound,
                 this.serverbound,
@@ -145,6 +154,7 @@ public class NetworkDefinitionBuilder<M extends Message<? extends MessageBuffer>
     }
 
     public record RegistrationImpl<M extends Message<? extends MessageBuffer>>(
+            ProtocolState protocolState,
             HandlerEntry<M> handler,
             SidedHandlerEntry<M> clientbound,
             SidedHandlerEntry<M> serverbound,

@@ -44,7 +44,7 @@ import org.geysermc.geyser.api.network.MessageDirection;
 import org.geysermc.geyser.api.network.NetworkChannel;
 import org.geysermc.geyser.api.network.message.Message;
 import org.geysermc.geyser.api.network.message.MessageBuffer;
-import org.geysermc.geyser.network.GeyserNetworkManager;
+import org.geysermc.geyser.network.GeyserNetwork;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -153,8 +153,8 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             });
         } else {
             session.ensureInEventLoop(() -> {
-                GeyserNetworkManager networkManager = session.getNetworkManager();
-                Set<NetworkChannel> channels = networkManager.registeredChannels();
+                GeyserNetwork network = session.getNetwork();
+                Set<NetworkChannel> channels = network.registeredChannels();
                 if (channels.isEmpty()) {
                     this.logger.debug("Received a custom payload for an unregistered channel: " + channel);
                     return;
@@ -173,8 +173,8 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 }
 
                 for (NetworkChannel networkChannel : identifiedChannels) {
-                    List<Message<MessageBuffer>> message = networkManager.createMessages(networkChannel, packet.getData());
-                    networkManager.handleMessages(networkChannel, message, MessageDirection.CLIENTBOUND);
+                    List<Message<MessageBuffer>> message = network.createMessages(networkChannel, packet.getData());
+                    network.handleMessages(networkChannel, message, MessageDirection.CLIENTBOUND);
                 }
             });
         }

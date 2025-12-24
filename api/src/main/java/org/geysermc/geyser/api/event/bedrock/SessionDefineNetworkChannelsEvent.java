@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.network.NetworkChannel;
+import org.geysermc.geyser.api.network.ProtocolState;
 import org.geysermc.geyser.api.network.message.Message;
 import org.geysermc.geyser.api.network.message.MessageBuffer;
 import org.geysermc.geyser.api.network.message.MessageCodec;
@@ -95,6 +96,15 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
         Registration<M> register();
 
         interface Initial<M extends Message<? extends MessageBuffer>> extends Sided<M>, Bidirectional<M> {
+
+            /**
+             * Sets the protocol state for this message.
+             *
+             * @param state the protocol state
+             * @return the initial builder instance
+             */
+            @NonNull
+            Initial<M> protocolState(@NonNull ProtocolState state);
 
             /**
              * {@inheritDoc}

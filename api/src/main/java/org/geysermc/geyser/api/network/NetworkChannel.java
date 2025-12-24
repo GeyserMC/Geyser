@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.network;
 
-import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
@@ -136,17 +135,5 @@ public interface NetworkChannel {
     @NonNull
     static NetworkChannel of(@NonNull Identifier identifier, @NonNull Class<?> messageType) {
         return GeyserApi.api().provider(NetworkChannel.class, identifier, messageType);
-    }
-
-    /**
-     * Creates a new packet {@link NetworkChannel} instance for a packet channel.
-     *
-     * @param key the packet key
-     * @param packetId the packet ID
-     * @param packetType the type of the packet
-     * @return a new packet {@link NetworkChannel} instance for a packet channel
-     */
-    static NetworkChannel packet(@NonNull String key, @NonNegative int packetId, @NonNull Class<?> packetType) {
-        return GeyserApi.api().provider(NetworkChannel.class, key, packetId, packetType);
     }
 }

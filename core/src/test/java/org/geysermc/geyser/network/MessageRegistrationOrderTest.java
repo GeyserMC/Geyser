@@ -52,32 +52,32 @@ public class MessageRegistrationOrderTest {
     void testRegistrationOrder() {
         mockContext(context -> {
             GeyserSession session = context.mock(GeyserSession.class);
-            GeyserNetworkManager manager = new GeyserNetworkManager(session);
+            GeyserNetwork network = new GeyserNetwork(session);
 
             AtomicInteger state = new AtomicInteger(0);
 
-            new NetworkDefinitionBuilder<XuidMessage>(registration -> manager.onRegister(this.xuidChannel, XuidMessage::new, registration))
+            new NetworkDefinitionBuilder<XuidMessage>(registration -> network.onRegister(this.xuidChannel, XuidMessage::new, registration))
                     .clientbound(MessagePriority.EARLY, message -> {
                         assertEquals(0, state.getAndIncrement());
                         return MessageHandler.State.UNHANDLED;
                     })
                     .register();
 
-            new NetworkDefinitionBuilder<XuidMessage>(registration -> manager.onRegister(this.xuidChannel, XuidMessage::new, registration))
+            new NetworkDefinitionBuilder<XuidMessage>(registration -> network.onRegister(this.xuidChannel, XuidMessage::new, registration))
                     .clientbound(MessagePriority.LATE, message -> {
                         assertEquals(2, state.getAndIncrement());
                         return MessageHandler.State.UNHANDLED;
                     })
                     .register();
 
-            new NetworkDefinitionBuilder<XuidMessage>(registration -> manager.onRegister(this.xuidChannel, XuidMessage::new, registration))
+            new NetworkDefinitionBuilder<XuidMessage>(registration -> network.onRegister(this.xuidChannel, XuidMessage::new, registration))
                     .clientbound(MessagePriority.NORMAL, message -> {
                         assertEquals(1, state.getAndIncrement());
                         return MessageHandler.State.UNHANDLED;
                     })
                     .register();
 
-            manager.handleMessages(this.xuidChannel, List.of(new XuidMessage("test-xuid")), MessageDirection.CLIENTBOUND);
+            network.handleMessages(this.xuidChannel, List.of(new XuidMessage("test-xuid")), MessageDirection.CLIENTBOUND);
         });
     }
 
@@ -85,11 +85,11 @@ public class MessageRegistrationOrderTest {
     void testPipelineTags() {
         mockContext(context -> {
             GeyserSession session = context.mock(GeyserSession.class);
-            GeyserNetworkManager manager = new GeyserNetworkManager(session);
+            GeyserNetwork network = new GeyserNetwork(session);
 
             AtomicInteger state = new AtomicInteger(0);
 
-            new NetworkDefinitionBuilder<XuidMessage>(registration -> manager.onRegister(this.xuidChannel, XuidMessage::new, registration))
+            new NetworkDefinitionBuilder<XuidMessage>(registration -> network.onRegister(this.xuidChannel, XuidMessage::new, registration))
                     .clientbound(message -> {
                         assertEquals(2, state.getAndIncrement());
                         return MessageHandler.State.UNHANDLED;
@@ -99,7 +99,7 @@ public class MessageRegistrationOrderTest {
                     })
                     .register();
 
-            new NetworkDefinitionBuilder<XuidMessage>(registration -> manager.onRegister(this.xuidChannel, XuidMessage::new, registration))
+            new NetworkDefinitionBuilder<XuidMessage>(registration -> network.onRegister(this.xuidChannel, XuidMessage::new, registration))
                     .clientbound(message -> {
                         assertEquals(1, state.getAndIncrement());
                         return MessageHandler.State.UNHANDLED;
@@ -110,7 +110,7 @@ public class MessageRegistrationOrderTest {
                     })
                     .register();
 
-            new NetworkDefinitionBuilder<XuidMessage>(registration -> manager.onRegister(this.xuidChannel, XuidMessage::new, registration))
+            new NetworkDefinitionBuilder<XuidMessage>(registration -> network.onRegister(this.xuidChannel, XuidMessage::new, registration))
                     .clientbound(message -> {
                         assertEquals(3, state.getAndIncrement());
                         return MessageHandler.State.UNHANDLED;
@@ -122,7 +122,7 @@ public class MessageRegistrationOrderTest {
                     .register();
 
             // No pipeline, so should automatically be added to the tail
-            new NetworkDefinitionBuilder<XuidMessage>(registration -> manager.onRegister(this.xuidChannel, XuidMessage::new, registration))
+            new NetworkDefinitionBuilder<XuidMessage>(registration -> network.onRegister(this.xuidChannel, XuidMessage::new, registration))
                     .clientbound(message -> {
                         assertEquals(4, state.getAndIncrement());
                         return MessageHandler.State.UNHANDLED;
@@ -130,14 +130,14 @@ public class MessageRegistrationOrderTest {
                     .register();
 
             // Early priority - should come first regardless of tail structure
-            new NetworkDefinitionBuilder<XuidMessage>(registration -> manager.onRegister(this.xuidChannel, XuidMessage::new, registration))
+            new NetworkDefinitionBuilder<XuidMessage>(registration -> network.onRegister(this.xuidChannel, XuidMessage::new, registration))
                     .clientbound(MessagePriority.EARLY, message -> {
                         assertEquals(0, state.getAndIncrement());
                         return MessageHandler.State.UNHANDLED;
                     })
                     .register();
 
-            manager.handleMessages(this.xuidChannel, List.of(new XuidMessage("test-xuid")), MessageDirection.CLIENTBOUND);
+            network.handleMessages(this.xuidChannel, List.of(new XuidMessage("test-xuid")), MessageDirection.CLIENTBOUND);
         });
     }
 
@@ -145,12 +145,12 @@ public class MessageRegistrationOrderTest {
     void testMixedHandlers() {
         mockContext(context -> {
             GeyserSession session = context.mock(GeyserSession.class);
-            GeyserNetworkManager manager = new GeyserNetworkManager(session);
+            GeyserNetwork network = new GeyserNetwork(session);
 
             AtomicInteger state = new AtomicInteger(0);
 
             // Simple early clientbound
-            new NetworkDefinitionBuilder<XuidMessage>(registration -> manager.onRegister(this.xuidChannel, XuidMessage::new, registration))
+            new NetworkDefinitionBuilder<XuidMessage>(registration -> network.onRegister(this.xuidChannel, XuidMessage::new, registration))
                     .clientbound(MessagePriority.EARLY, message -> {
                         assertEquals(0, state.getAndIncrement());
                         return MessageHandler.State.UNHANDLED;
@@ -158,7 +158,7 @@ public class MessageRegistrationOrderTest {
                     .register();
 
             // Late clientbound but first serverbound
-            new NetworkDefinitionBuilder<XuidMessage>(registration -> manager.onRegister(this.xuidChannel, XuidMessage::new, registration))
+            new NetworkDefinitionBuilder<XuidMessage>(registration -> network.onRegister(this.xuidChannel, XuidMessage::new, registration))
                     .clientbound(MessagePriority.LATE, message -> {
                         assertEquals(2, state.getAndIncrement());
                         return MessageHandler.State.UNHANDLED;
@@ -170,7 +170,7 @@ public class MessageRegistrationOrderTest {
                     .register();
 
             // Normal (default) bidirectional
-            new NetworkDefinitionBuilder<XuidMessage>(registration -> manager.onRegister(this.xuidChannel, XuidMessage::new, registration))
+            new NetworkDefinitionBuilder<XuidMessage>(registration -> network.onRegister(this.xuidChannel, XuidMessage::new, registration))
                     .bidirectional((message, direction) -> {
                         if (direction == MessageDirection.SERVERBOUND) {
                             fail("Serverbound handler should not be called in this test");
@@ -183,14 +183,14 @@ public class MessageRegistrationOrderTest {
                     .register();
 
             // Serverbound only - should never be called
-            new NetworkDefinitionBuilder<XuidMessage>(registration -> manager.onRegister(this.xuidChannel, XuidMessage::new, registration))
+            new NetworkDefinitionBuilder<XuidMessage>(registration -> network.onRegister(this.xuidChannel, XuidMessage::new, registration))
                     .serverbound(MessagePriority.NORMAL, message -> {
                         fail("Serverbound handler should not be called in this test");
                         return MessageHandler.State.UNHANDLED;
                     })
                     .register();
 
-            manager.handleMessages(this.xuidChannel, List.of(new XuidMessage("test-xuid")), MessageDirection.CLIENTBOUND);
+            network.handleMessages(this.xuidChannel, List.of(new XuidMessage("test-xuid")), MessageDirection.CLIENTBOUND);
         });
     }
 

@@ -27,41 +27,31 @@ package org.geysermc.geyser.network;
 
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.network.PacketChannel;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Objects;
 
-/**
- * Represents a network channel associated with a packet.
- * <p>
- * This channel is used for listening to communication over
- * packets between the server and client and can be used to
- * send or receive packets.
- */
-public class PacketChannel extends ExternalNetworkChannel {
-    private static final String PACKET_CHANNEL_KEY = "packet";
-
+public class PacketChannelImpl extends ExternalNetworkChannel implements PacketChannel {
     private final int packetId;
+    private final boolean java;
 
-    public PacketChannel(@NonNull String key, @NonNegative int packetId, @NonNull Class<?> packetType) {
-        super(Identifier.of(PACKET_CHANNEL_KEY, key), packetType);
+    public PacketChannelImpl(@NonNull Identifier identifier, boolean java, @NonNegative int packetId, @NonNull Class<?> packetType) {
+        super(identifier, packetType);
 
+        this.java = java;
         this.packetId = packetId;
     }
 
-    /**
-     * Gets the packet ID associated with this channel.
-     *
-     * @return the packet ID
-     */
     @NonNegative
     public int packetId() {
         return this.packetId;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    public boolean isJava() {
+        return this.java;
+    }
+
     @Override
     public boolean isPacket() {
         return true;
@@ -71,7 +61,7 @@ public class PacketChannel extends ExternalNetworkChannel {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
-        PacketChannel that = (PacketChannel) o;
+        PacketChannelImpl that = (PacketChannelImpl) o;
         return this.packetId == that.packetId;
     }
 

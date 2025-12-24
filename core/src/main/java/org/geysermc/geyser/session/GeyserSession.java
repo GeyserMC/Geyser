@@ -28,6 +28,7 @@ package org.geysermc.geyser.session;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -113,14 +114,14 @@ import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
-import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
-import org.geysermc.geyser.api.network.NetworkManager;
+import org.geysermc.geyser.api.network.MessageDirection;
+import org.geysermc.geyser.api.network.Network;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.api.util.PlatformType;
@@ -144,6 +145,7 @@ import org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.impl.camera.CameraDefinitions;
 import org.geysermc.geyser.impl.camera.GeyserCameraData;
+import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
@@ -157,7 +159,7 @@ import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.network.GeyserNetworkManager;
+import org.geysermc.geyser.network.GeyserNetwork;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -201,12 +203,12 @@ import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.geyser.util.MinecraftAuthLogger;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.network.BuiltinFlags;
-import org.geysermc.mcprotocollib.network.ClientSession;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.network.session.ClientNetworkSession;
 import org.geysermc.mcprotocollib.protocol.ClientListener;
 import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
+import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
 import org.geysermc.mcprotocollib.protocol.data.ProtocolState;
 import org.geysermc.mcprotocollib.protocol.data.game.ServerLink;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
@@ -757,7 +759,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final Set<InputLocksFlag> inputLocksSet = EnumSet.noneOf(InputLocksFlag.class);
     private boolean inputLockDirty;
 
-    private final GeyserNetworkManager networkManager;
+    private final GeyserNetwork network;
 
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
@@ -810,7 +812,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         this.remoteServer = geyser.defaultRemoteServer();
-        this.networkManager = new GeyserNetworkManager(this);
+        this.network = new GeyserNetwork(this);
     }
 
     /**
@@ -1066,18 +1068,45 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Start ticking
         tickThread = tickEventLoop.scheduleAtFixedRate(this::tick, nanosecondsPerTick, nanosecondsPerTick, TimeUnit.NANOSECONDS);
 
-        ClientSession downstream;
+        ClientNetworkSession downstream;
         if (geyser.getBootstrap().getSocketAddress() != null) {
             // We're going to connect through the JVM and not through TCP
-            downstream = new LocalSession(geyser.getBootstrap().getSocketAddress(),
-                upstream.getAddress().getAddress().getHostAddress(),
-                this.protocol, this.tickEventLoop);
+            downstream = new LocalSession(
+                    geyser.getBootstrap().getSocketAddress(),
+                    upstream.getAddress().getAddress().getHostAddress(),
+                    this.protocol, this.tickEventLoop
+            ) {
+
+                @Override
+                protected void channelRead0(ChannelHandlerContext ctx, Packet packet) {
+                    if (!network.handleJavaPacket((MinecraftPacket) packet, MessageDirection.CLIENTBOUND)) {
+                        return;
+                    }
+
+                    super.channelRead0(ctx, packet);
+                }
+            };
             downstream.setFlag(MinecraftConstants.CLIENT_HOST, this.remoteServer.address());
             downstream.setFlag(MinecraftConstants.CLIENT_PORT, this.remoteServer.port());
-            this.downstream = new DownstreamSession(downstream);
+            this.downstream = new DownstreamSession(this, downstream);
         } else {
-            downstream = new ClientNetworkSession(new InetSocketAddress(this.remoteServer.address(), this.remoteServer.port()), this.protocol, tickEventLoop, null, null);
-            this.downstream = new DownstreamSession(downstream);
+            downstream = new ClientNetworkSession(
+                    new InetSocketAddress(this.remoteServer.address(), this.remoteServer.port()),
+                    this.protocol, tickEventLoop,
+                    null, null
+            ) {
+
+                @Override
+                protected void channelRead0(ChannelHandlerContext ctx, Packet packet) {
+                    if (!network.handleJavaPacket((MinecraftPacket) packet, MessageDirection.CLIENTBOUND)) {
+                        return;
+                    }
+
+                    super.channelRead0(ctx, packet);
+                }
+            };
+
+            this.downstream = new DownstreamSession(this, downstream);
 
             boolean resolveSrv = false;
             try {
@@ -2474,8 +2503,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     @NonNull
-    public NetworkManager networkManager() {
-        return this.networkManager;
+    public Network network() {
+        return this.network;
     }
 
     @Override

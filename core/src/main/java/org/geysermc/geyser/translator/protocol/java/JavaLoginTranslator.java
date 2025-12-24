@@ -133,7 +133,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         }
         session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(register, Constants.PLUGIN_MESSAGE.getBytes(StandardCharsets.UTF_8)));
 
-        Set<NetworkChannel> registeredChannels = session.getNetworkManager().registeredChannels();
+        Set<NetworkChannel> registeredChannels = session.getNetwork().registeredChannels();
         if (!registeredChannels.isEmpty()) {
             String channels = registeredChannels
                     .stream()
