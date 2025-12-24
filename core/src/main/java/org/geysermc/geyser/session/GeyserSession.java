@@ -2445,6 +2445,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sendUpstreamPacket(packet);
     }
 
+    public boolean shouldLimitPlayerlistEntries() {
+        return platform() == BedrockPlatform.PS4;
+    }
+
     public String getDebugInfo() {
         return "Username: %s, DeviceOs: %s, Version: %s".formatted(bedrockUsername(), platform(), version());
     }
