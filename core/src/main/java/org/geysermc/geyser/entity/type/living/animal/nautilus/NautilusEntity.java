@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,31 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.horse;
+package org.geysermc.geyser.entity.type.living.animal.nautilus;
 
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.Container;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 
-public class HorseInventoryTranslator extends AbstractHorseInventoryTranslator {
-    public HorseInventoryTranslator(int size) {
-        super(size);
-    }
-
-    @Override
-    public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        if (slotInfoData.getContainerName().getContainer() == ContainerSlotType.HORSE_EQUIP) {
-            return slotInfoData.getSlot();
-        }
-        return super.bedrockSlotToJava(slotInfoData);
-    }
-
-    @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
-        if (slot == 0 || slot == 1) {
-            return new BedrockContainerSlot(ContainerSlotType.HORSE_EQUIP, slot);
-        }
-        return super.javaSlotToBedrockContainer(slot, container);
+public class NautilusEntity extends AbstractNautilusEntity {
+    public NautilusEntity(EntitySpawnContext context) {
+        super(context, 1.0f);
     }
 }

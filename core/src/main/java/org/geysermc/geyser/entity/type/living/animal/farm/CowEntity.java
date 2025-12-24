@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;

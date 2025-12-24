@@ -117,7 +117,7 @@ open class DownloadFilesTask : DefaultTask() {
 }
 
 fun Project.branchName(): String =
-    the<IndraGitExtension>().branchName() ?: System.getenv("BRANCH_NAME") ?: "local/dev"
+    (the<IndraGitExtension>().branchName() ?: System.getenv("BRANCH_NAME") ?: "local/dev").toString()
 
 fun Project.shouldAddBranchName(): Boolean {
     return branchName() !in arrayOf("master", "local/dev")

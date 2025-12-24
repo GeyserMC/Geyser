@@ -28,7 +28,7 @@ package org.geysermc.geyser.entity.type;
 import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
+import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;

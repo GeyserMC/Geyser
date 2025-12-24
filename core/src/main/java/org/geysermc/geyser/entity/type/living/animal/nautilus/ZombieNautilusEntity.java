@@ -23,38 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living.animal.farm;
+package org.geysermc.geyser.entity.type.living.animal.nautilus;
 
-import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
+import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
-import org.geysermc.geyser.impl.IdentifierImpl;
-import org.geysermc.geyser.session.cache.RegistryCache;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 
-public abstract class TemperatureVariantAnimal extends AnimalEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
-
-    public static final EnumProperty<BuiltInVariant> TEMPERATE_VARIANT_PROPERTY = new EnumProperty<>(
-        IdentifierImpl.of("climate_variant"),
-        BuiltInVariant.class,
-        BuiltInVariant.TEMPERATE
-    );
-
-    public static final RegistryCache.RegistryReader<BuiltInVariant> VARIANT_READER = VariantHolder.reader(BuiltInVariant.class, BuiltInVariant.TEMPERATE);
-
-    public TemperatureVariantAnimal(EntitySpawnContext context) {
-        super(context);
+public class ZombieNautilusEntity extends AbstractNautilusEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
+    public ZombieNautilusEntity(EntitySpawnContext context) {
+        super(context, 1.1f);
     }
 
     @Override
-    public void setBedrockVariant(BuiltInVariant variant) {
-        TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, variant);
+    public void setBedrockVariant(TemperatureVariantAnimal.BuiltInVariant variant) {
+        TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, variant);
         updateBedrockEntityProperties();
     }
 
-    public enum BuiltInVariant implements VariantHolder.BuiltIn {
-        TEMPERATE,
-        WARM,
-        COLD;
+    @Override
+    public JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> variantRegistry() {
+        return JavaRegistries.ZOMBIE_NAUTILUS_VARIANT;
     }
 }

@@ -23,20 +23,21 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.populator.conversion;
+package org.geysermc.geyser.entity.type.living.animal.horse;
 
-import org.cloudburstmc.nbt.NbtMap;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
 
-public class Conversion827_819 {
+public class CamelHuskEntity extends CamelEntity {
+    public CamelHuskEntity(EntitySpawnContext context) {
+        super(context);
+    }
 
-    public static NbtMap remapBlock(NbtMap nbtMap) {
-        nbtMap = Conversion844_827.remapBlock(nbtMap);
-
-        final String name = nbtMap.getString("name");
-        if (name.endsWith("copper_chest")) {
-            return ConversionHelper.withName(nbtMap, "chest");
-        }
-
-        return nbtMap;
+    @Override
+    protected @Nullable Tag<Item> getFoodTag() {
+        return ItemTag.CAMEL_HUSK_FOOD;
     }
 }

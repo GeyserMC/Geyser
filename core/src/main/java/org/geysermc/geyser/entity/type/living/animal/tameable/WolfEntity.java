@@ -49,6 +49,7 @@ import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.LongEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -115,10 +116,11 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     }
 
     // 1.16+
-    public void setWolfAngerTime(IntEntityMetadata entityMetadata) {
-        int time = entityMetadata.getPrimitiveValue();
-        setFlag(EntityFlag.ANGRY, time != 0);
-        dirtyMetadata.put(EntityDataTypes.COLOR, time != 0 ? (byte) 0 : collarColor);
+    public void setWolfAngerTime(LongEntityMetadata entityMetadata) {
+        long time = entityMetadata.getPrimitiveValue();
+        boolean angry = time > 0 && time - session.getWorldTicks() > 0;
+        setFlag(EntityFlag.ANGRY, angry);
+        dirtyMetadata.put(EntityDataTypes.COLOR, angry ? (byte) 0 : collarColor);
     }
 
     @Override
