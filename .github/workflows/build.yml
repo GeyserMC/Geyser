@@ -81,7 +81,7 @@ jobs:
           JSON_B64=$(base64 -w 0 mcversions.json)
           echo "MINECRAFT_VERSIONS_JSON=$JSON_B64" >> "$GITHUB_OUTPUT"
           echo "Supported Minecraft Versions:"
-          cat versions.json
+          cat mcversions.json
 
       - name: Get Release Metadata
         if: ${{ (success() || failure()) && github.repository == 'lukeeey/Geyser' }}
