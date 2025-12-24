@@ -55,11 +55,14 @@ import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.FileDescriptor;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -89,13 +92,22 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
         }
 
         // This is parsed by the CI to include in the Downloads API
-        if (List.of(args).contains("--print-minecraft-versions")) {
-             System.out.println(
-                new Gson().toJson(Map.of(
+        if (List.of(args).contains("--dump-minecraft-versions")) {
+            try {
+                 String json = new Gson().toJson(Map.of(
                     "bedrock", GameProtocol.SUPPORTED_BEDROCK_VERSIONS.stream().map(MinecraftVersion::versionString).collect(Collectors.toList()),
                     "java", GameProtocol.getJavaVersions()
-                ))
-            );
+                ));
+
+                Files.writeString(
+                    Path.of("mcversions.json"),
+                    json,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING
+                );
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to write mcversions.json", e);
+            }
             return;
         }
 
