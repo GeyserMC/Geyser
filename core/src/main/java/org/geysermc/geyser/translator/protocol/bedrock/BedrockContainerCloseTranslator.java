@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
+import java.util.concurrent.TimeUnit;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
-import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
@@ -35,10 +35,6 @@ import org.geysermc.geyser.translator.inventory.MerchantInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.geysermc.geyser.util.InventoryUtils.MAGIC_VIRTUAL_INVENTORY_HACK;
 
 @Translator(packet = ContainerClosePacket.class)
 public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerClosePacket> {
@@ -68,10 +64,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
                     holder.pending(true);
 
                     session.scheduleInEventLoop(() -> {
-                        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-                        latencyPacket.setFromServer(true);
-                        latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
-                        session.sendUpstreamPacket(latencyPacket);
+                        InventoryUtils.scheduleInventoryOpen(session);
                         GeyserImpl.getInstance().getLogger().debug(session, "Unable to open a virtual inventory, sent another latency packet!");
                     }, 150, TimeUnit.MILLISECONDS);
                     return;
