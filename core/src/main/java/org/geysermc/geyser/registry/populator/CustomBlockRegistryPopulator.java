@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -104,7 +104,7 @@ public class CustomBlockRegistryPopulator {
      * @param stage the stage to populate
      */
     public static void populate(Stage stage) {
-        if (!GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
+        if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
             return;
         }
         
@@ -419,12 +419,14 @@ public class CustomBlockRegistryPopulator {
                     .build());
         }
 
-        if (components.selectionBox() != null) {
-            builder.putCompound("minecraft:selection_box", convertBox(components.selectionBox()));
+        BoxComponent selectionBox = components.selectionBox();
+        if (selectionBox != null) {
+            builder.putCompound("minecraft:selection_box", convertBox(selectionBox));
         }
 
-        if (components.collisionBox() != null) {
-            builder.putCompound("minecraft:collision_box", convertBox(components.collisionBox()));
+        BoxComponent collisionBox = components.collisionBox();
+        if (collisionBox != null) {
+            builder.putCompound("minecraft:collision_box", convertCollisionBox(collisionBox, protocolVersion));
         }
 
         if (components.geometry() != null) {
@@ -448,13 +450,21 @@ public class CustomBlockRegistryPopulator {
             for (Map.Entry<String, MaterialInstance> entry : components.materialInstances().entrySet()) {
                 MaterialInstance materialInstance = entry.getValue();
                 NbtMapBuilder materialBuilder = NbtMap.builder()
-                        .putString("render_method", materialInstance.renderMethod())
-                        .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion());
+                        .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion())
+                        .putBoolean("isotropic", materialInstance.isotropic());
 
                 if (GameProtocol.is1_21_110orHigher(protocolVersion)) {
                     materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
                 } else {
                     materialBuilder.putBoolean("face_dimming", materialInstance.faceDimming());
+                }
+
+                if (materialInstance.renderMethod() != null) {
+                    materialBuilder.putString("render_method", materialInstance.renderMethod());
+                }
+
+                if (materialInstance.tintMethod() != null) {
+                    materialBuilder.putString("tint_method", materialInstance.tintMethod());
                 }
 
                 // Texture can be unspecified when blocks.json is used in RP (https://wiki.bedrock.dev/blocks/blocks-stable.html#minecraft-material-instances)
@@ -534,6 +544,32 @@ public class CustomBlockRegistryPopulator {
     }
 
     /**
+     * Converts the provided COLLISION box component to an {@link NbtMap}
+     *
+     * @param boxComponent the box component to convert
+     * @return the NBT representation of the provided box component
+     */
+    private static NbtMap convertCollisionBox(BoxComponent boxComponent, int protocolVersion) {
+        if (GameProtocol.is1_21_130orHigher(protocolVersion)) {
+            float minX = 8f + boxComponent.originX();
+            float minY = boxComponent.originY();
+            float minZ = 8f + boxComponent.originZ();
+            return NbtMap.builder()
+                .putBoolean("enabled", !boxComponent.isEmpty())
+                .putList("boxes", NbtType.COMPOUND, NbtMap.builder()
+                .putFloat("minX", minX)
+                .putFloat("minY", minY)
+                .putFloat("minZ", minZ)
+                .putFloat("maxX", minX + boxComponent.sizeX())
+                .putFloat("maxY", minY + boxComponent.sizeY())
+                .putFloat("maxZ", minZ + boxComponent.sizeZ())
+                .build()).build();
+        } else {
+            return convertBox(boxComponent);
+        }
+    }
+
+    /**
      * Converts the provided box component to an {@link NbtMap}
      * 
      * @param boxComponent the box component to convert
@@ -543,7 +579,8 @@ public class CustomBlockRegistryPopulator {
         return NbtMap.builder()
                 .putBoolean("enabled", !boxComponent.isEmpty())
                 .putList("origin", NbtType.FLOAT, boxComponent.originX(), boxComponent.originY(), boxComponent.originZ())
-                .putList("size", NbtType.FLOAT, boxComponent.sizeX(), boxComponent.sizeY(), boxComponent.sizeZ())
+                // TODO remove after 1.21.130 - collision boxes sent to below 1.21.130 must be capped
+                .putList("size", NbtType.FLOAT, boxComponent.sizeX(), Math.min(boxComponent.sizeY(), 16), boxComponent.sizeZ())
                 .build();
     }
 

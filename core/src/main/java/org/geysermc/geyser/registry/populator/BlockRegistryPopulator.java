@@ -25,15 +25,15 @@
 
 package org.geysermc.geyser.registry.populator;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -49,6 +49,8 @@ import org.cloudburstmc.protocol.bedrock.codec.v819.Bedrock_v819;
 import org.cloudburstmc.protocol.bedrock.codec.v827.Bedrock_v827;
 import org.cloudburstmc.protocol.bedrock.codec.v844.Bedrock_v844;
 import org.cloudburstmc.protocol.bedrock.codec.v859.Bedrock_v859;
+import org.cloudburstmc.protocol.bedrock.codec.v860.Bedrock_v860;
+import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -61,10 +63,9 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.populator.conversion.Conversion827_819;
-import org.geysermc.geyser.registry.populator.conversion.Conversion844_827;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
+import org.geysermc.geyser.util.JsonUtils;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
@@ -122,11 +123,12 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                .put(ObjectIntPair.of("1_21_90", Bedrock_v818.CODEC.getProtocolVersion()), Conversion827_819::remapBlock)
-                .put(ObjectIntPair.of("1_21_90", Bedrock_v819.CODEC.getProtocolVersion()), Conversion827_819::remapBlock)
-                .put(ObjectIntPair.of("1_21_100", Bedrock_v827.CODEC.getProtocolVersion()), Conversion844_827::remapBlock)
                 .put(ObjectIntPair.of("1_21_110", Bedrock_v844.CODEC.getProtocolVersion()), tag -> tag)
+                 // 1.21.110 -> 1.21.12x doesn't change the block palette
                 .put(ObjectIntPair.of("1_21_110", Bedrock_v859.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_21_110", Bedrock_v860.CODEC.getProtocolVersion()), tag -> tag)
+                // No changes in .130 block palette either!
+                .put(ObjectIntPair.of("1_21_110", Bedrock_v898.CODEC.getProtocolVersion()), tag -> tag)
             .build();
 
         // We can keep this strong as nothing should be garbage collected
@@ -441,21 +443,21 @@ public final class BlockRegistryPopulator {
         BLOCKS_NBT = blocksNbt;
         JAVA_BLOCKS_SIZE = blocksNbt.size();
 
-        JsonNode blockInteractionsJson;
+        JsonObject blockInteractionsJson;
         try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("mappings/interactions.json")) {
-            blockInteractionsJson = GeyserImpl.JSON_MAPPER.readTree(stream);
+            blockInteractionsJson = JsonUtils.fromJson(stream);
         } catch (Exception e) {
             throw new AssertionError("Unable to load Java block interaction mappings", e);
         }
 
-        BlockRegistries.INTERACTIVE.set(toBlockStateSet((ArrayNode) blockInteractionsJson.get("always_consumes")));
-        BlockRegistries.INTERACTIVE_MAY_BUILD.set(toBlockStateSet((ArrayNode) blockInteractionsJson.get("requires_may_build")));
+        BlockRegistries.INTERACTIVE.set(toBlockStateSet(blockInteractionsJson.getAsJsonArray("always_consumes")));
+        BlockRegistries.INTERACTIVE_MAY_BUILD.set(toBlockStateSet(blockInteractionsJson.getAsJsonArray("requires_may_build")));
     }
 
-    private static BitSet toBlockStateSet(ArrayNode node) {
+    private static BitSet toBlockStateSet(JsonArray node) {
         BitSet blockStateSet = new BitSet(node.size());
-        for (JsonNode javaIdentifier : node) {
-            blockStateSet.set(BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get().getInt(javaIdentifier.textValue()));
+        for (JsonElement javaIdentifier : node) {
+            blockStateSet.set(BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get().getInt(javaIdentifier.getAsString()));
         }
         return blockStateSet;
     }
