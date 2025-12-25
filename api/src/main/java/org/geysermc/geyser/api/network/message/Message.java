@@ -33,7 +33,8 @@ import java.util.function.Supplier;
 
 /**
  * Represents a message that can be sent over the network.
- * @since 2.9.1
+ *
+ * @since 2.9.2
  */
 public interface Message<T extends MessageBuffer> {
 

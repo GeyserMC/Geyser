@@ -32,6 +32,7 @@ import org.geysermc.geyser.api.network.MessageDirection;
  * Represents a handler for processing messages.
  *
  * @param <T> the type of message to handle
+ * @since 2.9.2
  */
 @FunctionalInterface
 public interface MessageHandler<T extends Message<? extends MessageBuffer>> {

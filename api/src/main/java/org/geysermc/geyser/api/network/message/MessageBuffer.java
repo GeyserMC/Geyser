@@ -29,7 +29,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * A buffer for messages that can be sent over the network.
- * @since 2.9.1
+ *
+ * @since 2.9.2
  */
 public interface MessageBuffer {
 

@@ -29,6 +29,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * Represents the state of a Java connection.
+ *
+ * @since 2.9.2
  */
 public interface JavaState {
 

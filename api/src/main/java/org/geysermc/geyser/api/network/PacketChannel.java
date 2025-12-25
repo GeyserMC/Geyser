@@ -37,7 +37,7 @@ import org.geysermc.geyser.api.extension.Extension;
  * packets between the server and client and can be used to
  * send or receive packets.
  *
- * @since 2.9.1
+ * @since 2.9.2
  */
 public interface PacketChannel extends NetworkChannel {
 

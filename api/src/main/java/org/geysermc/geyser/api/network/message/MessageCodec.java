@@ -34,7 +34,7 @@ import java.util.UUID;
  * A codec for encoding and decoding messages.
  * 
  * @param <T> the type of {@link MessageBuffer} used for encoding and decoding
- * @since 2.9.1
+ * @since 2.9.2
  */
 public interface MessageCodec<T extends MessageBuffer> {
 

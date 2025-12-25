@@ -27,6 +27,8 @@ package org.geysermc.geyser.api.network;
 
 /**
  * Represents the protocol state of a Java network connection.
+ *
+ * @since 2.9.2
  */
 public enum ProtocolState {
     /**

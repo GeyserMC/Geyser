@@ -27,7 +27,8 @@ package org.geysermc.geyser.api.network;
 
 /**
  * Represents the direction of a message.
- * @since 2.9.1
+ *
+ * @since 2.9.2
  */
 public enum MessageDirection {
     /**

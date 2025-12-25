@@ -27,6 +27,8 @@ package org.geysermc.geyser.api.network;
 
 /**
  * Represents flags that can be associated with network messages.
+ *
+ * @since 2.9.2
  */
 public interface MessageFlag {
 }

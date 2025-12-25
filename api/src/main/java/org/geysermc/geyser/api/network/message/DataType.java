@@ -36,7 +36,7 @@ import java.util.UUID;
  * Represents a data type that can be sent or received over the network.
  *
  * @param <T> the type
- * @since 2.9.1
+ * @since 2.9.2
  */
 public final class DataType<T> {
     /**

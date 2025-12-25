@@ -56,12 +56,12 @@ import org.geysermc.geyser.api.util.Identifier;
  *
  * <p>
  * For packet channels, it can get slightly more complex as you need to
- * know the packet ID alongside having a constructed message type. The
- * following example demonstrates this with the animate packet, assuming
- * the AnimateMessage class represents the correct packet structure:
+ * know the packet ID, understand the constructed message type and have an extension
+ * available. The following example demonstrates this with the animate packet,
+ * assuming the AnimateMessage class represents the correct packet structure:
  * <pre>
  * {@code
- *    private final NetworkChannel animateChannel = NetworkChannel.packet("animate", 44, AnimateMessage.class);
+ *    private final NetworkChannel animateChannel = PacketChannel.bedrock(this, 44, AnimateMessage.class);
  * }
  * </pre>
  *
@@ -71,7 +71,7 @@ import org.geysermc.geyser.api.util.Identifier;
  * an example on how to do this, please see the
  * <a href="https://geysermc.org/wiki/geyser/networking-api">Networking API documentation</a>.
  *
- * @since 2.9.1
+ * @since 2.9.2
  */
 public interface NetworkChannel {
 

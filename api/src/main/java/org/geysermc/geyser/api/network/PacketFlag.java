@@ -28,6 +28,8 @@ package org.geysermc.geyser.api.network;
 /**
  * Represents flags that can be applied to packets
  * to modify their behavior.
+ *
+ * @since 2.9.2
  */
 public enum PacketFlag implements MessageFlag {
     /**

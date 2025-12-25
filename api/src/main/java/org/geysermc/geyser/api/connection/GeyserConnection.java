@@ -127,7 +127,8 @@ public interface GeyserConnection extends Connection, CommandSource {
      * Gets the {@link Network} used for handling
      * network channels and sending messages.
      *
-     * @return the network manager
+     * @return the network
+     * @since 2.9.2
      */
     @NonNull
     Network network();

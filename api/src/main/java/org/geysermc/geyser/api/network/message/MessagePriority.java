@@ -29,7 +29,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * Represents the priority of a message when being processed.
- * @since 2.9.1
+ *
+ * @since 2.9.2
  */
 public enum MessagePriority {
     FIRST(100),

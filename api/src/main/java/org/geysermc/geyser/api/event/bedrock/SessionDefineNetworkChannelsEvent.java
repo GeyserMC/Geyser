@@ -41,7 +41,8 @@ import java.util.function.Consumer;
 
 /**
  * Called whenever Geyser is registering network channels.
- * @since 2.9.1
+ *
+ * @since 2.9.2
  */
 public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent {
 
