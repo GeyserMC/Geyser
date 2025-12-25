@@ -136,7 +136,10 @@ public class NetworkDefinitionBuilder<M extends Message<? extends MessageBuffer>
 
         @Override
         public SessionDefineNetworkChannelsEvent.Builder.@NonNull Pipeline tag(@NonNull String tag) {
-            this.tag = Objects.requireNonNull(tag, "tag");
+            Preconditions.checkNotNull(tag, "tag");
+            Preconditions.checkState(!tag.isBlank(), "tag");
+
+            this.tag = tag;
             return this;
         }
 

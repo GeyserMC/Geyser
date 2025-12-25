@@ -54,7 +54,7 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
      * Defines the registration of a new network channel with a message factory.
      *
      * @param channel the channel to register
-     * @param messageFactory the factory to create messages from the buffer
+     * @param messageFactory the factory used to create messages from the buffer
      * @param <M> the message type created by the factory
      * @return a registration builder to configure handlers
      */
@@ -65,7 +65,7 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
      *
      * @param channel the channel to register
      * @param codec the codec to use to encode/decode the buffer
-     * @param messageFactory the factory to create messages from the buffer
+     * @param messageFactory the factory used to create messages from the buffer
      * @param <T> the buffer type
      * @param <M> the message type created by the factory
      * @return a registration builder to configure handlers
@@ -100,6 +100,9 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
 
             /**
              * Sets the protocol state for this message.
+             * <p>
+             * This is required for any message involving Java Edition
+             * packets that need to be restricted to certain states.
              *
              * @param state the protocol state
              * @return the initial builder instance
@@ -118,25 +121,25 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
         interface Sided<M extends Message<? extends MessageBuffer>> extends Builder<M> {
 
             /**
-             * Register a clientbound handler.
+             * Registers a clientbound handler.
              */
             @NonNull
             Sided<M> clientbound(MessageHandler.@NonNull Sided<M> handler);
 
             /**
-             * Register a clientbound handler with a priority.
+             * Registers a clientbound handler with a priority.
              */
             @NonNull
             Sided<M> clientbound(@NonNull MessagePriority priority, MessageHandler.@NonNull Sided<M> handler);
 
             /**
-             * Register a serverbound handler.
+             * Registers a serverbound handler.
              */
             @NonNull
             Sided<M> serverbound(MessageHandler.@NonNull Sided<M> handler);
 
             /**
-             * Register a serverbound handler with a priority.
+             * Registers a serverbound handler with a priority.
              */
             @NonNull
             Sided<M> serverbound(@NonNull MessagePriority priority, MessageHandler.@NonNull Sided<M> handler);
@@ -152,13 +155,14 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
         interface Bidirectional<M extends Message<? extends MessageBuffer>> extends Builder<M> {
 
             /**
-             * Register a bidirectional handler receiving the message and direction.
+             * Registers a bidirectional handler which receives the message and passes
+             * through the direction.
              */
             @NonNull
             Bidirectional<M> bidirectional(@NonNull MessageHandler<M> handler);
 
             /**
-             * Register a bidirectional handler with a priority.
+             * Registers a bidirectional handler with a priority.
              */
             @NonNull
             Bidirectional<M> bidirectional(@NonNull MessagePriority priority, @NonNull MessageHandler<M> handler);
