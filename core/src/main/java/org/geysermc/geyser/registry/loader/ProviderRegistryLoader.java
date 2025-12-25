@@ -194,7 +194,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
             }
 
             throw new IllegalArgumentException("Unknown arguments provided for PacketChannel provider. " +
-                    "Cloud not create a channel given the arguments: " + Arrays.toString(args));
+                    "Could not create a channel given the arguments: " + Arrays.toString(args));
         });
 
         return providers;

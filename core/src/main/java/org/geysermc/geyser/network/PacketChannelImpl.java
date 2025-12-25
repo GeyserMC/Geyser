@@ -43,6 +43,7 @@ public class PacketChannelImpl extends ExternalNetworkChannel implements PacketC
         this.packetId = packetId;
     }
 
+    @Override
     @NonNegative
     public int packetId() {
         return this.packetId;
