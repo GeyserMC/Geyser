@@ -40,6 +40,11 @@ import org.geysermc.erosion.packet.geyserbound.GeyserboundPacket;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.api.network.MessageDirection;
+import org.geysermc.geyser.api.network.NetworkChannel;
+import org.geysermc.geyser.api.network.message.Message;
+import org.geysermc.geyser.api.network.message.MessageBuffer;
+import org.geysermc.geyser.network.GeyserNetwork;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -47,6 +52,9 @@ import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.Clientbound
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Translator(packet = ClientboundCustomPayloadPacket.class)
 public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCustomPayloadPacket> {
@@ -142,6 +150,32 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 toSend.setPayload(packetData);
 
                 session.sendUpstreamPacket(toSend);
+            });
+        } else {
+            session.ensureInEventLoop(() -> {
+                GeyserNetwork network = session.getNetwork();
+                Set<NetworkChannel> channels = network.registeredChannels();
+                if (channels.isEmpty()) {
+                    this.logger.debug("Received a custom payload for an unregistered channel: " + channel);
+                    return;
+                }
+
+                List<NetworkChannel> identifiedChannels = new ArrayList<>();
+                for (NetworkChannel registeredChannel : channels) {
+                    if (!registeredChannel.isPacket() && registeredChannel.identifier().toString().equals(channel)) {
+                        identifiedChannels.add(registeredChannel);
+                    }
+                }
+
+                if (identifiedChannels.isEmpty()) {
+                    this.logger.debug("Received a custom payload for an unregistered channel: " + channel);
+                    return;
+                }
+
+                for (NetworkChannel networkChannel : identifiedChannels) {
+                    List<Message<MessageBuffer>> message = network.createMessages(networkChannel, packet.getData());
+                    network.handleMessages(networkChannel, message, MessageDirection.CLIENTBOUND);
+                }
             });
         }
     }

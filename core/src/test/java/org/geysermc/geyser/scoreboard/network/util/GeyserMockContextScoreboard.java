@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.scoreboard.network.util;
 
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketType;
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
-import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContext.mockContext;
+import static org.geysermc.geyser.util.AssertUtils.assertNextPacketType;
+import static org.geysermc.geyser.util.AssertUtils.assertNoNextPacket;
+import static org.geysermc.geyser.util.GeyserMockContext.mockContext;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
@@ -45,6 +45,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.EntityCache;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
+import org.geysermc.geyser.util.GeyserMockContext;
 import org.mockito.stubbing.Answer;
 
 public class GeyserMockContextScoreboard {

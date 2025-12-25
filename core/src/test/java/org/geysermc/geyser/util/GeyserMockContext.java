@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,11 +23,12 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.scoreboard.network.util;
+package org.geysermc.geyser.util;
 
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.mockito.Mockito;
@@ -57,6 +58,9 @@ public class GeyserMockContext {
 
         var logger = context.storeObject(new EmptyGeyserLogger());
         when(geyserImpl.getLogger()).thenReturn(logger);
+
+        var eventBus = context.mock(GeyserEventBus.class);
+        when(geyserImpl.getEventBus()).thenReturn(eventBus);
 
         try (var geyserImplMock = mockStatic(GeyserImpl.class)) {
             geyserImplMock.when(GeyserImpl::getInstance).thenReturn(geyserImpl);
@@ -113,7 +117,7 @@ public class GeyserMockContext {
         return mockOrSpy(GeyserSession.class);
     }
 
-    void addPacket(BedrockPacket packet) {
+    public void addPacket(BedrockPacket packet) {
         packets.add(packet);
     }
 
