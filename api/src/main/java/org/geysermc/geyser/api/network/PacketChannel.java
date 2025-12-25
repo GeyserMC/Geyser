@@ -59,7 +59,7 @@ public interface PacketChannel extends NetworkChannel {
      */
     @NonNull
     static PacketChannel bedrock(@NonNull Extension extension, @NonNegative int packetId, @NonNull Class<?> packetType) {
-        return GeyserApi.api().provider(PacketChannel.class, "bedrock", extension, packetId, packetType);
+        return GeyserApi.api().provider(PacketChannel.class, extension, "bedrock", packetId, packetType);
     }
 
     /**
