@@ -73,7 +73,8 @@ public class BeeEntity extends AnimalEntity {
 
     public void setAngerTime(LongEntityMetadata entityMetadata) {
         // Converting "anger time" to a boolean
-        setFlag(EntityFlag.ANGRY, entityMetadata.getPrimitiveValue() > 0);
+        long time = entityMetadata.getPrimitiveValue();
+        setFlag(EntityFlag.ANGRY, time > 0 && time - session.getWorldTicks() > 0);
     }
 
     @Override

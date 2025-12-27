@@ -121,8 +121,9 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     // 1.16+
     public void setWolfAngerTime(LongEntityMetadata entityMetadata) {
         long time = entityMetadata.getPrimitiveValue();
-        setFlag(EntityFlag.ANGRY, time != -1L);
-        dirtyMetadata.put(EntityDataTypes.COLOR, time != -1L ? (byte) 0 : collarColor);
+        boolean angry = time > 0 && time - session.getWorldTicks() > 0;
+        setFlag(EntityFlag.ANGRY, angry);
+        dirtyMetadata.put(EntityDataTypes.COLOR, angry ? (byte) 0 : collarColor);
     }
 
     @Override
