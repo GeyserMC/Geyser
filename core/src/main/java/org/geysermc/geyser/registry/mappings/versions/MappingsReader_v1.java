@@ -46,7 +46,10 @@ import org.geysermc.geyser.api.block.custom.component.PlacementConditions.Face;
 import org.geysermc.geyser.api.block.custom.component.TransformationComponent;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
@@ -58,6 +61,7 @@ import org.geysermc.geyser.registry.mappings.util.CustomBlockComponentsMapping;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockStateBuilderMapping;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockStateMapping;
+import org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
@@ -80,14 +84,16 @@ import java.util.stream.Collectors;
  * A class responsible for reading custom item and block mappings from a JSON file
  */
 public class MappingsReader_v1 extends MappingsReader {
+
     @Override
-    public void readItemMappings(Path file, JsonObject mappingsRoot, BiConsumer<String, CustomItemData> consumer) {
+    @Deprecated
+    public void readItemMappings(Path file, JsonObject mappingsRoot, BiConsumer<Identifier, CustomItemDefinition> consumer) {
         this.readItemMappingsV1(file, mappingsRoot, consumer);
     }
 
     /**
      * Read item block from a JSON node
-     * 
+     *
      * @param file The path to the file
      * @param mappingsRoot The {@link JsonObject} containing the mappings
      * @param consumer The consumer to accept the mappings
@@ -98,7 +104,8 @@ public class MappingsReader_v1 extends MappingsReader {
         this.readBlockMappingsV1(file, mappingsRoot, consumer);
     }
 
-    public void readItemMappingsV1(Path file, JsonObject mappingsRoot, BiConsumer<String, CustomItemData> consumer) {
+    @Deprecated
+    public void readItemMappingsV1(Path file, JsonObject mappingsRoot, BiConsumer<Identifier, CustomItemDefinition> consumer) {
         JsonObject itemsNode = mappingsRoot.getAsJsonObject("items");
 
         if (itemsNode != null) {
@@ -106,8 +113,9 @@ public class MappingsReader_v1 extends MappingsReader {
                 if (entry.getValue() instanceof JsonArray array) {
                     array.forEach(data -> {
                         try {
-                            CustomItemData customItemData = this.readItemMappingEntry((JsonObject) data);
-                            consumer.accept(entry.getKey(), customItemData);
+                            Identifier vanillaItemIdentifier = Identifier.of(entry.getKey());
+                            CustomItemDefinition customItemData = this.readItemMappingEntry(vanillaItemIdentifier, data);
+                            consumer.accept(vanillaItemIdentifier, customItemData);
                         } catch (InvalidCustomMappingsFileException e) {
                             GeyserImpl.getInstance().getLogger().error("Error in registering items for custom mapping file: " + file.toString(), e);
                         }
@@ -119,7 +127,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
     /**
      * Read block mappings from a JSON node
-     * 
+     *
      * @param file The path to the file
      * @param mappingsRoot The {@link JsonObject} containing the mappings
      * @param consumer The consumer to accept the mappings
@@ -142,6 +150,7 @@ public class MappingsReader_v1 extends MappingsReader {
         }
     }
 
+    @Deprecated
     private CustomItemOptions readItemCustomItemOptions(JsonObject node) {
         CustomItemOptions.Builder customItemOptions = CustomItemOptions.builder();
 
@@ -169,88 +178,91 @@ public class MappingsReader_v1 extends MappingsReader {
     }
 
     @Override
-    public CustomItemData readItemMappingEntry(JsonObject node) throws InvalidCustomMappingsFileException {
-        if (node == null) {
+    @Deprecated
+    public CustomItemDefinition readItemMappingEntry(Identifier identifier, JsonElement element) throws InvalidCustomMappingsFileException {
+        if (element == null || !element.isJsonObject()) {
             throw new InvalidCustomMappingsFileException("Invalid item mappings entry");
         }
+        JsonObject object = element.getAsJsonObject();
 
-        JsonElement name = node.get("name");
+        JsonElement name = object.get("name");
         if (name == null || !name.isJsonPrimitive() || name.getAsString().isEmpty()) {
             throw new InvalidCustomMappingsFileException("An item entry has no name");
         }
 
         CustomItemData.Builder customItemData = CustomItemData.builder()
-                .name(name.getAsString())
-                .customItemOptions(this.readItemCustomItemOptions(node));
+            .name(name.getAsString())
+            .customItemOptions(this.readItemCustomItemOptions(object));
 
         //The next entries are optional
-        if (node.has("display_name")) {
-            customItemData.displayName(node.get("display_name").getAsString());
+        if (object.has("display_name")) {
+            customItemData.displayName(object.get("display_name").getAsString());
         }
 
-        if (node.has("icon")) {
-            customItemData.icon(node.get("icon").getAsString());
+        if (object.has("icon")) {
+            customItemData.icon(object.get("icon").getAsString());
         }
 
-        if (node.has("creative_category")) {
-            customItemData.creativeCategory(node.get("creative_category").getAsInt());
+        if (object.has("creative_category")) {
+            customItemData.creativeCategory(object.get("creative_category").getAsInt());
         }
 
-        if (node.has("creative_group")) {
-            customItemData.creativeGroup(node.get("creative_group").getAsString());
+        if (object.has("creative_group")) {
+            customItemData.creativeGroup(object.get("creative_group").getAsString());
         }
 
-        if (node.has("allow_offhand")) {
-            customItemData.allowOffhand(node.get("allow_offhand").getAsBoolean());
+        if (object.has("allow_offhand")) {
+            customItemData.allowOffhand(object.get("allow_offhand").getAsBoolean());
         }
 
-        if (node.has("display_handheld")) {
-            customItemData.displayHandheld(node.get("display_handheld").getAsBoolean());
+        if (object.has("display_handheld")) {
+            customItemData.displayHandheld(object.get("display_handheld").getAsBoolean());
         }
 
-        if (node.has("texture_size")) {
-            customItemData.textureSize(node.get("texture_size").getAsInt());
+        if (object.has("texture_size")) {
+            customItemData.textureSize(object.get("texture_size").getAsInt());
         }
 
-        if (node.has("render_offsets")) {
-            JsonObject tmpNode = node.getAsJsonObject("render_offsets");
+        if (object.has("render_offsets")) {
+            JsonObject tmpNode = object.getAsJsonObject("render_offsets");
 
             customItemData.renderOffsets(fromJsonObject(tmpNode));
         }
 
-        if (node.get("tags") instanceof JsonArray tags) {
+        if (object.get("tags") instanceof JsonArray tags) {
             Set<String> tagsSet = new ObjectOpenHashSet<>();
             tags.forEach(tag -> tagsSet.add(tag.getAsString()));
             customItemData.tags(tagsSet);
         }
 
-        return customItemData.build();
+        return ((GeyserCustomItemData) customItemData.build()).toDefinition(identifier).build();
     }
 
     /**
      * Read a block mapping entry from a JSON node and Java identifier
-     * 
+     *
      * @param identifier The Java identifier of the block
-     * @param node The {@link JsonObject} containing the block mapping entry
-     * @return The {@link CustomBlockMapping} record to be read by {@link org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator}
+     * @param element The {@link JsonObject} containing the block mapping entry
+     * @return The {@link CustomBlockMapping} record to be read by {@link CustomBlockRegistryPopulator}
      * @throws InvalidCustomMappingsFileException If the JSON node is invalid
      */
     @Override
-    public CustomBlockMapping readBlockMappingEntry(String identifier, JsonObject node) throws InvalidCustomMappingsFileException {
-        if (node == null) {
-            throw new InvalidCustomMappingsFileException("Invalid block mappings entry:" + node);
+    public CustomBlockMapping readBlockMappingEntry(String identifier, JsonElement element) throws InvalidCustomMappingsFileException {
+        if (element == null || !element.isJsonObject()) {
+            throw new InvalidCustomMappingsFileException("Invalid block mappings entry:" + element);
         }
+        JsonObject object = element.getAsJsonObject();
 
-        String name = node.get("name").getAsString();
+        String name = object.get("name").getAsString();
         if (name == null || name.isEmpty()) {
             throw new InvalidCustomMappingsFileException("A block entry has no name");
         }
 
-        boolean includedInCreativeInventory = node.has("included_in_creative_inventory") && node.get("included_in_creative_inventory").getAsBoolean();
+        boolean includedInCreativeInventory = object.has("included_in_creative_inventory") && object.get("included_in_creative_inventory").getAsBoolean();
 
         CreativeCategory creativeCategory = CreativeCategory.NONE;
-        if (node.has("creative_category")) {
-            String categoryName = node.get("creative_category").getAsString();
+        if (object.has("creative_category")) {
+            String categoryName = object.get("creative_category").getAsString();
             try {
                 creativeCategory = CreativeCategory.valueOf(categoryName.toUpperCase());
             } catch (IllegalArgumentException e) {
@@ -259,32 +271,32 @@ public class MappingsReader_v1 extends MappingsReader {
         }
 
         String creativeGroup = "";
-        if (node.has("creative_group")) {
-            creativeGroup = node.get("creative_group").getAsString();
+        if (object.has("creative_group")) {
+            creativeGroup = object.get("creative_group").getAsString();
         }
 
         // If this is true, we will only register the states the user has specified rather than all the possible block states
-        boolean onlyOverrideStates = node.has("only_override_states") && node.get("only_override_states").getAsBoolean();
+        boolean onlyOverrideStates = object.has("only_override_states") && object.get("only_override_states").getAsBoolean();
 
         // Create the data for the overall block
         CustomBlockData.Builder customBlockDataBuilder = new GeyserCustomBlockData.Builder()
-                .name(name)
-                .includedInCreativeInventory(includedInCreativeInventory)
-                .creativeCategory(creativeCategory)
-                .creativeGroup(creativeGroup);
+            .name(name)
+            .includedInCreativeInventory(includedInCreativeInventory)
+            .creativeCategory(creativeCategory)
+            .creativeGroup(creativeGroup);
 
         if (BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get().containsKey(identifier)) {
             // There is only one Java block state to override
-            CustomBlockComponentsMapping componentsMapping = createCustomBlockComponentsMapping(node, identifier, name);
+            CustomBlockComponentsMapping componentsMapping = createCustomBlockComponentsMapping(object, identifier, name);
             CustomBlockData blockData = customBlockDataBuilder
-                    .components(componentsMapping.components())
-                    .build();
+                .components(componentsMapping.components())
+                .build();
             return new CustomBlockMapping(blockData, Map.of(identifier, new CustomBlockStateMapping(blockData.defaultBlockState(), componentsMapping.extendedCollisionBox())), identifier, !onlyOverrideStates);
         }
 
         Map<String, CustomBlockComponentsMapping> componentsMap = new LinkedHashMap<>();
 
-        if (node.get("state_overrides") instanceof JsonObject stateOverrides) {
+        if (object.get("state_overrides") instanceof JsonObject stateOverrides) {
             // Load components for specific Java block states
             for (Map.Entry<String, JsonElement> overrideEntry : stateOverrides.entrySet()) {
                 String state = identifier + "[" + overrideEntry.getKey() + "]";
@@ -301,10 +313,10 @@ public class MappingsReader_v1 extends MappingsReader {
         if (!onlyOverrideStates) {
             // Create components for any remaining Java block states
             BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get().keySet()
-                    .stream()
-                    .filter(s -> s.startsWith(identifier + "["))
-                    .filter(Predicate.not(componentsMap::containsKey))
-                    .forEach(state -> componentsMap.put(state, createCustomBlockComponentsMapping(null, state, name)));
+                .stream()
+                .filter(s -> s.startsWith(identifier + "["))
+                .filter(Predicate.not(componentsMap::containsKey))
+                .forEach(state -> componentsMap.put(state, createCustomBlockComponentsMapping(null, state, name)));
         }
 
         if (componentsMap.isEmpty()) {
@@ -314,7 +326,7 @@ public class MappingsReader_v1 extends MappingsReader {
         // We pass in the first state and just use the hitbox from that as the default
         // Each state will have its own so this is fine
         String firstState = componentsMap.keySet().iterator().next();
-        CustomBlockComponentsMapping firstComponentsMapping = createCustomBlockComponentsMapping(node, firstState, name);
+        CustomBlockComponentsMapping firstComponentsMapping = createCustomBlockComponentsMapping(object, firstState, name);
         customBlockDataBuilder.components(firstComponentsMapping.components());
 
         return createCustomBlockMapping(customBlockDataBuilder, componentsMap, identifier, !onlyOverrideStates);
@@ -341,7 +353,7 @@ public class MappingsReader_v1 extends MappingsReader {
                 String value = parts[1];
 
                 valuesMap.computeIfAbsent(property, k -> new LinkedHashSet<>())
-                        .add(value);
+                    .add(value);
 
                 conditions[i] = String.format("q.block_property('%s') == '%s'", property, value);
                 blockStateBuilder = blockStateBuilder.andThen(builder -> builder.stringProperty(property, value));
@@ -354,8 +366,8 @@ public class MappingsReader_v1 extends MappingsReader {
         valuesMap.forEach((key, value) -> customBlockDataBuilder.stringProperty(key, new ArrayList<>(value)));
 
         CustomBlockData customBlockData = customBlockDataBuilder
-                .permutations(permutations)
-                .build();
+            .permutations(permutations)
+            .build();
         // Build CustomBlockStates for each Java block state we wish to override
         Map<String, CustomBlockStateMapping> states = blockStateBuilders.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, e -> new CustomBlockStateMapping(e.getValue().builder().apply(customBlockData.blockStateBuilder()), e.getValue().extendedCollisionBox())));
@@ -365,7 +377,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
     /**
      * Creates a {@link CustomBlockComponents} object for the passed state override or base block node, Java block state identifier, and custom block name
-     * 
+     *
      * @param element the state override or base block {@link JsonObject}
      * @param stateKey the Java block state identifier
      * @param name the name of the custom block
@@ -377,8 +389,8 @@ public class MappingsReader_v1 extends MappingsReader {
         BoxComponent boxComponent = createBoxComponent(id);
         BoxComponent extendedBoxComponent = createExtendedBoxComponent(id);
         CustomBlockComponents.Builder builder = new GeyserCustomBlockComponents.Builder()
-                .collisionBox(boxComponent)
-                .selectionBox(boxComponent);
+            .collisionBox(boxComponent)
+            .selectionBox(boxComponent);
 
         if (!(element instanceof JsonObject node)) {
             // No other components were defined
@@ -409,8 +421,8 @@ public class MappingsReader_v1 extends MappingsReader {
         if (node.has("geometry")) {
             if (node.get("geometry").isJsonPrimitive()) {
                 builder.geometry(new GeyserGeometryComponent.Builder()
-                        .identifier(node.get("geometry").getAsString())
-                        .build());
+                    .identifier(node.get("geometry").getAsString())
+                    .build());
             } else {
                 JsonObject geometry = node.getAsJsonObject("geometry");
                 GeometryComponent.Builder geometryBuilder = new GeyserGeometryComponent.Builder();
@@ -532,7 +544,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
     /**
      * Creates a {@link BoxComponent} based on a Java block's collision with provided bounds and offsets
-     * 
+     *
      * @param javaId the block's Java ID
      * @param heightTranslation the height translation of the box
      * @return the {@link BoxComponent}
@@ -571,18 +583,18 @@ public class MappingsReader_v1 extends MappingsReader {
         maxZ = MathUtils.clamp(maxZ, 0, 1);
 
         return new BoxComponent(
-                16 * (1 - maxX) - 8, // For some odd reason X is mirrored on Bedrock
-                16 * minY,
-                16 * minZ - 8,
-                16 * (maxX - minX),
-                16 * (maxY - minY),
-                16 * (maxZ - minZ)
+            16 * (1 - maxX) - 8, // For some odd reason X is mirrored on Bedrock
+            16 * minY,
+            16 * minZ - 8,
+            16 * (maxX - minX),
+            16 * (maxY - minY),
+            16 * (maxZ - minZ)
         );
     }
 
     /**
      * Creates a {@link BoxComponent} based on a Java block's collision
-     * 
+     *
      * @param javaId the block's Java ID
      * @return the {@link BoxComponent}
      */
@@ -592,7 +604,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
     /**
      * Creates the {@link BoxComponent} for an extended collision box based on a Java block's collision
-     * 
+     *
      * @param javaId the block's Java ID
      * @return the {@link BoxComponent} or null if the block's collision box would not exceed 16 y units
      */
@@ -612,7 +624,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
     /**
      * Creates a {@link BoxComponent} from a JSON Node
-     * 
+     *
      * @param element the JSON node
      * @return the {@link BoxComponent}
      */
@@ -638,7 +650,7 @@ public class MappingsReader_v1 extends MappingsReader {
     /**
      * Creates the {@link MaterialInstance} for the passed material instance node and custom block name
      * The name is used as a fallback if no texture is provided by the node
-     * 
+     *
      * @param node the material instance node
      * @return the {@link MaterialInstance}
      */
@@ -665,16 +677,16 @@ public class MappingsReader_v1 extends MappingsReader {
         }
 
         return new GeyserMaterialInstance.Builder()
-                .texture(texture)
-                .renderMethod(renderMethod)
-                .faceDimming(faceDimming)
-                .ambientOcclusion(ambientOcclusion)
-                .build();
+            .texture(texture)
+            .renderMethod(renderMethod)
+            .faceDimming(faceDimming)
+            .ambientOcclusion(ambientOcclusion)
+            .build();
     }
 
     /**
      * Creates the list of {@link PlacementConditions} for the passed conditions node
-     * 
+     *
      * @param node the conditions node
      * @return the list of {@link PlacementConditions}
      */
@@ -718,7 +730,7 @@ public class MappingsReader_v1 extends MappingsReader {
 
     /**
      * Splits the given java state identifier into an array of property=value pairs
-     * 
+     *
      * @param state the java state identifier
      * @return the array of property=value pairs
      */
