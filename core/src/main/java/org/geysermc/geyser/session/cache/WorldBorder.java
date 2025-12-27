@@ -35,16 +35,24 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import lombok.Getter;
 import lombok.Setter;
+import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.awt.Color;
+import java.util.List;
+import java.util.Optional;
+
 import static org.geysermc.geyser.level.physics.CollisionManager.COLLISION_TOLERANCE;
 
 public class WorldBorder {
     private static final double DEFAULT_WORLD_BORDER_SIZE = 5.9999968E7D;
+    private static final Color DEFAULT_WORLD_BORDER_COLOR = new Color(32, 160, 255);
+    private static final Color SHRINKING_WORLD_BORDER_COLOR = new Color(255, 48, 48);
+    private static final Color GROWING_WORLD_BORDER_COLOR = new Color(64, 255, 128);
 
     @Setter
     private @NonNull Vector2d center = Vector2d.ZERO;
@@ -106,6 +114,8 @@ public class WorldBorder {
     private double warningMaxZ = 0.0D;
     private double warningMinX = 0.0D;
     private double warningMinZ = 0.0D;
+
+    private Color currentWorldBorderColor = DEFAULT_WORLD_BORDER_COLOR;
 
     /**
      * To track when to send wall particle packets.
@@ -252,8 +262,14 @@ public class WorldBorder {
         double radius;
         if (resizing) {
             radius = this.currentDiameter / 2.0D;
+            if (this.newDiameter < this.currentDiameter) {
+                currentWorldBorderColor = SHRINKING_WORLD_BORDER_COLOR;
+            } else {
+                currentWorldBorderColor = GROWING_WORLD_BORDER_COLOR;
+            }
         } else {
             radius = this.newDiameter / 2.0D;
+            currentWorldBorderColor = DEFAULT_WORLD_BORDER_COLOR;
         }
         
         double absoluteMinSize = -this.absoluteMaxSize;
@@ -300,8 +316,8 @@ public class WorldBorder {
      * Draws a wall of particles where the world border resides
      */
     public void drawWall() {
-        if (currentWallTick++ != 20) {
-            // Only draw a wall once every second
+        if (currentWallTick++ != 10) {
+            // Only draw a wall once every 1/2 second
             return;
         }
         currentWallTick = 0;
@@ -337,7 +353,7 @@ public class WorldBorder {
                         break;
                     }
 
-                    sendWorldBorderParticle(x, y, z);
+                    sendWorldBorderParticle(x, y, z, drawWallX);
                 }
             } else {
                 float z = position.getZ();
@@ -349,16 +365,30 @@ public class WorldBorder {
                         break;
                     }
 
-                    sendWorldBorderParticle(x, y, z);
+                    sendWorldBorderParticle(x, y, z, drawWallX);
                 }
             }
         }
     }
 
-    private void sendWorldBorderParticle(float x, float y, float z) {
-        LevelEventPacket effectPacket = new LevelEventPacket();
-        effectPacket.setPosition(Vector3f.from(x, y, z));
-        effectPacket.setType(WORLD_BORDER_PARTICLE);
-        session.getUpstream().sendPacket(effectPacket);
+    private void sendWorldBorderParticle(float x, float y, float z, boolean drawWallX) {
+        if (/*session.getGeyser().config().gameplay().enableIntegratedPack()*/true) {
+            SpawnParticleEffectPacket particlePacket = new SpawnParticleEffectPacket();
+            particlePacket.setDimensionId(session.getBedrockDimension().bedrockId());
+            particlePacket.setPosition(Vector3f.from(x, y, z));
+            particlePacket.setIdentifier("geyseropt:world_border");
+            particlePacket.setMolangVariablesJson(Optional.of("[" +
+                    "{\"name\": \"variable.r\", \"value\": {\"type\": \"float\", \"value\": %d}},".formatted(currentWorldBorderColor.getRed() / 255) +
+                    "{\"name\": \"variable.g\", \"value\": {\"type\": \"float\", \"value\": %d}},".formatted(currentWorldBorderColor.getGreen() / 255) +
+                    "{\"name\": \"variable.b\", \"value\": {\"type\": \"float\", \"value\": %d}},".formatted(currentWorldBorderColor.getBlue() / 255) +
+                    "{\"name\": \"variable.rotation\", \"value\": {\"type\": \"float\", \"value\": %d}}".formatted(drawWallX ? 0 : 1) +
+                    "]"));
+            session.getUpstream().sendPacket(particlePacket);
+        } else { // Fallback in case the integrated pack isn't enabled
+            LevelEventPacket effectPacket = new LevelEventPacket();
+            effectPacket.setPosition(Vector3f.from(x, y, z));
+            effectPacket.setType(WORLD_BORDER_PARTICLE);
+            session.getUpstream().sendPacket(effectPacket);
+        }
     }
 }
