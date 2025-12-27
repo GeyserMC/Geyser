@@ -63,6 +63,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.ButtonBlock;
 import org.geysermc.geyser.level.block.type.CauldronBlock;
+import org.geysermc.geyser.level.block.type.DoorBlock;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -281,6 +282,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             return;
                         }
 
+                        if (blockState.block() instanceof DoorBlock) {
+                            // See DoorBlock#updateBlock: ensure server-side lower-half door updates are translated
+                            session.setLastLowerDoorPosition(null);
+                        }
+
                         if (packet.getItemInHand() != null && session.getItemMappings().getMapping(packet.getItemInHand()).getJavaItem() instanceof SpawnEggItem) {
                             if (blockState.is(Blocks.WATER) && blockState.getValue(Properties.LEVEL) == 0) {
                                 // Otherwise causes multiple mobs to spawn - just send a use item packet
@@ -455,6 +461,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
                     }
+
+                    case 3 -> {
+                        if (session.getPlayerInventory().getItemInHand().getComponent(DataComponentTypes.PIERCING_WEAPON) != null && session.getGameMode() != GameMode.SPECTATOR) {
+                            session.sendDownstreamPacket(new ServerboundPlayerActionPacket(PlayerAction.STAB, Vector3i.ZERO, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.DOWN, 0));
+                            session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                            CooldownUtils.sendCooldown(session);
+                        }
+                    }
                 }
                 break;
             case ITEM_RELEASE:
@@ -465,6 +479,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 }
                 break;
             case ITEM_USE_ON_ENTITY:
+                // The player can only stab in this case, not attack!
+                if (session.getPlayerInventory().getItemInHand().getComponent(DataComponentTypes.PIERCING_WEAPON) != null && session.getGameMode() != GameMode.SPECTATOR) {
+                    return;
+                }
+
                 Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
                 if (entity == null)
                     return;

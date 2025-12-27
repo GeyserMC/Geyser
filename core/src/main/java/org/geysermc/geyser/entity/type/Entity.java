@@ -53,6 +53,7 @@ import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -70,6 +71,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEn
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -258,6 +261,13 @@ public class Entity implements GeyserEntity {
     }
 
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        if (this instanceof ClientVehicle clientVehicle) {
+            if (clientVehicle.isClientControlled()) {
+                return;
+            }
+            clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
+        }
+
         position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
 
         MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
@@ -778,40 +788,45 @@ public class Entity implements GeyserEntity {
     }
 
     @Override
-    public void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer) {
-        if (this.propertyManager != null) {
-            Objects.requireNonNull(consumer);
-            GeyserEntityProperties propertyDefinitions = definition.registeredProperties();
-            consumer.accept(new BatchPropertyUpdater() {
-                @Override
-                public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
-                    Objects.requireNonNull(property, "property must not be null!");
-                    if (!(property instanceof PropertyType<T, ? extends EntityProperty> propertyType)) {
-                        throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
-                    }
-                    int index = propertyDefinitions.getPropertyIndex(property.identifier().toString());
-                    if (index < 0) {
-                        throw new IllegalArgumentException("No property with the name " + property.identifier() + " has been registered.");
-                    }
+    public void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer, boolean immediate) {
+        if (this.propertyManager == null) {
+            throw new IllegalArgumentException("Given entity has no registered properties!");
+        }
 
-                    var expectedProperty = propertyDefinitions.getProperties().get(index);
-                    if (!expectedProperty.equals(propertyType)) {
-                        throw new IllegalArgumentException("The supplied property was not registered with this entity type!");
-                    }
-
-                    propertyType.apply(propertyManager, value);
+        Objects.requireNonNull(consumer);
+        GeyserEntityProperties propertyDefinitions = definition.registeredProperties();
+        consumer.accept(new BatchPropertyUpdater() {
+            @Override
+            public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
+                Objects.requireNonNull(property, "property must not be null!");
+                if (!(property instanceof PropertyType)) {
+                    throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
                 }
-            });
+                PropertyType<T, ? extends EntityProperty> propertyType = (PropertyType<T, ?>) property;
+                int index = propertyDefinitions.getPropertyIndex(property.identifier().toString());
+                if (index < 0) {
+                    throw new IllegalArgumentException("No property with the name " + property.identifier() + " has been registered.");
+                }
 
-            if (propertyManager.hasProperties()) {
-                SetEntityDataPacket packet = new SetEntityDataPacket();
-                packet.setRuntimeEntityId(getGeyserId());
-                propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
-                propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
+                var expectedProperty = propertyDefinitions.getProperties().get(index);
+                if (!expectedProperty.equals(propertyType)) {
+                    throw new IllegalArgumentException("The supplied property was not registered with this entity type!");
+                }
+
+                propertyType.apply(propertyManager, value);
+            }
+        });
+
+        if (propertyManager.hasProperties()) {
+            SetEntityDataPacket packet = new SetEntityDataPacket();
+            packet.setRuntimeEntityId(getGeyserId());
+            propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
+            propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
+            if (immediate) {
+                session.sendUpstreamPacketImmediately(packet);
+            } else {
                 session.sendUpstreamPacket(packet);
             }
-        } else {
-            throw new IllegalArgumentException("Given entity has no registered properties!");
         }
     }
 }

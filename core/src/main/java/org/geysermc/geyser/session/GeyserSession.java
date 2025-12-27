@@ -578,6 +578,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean steeringRight;
 
     /**
+     * Stores whether the player is inside a client predicted vehicle.
+     */
+    @Getter
+    @Setter
+    private boolean inClientPredictedVehicle;
+
+    /**
      * Store the last time the player interacted. Used to fix a right-click spam bug.
      * See <a href="https://github.com/GeyserMC/Geyser/issues/503">this</a> for context.
      */
@@ -589,6 +596,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private boolean placedBucket;
+
+    /**
+     * Stores whether we've updated a lower door block
+     */
+    @Setter
+    private @Nullable Vector3i lastLowerDoorPosition = null;
 
     /**
      * Counts how many ticks have occurred since an arm animation started.
@@ -747,6 +760,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean allowVibrantVisuals = true;
 
     @Accessors(fluent = true)
+    @Setter
     private boolean hasAcceptedCodeOfConduct = false;
 
     @Accessors(fluent = true)
@@ -1785,11 +1799,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
-
-        // Enable 2025 Content Drop 3 features on 1.21.100
-        if (GameProtocol.is1_21_100(this)) {
-            startGamePacket.getExperiments().add(new ExperimentData("y_2025_drop_3", true));
-        }
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);

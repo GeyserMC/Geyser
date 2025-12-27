@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,31 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.inventory.horse;
+package org.geysermc.geyser.entity.type.living.animal.horse;
 
-import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
-import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
-import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.Container;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
 
-public class HorseInventoryTranslator extends AbstractHorseInventoryTranslator {
-    public HorseInventoryTranslator(int size) {
-        super(size);
+import java.util.UUID;
+
+public class CamelHuskEntity extends CamelEntity {
+    public CamelHuskEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
+        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
     }
 
     @Override
-    public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
-        if (slotInfoData.getContainerName().getContainer() == ContainerSlotType.HORSE_EQUIP) {
-            return slotInfoData.getSlot();
-        }
-        return super.bedrockSlotToJava(slotInfoData);
-    }
-
-    @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
-        if (slot == 0 || slot == 1) {
-            return new BedrockContainerSlot(ContainerSlotType.HORSE_EQUIP, slot);
-        }
-        return super.javaSlotToBedrockContainer(slot, container);
+    protected @Nullable Tag<Item> getFoodTag() {
+        return ItemTag.CAMEL_HUSK_FOOD;
     }
 }
