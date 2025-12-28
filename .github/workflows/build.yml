@@ -79,7 +79,7 @@ jobs:
           fi
 
           echo "MINECRAFT_VERSIONS_JSON<<EOF" >> "$GITHUB_OUTPUT"
-          cat mcversions.json >> "$GITHUB_OUTPUT"
+          sed -e '$a\' mcversions.json >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Get Release Metadata
