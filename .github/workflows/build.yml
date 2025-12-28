@@ -78,9 +78,8 @@ jobs:
             exit 1
           fi
 
-          echo "MINECRAFT_VERSIONS_JSON<<EOF" >> "$GITHUB_OUTPUT"
-          sed -e '$a\' mcversions.json >> "$GITHUB_OUTPUT"
-          echo "EOF" >> "$GITHUB_OUTPUT"
+          cat mcversions.json
+          echo "MINECRAFT_VERSIONS_JSON=$(jq -c . mcversions.json)" >> "$GITHUB_OUTPUT"
 
       - name: Get Release Metadata
         if: ${{ (success() || failure()) && github.repository == 'lukeeey/Geyser' }}
