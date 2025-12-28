@@ -56,6 +56,7 @@ import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
 import org.geysermc.geyser.api.network.AuthType;
+import org.geysermc.geyser.api.network.MessageDirection;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
@@ -107,7 +108,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private PacketSignal translateAndDefault(BedrockPacket packet) {
-        Registries.BEDROCK_PACKET_TRANSLATORS.translate(packet.getClass(), packet, session, false);
+        if (!this.session.getNetwork().handleBedrockPacket(packet, MessageDirection.SERVERBOUND)) {
+            return PacketSignal.HANDLED;
+        }
+
+        Registries.BEDROCK_PACKET_TRANSLATORS.translate(packet.getClass(), packet, this.session, false);
         return PacketSignal.HANDLED; // PacketSignal.UNHANDLED will log a WARN publicly
     }
 

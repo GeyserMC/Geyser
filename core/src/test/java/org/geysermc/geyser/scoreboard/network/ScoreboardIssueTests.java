@@ -61,7 +61,7 @@ import java.util.EnumSet;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.*;
+import static org.geysermc.geyser.util.AssertUtils.*;
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
