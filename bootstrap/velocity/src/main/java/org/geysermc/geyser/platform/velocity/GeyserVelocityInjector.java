@@ -128,7 +128,7 @@ public class GeyserVelocityInjector extends GeyserInjector {
                 protected void initChannel(@NonNull Channel ch) throws Exception {
                     initChannel.invoke(channelInitializer, ch);
 
-                    if (bootstrap.getGeyserConfig().isDisableCompression() && GeyserVelocityCompressionDisabler.ENABLED) {
+                    if (bootstrap.config().advanced().java().disableCompression() && GeyserVelocityCompressionDisabler.ENABLED) {
                         ch.pipeline().addAfter("minecraft-encoder", "geyser-compression-disabler",
                             new GeyserVelocityCompressionDisabler());
                     }

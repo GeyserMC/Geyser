@@ -43,6 +43,7 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
+import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.Blocks;
@@ -242,11 +243,6 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    protected void setGliding(boolean value) {
-        session.setGliding(value);
-    }
-
-    @Override
     protected void setSneaking(boolean value) {
         if (value) {
             session.startSneaking(false);
@@ -254,11 +250,6 @@ public class SessionPlayerEntity extends PlayerEntity {
             session.setShouldSendSneak(false);
             session.stopSneaking(false);
         }
-    }
-
-    @Override
-    protected void setSpinAttack(boolean value) {
-        session.setSpinAttack(value);
     }
 
     /**
@@ -285,7 +276,16 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void setPose(Pose pose) {
         super.setPose(pose);
-        session.setPose(pose);
+
+        if (pose != session.getPose()) {
+            session.setPose(pose);
+            updateBedrockMetadata();
+        }
+    }
+
+    @Override
+    public void setPitch(float pitch) {
+        this.pitch = pitch;
     }
 
     public float getMaxHealth() {
@@ -486,6 +486,10 @@ public class SessionPlayerEntity extends PlayerEntity {
         if (entity != null) {
             this.lastRemovedVehicle = null;
         }
+        // Bedrock player can dismount by pressing jump while Java cannot, so we need to prevent player from jumping to match vanilla behaviour.
+        this.session.setLockInput(InputLocksFlag.JUMP, entity != null && entity.doesJumpDismount());
+        this.session.updateInputLocks();
+
         super.setVehicle(entity);
     }
   

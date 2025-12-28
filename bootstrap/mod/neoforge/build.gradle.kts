@@ -8,13 +8,20 @@ architectury {
     neoForge()
 }
 
+loom {
+    mods {
+        create("geyser-neoforge") {
+            sourceSet(sourceSets.main.get())
+            sourceSet("main", projects.mod)
+            sourceSet("main", projects.core)
+        }
+    }
+}
+
 // This is provided by "org.cloudburstmc.math.mutable" too, so yeet.
 // NeoForge's class loader is *really* annoying.
 provided("org.cloudburstmc.math", "api")
 provided("com.google.errorprone", "error_prone_annotations")
-
-// Jackson shipped by Minecraft is too old, so we shade & relocate our newer version
-relocate("com.fasterxml.jackson")
 
 dependencies {
     // See https://github.com/google/guava/issues/6618
@@ -30,14 +37,13 @@ dependencies {
     shadowBundle(project(path = ":mod", configuration = "transformProductionNeoForge"))
     shadowBundle(projects.core)
 
-    // Minecraft (1.21.2+) includes jackson. But an old version!
-    shadowBundle(libs.jackson.core)
-    shadowBundle(libs.jackson.databind)
-    shadowBundle(libs.jackson.dataformat.yaml)
-    shadowBundle(libs.jackson.annotations)
-
     // Let's shade in our own api
     shadowBundle(projects.api)
+
+    // shade + relocate these to avoid conflicts
+    shadowBundle(libs.configurate.`interface`)
+    shadowBundle(libs.configurate.yaml)
+    shadowBundle(libs.configurate.core)
 
     // cannot be shaded, since neoforge will complain if floodgate-neoforge tries to provide this
     include(projects.common)
@@ -48,6 +54,8 @@ dependencies {
     modImplementation(libs.cloud.neoforge)
     include(libs.cloud.neoforge)
 }
+
+relocate("org.spongepowered.configurate")
 
 tasks.withType<Jar> {
     manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.neoforge.GeyserNeoForgeMain"
@@ -63,7 +71,6 @@ tasks {
     }
 
     shadowJar {
-        // Without this, jackson's service files are not relocated
         mergeServiceFiles()
     }
 }

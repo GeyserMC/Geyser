@@ -8,6 +8,16 @@ architectury {
     fabric()
 }
 
+loom {
+    mods {
+        create("geyser-fabric") {
+            sourceSet(sourceSets.main.get())
+            sourceSet("main", projects.mod)
+            sourceSet("main", projects.core)
+        }
+    }
+}
+
 dependencies {
     modImplementation(libs.fabric.loader)
     modApi(libs.fabric.api)
@@ -17,13 +27,18 @@ dependencies {
     shadowBundle(projects.core)
     includeTransitive(projects.core)
 
-    // These are NOT transitively included, and instead shadowed + relocated.
+    // These are NOT transitively included, and instead shadowed (+ relocated, if not under the org.geyser namespace).
     // Avoids fabric complaining about non-SemVer versioning
     shadowBundle(libs.protocol.connection)
     shadowBundle(libs.protocol.common)
     shadowBundle(libs.protocol.codec)
     shadowBundle(libs.raknet)
     shadowBundle(libs.mcprotocollib)
+
+    // Shade + relocate configurate as we're using a fork
+    shadowBundle(libs.configurate.`interface`)
+    shadowBundle(libs.configurate.yaml)
+    shadowBundle(libs.configurate.core)
 
     // Since we also relocate cloudburst protocol: shade erosion common
     shadowBundle(libs.erosion.common)
@@ -43,6 +58,7 @@ tasks.withType<Jar> {
 
 relocate("org.cloudburstmc.netty")
 relocate("org.cloudburstmc.protocol")
+relocate("org.spongepowered.configurate")
 
 tasks {
     remapJar {
@@ -51,6 +67,10 @@ tasks {
 
     remapModrinthJar {
         archiveBaseName.set("geyser-fabric")
+    }
+
+    shadowJar {
+        mergeServiceFiles()
     }
 }
 

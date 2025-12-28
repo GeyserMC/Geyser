@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -72,6 +72,9 @@ public class MessageTranslatorTest {
         messages.put("{\"translate\":\"tt{'tt%stt'{tt\",\"with\":[\"AA\"]}", "tt{'ttAAtt'{tt");
         messages.put("{\"translate\":\"tt{''{tt\"}", "tt{''{tt");
         messages.put("{\"translate\":\"tt{{''}}tt\"}", "tt{{''}}tt");
+
+        messages.put("{\"text\":\"\",\"extra\":[{\"text\":\"Testing end of string\n formatting character§\",\"color\":\"yellow\"}]}",
+            "§r§eTesting end of string\n§e formatting character");
 
         MessageTranslator.init();
     }

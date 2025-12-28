@@ -85,8 +85,12 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
                 session.sendUpstreamPacket(offHandPacket);
                 return;
             }
-            case CRITICAL_HIT -> animatePacket.setAction(AnimatePacket.Action.CRITICAL_HIT);
+            case CRITICAL_HIT -> {
+                animatePacket.setData(55);
+                animatePacket.setAction(AnimatePacket.Action.CRITICAL_HIT);
+            }
             case ENCHANTMENT_CRITICAL_HIT -> {
+                animatePacket.setData(15);
                 animatePacket.setAction(AnimatePacket.Action.MAGIC_CRITICAL_HIT); // Unsure if this does anything
 
                 // Spawn custom particle

@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.entity.type.living.animal.horse;
 
-import org.cloudburstmc.math.vector.Vector2f;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
@@ -150,12 +149,6 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     @Override
     public VehicleComponent<?> getVehicleComponent() {
         return vehicleComponent;
-    }
-
-    @Override
-    public Vector3f getRiddenInput(Vector2f input) {
-        input = input.mul(0.5f, input.getY() < 0 ? 0.25f : 1.0f);
-        return Vector3f.from(input.getX(), 0.0, input.getY());
     }
 
     @Override
