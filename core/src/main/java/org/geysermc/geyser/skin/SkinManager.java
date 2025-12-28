@@ -108,14 +108,14 @@ public class SkinManager {
         Color color = session.getWaypointCache().getWaypointColor(playerEntity.getUuid()).orElse(Color.WHITE);
 
         return buildEntryManually(
-                session,
-                playerEntity.getUuid(),
-                playerEntity.getUsername(),
-                playerEntity.getGeyserId(),
-                skin,
-                cape,
-                geometry,
-                color
+            session,
+            playerEntity.getUuid(),
+            playerEntity.getUsername(),
+            playerEntity.getGeyserId(),
+            skin,
+            cape,
+            geometry,
+            color
         );
     }
 
@@ -126,11 +126,12 @@ public class SkinManager {
                                                             Skin skin,
                                                             Cape cape,
                                                             SkinGeometry geometry, Color color) {
-        SerializedSkin serializedSkin = getSkin(session, skin.textureUrl(), skin, cape, geometry);
-
         // This attempts to find the XUID of the player so profile images show up for Xbox accounts
         String xuid = "";
         GeyserSession playerSession = GeyserImpl.getInstance().connectionByUuid(uuid);
+
+        boolean isPersona = false;
+        boolean isCapeOnClassic = true;
 
         // Prefer looking up xuid using the session to catch linked players
         if (playerSession != null) {
@@ -148,6 +149,7 @@ public class SkinManager {
         } else {
             entry = new PlayerListPacket.Entry(uuid);
         }
+        SerializedSkin serializedSkin = getSkin(session, skin.textureUrl(), skin, cape, geometry, isPersona, isCapeOnClassic);
 
         entry.setName(username);
         entry.setEntityId(geyserId);
@@ -187,24 +189,28 @@ public class SkinManager {
             packet.setUuid(entity.getUuid());
             packet.setOldSkinName("");
             packet.setNewSkinName(skin.textureUrl());
-            packet.setSkin(getSkin(session, skin.textureUrl(), skin, cape, geometry));
+            packet.setSkin(getSkin(session, skin.textureUrl(), skin, cape, geometry, false, true));
             packet.setTrustedSkin(true);
             session.sendUpstreamPacket(packet);
         }
     }
 
-    private static SerializedSkin getSkin(GeyserSession session, String skinId, Skin skin, Cape cape, SkinGeometry geometry) {
+    private static SerializedSkin getSkin(GeyserSession session, String skinId, Skin skin, Cape cape, SkinGeometry geometry,
+                                          boolean persona, boolean capeOnClassic) {
+
         return SerializedSkin.builder()
             .skinId(skinId)
             .skinResourcePatch(geometry.geometryName())
             .skinData(ImageData.of(skin.skinData()))
+            .capeId(cape.capeId())
             .capeData(ImageData.of(cape.capeData()))
             .geometryData(geometry.geometryData().isBlank() ? GEOMETRY : geometry.geometryData())
-            .premium(true)
-            .capeId(cape.capeId())
-            .fullSkinId(skinId)
             .geometryDataEngineVersion(session.getClientData().getGameVersion())
-            .build();
+            .premium(false)
+            // These are needed to ensure that Elytra cape textures work
+            .persona(persona)
+            .capeOnClassic(capeOnClassic)
+           .build();
     }
 
     public static CompletableFuture<GameProfile> resolveProfile(ResolvableProfile profile) {
