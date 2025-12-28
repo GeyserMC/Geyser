@@ -78,14 +78,13 @@ jobs:
             exit 1
           fi
 
-          JSON_B64=$(base64 -w 0 mcversions.json)
-          echo "MINECRAFT_VERSIONS_JSON=$JSON_B64" >> "$GITHUB_OUTPUT"
-          echo "Supported Minecraft Versions:"
-          cat mcversions.json
+          echo "MINECRAFT_VERSIONS_JSON<<EOF" >> "$GITHUB_OUTPUT"
+          cat mcversions.json >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Get Release Metadata
         if: ${{ (success() || failure()) && github.repository == 'lukeeey/Geyser' }}
-        uses: lukeeey/actions/release@master
+        uses: GeyserMC/actions/release@master
         id: metadata
         with:
           appID: ${{ secrets.RELEASE_APP_ID }}
