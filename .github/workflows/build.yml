@@ -84,7 +84,7 @@ jobs:
 
       - name: Get Release Metadata
         if: ${{ (success() || failure()) && github.repository == 'lukeeey/Geyser' }}
-        uses: GeyserMC/actions/release@master
+        uses: lukeeey/actions/release@master
         id: metadata
         with:
           appID: ${{ secrets.RELEASE_APP_ID }}
