@@ -88,6 +88,7 @@ import java.util.Set;
 public class CustomItemRegistryPopulator {
     // In behaviour packs and Java components this is set to a text value, such as "eat" or "drink"; over Bedrock network it's sent as an int.
     // These don't all work correctly on Bedrock - see the Consumable.Animation Javadoc in the API
+    // Last checked for bedrock 1.21.94 - IDs might have changed since then
     private static final Map<Consumable.ItemUseAnimation, Integer> BEDROCK_ANIMATIONS = Map.of(
         Consumable.ItemUseAnimation.NONE, 0,
         Consumable.ItemUseAnimation.EAT, 1,
@@ -314,7 +315,7 @@ public class CustomItemRegistryPopulator {
                 // If there is no consumable component, and the vanilla item is a trident, manually add a consumable component
                 // with a spear animation and a really high consume duration, to get the trident animation in 3rd-person working
                 if (mapping.getBedrockIdentifier().equals("minecraft:trident")) {
-                    return Optional.of(new Consumable(DEFAULT_ITEM_USE_DURATION, Consumable.ItemUseAnimation.SPEAR, null, false, List.of()));
+                    return Optional.of(new Consumable(DEFAULT_ITEM_USE_DURATION, Consumable.ItemUseAnimation.TRIDENT, null, false, List.of()));
                 }
                 return Optional.empty();
             }));
@@ -566,11 +567,15 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void computeConsumableProperties(Consumable consumable, @Nullable FoodProperties foodProperties, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
+        String animationName = switch (consumable.animation()) {
+            case TRIDENT -> "spear"; // SPEAR is not supported in bedrock and not in the BEDROCK_ANIMATIONS map, so it'll be skipped
+            default -> consumable.animation().toString().toLowerCase();
+        };
         Integer animationId = BEDROCK_ANIMATIONS.get(consumable.animation());
         if (animationId != null) {
             itemProperties.putInt("use_animation", animationId);
             componentBuilder.putCompound("minecraft:use_animation", NbtMap.builder()
-                .putString("value", consumable.animation().toString().toLowerCase())
+                .putString("value", animationName)
                 .build());
         }
 
