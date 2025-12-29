@@ -1,0 +1,95 @@
+name: Compilar Geyser 2.0
+
+on:
+
+  workflow_dispatch:
+
+  schedule:
+
+    - cron: '0 8 * * *'
+
+
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Descargar código
+
+        uses: actions/checkout@v4
+
+        with:
+
+          submodules: recursive
+
+
+
+      - name: Configurar Java 21
+
+        uses: actions/setup-java@v4
+
+        with:
+
+          java-version: '21'
+
+          distribution: 'temurin'
+
+
+
+      - name: Forzar Puerto 25565 (Corrección del Bug)
+
+        run: |
+
+          archivo="bootstrap/bungeecord/src/main/java/org/geysermc/geyser/platform/bungeecord/GeyserBungeePlugin.java"
+
+          
+
+          # Tu corrección original
+
+          sed -i 's/return findCompatibleListener().*mapToInt.*;/return 25565;/g' $archivo
+
+          
+
+          echo "--- Verificación del código modificado ---"
+
+          grep -C 5 "getServerPort" $archivo
+
+
+
+      - name: Dar permisos al compilador
+
+        run: chmod +x gradlew
+
+
+
+      - name: Compilar SOLO BungeeCord
+
+        uses: gradle/gradle-build-action@v2
+
+        with:
+
+          # CAMBIO CLAVE AQUÍ:
+
+          # En lugar de 'build' (que compila todo), usamos ':bungeecord:build'
+
+          # Esto se salta Velocity y evita el error 403 de esa librería.
+
+          arguments: :bungeecord:build
+
+
+
+      - name: Subir el archivo compilado
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: Geyser-Bungee-Puerto-25565
+
+          # La ruta sigue siendo la misma
+
+          path: bootstrap/bungeecord/build/libs/*jar
