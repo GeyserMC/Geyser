@@ -324,8 +324,8 @@ public class WorldBorder {
      * Draws a wall of particles where the world border resides
      */
     public void drawWall() {
-        if (currentWallTick++ != 20) {
-            // Only draw a wall once every second
+        if (currentWallTick++ != 10) {
+            // Only draw a wall once every 1/2 second
             return;
         }
         currentWallTick = 0;
@@ -380,19 +380,30 @@ public class WorldBorder {
     }
 
     private void sendWorldBorderParticle(float x, float y, float z, boolean drawWallX) {
-        if (session.getGeyser().config().gameplay().enableIntegratedPack()) {
+        final boolean isWorldBorderDebugging = Boolean.getBoolean("geyser.debug.world_border");
+        final boolean isIntegratedPackEnabled = session.getGeyser().config().gameplay().enableIntegratedPack();
+
+        if (isIntegratedPackEnabled) {
+            float r = currentWorldBorderColor.getRed() / 255f;
+            float g = currentWorldBorderColor.getGreen() / 255f;
+            float b = currentWorldBorderColor.getBlue() / 255f;
+
             SpawnParticleEffectPacket particlePacket = new SpawnParticleEffectPacket();
             particlePacket.setDimensionId(session.getBedrockDimension().bedrockId());
             particlePacket.setPosition(Vector3f.from(x, y, z));
-            particlePacket.setIdentifier("geyseropt:world_border");
+            particlePacket.setIdentifier("geyseropt:world_border_" + (drawWallX ? "x" : "z"));
             particlePacket.setMolangVariablesJson(Optional.of("[" +
-                    "{\"name\": \"variable.r\", \"value\": {\"type\": \"float\", \"value\": %f}},".formatted(currentWorldBorderColor.getRed() / 255f) +
-                    "{\"name\": \"variable.g\", \"value\": {\"type\": \"float\", \"value\": %f}},".formatted(currentWorldBorderColor.getGreen() / 255f) +
-                    "{\"name\": \"variable.b\", \"value\": {\"type\": \"float\", \"value\": %f}},".formatted(currentWorldBorderColor.getBlue() / 255f) +
-                    "{\"name\": \"variable.rotation\", \"value\": {\"type\": \"float\", \"value\": %d}}".formatted(drawWallX ? 0 : 1) +
+                    "{\"name\": \"variable.r\", \"value\": {\"type\": \"float\", \"value\": %f}},".formatted(r) +
+                    "{\"name\": \"variable.g\", \"value\": {\"type\": \"float\", \"value\": %f}},".formatted(g) +
+                    "{\"name\": \"variable.b\", \"value\": {\"type\": \"float\", \"value\": %f}}".formatted(b) +
                     "]"));
             session.getUpstream().sendPacket(particlePacket);
-        } else { // Fallback in case the integrated pack isn't enabled
+        }
+
+        // Fallback in case the integrated pack isn't enabled
+        // The debug flag allows us to see both, as this method is always accurate with the positioning
+        // whereas the particles do not line up perfectly currently, this allows us to see what needs tweaking
+        if (isWorldBorderDebugging || !isIntegratedPackEnabled) {
             LevelEventPacket effectPacket = new LevelEventPacket();
             effectPacket.setPosition(Vector3f.from(x, y, z));
             effectPacket.setType(LevelEvent.PARTICLE_DENY_BLOCK);
