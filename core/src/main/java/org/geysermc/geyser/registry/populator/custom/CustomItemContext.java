@@ -65,8 +65,8 @@ public record CustomItemContext(CustomItemDefinition definition, DataComponents 
      * @return the created context
      * @throws InvalidItemComponentsException when the custom item definition has an invalid combination of components in its component patch
      */
-    public static CustomItemContext createVanilla(Item javaItem, GeyserMappingItem vanillaMapping, CustomItemDefinition customItem,
-                                                  int customItemId, int protocolVersion) throws InvalidItemComponentsException {
+    public static CustomItemContext createVanillaAndValidateComponents(Item javaItem, GeyserMappingItem vanillaMapping, CustomItemDefinition customItem,
+                                                                       int customItemId, int protocolVersion) throws InvalidItemComponentsException {
         return new CustomItemContext(customItem, checkComponents(customItem, javaItem, resolvable -> {}), List.of(), Optional.of(vanillaMapping), customItemId, protocolVersion);
     }
 
@@ -79,7 +79,7 @@ public record CustomItemContext(CustomItemDefinition definition, DataComponents 
      * @return the created context
      * @throws InvalidItemComponentsException when the custom item definition has an invalid combination of components in its component patch
      */
-    public static CustomItemContext createNonVanilla(NonVanillaCustomItemDefinition customItem, int customItemId, int protocolVersion) throws InvalidItemComponentsException {
+    public static CustomItemContext createNonVanillaAndValidateComponents(NonVanillaCustomItemDefinition customItem, int customItemId, int protocolVersion) throws InvalidItemComponentsException {
         List<ResolvableComponent<?>> resolvableComponents = new ArrayList<>();
         DataComponents components = checkComponents(customItem, null, resolvableComponents::add);
         return new CustomItemContext(customItem, components, resolvableComponents, Optional.empty(), customItemId, protocolVersion);

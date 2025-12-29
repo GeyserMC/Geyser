@@ -59,6 +59,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.NonVanillaItem;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.populator.custom.CustomItemContext;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
@@ -157,7 +158,7 @@ public class CustomItemRegistryPopulator {
 
     public static GeyserCustomMappingData registerCustomItem(Item javaItem, GeyserMappingItem vanillaMapping, CustomItemDefinition customItem,
                                                              int bedrockId, int protocolVersion) throws InvalidItemComponentsException {
-        CustomItemContext context = CustomItemContext.createVanilla(javaItem, vanillaMapping, customItem, bedrockId, protocolVersion);
+        CustomItemContext context = CustomItemContext.createVanillaAndValidateComponents(javaItem, vanillaMapping, customItem, bedrockId, protocolVersion);
 
         NbtMapBuilder bedrockComponents = createComponentNbt(javaItem.javaKey(), context);
         ItemDefinition itemDefinition = new SimpleItemDefinition(customItem.bedrockIdentifier().toString(), bedrockId, ItemVersion.DATA_DRIVEN, true, bedrockComponents.build());
@@ -166,7 +167,7 @@ public class CustomItemRegistryPopulator {
     }
 
     public static NonVanillaItemRegistration registerCustomItem(NonVanillaCustomItemDefinition customItem, int bedrockId, int protocolVersion) throws InvalidItemComponentsException {
-        CustomItemContext context = CustomItemContext.createNonVanilla(customItem, bedrockId, protocolVersion);
+        CustomItemContext context = CustomItemContext.createNonVanillaAndValidateComponents(customItem, bedrockId, protocolVersion);
 
         String bedrockIdentifier = customItem.bedrockIdentifier().toString();
         NbtMapBuilder bedrockComponents = createComponentNbt(MinecraftKey.identifierToKey(customItem.identifier()), context);
@@ -286,21 +287,26 @@ public class CustomItemRegistryPopulator {
                 .build());
         }
 
-        AttackRange attackRange = context.components().getOrDefault(DataComponentTypes.ATTACK_RANGE, DEFAULT_ATTACK_RANGE);
+        if (GameProtocol.is1_21_130orHigher(context.protocolVersion())) {
+            AttackRange attackRange = context.components().getOrDefault(DataComponentTypes.ATTACK_RANGE, DEFAULT_ATTACK_RANGE);
 
-        KineticWeapon kineticWeapon = context.components().get(DataComponentTypes.KINETIC_WEAPON);
-        if (kineticWeapon != null) {
-            computeKineticWeaponProperties(componentBuilder, kineticWeapon, attackRange);
-        }
+            KineticWeapon kineticWeapon = context.components().get(DataComponentTypes.KINETIC_WEAPON);
+            if (kineticWeapon != null) {
+                computeKineticWeaponProperties(componentBuilder, kineticWeapon, attackRange);
+            }
 
-        PiercingWeapon piercingWeapon = context.components().get(DataComponentTypes.PIERCING_WEAPON);
-        if (piercingWeapon != null) {
-            computePiercingWeaponProperties(componentBuilder, attackRange);
-        }
+            PiercingWeapon piercingWeapon = context.components().get(DataComponentTypes.PIERCING_WEAPON);
+            if (piercingWeapon != null) {
+                computePiercingWeaponProperties(componentBuilder, attackRange);
+            }
 
-        SwingAnimation swingAnimation = context.components().get(DataComponentTypes.SWING_ANIMATION);
-        if (swingAnimation != null) {
-            computeSwingAnimationProperties(componentBuilder, swingAnimation);
+            // Please note that technically this component is present on all items in vanilla Minecraft, which, if we think about consistency, would mean
+            // we'd have to translate its default value if the component is removed using a patch or not present on a non-vanilla item
+            // It doesn't really matter though, since Bedrock has its own default values if the component isn't present
+            SwingAnimation swingAnimation = context.components().get(DataComponentTypes.SWING_ANIMATION);
+            if (swingAnimation != null) {
+                computeSwingAnimationProperties(componentBuilder, swingAnimation);
+            }
         }
 
         Optional<Consumable> consumableComponent = Optional.ofNullable(context.components().get(DataComponentTypes.CONSUMABLE))
@@ -419,9 +425,10 @@ public class CustomItemRegistryPopulator {
         itemProperties.putBoolean("hand_equipped", options.displayHandheld());
 
         int maxDamage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
-        Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
-        // Java requires stack size to be 1 when max damage is above 0, and bedrock requires stack size to be 1 when the item can be equipped
-        int stackSize = maxDamage > 0 || equippable != null ? 1 : components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 0); // This should never be 0 since we're patching components on top of the vanilla ones
+        // Note that Java requires stack size to be 1 when max damage is above 0, and bedrock requires stack size to be 1 when the item can be equipped
+        // We already checked and threw for these cases in CustomItemContext#checkComponents though
+        // This can be missing if a non-vanilla item didn't specify a max stack size, or if a component patch removed the component. In that case vanilla Minecraft defaults to 1
+        int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 1);
 
         itemProperties.putInt("max_stack_size", stackSize);
 
