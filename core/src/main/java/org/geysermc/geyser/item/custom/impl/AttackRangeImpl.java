@@ -31,7 +31,6 @@ import org.geysermc.geyser.api.item.custom.v2.component.java.AttackRange;
 public record AttackRangeImpl(@IntRange(from = 0, to = 64) float minReach, @IntRange(from = 0, to = 64) float maxReach,
                               @IntRange(from = 0, to = 64) float minCreativeReach, @IntRange(from = 0, to = 64) float maxCreativeReach,
                               @IntRange(from = 0, to = 1) float hitboxMargin) implements AttackRange {
-    public static final AttackRange DEFAULT = new Builder().build();
 
     public static class Builder implements AttackRange.Builder {
         private float minReach = 0.0F;

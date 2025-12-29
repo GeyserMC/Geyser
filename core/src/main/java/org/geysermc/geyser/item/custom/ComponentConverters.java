@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.custom;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
 import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
@@ -36,14 +37,19 @@ import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.registry.populator.CustomItemRegistryPopulator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.AttackRange;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.KineticWeapon;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.PiercingWeapon;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseEffects;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
 import java.util.HashMap;
@@ -70,10 +76,6 @@ import java.util.function.Consumer;
  * </ul>
  * For both of these cases proper accommodations have been made in the {@link CustomItemRegistryPopulator}.
  */
-// TODO PLEASE NOTE THAT WHILE 1.21.11 IS NOT IN THIS BRANCH, THE NEW COMPONENTS ARE NOT CONVERTED HERE YET.
-// TODO AS SOON AS 1.21.11 IS MERGED IN HERE, OR THIS IS IN 1.21.11, THE NEW COMPONENTS SHOULD BE CONVERTED HERE AND THE CONVERTED VALUES SHOULD BE USED IN THE CUSTOM ITEM REGISTRY POPULATOR (SEE TODOS THERE)
-// TODO THE COMPONENTS IN QUESTION ARE: ATTACK_RANGE, KINETIC_WEAPON, PIERCING_WEAPON, SWING_ANIMATION, AND USE_EFFECTS
-// TODO another one for good measure!
 public class ComponentConverters {
     private static final Map<DataComponent<?>, ResolvableComponentConverter<?>> converters = new HashMap<>();
 
@@ -131,6 +133,23 @@ public class ComponentConverters {
         });
 
         registerConverter(ItemDataComponents.ENCHANTMENT_GLINT_OVERRIDE, DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
+
+        registerConverter(ItemDataComponents.ATTACK_RANGE, (itemMap, value) -> itemMap.put(DataComponentTypes.ATTACK_RANGE,
+            new AttackRange(value.minReach(), value.maxReach(), value.minCreativeReach(), value.maxCreativeReach(),
+                value.hitboxMargin(), 1.0F)));
+
+        registerConverter(ItemDataComponents.KINETIC_WEAPON, (itemMap, value) -> itemMap.put(DataComponentTypes.KINETIC_WEAPON,
+            new KineticWeapon(0, value.delayTicks(), convertKineticWeaponCondition(value.dismountConditions()),
+                null, null, 0.0F, 1.0F, null, null)));
+
+        registerConverter(ItemDataComponents.PIERCING_WEAPON, (itemMap, value) -> itemMap.put(DataComponentTypes.PIERCING_WEAPON,
+            new PiercingWeapon(false, false, null, null)));
+
+        registerConverter(ItemDataComponents.SWING_ANIMATION, (itemMap, value) -> itemMap.put(DataComponentTypes.SWING_ANIMATION,
+            new SwingAnimation(SwingAnimation.Type.WHACK, value.duration())));
+
+        registerConverter(ItemDataComponents.USE_EFFECTS, (itemMap, value) -> itemMap.put(DataComponentTypes.USE_EFFECTS,
+            new UseEffects(false, true, value.speedMultiplier())));
     }
 
     private static <T> void registerConverter(DataComponent<T> component, DataComponentType<T> converted) {
@@ -178,5 +197,14 @@ public class ComponentConverters {
     public interface ResolvableComponentConverter<T> {
 
         void convert(DataComponents itemMap, T value, Consumer<ResolvableComponent<?>> resolvableConsumer);
+    }
+
+    // wughuughugh, no one likes these inline imports
+    // oh well
+    private static KineticWeapon.Condition convertKineticWeaponCondition(org.geysermc.geyser.api.item.custom.v2.component.java.KineticWeapon.@Nullable Condition condition) {
+        if (condition == null) {
+            return null;
+        }
+        return new KineticWeapon.Condition(condition.maxDurationTicks(), condition.minSpeed(), condition.minRelativeSpeed());
     }
 }

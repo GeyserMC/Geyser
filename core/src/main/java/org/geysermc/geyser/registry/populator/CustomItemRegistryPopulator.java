@@ -44,13 +44,8 @@ import org.geysermc.geyser.api.item.custom.v2.component.geyser.BlockPlacer;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.Chargeable;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.ThrowableComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.java.AttackRange;
 import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
-import org.geysermc.geyser.api.item.custom.v2.component.java.KineticWeapon;
-import org.geysermc.geyser.api.item.custom.v2.component.java.PiercingWeapon;
 import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
-import org.geysermc.geyser.api.item.custom.v2.component.java.SwingAnimation;
-import org.geysermc.geyser.api.item.custom.v2.component.java.UseEffects;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
@@ -61,8 +56,6 @@ import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.impl.HoldersImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.custom.impl.AttackRangeImpl;
-import org.geysermc.geyser.item.custom.impl.UseEffectsImpl;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.NonVanillaItem;
@@ -72,13 +65,18 @@ import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.AttackRange;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.KineticWeapon;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.PiercingWeapon;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseCooldown;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.UseEffects;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,13 +101,16 @@ public class CustomItemRegistryPopulator {
     // default to high use duration to slow down the player
     private static final float DEFAULT_ITEM_USE_DURATION = 1000.0F;
 
+    private static final AttackRange DEFAULT_ATTACK_RANGE = new AttackRange(0.0F, 3.0F, 0.0F, 5.0F, 0.3F, 1.0F);
+    private static final UseEffects DEFAULT_USE_EFFECTS = new UseEffects(false, true, 0.2F);
+
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<Identifier, CustomItemDefinition> customItems,
                                 Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems) {
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         // Load custom items from mappings files
         mappingsConfigReader.loadItemMappingsFromJson((identifier, item) -> {
             try {
-                validate(identifier, item, customItems, items);
+                validateVanillaOverride(identifier, item, customItems, items);
                 customItems.get(identifier).add(item);
             } catch (CustomItemDefinitionRegisterException exception) {
                 GeyserImpl.getInstance().getLogger().error("Not registering custom item definition (bedrock identifier=" + item.bedrockIdentifier() + "): " + exception.getMessage());
@@ -121,7 +122,7 @@ public class CustomItemRegistryPopulator {
             @Override
             public void register(@NonNull Identifier identifier, @NonNull CustomItemDefinition definition) {
                 try {
-                    validate(identifier, definition, customItems, items);
+                    validateVanillaOverride(identifier, definition, customItems, items);
                     customItems.get(identifier).add(definition);
                 } catch (CustomItemDefinitionRegisterException registerException) {
                     throw new CustomItemDefinitionRegisterException("Not registering custom item definition (bedrock identifier=" + definition.bedrockIdentifier() + "): " + registerException.getMessage());
@@ -185,8 +186,8 @@ public class CustomItemRegistryPopulator {
         return new NonVanillaItemRegistration(javaItem, customMapping);
     }
 
-    private static void validate(Identifier vanillaIdentifier, CustomItemDefinition item, Multimap<Identifier, CustomItemDefinition> registered,
-                                 Map<String, GeyserMappingItem> mappings) throws CustomItemDefinitionRegisterException {
+    private static void validateVanillaOverride(Identifier vanillaIdentifier, CustomItemDefinition item, Multimap<Identifier, CustomItemDefinition> registered,
+                                                Map<String, GeyserMappingItem> mappings) throws CustomItemDefinitionRegisterException {
         if (!mappings.containsKey(vanillaIdentifier.toString())) {
             throw new CustomItemDefinitionRegisterException("unknown Java item " + vanillaIdentifier);
         }
@@ -285,24 +286,22 @@ public class CustomItemRegistryPopulator {
                 .build());
         }
 
-        // TODO REPLACE EVERYTHING FROM HERE ON WITH MCPL COMPONENTS WHEN 1.21.11 IS HERE
-        AttackRange attackRange = context.definition().components().getOrDefault(ItemDataComponents.ATTACK_RANGE, AttackRangeImpl.DEFAULT);
+        AttackRange attackRange = context.components().getOrDefault(DataComponentTypes.ATTACK_RANGE, DEFAULT_ATTACK_RANGE);
 
-        KineticWeapon kineticWeapon = context.definition().components().get(ItemDataComponents.KINETIC_WEAPON);
+        KineticWeapon kineticWeapon = context.components().get(DataComponentTypes.KINETIC_WEAPON);
         if (kineticWeapon != null) {
             computeKineticWeaponProperties(componentBuilder, kineticWeapon, attackRange);
         }
 
-        PiercingWeapon piercingWeapon = context.definition().components().get(ItemDataComponents.PIERCING_WEAPON);
+        PiercingWeapon piercingWeapon = context.components().get(DataComponentTypes.PIERCING_WEAPON);
         if (piercingWeapon != null) {
             computePiercingWeaponProperties(componentBuilder, attackRange);
         }
 
-        SwingAnimation swingAnimation = context.definition().components().get(ItemDataComponents.SWING_ANIMATION);
+        SwingAnimation swingAnimation = context.components().get(DataComponentTypes.SWING_ANIMATION);
         if (swingAnimation != null) {
             computeSwingAnimationProperties(componentBuilder, swingAnimation);
         }
-        // TODO END.
 
         Optional<Consumable> consumableComponent = Optional.ofNullable(context.components().get(DataComponentTypes.CONSUMABLE))
             .or(() -> context.vanillaMapping().flatMap(mapping -> {
@@ -320,7 +319,7 @@ public class CustomItemRegistryPopulator {
         });
 
         computeUseEffectsProperties(itemProperties, componentBuilder,
-            context.definition().components().getOrDefault(ItemDataComponents.USE_EFFECTS, UseEffectsImpl.DEFAULT), // TODO same as above, all items have this component in 1.21.11
+            context.components().getOrDefault(DataComponentTypes.USE_EFFECTS, DEFAULT_USE_EFFECTS),
             consumableComponent.map(Consumable::consumeSeconds));
 
         UseCooldown useCooldown = context.components().get(DataComponentTypes.USE_COOLDOWN);
@@ -648,8 +647,8 @@ public class CustomItemRegistryPopulator {
 
     private static NbtMapBuilder addAttackRangeProperties(NbtMapBuilder component, AttackRange attackRange) {
         return component
-            .putCompound("reach", createReachMap(attackRange.minReach(), attackRange.maxReach()))
-            .putCompound("creative_reach", createReachMap(attackRange.minCreativeReach(), attackRange.maxCreativeReach()))
+            .putCompound("reach", createReachMap(attackRange.minRange(), attackRange.maxRange()))
+            .putCompound("creative_reach", createReachMap(attackRange.minCreativeRange(), attackRange.maxCreativeRange()))
             .putFloat("hitbox_margin", attackRange.hitboxMargin()); // TODO is this 1-to-1 with Java?
     }
 

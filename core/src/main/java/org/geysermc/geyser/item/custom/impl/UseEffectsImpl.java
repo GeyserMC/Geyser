@@ -29,7 +29,6 @@ import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.item.custom.v2.component.java.UseEffects;
 
 public record UseEffectsImpl(@IntRange(from = 0, to = 1) float speedMultiplier) implements UseEffects {
-    public static final UseEffects DEFAULT = new Builder().build();
 
     public static class Builder implements UseEffects.Builder {
         private float speedMultiplier = 0.2F;
