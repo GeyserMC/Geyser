@@ -57,4 +57,12 @@ interface IRegistry<M> {
      * @param consumer the consumer
      */
     void register(Consumer<M> consumer);
+
+    /**
+     * Clears The Underlying Mappings.
+     * Throws {@link UnsupportedOperationException} When The Registry Doesn't Support It.
+     */
+    default void clear() {
+        throw new UnsupportedOperationException("Registry does not support clear.");
+    }
 }
