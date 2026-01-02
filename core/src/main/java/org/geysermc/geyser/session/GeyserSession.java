@@ -79,31 +79,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.CraftingRecipeData;
-import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
-import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
-import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
-import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
-import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
-import org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket;
-import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
-import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
-import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetCommandsEnabledPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
-import org.cloudburstmc.protocol.bedrock.packet.StartGamePacket;
-import org.cloudburstmc.protocol.bedrock.packet.SyncEntityPropertyPacket;
-import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
-import org.cloudburstmc.protocol.bedrock.packet.TransferPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateAbilitiesPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateAdventureSettingsPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateSoftEnumPacket;
+import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
@@ -190,11 +166,7 @@ import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.ChunkUtils;
-import org.geysermc.geyser.util.EntityUtils;
-import org.geysermc.geyser.util.InventoryUtils;
-import org.geysermc.geyser.util.LoginEncryptionUtils;
-import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.geyser.util.*;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.network.BuiltinFlags;
 import org.geysermc.mcprotocollib.network.ClientSession;
@@ -362,6 +334,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private int pendingOrCurrentBedrockInventoryId = -1;
+
+    /**
+     * A check for whether or not a clear is required on the title for the cooldown we emulate.
+     */
+    private boolean needCooldownTitleReset = false;
 
     /**
      * Use {@link #getNextItemNetId()} instead for consistency
@@ -1312,12 +1289,108 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             this.bundleCache.tick();
             this.dialogManager.tick();
             this.waypointCache.tick();
+
+            this.tickCooldown();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
 
         ticks++;
         worldTicks++;
+    }
+
+    private void tickCooldown() {
+        if (getGeyser().config().gameplay().showCooldown() == CooldownUtils.CooldownType.DISABLED) return;
+        CooldownUtils.CooldownType sessionPreference = getPreferencesCache().getCooldownPreference();
+        if (sessionPreference == CooldownUtils.CooldownType.DISABLED) return;
+
+        if (getGameMode().equals(GameMode.SPECTATOR)) return; // No attack indicator in spectator
+
+        if (getAttackSpeed() == 0.0 || getAttackSpeed() > 20) {
+            return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
+        }
+
+        long time = System.currentTimeMillis() - getLastHitTime();
+        double tickrateMultiplier = Math.max(getMillisecondsPerTick() / 50, 1.0);
+        double cooldown = MathUtils.restrain(((double) time) * getAttackSpeed() / (tickrateMultiplier * 1000.0), 1.0);
+
+        boolean showCooldown = cooldown < 1.0 || getMouseoverEntity() != null;
+
+        if (getGeyser().config().gameplay().enableIntegratedPack()) {
+            if (showCooldown) {
+                SetTitlePacket titlePacket = new SetTitlePacket();
+                titlePacket.setType(SetTitlePacket.Type.TITLE);
+                titlePacket.setText(CooldownUtils.getIntegratedPackTitle(this, sessionPreference));
+                titlePacket.setXuid("");
+                titlePacket.setPlatformOnlineId("");
+                sendUpstreamPacket(titlePacket);
+
+                needCooldownTitleReset = true;
+            } else if (needCooldownTitleReset) {
+                // Clear both, users can change their preference on the fly
+                SetTitlePacket titlePacket = new SetTitlePacket();
+                titlePacket.setType(SetTitlePacket.Type.TITLE);
+                titlePacket.setText("geyseropt:cooldown_crosshair ");
+                titlePacket.setXuid("");
+                titlePacket.setPlatformOnlineId("");
+                sendUpstreamPacket(titlePacket);
+
+                titlePacket = new SetTitlePacket();
+                titlePacket.setType(SetTitlePacket.Type.TITLE);
+                titlePacket.setText("geyseropt:cooldown_hotbar ");
+                titlePacket.setXuid("");
+                titlePacket.setPlatformOnlineId("");
+                sendUpstreamPacket(titlePacket);
+
+                needCooldownTitleReset = false;
+            }
+        } else {
+            if (showCooldown) {
+                // Set the times to stay a bit with no fade in nor out
+                SetTitlePacket titlePacket = new SetTitlePacket();
+                titlePacket.setType(SetTitlePacket.Type.TIMES);
+                titlePacket.setStayTime(1000);
+                titlePacket.setText("");
+                titlePacket.setXuid("");
+                titlePacket.setPlatformOnlineId("");
+                sendUpstreamPacket(titlePacket);
+
+                getWorldCache().markTitleTimesAsIncorrect();
+
+                // Actionbars don't need an empty title
+                if (sessionPreference == CooldownUtils.CooldownType.TITLE) {
+                    // Needs to be sent or no subtitle packet is recognized by the client
+                    titlePacket = new SetTitlePacket();
+                    titlePacket.setType(SetTitlePacket.Type.TITLE);
+                    titlePacket.setText(" ");
+                    titlePacket.setXuid("");
+                    titlePacket.setPlatformOnlineId("");
+                    sendUpstreamPacket(titlePacket);
+                }
+
+                titlePacket = new SetTitlePacket();
+                if (sessionPreference == CooldownUtils.CooldownType.ACTIONBAR) {
+                    titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
+                } else {
+                    titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
+                }
+                titlePacket.setText(CooldownUtils.getTitle(this));
+                titlePacket.setXuid("");
+                titlePacket.setPlatformOnlineId("");
+                sendUpstreamPacket(titlePacket);
+
+                needCooldownTitleReset = true;
+            } else if (needCooldownTitleReset) {
+                SetTitlePacket removeTitlePacket = new SetTitlePacket();
+                removeTitlePacket.setType(SetTitlePacket.Type.CLEAR);
+                removeTitlePacket.setText(" ");
+                removeTitlePacket.setXuid("");
+                removeTitlePacket.setPlatformOnlineId("");
+                sendUpstreamPacket(removeTitlePacket);
+
+                needCooldownTitleReset = false;
+            }
+        }
     }
 
     public void startSneaking(boolean updateMetaData) {

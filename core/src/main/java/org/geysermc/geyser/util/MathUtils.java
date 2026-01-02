@@ -179,6 +179,12 @@ public class MathUtils {
         return num;
     }
 
+    public static double restrain(double x, double max) {
+        if (x < 0d)
+            return 0d;
+        return Math.min(x, max);
+    }
+
     /**
      * Clamps the value between the low and high boundaries
      * Copied from {@link org.cloudburstmc.math.GenericMath} with floats instead.
