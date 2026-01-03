@@ -27,26 +27,26 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.java.FoodProperties;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
-import org.geysermc.geyser.item.custom.impl.FoodPropertiesImpl;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaFoodProperties;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
+import org.geysermc.geyser.item.custom.impl.JavaFoodPropertiesImpl;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
-public class FoodPropertiesReader extends DataComponentReader<FoodProperties> {
+public class FoodPropertiesReader extends DataComponentReader<JavaFoodProperties> {
 
     public FoodPropertiesReader() {
-        super(ItemDataComponents.FOOD);
+        super(JavaItemDataComponents.FOOD);
     }
 
     @Override
-    protected FoodProperties readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
+    protected JavaFoodProperties readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
         int nutrition = MappingsUtil.readOrDefault(element, "nutrition", NodeReader.NON_NEGATIVE_INT, 0, context);
         float saturation = MappingsUtil.readOrDefault(element, "saturation", NodeReader.NON_NEGATIVE_DOUBLE.andThen(Double::floatValue), 0.0F, context);
         boolean canAlwaysEat = MappingsUtil.readOrDefault(element, "can_always_eat", NodeReader.BOOLEAN, false, context);
 
-        return new FoodPropertiesImpl(nutrition, saturation, canAlwaysEat);
+        return new JavaFoodPropertiesImpl(nutrition, saturation, canAlwaysEat);
     }
 }

@@ -23,28 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.mappings.components.readers;
+package org.geysermc.geyser.api.item.custom.v2.component;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
-import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
+import java.util.Set;
 
-public abstract class PrimitiveComponentReader<V> extends DataComponentReader<V> {
+/**
+ * A map of data components to their values. Mainly used internally when mapping custom items.
+ */
+public interface ItemDataComponentMap {
 
-    protected PrimitiveComponentReader(ItemDataComponent<V> type) {
-        super(type);
+    /**
+     * @return the value of the given component, or null if it is not in the map.
+     */
+    <T> T get(ItemDataComponent<T> type);
+
+    /**
+     * @return the value of the given component, or {@code fallback} if it is null.
+     */
+    default <T> T getOrDefault(ItemDataComponent<T> type, T fallback) {
+        T value = get(type);
+        return value == null ? fallback : value;
     }
 
-    protected abstract V readValue(@NonNull JsonPrimitive primitive, String... context) throws InvalidCustomMappingsFileException;
-
-    @Override
-    protected V readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
-        if (!element.isJsonPrimitive()) {
-            throw new InvalidCustomMappingsFileException("reading component", "value must be a primitive", context);
-        }
-        return readValue((JsonPrimitive) element, context);
-    }
+    /**
+     * @return all data components in this map.
+     */
+    Set<ItemDataComponent<?>> keySet();
 }

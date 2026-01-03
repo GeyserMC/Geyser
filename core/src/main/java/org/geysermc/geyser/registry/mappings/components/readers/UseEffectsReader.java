@@ -27,23 +27,23 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
-import org.geysermc.geyser.api.item.custom.v2.component.java.UseEffects;
-import org.geysermc.geyser.item.custom.impl.UseEffectsImpl;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaUseEffects;
+import org.geysermc.geyser.item.custom.impl.JavaUseEffectsImpl;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
-public class UseEffectsReader extends DataComponentReader<UseEffects> {
+public class UseEffectsReader extends DataComponentReader<JavaUseEffects> {
 
     public UseEffectsReader() {
-        super(ItemDataComponents.USE_EFFECTS);
+        super(JavaItemDataComponents.USE_EFFECTS);
     }
 
     @Override
-    protected UseEffects readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
-        return new UseEffectsImpl(
+    protected JavaUseEffects readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
+        return new JavaUseEffectsImpl(
             MappingsUtil.readOrDefault(element, "speed_multiplier", NodeReader.boundedDouble(0.0, 1.0).andThen(Double::floatValue), 0.2F, context)
         );
     }

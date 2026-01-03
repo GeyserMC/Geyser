@@ -27,26 +27,26 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
-import org.geysermc.geyser.api.item.custom.v2.component.java.UseCooldown;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaUseCooldown;
 import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.geyser.item.custom.impl.UseCooldownImpl;
+import org.geysermc.geyser.item.custom.impl.JavaUseCooldownImpl;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
-public class UseCooldownReader extends DataComponentReader<UseCooldown> {
+public class UseCooldownReader extends DataComponentReader<JavaUseCooldown> {
 
     public UseCooldownReader() {
-        super(ItemDataComponents.USE_COOLDOWN);
+        super(JavaItemDataComponents.USE_COOLDOWN);
     }
 
     @Override
-    protected UseCooldown readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
+    protected JavaUseCooldown readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
         float seconds = MappingsUtil.readOrThrow(element, "seconds", NodeReader.POSITIVE_DOUBLE.andThen(Double::floatValue), context);
         Identifier cooldownGroup = MappingsUtil.readOrDefault(element, "cooldown_group", NodeReader.IDENTIFIER, null, context);
 
-        return new UseCooldownImpl(seconds, cooldownGroup);
+        return new JavaUseCooldownImpl(seconds, cooldownGroup);
     }
 }

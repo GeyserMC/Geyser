@@ -32,15 +32,15 @@ import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
+import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponentMap;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.GeyserProvided;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.impl.GeyserCoreProvided;
-import org.geysermc.geyser.item.custom.impl.DataComponentImpl;
+import org.geysermc.geyser.item.custom.impl.ItemDataComponentImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +58,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
     private final PredicateStrategy predicateStrategy;
     private final int priority;
     private final @NonNull CustomItemBedrockOptions bedrockOptions;
-    private final @NonNull DataComponentMap components;
+    private final @NonNull ItemDataComponentMap components;
     private final @NonNull List<Identifier> removedComponents;
 
     public GeyserCustomItemDefinition(Builder builder) {
@@ -73,7 +73,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         this.predicateStrategy = builder.predicateStrategy;
         this.priority = builder.priority;
         this.bedrockOptions = builder.bedrockOptions;
-        this.components = new ComponentMap(builder.components);
+        this.components = new ComponentMapItem(builder.components);
         this.removedComponents = builder.removedComponents;
     }
 
@@ -119,7 +119,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
     }
 
     @Override
-    public @NonNull DataComponentMap components() {
+    public @NonNull ItemDataComponentMap components() {
         return components;
     }
 
@@ -132,7 +132,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         private final Identifier bedrockIdentifier;
         private final Identifier model;
         private final List<MinecraftPredicate<? super ItemPredicateContext>> predicates = new ArrayList<>();
-        private final Reference2ObjectMap<DataComponent<?>, Object> components = new Reference2ObjectOpenHashMap<>();
+        private final Reference2ObjectMap<ItemDataComponent<?>, Object> components = new Reference2ObjectOpenHashMap<>();
         private final List<Identifier> removedComponents = new ArrayList<>();
 
         private String displayName;
@@ -188,10 +188,10 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         }
 
         @Override
-        public <T> CustomItemDefinition.Builder component(@NonNull DataComponent<T> component, @NonNull T value) {
+        public <T> CustomItemDefinition.Builder component(@NonNull ItemDataComponent<T> component, @NonNull T value) {
             Objects.requireNonNull(component, "component cannot be null");
             Objects.requireNonNull(value, "value cannot be null");
-            if (!(component instanceof DataComponentImpl<T> dataComponent)) {
+            if (!(component instanceof ItemDataComponentImpl<T> dataComponent)) {
                 throw new IllegalArgumentException("Cannot use custom implementations of the DataComponent<T> interface! Found: " + component.getClass().getSimpleName());
             } else if (removedComponents.contains(component.identifier())) {
                 throw new IllegalArgumentException("Tried to add earlier removed component " + component.identifier());
@@ -209,7 +209,7 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         @Override
         public CustomItemDefinition.Builder removeComponent(@NonNull Identifier component) {
             Objects.requireNonNull(component, "component cannot be null");
-            if (components.keySet().stream().map(DataComponent::identifier).anyMatch(identifier -> identifier.equals(component))) {
+            if (components.keySet().stream().map(ItemDataComponent::identifier).anyMatch(identifier -> identifier.equals(component))) {
                 throw new IllegalArgumentException("Tried to remove earlier added component " + component);
             }
             removedComponents.add(component);
@@ -222,15 +222,15 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         }
     }
 
-    private record ComponentMap(Reference2ObjectMap<DataComponent<?>, Object> components) implements DataComponentMap {
+    private record ComponentMapItem(Reference2ObjectMap<ItemDataComponent<?>, Object> components) implements ItemDataComponentMap {
 
         @Override
-        public <T> T get(DataComponent<T> type) {
+        public <T> T get(ItemDataComponent<T> type) {
             return (T) components.get(type);
         }
 
         @Override
-        public Set<DataComponent<?>> keySet() {
+        public Set<ItemDataComponent<?>> keySet() {
             return components.keySet();
         }
     }

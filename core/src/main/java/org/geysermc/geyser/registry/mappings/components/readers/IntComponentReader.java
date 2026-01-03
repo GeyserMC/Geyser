@@ -27,7 +27,7 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.google.gson.JsonPrimitive;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
@@ -35,13 +35,13 @@ public class IntComponentReader extends PrimitiveComponentReader<Integer> {
     private final int minimum;
     private final int maximum;
 
-    public IntComponentReader(DataComponent<Integer> type, int minimum, int maximum) {
+    public IntComponentReader(ItemDataComponent<Integer> type, int minimum, int maximum) {
         super(type);
         this.minimum = minimum;
         this.maximum = maximum;
     }
 
-    public IntComponentReader(DataComponent<Integer> type, int minimum) {
+    public IntComponentReader(ItemDataComponent<Integer> type, int minimum) {
         this(type, minimum, Integer.MAX_VALUE);
     }
 

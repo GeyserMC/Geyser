@@ -23,28 +23,42 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.mappings.components.readers;
+package org.geysermc.geyser.item.custom.impl;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
-import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaConsumable;
 
-public abstract class PrimitiveComponentReader<V> extends DataComponentReader<V> {
+import java.util.Objects;
 
-    protected PrimitiveComponentReader(ItemDataComponent<V> type) {
-        super(type);
-    }
+public record JavaConsumableImpl(
+    float consumeSeconds,
+    @NonNull Animation animation
+) implements JavaConsumable {
 
-    protected abstract V readValue(@NonNull JsonPrimitive primitive, String... context) throws InvalidCustomMappingsFileException;
+    public static class Builder implements JavaConsumable.Builder {
+        private float consumeSeconds = 1.6F;
+        private Animation animation = Animation.EAT;
 
-    @Override
-    protected V readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
-        if (!element.isJsonPrimitive()) {
-            throw new InvalidCustomMappingsFileException("reading component", "value must be a primitive", context);
+        @Override
+        public Builder consumeSeconds(@Positive float consumeSeconds) {
+            if (consumeSeconds <= 0.0F) {
+                throw new IllegalArgumentException("consume seconds must be above 0");
+            }
+            this.consumeSeconds = consumeSeconds;
+            return this;
         }
-        return readValue((JsonPrimitive) element, context);
+
+        @Override
+        public Builder animation(@NonNull Animation animation) {
+            Objects.requireNonNull(animation, "animation cannot be null");
+            this.animation = animation;
+            return this;
+        }
+
+        @Override
+        public JavaConsumable build() {
+            return new JavaConsumableImpl(consumeSeconds, animation);
+        }
     }
 }

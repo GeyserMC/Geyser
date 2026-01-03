@@ -23,26 +23,49 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.mappings.components.readers;
+package org.geysermc.geyser.api.item.custom.v2.component;
 
-import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
-import org.geysermc.geyser.api.item.custom.v2.component.java.JavaSwingAnimation;
-import org.geysermc.geyser.item.custom.impl.JavaSwingAnimationImpl;
-import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
-import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
-import org.geysermc.geyser.registry.mappings.util.NodeReader;
+import org.geysermc.geyser.api.util.GeyserProvided;
+import org.geysermc.geyser.api.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
-public class SwingAnimationReader extends DataComponentReader<JavaSwingAnimation> {
+import java.util.function.Predicate;
 
-    public SwingAnimationReader() {
-        super(JavaItemDataComponents.SWING_ANIMATION);
-    }
+/**
+ * Data components are used to indicate item behaviour.
+ * It is expected that any components set on a {@link CustomItemDefinition} are always present on the item server-side.
+ *
+ * @see JavaItemDataComponents
+ * @see GeyserItemDataComponent
+ * @see CustomItemDefinition#components()
+ */
+@ApiStatus.NonExtendable
+public interface ItemDataComponent<T> extends GeyserProvided {
 
-    @Override
-    protected JavaSwingAnimation readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
-        return new JavaSwingAnimationImpl(MappingsUtil.readOrDefault(element, "duration", NodeReader.POSITIVE_INT, 6, context));
-    }
+    /**
+     * The identifier of the data component.
+     *
+     * @return the identifier
+     */
+    @NonNull
+    Identifier identifier();
+
+    /**
+     * The predicate used to validate the component.
+     *
+     * @return the validator
+     */
+    @NonNull
+    Predicate<T> validator();
+
+    /**
+     * Whether the component exists in vanilla Minecraft.
+     *
+     * @return whether this component is vanilla
+     */
+    boolean vanilla();
 }

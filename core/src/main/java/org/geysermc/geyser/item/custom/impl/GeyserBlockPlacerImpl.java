@@ -23,28 +23,40 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.mappings.components.readers;
+package org.geysermc.geyser.item.custom.impl;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
-import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserBlockPlacer;
+import org.geysermc.geyser.api.util.Identifier;
 
-public abstract class PrimitiveComponentReader<V> extends DataComponentReader<V> {
+import java.util.Objects;
 
-    protected PrimitiveComponentReader(ItemDataComponent<V> type) {
-        super(type);
-    }
+public record GeyserBlockPlacerImpl(
+    Identifier block,
+    boolean useBlockIcon
+) implements GeyserBlockPlacer {
 
-    protected abstract V readValue(@NonNull JsonPrimitive primitive, String... context) throws InvalidCustomMappingsFileException;
+    public static class Builder implements GeyserBlockPlacer.Builder {
+        private Identifier block;
+        private boolean useBlockIcon;
 
-    @Override
-    protected V readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
-        if (!element.isJsonPrimitive()) {
-            throw new InvalidCustomMappingsFileException("reading component", "value must be a primitive", context);
+        @Override
+        public Builder block(@NonNull Identifier block) {
+            Objects.requireNonNull(block, "block cannot be null");
+            this.block = block;
+            return this;
         }
-        return readValue((JsonPrimitive) element, context);
+
+        @Override
+        public Builder useBlockIcon(boolean useBlockIcon) {
+            this.useBlockIcon = useBlockIcon;
+            return this;
+        }
+
+        @Override
+        public GeyserBlockPlacer build() {
+            Objects.requireNonNull(block, "block cannot be null");
+            return new GeyserBlockPlacerImpl(block, useBlockIcon);
+        }
     }
 }

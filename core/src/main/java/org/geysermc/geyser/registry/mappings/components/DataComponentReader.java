@@ -31,15 +31,15 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 
 public abstract class DataComponentReader<V> {
     @Getter(AccessLevel.PACKAGE)
     @Accessors(fluent = true)
-    private final DataComponent<V> type;
+    private final ItemDataComponent<V> type;
 
-    protected DataComponentReader(DataComponent<V> type) {
+    protected DataComponentReader(ItemDataComponent<V> type) {
         this.type = type;
     }
 

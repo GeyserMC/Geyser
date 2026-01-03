@@ -34,13 +34,13 @@ import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.BlockPlacer;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.Chargeable;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.java.Consumable;
-import org.geysermc.geyser.api.item.custom.v2.component.java.Equippable;
-import org.geysermc.geyser.api.item.custom.v2.component.java.FoodProperties;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserBlockPlacer;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserChargeable;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaConsumable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaEquippable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaFoodProperties;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 
@@ -194,39 +194,39 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
                 .tags(tags().stream().map(Identifier::of).collect(Collectors.toSet()))
                 .protectionValue(protectionValue())
             )
-            .component(ItemDataComponents.MAX_STACK_SIZE, stackSize())
-            .component(ItemDataComponents.MAX_DAMAGE, maxDamage())
-            .component(GeyserDataComponent.ATTACK_DAMAGE, attackDamage())
+            .component(JavaItemDataComponents.MAX_STACK_SIZE, stackSize())
+            .component(JavaItemDataComponents.MAX_DAMAGE, maxDamage())
+            .component(GeyserItemDataComponent.ATTACK_DAMAGE, attackDamage())
             .translationString(translationString());
 
         if (isHat()) {
-            definition.component(ItemDataComponents.EQUIPPABLE, Equippable.builder().slot(Equippable.EquipmentSlot.HEAD).build());
+            definition.component(JavaItemDataComponents.EQUIPPABLE, JavaEquippable.builder().slot(JavaEquippable.EquipmentSlot.HEAD).build());
         } else if (armorType() != null) {
             switch (armorType()) {
-                case "helmet" -> definition.component(ItemDataComponents.EQUIPPABLE, Equippable.builder().slot(Equippable.EquipmentSlot.HEAD));
-                case "chestplate" -> definition.component(ItemDataComponents.EQUIPPABLE, Equippable.builder().slot(Equippable.EquipmentSlot.CHEST));
-                case "leggings" -> definition.component(ItemDataComponents.EQUIPPABLE, Equippable.builder().slot(Equippable.EquipmentSlot.LEGS));
-                case "boots" -> definition.component(ItemDataComponents.EQUIPPABLE, Equippable.of(Equippable.EquipmentSlot.FEET));
+                case "helmet" -> definition.component(JavaItemDataComponents.EQUIPPABLE, JavaEquippable.builder().slot(JavaEquippable.EquipmentSlot.HEAD));
+                case "chestplate" -> definition.component(JavaItemDataComponents.EQUIPPABLE, JavaEquippable.builder().slot(JavaEquippable.EquipmentSlot.CHEST));
+                case "leggings" -> definition.component(JavaItemDataComponents.EQUIPPABLE, JavaEquippable.builder().slot(JavaEquippable.EquipmentSlot.LEGS));
+                case "boots" -> definition.component(JavaItemDataComponents.EQUIPPABLE, JavaEquippable.of(JavaEquippable.EquipmentSlot.FEET));
             }
         }
 
         if (isEdible()) {
-            definition.component(ItemDataComponents.CONSUMABLE, Consumable.builder().consumeSeconds(1.6F).animation(Consumable.Animation.EAT)); // Default values
+            definition.component(JavaItemDataComponents.CONSUMABLE, JavaConsumable.builder().consumeSeconds(1.6F).animation(JavaConsumable.Animation.EAT)); // Default values
             if (canAlwaysEat()) {
-                definition.component(ItemDataComponents.FOOD, FoodProperties.builder().canAlwaysEat(true));
+                definition.component(JavaItemDataComponents.FOOD, JavaFoodProperties.builder().canAlwaysEat(true));
             }
         }
 
         if (isChargeable() && toolType() != null) {
             if (toolType().equals("bow")) {
-                definition.component(GeyserDataComponent.CHARGEABLE, Chargeable.builder().maxDrawDuration(1.0F).chargeOnDraw(true).ammunition(Identifier.of("arrow")));
+                definition.component(GeyserItemDataComponent.CHARGEABLE, GeyserChargeable.builder().maxDrawDuration(1.0F).chargeOnDraw(true).ammunition(Identifier.of("arrow")));
             } else {
-                definition.component(GeyserDataComponent.CHARGEABLE, Chargeable.builder().ammunition(Identifier.of("arrow")));
+                definition.component(GeyserItemDataComponent.CHARGEABLE, GeyserChargeable.builder().ammunition(Identifier.of("arrow")));
             }
         }
 
         if (block() != null) {
-            definition.component(GeyserDataComponent.BLOCK_PLACER, BlockPlacer.builder().block(Identifier.of(block())));
+            definition.component(GeyserItemDataComponent.BLOCK_PLACER, GeyserBlockPlacer.builder().block(Identifier.of(block())));
         }
 
         return definition;

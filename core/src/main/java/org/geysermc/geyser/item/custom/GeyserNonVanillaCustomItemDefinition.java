@@ -33,7 +33,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
@@ -107,7 +107,7 @@ public class GeyserNonVanillaCustomItemDefinition extends GeyserCustomItemDefini
         }
 
         @Override
-        public <T> NonVanillaCustomItemDefinition.Builder component(@NonNull DataComponent<T> component, @NonNull T value) {
+        public <T> NonVanillaCustomItemDefinition.Builder component(@NonNull ItemDataComponent<T> component, @NonNull T value) {
             return (Builder) super.component(component, value);
         }
 

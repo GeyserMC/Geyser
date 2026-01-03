@@ -26,9 +26,11 @@
 package org.geysermc.geyser.item.custom;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponentMap;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaKineticWeapon;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
 import org.geysermc.geyser.item.components.resolvable.ResolvableRepairable;
@@ -71,16 +73,16 @@ import java.util.function.Consumer;
  *
  * <p>Most components convert over nicely, and it is very much preferred to have every API component have a converter in here. However, this is not always possible. At the moment, there is one exception:
  * <ul>
- *     <li>Non-vanilla data components (from {@link org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent}) don't have converters registered, for obvious reasons.
+ *     <li>Non-vanilla data components (from {@link GeyserItemDataComponent}) don't have converters registered, for obvious reasons.
  *     They're used directly in the custom item registry populator. Eventually, some may have converters introduced as Mojang introduces such components in Java.</li>
  * </ul>
  * For both of these cases proper accommodations have been made in the {@link CustomItemRegistryPopulator}.
  */
 public class ComponentConverters {
-    private static final Map<DataComponent<?>, ResolvableComponentConverter<?>> converters = new HashMap<>();
+    private static final Map<ItemDataComponent<?>, ResolvableComponentConverter<?>> converters = new HashMap<>();
 
     static {
-        registerConverter(ItemDataComponents.CONSUMABLE, (itemMap, value) -> {
+        registerConverter(JavaItemDataComponents.CONSUMABLE, (itemMap, value) -> {
             Consumable.ItemUseAnimation convertedAnimation = switch (value.animation()) {
                 case NONE -> Consumable.ItemUseAnimation.NONE;
                 case EAT -> Consumable.ItemUseAnimation.EAT;
@@ -96,7 +98,7 @@ public class ComponentConverters {
                 true, List.of()));
         });
 
-        registerConverter(ItemDataComponents.EQUIPPABLE, (itemMap, value) -> {
+        registerConverter(JavaItemDataComponents.EQUIPPABLE, (itemMap, value) -> {
             EquipmentSlot convertedSlot = switch (value.slot()) {
                 case HEAD -> EquipmentSlot.HELMET;
                 case CHEST -> EquipmentSlot.CHESTPLATE;
@@ -109,65 +111,65 @@ public class ComponentConverters {
                 null, null, null, false, false, false, false, false, null));
         });
 
-        registerConverter(ItemDataComponents.FOOD, (itemMap, value) -> itemMap.put(DataComponentTypes.FOOD,
+        registerConverter(JavaItemDataComponents.FOOD, (itemMap, value) -> itemMap.put(DataComponentTypes.FOOD,
             new FoodProperties(value.nutrition(), value.saturation(), value.canAlwaysEat())));
 
-        registerConverter(ItemDataComponents.MAX_DAMAGE, DataComponentTypes.MAX_DAMAGE);
-        registerConverter(ItemDataComponents.MAX_STACK_SIZE, DataComponentTypes.MAX_STACK_SIZE);
+        registerConverter(JavaItemDataComponents.MAX_DAMAGE, DataComponentTypes.MAX_DAMAGE);
+        registerConverter(JavaItemDataComponents.MAX_STACK_SIZE, DataComponentTypes.MAX_STACK_SIZE);
 
-        registerConverter(ItemDataComponents.USE_COOLDOWN, (itemMap, value) -> itemMap.put(DataComponentTypes.USE_COOLDOWN,
+        registerConverter(JavaItemDataComponents.USE_COOLDOWN, (itemMap, value) -> itemMap.put(DataComponentTypes.USE_COOLDOWN,
             new UseCooldown(value.seconds(), MinecraftKey.identifierToKey(value.cooldownGroup()))));
 
-        registerConverter(ItemDataComponents.ENCHANTABLE, DataComponentTypes.ENCHANTABLE);
+        registerConverter(JavaItemDataComponents.ENCHANTABLE, DataComponentTypes.ENCHANTABLE);
 
-        registerConverter(ItemDataComponents.TOOL, (itemMap, value, consumer) -> {
+        registerConverter(JavaItemDataComponents.TOOL, (itemMap, value, consumer) -> {
             itemMap.put(DataComponentTypes.TOOL,
                 new ToolData(List.of(), 1.0F, 1, value.canDestroyBlocksInCreative()));
             consumer.accept(new ResolvableToolProperties(value));
         });
 
-        registerConverter(ItemDataComponents.REPAIRABLE, (itemMap, value, consumer) -> {
+        registerConverter(JavaItemDataComponents.REPAIRABLE, (itemMap, value, consumer) -> {
             // Can't convert to MCPL HolderSet here, and custom item registry populator will just use the identifiers of the Holders
             // and pass them to bedrock, if possible. This won't be perfect of course, since identifiers don't have to match bedrock ones
             consumer.accept(new ResolvableRepairable(value));
         });
 
-        registerConverter(ItemDataComponents.ENCHANTMENT_GLINT_OVERRIDE, DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
+        registerConverter(JavaItemDataComponents.ENCHANTMENT_GLINT_OVERRIDE, DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE);
 
-        registerConverter(ItemDataComponents.ATTACK_RANGE, (itemMap, value) -> itemMap.put(DataComponentTypes.ATTACK_RANGE,
+        registerConverter(JavaItemDataComponents.ATTACK_RANGE, (itemMap, value) -> itemMap.put(DataComponentTypes.ATTACK_RANGE,
             new AttackRange(value.minReach(), value.maxReach(), value.minCreativeReach(), value.maxCreativeReach(),
                 value.hitboxMargin(), 1.0F)));
 
-        registerConverter(ItemDataComponents.KINETIC_WEAPON, (itemMap, value) -> itemMap.put(DataComponentTypes.KINETIC_WEAPON,
+        registerConverter(JavaItemDataComponents.KINETIC_WEAPON, (itemMap, value) -> itemMap.put(DataComponentTypes.KINETIC_WEAPON,
             new KineticWeapon(0, value.delayTicks(), convertKineticWeaponCondition(value.dismountConditions()),
                 null, null, 0.0F, 1.0F, null, null)));
 
-        registerConverter(ItemDataComponents.PIERCING_WEAPON, (itemMap, value) -> itemMap.put(DataComponentTypes.PIERCING_WEAPON,
+        registerConverter(JavaItemDataComponents.PIERCING_WEAPON, (itemMap, value) -> itemMap.put(DataComponentTypes.PIERCING_WEAPON,
             new PiercingWeapon(false, false, null, null)));
 
-        registerConverter(ItemDataComponents.SWING_ANIMATION, (itemMap, value) -> itemMap.put(DataComponentTypes.SWING_ANIMATION,
+        registerConverter(JavaItemDataComponents.SWING_ANIMATION, (itemMap, value) -> itemMap.put(DataComponentTypes.SWING_ANIMATION,
             new SwingAnimation(SwingAnimation.Type.WHACK, value.duration())));
 
-        registerConverter(ItemDataComponents.USE_EFFECTS, (itemMap, value) -> itemMap.put(DataComponentTypes.USE_EFFECTS,
+        registerConverter(JavaItemDataComponents.USE_EFFECTS, (itemMap, value) -> itemMap.put(DataComponentTypes.USE_EFFECTS,
             new UseEffects(false, true, value.speedMultiplier())));
     }
 
-    private static <T> void registerConverter(DataComponent<T> component, DataComponentType<T> converted) {
+    private static <T> void registerConverter(ItemDataComponent<T> component, DataComponentType<T> converted) {
         registerConverter(component, (itemMap, value) -> itemMap.put(converted, value));
     }
 
-    private static <T> void registerConverter(DataComponent<T> component, ComponentConverter<T> converter) {
+    private static <T> void registerConverter(ItemDataComponent<T> component, ComponentConverter<T> converter) {
         registerConverter(component, (itemMap, value, resolvableConsumer) -> converter.convertAndPut(itemMap, value));
     }
 
-    private static <T> void registerConverter(DataComponent<T> component, ResolvableComponentConverter<T> converter) {
+    private static <T> void registerConverter(ItemDataComponent<T> component, ResolvableComponentConverter<T> converter) {
         converters.put(component, converter);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static DataComponents convertComponentPatch(DataComponentMap customDefinitionPatch, List<Identifier> customDefinitionRemovals, Consumer<ResolvableComponent<?>> resolvableConsumer) throws InvalidItemComponentsException {
+    public static DataComponents convertComponentPatch(ItemDataComponentMap customDefinitionPatch, List<Identifier> customDefinitionRemovals, Consumer<ResolvableComponent<?>> resolvableConsumer) throws InvalidItemComponentsException {
         DataComponents converted = new DataComponents(new HashMap<>());
-        for (DataComponent<?> component : customDefinitionPatch.keySet()) {
+        for (ItemDataComponent<?> component : customDefinitionPatch.keySet()) {
             if (customDefinitionRemovals.contains(component.identifier())) {
                 throw new InvalidItemComponentsException("Component " + component.identifier() + " was present both in the components to add and the components to remove");
             }
@@ -199,9 +201,7 @@ public class ComponentConverters {
         void convert(DataComponents itemMap, T value, Consumer<ResolvableComponent<?>> resolvableConsumer);
     }
 
-    // wughuughugh, no one likes these inline imports
-    // oh well
-    private static KineticWeapon.Condition convertKineticWeaponCondition(org.geysermc.geyser.api.item.custom.v2.component.java.KineticWeapon.@Nullable Condition condition) {
+    private static KineticWeapon.Condition convertKineticWeaponCondition(JavaKineticWeapon.@Nullable Condition condition) {
         if (condition == null) {
             return null;
         }

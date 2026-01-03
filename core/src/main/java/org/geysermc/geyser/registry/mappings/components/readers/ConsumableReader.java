@@ -27,25 +27,25 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.java.Consumable;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
-import org.geysermc.geyser.item.custom.impl.ConsumableImpl;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaConsumable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
+import org.geysermc.geyser.item.custom.impl.JavaConsumableImpl;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
-public class ConsumableReader extends DataComponentReader<Consumable> {
+public class ConsumableReader extends DataComponentReader<JavaConsumable> {
 
     public ConsumableReader() {
-        super(ItemDataComponents.CONSUMABLE);
+        super(JavaItemDataComponents.CONSUMABLE);
     }
 
     @Override
-    protected Consumable readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
+    protected JavaConsumable readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
         float consumeSeconds = MappingsUtil.readOrDefault(element, "consume_seconds", NodeReader.POSITIVE_DOUBLE.andThen(Double::floatValue), 1.6F, context);
-        Consumable.Animation animation = MappingsUtil.readOrDefault(element, "animation", NodeReader.CONSUMABLE_ANIMATION, Consumable.Animation.EAT, context);
+        JavaConsumable.Animation animation = MappingsUtil.readOrDefault(element, "animation", NodeReader.CONSUMABLE_ANIMATION, JavaConsumable.Animation.EAT, context);
 
-        return new ConsumableImpl(consumeSeconds, animation);
+        return new JavaConsumableImpl(consumeSeconds, animation);
     }
 }

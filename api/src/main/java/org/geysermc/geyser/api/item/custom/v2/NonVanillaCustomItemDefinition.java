@@ -30,9 +30,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponentMap;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
@@ -48,7 +48,7 @@ import java.util.List;
  * right now with vanilla custom item definitions, is currently not implemented, so only one definition can be created for each
  * Java non-vanilla item.</p>
  *
- * <p>Non-vanilla item definitions can be configured with additional components defined in {@link GeyserDataComponent}.</p>
+ * <p>Non-vanilla item definitions can be configured with additional components defined in {@link GeyserItemDataComponent}.</p>
  */
 @ApiStatus.NonExtendable
 public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
@@ -115,18 +115,19 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
     }
 
     /**
-     * On top of vanilla Minecraft's item components, custom ones defined by Geyser in {@link GeyserDataComponent} can
+     * On top of vanilla Minecraft's item components, custom ones defined by Geyser in {@link GeyserItemDataComponent} can
      * also be used. Like with vanilla data components, it is still expected that the item <em>always</em> has the behaviour defined by its components.
      *
      * <p>Default component removals are not supported for non-vanilla items, since here the data component map defines default components, instead of
      * a patch on top of a vanilla base item.</p>
      *
      * @see CustomItemDefinition#components()
-     * @see GeyserDataComponent
+     * @see GeyserItemDataComponent
      * @return the item's default data components
      */
     @Override
-    @NonNull DataComponentMap components();
+    @NonNull
+    ItemDataComponentMap components();
 
     /**
      * Creates a builder for a non-vanilla custom item definition, using the {@code javaIdentifier} as {@code bedrockIdentifier}.
@@ -187,7 +188,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
          */
         @Override
         @This
-        <T> Builder component(@NonNull DataComponent<T> component, @NonNull T value);
+        <T> Builder component(@NonNull ItemDataComponent<T> component, @NonNull T value);
 
         /**
          * Sets the Java translation string of the item.

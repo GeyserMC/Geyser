@@ -23,28 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.mappings.components.readers;
+package org.geysermc.geyser.item.custom.impl;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
-import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
-import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
+import org.checkerframework.common.returnsreceiver.qual.This;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserThrowableComponent;
 
-public abstract class PrimitiveComponentReader<V> extends DataComponentReader<V> {
+public record GeyserThrowableComponentImpl(boolean doSwingAnimation) implements GeyserThrowableComponent {
 
-    protected PrimitiveComponentReader(ItemDataComponent<V> type) {
-        super(type);
-    }
+    public static class Builder implements GeyserThrowableComponent.Builder {
+        private boolean doSwingAnimation = true;
 
-    protected abstract V readValue(@NonNull JsonPrimitive primitive, String... context) throws InvalidCustomMappingsFileException;
-
-    @Override
-    protected V readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
-        if (!element.isJsonPrimitive()) {
-            throw new InvalidCustomMappingsFileException("reading component", "value must be a primitive", context);
+        @Override
+        public GeyserThrowableComponent.@This Builder doSwingAnimation(boolean doSwingAnimation) {
+            this.doSwingAnimation = doSwingAnimation;
+            return this;
         }
-        return readValue((JsonPrimitive) element, context);
+
+        @Override
+        public GeyserThrowableComponent build() {
+            return new GeyserThrowableComponentImpl(doSwingAnimation);
+        }
     }
 }

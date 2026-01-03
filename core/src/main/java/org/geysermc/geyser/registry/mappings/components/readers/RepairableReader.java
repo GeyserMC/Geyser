@@ -27,11 +27,11 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
-import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaRepairable;
 import org.geysermc.geyser.api.util.Holders;
 import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.geyser.item.custom.impl.RepairableImpl;
+import org.geysermc.geyser.item.custom.impl.JavaRepairableImpl;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
@@ -39,24 +39,24 @@ import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
 import java.util.List;
 
-public class RepairableReader extends DataComponentReader<Repairable> {
+public class RepairableReader extends DataComponentReader<JavaRepairable> {
 
     public RepairableReader() {
-        super(ItemDataComponents.REPAIRABLE);
+        super(JavaItemDataComponents.REPAIRABLE);
     }
 
     @Override
-    protected Repairable readDataComponent(@NonNull JsonElement node, String... context) throws InvalidCustomMappingsFileException {
+    protected JavaRepairable readDataComponent(@NonNull JsonElement node, String... context) throws InvalidCustomMappingsFileException {
         try {
             Identifier item = MappingsUtil.readOrThrow(node, "items", NodeReader.IDENTIFIER, context);
-            return new RepairableImpl(Holders.of(item));
+            return new JavaRepairableImpl(Holders.of(item));
         } catch (InvalidCustomMappingsFileException exception) {
             try {
                 List<Identifier> items = MappingsUtil.readArrayOrThrow(node, "items", NodeReader.IDENTIFIER, context);
-                return new RepairableImpl(Holders.of(items));
+                return new JavaRepairableImpl(Holders.of(items));
             } catch (InvalidCustomMappingsFileException anotherException) {
                 Identifier tag = MappingsUtil.readOrThrow(node, "items", NodeReader.TAG, context);
-                return new RepairableImpl(Holders.ofTag(tag));
+                return new JavaRepairableImpl(Holders.ofTag(tag));
             }
         }
     }

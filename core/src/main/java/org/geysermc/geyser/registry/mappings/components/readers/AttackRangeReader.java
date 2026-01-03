@@ -27,24 +27,24 @@ package org.geysermc.geyser.registry.mappings.components.readers;
 
 import com.google.gson.JsonElement;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.java.AttackRange;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
-import org.geysermc.geyser.item.custom.impl.AttackRangeImpl;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaAttackRange;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
+import org.geysermc.geyser.item.custom.impl.JavaAttackRangeImpl;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
-public class AttackRangeReader extends DataComponentReader<AttackRange> {
+public class AttackRangeReader extends DataComponentReader<JavaAttackRange> {
     private static final NodeReader<Float> REACH_READER = NodeReader.boundedDouble(0.0, 64.0).andThen(Double::floatValue);
 
     public AttackRangeReader() {
-        super(ItemDataComponents.ATTACK_RANGE);
+        super(JavaItemDataComponents.ATTACK_RANGE);
     }
 
     @Override
-    protected AttackRange readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
-        return new AttackRangeImpl(
+    protected JavaAttackRange readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
+        return new JavaAttackRangeImpl(
             MappingsUtil.readOrDefault(element, "min_reach", REACH_READER, 0.0F, context),
             MappingsUtil.readOrDefault(element, "max_reach", REACH_READER, 3.0F, context),
             MappingsUtil.readOrDefault(element, "min_creative_reach", REACH_READER, 0.0F, context),

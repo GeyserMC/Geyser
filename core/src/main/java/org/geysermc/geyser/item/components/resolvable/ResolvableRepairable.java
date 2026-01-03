@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.item.components.resolvable;
 
-import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaRepairable;
 import org.geysermc.geyser.impl.HoldersImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
@@ -33,7 +33,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
-public record ResolvableRepairable(Repairable repairable) implements ResolvableComponent<HolderSet> {
+public record ResolvableRepairable(JavaRepairable repairable) implements ResolvableComponent<HolderSet> {
 
     @Override
     public DataComponentType<HolderSet> type() {

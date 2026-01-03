@@ -27,8 +27,8 @@ package org.geysermc.geyser.registry.mappings.util;
 
 import com.google.gson.JsonPrimitive;
 import org.geysermc.geyser.Constants;
-import org.geysermc.geyser.api.item.custom.v2.component.java.Consumable;
-import org.geysermc.geyser.api.item.custom.v2.component.java.Equippable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaConsumable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaEquippable;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
 import org.geysermc.geyser.api.util.CreativeCategory;
@@ -124,9 +124,9 @@ public interface NodeReader<T> {
 
     NodeReader<ChargedProjectile.ChargeType> CHARGE_TYPE = ofEnum(ChargedProjectile.ChargeType.class);
 
-    NodeReader<Consumable.Animation> CONSUMABLE_ANIMATION = ofEnum(Consumable.Animation.class);
+    NodeReader<JavaConsumable.Animation> CONSUMABLE_ANIMATION = ofEnum(JavaConsumable.Animation.class);
 
-    NodeReader<Equippable.EquipmentSlot> EQUIPMENT_SLOT = ofEnum(Equippable.EquipmentSlot.class);
+    NodeReader<JavaEquippable.EquipmentSlot> EQUIPMENT_SLOT = ofEnum(JavaEquippable.EquipmentSlot.class);
 
     static <E extends Enum<E>> NodeReader<E> ofEnum(Class<E> clazz) {
         return NON_EMPTY_STRING.andThen(String::toUpperCase).andThen(s -> {

@@ -42,21 +42,21 @@ import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.BlockPlacer;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.Chargeable;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.ThrowableComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.java.AttackRange;
-import org.geysermc.geyser.api.item.custom.v2.component.java.Consumable;
-import org.geysermc.geyser.api.item.custom.v2.component.java.Equippable;
-import org.geysermc.geyser.api.item.custom.v2.component.java.FoodProperties;
-import org.geysermc.geyser.api.item.custom.v2.component.java.KineticWeapon;
-import org.geysermc.geyser.api.item.custom.v2.component.java.PiercingWeapon;
-import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
-import org.geysermc.geyser.api.item.custom.v2.component.java.SwingAnimation;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ToolProperties;
-import org.geysermc.geyser.api.item.custom.v2.component.java.UseCooldown;
-import org.geysermc.geyser.api.item.custom.v2.component.java.UseEffects;
+import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserBlockPlacer;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserChargeable;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserThrowableComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaAttackRange;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaConsumable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaEquippable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaFoodProperties;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaKineticWeapon;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaPiercingWeapon;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaRepairable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaSwingAnimation;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaToolProperties;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaUseCooldown;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaUseEffects;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.api.pack.option.PriorityOption;
@@ -81,25 +81,25 @@ import org.geysermc.geyser.impl.camera.GeyserCameraPosition;
 import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
-import org.geysermc.geyser.item.custom.impl.AttackRangeImpl;
-import org.geysermc.geyser.item.custom.impl.KineticWeaponImpl;
-import org.geysermc.geyser.item.custom.impl.PiercingWeaponImpl;
-import org.geysermc.geyser.item.custom.impl.SwingAnimationImpl;
-import org.geysermc.geyser.item.custom.impl.ThrowableComponentImpl;
-import org.geysermc.geyser.item.custom.impl.UseEffectsImpl;
+import org.geysermc.geyser.item.custom.impl.JavaAttackRangeImpl;
+import org.geysermc.geyser.item.custom.impl.JavaKineticWeaponImpl;
+import org.geysermc.geyser.item.custom.impl.JavaPiercingWeaponImpl;
+import org.geysermc.geyser.item.custom.impl.JavaSwingAnimationImpl;
+import org.geysermc.geyser.item.custom.impl.GeyserThrowableComponentImpl;
+import org.geysermc.geyser.item.custom.impl.JavaUseEffectsImpl;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserChargedProjectile;
 import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.custom.GeyserNonVanillaCustomItemDefinition;
-import org.geysermc.geyser.item.custom.impl.BlockPlacerImpl;
-import org.geysermc.geyser.item.custom.impl.ChargeableImpl;
-import org.geysermc.geyser.item.custom.impl.ConsumableImpl;
-import org.geysermc.geyser.item.custom.impl.DataComponentImpl;
-import org.geysermc.geyser.item.custom.impl.EquippableImpl;
-import org.geysermc.geyser.item.custom.impl.FoodPropertiesImpl;
-import org.geysermc.geyser.item.custom.impl.RepairableImpl;
-import org.geysermc.geyser.item.custom.impl.ToolPropertiesImpl;
-import org.geysermc.geyser.item.custom.impl.UseCooldownImpl;
+import org.geysermc.geyser.item.custom.impl.GeyserBlockPlacerImpl;
+import org.geysermc.geyser.item.custom.impl.GeyserChargeableImpl;
+import org.geysermc.geyser.item.custom.impl.JavaConsumableImpl;
+import org.geysermc.geyser.item.custom.impl.ItemDataComponentImpl;
+import org.geysermc.geyser.item.custom.impl.JavaEquippableImpl;
+import org.geysermc.geyser.item.custom.impl.JavaFoodPropertiesImpl;
+import org.geysermc.geyser.item.custom.impl.JavaRepairableImpl;
+import org.geysermc.geyser.item.custom.impl.JavaToolPropertiesImpl;
+import org.geysermc.geyser.item.custom.impl.JavaUseCooldownImpl;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserChargeTypePredicate;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserCustomModelDataPredicate;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserHasComponentPredicate;
@@ -164,27 +164,27 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(NonVanillaCustomItemDefinition.Builder.class, args -> new GeyserNonVanillaCustomItemDefinition.Builder((Identifier) args[0], (Identifier) args[1], (int) args[2]));
         providers.put(CustomItemBedrockOptions.Builder.class, args -> new GeyserCustomItemBedrockOptions.Builder());
 
-        providers.put(DataComponent.class, args -> dataComponentProvider((Identifier) args[0], (Predicate<?>) args[1], (Boolean) args[2]));
+        providers.put(ItemDataComponent.class, args -> dataComponentProvider((Identifier) args[0], (Predicate<?>) args[1], (Boolean) args[2]));
 
         // item components
-        providers.put(AttackRange.Builder.class, args -> new AttackRangeImpl.Builder());
-        providers.put(Consumable.Builder.class, args -> new ConsumableImpl.Builder());
-        providers.put(Equippable.Builder.class, args -> new EquippableImpl.Builder());
-        providers.put(FoodProperties.Builder.class, args -> new FoodPropertiesImpl.Builder());
-        providers.put(KineticWeapon.Builder.class, args -> new KineticWeaponImpl.Builder());
-        providers.put(KineticWeapon.Condition.Builder.class, args -> new KineticWeaponImpl.ConditionImpl.Builder((Integer) args[0]));
-        providers.put(PiercingWeapon.class, args -> PiercingWeaponImpl.INSTANCE);
-        providers.put(Repairable.Builder.class, args -> new RepairableImpl.Builder());
-        providers.put(SwingAnimation.Builder.class, args -> new SwingAnimationImpl.Builder());
-        providers.put(ToolProperties.Builder.class, args -> new ToolPropertiesImpl.Builder());
-        providers.put(ToolProperties.Rule.Builder.class, args -> new ToolPropertiesImpl.RuleImpl.Builder());
-        providers.put(UseCooldown.Builder.class, args -> new UseCooldownImpl.Builder());
-        providers.put(UseEffects.Builder.class, args -> new UseEffectsImpl.Builder());
+        providers.put(JavaAttackRange.Builder.class, args -> new JavaAttackRangeImpl.Builder());
+        providers.put(JavaConsumable.Builder.class, args -> new JavaConsumableImpl.Builder());
+        providers.put(JavaEquippable.Builder.class, args -> new JavaEquippableImpl.Builder());
+        providers.put(JavaFoodProperties.Builder.class, args -> new JavaFoodPropertiesImpl.Builder());
+        providers.put(JavaKineticWeapon.Builder.class, args -> new JavaKineticWeaponImpl.Builder());
+        providers.put(JavaKineticWeapon.Condition.Builder.class, args -> new JavaKineticWeaponImpl.ConditionImpl.Builder((Integer) args[0]));
+        providers.put(JavaPiercingWeapon.class, args -> JavaPiercingWeaponImpl.INSTANCE);
+        providers.put(JavaRepairable.Builder.class, args -> new JavaRepairableImpl.Builder());
+        providers.put(JavaSwingAnimation.Builder.class, args -> new JavaSwingAnimationImpl.Builder());
+        providers.put(JavaToolProperties.Builder.class, args -> new JavaToolPropertiesImpl.Builder());
+        providers.put(JavaToolProperties.Rule.Builder.class, args -> new JavaToolPropertiesImpl.RuleImpl.Builder());
+        providers.put(JavaUseCooldown.Builder.class, args -> new JavaUseCooldownImpl.Builder());
+        providers.put(JavaUseEffects.Builder.class, args -> new JavaUseEffectsImpl.Builder());
 
         // geyser components
-        providers.put(Chargeable.Builder.class, args -> new ChargeableImpl.Builder());
-        providers.put(BlockPlacer.Builder.class, args -> new BlockPlacerImpl.Builder());
-        providers.put(ThrowableComponent.Builder.class, args -> new ThrowableComponentImpl.Builder());
+        providers.put(GeyserChargeable.Builder.class, args -> new GeyserChargeableImpl.Builder());
+        providers.put(GeyserBlockPlacer.Builder.class, args -> new GeyserBlockPlacerImpl.Builder());
+        providers.put(GeyserThrowableComponent.Builder.class, args -> new GeyserThrowableComponentImpl.Builder());
 
         // predicates
         providers.put(DimensionPredicate.class, args -> new GeyserDimensionPredicate((Identifier) args[0], false));
@@ -203,8 +203,8 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         return providers;
     }
 
-    public <T> DataComponentImpl<T> dataComponentProvider(Identifier identifier, Predicate<T> predicate, boolean vanilla) {
-        return new DataComponentImpl<>(identifier, predicate, vanilla);
+    public <T> ItemDataComponentImpl<T> dataComponentProvider(Identifier identifier, Predicate<T> predicate, boolean vanilla) {
+        return new ItemDataComponentImpl<>(identifier, predicate, vanilla);
     }
 
     private static Object createRangeDispatchPredicate(Object... args) {

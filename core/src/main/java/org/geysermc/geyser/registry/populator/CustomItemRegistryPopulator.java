@@ -36,16 +36,16 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.BlockPlacer;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.Chargeable;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserDataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.ThrowableComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
-import org.geysermc.geyser.api.item.custom.v2.component.java.Repairable;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserBlockPlacer;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserChargeable;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserThrowableComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaRepairable;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
@@ -252,7 +252,7 @@ public class CustomItemRegistryPopulator {
         setupBasicItemInfo(context.definition(), context.components(), itemProperties, componentBuilder);
 
         computeToolProperties(itemProperties, componentBuilder);
-        Integer attackDamage = context.definition().components().get(GeyserDataComponent.ATTACK_DAMAGE);
+        Integer attackDamage = context.definition().components().get(GeyserItemDataComponent.ATTACK_DAMAGE);
         if (attackDamage != null) {
             itemProperties.putInt("damage", attackDamage);
             componentBuilder.putCompound("minecraft:damage", NbtMap.builder()
@@ -265,7 +265,7 @@ public class CustomItemRegistryPopulator {
         computeCreativeDestroyProperties(canDestroyInCreative, itemProperties, componentBuilder);
 
         // Using API component here because MCPL one is just an ID holder set, and we can't get identifiers from that
-        Repairable repairable = context.definition().components().get(ItemDataComponents.REPAIRABLE);
+        JavaRepairable repairable = context.definition().components().get(JavaItemDataComponents.REPAIRABLE);
         if (repairable != null) {
             computeRepairableProperties(repairable, componentBuilder);
         }
@@ -334,39 +334,39 @@ public class CustomItemRegistryPopulator {
             computeUseCooldownProperties(useCooldown, itemIdentifier, componentBuilder);
         }
 
-        BlockPlacer blockPlacer = context.vanillaMapping().map(mapping -> {
+        GeyserBlockPlacer blockPlacer = context.vanillaMapping().map(mapping -> {
             String bedrockIdentifier = mapping.getBedrockIdentifier();
             if (bedrockIdentifier.equals("minecraft:fire_charge") || bedrockIdentifier.equals("minecraft:flint_and_steel")) {
-                return BlockPlacer.builder().block(Identifier.of("fire")).build();
+                return GeyserBlockPlacer.builder().block(Identifier.of("fire")).build();
             } else if (mapping.getFirstBlockRuntimeId() != null) {
-                return BlockPlacer.builder().block(Identifier.of(mapping.getBedrockIdentifier())).build();
+                return GeyserBlockPlacer.builder().block(Identifier.of(mapping.getBedrockIdentifier())).build();
             }
             return null;
-        }).orElse(context.definition().components().get(GeyserDataComponent.BLOCK_PLACER));
+        }).orElse(context.definition().components().get(GeyserItemDataComponent.BLOCK_PLACER));
 
         if (blockPlacer != null) {
             computeBlockItemProperties(blockPlacer, componentBuilder);
         }
 
-        Chargeable chargeable = context.vanillaMapping().map(GeyserMappingItem::getBedrockIdentifier).map(identifier -> switch (identifier) {
-            case "minecraft:bow" -> Chargeable.builder().maxDrawDuration(1.0F).ammunition(Identifier.of("arrow")).build();
-            case "minecraft:crossbow" -> Chargeable.builder().chargeOnDraw(true).ammunition(Identifier.of("arrow")).build();
+        GeyserChargeable chargeable = context.vanillaMapping().map(GeyserMappingItem::getBedrockIdentifier).map(identifier -> switch (identifier) {
+            case "minecraft:bow" -> GeyserChargeable.builder().maxDrawDuration(1.0F).ammunition(Identifier.of("arrow")).build();
+            case "minecraft:crossbow" -> GeyserChargeable.builder().chargeOnDraw(true).ammunition(Identifier.of("arrow")).build();
             default -> null;
-        }).orElse(context.definition().components().get(GeyserDataComponent.CHARGEABLE));
+        }).orElse(context.definition().components().get(GeyserItemDataComponent.CHARGEABLE));
 
         if (chargeable != null) {
             computeChargeableProperties(itemProperties, componentBuilder, chargeable);
         }
 
-        ThrowableComponent throwable = context.vanillaMapping().map(GeyserMappingItem::getBedrockIdentifier).map(identifier -> switch (identifier) {
+        GeyserThrowableComponent throwable = context.vanillaMapping().map(GeyserMappingItem::getBedrockIdentifier).map(identifier -> switch (identifier) {
             case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye",
-                 "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> ThrowableComponent.of(true);
+                 "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> GeyserThrowableComponent.of(true);
             default -> null;
-        }).orElse(context.definition().components().get(GeyserDataComponent.THROWABLE));
+        }).orElse(context.definition().components().get(GeyserItemDataComponent.THROWABLE));
 
         if (throwable != null) {
             computeThrowableProperties(componentBuilder, throwable);
-        } else if (context.definition().components().get(GeyserDataComponent.PROJECTILE) != null) {
+        } else if (context.definition().components().get(GeyserItemDataComponent.PROJECTILE) != null) {
             // Is already called in computeThrowableProperties, which is why this is an else if statement
             computeProjectileProperties(componentBuilder);
         }
@@ -376,7 +376,7 @@ public class CustomItemRegistryPopulator {
                 return Unit.INSTANCE;
             }
             return null;
-        }).orElse(context.definition().components().get(GeyserDataComponent.ENTITY_PLACER));
+        }).orElse(context.definition().components().get(GeyserItemDataComponent.ENTITY_PLACER));
 
         if (entityPlacer != null) {
             computeEntityPlacerProperties(componentBuilder);
@@ -393,7 +393,7 @@ public class CustomItemRegistryPopulator {
 
         // Don't send an icon if the item has a block placer component, and is set to use its block as icon
         // This makes bedrock use a 3D render of the block this item places as icon
-        BlockPlacer blockPlacer = definition.components().get(GeyserDataComponent.BLOCK_PLACER);
+        GeyserBlockPlacer blockPlacer = definition.components().get(GeyserItemDataComponent.BLOCK_PLACER);
         if (blockPlacer == null || !blockPlacer.useBlockIcon()) {
             NbtMap iconMap = NbtMap.builder()
                 .putCompound("textures", NbtMap.builder()
@@ -480,7 +480,7 @@ public class CustomItemRegistryPopulator {
     /**
      * This method passes the Java identifiers straight to bedrock - which isn't perfect. Also doesn't work with holder sets that use a tag.
      */
-    private static void computeRepairableProperties(Repairable repairable, NbtMapBuilder componentBuilder) {
+    private static void computeRepairableProperties(JavaRepairable repairable, NbtMapBuilder componentBuilder) {
         List<Identifier> identifiers = ((HoldersImpl) repairable.items()).identifiers();
         if (identifiers == null) {
             return;
@@ -527,7 +527,7 @@ public class CustomItemRegistryPopulator {
             .build());
     }
 
-    private static void computeBlockItemProperties(BlockPlacer blockPlacer, NbtMapBuilder componentBuilder) {
+    private static void computeBlockItemProperties(GeyserBlockPlacer blockPlacer, NbtMapBuilder componentBuilder) {
         // carved pumpkin should be able to be worn and for that we would need to add wearable and armor with protection 0 here
         // however this would have the side effect of preventing carved pumpkins from working as an attachable on the RP side outside the head slot
         // it also causes the item to glitch when right-clicked to "equip" so this should only be added here later if these issues can be overcome
@@ -540,7 +540,7 @@ public class CustomItemRegistryPopulator {
             .build());
     }
 
-    private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, Chargeable chargeable) {
+    private static void computeChargeableProperties(NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder, GeyserChargeable chargeable) {
         if (chargeable.chargeOnDraw()) {
             itemProperties.putInt("frame_count", 10);
         } else {
@@ -600,7 +600,7 @@ public class CustomItemRegistryPopulator {
             .build());
     }
 
-    private static void computeThrowableProperties(NbtMapBuilder componentBuilder, ThrowableComponent throwable) {
+    private static void computeThrowableProperties(NbtMapBuilder componentBuilder, GeyserThrowableComponent throwable) {
         // allows item to be thrown when holding down right click (individual presses are required w/o this component)
         componentBuilder.putCompound("minecraft:throwable", NbtMap.builder().putBoolean("do_swing_animation", throwable.doSwingAnimation()).build());
 

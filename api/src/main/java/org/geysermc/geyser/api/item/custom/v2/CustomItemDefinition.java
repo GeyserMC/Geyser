@@ -28,9 +28,9 @@ package org.geysermc.geyser.api.item.custom.v2;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.DataComponentMap;
-import org.geysermc.geyser.api.item.custom.v2.component.java.ItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponentMap;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
 import org.geysermc.geyser.api.predicate.MatchPredicate;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
@@ -137,26 +137,27 @@ public interface CustomItemDefinition {
      * <p>Currently, the following components are (somewhat) supported:</p>
      *
      * <ul>
-     *     <li>{@code minecraft:consumable} ({@link ItemDataComponents#CONSUMABLE})</li>
-     *     <li>{@code minecraft:equippable} ({@link ItemDataComponents#EQUIPPABLE})</li>
-     *     <li>{@code minecraft:food} ({@link ItemDataComponents#FOOD})</li>
-     *     <li>{@code minecraft:max_damage} ({@link ItemDataComponents#MAX_DAMAGE})</li>
-     *     <li>{@code minecraft:max_stack_size} ({@link ItemDataComponents#MAX_STACK_SIZE})</li>
-     *     <li>{@code minecraft:use_cooldown} ({@link ItemDataComponents#USE_COOLDOWN})</li>
-     *     <li>{@code minecraft:enchantable} ({@link ItemDataComponents#ENCHANTABLE})</li>
-     *     <li>{@code minecraft:tool} ({@link ItemDataComponents#TOOL})</li>
-     *     <li>{@code minecraft:repairable} ({@link ItemDataComponents#REPAIRABLE})</li>
-     *     <li>{@code minecraft:enchantment_glint_override} ({@link ItemDataComponents#ENCHANTMENT_GLINT_OVERRIDE})</li>
+     *     <li>{@code minecraft:consumable} ({@link JavaItemDataComponents#CONSUMABLE})</li>
+     *     <li>{@code minecraft:equippable} ({@link JavaItemDataComponents#EQUIPPABLE})</li>
+     *     <li>{@code minecraft:food} ({@link JavaItemDataComponents#FOOD})</li>
+     *     <li>{@code minecraft:max_damage} ({@link JavaItemDataComponents#MAX_DAMAGE})</li>
+     *     <li>{@code minecraft:max_stack_size} ({@link JavaItemDataComponents#MAX_STACK_SIZE})</li>
+     *     <li>{@code minecraft:use_cooldown} ({@link JavaItemDataComponents#USE_COOLDOWN})</li>
+     *     <li>{@code minecraft:enchantable} ({@link JavaItemDataComponents#ENCHANTABLE})</li>
+     *     <li>{@code minecraft:tool} ({@link JavaItemDataComponents#TOOL})</li>
+     *     <li>{@code minecraft:repairable} ({@link JavaItemDataComponents#REPAIRABLE})</li>
+     *     <li>{@code minecraft:enchantment_glint_override} ({@link JavaItemDataComponents#ENCHANTMENT_GLINT_OVERRIDE})</li>
      * </ul>
      *
      * <p>Note: some components, for example {@code minecraft:rarity} and {@code minecraft:attribute_modifiers}, are translated automatically, and do not have to be specified here.
      * Components that are added here cannot be removed in {@link CustomItemDefinition#removedComponents()}.</p>
      *
-     * @see ItemDataComponents
+     * @see JavaItemDataComponents
      * @see CustomItemDefinition#removedComponents()
      * @return the item's data component patch
      */
-    @NonNull DataComponentMap components();
+    @NonNull
+    ItemDataComponentMap components();
 
     /**
      * A list of removed default item data components. These are components that are present on the vanilla base item, but not on the custom item. Like with custom added
@@ -244,27 +245,27 @@ public interface CustomItemDefinition {
          * <p>Added data components cannot be removed using {@link CustomItemDefinition.Builder#removeComponent(Identifier)},
          * and this method will throw when a component is added that was removed using the aforementioned method.</p>
          *
-         * @param component the type of the component, found in {@link ItemDataComponents}
+         * @param component the type of the component, found in {@link JavaItemDataComponents}
          * @param value the value of the component
          * @param <T> the value held by the component
          * @throws IllegalArgumentException when the added component was removed using {@link CustomItemDefinition.Builder#removeComponent(Identifier)}
          * @return this builder
          */
         @This
-        <T> Builder component(@NonNull DataComponent<T> component, @NonNull T value);
+        <T> Builder component(@NonNull ItemDataComponent<T> component, @NonNull T value);
 
         /**
-         * Convenience method for {@link CustomItemDefinition.Builder#component(DataComponent, Object)}
+         * Convenience method for {@link CustomItemDefinition.Builder#component(ItemDataComponent, Object)}
          *
-         * @param component the type of the component - found in {@link ItemDataComponents}
+         * @param component the type of the component - found in {@link JavaItemDataComponents}
          * @param builder the builder of the component
          * @param <T> the value held by the component
          * @throws IllegalArgumentException when the added component was removed using {@link CustomItemDefinition.Builder#removeComponent(Identifier)}
-         * @see CustomItemDefinition.Builder#component(DataComponent, Object)
+         * @see CustomItemDefinition.Builder#component(ItemDataComponent, Object)
          * @return this builder
          */
         @This
-        default <T> Builder component(@NonNull DataComponent<T> component, @NonNull GenericBuilder<T> builder) {
+        default <T> Builder component(@NonNull ItemDataComponent<T> component, @NonNull GenericBuilder<T> builder) {
             return component(component, builder.build());
         }
 
@@ -273,11 +274,11 @@ public interface CustomItemDefinition {
          * existing on the vanilla item. This must match server-side behavior, otherwise, issues
          * will occur. See {@link CustomItemDefinition#removedComponents()} for more information.
          *
-         * <p>Removed data components cannot be added again using {@link CustomItemDefinition.Builder#component(DataComponent, Object)},
+         * <p>Removed data components cannot be added again using {@link CustomItemDefinition.Builder#component(ItemDataComponent, Object)},
          * and this method will throw when a component is removed that was added using the aforementioned method.</p>
          *
          * @param component the identifier of the vanilla base component to remove
-         * @throws IllegalArgumentException when the removed component was added using {@link CustomItemDefinition.Builder#component(DataComponent, Object)}
+         * @throws IllegalArgumentException when the removed component was added using {@link CustomItemDefinition.Builder#component(ItemDataComponent, Object)}
          * @return this builder
          */
         @This
@@ -287,11 +288,11 @@ public interface CustomItemDefinition {
          * Convenience method for {@link CustomItemDefinition.Builder#removeComponent(Identifier)}.
          *
          * @param component the component type to remove
-         * @throws IllegalArgumentException when the removed component was added using {@link CustomItemDefinition.Builder#component(DataComponent, Object)}
+         * @throws IllegalArgumentException when the removed component was added using {@link CustomItemDefinition.Builder#component(ItemDataComponent, Object)}
          * @return this builder
          */
         @This
-        default Builder removeComponent(@NonNull DataComponent<?> component) {
+        default Builder removeComponent(@NonNull ItemDataComponent<?> component) {
             Objects.requireNonNull(component);
             if (!component.vanilla()) {
                 throw new IllegalArgumentException("Cannot remove non-vanilla component");
