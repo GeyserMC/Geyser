@@ -62,7 +62,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-public class AvatarEntity extends LivingEntity {
+public abstract class AvatarEntity extends LivingEntity {
     public static final float SNEAKING_POSE_HEIGHT = 1.5f;
     protected static final List<AbilityLayer> BASE_ABILITY_LAYER;
 
@@ -228,8 +228,8 @@ public class AvatarEntity extends LivingEntity {
         return bedPosition;
     }
 
-    public void setSkin(ResolvableProfile profile, boolean cape, Runnable after) {
-        SkinManager.resolveProfile(profile).thenAccept(resolved -> setSkin(resolved, cape, after));
+    public void setSkin(ResolvableProfile profile, boolean cape) {
+        SkinManager.resolveProfile(profile).thenAccept(resolved -> setSkin(resolved, cape, null));
     }
 
     public void setSkin(GameProfile profile, boolean cape, Runnable after) {
@@ -294,6 +294,16 @@ public class AvatarEntity extends LivingEntity {
             dirtyMetadata.put(EntityDataTypes.SCORE, text);
         }
     }
+
+    /**
+     * Since 1.21.130+, skins can only be sent for listed players.
+     * Geyser uses Bedrock player entities for Mannequins and custom skulls,
+     * so we need to temporarily list those entities too.
+     * Further, some NPC plugins un-list fake player before Geyser loads the skin,
+     * resulting in skins not showing. See <a href="https://github.com/GeyserMC/Geyser/issues/6034">this issue</a>
+     * @return whether this player entity is listed
+     */
+    public abstract boolean isListed();
 
     @Override
     protected void scoreVisibility(boolean show) {
