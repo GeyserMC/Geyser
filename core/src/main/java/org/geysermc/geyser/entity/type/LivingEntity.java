@@ -377,7 +377,6 @@ public class LivingEntity extends Entity implements Tickable {
             clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
         }
 
-
         if (relX != 0 || relY != 0 || relZ != 0) {
             setYaw(yaw);
             setPitch(pitch);
