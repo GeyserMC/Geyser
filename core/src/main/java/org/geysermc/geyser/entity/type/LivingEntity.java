@@ -525,6 +525,9 @@ public class LivingEntity extends Entity {
                     // Attribute on Java, entity data on Bedrock
                     setAttributeScale((float) AttributeUtils.calculateValue(javaAttribute));
                     updateBedrockMetadata();
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setScale(scale * attributeScale);
+                    }
                 }
                 case WATER_MOVEMENT_EFFICIENCY -> {
                     if (this instanceof ClientVehicle clientVehicle) {
