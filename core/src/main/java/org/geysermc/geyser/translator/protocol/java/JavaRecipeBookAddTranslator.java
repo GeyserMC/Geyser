@@ -168,7 +168,6 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                     }
 
                     int i = 0;
-                    List<String> bedrockRecipeIds = new ArrayList<>();
                     for (ItemDescriptorWithCount template : templates) {
                         for (ItemDescriptorWithCount base : bases) {
                             for (ItemDescriptorWithCount addition : additions) {
@@ -176,13 +175,9 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                                 // Note: vanilla inputs use aux value of Short.MAX_VALUE
                                 craftingDataPacket.getCraftingData().add(SmithingTransformRecipeData.of(id,
                                         template, base, addition, output.right(), "smithing_table", netId++));
-
-                                recipesPacket.getUnlockedRecipes().add(id);
-                                bedrockRecipeIds.add(id);
                             }
                         }
                     }
-                    javaToBedrockRecipeIds.put(contents.id(), bedrockRecipeIds);
                     session.getSmithingRecipes().add(new GeyserSmithingRecipe(smithingRecipe));
                 }
             }

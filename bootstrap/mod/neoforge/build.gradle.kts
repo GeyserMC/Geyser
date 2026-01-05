@@ -8,6 +8,16 @@ architectury {
     neoForge()
 }
 
+loom {
+    mods {
+        create("geyser-neoforge") {
+            sourceSet(sourceSets.main.get())
+            sourceSet("main", projects.mod)
+            sourceSet("main", projects.core)
+        }
+    }
+}
+
 // This is provided by "org.cloudburstmc.math.mutable" too, so yeet.
 // NeoForge's class loader is *really* annoying.
 provided("org.cloudburstmc.math", "api")

@@ -39,7 +39,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.LongEntityMetadata;
 
 import java.util.UUID;
 
@@ -71,9 +71,10 @@ public class BeeEntity extends AnimalEntity {
         updateBedrockEntityProperties();
     }
 
-    public void setAngerTime(IntEntityMetadata entityMetadata) {
+    public void setAngerTime(LongEntityMetadata entityMetadata) {
         // Converting "anger time" to a boolean
-        setFlag(EntityFlag.ANGRY, entityMetadata.getPrimitiveValue() > 0);
+        long time = entityMetadata.getPrimitiveValue();
+        setFlag(EntityFlag.ANGRY, time > 0 && time - session.getWorldTicks() > 0);
     }
 
     @Override

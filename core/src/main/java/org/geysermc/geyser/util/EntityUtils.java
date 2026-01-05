@@ -95,6 +95,7 @@ public final class EntityUtils {
             case OOZING -> 34;
             case INFESTED -> 35;
             case RAID_OMEN -> 36;
+            case BREATH_OF_THE_NAUTILUS -> 37;
             default -> effect.ordinal() + 1;
         };
     }
