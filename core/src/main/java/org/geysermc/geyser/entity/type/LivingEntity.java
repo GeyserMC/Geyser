@@ -456,6 +456,7 @@ public class LivingEntity extends Entity implements Tickable {
             if (this.dirtyPitch) {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
             }
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
 
             this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = false;
 
