@@ -359,6 +359,13 @@ public class LivingEntity extends Entity implements Tickable {
             }
         }
 
+        final Equippable equippable = itemStack.getComponent(DataComponentTypes.EQUIPPABLE);
+        if (equippable != null && equippable.equipOnInteract() && this.isAlive()) {
+            if (isEquippableInSlot(itemStack, equippable.slot()) && getItemInSlot(equippable.slot()).isEmpty()) {
+                return InteractionResult.SUCCESS;
+            }
+        }
+
         return super.interact(hand);
     }
 
@@ -598,6 +605,11 @@ public class LivingEntity extends Entity implements Tickable {
                         clientVehicle.getVehicleComponent().setWaterMovementEfficiency(AttributeUtils.calculateValue(javaAttribute));
                     }
                 }
+                case MOVEMENT_EFFICIENCY -> {
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setMovementEfficiency(AttributeUtils.calculateValue(javaAttribute));
+                    }
+                }
             }
         }
     }
@@ -622,6 +634,15 @@ public class LivingEntity extends Entity implements Tickable {
         }
 
         return false;
+    }
+
+    public final boolean isEquippableInSlot(GeyserItemStack item, EquipmentSlot var2) {
+        Equippable equippable = item.getComponent(DataComponentTypes.EQUIPPABLE);
+        if (equippable == null) {
+            return var2 == EquipmentSlot.MAIN_HAND && this.canUseSlot(EquipmentSlot.MAIN_HAND);
+        } else {
+            return var2 == equippable.slot() && this.canUseSlot(equippable.slot()) && EntityUtils.equipmentUsableByEntity(session, equippable, this.definition.entityType());
+        }
     }
 
     protected boolean canUseSlot(EquipmentSlot slot) {

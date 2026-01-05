@@ -202,7 +202,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator<Con
 
     private boolean canUseRealBlock(GeyserSession session, Container container) {
         // See BlockInventoryHolder - same concept there except we're also dealing with a specific block state
-        if (session.getLastInteractionPlayerPosition().equals(session.getPlayerEntity().getPosition())) {
+        if (session.getLastInteractionPlayerPosition().distance(session.getPlayerEntity().getPosition()) < 2) {
             BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getLastInteractionBlockPosition());
             if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(state.javaId())) {
                 if (state.block() instanceof ChestBlock && state.getValue(Properties.CHEST_TYPE) != ChestType.SINGLE) {

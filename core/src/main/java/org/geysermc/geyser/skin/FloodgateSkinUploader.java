@@ -28,7 +28,18 @@ package org.geysermc.geyser.skin;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import java.net.ConnectException;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import javax.net.ssl.SSLException;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.MonotonicNonNull;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.floodgate.util.WebsocketEventType;
 import org.geysermc.geyser.Constants;
@@ -40,22 +51,22 @@ import org.geysermc.geyser.util.PluginMessageUtils;
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
-import javax.net.ssl.SSLException;
-import java.net.ConnectException;
-import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
-
 public final class FloodgateSkinUploader {
-    private final List<String> skinQueue = new ArrayList<>();
+    private static final int MAX_QUEUED_ENTRIES = 500;
 
     private final GeyserLogger logger;
     private final WebSocketClient client;
     private volatile boolean closed;
+
+    /**
+     * Queue skins in case the global api is temporarily unavailable, so that players will have their skin when the
+     * global api comes back online.
+     * However, we only start queueing skins if the websocket has been opened before, which is why this is nullable.
+     * Some servers block access to external sites such as our global api, in which case the skin upload queue would
+     * grow without the skins having a chance to be actually uploaded.
+     * We'll lose player skins if the server started while the global api was offline, but that's worth the trade-off.
+     */
+    private @MonotonicNonNull Deque<String> skinQueue = null;
 
     @Getter private int id;
     @Getter private String verifyCode;
@@ -68,10 +79,19 @@ public final class FloodgateSkinUploader {
             public void onOpen(ServerHandshake handshake) {
                 setConnectionLostTimeout(11);
 
-                Iterator<String> queueIterator = skinQueue.iterator();
-                while (isOpen() && queueIterator.hasNext()) {
-                    send(queueIterator.next());
-                    queueIterator.remove();
+                boolean hasSkinQueue = skinQueue != null;
+
+                if (!hasSkinQueue) {
+                    skinQueue = new LinkedList<>();
+                    return;
+                }
+
+                synchronized (skinQueue) {
+                    Iterator<String> queueIterator = skinQueue.iterator();
+                    while (isOpen() && queueIterator.hasNext()) {
+                        send(queueIterator.next());
+                        queueIterator.remove();
+                    }
                 }
             }
 
@@ -210,7 +230,16 @@ public final class FloodgateSkinUploader {
             client.send(jsonString);
             return;
         }
-        skinQueue.add(jsonString);
+
+        if (skinQueue != null) {
+            synchronized (skinQueue) {
+                // Only keep the most recent skins if we hit the limit, as it's more likely that they're still online
+                if (skinQueue.size() >= MAX_QUEUED_ENTRIES) {
+                    skinQueue.removeFirst();
+                }
+                skinQueue.addLast(jsonString);
+            }
+        }
     }
 
     private void reconnectLater(GeyserImpl geyser) {
