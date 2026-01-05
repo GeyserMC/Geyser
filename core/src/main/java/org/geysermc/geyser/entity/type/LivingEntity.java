@@ -377,7 +377,7 @@ public class LivingEntity extends Entity implements Tickable {
             clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
         }
 
-        if (relX != 0 || relY != 0 || relZ != 0) {
+        if ((relX != 0 || relY != 0 || relZ != 0) && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
             setYaw(yaw);
             setPitch(pitch);
             setHeadYaw(headYaw);
@@ -396,7 +396,10 @@ public class LivingEntity extends Entity implements Tickable {
         setHeadYaw(headYaw);
 
         this.lerpPosition = position;
-        if (position.distanceSquared(this.position) < 4096) { // Vanilla behaviour, lerp position if close enough!
+
+        // It's vanilla behaviour to lerp if the position is within 16 blocks, however we also check if the position is close enough to the player
+        // position to see if it can actually affect anything to save network.
+        if (position.distanceSquared(this.position) < 4096 && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
             this.lerpSteps = 3;
         } else {
             super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
@@ -419,7 +422,9 @@ public class LivingEntity extends Entity implements Tickable {
             moveEntityPacket.setRotation(getBedrockRotation());
             moveEntityPacket.setOnGround(isOnGround());
             moveEntityPacket.setTeleported(true);
-            session.sendUpstreamPacketImmediately(moveEntityPacket);
+
+            // Queue this and send it immediately later with the rest.
+            session.getQueuedImmediatelyPackets().add(moveEntityPacket);
 
             this.lerpSteps--;
         }
