@@ -38,7 +38,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
-import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
@@ -109,6 +109,7 @@ public class LivingEntity extends Entity implements Tickable {
 
     private Vector3f lerpPosition;
     private int lerpSteps;
+    private boolean dirtyYaw, dirtyHeadYaw, dirtyPitch;
 
     public LivingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -378,6 +379,10 @@ public class LivingEntity extends Entity implements Tickable {
         }
 
         if ((relX != 0 || relY != 0 || relZ != 0) && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+            this.dirtyPitch = pitch != this.pitch;
+            this.dirtyYaw = yaw != this.yaw;
+            this.dirtyHeadYaw = headYaw != this.headYaw;
+
             setYaw(yaw);
             setPitch(pitch);
             setHeadYaw(headYaw);
@@ -400,6 +405,7 @@ public class LivingEntity extends Entity implements Tickable {
         // It's vanilla behaviour to lerp if the position is within 16 blocks, however we also check if the position is close enough to the player
         // position to see if it can actually affect anything to save network.
         if (position.distanceSquared(this.position) < 4096 && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+            this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = true;
             this.lerpSteps = 3;
         } else {
             super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
@@ -413,19 +419,43 @@ public class LivingEntity extends Entity implements Tickable {
             float lerpXTotal = GenericMath.lerp(this.position.getX(), this.lerpPosition.getX(), time);
             float lerpYTotal = GenericMath.lerp(this.position.getY(), this.lerpPosition.getY(), time);
             float lerpZTotal = GenericMath.lerp(this.position.getZ(), this.lerpPosition.getZ(), time);
-            this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
 
-            // Since we already lerp position, use absolute to set the entity to the position, and send immediately so the client can catch up.
-            MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+            MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
             moveEntityPacket.setRuntimeEntityId(geyserId);
-            moveEntityPacket.setPosition(position);
-            moveEntityPacket.setRotation(getBedrockRotation());
-            moveEntityPacket.setOnGround(isOnGround());
-            moveEntityPacket.setTeleported(true);
+            moveEntityPacket.setX(lerpXTotal);
+            moveEntityPacket.setY(lerpYTotal);
+            moveEntityPacket.setZ(lerpZTotal);
+            moveEntityPacket.setYaw(this.yaw);
+            moveEntityPacket.setPitch(this.pitch);
+            moveEntityPacket.setHeadYaw(this.headYaw);
+            if (onGround) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+            }
+            if (lerpXTotal != this.position.getX()) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+            }
+            if (lerpYTotal != this.position.getY()) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+            }
+            if (lerpZTotal != this.position.getZ()) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+            }
+            if (this.dirtyYaw) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+            }
+            if (this.dirtyHeadYaw) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+            }
+            if (this.dirtyPitch) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+            }
+
+            this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = false;
 
             // Queue this and send it immediately later with the rest.
             session.getQueuedImmediatelyPackets().add(moveEntityPacket);
 
+            this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
             this.lerpSteps--;
         }
     }
