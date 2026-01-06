@@ -27,7 +27,6 @@ package org.geysermc.geyser.skin;
 
 import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.skin.Skin;
@@ -37,6 +36,7 @@ import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.PlayerListUtils;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -62,27 +62,20 @@ public class SkullSkinManager extends SkinManager {
         BiConsumer<Skin, Throwable> applySkin = (skin, throwable) -> {
             SerializedSkin serializedSkin = buildSkullEntryManually(session, skin.textureUrl(), skin.skinData());
 
-            if (GameProtocol.is1_21_130orHigher(session.protocolVersion())) {
-                SkinManager.sendFakePlayerListEntry(session, serializedSkin, entity);
-            }
-
             try {
-                PlayerSkinPacket packet = new PlayerSkinPacket();
-                packet.setUuid(entity.getUuid());
-                packet.setOldSkinName("");
-                packet.setNewSkinName(skin.textureUrl());
-                packet.setSkin(serializedSkin);
-                packet.setTrustedSkin(true);
-                session.sendUpstreamPacket(packet);
+                if (GameProtocol.is1_21_130orHigher(session.protocolVersion())) {
+                    PlayerListUtils.sendSkinUsingPlayerList(session, PlayerListUtils.forSkullPlayerEntity(entity, serializedSkin), entity, false);
+                } else {
+                    PlayerSkinPacket packet = new PlayerSkinPacket();
+                    packet.setUuid(entity.getUuid());
+                    packet.setOldSkinName("");
+                    packet.setNewSkinName(skin.textureUrl());
+                    packet.setSkin(serializedSkin);
+                    packet.setTrustedSkin(true);
+                    session.sendUpstreamPacket(packet);
+                }
             } catch (Exception e) {
                 GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
-            }
-
-            if (GameProtocol.is1_21_130orHigher(session.protocolVersion())) {
-                PlayerListPacket playerListPacket = new PlayerListPacket();
-                playerListPacket.setAction(PlayerListPacket.Action.REMOVE);
-                playerListPacket.getEntries().add(new PlayerListPacket.Entry(entity.getUuid()));
-                session.sendUpstreamPacket(playerListPacket);
             }
 
             if (skinConsumer != null) {

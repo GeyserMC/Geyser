@@ -49,6 +49,7 @@ import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.JsonUtils;
+import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 
@@ -75,7 +76,7 @@ public class SkinManager {
     /**
      * Builds a Bedrock player list entry from our existing, cached Bedrock skin information
      */
-    public static PlayerListPacket.Entry buildCachedEntry(GeyserSession session, AvatarEntity playerEntity) {
+    public static PlayerListPacket.Entry buildEntryFromCachedSkin(GeyserSession session, AvatarEntity playerEntity) {
         // First: see if we have the cached skin texture ID.
         GameProfileData data = GameProfileData.from(playerEntity);
         Skin skin = null;
@@ -102,123 +103,45 @@ public class SkinManager {
             }
         }
 
-        // Default to white when waypoint colour is unknown, which is the most visible
-        Color color = session.getWaypointCache().getWaypointColor(playerEntity.getUuid()).orElse(Color.WHITE);
-
-        return buildEntryManually(
+        return PlayerListUtils.buildEntryManually(
                 session,
                 playerEntity.getUuid(),
                 playerEntity.getUsername(),
                 playerEntity.getGeyserId(),
-                skin,
-                cape,
-                geometry,
-                color
+                getSkin(session, skin.textureUrl(), skin, cape, geometry),
+                // Default to white when waypoint colour is unknown, which is the most visible
+                session.getWaypointCache().getWaypointColor(playerEntity.getUuid()).orElse(Color.WHITE)
         );
-    }
-
-    /**
-     * With all the information needed, build a Bedrock player entry with translated skin information.
-     */
-    public static PlayerListPacket.Entry buildEntryManually(GeyserSession session, UUID uuid, String username, long geyserId,
-                                                            Skin skin,
-                                                            Cape cape,
-                                                            SkinGeometry geometry, Color color) {
-        SerializedSkin serializedSkin = getSkin(session, skin.textureUrl(), skin, cape, geometry);
-
-        // This attempts to find the XUID of the player so profile images show up for Xbox accounts
-        String xuid = "";
-        GeyserSession playerSession = GeyserImpl.getInstance().connectionByUuid(uuid);
-
-        // Prefer looking up xuid using the session to catch linked players
-        if (playerSession != null) {
-            xuid = playerSession.getAuthData().xuid();
-        } else if (uuid.version() == 0) {
-            xuid = Long.toString(uuid.getLeastSignificantBits());
-        }
-
-        PlayerListPacket.Entry entry;
-
-        // If we are building a PlayerListEntry for our own session we use our AuthData UUID instead of the Java UUID
-        // as Bedrock expects to get back its own provided UUID
-        if (session.getPlayerEntity().getUuid().equals(uuid)) {
-            entry = new PlayerListPacket.Entry(session.getAuthData().uuid());
-        } else {
-            entry = new PlayerListPacket.Entry(uuid);
-        }
-
-        entry.setName(username);
-        entry.setEntityId(geyserId);
-        entry.setSkin(serializedSkin);
-        entry.setXuid(xuid);
-        entry.setPlatformChatId("");
-        entry.setTeacher(false);
-        entry.setTrustedSkin(true);
-        entry.setColor(color);
-        return entry;
-    }
-
-    public static void sendFakePlayerListEntry(GeyserSession session, SerializedSkin skin, AvatarEntity entity) {
-        PlayerListPacket packet = new PlayerListPacket();
-        packet.setAction(PlayerListPacket.Action.ADD);
-
-        PlayerListPacket.Entry entry = new PlayerListPacket.Entry(entity.getUuid());
-        entry.setName(entity.getUsername());
-        entry.setEntityId(entity.getGeyserId());
-        entry.setSkin(skin);
-        entry.setXuid("");
-        entry.setPlatformChatId("");
-        entry.setTeacher(false);
-        entry.setTrustedSkin(true);
-        entry.setColor(Color.LIGHT_GRAY);
-
-        packet.getEntries().add(entry);
-        session.sendUpstreamPacket(packet);
     }
 
     public static void sendSkinPacket(GeyserSession session, AvatarEntity entity, SkinData skinData) {
         Skin skin = skinData.skin();
         Cape cape = skinData.cape();
         SkinGeometry geometry = skinData.geometry();
-        Color color = session.getWaypointCache().getWaypointColor(entity.getUuid()).orElse(Color.WHITE);
 
-        if (entity.getUuid().equals(session.getPlayerEntity().getUuid())) {
-            PlayerListPacket.Entry updatedEntry = buildEntryManually(
-                    session,
-                    entity.getUuid(),
-                    entity.getUsername(),
-                    entity.getGeyserId(),
-                    skin,
-                    cape,
-                    geometry,
-                    color
+        // Since 1.21.130: PlayerSkinPacket only works if player is listed; might as well always use the player list packet
+        if (entity.getUuid().equals(session.getPlayerEntity().getUuid()) || (GameProtocol.is1_21_130orHigher(session.protocolVersion()) && !entity.isListed())) {
+            PlayerListPacket.Entry entry = PlayerListUtils.buildEntryManually(
+                session,
+                entity.getUuid(),
+                entity.getUsername(),
+                entity.getGeyserId(),
+                getSkin(session, UUID.randomUUID().toString(), skin, cape, geometry),
+                session.getWaypointCache().getWaypointColor(entity.getUuid()).orElse(Color.WHITE)
             );
 
-            PlayerListPacket playerAddPacket = new PlayerListPacket();
-            playerAddPacket.setAction(PlayerListPacket.Action.ADD);
-            playerAddPacket.getEntries().add(updatedEntry);
-            session.sendUpstreamPacket(playerAddPacket);
+            // Slight delay ensures skins are actually shown
+            session.scheduleInEventLoop(() -> {
+                PlayerListUtils.sendSkinUsingPlayerList(session, entry, entity, entity.isListed());
+            }, 100, TimeUnit.MILLISECONDS);
         } else {
-            SerializedSkin serializedSkin = getSkin(session, skin.textureUrl(), skin, cape, geometry);
-            boolean sendPlayerListPackets = !entity.isListed();
-            if (sendPlayerListPackets && GameProtocol.is1_21_130orHigher(session.protocolVersion())) {
-                SkinManager.sendFakePlayerListEntry(session, serializedSkin, entity);
-            }
-
             PlayerSkinPacket packet = new PlayerSkinPacket();
             packet.setUuid(entity.getUuid());
             packet.setOldSkinName("");
             packet.setNewSkinName(skin.textureUrl());
-            packet.setSkin(serializedSkin);
+            packet.setSkin(getSkin(session, skin.textureUrl(), skin, cape, geometry));
             packet.setTrustedSkin(true);
             session.sendUpstreamPacket(packet);
-
-            if (sendPlayerListPackets && GameProtocol.is1_21_130orHigher(session.protocolVersion())) {
-                PlayerListPacket playerListPacket = new PlayerListPacket();
-                playerListPacket.setAction(PlayerListPacket.Action.REMOVE);
-                playerListPacket.getEntries().add(new PlayerListPacket.Entry(entity.getUuid()));
-                session.sendUpstreamPacket(playerListPacket);
-            }
         }
     }
 
@@ -233,6 +156,7 @@ public class SkinManager {
             .capeId(cape.capeId())
             .fullSkinId(skinId)
             .geometryDataEngineVersion(session.getClientData().getGameVersion())
+            .overridingPlayerAppearance(true)
             .build();
     }
 
@@ -313,20 +237,12 @@ public class SkinManager {
 
     public static void requestAndHandleSkinAndCape(AvatarEntity entity, GeyserSession session, Consumer<SkinProvider.SkinAndCape> skinAndCapeConsumer) {
         SkinProvider.requestSkinData(entity, session).whenCompleteAsync((skinData, throwable) -> {
-            if (skinData == null) {
-                if (skinAndCapeConsumer != null) {
-                    skinAndCapeConsumer.accept(null);
-                }
-
-                return;
-            }
-
-            if (skinData.geometry() != null) {
+            if (skinData != null && skinData.geometry() != null) {
                 sendSkinPacket(session, entity, skinData);
             }
 
             if (skinAndCapeConsumer != null) {
-                skinAndCapeConsumer.accept(new SkinProvider.SkinAndCape(skinData.skin(), skinData.cape()));
+                skinAndCapeConsumer.accept(skinData == null ? null : new SkinProvider.SkinAndCape(skinData.skin(), skinData.cape()));
             }
         });
     }
