@@ -94,6 +94,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
             packet.getEntries().add(new PlayerListPacket.Entry(getTabListUuid()));
             packet.setAction(PlayerListPacket.Action.REMOVE);
             session.sendUpstreamPacket(packet);
+            listed = false;
         }
 
         // Since we re-use player entities: Clear flags, held item, etc
