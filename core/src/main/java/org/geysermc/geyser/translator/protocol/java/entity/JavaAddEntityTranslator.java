@@ -68,6 +68,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         float headYaw = packet.getHeadYaw();
 
         if (packet.getType() == EntityType.PLAYER) {
+
             PlayerEntity entity;
             if (packet.getUuid().equals(session.getPlayerEntity().getUuid())) {
                 // Server is sending a fake version of the current player

@@ -47,7 +47,6 @@ import java.util.UUID;
 
 @Translator(packet = ClientboundPlayerInfoUpdatePacket.class)
 public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<ClientboundPlayerInfoUpdatePacket> {
-
     @Override
     public void translate(GeyserSession session, ClientboundPlayerInfoUpdatePacket packet) {
         Set<PlayerListEntryAction> actions = packet.getActions();
