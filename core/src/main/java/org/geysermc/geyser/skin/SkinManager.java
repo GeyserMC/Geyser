@@ -62,11 +62,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public class SkinManager {
 
+    private static final Map<ResolvableProfile, CompletableFuture<GameProfile>> requestedProfiles = new ConcurrentHashMap<>();
     private static final Cache<ResolvableProfile, GameProfile> RESOLVED_PROFILES_CACHE = CacheBuilder.newBuilder()
         .expireAfterAccess(1, TimeUnit.HOURS)
         .build();
@@ -177,6 +179,11 @@ public class SkinManager {
             return CompletableFuture.completedFuture(completed);
         }
 
+        CompletableFuture<GameProfile> profileFuture = requestedProfiles.get(profile);
+        if (profileFuture != null) {
+            return profileFuture;
+        }
+
         GameProfile cached = RESOLVED_PROFILES_CACHE.getIfPresent(profile);
         if (cached != null) {
             return CompletableFuture.completedFuture(cached);
@@ -195,7 +202,7 @@ public class SkinManager {
                 .thenApply(name -> new GameProfile(partial.getId(), name));
         }
 
-        return completedProfileFuture
+        completedProfileFuture = completedProfileFuture
             .thenCompose(nameAndUUID -> {
                 // Fallback to partial if anything goes wrong - should replicate vanilla Java client behaviour
                 if (nameAndUUID.getId() == null || nameAndUUID.getName() == null) {
@@ -215,9 +222,13 @@ public class SkinManager {
                     });
             })
             .thenApply(resolved -> {
+                requestedProfiles.remove(profile);
                 RESOLVED_PROFILES_CACHE.put(profile, resolved);
                 return resolved;
             });
+
+        requestedProfiles.put(profile, completedProfileFuture);
+        return completedProfileFuture;
     }
 
     public static GameProfile.@Nullable Texture getTextureDataFromProfile(GameProfile profile, GameProfile.TextureType type) {
