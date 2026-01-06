@@ -47,7 +47,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.OptionalInt;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -69,11 +68,6 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
      */
     private boolean listed = false;
 
-    /**
-     * Whether this player list entry has been sent to the Bedrock client
-     */
-    private boolean playerListPacketSent = false;
-
     public PlayerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position,
                         Vector3f motion, float yaw, float pitch, float headYaw, String username, @Nullable String texturesProperty) {
         super(session, entityId, geyserId, uuid, EntityDefinitions.PLAYER, position, motion, yaw, pitch, headYaw, username);
@@ -93,9 +87,13 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     public void despawnEntity() {
         super.despawnEntity();
 
-        if (playerListPacketSent && session.shouldLimitPlayerlistEntries()) {
-            playerListPacketSent = false;
-            PlayerListUtils.batchSendPlayerList(session, List.of(new PlayerListPacket.Entry(getTabListUuid())), PlayerListPacket.Action.REMOVE);
+        // Remove the entries if limited entries are desired
+        // We never added to the waypoint cache with limited entries, so, no need to remove
+        if (listed && PlayerListUtils.shouldLimitPlayerlistEntries(session)) {
+            PlayerListPacket packet = new PlayerListPacket();
+            packet.getEntries().add(new PlayerListPacket.Entry(getTabListUuid()));
+            packet.setAction(PlayerListPacket.Action.REMOVE);
+            session.sendUpstreamPacket(packet);
         }
 
         // Since we re-use player entities: Clear flags, held item, etc

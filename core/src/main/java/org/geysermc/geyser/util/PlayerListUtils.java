@@ -27,6 +27,7 @@ package org.geysermc.geyser.util;
 
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
+import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -36,6 +37,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class PlayerListUtils {
+    private static final boolean HIDE_PLAYER_LIST_PS = Boolean.getBoolean("Geyser.NoPlayerListPs");
+
     static final int MAX_PLAYER_LIST_PACKET_ENTRIES = 1000;
 
     /**
@@ -124,5 +127,9 @@ public class PlayerListUtils {
             unlistPacket.getEntries().add(new PlayerListPacket.Entry(entity.getUuid()));
             session.sendUpstreamPacket(unlistPacket);
         }
+    }
+
+    public static boolean shouldLimitPlayerlistEntries(GeyserSession session) {
+        return HIDE_PLAYER_LIST_PS && session.platform() == BedrockPlatform.PS4;
     }
 }
