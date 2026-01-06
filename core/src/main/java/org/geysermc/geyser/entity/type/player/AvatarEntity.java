@@ -40,6 +40,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
+import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.LivingEntity;
@@ -296,11 +297,10 @@ public abstract class AvatarEntity extends LivingEntity {
     }
 
     /**
-     * Since 1.21.130+, skins can only be sent for listed players.
-     * Geyser uses Bedrock player entities for Mannequins and custom skulls,
-     * so we need to temporarily list those entities too.
-     * Further, some NPC plugins un-list fake player before Geyser loads the skin,
-     * resulting in skins not showing. See <a href="https://github.com/GeyserMC/Geyser/issues/6034">this issue</a>
+     * Whether this entity is listed on the player list.
+     * Since player entities are used for e.g. custom skulls too, we need to hack around
+     * limitations introduced in 1.21.130 to ensure skins are correctly applied. 
+     * @see SkinManager#sendSkinPacket(GeyserSession, AvatarEntity, SkinData)
      * @return whether this player entity is listed
      */
     public abstract boolean isListed();

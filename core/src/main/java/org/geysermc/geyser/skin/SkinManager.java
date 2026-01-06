@@ -56,7 +56,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvablePro
 import java.awt.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -128,7 +127,7 @@ public class SkinManager {
                 entity.getUuid(),
                 entity.getUsername(),
                 entity.getGeyserId(),
-                getSkin(session, UUID.randomUUID().toString(), skin, cape, geometry),
+                getSkin(session, skin.textureUrl(), skin, cape, geometry),
                 session.getWaypointCache().getWaypointColor(entity.getUuid()).orElse(Color.WHITE)
             );
 
@@ -179,56 +178,33 @@ public class SkinManager {
             return CompletableFuture.completedFuture(completed);
         }
 
-        CompletableFuture<GameProfile> profileFuture = requestedProfiles.get(profile);
-        if (profileFuture != null) {
-            return profileFuture;
-        }
-
         GameProfile cached = RESOLVED_PROFILES_CACHE.getIfPresent(profile);
         if (cached != null) {
             return CompletableFuture.completedFuture(cached);
         }
 
-        // The resolvable profile is dynamic - server wants the client (us) to retrieve the full GameProfile
-        // from Mojang's API
-
-        // The partial profile *should* always have either a name or a UUID, not both
-        CompletableFuture<GameProfile> completedProfileFuture;
-        if (partial.getName() != null) {
-            completedProfileFuture = SkinProvider.requestUUIDFromUsername(partial.getName())
-                .thenApply(uuid -> new GameProfile(uuid, partial.getName()));
-        } else {
-            completedProfileFuture = SkinProvider.requestUsernameFromUUID(partial.getId())
-                .thenApply(name -> new GameProfile(partial.getId(), name));
-        }
-
-        completedProfileFuture = completedProfileFuture
-            .thenCompose(nameAndUUID -> {
-                // Fallback to partial if anything goes wrong - should replicate vanilla Java client behaviour
-                if (nameAndUUID.getId() == null || nameAndUUID.getName() == null) {
-                    return CompletableFuture.completedFuture(partial);
-                }
-
-                return SkinProvider.requestTexturesFromUUID(nameAndUUID.getId())
-                    .thenApply(encoded -> {
-                        if (encoded == null) {
-                            return partial;
+        return requestedProfiles.computeIfAbsent(profile, resolvableProfile -> {
+            CompletableFuture<GameProfile> future = (partial.getName() != null
+                    ? SkinProvider.requestUUIDFromUsername(partial.getName()).thenApply(uuid -> new GameProfile(uuid, partial.getName()))
+                    : SkinProvider.requestUsernameFromUUID(partial.getId()).thenApply(name -> new GameProfile(partial.getId(), name))
+                ).thenCompose(nameAndUUID -> {
+                        if (nameAndUUID.getId() == null || nameAndUUID.getName() == null) {
+                            return CompletableFuture.completedFuture(partial);
                         }
 
-                        List<GameProfile.Property> properties = new ArrayList<>();
-                        properties.add(new GameProfile.Property("textures", encoded));
-                        nameAndUUID.setProperties(properties);
-                        return nameAndUUID;
+                        return SkinProvider.requestTexturesFromUUID(nameAndUUID.getId())
+                            .thenApply(encoded -> {
+                                if (encoded == null) return partial;
+                                nameAndUUID.setProperties(List.of(new GameProfile.Property("textures", encoded)));
+                                return nameAndUUID;
+                            });
+                    })
+                    .thenApply(resolved -> {
+                        RESOLVED_PROFILES_CACHE.put(resolvableProfile, resolved);
+                        return resolved;
                     });
-            })
-            .thenApply(resolved -> {
-                requestedProfiles.remove(profile);
-                RESOLVED_PROFILES_CACHE.put(profile, resolved);
-                return resolved;
-            });
-
-        requestedProfiles.put(profile, completedProfileFuture);
-        return completedProfileFuture;
+            return future.whenComplete((r, t) -> requestedProfiles.remove(resolvableProfile));
+        });
     }
 
     public static GameProfile.@Nullable Texture getTextureDataFromProfile(GameProfile profile, GameProfile.TextureType type) {
