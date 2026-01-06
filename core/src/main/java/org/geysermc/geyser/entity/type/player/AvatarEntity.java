@@ -233,7 +233,7 @@ public abstract class AvatarEntity extends LivingEntity {
         SkinManager.resolveProfile(profile).thenAccept(resolved -> setSkin(resolved, cape, null));
     }
 
-    public void setSkin(GameProfile profile, boolean cape, Runnable after) {
+    public void setSkin(GameProfile profile, boolean cape, @Nullable Runnable after) {
         GameProfile.Property textures = profile.getProperty("textures");
         if (textures != null) {
             setSkin(textures.getValue(), cape, after);
@@ -242,16 +242,16 @@ public abstract class AvatarEntity extends LivingEntity {
         }
     }
 
-    public void setSkin(String texturesProperty, boolean cape, Runnable after) {
+    public void setSkin(String texturesProperty, boolean cape, @Nullable Runnable after) {
         if (Objects.equals(texturesProperty, this.texturesProperty)) {
             return;
         }
 
         this.texturesProperty = texturesProperty;
         if (cape) {
-            SkinManager.requestAndHandleSkinAndCape(this, session, skin -> after.run());
+            SkinManager.requestAndHandleSkinAndCape(this, session, after == null ? null : skin -> after.run());
         } else {
-            SkullSkinManager.requestAndHandleSkin(this, session, skin -> after.run());
+            SkullSkinManager.requestAndHandleSkin(this, session, after == null ? null :skin -> after.run());
         }
     }
 
