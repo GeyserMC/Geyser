@@ -27,15 +27,11 @@ package org.geysermc.geyser.entity.type.player;
 
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.skin.SkinManager;
-import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -46,15 +42,17 @@ public class MannequinEntity extends AvatarEntity {
     }
 
     public void setProfile(EntityMetadata<ResolvableProfile, ?> entityMetadata) {
-        PlayerListUtils.batchSendPlayerList(session, List.of(SkinManager.buildCachedEntry(session, this)), PlayerListPacket.Action.ADD);
-        setSkin(entityMetadata.getValue(), true, () -> {
-            PlayerListUtils.batchSendPlayerList(session, List.of(new PlayerListPacket.Entry(uuid)), PlayerListPacket.Action.REMOVE);
-        });
+        setSkin(entityMetadata.getValue(), true);
     }
 
     @Override
     public String getDisplayName() {
         return displayName;
+    }
+
+    @Override
+    public boolean isListed() {
+        return false;
     }
 
     public void setDescription(EntityMetadata<Optional<Component>, ?> entityMetadata) {
