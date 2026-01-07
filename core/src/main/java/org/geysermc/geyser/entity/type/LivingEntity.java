@@ -273,7 +273,7 @@ public class LivingEntity extends Entity {
             int ambient = 0; // We don't get this passed from java so assume false. BDS does the same.
             int effectBits = (bedrockEffectId & 0x3F) << 1 | ambient;
 
-            // Add our new effect to the bitfield, not sure why they are 7 not 8 but Mojank I guess
+            // Add the new effect to the bitfield, not sure why they are 7 not 8 but Mojank I guess
             visibleEffects = (visibleEffects << 7) | effectBits;
 
             count++;
@@ -284,7 +284,7 @@ public class LivingEntity extends Entity {
             }
         }
 
-        // If we got particles and no particles were ENTITY_EFFECT, don't update
+        // If we got particles but none could be mapped to an effect, don't update
         // Not sure if this is the correct behavior, but seems reasonable
         if (count == 0 && !particles.isEmpty()) {
             return;
