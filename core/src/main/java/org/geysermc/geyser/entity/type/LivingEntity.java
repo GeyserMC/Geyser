@@ -39,6 +39,7 @@ import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.level.EffectType;
@@ -264,6 +265,7 @@ public class LivingEntity extends Entity {
 
             // If we couldn't map it, skip it
             if (effectType == null) {
+                GeyserImpl.getInstance().getLogger().debug("Could not map particle " + particle.getType() + " to an effect for entity " + this.entityId);
                 continue;
             }
 
@@ -288,16 +290,7 @@ public class LivingEntity extends Entity {
             return;
         }
 
-        updateVisibleMobEffects(visibleEffects);
-    }
-
-    private void updateVisibleMobEffects(long visibleEffects) {
         dirtyMetadata.put(EntityDataTypes.VISIBLE_MOB_EFFECTS, visibleEffects);
-
-        SetEntityDataPacket setEntityDataPacket = new SetEntityDataPacket();
-        setEntityDataPacket.setRuntimeEntityId(geyserId);
-        setEntityDataPacket.getMetadata().put(EntityDataTypes.VISIBLE_MOB_EFFECTS, visibleEffects);
-        session.sendUpstreamPacket(setEntityDataPacket);
     }
 
     public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
