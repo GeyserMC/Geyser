@@ -70,7 +70,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -250,16 +249,25 @@ public class LivingEntity extends Entity {
         int count = 0;
         long visibleEffects = 0L;
         for (Particle particle : particles) {
-            if (particle.getType() != ParticleType.ENTITY_EFFECT) {
-                continue;
-            }
-            if (count >= 8) {
-                // Bedrock only supports showing 8 effects at a time
-                break;
+            EffectType effectType = null;
+
+            // Some particles are unique types on java, so we have to map them manually
+            switch (particle.getType()) {
+                case ENTITY_EFFECT -> effectType = EffectType.fromColor(((ColorParticleData) particle.getData()).getColor());
+                case INFESTED -> effectType = EffectType.INFESTED;
+                case ITEM_SLIME -> effectType = EffectType.OOZING;
+                case ITEM_COBWEB -> effectType = EffectType.WEAVING;
+                case SMALL_GUST -> effectType = EffectType.WIND_CHARGED;
+                case TRIAL_OMEN -> effectType = EffectType.TRIAL_OMEN;
+                case RAID_OMEN -> effectType = EffectType.RAID_OMEN;
             }
 
-            int color = ((ColorParticleData) particle.getData()).getColor();
-            int bedrockEffectId = EffectType.fromColor(color).getBedrockId();
+            // If we couldn't map it, skip it
+            if (effectType == null) {
+                continue;
+            }
+
+            int bedrockEffectId = effectType.getBedrockId();
             int ambient = 0; // We don't get this passed from java so assume false. BDS does the same.
             int effectBits = (bedrockEffectId & 0x3F) << 1 | ambient;
 
@@ -267,6 +275,11 @@ public class LivingEntity extends Entity {
             visibleEffects = (visibleEffects << 7) | effectBits;
 
             count++;
+
+            // Bedrock only supports showing 8 effects at a time
+            if (count >= 8) {
+                break;
+            }
         }
 
         // If we got particles and no particles were ENTITY_EFFECT, don't update
