@@ -91,7 +91,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
                         session.bedrockUsername(),
                         session.xuid(),
                         clientData.getDeviceOs().ordinal(),
-                        clientData.getLanguageCode(),
+                        session.locale(),
                         clientData.getUiProfile().ordinal(),
                         clientData.getCurrentInputMode().ordinal(),
                         bedrockAddress,
@@ -147,7 +147,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
         session.getPlayerEntity().setUuid(uuid);
         session.getPlayerEntity().setUsername(session.getProtocol().getProfile().getName());
 
-        String locale = session.getClientData().getLanguageCode();
+        String locale = session.locale();
 
         // Let the user know there locale may take some time to download
         // as it has to be extracted from a JAR

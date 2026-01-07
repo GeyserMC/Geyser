@@ -26,11 +26,13 @@
 package org.geysermc.geyser.util;
 
 import net.raphimc.minecraftauth.msa.model.MsaDeviceCode;
+import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.data.auth.AuthPayload;
 import org.cloudburstmc.protocol.bedrock.data.auth.CertificateChainPayload;
 import org.cloudburstmc.protocol.bedrock.data.auth.TokenPayload;
 import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ServerToClientHandshakePacket;
+import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
 import org.cloudburstmc.protocol.bedrock.util.ChainValidationResult;
 import org.cloudburstmc.protocol.bedrock.util.ChainValidationResult.IdentityData;
 import org.cloudburstmc.protocol.bedrock.util.EncryptionUtils;
@@ -55,10 +57,80 @@ public class LoginEncryptionUtils {
     private static boolean HAS_SENT_ENCRYPTION_MESSAGE = false;
 
     public static void encryptPlayerConnection(GeyserSession session, LoginPacket loginPacket) {
-        encryptConnectionWithCert(session, loginPacket.getAuthPayload(), loginPacket.getClientJwt());
+        encryptConnectionWithCert(session, loginPacket.getAuthPayload(), loginPacket.getClientJwt(), false);
     }
 
-    private static void encryptConnectionWithCert(GeyserSession session, AuthPayload authPayload, String jwt) {
+    public static boolean setupSubClientSession(GeyserSession session, SubClientLoginPacket subClientLoginPacket) {
+        try {
+            GeyserImpl geyser = session.getGeyser();
+            AuthPayload authPayload = subClientLoginPacket.getAuthPayload();
+            String jwt = subClientLoginPacket.getClientJwt();
+
+            ChainValidationResult result = EncryptionUtils.validatePayload(authPayload);
+
+            if (!result.signed() && geyser.config().advanced().bedrock().validateBedrockLogin()) {
+                return false;
+            }
+
+            Long rawIssuedAt = (Long) result.rawIdentityClaims().get("iat");
+            long issuedAt = rawIssuedAt != null ? rawIssuedAt : -1;
+
+            IdentityData extraData = result.identityClaims().extraData;
+            AuthData authData = new AuthData(extraData.displayName, extraData.identity, extraData.xuid, issuedAt);
+            session.setAuthData(authData);
+
+            if (authPayload instanceof TokenPayload tokenPayload) {
+                session.setToken(tokenPayload.getToken());
+            } else if (authPayload instanceof CertificateChainPayload certificateChainPayload) {
+                session.setCertChainData(certificateChainPayload.getChain());
+            }
+
+            PublicKey identityPublicKey = result.identityClaims().parsedIdentityPublicKey();
+
+            byte[] clientDataPayload = EncryptionUtils.verifyClientData(jwt, identityPublicKey);
+            if (clientDataPayload == null) {
+                return false;
+            }
+
+            BedrockClientData data = JsonUtils.fromJson(clientDataPayload, BedrockClientData.class);
+            data.setOriginalString(jwt);
+
+            if (data.getLanguageCode() == null || data.getServerAddress() == null) {
+                BedrockPeer subClientPeer = session.getUpstream().getSession().getPeer();
+                for (GeyserSession otherSession : geyser.getSessionManager().getAllSessions()) {
+                    if (otherSession == session) {
+                        continue;
+                    }
+                    BedrockPeer otherPeer = otherSession.getUpstream().getSession().getPeer();
+                    if (otherPeer == subClientPeer && otherSession.getClientData() != null) {
+                        session.setParentSession(otherSession);
+                        if (data.getLanguageCode() == null) {
+                            String parentLocale = otherSession.getClientData().getLanguageCode();
+                            if (parentLocale != null) {
+                                data.setLanguageCode(parentLocale);
+                            }
+                        }
+                        if (data.getServerAddress() == null) {
+                            String parentServerAddress = otherSession.getClientData().getServerAddress();
+                            if (parentServerAddress != null) {
+                                data.setServerAddress(parentServerAddress);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            session.setClientData(data);
+
+            return true;
+        } catch (Exception ex) {
+            session.getGeyser().getLogger().error("Failed to setup sub-client session", ex);
+            return false;
+        }
+    }
+
+    private static void encryptConnectionWithCert(GeyserSession session, AuthPayload authPayload, String jwt, boolean isSubClient) {
         try {
             GeyserImpl geyser = session.getGeyser();
 

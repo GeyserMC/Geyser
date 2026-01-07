@@ -124,6 +124,20 @@ public final class SessionManager {
         return false;
     }
 
+    public @Nullable GeyserSession pendingSessionByXuid(@NonNull String xuid) {
+        Objects.requireNonNull(xuid);
+        for (GeyserSession session : pendingSessions) {
+            if (session.xuid().equals(xuid)) {
+                return session;
+            }
+        }
+        return null;
+    }
+
+    public void removePendingSession(GeyserSession session) {
+        pendingSessions.remove(session);
+    }
+
     public @Nullable GeyserSession sessionByXuid(@NonNull String xuid) {
         Objects.requireNonNull(xuid);
         for (GeyserSession session : sessions.values()) {
