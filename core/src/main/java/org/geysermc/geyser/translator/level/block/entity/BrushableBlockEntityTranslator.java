@@ -73,7 +73,10 @@ public class BrushableBlockEntityTranslator extends BlockEntityTranslator implem
         bedrockNbt.putInt("brush_count", blockState.getValue(Properties.DUSTED));
 
         // The type of brushable block, not sure why bedrock requires this
-        ItemMapping brushableMapping = session.getItemMappings().getMapping(blockState.block().javaIdentifier().toString());
-        bedrockNbt.putString("type", brushableMapping.getBedrockDefinition().getIdentifier());
+        String identifier = session.getBlockMappings().getJavaToBedrockIdentifiers().get(blockState.block().javaId());
+        if (identifier == null) {
+            identifier = blockState.block().javaIdentifier().value();
+        }
+        bedrockNbt.putString("type", identifier);
     }
 }
