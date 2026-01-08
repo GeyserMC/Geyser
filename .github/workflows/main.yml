@@ -1,4 +1,4 @@
-name: Compilar Geyser 3.0 (Time Travel V2)
+name: Compilar Geyser 3.0 (Fixed Date)
 on:
   workflow_dispatch:
   schedule:
@@ -35,9 +35,9 @@ jobs:
       - name: Dar permisos al compilador
         run: chmod +x gradlew
 
-      - name: Compilar BungeeCord (Modo Viajero del Tiempo)
+      - name: Compilar BungeeCord (Fecha Fija: 7 Enero)
         run: |
-          # 1. Buscamos automáticamente dónde se instaló la librería
+          # Buscamos la librería
           LIBFAKETIME_PATH=$(find /usr/lib -name "libfaketime.so.1" | head -n 1)
           
           if [ -z "$LIBFAKETIME_PATH" ]; then
@@ -45,20 +45,20 @@ jobs:
             exit 1
           fi
           
-          echo "Librería de tiempo encontrada en: $LIBFAKETIME_PATH"
-          
-          # 2. Activamos la máquina del tiempo
-          # Usamos las variables de entorno directas para afectar a todo lo que corra en este paso
+          # ACTIVAMOS EL VIAJE EN EL TIEMPO
           export LD_PRELOAD="$LIBFAKETIME_PATH"
-          export FAKETIME="-5d"  # Retrasamos el reloj 5 días para mayor seguridad
-          export DONT_FAKE_MONOTONIC=1 # Evita que Java se cuelgue si chequea tiempos monótonos
+          export DONT_FAKE_MONOTONIC=1
           
-          echo "--- COMPROBACIÓN DE TIEMPO ---"
-          echo "Fecha que verá Gradle:"
+          # FIJAMOS LA FECHA AL 7 DE ENERO DE 2026
+          # Esta fecha es MÁGICA: 
+          # - Es DESPUÉS del 6 de Enero (Gradle funciona)
+          # - Es ANTES del 8 de Enero (Architectury funciona)
+          export FAKETIME="@2026-01-07 12:00:00"
+          
+          echo "--- FECHA SIMULADA ---"
           date
           
-          # 3. Compilamos
-          # Gradle creerá que estamos 5 días en el pasado y aceptará el certificado
+          # Compilamos
           ./gradlew :bungeecord:build -x test --no-daemon --stacktrace
 
       - name: Subir el archivo compilado
