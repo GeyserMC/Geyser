@@ -33,8 +33,9 @@ import org.geysermc.geyser.api.skin.Skin;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.PlayerListUtils;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -56,19 +57,19 @@ public class SkullSkinManager extends SkinManager {
             .build();
     }
 
-    public static void requestAndHandleSkin(AvatarEntity entity, GeyserSession session,
-                                            Consumer<Skin> skinConsumer) {
+    public static void requestAndHandleSkin(AvatarEntity entity, GeyserSession session, Consumer<Skin> skinConsumer) {
         BiConsumer<Skin, Throwable> applySkin = (skin, throwable) -> {
-            try {
+            SerializedSkin serializedSkin = buildSkullEntryManually(session, skin.textureUrl(), skin.skinData());
+            if (GameProtocol.is1_21_130orHigher(session.protocolVersion())) {
+                PlayerListUtils.sendSkinUsingPlayerList(session, PlayerListUtils.forSkullPlayerEntity(entity, serializedSkin), entity, false);
+            } else {
                 PlayerSkinPacket packet = new PlayerSkinPacket();
                 packet.setUuid(entity.getUuid());
                 packet.setOldSkinName("");
                 packet.setNewSkinName(skin.textureUrl());
-                packet.setSkin(buildSkullEntryManually(session, skin.textureUrl(), skin.skinData()));
+                packet.setSkin(serializedSkin);
                 packet.setTrustedSkin(true);
                 session.sendUpstreamPacket(packet);
-            } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
             }
 
             if (skinConsumer != null) {
