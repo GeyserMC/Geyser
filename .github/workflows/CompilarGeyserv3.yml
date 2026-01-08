@@ -1,4 +1,4 @@
-name: Compilar Geyser 3.0 (Surgical V2)
+name: Compilar Geyser 3.0 (Surgical V3)
 on:
   workflow_dispatch:
   schedule:
@@ -24,9 +24,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libfaketime
 
-      # --- PASO 1: CONFIGURAR EL ROBO DE CACHÉ ---
-      # Creamos un proyecto que descarga SOLO los jars problemáticos.
-      # Usamos 'transitive = false' para evitar que busque Fabric.
+      # --- PASO 1: LISTA DE CONTRABANDO ---
+      # Añadimos 'tiny-remapper' que fue lo que falló en el último intento.
       - name: Crear Script de Cache
         run: |
           mkdir -p warmup
@@ -39,26 +38,27 @@ jobs:
           }
           configurations { warmup }
           dependencies {
-              // 1. Marcadores de Plugin (Lo que Gradle busca primero)
+              // 1. Plugins Principales
               warmup("architectury-plugin:architectury-plugin.gradle.plugin:3.4.162") { transitive = false }
               warmup("dev.architectury.loom:dev.architectury.loom.gradle.plugin:1.13.457") { transitive = false }
               warmup("dev.architectury.loom-companion:dev.architectury.loom-companion.gradle.plugin:1.13.467") { transitive = false }
               
-              // 2. Archivos JAR Reales (El código que realmente necesitamos)
-              // Nombres corregidos basados en los logs anteriores
+              // 2. Dependencias Internas (El archivo que faltaba)
+              warmup("dev.architectury:tiny-remapper:1.1.0") { transitive = false }
+              
+              // 3. Jars Base
               warmup("architectury-plugin:architectury-plugin:3.4.162") { transitive = false }
               warmup("dev.architectury:architectury-loom:1.13.457") { transitive = false }
               warmup("dev.architectury:architectury-loom:1.13.467") { transitive = false }
           }
           task cacheIt {
               doLast {
-                  // Iteramos para descargar. Si uno falla, try-catch permite seguir con los otros.
                   configurations.warmup.dependencies.each { dep ->
                       try {
                           def files = configurations.warmup.files(dep)
                           println ">>> CACHEADO: " + dep.toString()
                       } catch (Exception e) {
-                          println ">>> ERROR (Ignorado): No se pudo bajar " + dep.toString()
+                          println ">>> ERROR (Ignorado): " + dep.toString()
                       }
                   }
               }
@@ -67,8 +67,6 @@ jobs:
           touch warmup/settings.gradle
 
       # --- PASO 2: VIAJE AL 7 DE ENERO ---
-      # Activamos el hack de tiempo. El servidor de Architectury aceptará la conexión.
-      # Gradle bajará los JARs definidos arriba y los guardará en ~/.gradle/caches
       - name: "Fase 1: Llenar Caché (7 Enero)"
         run: |
           LIBFAKETIME_PATH=$(find /usr/lib -name "libfaketime.so.1" | head -n 1)
@@ -78,7 +76,7 @@ jobs:
           
           echo ">>> VIAJANDO AL PASADO: $(date)"
           
-          # Ejecutamos el script. "|| true" asegura que GitHub Actions no cancele si un archivo falla.
+          # Descargamos todo lo de la lista
           ./gradlew -p warmup cacheIt --no-daemon || true
 
       - name: Forzar Puerto 25565
@@ -91,9 +89,6 @@ jobs:
         run: chmod +x gradlew
 
       # --- PASO 3: VOLVER AL PRESENTE ---
-      # Desactivamos el hack de tiempo.
-      # Gradle encontrará Architectury en la caché (del paso 2).
-      # Gradle descargará Fabric de internet (válido hoy).
       - name: "Fase 2: Compilación Real (Presente)"
         run: |
           unset LD_PRELOAD
