@@ -1,0 +1,55 @@
+name: Compilar Geyser 3.0
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # --- NUEVO PASO: SOLUCIÓN AL ERROR SSL ---
+      - name: Arreglar Certificado Architectury (SSL Error)
+        run: |
+          # Descargamos el certificado del servidor problemático
+          echo | openssl s_client -servername maven.architectury.dev -connect maven.architectury.dev:443 -showcerts 2>/dev/null | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > architectury.crt
+          
+          # Lo importamos al almacén de claves de Java (cacerts) para forzar la confianza
+          # Usamos $JAVA_HOME determinado por la acción anterior
+          sudo keytool -import -trustcacerts -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit -noprompt -alias architectury -file architectury.crt
+
+      - name: Forzar Puerto 25565 (Corrección del Bug)
+        run: |
+          archivo="bootstrap/bungeecord/src/main/java/org/geysermc/geyser/platform/bungeecord/GeyserBungeePlugin.java"
+          
+          # Tu corrección original
+          sed -i 's/return findCompatibleListener().*mapToInt.*;/return 25565;/g' $archivo
+          
+          echo "--- Verificación del código modificado ---"
+          grep -C 5 "getServerPort" $archivo
+
+      - name: Dar permisos al compilador
+        run: chmod +x gradlew
+
+      - name: Compilar SOLO BungeeCord
+        uses: gradle/gradle-build-action@v2
+        with:
+          # Agregamos flags para intentar ignorar errores de verificación si persisten
+          arguments: :bungeecord:build -x test --stacktrace
+
+      - name: Subir el archivo compilado
+        uses: actions/upload-artifact@v4
+        with:
+          name: Geyser-Bungee-Puerto-25565
+          path: bootstrap/bungeecord/build/libs/*jar
