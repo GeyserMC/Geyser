@@ -254,10 +254,6 @@ public class Entity implements GeyserEntity {
         valid = false;
     }
 
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(relX, relY, relZ, yaw, pitch, getHeadYaw(), isOnGround);
-    }
-
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
     }
@@ -351,7 +347,7 @@ public class Entity implements GeyserEntity {
      * @param headYaw The new head rotation of the entity.
      */
     public void updateHeadLookRotation(float headYaw) {
-        moveRelative(0, 0, 0, getYaw(), getPitch(), headYaw, isOnGround());
+        moveRelativeRaw(0, 0, 0, getYaw(), getPitch(), headYaw, isOnGround());
     }
 
     /**

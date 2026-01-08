@@ -111,11 +111,11 @@ public class VillagerEntity extends AbstractMerchantEntity {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         // The bed block position, if it exists
         if (!getFlag(EntityFlag.SLEEPING) || bedPosition == null) {
             // No need to worry about extra processing to compensate for sleeping
-            super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+            super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
             return;
         }
         

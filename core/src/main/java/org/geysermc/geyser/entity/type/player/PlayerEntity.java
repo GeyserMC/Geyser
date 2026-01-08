@@ -111,24 +111,24 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
         if (leftParrot != null) {
-            leftParrot.moveAbsolute(position, yaw, pitch, headYaw, true, teleported);
+            leftParrot.moveAbsoluteRaw(position, yaw, pitch, headYaw, true, teleported);
         }
         if (rightParrot != null) {
-            rightParrot.moveAbsolute(position, yaw, pitch, headYaw, true, teleported);
+            rightParrot.moveAbsoluteRaw(position, yaw, pitch, headYaw, true, teleported);
         }
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
         if (leftParrot != null) {
-            leftParrot.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, true);
+            leftParrot.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, true);
         }
         if (rightParrot != null) {
-            rightParrot.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, true);
+            rightParrot.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, true);
         }
     }
 

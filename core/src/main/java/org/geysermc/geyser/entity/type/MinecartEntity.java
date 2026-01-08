@@ -200,8 +200,8 @@ public class MinecartEntity extends Entity implements Tickable {
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position.add(0d, this.definition.offset(), 0d), yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsoluteRaw(position.up(this.definition.offset()), yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     @Override

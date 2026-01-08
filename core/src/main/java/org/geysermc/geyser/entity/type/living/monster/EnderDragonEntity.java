@@ -170,6 +170,11 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
         }
     }
 
+    @Override
+    public boolean shouldLerp() {
+        return false;
+    }
+
     /**
      * Updates the positions of the Ender Dragon's multiple bounding boxes
      */
@@ -209,7 +214,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
         }
         // Send updated positions
         for (EnderDragonPartEntity part : allParts) {
-             part.moveAbsolute(part.getPosition().add(position), 0, 0, 0, false, false);
+             part.moveAbsoluteRaw(part.getPosition().add(position), 0, 0, 0, false, false);
         }
     }
 

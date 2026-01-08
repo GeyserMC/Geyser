@@ -109,7 +109,7 @@ public class LivingEntity extends Entity implements Tickable {
 
     private Vector3f lerpPosition;
     private int lerpSteps;
-    private boolean dirtyYaw, dirtyHeadYaw, dirtyPitch;
+    protected boolean dirtyYaw, dirtyHeadYaw, dirtyPitch;
 
     public LivingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
         super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
@@ -385,7 +385,7 @@ public class LivingEntity extends Entity implements Tickable {
             clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
         }
 
-        if ((relX != 0 || relY != 0 || relZ != 0) && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+        if (shouldLerp() && (relX != 0 || relY != 0 || relZ != 0) && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
             this.dirtyPitch = pitch != this.pitch;
             this.dirtyYaw = yaw != this.yaw;
             this.dirtyHeadYaw = headYaw != this.headYaw;
@@ -411,12 +411,16 @@ public class LivingEntity extends Entity implements Tickable {
 
         // It's vanilla behaviour to lerp if the position is within 16 blocks, however we also check if the position is close enough to the player
         // position to see if it can actually affect anything to save network.
-        if (position.distanceSquared(this.position) < 4096 && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+        if (shouldLerp() && position.distanceSquared(this.position) < 4096 && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
             this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = true;
             this.lerpSteps = 3;
         } else {
             super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
         }
+    }
+
+    public boolean shouldLerp() {
+        return true;
     }
 
     @Override
