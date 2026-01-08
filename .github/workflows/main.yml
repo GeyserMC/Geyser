@@ -1,4 +1,4 @@
-name: Compilar Geyser 3.0 (Time Travel)
+name: Compilar Geyser 3.0 (Time Travel V2)
 on:
   workflow_dispatch:
   schedule:
@@ -19,8 +19,7 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # --- NUEVA ESTRATEGIA: MÁQUINA DEL TIEMPO ---
-      - name: Instalar Time Travel (libfaketime)
+      - name: Instalar LibFakeTime
         run: |
           sudo apt-get update
           sudo apt-get install -y libfaketime
@@ -36,22 +35,31 @@ jobs:
       - name: Dar permisos al compilador
         run: chmod +x gradlew
 
-      # --- COMPILACIÓN CON FECHA FALSA ---
-      - name: Compilar BungeeCord (Simulando ser ayer)
+      - name: Compilar BungeeCord (Modo Viajero del Tiempo)
         run: |
-          # Configuramos la "Mentira Temporal"
-          # Esto hace que Java crea que estamos 2 días en el pasado
-          # Así el certificado expirado parecerá válido.
-          export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1
-          export FAKETIME="-2d"
+          # 1. Buscamos automáticamente dónde se instaló la librería
+          LIBFAKETIME_PATH=$(find /usr/lib -name "libfaketime.so.1" | head -n 1)
           
-          echo "Fecha real del servidor:"
+          if [ -z "$LIBFAKETIME_PATH" ]; then
+            echo "Error CRÍTICO: No se encontró libfaketime.so.1"
+            exit 1
+          fi
+          
+          echo "Librería de tiempo encontrada en: $LIBFAKETIME_PATH"
+          
+          # 2. Activamos la máquina del tiempo
+          # Usamos las variables de entorno directas para afectar a todo lo que corra en este paso
+          export LD_PRELOAD="$LIBFAKETIME_PATH"
+          export FAKETIME="-5d"  # Retrasamos el reloj 5 días para mayor seguridad
+          export DONT_FAKE_MONOTONIC=1 # Evita que Java se cuelgue si chequea tiempos monótonos
+          
+          echo "--- COMPROBACIÓN DE TIEMPO ---"
+          echo "Fecha que verá Gradle:"
           date
-          echo "Fecha simulada para Gradle:"
-          /usr/bin/faketime "-2d" date
           
-          # Ejecutamos Gradle directamente bajo el efecto del tiempo falso
-          /usr/bin/faketime "-2d" ./gradlew :bungeecord:build -x test --no-daemon --stacktrace
+          # 3. Compilamos
+          # Gradle creerá que estamos 5 días en el pasado y aceptará el certificado
+          ./gradlew :bungeecord:build -x test --no-daemon --stacktrace
 
       - name: Subir el archivo compilado
         uses: actions/upload-artifact@v4
