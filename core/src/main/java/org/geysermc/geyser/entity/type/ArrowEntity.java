@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,8 @@ public class ArrowEntity extends AbstractArrowEntity {
         if (potionColor == -1) {
             dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) 0);
         } else {
-            dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, Potion.toTippedArrowId(potionColor));
+            // Strip out the alpha channel if it exists before sending to Bedrock
+            dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, Potion.toTippedArrowId(potionColor & 0xFFFFFF));
         }
     }
 }
