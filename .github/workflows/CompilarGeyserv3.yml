@@ -1,4 +1,4 @@
-name: Compilar Geyser 3.0 (Project Time Heist)
+name: Compilar Geyser 3.0 (Smart Heist)
 on:
   workflow_dispatch:
   schedule:
@@ -24,9 +24,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libfaketime
 
-      # --- PASO 1: PREPARAR EL PROYECTO SEÑUELO ---
-      # Creamos una carpeta 'warmup' con un build.gradle minimalista.
-      # Usamos 'transitive = false' para que SOLO baje lo que pedimos y nada más.
+      # --- PASO 1: PREPARAR EL ROBOT DE DESCARGA ---
+      # Creamos un proyecto temporal que pide los plugins problemáticos
+      # pero EXCLUYE explícitamente 'net.fabricmc'.
+      # Así, bajamos Architectury (que funciona el día 7) sin rompernos con Fabric.
       - name: Crear Proyecto de Warmup
         run: |
           mkdir -p warmup
@@ -43,29 +44,33 @@ jobs:
               warmup
           }
           dependencies {
-              // Descargamos los Plugins problemáticos
-              warmup("architectury-plugin:architectury-plugin.gradle.plugin:3.4.162") { transitive = false }
-              warmup("dev.architectury.loom:dev.architectury.loom.gradle.plugin:1.13.457") { transitive = false }
-              warmup("dev.architectury.loom-companion:dev.architectury.loom-companion.gradle.plugin:1.13.467") { transitive = false }
+              // Definimos los plugins necesarios
+              def plugins = [
+                  "architectury-plugin:architectury-plugin.gradle.plugin:3.4.162",
+                  "dev.architectury.loom:dev.architectury.loom.gradle.plugin:1.13.457",
+                  "dev.architectury.loom-companion:dev.architectury.loom-companion.gradle.plugin:1.13.467"
+              ]
               
-              // Descargamos los Jars reales que hay detrás
-              warmup("dev.architectury:architectury-plugin:3.4.162") { transitive = false }
-              warmup("dev.architectury:architectury-loom:1.13.467") { transitive = false }
+              plugins.each { plugin ->
+                  warmup(plugin) {
+                      // LA CLAVE: Excluir Fabric para que no falle el día 7
+                      exclude group: 'net.fabricmc'
+                  }
+              }
           }
           task forceDownload {
               doLast {
-                  // Esto fuerza la descarga a la caché local
+                  // Forzar la descarga a la caché
                   configurations.warmup.resolve()
-                  println ">>> Descarga de caché completada con éxito."
+                  println ">>> ¡Éxito! Plugins cacheados sin Fabric."
               }
           }
           EOF
           
-          # Archivo settings vacío para que no intente buscar nada más
           touch warmup/settings.gradle
 
       # --- PASO 2: VIAJE EN EL TIEMPO (7 ENERO) ---
-      # Ejecutamos Gradle apuntando a la carpeta 'warmup' (-p warmup)
+      # Bajamos Architectury aprovechando que su certificado es válido este día.
       - name: "Fase 1: Descarga Selectiva (7 Enero)"
         run: |
           LIBFAKETIME_PATH=$(find /usr/lib -name "libfaketime.so.1" | head -n 1)
@@ -75,7 +80,7 @@ jobs:
           
           echo ">>> FECHA SIMULADA: $(date)"
           
-          # Usamos -p para cambiar el directorio de proyecto
+          # Ejecutamos la descarga en la carpeta warmup
           ./gradlew -p warmup forceDownload --no-daemon
 
       - name: Forzar Puerto 25565
@@ -88,8 +93,8 @@ jobs:
         run: chmod +x gradlew
 
       # --- PASO 3: COMPILACIÓN REAL (PRESENTE) ---
-      # Al volver al presente, Architectury ya está descargado (del paso anterior).
-      # Fabric se descargará ahora porque la fecha actual es válida para él.
+      # Volvemos a hoy. Gradle encuentra Architectury en la caché (del paso 2).
+      # Descarga Fabric desde la red (ahora funciona porque es día 8).
       - name: "Fase 2: Compilación Final (Presente)"
         run: |
           unset LD_PRELOAD
@@ -97,7 +102,7 @@ jobs:
           
           echo ">>> FECHA REAL: $(date)"
           
-          # Compilamos normalmente
+          # Compilamos BungeeCord
           ./gradlew :bungeecord:build -x test --no-daemon --stacktrace
 
       - name: Subir el archivo compilado
