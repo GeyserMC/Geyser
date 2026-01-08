@@ -1,4 +1,4 @@
-name: Compilar Geyser 3.0 (Smart Heist)
+name: Compilar Geyser 3.0 (Surgical Heist)
 on:
   workflow_dispatch:
   schedule:
@@ -24,10 +24,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libfaketime
 
-      # --- PASO 1: PREPARAR EL ROBOT DE DESCARGA ---
-      # Creamos un proyecto temporal que pide los plugins problemáticos
-      # pero EXCLUYE explícitamente 'net.fabricmc'.
-      # Así, bajamos Architectury (que funciona el día 7) sin rompernos con Fabric.
+      # --- PASO 1: PREPARAR EL PROYECTO QUIRÚRGICO ---
+      # Definimos una lista exacta de artefactos con 'transitive = false'.
+      # Esto le dice a Gradle: "Dame el archivo .jar y el .pom, y CÁLLATE".
+      # No intentará buscar dependencias rotas de Fabric.
       - name: Crear Proyecto de Warmup
         run: |
           mkdir -p warmup
@@ -44,34 +44,33 @@ jobs:
               warmup
           }
           dependencies {
-              // Definimos los plugins necesarios
-              def plugins = [
-                  "architectury-plugin:architectury-plugin.gradle.plugin:3.4.162",
-                  "dev.architectury.loom:dev.architectury.loom.gradle.plugin:1.13.457",
-                  "dev.architectury.loom-companion:dev.architectury.loom-companion.gradle.plugin:1.13.467"
-              ]
+              // 1. Los Marcadores de Plugin (lo que Gradle busca primero)
+              warmup("architectury-plugin:architectury-plugin.gradle.plugin:3.4.162") { transitive = false }
+              warmup("dev.architectury.loom:dev.architectury.loom.gradle.plugin:1.13.457") { transitive = false }
+              warmup("dev.architectury.loom-companion:dev.architectury.loom-companion.gradle.plugin:1.13.467") { transitive = false }
               
-              plugins.each { plugin ->
-                  warmup(plugin) {
-                      // LA CLAVE: Excluir Fabric para que no falle el día 7
-                      exclude group: 'net.fabricmc'
-                  }
-              }
+              // 2. Los Artefactos Reales (lo que contienen el código)
+              // Sacados de tus logs de error anteriores
+              warmup("dev.architectury:architectury-plugin:3.4.162") { transitive = false }
+              warmup("dev.architectury:architectury-loom:1.13.467") { transitive = false } 
+              
+              // Por si acaso la versión varía, bajamos un par de variantes comunes
+              warmup("dev.architectury:architectury-loom:1.13.457") { transitive = false }
           }
           task forceDownload {
               doLast {
-                  // Forzar la descarga a la caché
-                  configurations.warmup.resolve()
-                  println ">>> ¡Éxito! Plugins cacheados sin Fabric."
+                  // Resolvemos. Al ser transitive=false, no buscará en Fabric.
+                  configurations.warmup.resolve().each { println ">>> Cacheado: " + it.name }
               }
           }
           EOF
           
+          # Archivo settings vacío crítico para aislar el entorno
           touch warmup/settings.gradle
 
       # --- PASO 2: VIAJE EN EL TIEMPO (7 ENERO) ---
-      # Bajamos Architectury aprovechando que su certificado es válido este día.
-      - name: "Fase 1: Descarga Selectiva (7 Enero)"
+      # Robamos los archivos de Architectury antes de que caduquen.
+      - name: "Fase 1: Robo de Cache (7 Enero)"
         run: |
           LIBFAKETIME_PATH=$(find /usr/lib -name "libfaketime.so.1" | head -n 1)
           export LD_PRELOAD="$LIBFAKETIME_PATH"
@@ -80,7 +79,7 @@ jobs:
           
           echo ">>> FECHA SIMULADA: $(date)"
           
-          # Ejecutamos la descarga en la carpeta warmup
+          # Ejecutamos en la carpeta warmup (-p warmup) para evitar el error de la V5
           ./gradlew -p warmup forceDownload --no-daemon
 
       - name: Forzar Puerto 25565
@@ -93,8 +92,10 @@ jobs:
         run: chmod +x gradlew
 
       # --- PASO 3: COMPILACIÓN REAL (PRESENTE) ---
-      # Volvemos a hoy. Gradle encuentra Architectury en la caché (del paso 2).
-      # Descarga Fabric desde la red (ahora funciona porque es día 8).
+      # Volvemos a hoy. 
+      # 1. Gradle pide Architectury -> Ya lo tiene en caché (del paso 2).
+      # 2. Gradle pide dependencias de Architectury (Fabric) -> Las busca en la red.
+      # 3. La red (hoy) tiene certificados válidos para Fabric. -> Éxito.
       - name: "Fase 2: Compilación Final (Presente)"
         run: |
           unset LD_PRELOAD
