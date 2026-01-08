@@ -1,4 +1,4 @@
-name: Compilar Geyser 3.0 (Time Heist)
+name: Compilar Geyser 3.0 (Time Stitching)
 on:
   workflow_dispatch:
   schedule:
@@ -24,47 +24,73 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libfaketime
 
-      - name: Forzar Puerto 25565
+      # --- PASO 1: PREPARAR EL SCRIPT DE CACHÉ ---
+      # Creamos un archivo gradle temporal que solo pide las librerías de Architectury
+      # pero SIN pedir las de Fabric (transitive = false).
+      - name: Crear Script de Warmup
         run: |
-          archivo="bootstrap/bungeecord/src/main/java/org/geysermc/geyser/platform/bungeecord/GeyserBungeePlugin.java"
-          sed -i 's/return findCompatibleListener().*mapToInt.*;/return 25565;/g' $archivo
-          
-          echo "--- Verificación del código ---"
-          grep -C 5 "getServerPort" $archivo
+          cat <<EOF > warmup.gradle
+          repositories {
+              maven { url "https://maven.architectury.dev/" }
+              gradlePluginPortal()
+              mavenCentral()
+          }
+          configurations {
+              warmup
+          }
+          dependencies {
+              // Descargamos las librerías caducadas IGNORANDO sus dependencias rotas
+              warmup("architectury-plugin:architectury-plugin.gradle.plugin:3.4.162") { transitive = false }
+              warmup("dev.architectury:architectury-plugin:3.4.162") { transitive = false }
+              
+              warmup("dev.architectury.loom:dev.architectury.loom.gradle.plugin:1.13.457") { transitive = false }
+              warmup("dev.architectury:architectury-loom:1.13.467") { transitive = false }
+              
+              warmup("dev.architectury.loom-companion:dev.architectury.loom-companion.gradle.plugin:1.13.467") { transitive = false }
+          }
+          task forceDownload {
+              doLast {
+                  configurations.warmup.files.each { println "Downloaded: " + it.name }
+              }
+          }
+          EOF
 
-      - name: Dar permisos
-        run: chmod +x gradlew
-
-      # --- FASE 1: ROBAR DEPENDENCIAS DEL PASADO (Architectury) ---
-      # Viajamos al 7 de Enero para descargar las librerías que caducan el 8.
-      # Ignoramos los errores porque Fabric fallará aquí.
-      - name: "Fase 1: Time Heist (7 Enero)"
-        continue-on-error: true
+      # --- PASO 2: VIAJAR AL PASADO Y DESCARGAR ARCHITECTURY ---
+      # Vamos al 7 de Enero. Descargamos solo lo que funciona ese día.
+      - name: "Fase 1: Descarga Selectiva (7 Enero)"
         run: |
-          # Configurar viaje en el tiempo
           LIBFAKETIME_PATH=$(find /usr/lib -name "libfaketime.so.1" | head -n 1)
           export LD_PRELOAD="$LIBFAKETIME_PATH"
           export DONT_FAKE_MONOTONIC=1
           export FAKETIME="@2026-01-07 12:00:00"
           
-          echo ">>> FECHA DEL PASADO: $(date)"
-          echo ">>> Intentando descargar plugins antiguos..."
+          echo ">>> FECHA SIMULADA: $(date)"
           
-          # Ejecutamos una compilación parcial. Fallará, pero descargará lo que necesitamos.
-          ./gradlew :build-logic:tasks --no-daemon || true
+          # Ejecutamos el script de warmup
+          # Esto llena la caché con los jars de Architectury
+          ./gradlew -b warmup.gradle forceDownload --no-daemon
 
-      # --- FASE 2: COMPILAR EN EL PRESENTE (Fabric) ---
-      # Volvemos a la fecha real. Architectury ya estará en caché. Fabric descargará bien ahora.
+      - name: Forzar Puerto 25565
+        run: |
+          archivo="bootstrap/bungeecord/src/main/java/org/geysermc/geyser/platform/bungeecord/GeyserBungeePlugin.java"
+          sed -i 's/return findCompatibleListener().*mapToInt.*;/return 25565;/g' $archivo
+          grep -C 5 "getServerPort" $archivo
+
+      - name: Dar permisos
+        run: chmod +x gradlew
+
+      # --- PASO 3: VOLVER AL FUTURO Y COMPILAR ---
+      # Ya tenemos Architectury en caché. Ahora estamos en el presente.
+      # Gradle descargará Fabric (que funciona hoy) y usará lo cacheado del pasado.
       - name: "Fase 2: Compilación Final (Presente)"
         run: |
-          # Desactivar viaje en el tiempo (volvemos a la fecha real del servidor)
+          # Aseguramos que no hay variables de tiempo activas
           unset LD_PRELOAD
           unset FAKETIME
           
-          echo ">>> FECHA ACTUAL: $(date)"
-          echo ">>> Reanudando compilación con caché mixta..."
+          echo ">>> FECHA REAL: $(date)"
           
-          # Compilamos de verdad
+          # Compilamos usando la caché mixta
           ./gradlew :bungeecord:build -x test --no-daemon --stacktrace
 
       - name: Subir el archivo compilado
