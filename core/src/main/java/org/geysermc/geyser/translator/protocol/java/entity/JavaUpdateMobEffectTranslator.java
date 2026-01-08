@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,12 +30,12 @@ import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.level.EffectType;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.EntityEffectCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundUpdateMobEffectPacket;
 
 import java.util.Collections;
@@ -71,7 +71,7 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
         mobEffectPacket.setRuntimeEntityId(entity.getGeyserId());
         mobEffectPacket.setParticles(packet.isShowParticles());
         mobEffectPacket.setAmbient(packet.isAmbient());
-        mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(packet.getEffect()));
+        mobEffectPacket.setEffectId(EffectType.fromJavaEffect(packet.getEffect()).getBedrockId());
         session.sendUpstreamPacket(mobEffectPacket);
 
         // Bedrock expects some attributes to be updated in the same tick as the effect causing them

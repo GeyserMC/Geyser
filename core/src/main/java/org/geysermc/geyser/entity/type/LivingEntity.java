@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,9 +37,12 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.level.EffectType;
 import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.HappyGhastVehicleComponent;
@@ -68,7 +71,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -244,32 +246,51 @@ public class LivingEntity extends Entity {
     // TODO: support all particle types
     public void setParticles(ObjectEntityMetadata<List<Particle>> entityMetadata) {
         List<Particle> particles = entityMetadata.getValue();
-        float r = 0f;
-        float g = 0f;
-        float b = 0f;
 
         int count = 0;
+        long visibleEffects = 0L;
         for (Particle particle : particles) {
-            if (particle.getType() != ParticleType.ENTITY_EFFECT) {
+            EffectType effectType = null;
+
+            // Some particles are unique types on java, so we have to map them manually
+            switch (particle.getType()) {
+                case ENTITY_EFFECT -> effectType = EffectType.fromColor(((ColorParticleData) particle.getData()).getColor());
+                case INFESTED -> effectType = EffectType.INFESTED;
+                case ITEM_SLIME -> effectType = EffectType.OOZING;
+                case ITEM_COBWEB -> effectType = EffectType.WEAVING;
+                case SMALL_GUST -> effectType = EffectType.WIND_CHARGED;
+                case TRIAL_OMEN -> effectType = EffectType.TRIAL_OMEN;
+                case RAID_OMEN -> effectType = EffectType.RAID_OMEN;
+            }
+
+            // If we couldn't map it, skip it
+            if (effectType == null) {
+                GeyserImpl.getInstance().getLogger().debug("Could not map particle " + particle.getType() + " to an effect for entity " + this.entityId);
                 continue;
             }
 
-            int color = ((ColorParticleData) particle.getData()).getColor();
-            r += ((color >> 16) & 0xFF) / 255f;
-            g += ((color >> 8) & 0xFF) / 255f;
-            b += ((color) & 0xFF) / 255f;
+            int bedrockEffectId = effectType.getBedrockId();
+            int ambient = 0; // We don't get this passed from java so assume false. BDS does the same.
+            int effectBits = (bedrockEffectId & 0x3F) << 1 | ambient;
+
+            // Add the new effect to the bitfield, not sure why they are 7 not 8 but Mojank I guess
+            visibleEffects = (visibleEffects << 7) | effectBits;
+
             count++;
+
+            // Bedrock only supports showing 8 effects at a time
+            if (count >= 8) {
+                break;
+            }
         }
 
-        int result = 0;
-        if (count > 0) {
-            r = r / count * 255f;
-            g = g / count * 255f;
-            b = b / count * 255f;
-            result = (int) r << 16 | (int) g << 8 | (int) b;
+        // If we got particles but none could be mapped to an effect, don't update
+        // Not sure if this is the correct behavior, but seems reasonable
+        if (count == 0 && !particles.isEmpty()) {
+            return;
         }
 
-        dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, result);
+        dirtyMetadata.put(EntityDataTypes.VISIBLE_MOB_EFFECTS, visibleEffects);
     }
 
     public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
