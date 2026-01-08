@@ -1,4 +1,4 @@
-name: Compilar Geyser 3.0 (SSL Bypass)
+name: Compilar Geyser 3.0 (Time Travel)
 on:
   workflow_dispatch:
   schedule:
@@ -19,39 +19,15 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # --- HACK EXTREMO PARA SSL EXPIRADO ---
-      - name: Desactivar Verificación SSL (Hack Global)
+      # --- NUEVA ESTRATEGIA: MÁQUINA DEL TIEMPO ---
+      - name: Instalar Time Travel (libfaketime)
         run: |
-          mkdir -p ~/.gradle/init.d
-          cat <<EOF > ~/.gradle/init.d/ignore-ssl.gradle
-          import java.security.SecureRandom
-          import java.security.cert.X509Certificate
-          import javax.net.ssl.*
-          
-          // Este script fuerza a Java a confiar en TODO, incluso certificados expirados
-          class TrustAll implements X509TrustManager {
-              void checkClientTrusted(X509Certificate[] chain, String authType) {}
-              void checkServerTrusted(X509Certificate[] chain, String authType) {}
-              X509Certificate[] getAcceptedIssuers() { return [] }
-          }
-          
-          try {
-              def trustAll = [new TrustAll()] as TrustManager[]
-              def sc = SSLContext.getInstance("SSL")
-              sc.init(null, trustAll, new SecureRandom())
-              HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory())
-              HttpsURLConnection.setDefaultHostnameVerifier({ hostname, session -> true } as HostnameVerifier)
-              println ">>> SSL SECURITY DISABLED: Certificados expirados serán aceptados."
-          } catch (Exception e) {
-              e.printStackTrace()
-          }
-          EOF
+          sudo apt-get update
+          sudo apt-get install -y libfaketime
 
       - name: Forzar Puerto 25565 (Corrección del Bug)
         run: |
           archivo="bootstrap/bungeecord/src/main/java/org/geysermc/geyser/platform/bungeecord/GeyserBungeePlugin.java"
-          
-          # Aplicamos el parche del puerto
           sed -i 's/return findCompatibleListener().*mapToInt.*;/return 25565;/g' $archivo
           
           echo "--- Verificación del código modificado ---"
@@ -60,12 +36,22 @@ jobs:
       - name: Dar permisos al compilador
         run: chmod +x gradlew
 
-      - name: Compilar SOLO BungeeCord
-        uses: gradle/gradle-build-action@v2
-        with:
-          # -x test: Salta los tests para ir más rápido y evitar errores extra
-          # --stacktrace: Nos da detalles si falla algo más
-          arguments: :bungeecord:build -x test --stacktrace
+      # --- COMPILACIÓN CON FECHA FALSA ---
+      - name: Compilar BungeeCord (Simulando ser ayer)
+        run: |
+          # Configuramos la "Mentira Temporal"
+          # Esto hace que Java crea que estamos 2 días en el pasado
+          # Así el certificado expirado parecerá válido.
+          export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/faketime/libfaketime.so.1
+          export FAKETIME="-2d"
+          
+          echo "Fecha real del servidor:"
+          date
+          echo "Fecha simulada para Gradle:"
+          /usr/bin/faketime "-2d" date
+          
+          # Ejecutamos Gradle directamente bajo el efecto del tiempo falso
+          /usr/bin/faketime "-2d" ./gradlew :bungeecord:build -x test --no-daemon --stacktrace
 
       - name: Subir el archivo compilado
         uses: actions/upload-artifact@v4
