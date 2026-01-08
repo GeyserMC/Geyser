@@ -35,7 +35,8 @@ jobs:
       - name: Dar permisos al compilador
         run: chmod +x gradlew
 
-      - name: Compilar BungeeCord (Fecha Fija: 7 Enero)
+      # --- CORRECCIÓN DE SINTAXIS AQUÍ (Comillas añadidas) ---
+      - name: "Compilar BungeeCord (Fecha Fija: 7 Enero)"
         run: |
           # Buscamos la librería
           LIBFAKETIME_PATH=$(find /usr/lib -name "libfaketime.so.1" | head -n 1)
@@ -50,9 +51,7 @@ jobs:
           export DONT_FAKE_MONOTONIC=1
           
           # FIJAMOS LA FECHA AL 7 DE ENERO DE 2026
-          # Esta fecha es MÁGICA: 
-          # - Es DESPUÉS del 6 de Enero (Gradle funciona)
-          # - Es ANTES del 8 de Enero (Architectury funciona)
+          # Esta fecha es válida para ambos certificados (Gradle y Architectury)
           export FAKETIME="@2026-01-07 12:00:00"
           
           echo "--- FECHA SIMULADA ---"
