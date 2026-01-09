@@ -83,6 +83,11 @@ public class MinecartEntity extends Entity implements Tickable {
 
     @Override
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        if (session.isUsingExperimentalMinecartLogic()) {
+            super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
+            return;
+        }
+
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
@@ -101,6 +106,11 @@ public class MinecartEntity extends Entity implements Tickable {
 
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        if (session.isUsingExperimentalMinecartLogic()) {
+            super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+            return;
+        }
+
         if ((relX != 0 || relY != 0 || relZ != 0) && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
             this.dirtyPitch = pitch != this.pitch;
             this.dirtyYaw = yaw != this.yaw;
