@@ -110,6 +110,17 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         session.getEntityCache().spawnEntity(this);
     }
 
+    // The player already lerps on bedrock, so don't lerp on our side!
+    @Override
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
+    }
+
+    @Override
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    }
+
     @Override
     public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
