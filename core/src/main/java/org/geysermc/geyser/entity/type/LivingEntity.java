@@ -430,7 +430,7 @@ public class LivingEntity extends Entity implements Tickable {
 
         this.lerpPosition = position;
 
-        // It's vanilla behaviour to lerp if the position is within 16 blocks, however we also check if the position is close enough to the player
+        // It's vanilla behaviour to lerp if the position is within 64 blocks, however we also check if the position is close enough to the player
         // position to see if it can actually affect anything to save network.
         if (shouldLerp() && position.distanceSquared(this.position) < 4096 && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
             this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = true;
