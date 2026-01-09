@@ -108,7 +108,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         }
 
         if (!moveEntityDeltaPacket.getFlags().isEmpty()) {
-            session.sendUpstreamPacket(moveEntityDeltaPacket);
+            session.getQueuedImmediatelyPackets().add(moveEntityDeltaPacket);
         }
     }
 
