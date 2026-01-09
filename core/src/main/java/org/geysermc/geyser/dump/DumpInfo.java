@@ -334,10 +334,12 @@ public class DumpInfo {
                               @SerializedName("git.branch") String branchName, @SerializedName("git.remote.origin.url") String originUrl) {
     }
 
-    public record PackInfo(String name, String type) {
+    public record PackInfo(String name, String type, String size) {
 
         public PackInfo(ResourcePackHolder holder) {
-            this(holder.pack().manifest().header().name(), holder.codec().getClass().getSimpleName());
+            this(holder.pack().manifest().header().name(),
+                holder.codec().getClass().getSimpleName(),
+                String.format("%.2f MB", holder.codec().size() / 1_000_000F));
         }
     }
 
