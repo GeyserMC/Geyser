@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,36 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser;
+package org.geysermc.geyser.configuration;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public final class Constants {
-    public static final URI GLOBAL_API_WS_URI;
-
-    public static final String NEWS_OVERVIEW_URL = "https://api.geysermc.org/v2/news/";
-    public static final String NEWS_PROJECT_NAME = "geyser";
-
-    public static final String FLOODGATE_DOWNLOAD_LOCATION = "https://geysermc.org/download#floodgate";
-    public static final String GEYSER_DOWNLOAD_LOCATION = "https://geysermc.org/download";
-    static final String SAVED_AUTH_CHAINS_FILE = "saved-auth-chains.json";
-
-    public static final String GEYSER_CUSTOM_NAMESPACE = "geyser_custom";
-
-    public static final String MINECRAFT_SKIN_SERVER_URL = "https://textures.minecraft.net/texture/";
-
-    public static final int CONFIG_VERSION = 6;
-
-    public static final int BSTATS_ID = 5273;
-
-    static {
-        URI wsUri = null;
-        try {
-            wsUri = new URI("wss://api.geysermc.org/ws");
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-        GLOBAL_API_WS_URI = wsUri;
-    }
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface IncludePlatform {
+    String[] platforms();
 }

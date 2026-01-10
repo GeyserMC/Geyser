@@ -175,6 +175,7 @@ public class ConfigMigrations {
             })
 
             .build())
+            .addVersion(6, ConfigurationTransformation.empty())
         .build();
 
     static TransformAction renameAndMove(String... newPath) {

@@ -293,6 +293,12 @@ public interface GeyserConfig {
         boolean emotesEnabled();
 
         @Comment("""
+            Whether to remove legacy text formatting codes used by Bedrock players.
+            """)
+        @DefaultBoolean(true)
+        boolean blockLegacyCodes();
+
+        @Comment("""
             Which item to use to mark unavailable slots in a Bedrock player inventory. Examples of this are the 2x2 crafting grid while in creative,
             or custom inventory menus with sizes different from the usual 3x9. A barrier block is the default item.
             This config option can be set to any Bedrock item identifier. If you want to set this to a custom item, make sure that you specify the item in the following format: "geyser_custom:<mapping-name>"
@@ -407,6 +413,14 @@ public interface GeyserConfig {
                 2) You run Velocity or BungeeCord with the option enabled in the proxy's main config.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         boolean useHaproxyProtocol();
+
+        @Comment("""
+            Selects which BungeeCord listener Geyser should connect to, based on the listener's bind address and port.
+            This config option must only be set when there are more than one listeners configured in the BungeeCord config.
+            Example: "0.0.0.0:25577"
+            """)
+        @IncludePlatform(platforms = {"BungeeCord"})
+        String bungeeListener();
 
         @Comment("""
         Whether to connect directly into the Java server without creating a TCP connection.

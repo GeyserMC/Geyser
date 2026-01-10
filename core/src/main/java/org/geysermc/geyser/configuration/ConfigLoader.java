@@ -186,6 +186,7 @@ public final class ConfigLoader {
             .nodeStyle(NodeStyle.BLOCK)
             .defaultOptions(options -> InterfaceDefaultOptions.addTo(options, builder -> {
                         builder.addProcessor(ExcludePlatform.class, excludePlatform(platformType.platformName()))
+                            .addProcessor(IncludePlatform.class, includePlatform(platformType.platformName()))
                             .addProcessor(PluginSpecific.class, integrationSpecific(platformType != PlatformType.STANDALONE));
                 })
                 .shouldCopyDefaults(false) // If we use ConfigurationNode#get(type, default), do not write the default back to the node.
@@ -198,6 +199,18 @@ public final class ConfigLoader {
         return (data, fieldType) -> (value, destination) -> {
             for (String platform : data.platforms()) {
                 if (thisPlatform.equals(platform)) {
+                    //noinspection DataFlowIssue
+                    destination.parent().removeChild(destination.key());
+                    break;
+                }
+            }
+        };
+    }
+
+    private static Processor.Factory<IncludePlatform, Object> includePlatform(String thisPlatform) {
+        return (data, fieldType) -> (value, destination) -> {
+            for (String platform : data.platforms()) {
+                if (!thisPlatform.equals(platform)) {
                     //noinspection DataFlowIssue
                     destination.parent().removeChild(destination.key());
                     break;
