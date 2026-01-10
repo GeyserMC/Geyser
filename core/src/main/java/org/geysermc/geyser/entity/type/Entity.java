@@ -78,6 +78,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Boolea
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -156,6 +157,7 @@ public class Entity implements GeyserEntity {
     /**
      * A container storing all current metadata for an entity.
      */
+    // TODO only store what is needed for API
     protected final Map<EntityDataType<?>, Object> metadata = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
@@ -871,7 +873,7 @@ public class Entity implements GeyserEntity {
 
     public void offset(float offset, boolean teleport) {
         this.offset = offset;
-        // TODO queue?
+        // TODO queue
         if (isValid() && teleport) {
             this.moveRelative(0, 0, 0, 0, 0, isOnGround());
         }

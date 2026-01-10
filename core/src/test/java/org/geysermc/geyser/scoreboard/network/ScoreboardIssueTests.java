@@ -30,12 +30,11 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.geyser.entity.type.living.monster.EnderDragonPartEntity;
+import org.geysermc.geyser.translator.protocol.java.entity.JavaAddEntityTranslator;
 import org.geysermc.geyser.translator.protocol.java.entity.JavaSetEntityDataTranslator;
 import org.geysermc.geyser.translator.protocol.java.entity.player.JavaPlayerInfoUpdateTranslator;
-import org.geysermc.geyser.translator.protocol.java.entity.JavaAddEntityTranslator;
 import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetPlayerTeamTranslator;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.PlayerListEntry;
@@ -61,7 +60,10 @@ import java.util.EnumSet;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.*;
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacket;
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketMatch;
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketType;
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -123,14 +125,6 @@ public class ScoreboardIssueTests {
                     new PlayerListEntry[] {
                         new PlayerListEntry(npcUuid, new GameProfile(npcUuid, "1297"), false, 0, GameMode.SURVIVAL, null, false, 0, null, 0, null, null)
                     }));
-
-            //todo we don't have to remove an entry that was never in the playerlist in the first place
-            assertNextPacket(context, () -> {
-                var packet = new PlayerListPacket();
-                packet.getEntries().add(new PlayerListPacket.Entry(npcUuid));
-                packet.setAction(PlayerListPacket.Action.REMOVE);
-                return packet;
-            });
             assertNoNextPacket(context);
 
             context.translate(
