@@ -105,4 +105,14 @@ public class HorseVehicleComponent extends VehicleComponent<AbstractHorseEntity>
             super.removeEffect(effect);
         }
     }
+
+    @Override
+    public boolean canFloatWhileRidden() {
+        return true;
+    }
+
+    @Override
+    public float getEyeHeight() {
+        return vehicle.isBaby() ? 0.76f : 1.52f;
+    }
 }

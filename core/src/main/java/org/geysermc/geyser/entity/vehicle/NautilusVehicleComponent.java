@@ -94,7 +94,7 @@ public class NautilusVehicleComponent extends VehicleComponent<AbstractNautilusE
     }
 
     @Override
-    protected void waterMovement(VehicleComponent<AbstractNautilusEntity>.VehicleContext ctx) {
+    protected void waterMovement(VehicleComponent<AbstractNautilusEntity>.VehicleContext ctx, double height) {
         travel(ctx, vehicle.getVehicleSpeed());
         this.vehicle.setMotion(this.vehicle.getMotion().mul(0.9f));
     }
