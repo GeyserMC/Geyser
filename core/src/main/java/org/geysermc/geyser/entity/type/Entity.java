@@ -52,6 +52,7 @@ import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
@@ -157,24 +158,22 @@ public class Entity implements GeyserEntity {
 
     protected final GeyserEntityPropertyManager propertyManager;
 
-    public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        this.session = session;
-        this.definition = definition;
+    public Entity(EntitySpawnContext context) {
+        this.session = context.session();
+        this.definition = context.entityTypeDefinition();
         this.displayName = standardDisplayName();
 
-        this.entityId = entityId;
-        this.geyserId = geyserId;
-        this.uuid = uuid;
-        this.motion = motion;
-        this.yaw = yaw;
-        this.pitch = pitch;
-        this.headYaw = headYaw;
-
+        this.entityId = context.javaId();
+        this.geyserId = context.geyserId();
+        this.uuid = context.uuid();
+        this.motion = context.motion();
+        this.yaw = context.yaw();
+        this.pitch = context.pitch();
+        this.headYaw = context.headYaw();
         this.valid = false;
-
         this.propertyManager = definition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(definition.registeredProperties());
 
-        setPosition(position);
+        setPosition(context.position());
         setAirSupply(getMaxAir());
 
         initializeMetadata();

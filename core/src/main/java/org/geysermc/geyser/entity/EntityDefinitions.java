@@ -1282,16 +1282,14 @@ public final class EntityDefinitions {
     }
 
     private static EntityDefinition<BoatEntity> buildBoat(EntityDefinition<BoatEntity> base, EntityType entityType, BoatEntity.BoatVariant variant) {
-        return EntityDefinition.inherited((session, javaId, bedrockId, uuid, definition, position, motion, yaw, pitch, headYaw) ->
-            new BoatEntity(session, javaId, bedrockId, uuid, definition, position, motion, yaw, variant), base)
+        return EntityDefinition.inherited((context) -> new BoatEntity(context, variant), base)
             .type(entityType)
             .identifier("minecraft:boat")
             .build();
     }
 
     private static EntityDefinition<ChestBoatEntity> buildChestBoat(EntityDefinition<ChestBoatEntity> base, EntityType entityType, BoatEntity.BoatVariant variant) {
-        return EntityDefinition.inherited((session, javaId, bedrockId, uuid, definition, position, motion, yaw, pitch, headYaw) ->
-                new ChestBoatEntity(session, javaId, bedrockId, uuid, definition, position, motion, yaw, variant), base)
+        return EntityDefinition.inherited((context) -> new ChestBoatEntity(context, variant), base)
             .type(entityType)
             .identifier("minecraft:chest_boat")
             .build();

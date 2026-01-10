@@ -52,7 +52,7 @@ public class JavaLoginFinishedTranslator extends PacketTranslator<ClientboundLog
         // Required, or else Floodgate players break with Spigot chunk caching
         GameProfile profile = packet.getProfile();
         playerEntity.setUsername(profile.getName());
-        playerEntity.setUuid(profile.getId());
+        playerEntity.uuid(profile.getId());
 
         session.getGeyser().getSessionManager().addSession(playerEntity.uuid(), session);
 
