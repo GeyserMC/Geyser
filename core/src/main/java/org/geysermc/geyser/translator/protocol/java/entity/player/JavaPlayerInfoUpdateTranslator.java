@@ -68,7 +68,7 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                     }
                 }
 
-                boolean self = id.equals(session.getPlayerEntity().getUuid());
+                boolean self = id.equals(session.getPlayerEntity().uuid());
 
                 PlayerEntity playerEntity;
                 if (self) {

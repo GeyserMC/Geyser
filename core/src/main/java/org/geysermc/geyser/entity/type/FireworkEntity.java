@@ -83,7 +83,7 @@ public class FireworkEntity extends Entity {
             this.attachedToSession = true;
 
             // We need to keep track of the fireworks rockets.
-            session.getAttachedFireworkRockets().add(this.getGeyserId());
+            session.getAttachedFireworkRockets().add(this.geyserId());
         } else {
             // Also ensure player stop boosting in cases like metadata changes.
             if (this.attachedToSession && session.getAttachedFireworkRockets().isEmpty()) {
@@ -112,7 +112,7 @@ public class FireworkEntity extends Entity {
         MovementEffectPacket movementEffect = new MovementEffectPacket();
         movementEffect.setDuration(duration);
         movementEffect.setEffectType(MovementEffectType.GLIDE_BOOST);
-        movementEffect.setEntityRuntimeId(session.getPlayerEntity().getGeyserId());
+        movementEffect.setEntityRuntimeId(session.getPlayerEntity().geyserId());
         movementEffect.setTick(session.getClientTicks());
         session.sendUpstreamPacket(movementEffect);
     }

@@ -114,7 +114,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
         if (ownerBedrockId == 0) {
             // If a color is set and there is no owner entity ID, set one.
             // Otherwise, the entire wolf is set to that color: https://user-images.githubusercontent.com/9083212/99209989-92691200-2792-11eb-911d-9a315c955be9.png
-            dirtyMetadata.put(EntityDataTypes.OWNER_EID, session.getPlayerEntity().getGeyserId());
+            dirtyMetadata.put(EntityDataTypes.OWNER_EID, session.getPlayerEntity().geyserId());
         }
     }
 
@@ -164,7 +164,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
             // Bone and untamed - can tame
             return InteractiveTag.TAME;
         }
-        if (getFlag(EntityFlag.TAMED) && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
+        if (getFlag(EntityFlag.TAMED) && ownerBedrockId == session.getPlayerEntity().geyserId()) {
             if (itemInHand.asItem() instanceof DyeItem dyeItem) {
                 // If this fails, as of Java Edition 1.18.1, you cannot toggle sit/stand
                 if (dyeItem.dyeColor() != this.collarColor) {
@@ -193,7 +193,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     @NonNull
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (ownerBedrockId == session.getPlayerEntity().getGeyserId() || getFlag(EntityFlag.TAMED)
+        if (ownerBedrockId == session.getPlayerEntity().geyserId() || getFlag(EntityFlag.TAMED)
                 || itemInHand.is(Items.BONE) && !getFlag(EntityFlag.ANGRY)) {
             // Sitting toggle or feeding; not angry
             return InteractionResult.CONSUME;

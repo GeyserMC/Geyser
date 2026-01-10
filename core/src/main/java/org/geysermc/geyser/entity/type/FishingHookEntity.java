@@ -65,7 +65,7 @@ public class FishingHookEntity extends ThrowableEntity {
         // so that it can be handled by moveAbsoluteImmediate.
         setBoundingBoxHeight(128);
 
-        this.bedrockOwnerId = owner.getGeyserId();
+        this.bedrockOwnerId = owner.geyserId();
         this.dirtyMetadata.put(EntityDataTypes.OWNER_EID, this.bedrockOwnerId);
     }
 
@@ -73,7 +73,7 @@ public class FishingHookEntity extends ThrowableEntity {
         int hookedEntityId = entityMetadata.getPrimitiveValue() - 1;
         Entity entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
         if (entity != null) {
-            bedrockTargetId = entity.getGeyserId();
+            bedrockTargetId = entity.geyserId();
             dirtyMetadata.put(EntityDataTypes.TARGET_EID, bedrockTargetId);
             hooked = true;
         } else {

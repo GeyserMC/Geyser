@@ -32,7 +32,6 @@ import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.UUID;
 
@@ -50,7 +49,7 @@ public class BasePiglinEntity extends MonsterEntity {
     public void setMobFlags(ByteEntityMetadata entityMetadata) {
         super.setMobFlags(entityMetadata);
         byte xd = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityDataTypes.TARGET_EID, (xd & 4) == 4 ? session.getPlayerEntity().getGeyserId() : 0);
+        dirtyMetadata.put(EntityDataTypes.TARGET_EID, (xd & 4) == 4 ? session.getPlayerEntity().geyserId() : 0);
     }
 
     public void setImmuneToZombification(BooleanEntityMetadata entityMetadata) {

@@ -81,7 +81,7 @@ public class MobEntity extends LivingEntity implements Leashable {
         if (!isAlive()) {
             // dead lol
             return InteractiveTag.NONE;
-        } else if (leashHolderBedrockId == session.getPlayerEntity().getGeyserId()) {
+        } else if (leashHolderBedrockId == session.getPlayerEntity().geyserId()) {
             return InteractiveTag.REMOVE_LEASH;
         } else {
             GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand(hand);

@@ -70,10 +70,10 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         if (packet.getType() == EntityType.PLAYER) {
 
             PlayerEntity entity;
-            if (packet.getUuid().equals(session.getPlayerEntity().getUuid())) {
+            if (packet.getUuid().equals(session.getPlayerEntity().uuid())) {
                 // Server is sending a fake version of the current player
                 entity = new PlayerEntity(session, packet.getEntityId(), session.getEntityCache().getNextEntityId().incrementAndGet(),
-                        session.getPlayerEntity().getUuid(), position, motion, yaw, pitch, headYaw, session.getPlayerEntity().getUsername(),
+                        session.getPlayerEntity().uuid(), position, motion, yaw, pitch, headYaw, session.getPlayerEntity().getUsername(),
                         session.getPlayerEntity().getTexturesProperty());
             } else {
                 entity = session.getEntityCache().getPlayerEntity(packet.getUuid());

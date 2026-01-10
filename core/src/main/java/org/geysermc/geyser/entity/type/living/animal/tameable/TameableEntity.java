@@ -63,7 +63,7 @@ public abstract class TameableEntity extends AnimalEntity {
             // Owner UUID of entity
             UUID uuid = entityMetadata.getValue().get();
             Entity entity;
-            if (uuid.equals(session.getPlayerEntity().getUuid())) {
+            if (uuid.equals(session.getPlayerEntity().uuid())) {
                 entity = session.getPlayerEntity();
             } else {
                 entity = session.getEntityCache().getPlayerEntity(uuid);
@@ -74,7 +74,7 @@ public abstract class TameableEntity extends AnimalEntity {
                 ownerBedrockId = Long.MAX_VALUE;
             } else {
                 // Translate to entity ID
-                ownerBedrockId = entity.getGeyserId();
+                ownerBedrockId = entity.geyserId();
             }
         } else {
             // Reset

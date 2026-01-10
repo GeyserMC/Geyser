@@ -34,24 +34,15 @@ import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.cumulus.component.util.ComponentType;
-import org.geysermc.cumulus.form.CustomForm;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ModalFormRequestPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
-import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -112,7 +103,7 @@ public class FormCache {
                     session.scheduleInEventLoop(() -> {
                         // Hack to fix the url image loading bug
                         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-                        attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                        attributesPacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
 
                         AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
                         if (attribute != null) {

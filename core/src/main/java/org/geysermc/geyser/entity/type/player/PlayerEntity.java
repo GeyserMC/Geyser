@@ -172,7 +172,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
             parrot.updateBedrockMetadata();
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             EntityLinkData.Type type = isLeft ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
-            linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.getGeyserId(), type, false, false, 0f));
+            linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.geyserId(), type, false, false, 0f));
             // Delay, or else spawned-in players won't get the link
             // TODO: Find a better solution.
             session.scheduleInEventLoop(() -> session.sendUpstreamPacket(linkPacket), 500, TimeUnit.MILLISECONDS);
@@ -219,7 +219,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
      * @return the UUID that should be used when dealing with Bedrock's tab list.
      */
     public UUID getTabListUuid() {
-        return getUuid();
+        return uuid();
     }
 
     @Override

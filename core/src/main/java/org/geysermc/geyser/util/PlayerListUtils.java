@@ -67,9 +67,9 @@ public class PlayerListUtils {
     }
 
     public static PlayerListPacket.Entry forSkullPlayerEntity(AvatarEntity entity, SerializedSkin skin) {
-        PlayerListPacket.Entry entry = new PlayerListPacket.Entry(entity.getUuid());
+        PlayerListPacket.Entry entry = new PlayerListPacket.Entry(entity.uuid());
         entry.setName(entity.getUsername());
-        entry.setEntityId(entity.getGeyserId());
+        entry.setEntityId(entity.geyserId());
         entry.setSkin(skin);
         entry.setXuid("");
         entry.setPlatformChatId("");
@@ -95,7 +95,7 @@ public class PlayerListUtils {
 
         // If we are building a PlayerListEntry for our own session we use our AuthData UUID instead of the Java UUID
         // as Bedrock expects to get back its own provided UUID
-        if (session.getPlayerEntity().getUuid().equals(uuid)) {
+        if (session.getPlayerEntity().uuid().equals(uuid)) {
             entry = new PlayerListPacket.Entry(session.getAuthData().uuid());
         } else {
             entry = new PlayerListPacket.Entry(uuid);
@@ -121,7 +121,7 @@ public class PlayerListUtils {
         if (!persistent) {
             PlayerListPacket unlistPacket = new PlayerListPacket();
             unlistPacket.setAction(PlayerListPacket.Action.REMOVE);
-            unlistPacket.getEntries().add(new PlayerListPacket.Entry(entity.getUuid()));
+            unlistPacket.getEntries().add(new PlayerListPacket.Entry(entity.uuid()));
             session.sendUpstreamPacket(unlistPacket);
         }
     }

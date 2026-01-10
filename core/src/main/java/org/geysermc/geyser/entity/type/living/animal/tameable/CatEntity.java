@@ -119,7 +119,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         boolean tamed = getFlag(EntityFlag.TAMED);
-        if (tamed && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
+        if (tamed && ownerBedrockId == session.getPlayerEntity().geyserId()) {
             // Toggle sitting
             return getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
         } else {
@@ -131,7 +131,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         boolean tamed = getFlag(EntityFlag.TAMED);
-        if (tamed && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
+        if (tamed && ownerBedrockId == session.getPlayerEntity().geyserId()) {
             return InteractionResult.SUCCESS;
         } else {
             // Attempt to feed

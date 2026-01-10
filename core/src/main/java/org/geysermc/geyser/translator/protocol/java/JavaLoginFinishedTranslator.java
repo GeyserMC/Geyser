@@ -54,10 +54,10 @@ public class JavaLoginFinishedTranslator extends PacketTranslator<ClientboundLog
         playerEntity.setUsername(profile.getName());
         playerEntity.setUuid(profile.getId());
 
-        session.getGeyser().getSessionManager().addSession(playerEntity.getUuid(), session);
+        session.getGeyser().getSessionManager().addSession(playerEntity.uuid(), session);
 
         // Check if they are not using a linked account
-        if (remoteAuthType == AuthType.OFFLINE || playerEntity.getUuid().getMostSignificantBits() == 0) {
+        if (remoteAuthType == AuthType.OFFLINE || playerEntity.uuid().getMostSignificantBits() == 0) {
             SkinManager.handleBedrockSkin(playerEntity, session.getClientData());
         }
 
