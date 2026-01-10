@@ -27,12 +27,11 @@ package org.geysermc.geyser.entity.type.living.animal.tameable;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.properties.type.StringEnumProperty;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.animal.VariantIntHolder;
 import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -40,7 +39,6 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.DyeItem;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
@@ -59,7 +57,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 public class WolfEntity extends TameableEntity implements VariantIntHolder {
 
@@ -81,8 +78,8 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     private HolderSet repairableItems = null;
     private boolean isCurseOfBinding = false;
 
-    public WolfEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public WolfEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override
@@ -114,7 +111,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
         if (ownerBedrockId == 0) {
             // If a color is set and there is no owner entity ID, set one.
             // Otherwise, the entire wolf is set to that color: https://user-images.githubusercontent.com/9083212/99209989-92691200-2792-11eb-911d-9a315c955be9.png
-            dirtyMetadata.put(EntityDataTypes.OWNER_EID, session.getPlayerEntity().getGeyserId());
+            dirtyMetadata.put(EntityDataTypes.OWNER_EID, session.getPlayerEntity().geyserId());
         }
     }
 
@@ -164,7 +161,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
             // Bone and untamed - can tame
             return InteractiveTag.TAME;
         }
-        if (getFlag(EntityFlag.TAMED) && ownerBedrockId == session.getPlayerEntity().getGeyserId()) {
+        if (getFlag(EntityFlag.TAMED) && ownerBedrockId == session.getPlayerEntity().geyserId()) {
             if (itemInHand.asItem() instanceof DyeItem dyeItem) {
                 // If this fails, as of Java Edition 1.18.1, you cannot toggle sit/stand
                 if (dyeItem.dyeColor() != this.collarColor) {
@@ -193,7 +190,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     @NonNull
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (ownerBedrockId == session.getPlayerEntity().getGeyserId() || getFlag(EntityFlag.TAMED)
+        if (ownerBedrockId == session.getPlayerEntity().geyserId() || getFlag(EntityFlag.TAMED)
                 || itemInHand.is(Items.BONE) && !getFlag(EntityFlag.ANGRY)) {
             // Sitting toggle or feeding; not angry
             return InteractionResult.CONSUME;

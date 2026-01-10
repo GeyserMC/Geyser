@@ -27,24 +27,21 @@ package org.geysermc.geyser.entity.type;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.AddPaintingPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.level.PaintingType;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.PaintingVariant;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 
-import java.util.UUID;
-
 public class PaintingEntity extends HangingEntity {
     private static final double OFFSET = -0.46875;
     private int paintingId = -1; // Ideally this would be the default painting Java uses in their metadata, but seems to depend on the current paintings loaded in the registry
     private Direction direction = Direction.SOUTH; // Default to SOUTH direction, like on Java - entity metadata should correct this when necessary
 
-    public PaintingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public PaintingEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override

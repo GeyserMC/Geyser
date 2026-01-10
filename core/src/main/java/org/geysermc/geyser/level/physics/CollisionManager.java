@@ -221,7 +221,7 @@ public class CollisionManager {
     public void recalculatePosition() {
         PlayerEntity entity = session.getPlayerEntity();
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-        movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+        movePlayerPacket.setRuntimeEntityId(entity.geyserId());
         movePlayerPacket.setPosition(entity.getPosition());
         movePlayerPacket.setRotation(entity.getBedrockRotation());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);

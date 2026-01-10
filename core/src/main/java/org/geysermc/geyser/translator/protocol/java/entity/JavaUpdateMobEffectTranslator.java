@@ -68,7 +68,7 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
         mobEffectPacket.setAmplifier(packet.getAmplifier());
         mobEffectPacket.setDuration(packet.getDuration());
         mobEffectPacket.setEvent(event);
-        mobEffectPacket.setRuntimeEntityId(entity.getGeyserId());
+        mobEffectPacket.setRuntimeEntityId(entity.geyserId());
         mobEffectPacket.setParticles(packet.isShowParticles());
         mobEffectPacket.setAmbient(packet.isAmbient());
         mobEffectPacket.setEffectId(EffectType.fromJavaEffect(packet.getEffect()).getBedrockId());
@@ -89,7 +89,7 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
             }
 
             UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-            attributesPacket.setRuntimeEntityId(entity.getGeyserId());
+            attributesPacket.setRuntimeEntityId(entity.geyserId());
             attributesPacket.setAttributes(Collections.singletonList(attribute));
             session.sendUpstreamPacket(attributesPacket);
         }

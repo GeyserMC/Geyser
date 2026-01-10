@@ -83,7 +83,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             entity.updateBedrockMetadata();
 
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-            movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+            movePlayerPacket.setRuntimeEntityId(entity.geyserId());
             movePlayerPacket.setPosition(entity.getPosition());
             movePlayerPacket.setRotation(entity.getBedrockRotation());
             movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
@@ -141,7 +141,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
             // Our motion got reset by the teleport but the deltaMovement is not 0 so send a motion packet to fix that.
             SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
-            entityMotionPacket.setRuntimeEntityId(entity.getGeyserId());
+            entityMotionPacket.setRuntimeEntityId(entity.geyserId());
             entityMotionPacket.setMotion(entity.getMotion());
             session.sendUpstreamPacket(entityMotionPacket);
 

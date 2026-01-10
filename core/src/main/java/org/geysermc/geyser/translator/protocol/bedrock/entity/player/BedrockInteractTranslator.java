@@ -52,7 +52,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
     @Override
     public void translate(GeyserSession session, InteractPacket packet) {
         Entity entity;
-        if (packet.getRuntimeEntityId() == session.getPlayerEntity().getGeyserId()) {
+        if (packet.getRuntimeEntityId() == session.getPlayerEntity().geyserId()) {
             //Player is not in entity cache
             entity = session.getPlayerEntity();
         } else {
@@ -89,13 +89,13 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                             return;
                         }
 
-                        long vehicleBedrockId = currentVehicle.getGeyserId();
-                        if (session.getPlayerEntity().getVehicle().getGeyserId() == vehicleBedrockId) {
+                        long vehicleBedrockId = currentVehicle.geyserId();
+                        if (session.getPlayerEntity().getVehicle().geyserId() == vehicleBedrockId) {
                             // The Bedrock client, as of 1.19.51, dismounts on its end. The server may not agree with this.
                             // If the server doesn't agree with our dismount (sends a packet saying we dismounted),
                             // then remount the player.
                             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-                            linkPacket.setEntityLink(new EntityLinkData(vehicleBedrockId, session.getPlayerEntity().getGeyserId(), EntityLinkData.Type.PASSENGER, true, false, 0f));
+                            linkPacket.setEntityLink(new EntityLinkData(vehicleBedrockId, session.getPlayerEntity().geyserId(), EntityLinkData.Type.PASSENGER, true, false, 0f));
                             session.sendUpstreamPacket(linkPacket);
                         }
                     }, 1, TimeUnit.SECONDS));

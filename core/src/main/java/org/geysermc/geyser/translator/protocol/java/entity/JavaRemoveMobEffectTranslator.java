@@ -52,7 +52,7 @@ public class JavaRemoveMobEffectTranslator extends PacketTranslator<ClientboundR
 
         MobEffectPacket mobEffectPacket = new MobEffectPacket();
         mobEffectPacket.setEvent(MobEffectPacket.Event.REMOVE);
-        mobEffectPacket.setRuntimeEntityId(entity.getGeyserId());
+        mobEffectPacket.setRuntimeEntityId(entity.geyserId());
         mobEffectPacket.setEffectId(EffectType.fromJavaEffect(packet.getEffect()).getBedrockId());
         session.sendUpstreamPacket(mobEffectPacket);
     }

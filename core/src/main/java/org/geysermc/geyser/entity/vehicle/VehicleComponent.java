@@ -750,7 +750,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         Vector3f bedrockPos = javaPos.toFloat();
 
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
-        moveEntityDeltaPacket.setRuntimeEntityId(vehicle.getGeyserId());
+        moveEntityDeltaPacket.setRuntimeEntityId(vehicle.geyserId());
 
         if (vehicle.isOnGround()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
