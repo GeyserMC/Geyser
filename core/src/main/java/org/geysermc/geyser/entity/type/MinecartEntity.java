@@ -220,7 +220,7 @@ public class MinecartEntity extends Entity implements Tickable {
         if (javaTypeDefinition == VanillaEntities.CHEST_MINECART || javaTypeDefinition == VanillaEntities.HOPPER_MINECART) {
             return InteractiveTag.OPEN_CONTAINER;
         } else {
-            if (session.isSneaking() || definition == EntityDefinitions.TNT_MINECART) {
+            if (session.isSneaking() || javaTypeDefinition == VanillaEntities.TNT_MINECART) {
                 return InteractiveTag.NONE;
             } else if (!passengers.isEmpty()) {
                 // Can't enter if someone is inside

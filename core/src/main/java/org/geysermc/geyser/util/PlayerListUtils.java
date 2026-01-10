@@ -69,7 +69,7 @@ public class PlayerListUtils {
     public static PlayerListPacket.Entry forSkullPlayerEntity(AvatarEntity entity, SerializedSkin skin) {
         PlayerListPacket.Entry entry = new PlayerListPacket.Entry(entity.getUuid());
         entry.setName(entity.getUsername());
-        entry.setEntityId(entity.getGeyserId());
+        entry.setEntityId(entity.geyserId());
         entry.setSkin(skin);
         entry.setXuid("");
         entry.setPlatformChatId("");
