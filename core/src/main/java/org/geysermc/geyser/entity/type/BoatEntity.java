@@ -140,6 +140,11 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         moveRelative(0, 0, 0, yaw + 90, 0, 0, isOnGround);
     }
 
+    @Override
+    public Vector3f position() {
+        return this.position.down(definition.offset());
+    }
+
     public void setPaddlingLeft(BooleanEntityMetadata entityMetadata) {
         isPaddlingLeft = entityMetadata.getPrimitiveValue();
         if (!isPaddlingLeft) {

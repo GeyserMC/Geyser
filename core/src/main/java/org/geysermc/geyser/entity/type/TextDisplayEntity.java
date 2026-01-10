@@ -88,6 +88,11 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     @Override
+    public Vector3f position() {
+        return this.position.down(definition.offset());
+    }
+
+    @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Remove armor stand body / hitbox

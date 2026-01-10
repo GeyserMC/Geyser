@@ -33,6 +33,7 @@ import org.geysermc.geyser.entity.type.FallingBlockEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.HangingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
@@ -59,6 +60,12 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         if (definition == null) {
             session.getGeyser().getLogger().debug("Could not find an entity definition with type " + packet.getType());
             return;
+        }
+
+        final SessionPlayerEntity playerEntity = session.getPlayerEntity();
+        Integer lastRemovedVehicle = session.getPlayerEntity().getLastRemovedVehicle();
+        if (lastRemovedVehicle != null && lastRemovedVehicle == packet.getEntityId()) {
+            playerEntity.setLastRemovedVehicle(null);
         }
 
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
