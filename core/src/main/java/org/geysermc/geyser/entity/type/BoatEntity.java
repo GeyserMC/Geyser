@@ -96,7 +96,7 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // We don't include the rotation (y) as it causes the boat to appear sideways
         setPosition(position.add(0d, this.definition.offset(), 0d));
         setYaw(yaw + 90);
@@ -122,22 +122,22 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
      * Move the boat without making the adjustments needed to translate from Java
      */
     public void moveAbsoluteWithoutAdjustments(Vector3f position, float yaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position, yaw, 0, yaw, isOnGround, teleported);
+        super.moveAbsoluteRaw(position, yaw, 0, yaw, isOnGround, teleported);
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        super.moveRelative(relX, relY, relZ, yaw, 0, yaw, isOnGround);
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelativeRaw(relX, relY, relZ, yaw, 0, yaw, isOnGround);
     }
 
     @Override
     public void updatePositionAndRotation(double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(moveX, moveY, moveZ, yaw + 90, pitch, isOnGround);
+        moveRelative(moveX, moveY, moveZ, yaw + 90, 0, 0, isOnGround);
     }
 
     @Override
     public void updateRotation(float yaw, float pitch, boolean isOnGround) {
-        moveRelative(0, 0, 0, yaw + 90, 0, 0, isOnGround);
+        moveRelativeRaw(0, 0, 0, yaw + 90, 0, 0, isOnGround);
     }
 
     public void setPaddlingLeft(BooleanEntityMetadata entityMetadata) {
