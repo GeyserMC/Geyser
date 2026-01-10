@@ -79,6 +79,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
         }
 
         session.setPendingOrCurrentBedrockInventoryId(-1);
+        session.getInventoryTransactionFuture().runCurrentIfPresent();
 
         if (holder != null) {
             // Send close confirmation to Java edition if container closing is client-initiated
