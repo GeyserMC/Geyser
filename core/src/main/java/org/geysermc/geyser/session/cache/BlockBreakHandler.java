@@ -317,13 +317,13 @@ public class BlockBreakHandler {
         } else {
             // If the block is custom or the breaking item is custom, we must keep track of break time ourselves
             ItemMapping mapping = item.getMapping(session);
-            ItemDefinition customItem = mapping.isTool() ? CustomItemTranslator.getCustomItem(item.getComponents(), mapping) : null;
+            ItemDefinition customItem = mapping.isTool() ? CustomItemTranslator.getCustomItem(session, item.getAmount(), item.getAllComponents(), mapping) : null;
             CustomBlockState blockStateOverride = BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get(state.javaId());
             SkullCache.Skull skull = session.getSkullCache().getSkulls().get(position);
 
             this.serverSideBlockBreaking = false;
             if (BlockRegistries.NON_VANILLA_BLOCK_IDS.get().get(state.javaId()) || blockStateOverride != null ||
-                customItem != null || (skull != null && skull.getBlockDefinition() != null)) {
+                customItem != null || session.getItemMappings().getNonVanillaCustomItemIds().contains(item.getJavaId()) || (skull != null && skull.getBlockDefinition() != null)) {
                 this.serverSideBlockBreaking = true;
             }
 
