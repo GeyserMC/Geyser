@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.level.EffectType;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
@@ -72,7 +73,7 @@ public class DimensionUtils {
             MobEffectPacket mobEffectPacket = new MobEffectPacket();
             mobEffectPacket.setEvent(MobEffectPacket.Event.REMOVE);
             mobEffectPacket.setRuntimeEntityId(player.getGeyserId());
-            mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(effect));
+            mobEffectPacket.setEffectId(EffectType.fromJavaEffect(effect).getBedrockId());
             session.sendUpstreamPacket(mobEffectPacket);
         }
         // Effects are re-sent from server

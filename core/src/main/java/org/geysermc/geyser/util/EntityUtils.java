@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -72,32 +72,6 @@ public final class EntityUtils {
         }
 
         return identifiers;
-    }
-
-    /**
-     * Convert Java edition effect IDs to Bedrock edition
-     *
-     * @param effect Effect to convert
-     * @return The numeric ID for the Bedrock edition effect
-     */
-    public static int toBedrockEffectId(Effect effect) {
-        return switch (effect) {
-            case GLOWING, LUCK, UNLUCK, DOLPHINS_GRACE -> 0; // All Java-exclusive effects as of 1.16.2
-            case LEVITATION -> 24;
-            case CONDUIT_POWER -> 26;
-            case SLOW_FALLING -> 27;
-            case BAD_OMEN -> 28;
-            case HERO_OF_THE_VILLAGE -> 29;
-            case DARKNESS -> 30;
-            case TRIAL_OMEN -> 31;
-            case WIND_CHARGED -> 32;
-            case WEAVING -> 33;
-            case OOZING -> 34;
-            case INFESTED -> 35;
-            case RAID_OMEN -> 36;
-            case BREATH_OF_THE_NAUTILUS -> 37;
-            default -> effect.ordinal() + 1;
-        };
     }
 
     private static float getMountedHeightOffset(Entity mount) {
