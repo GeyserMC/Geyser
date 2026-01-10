@@ -36,7 +36,7 @@ public class TNTEntity extends Entity implements Tickable {
     private int currentTick;
 
     public TNTEntity(EntitySpawnContext context) {
-        super(context.position(context.position().up(context.entityTypeDefinition().offset())));
+        super(context);
     }
 
     @Override
