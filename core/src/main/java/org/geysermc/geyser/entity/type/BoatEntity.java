@@ -26,11 +26,13 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.vehicle.BoatVehicleComponent;
@@ -75,6 +77,10 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
 
     // This is the best value, I can't really found any value that doesn't look choppy and laggy or that is not too slow, blame bedrock.
     private final float ROWING_SPEED = 0.04f;
+
+    private Vector3f lerpPosition;
+    private int lerpSteps;
+    protected boolean dirtyYaw, dirtyHeadYaw;
 
     public BoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, BoatVariant variant) {
         // Initial rotation is incorrect
@@ -123,6 +129,41 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
      */
     public void moveAbsoluteWithoutAdjustments(Vector3f position, float yaw, boolean isOnGround, boolean teleported) {
         super.moveAbsoluteRaw(position, yaw, 0, yaw, isOnGround, teleported);
+    }
+
+    @Override
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        if ((relX != 0 || relY != 0 || relZ != 0) && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+            this.dirtyYaw = yaw != this.yaw;
+            this.dirtyHeadYaw = headYaw != this.headYaw;
+
+            setYaw(yaw);
+            setPitch(0);
+            setHeadYaw(headYaw);
+
+            this.lerpPosition = Vector3f.from(lerpPosition.getX() + relX, lerpPosition.getY() + relY, lerpPosition.getZ() + relZ);
+            this.lerpSteps = 3;
+        } else {
+            super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        }
+    }
+
+    @Override
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        setYaw(yaw);
+        setPitch(pitch);
+        setHeadYaw(headYaw);
+
+        this.lerpPosition = position;
+
+        // It's vanilla behaviour to lerp if the position is within 64 blocks, however we also check if the position is close enough to the player
+        // position to see if it can actually affect anything to save network.
+        if (position.distanceSquared(this.position) < 4096 && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+            this.dirtyYaw = this.dirtyHeadYaw = true;
+            this.lerpSteps = 3;
+        } else {
+            super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
+        }
     }
 
     @Override
@@ -193,6 +234,51 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
 
     @Override
     public void tick() {
+        if (this.lerpSteps > 0) {
+            float time = 1.0f / this.lerpSteps;
+            float lerpXTotal = GenericMath.lerp(this.position.getX(), this.lerpPosition.getX(), time);
+            float lerpYTotal = GenericMath.lerp(this.position.getY(), this.lerpPosition.getY(), time);
+            float lerpZTotal = GenericMath.lerp(this.position.getZ(), this.lerpPosition.getZ(), time);
+
+            MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
+            moveEntityPacket.setRuntimeEntityId(geyserId);
+            moveEntityPacket.setX(lerpXTotal);
+            moveEntityPacket.setY(lerpYTotal);
+            moveEntityPacket.setZ(lerpZTotal);
+            moveEntityPacket.setYaw(this.yaw);
+            moveEntityPacket.setPitch(this.pitch);
+            moveEntityPacket.setHeadYaw(this.headYaw);
+            if (onGround) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+            }
+            if (lerpXTotal != this.position.getX()) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+            }
+            if (lerpYTotal != this.position.getY()) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+            }
+            if (lerpZTotal != this.position.getZ()) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+            }
+            if (this.dirtyYaw) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+            }
+            if (this.dirtyHeadYaw) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+            }
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
+
+            this.dirtyYaw = this.dirtyHeadYaw = false;
+
+            // Queue this and send it immediately later with the rest.
+            session.getQueuedImmediatelyPackets().add(moveEntityPacket);
+
+            this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
+            this.lerpSteps--;
+
+            vehicleComponent.moveAbsolute(lerpXTotal, lerpYTotal, lerpZTotal);
+        }
+
         // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
         if (session.getPlayerEntity().getVehicle() == this) {
             // For packet timing accuracy, we'll send the packets here, as that's what Java Edition 1.21.3 does.
