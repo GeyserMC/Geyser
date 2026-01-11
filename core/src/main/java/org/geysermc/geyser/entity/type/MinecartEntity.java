@@ -130,7 +130,7 @@ public class MinecartEntity extends Entity implements Tickable {
     @Override
     public void tick() {
         // This is based off Java OldMinecartBehavior class.
-        if (!session.isUsingExperimentalMinecartLogic() && this.steps > 0) {
+        if (!session.isUsingExperimentalMinecartLogic()) {
             float time = 1.0f / this.steps;
             float lerpXTotal = GenericMath.lerp(this.position.getX(), this.lerpPosition.getX(), time);
             float lerpYTotal = GenericMath.lerp(this.position.getY() - definition.offset(), this.lerpPosition.getY(), time) + definition.offset();
