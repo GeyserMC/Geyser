@@ -490,6 +490,10 @@ public class LivingEntity extends Entity implements Tickable {
 
             this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
             this.lerpSteps--;
+
+            if (this instanceof ClientVehicle vehicle) {
+                vehicle.getVehicleComponent().moveAbsolute(lerpXTotal, lerpYTotal, lerpZTotal);
+            }
         }
     }
 
