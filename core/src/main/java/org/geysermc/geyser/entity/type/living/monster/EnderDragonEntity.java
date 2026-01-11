@@ -162,11 +162,17 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
 
     @Override
     public void tick() {
+        super.tick();
         effectTick();
         if (!getFlag(EntityFlag.NO_AI) && isAlive()) {
             pushSegment();
             updateBoundingBoxes();
         }
+    }
+
+    @Override
+    public boolean shouldLerp() {
+        return false;
     }
 
     /**
@@ -208,7 +214,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
         }
         // Send updated positions
         for (EnderDragonPartEntity part : allParts) {
-             part.moveAbsolute(part.getPosition().add(position), 0, 0, 0, false, false);
+             part.moveAbsoluteRaw(part.getPosition().add(position), 0, 0, 0, false, false);
         }
     }
 

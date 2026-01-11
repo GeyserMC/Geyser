@@ -65,7 +65,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
 
     @Override
     public void updateRotation(float yaw, float pitch, boolean isOnGround) {
-        moveRelative(0, 0, 0, yaw, pitch, yaw, isOnGround);
+        moveRelativeRaw(0, 0, 0, yaw, pitch, yaw, isOnGround);
     }
 
     @Override

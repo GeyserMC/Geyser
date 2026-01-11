@@ -155,7 +155,6 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -730,6 +729,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final Queue<Runnable> latencyPingCache = new ConcurrentLinkedQueue<>();
 
     /**
+     * Queued packets to be sent immediately at the end of each tick.
+     */
+    private final List<BedrockPacket> queuedImmediatelyPackets = new ArrayList<>();
+
+    /**
      * Stores the book that is currently being read. Used in {@link org.geysermc.geyser.translator.protocol.java.inventory.JavaOpenBookTranslator}
      */
     @Setter
@@ -1174,6 +1178,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             tickThread.cancel(false);
         }
 
+        queuedImmediatelyPackets.clear();
+
         // Mark session as closed before cancelling erosion futures
         closed = true;
         erosionHandler.close();
@@ -1315,6 +1321,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             this.bundleCache.tick();
             this.dialogManager.tick();
             this.waypointCache.tick();
+
+            this.upstream.getSession().getPeer().sendPacketsImmediately(0, 0, queuedImmediatelyPackets.toArray(new BedrockPacket[0]));
+            queuedImmediatelyPackets.clear();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
