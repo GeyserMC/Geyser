@@ -63,7 +63,7 @@ public class VaultBlockEntityTranslator extends BlockEntityTranslator {
         LongList bedrockPlayers = new LongArrayList(connectedPlayers.size());
         for (int[] player : connectedPlayers) {
             UUID uuid = EntityUtils.uuidFromIntArray(player);
-            if (uuid.equals(session.getPlayerEntity().getUuid())) {
+            if (uuid.equals(session.getPlayerEntity().uuid())) {
                 bedrockPlayers.add(session.getPlayerEntity().geyserId());
             } else {
                 PlayerEntity playerEntity = session.getEntityCache().getPlayerEntity(uuid);

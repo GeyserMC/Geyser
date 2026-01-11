@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
@@ -72,7 +71,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         EntitySpawnContext context = EntitySpawnContext.fromPacket(session, definition, packet);
         if (type.is(BuiltinEntityType.PLAYER)) {
             PlayerEntity entity;
-            if (packet.getUuid().equals(session.getPlayerEntity().getUuid())) {
+            if (packet.getUuid().equals(session.getPlayerEntity().uuid())) {
                 // Server is sending a fake version of the current player
                 entity = new PlayerEntity(context, session.getPlayerEntity().getUsername(), session.getPlayerEntity().getTexturesProperty());
             } else {
@@ -85,7 +84,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
                 }
 
                 entity.setEntityId(packet.getEntityId());
-                entity.position(Vector3f.from(packet.getX(), packet.getY(), packet.getZ()));
+                entity.position(context.position());
                 entity.setYaw(packet.getYaw());
                 entity.setPitch(packet.getPitch());
                 entity.setHeadYaw(packet.getHeadYaw());

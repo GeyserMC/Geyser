@@ -35,7 +35,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.TrackedWaypo
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointOperation;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundTrackedWaypointPacket;
 
-import java.awt.Color;
+import java.awt.*;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
@@ -65,7 +65,7 @@ public final class WaypointCache {
     }
 
     public void listPlayer(PlayerEntity player) {
-        GeyserWaypoint waypoint = waypoints.get(player.getUuid().toString());
+        GeyserWaypoint waypoint = waypoints.get(player.uuid().toString());
         if (waypoint != null) {
             // This will remove the fake player packet previously sent to the client,
             // and change the waypoint to use the player's entity ID instead.
@@ -87,7 +87,7 @@ public final class WaypointCache {
     }
 
     public void unlistPlayer(PlayerEntity player) {
-        GeyserWaypoint waypoint = waypoints.get(player.getUuid().toString());
+        GeyserWaypoint waypoint = waypoints.get(player.uuid().toString());
         if (waypoint != null) {
             // This will remove the player packet previously sent to the client,
             // and change the waypoint to use the player's entity ID instead.

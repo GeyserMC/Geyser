@@ -106,7 +106,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         }
 
         if (!moveEntityDeltaPacket.getFlags().isEmpty()) {
-            session.sendUpstreamPacket(moveEntityDeltaPacket);
+            session.getQueuedImmediatelyPackets().add(moveEntityDeltaPacket);
         }
     }
 
@@ -171,13 +171,13 @@ public class ThrowableEntity extends Entity implements Tickable {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         moveAbsoluteImmediate(lastJavaPosition.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
         lastJavaPosition = position();
     }
 
     @Override
-    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         moveAbsoluteImmediate(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
         lastJavaPosition = javaPosition;
     }

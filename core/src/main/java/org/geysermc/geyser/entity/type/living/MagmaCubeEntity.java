@@ -36,15 +36,15 @@ public class MagmaCubeEntity extends SlimeEntity {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         updateJump(isOnGround);
-        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
     }
 
     @Override
-    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         updateJump(isOnGround);
-        super.moveAbsolute(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
+        super.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     public void updateJump(boolean newOnGround) {

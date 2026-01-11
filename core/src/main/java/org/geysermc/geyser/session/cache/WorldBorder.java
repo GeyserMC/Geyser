@@ -168,7 +168,7 @@ public class WorldBorder {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Move the player back, but allow gravity to take place
             // Teleported = true makes going back better, but disconnects the player from their mounted entity
-            playerEntity.moveAbsolute(Vector3f.from(playerEntity.position()), playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
+            playerEntity.moveAbsoluteRaw(Vector3f.from(playerEntity.position()), playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
         }
         return isInWorldBorder;
     }
@@ -176,6 +176,7 @@ public class WorldBorder {
     public boolean isPassingIntoBorderBoundaries(Vector3f newEntityPosition) {
         int entityX = GenericMath.floor(newEntityPosition.getX());
         int entityZ = GenericMath.floor(newEntityPosition.getZ());
+        // TODO bedrock or java pos here???
         Vector3f currentEntityPosition = session.getPlayerEntity().bedrockPosition();
         // Make sure we can't move out of the world border, but if we're out of the world border, we can move in
         return (entityX == (int) minX && currentEntityPosition.getX() > newEntityPosition.getX()) ||

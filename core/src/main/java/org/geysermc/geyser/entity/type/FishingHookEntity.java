@@ -55,8 +55,7 @@ public class FishingHookEntity extends ThrowableEntity {
     private final BoundingBox boundingBox;
 
     public FishingHookEntity(EntitySpawnContext context, PlayerEntity owner) {
-        super(context);
-        setHeadYaw(0);
+        super(context.headYaw(0));
 
         this.boundingBox = new BoundingBox(0.125, 0.125, 0.125, 0.25, 0.25, 0.25);
 

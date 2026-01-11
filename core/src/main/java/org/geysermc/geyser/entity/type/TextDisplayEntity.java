@@ -90,7 +90,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         // If the line count changed, update the position to account for the new offset
         if (previousLineCount != lineCount) {
-            moveAbsolute(position(), yaw, pitch, headYaw, onGround, false);
+            moveAbsoluteRaw(position(), yaw, pitch, headYaw, onGround, false);
         }
     }
 

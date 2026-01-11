@@ -108,7 +108,7 @@ public class SkullPlayerEntity extends AvatarEntity {
             rotation = (180f + blockState.getValue(Properties.ROTATION_16, 0) * 22.5f) % 360;
         }
 
-        moveAbsolute(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);
+        moveAbsoluteRaw(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);
     }
 
     @Override

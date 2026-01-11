@@ -81,8 +81,8 @@ public class EntitySpawnContext {
             type.height(), type.width(), type.offset(), null);
     }
 
-    public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> type, int entityId, BedrockEntityDefinition definition, float height, float width, long geyserId) {
-        this(session, type, entityId, null, definition, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, height, width, 0, geyserId);
+    public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> type, int entityId, float height, float width, long geyserId) {
+        this(session, type, entityId, null, type.defaultBedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, height, width, 0, geyserId);
     }
 
     public static EntitySpawnContext fromPacket(GeyserSession session, EntityTypeDefinition<?> definition, ClientboundAddEntityPacket packet) {
@@ -247,5 +247,13 @@ public class EntitySpawnContext {
         });
 
         return bedrockEntityDefinition == null;
+    }
+
+    // Not assigned by default - preparation for cancellable entity spawning
+    public long geyserId() {
+        if (geyserId == null) {
+            return geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
+        }
+        return geyserId;
     }
 }

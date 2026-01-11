@@ -61,7 +61,7 @@ public class ThrowableItemEntity extends ThrowableEntity {
         // Prevent projectiles from blocking the player's screen
         if (session.isTickingFrozen()) {
             // This may seem odd, but it matches java edition
-            setInvisible(session.getPlayerEntity().bedrockPosition().distanceSquared(bedrockPosition()) < 12.25);
+            setInvisible(session.getPlayerEntity().position().distanceSquared(position()) < 12.25);
         } else {
             setInvisible(age < 2);
         }

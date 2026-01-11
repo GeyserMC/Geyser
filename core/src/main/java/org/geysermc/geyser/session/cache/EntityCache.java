@@ -96,8 +96,8 @@ public class EntityCache {
         if (!entityIdTranslations.containsKey(entity.getEntityId())) {
             entityIdTranslations.put(entity.getEntityId(), entity.geyserId());
             entities.put(entity.geyserId(), entity);
-            if (entity.getUuid() != null) {
-                entityUuidTranslations.put(entity.getUuid(), entity.getEntityId());
+            if (entity.uuid() != null) {
+                entityUuidTranslations.put(entity.uuid(), entity.getEntityId());
             }
             return true;
         }
@@ -110,15 +110,15 @@ public class EntityCache {
         }
 
         if (entity instanceof PlayerEntity player) {
-            session.getPlayerWithCustomHeads().remove(player.getUuid());
+            session.getPlayerWithCustomHeads().remove(player.uuid());
         }
 
         if (entity.isValid()) {
             entity.despawnEntity();
         }
         entities.remove(entityIdTranslations.remove(entity.getEntityId()));
-        if (entity.getUuid() != null) {
-            entityUuidTranslations.removeLong(entity.getUuid());
+        if (entity.uuid() != null) {
+            entityUuidTranslations.removeLong(entity.uuid());
         }
 
         // don't track the entity anymore, now that it's removed
@@ -155,7 +155,7 @@ public class EntityCache {
     }
 
     public Entity getEntityByUuid(UUID uuid) {
-        if (uuid == session.getPlayerEntity().getUuid()) {
+        if (uuid == session.getPlayerEntity().uuid()) {
             return session.getPlayerEntity();
         }
         return entities.get(entityUuidTranslations.getLong(uuid));
@@ -164,7 +164,7 @@ public class EntityCache {
     public void addPlayerEntity(PlayerEntity entity) {
         synchronized (playerEntities) {
             // putIfAbsent matches the behavior of playerInfoMap in Java as of 1.19.3
-            boolean exists = playerEntities.putIfAbsent(entity.getUuid(), entity) != null;
+            boolean exists = playerEntities.putIfAbsent(entity.uuid(), entity) != null;
             if (exists) {
                 return;
             }

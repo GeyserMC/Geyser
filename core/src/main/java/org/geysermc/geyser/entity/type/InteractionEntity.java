@@ -118,16 +118,16 @@ public class InteractionEntity extends Entity {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveAbsolute(position().add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        moveAbsoluteRaw(position().add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
     }
 
     @Override
-    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         if (secondEntity != null) {
-            secondEntity.moveAbsolute(javaPosition.up(getBoundingBoxHeight()), yaw, pitch, headYaw, isOnGround, teleported);
+            secondEntity.moveAbsoluteRaw(javaPosition.up(getBoundingBoxHeight()), yaw, pitch, headYaw, isOnGround, teleported);
         }
-        super.moveAbsolute(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
+        super.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     public void setWidth(FloatEntityMetadata width) {
@@ -141,7 +141,7 @@ public class InteractionEntity extends Entity {
         setBoundingBoxHeight(Math.min(height.getPrimitiveValue(), 64f));
 
         if (secondEntity != null) {
-            secondEntity.moveAbsolute(position().up(getBoundingBoxHeight()), yaw, pitch, onGround, true);
+            secondEntity.moveAbsoluteRaw(position().up(getBoundingBoxHeight()), yaw, pitch, headYaw, onGround, true);
         }
     }
 

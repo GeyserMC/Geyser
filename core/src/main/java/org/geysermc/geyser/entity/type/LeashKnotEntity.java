@@ -32,10 +32,9 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 public class LeashKnotEntity extends Entity {
 
     public LeashKnotEntity(EntitySpawnContext context) {
-        super(context);
         // Position is incorrect by default
         // TODO offset
-        position(position().add(0.5f, 0.25f, 0.5f));
+        super(context.position(context.position().add(0.5f, 0.25f, 0.5f)));
     }
 
     @Override

@@ -111,24 +111,24 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     }
 
     @Override
-    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
         if (leftParrot != null) {
-            leftParrot.moveAbsolute(javaPosition, yaw, pitch, headYaw, true, teleported);
+            leftParrot.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, true, teleported);
         }
         if (rightParrot != null) {
-            rightParrot.moveAbsolute(javaPosition, yaw, pitch, headYaw, true, teleported);
+            rightParrot.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, true, teleported);
         }
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
         if (leftParrot != null) {
-            leftParrot.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, true);
+            leftParrot.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, true);
         }
         if (rightParrot != null) {
-            rightParrot.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, true);
+            rightParrot.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, true);
         }
     }
 
@@ -226,7 +226,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
      * @return the UUID that should be used when dealing with Bedrock's tab list.
      */
     public UUID getTabListUuid() {
-        return getUuid();
+        return uuid();
     }
 
     // From 1.21.8 code, should be correct since some pose should be prioritized.

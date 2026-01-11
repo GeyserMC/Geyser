@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type;
 
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -49,6 +50,7 @@ public class MinecartEntity extends Entity implements Tickable {
     private final List<MinecartStep> lerpSteps = new LinkedList<>();
     private final List<MinecartStep> currentLerpSteps = new LinkedList<>();
 
+    // NewMinecartBehavior
     private MinecartStep lastCompletedStep = new MinecartStep(Vector3d.ZERO, Vector3d. ZERO, 0.0F, 0.0F, 0.0F);
     private float currentStepsTotalWeight = 0.0F;
     private int lerpDelay = 0;
@@ -56,6 +58,11 @@ public class MinecartEntity extends Entity implements Tickable {
     private PartialStep cachedPartialStep;
     private int cachedStepDelay;
     private float cachedDelta;
+
+    // OldMinecartBehavior
+    private Vector3f lerpPosition;
+    private int steps;
+    protected boolean dirtyYaw, dirtyHeadYaw, dirtyPitch;
 
     public MinecartEntity(EntitySpawnContext context) {
         super(context);
@@ -73,8 +80,101 @@ public class MinecartEntity extends Entity implements Tickable {
     }
 
     @Override
+    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        if (session.isUsingExperimentalMinecartLogic()) {
+            super.moveAbsolute(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
+            return;
+        }
+
+        setYaw(yaw);
+        setPitch(pitch);
+        setHeadYaw(headYaw);
+
+        this.lerpPosition = javaPosition;
+
+        // It's vanilla behaviour to lerp if the position is within 64 blocks, however we also check if the position is close enough to the player
+        // position to see if it can actually affect anything to save network.
+        if (javaPosition.distanceSquared(this.position()) < 4096 && javaPosition.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+            this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = true;
+            this.steps = 3;
+        } else {
+            super.moveAbsolute(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
+        }
+    }
+
+    @Override
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        if (session.isUsingExperimentalMinecartLogic()) {
+            super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+            return;
+        }
+
+        if ((relX != 0 || relY != 0 || relZ != 0) && position().distanceSquared(session.getPlayerEntity().position()) < 4096) {
+            this.dirtyPitch = pitch != this.pitch;
+            this.dirtyYaw = yaw != this.yaw;
+            this.dirtyHeadYaw = headYaw != this.headYaw;
+
+            setYaw(yaw);
+            setPitch(pitch);
+            setHeadYaw(headYaw);
+
+            this.lerpPosition = Vector3f.from(lerpPosition.getX() + relX, lerpPosition.getY() + relY, lerpPosition.getZ() + relZ);
+            this.steps = 3;
+        } else {
+            super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        }
+    }
+
+    @Override
     public void tick() {
+        // This is based off Java OldMinecartBehavior class.
         if (!session.isUsingExperimentalMinecartLogic()) {
+            if (this.steps <= 0) {
+                return;
+            }
+
+            // TODO testme
+            float time = 1.0f / this.steps;
+            float lerpXTotal = GenericMath.lerp(position().getX(), this.lerpPosition.getX(), time);
+            float lerpYTotal = GenericMath.lerp(position().getY(), this.lerpPosition.getY(), time);
+            float lerpZTotal = GenericMath.lerp(position().getZ(), this.lerpPosition.getZ(), time);
+
+            MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
+            if (onGround) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+            }
+            if (lerpXTotal != this.position().getX()) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+            }
+            if (lerpYTotal != this.position().getY()) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+            }
+            if (lerpZTotal != this.position().getZ()) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+            }
+            if (this.dirtyYaw) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+            }
+            if (this.dirtyHeadYaw) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+            }
+            if (this.dirtyPitch) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+            }
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
+            position(Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal));
+            moveEntityPacket.setRuntimeEntityId(geyserId);
+            moveEntityPacket.setX(bedrockPosition().getX());
+            moveEntityPacket.setY(bedrockPosition().getY());
+            moveEntityPacket.setZ(bedrockPosition().getZ());
+            moveEntityPacket.setYaw(this.yaw);
+            moveEntityPacket.setPitch(this.pitch);
+            moveEntityPacket.setHeadYaw(this.headYaw);
+
+            this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = false;
+
+            session.getQueuedImmediatelyPackets().add(moveEntityPacket);
+            this.steps--;
             return;
         }
 
@@ -110,9 +210,9 @@ public class MinecartEntity extends Entity implements Tickable {
             MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
             moveEntityPacket.setRuntimeEntityId(geyserId);
 
-            moveEntityPacket.setX(position.getX());
-            moveEntityPacket.setY(position.getY() + offset);
-            moveEntityPacket.setZ(position.getZ());
+            moveEntityPacket.setX(bedrockPosition().getX());
+            moveEntityPacket.setY(bedrockPosition().getY());
+            moveEntityPacket.setZ(bedrockPosition().getZ());
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
@@ -126,8 +226,8 @@ public class MinecartEntity extends Entity implements Tickable {
             entityMotionPacket.setRuntimeEntityId(geyserId);
             entityMotionPacket.setMotion(movement);
 
-            session.sendUpstreamPacket(moveEntityPacket);
-            session.sendUpstreamPacket(entityMotionPacket);
+            session.getQueuedImmediatelyPackets().add(moveEntityPacket);
+            session.getQueuedImmediatelyPackets().add(entityMotionPacket);
         }
     }
 
@@ -198,8 +298,8 @@ public class MinecartEntity extends Entity implements Tickable {
     }
 
     @Override
-    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     @Override

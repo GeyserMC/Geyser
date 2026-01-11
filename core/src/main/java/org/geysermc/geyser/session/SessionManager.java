@@ -97,7 +97,7 @@ public final class SessionManager {
     }
 
     public void removeSession(GeyserSession session) {
-        UUID uuid = session.getPlayerEntity().getUuid();
+        UUID uuid = session.getPlayerEntity().uuid();
         if (uuid == null || sessions.remove(uuid) == null) {
             // Connection was likely pending
             pendingSessions.remove(session);

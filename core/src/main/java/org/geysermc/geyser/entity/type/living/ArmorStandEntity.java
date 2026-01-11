@@ -106,18 +106,18 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveAbsolute(position().add(relX, relY, relZ), yaw, pitch, headYaw, onGround, false);
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        moveAbsoluteRaw(position().add(relX, relY, relZ), yaw, pitch, headYaw, onGround, false);
     }
 
     @Override
-    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         if (secondEntity != null) {
-            secondEntity.moveAbsolute(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
+            secondEntity.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
         }
         // Fake the height to be above where it is so the nametag appears in the right location
         offset(getYOffset(), false);
-        super.moveAbsolute(javaPosition, yaw, yaw, yaw, isOnGround, teleported);
+        super.moveAbsoluteRaw(javaPosition, yaw, yaw, yaw, isOnGround, teleported);
     }
 
     @Override
@@ -237,7 +237,7 @@ public class ArmorStandEntity extends LivingEntity {
         super.updateBedrockMetadata();
         if (positionUpdateRequired) {
             positionUpdateRequired = false;
-            moveAbsolute(position(), yaw, pitch, headYaw, onGround, true);
+            moveAbsoluteRaw(position(), yaw, pitch, headYaw, onGround, true);
         }
     }
 

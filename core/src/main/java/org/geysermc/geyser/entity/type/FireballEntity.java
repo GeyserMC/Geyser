@@ -37,8 +37,7 @@ public class FireballEntity extends ThrowableEntity {
     protected int futureTicks = 3;
 
     public FireballEntity(EntitySpawnContext context) {
-        super(context);
-        setMotion(Vector3f.ZERO);
+        super(context.motion(Vector3f.ZERO));
 
         float magnitude = motion.length();
         if (magnitude != 0) {

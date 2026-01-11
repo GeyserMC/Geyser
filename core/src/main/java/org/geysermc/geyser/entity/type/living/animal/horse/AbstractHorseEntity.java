@@ -56,8 +56,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeT
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
-import java.util.UUID;
-
 public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
 
     private final HorseVehicleComponent vehicleComponent = new HorseVehicleComponent(this);
