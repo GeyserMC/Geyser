@@ -124,6 +124,6 @@ public class GeyserModWorldManager extends GeyserWorldManager {
     }
 
     private ServerPlayer getPlayer(GeyserSession session) {
-        return server.getPlayerList().getPlayer(session.getPlayerEntity().getUuid());
+        return server.getPlayerList().getPlayer(session.getPlayerEntity().uuid());
     }
 }

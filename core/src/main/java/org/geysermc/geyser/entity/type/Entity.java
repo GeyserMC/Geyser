@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity.type;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -51,6 +52,7 @@ import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
@@ -88,7 +90,10 @@ public class Entity implements GeyserEntity {
     protected final GeyserSession session;
 
     protected int entityId;
+
+    @Accessors(fluent = true)
     protected final long geyserId;
+    @Accessors(fluent = true)
     protected UUID uuid;
     /**
      * Do not call this setter directly!
@@ -153,24 +158,22 @@ public class Entity implements GeyserEntity {
 
     protected final GeyserEntityPropertyManager propertyManager;
 
-    public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        this.session = session;
-        this.definition = definition;
+    public Entity(EntitySpawnContext context) {
+        this.session = context.session();
+        this.definition = context.entityTypeDefinition();
         this.displayName = standardDisplayName();
 
-        this.entityId = entityId;
-        this.geyserId = geyserId;
-        this.uuid = uuid;
-        this.motion = motion;
-        this.yaw = yaw;
-        this.pitch = pitch;
-        this.headYaw = headYaw;
-
+        this.entityId = context.javaId();
+        this.geyserId = context.geyserId();
+        this.uuid = context.uuid();
+        this.motion = context.motion();
+        this.yaw = context.yaw();
+        this.pitch = context.pitch();
+        this.headYaw = context.headYaw();
         this.valid = false;
-
         this.propertyManager = definition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(definition.registeredProperties());
 
-        setPosition(position);
+        setPosition(context.position());
         setAirSupply(getMaxAir());
 
         initializeMetadata();
@@ -704,7 +707,7 @@ public class Entity implements GeyserEntity {
      */
     protected InteractiveTag testInteraction(Hand hand) {
         if (isAlive() && this instanceof Leashable leashable) {
-            if (leashable.leashHolderBedrockId() == session.getPlayerEntity().getGeyserId()) {
+            if (leashable.leashHolderBedrockId() == session.getPlayerEntity().geyserId()) {
                 // Note this might be client side. Has yet to be an issue though, as of Java 1.21.
                 return InteractiveTag.REMOVE_LEASH;
             }
@@ -732,7 +735,7 @@ public class Entity implements GeyserEntity {
                 return InteractionResult.SUCCESS;
             }
         } else if (isAlive() && this instanceof Leashable leashable) {
-            if (leashable.leashHolderBedrockId() == session.getPlayerEntity().getGeyserId()) {
+            if (leashable.leashHolderBedrockId() == session.getPlayerEntity().geyserId()) {
                 // Note this might also update client side (a theoretical Geyser/client desync and Java parity issue).
                 // Has yet to be an issue though, as of Java 1.21.
                 return InteractionResult.SUCCESS;
@@ -750,7 +753,7 @@ public class Entity implements GeyserEntity {
     public boolean hasLeashesToDrop() {
         BoundingBox searchBB = new BoundingBox(position.getX(), position.getY(), position.getZ(), 32, 32, 32);
         List<Leashable> leashedInRange = session.getEntityCache().getEntities().values().stream()
-            .filter(entity -> entity instanceof Leashable leashablex && leashablex.leashHolderBedrockId() == this.getGeyserId())
+            .filter(entity -> entity instanceof Leashable leashablex && leashablex.leashHolderBedrockId() == this.geyserId())
             .filter(entity -> {
                 BoundingBox leashedBB = new BoundingBox(entity.position.toDouble(), entity.boundingBoxWidth, entity.boundingBoxHeight, entity.boundingBoxWidth);
                 return searchBB.checkIntersection(leashedBB);
@@ -821,7 +824,7 @@ public class Entity implements GeyserEntity {
 
         if (propertyManager.hasProperties()) {
             SetEntityDataPacket packet = new SetEntityDataPacket();
-            packet.setRuntimeEntityId(getGeyserId());
+            packet.setRuntimeEntityId(geyserId());
             propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
             propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
             if (immediate) {
