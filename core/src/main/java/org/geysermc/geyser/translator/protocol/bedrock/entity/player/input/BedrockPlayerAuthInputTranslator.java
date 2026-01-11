@@ -332,7 +332,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     boat.moveAbsoluteWithoutAdjustments(position, vehicle.getYaw(), vehicle.isOnGround(), true);
                 } else {
                     // This doesn't work if teleported is false
-                    vehicle.moveAbsolute(position,
+                    vehicle.moveAbsoluteRaw(position,
                         vehicle.getYaw(), vehicle.getPitch(), vehicle.getHeadYaw(),
                         vehicle.isOnGround(), true);
                 }
