@@ -1787,7 +1787,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setCustomBiomeName("");
         startGamePacket.setEducationProductionId("");
         startGamePacket.setForceExperimentalGameplay(OptionalBoolean.empty());
-
+      
+        startGamePacket.setBlockNetworkIdsHashed(true);
+      
         String serverName = geyser.config().gameplay().serverName();
         startGamePacket.setLevelId(serverName);
         startGamePacket.setLevelName(serverName);
