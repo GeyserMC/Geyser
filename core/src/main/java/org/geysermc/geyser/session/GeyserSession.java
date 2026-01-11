@@ -91,6 +91,7 @@ import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetCommandsEnabledPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
@@ -154,7 +155,6 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -723,10 +723,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private ScheduledFuture<?> mountVehicleScheduledFuture = null;
 
     /**
-     * A cache of IDs from ClientboundKeepAlivePackets that have been sent to the Bedrock client, but haven't been returned to the server.
+     * A cache of IDs from ClientboundKeepAlivePackets or ClientboundPingPacket that have been sent to the Bedrock client, but haven't been returned to the server.
      * Only used if {@link GeyserConfig.GameplayConfig#forwardPlayerPing()} is enabled.
      */
-    private final Queue<Long> keepAliveCache = new ConcurrentLinkedQueue<>();
+    private final Queue<Runnable> latencyPingCache = new ConcurrentLinkedQueue<>();
+
+    /**
+     * Queued packets to be sent immediately at the end of each tick.
+     */
+    private final List<BedrockPacket> queuedImmediatelyPackets = new ArrayList<>();
 
     /**
      * Stores the book that is currently being read. Used in {@link org.geysermc.geyser.translator.protocol.java.inventory.JavaOpenBookTranslator}
@@ -1173,6 +1178,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             tickThread.cancel(false);
         }
 
+        queuedImmediatelyPackets.clear();
+
         // Mark session as closed before cancelling erosion futures
         closed = true;
         erosionHandler.close();
@@ -1314,6 +1321,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             this.bundleCache.tick();
             this.dialogManager.tick();
             this.waypointCache.tick();
+
+            this.upstream.getSession().getPeer().sendPacketsImmediately(0, 0, queuedImmediatelyPackets.toArray(new BedrockPacket[0]));
+            queuedImmediatelyPackets.clear();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -2445,6 +2455,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sendUpstreamPacket(packet);
     }
 
+    public void sendNetworkLatencyStackPacket(long timestamp, boolean ensureEventLoop, Runnable runnable) {
+        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
+        latencyPacket.setFromServer(true);
+        latencyPacket.setTimestamp(timestamp);
+        if (ensureEventLoop) {
+            latencyPingCache.add(() -> ensureInEventLoop(runnable));
+        } else {
+            latencyPingCache.add(runnable);
+        }
+        sendUpstreamPacket(latencyPacket);
+    }
+  
     public String getDebugInfo() {
         return "Username: %s, DeviceOs: %s, Version: %s".formatted(bedrockUsername(), platform(), version());
     }

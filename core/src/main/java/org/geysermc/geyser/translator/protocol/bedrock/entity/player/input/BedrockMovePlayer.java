@@ -233,10 +233,10 @@ final class BedrockMovePlayer {
 
         // Move parrots to match if applicable
         if (entity.getLeftParrot() != null) {
-            entity.getLeftParrot().moveAbsolute(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
+            entity.getLeftParrot().moveAbsoluteRaw(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
         }
         if (entity.getRightParrot() != null) {
-            entity.getRightParrot().moveAbsolute(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
+            entity.getRightParrot().moveAbsoluteRaw(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
         }
     }
 

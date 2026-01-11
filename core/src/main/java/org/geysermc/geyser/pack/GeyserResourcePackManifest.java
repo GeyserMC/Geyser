@@ -88,8 +88,22 @@ public record GeyserResourcePackManifest(
         public static class VersionDeserializer implements JsonDeserializer<Version> {
             @Override
             public Version deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-                JsonArray array = json.getAsJsonArray();
-                return new Version(array.get(0).getAsInt(), array.get(1).getAsInt(), array.get(2).getAsInt());
+                if (json.isJsonArray()) {
+                    JsonArray array = json.getAsJsonArray();
+                    return new Version(array.get(0).getAsInt(), array.get(1).getAsInt(), array.get(2).getAsInt());
+                }
+
+                if (json.isJsonPrimitive()) {
+                    String version = json.getAsJsonPrimitive().getAsString();
+                    String[] parts = version.split("\\.");
+
+                    int major = parts.length > 0 ? Integer.parseInt(parts[0]) : 0;
+                    int minor = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
+                    int patch = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+                    return new Version(major, minor, patch);
+                }
+
+                throw new JsonParseException("Unsure how to convert " + json + " to version");
             }
         }
     }

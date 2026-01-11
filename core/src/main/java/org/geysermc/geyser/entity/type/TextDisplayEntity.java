@@ -60,8 +60,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
-        super.moveRelative(relX, relY + definition.offset(), relZ, yaw, pitch, isOnGround);
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelativeRaw(relX, relY + definition.offset(), relZ, yaw, pitch, headYaw, isOnGround);
     }
 
     /**
@@ -78,13 +78,13 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     private float calculateLineOffset() {
         if (lineCount == 0) {
             return 0;
-        } 
+        }
         return LINE_HEIGHT_OFFSET * lineCount;
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position.add(0, calculateLineOffset(), 0), yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsoluteRaw(position.add(0, calculateLineOffset(), 0), yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     @Override
@@ -104,7 +104,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         // If the line count changed, update the position to account for the new offset
         if (previousLineCount != lineCount) {
-            moveAbsolute(position, yaw, pitch, headYaw, onGround, false);
+            moveAbsoluteRaw(position, yaw, pitch, headYaw, onGround, false);
         }
     }
 
