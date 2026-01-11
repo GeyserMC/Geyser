@@ -131,7 +131,7 @@ public class MinecartEntity extends Entity implements Tickable {
     public void tick() {
         // This is based off Java OldMinecartBehavior class.
         if (!session.isUsingExperimentalMinecartLogic()) {
-            if (this.steps < 0) {
+            if (this.steps <= 0) {
                 return;
             }
 
