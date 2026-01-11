@@ -58,6 +58,10 @@ public class MathUtils {
         return Vector3f.from(var6 * var7, -var8, var5 * var7);
     }
 
+    public static float rotLerp(float var1, float var2, float var0) {
+        return var1 + var0 * wrapDegrees(var2 - var1);
+    }
+
     /**
      * Wrap the given float degrees to be between -180.0 and 180.0.
      * 
