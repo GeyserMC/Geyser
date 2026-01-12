@@ -29,12 +29,10 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.session.GeyserSession;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class SquidEntity extends AgeableWaterEntity implements Tickable {
@@ -44,8 +42,8 @@ public class SquidEntity extends AgeableWaterEntity implements Tickable {
 
     private CompletableFuture<Boolean> inWater = CompletableFuture.completedFuture(Boolean.FALSE);
 
-    public SquidEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public SquidEntity(EntitySpawnContext context) {
+        super(context);
         this.lastPosition = position.toInt();
     }
 
