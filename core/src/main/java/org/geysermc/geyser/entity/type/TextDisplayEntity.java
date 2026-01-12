@@ -31,13 +31,10 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.UUID;
 
 // Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
 @Getter
@@ -55,13 +52,13 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     private int lineCount;
 
-    public TextDisplayEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position.add(0, definition.offset(), 0), motion, yaw, pitch, headYaw);
+    public TextDisplayEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
-        super.moveRelative(relX, relY + definition.offset(), relZ, yaw, pitch, isOnGround);
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelativeRaw(relX, relY + definition.offset(), relZ, yaw, pitch, headYaw, isOnGround);
     }
 
     /**
@@ -78,13 +75,13 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     private float calculateLineOffset() {
         if (lineCount == 0) {
             return 0;
-        } 
+        }
         return LINE_HEIGHT_OFFSET * lineCount;
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position.add(0, calculateLineOffset(), 0), yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsoluteRaw(position.add(0, calculateLineOffset(), 0), yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     @Override
@@ -104,7 +101,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         // If the line count changed, update the position to account for the new offset
         if (previousLineCount != lineCount) {
-            moveAbsolute(position, yaw, pitch, headYaw, onGround, false);
+            moveAbsoluteRaw(position, yaw, pitch, headYaw, onGround, false);
         }
     }
 

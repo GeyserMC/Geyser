@@ -211,8 +211,24 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             // Create a basic alias
             CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", values, false);
 
+            // Fetch command description
+            String description = entry.getKey().description();
+
+            // Command suggestion list is illegible if a command description contains line breaks
+            int lineBreak = description.indexOf('\n');
+            if (lineBreak >= 0) {
+                description = description.substring(0, lineBreak);
+            }
+
+            // Since 1.21.130, the maximum description length is 1000 characters
+            // https://www.minecraft.net/en-us/article/minecraft-1-21-130-bedrock-changelog
+            // As issues are still experienced at that length, truncate descriptions at 950 characters
+            if (description.length() > 950) {
+                description = description.substring(0, 947) + "...";
+            }
+
             // Build the completed command and add it to the final list
-            CommandData data = new CommandData(commandName, entry.getKey().description(), flags, CommandPermission.ANY, aliases, Collections.emptyList(), entry.getKey().paramData());
+            CommandData data = new CommandData(commandName, description, flags, CommandPermission.ANY, aliases, Collections.emptyList(), entry.getKey().paramData());
             commandData.add(data);
 
             if (commandName.equals("help")) {

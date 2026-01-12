@@ -668,6 +668,10 @@ public class ItemRegistryPopulator {
 
             ItemMappings itemMappings = ItemMappings.builder()
                     .items(mappings.toArray(new ItemMapping[0]))
+                    .zeroBlockDefinitionRuntimeId(mappings.stream()
+                        .filter(entry -> entry.isBlock() && entry.getBedrockBlockDefinition().getRuntimeId() == 0)
+                        .map(itemMapping -> itemMapping.getBedrockDefinition().getRuntimeId())
+                        .toArray(Integer[]::new))
                     .creativeItems(creativeItems)
                     .creativeItemGroups(creativeItemGroups)
                     .itemDefinitions(registry)

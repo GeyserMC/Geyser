@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
@@ -37,15 +38,18 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.packet.MobArmorEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.HappyGhastVehicleComponent;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.EffectType;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
@@ -68,18 +72,16 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
-import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Getter
 @Setter
-public class LivingEntity extends Entity {
+public class LivingEntity extends Entity implements Tickable {
     protected EnumMap<EquipmentSlot, GeyserItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
 
     @Getter(value = AccessLevel.NONE)
@@ -105,8 +107,13 @@ public class LivingEntity extends Entity {
     @Setter(AccessLevel.NONE)
     private float attributeScale;
 
-    public LivingEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    private Vector3f lerpPosition;
+    private int lerpSteps;
+    protected boolean dirtyYaw, dirtyHeadYaw, dirtyPitch;
+
+    public LivingEntity(EntitySpawnContext context) {
+        super(context);
+        this.lerpPosition = position;
     }
 
     public GeyserItemStack getItemInSlot(EquipmentSlot slot) {
@@ -244,32 +251,51 @@ public class LivingEntity extends Entity {
     // TODO: support all particle types
     public void setParticles(ObjectEntityMetadata<List<Particle>> entityMetadata) {
         List<Particle> particles = entityMetadata.getValue();
-        float r = 0f;
-        float g = 0f;
-        float b = 0f;
 
         int count = 0;
+        long visibleEffects = 0L;
         for (Particle particle : particles) {
-            if (particle.getType() != ParticleType.ENTITY_EFFECT) {
+            EffectType effectType = null;
+
+            // Some particles are unique types on java, so we have to map them manually
+            switch (particle.getType()) {
+                case ENTITY_EFFECT -> effectType = EffectType.fromColor(((ColorParticleData) particle.getData()).getColor());
+                case INFESTED -> effectType = EffectType.INFESTED;
+                case ITEM_SLIME -> effectType = EffectType.OOZING;
+                case ITEM_COBWEB -> effectType = EffectType.WEAVING;
+                case SMALL_GUST -> effectType = EffectType.WIND_CHARGED;
+                case TRIAL_OMEN -> effectType = EffectType.TRIAL_OMEN;
+                case RAID_OMEN -> effectType = EffectType.RAID_OMEN;
+            }
+
+            // If we couldn't map it, skip it
+            if (effectType == null) {
+                GeyserImpl.getInstance().getLogger().debug("Could not map particle " + particle.getType() + " to an effect for entity " + this.entityId);
                 continue;
             }
 
-            int color = ((ColorParticleData) particle.getData()).getColor();
-            r += ((color >> 16) & 0xFF) / 255f;
-            g += ((color >> 8) & 0xFF) / 255f;
-            b += ((color) & 0xFF) / 255f;
+            int bedrockEffectId = effectType.getBedrockId();
+            int ambient = 0; // We don't get this passed from java so assume false. BDS does the same.
+            int effectBits = (bedrockEffectId & 0x3F) << 1 | ambient;
+
+            // Add the new effect to the bitfield, not sure why they are 7 not 8 but Mojank I guess
+            visibleEffects = (visibleEffects << 7) | effectBits;
+
             count++;
+
+            // Bedrock only supports showing 8 effects at a time
+            if (count >= 8) {
+                break;
+            }
         }
 
-        int result = 0;
-        if (count > 0) {
-            r = r / count * 255f;
-            g = g / count * 255f;
-            b = b / count * 255f;
-            result = (int) r << 16 | (int) g << 8 | (int) b;
+        // If we got particles but none could be mapped to an effect, don't update
+        // Not sure if this is the correct behavior, but seems reasonable
+        if (count == 0 && !particles.isEmpty()) {
+            return;
         }
 
-        dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, result);
+        dirtyMetadata.put(EntityDataTypes.VISIBLE_MOB_EFFECTS, visibleEffects);
     }
 
     public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
@@ -361,6 +387,108 @@ public class LivingEntity extends Entity {
         }
 
         return super.interact(hand);
+    }
+
+    @Override
+    public void setPosition(Vector3f position) {
+        this.lerpPosition = position;
+        super.setPosition(position);
+    }
+
+    @Override
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        if (this instanceof ClientVehicle clientVehicle) {
+            if (clientVehicle.isClientControlled()) {
+                return;
+            }
+            clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
+        }
+
+        if (shouldLerp() && (relX != 0 || relY != 0 || relZ != 0) && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+            this.dirtyPitch = pitch != this.pitch;
+            this.dirtyYaw = yaw != this.yaw;
+            this.dirtyHeadYaw = headYaw != this.headYaw;
+
+            setYaw(yaw);
+            setPitch(pitch);
+            setHeadYaw(headYaw);
+
+            this.lerpPosition = Vector3f.from(lerpPosition.getX() + relX, lerpPosition.getY() + relY, lerpPosition.getZ() + relZ);
+            this.lerpSteps = 3;
+        } else {
+            super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        }
+    }
+
+    @Override
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        setYaw(yaw);
+        setPitch(pitch);
+        setHeadYaw(headYaw);
+
+        this.lerpPosition = position;
+
+        // It's vanilla behaviour to lerp if the position is within 64 blocks, however we also check if the position is close enough to the player
+        // position to see if it can actually affect anything to save network.
+        if (shouldLerp() && position.distanceSquared(this.position) < 4096 && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+            this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = true;
+            this.lerpSteps = 3;
+        } else {
+            super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
+        }
+    }
+
+    public boolean shouldLerp() {
+        return true;
+    }
+
+    @Override
+    public void tick() {
+        if (this.lerpSteps > 0) {
+            float time = 1.0f / this.lerpSteps;
+            float lerpXTotal = GenericMath.lerp(this.position.getX(), this.lerpPosition.getX(), time);
+            float lerpYTotal = GenericMath.lerp(this.position.getY(), this.lerpPosition.getY(), time);
+            float lerpZTotal = GenericMath.lerp(this.position.getZ(), this.lerpPosition.getZ(), time);
+
+            MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
+            moveEntityPacket.setRuntimeEntityId(geyserId);
+            moveEntityPacket.setX(lerpXTotal);
+            moveEntityPacket.setY(lerpYTotal);
+            moveEntityPacket.setZ(lerpZTotal);
+            moveEntityPacket.setYaw(this.yaw);
+            moveEntityPacket.setPitch(this.pitch);
+            moveEntityPacket.setHeadYaw(this.headYaw);
+            if (onGround) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+            }
+            if (lerpXTotal != this.position.getX()) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+            }
+            if (lerpYTotal != this.position.getY()) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+            }
+            if (lerpZTotal != this.position.getZ()) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+            }
+            if (this.dirtyYaw) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+            }
+            if (this.dirtyHeadYaw) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+            }
+            if (this.dirtyPitch) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+            }
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
+
+            this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = false;
+
+            // Queue this and send it immediately later with the rest.
+            session.getQueuedImmediatelyPackets().add(moveEntityPacket);
+
+            this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
+            this.lerpSteps--;
+        }
     }
 
     @Override

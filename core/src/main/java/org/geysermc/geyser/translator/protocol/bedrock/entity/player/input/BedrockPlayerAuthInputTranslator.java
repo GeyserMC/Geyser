@@ -41,7 +41,6 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.entity.type.living.animal.nautilus.AbstractNautilusEntity;
-import org.geysermc.geyser.entity.type.living.animal.nautilus.NautilusEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.HorseVehicleComponent;
@@ -180,7 +179,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     if (packet.getInputMode().equals(InputMode.TOUCH)) {
                         AnimatePacket animatePacket = new AnimatePacket();
                         animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
-                        animatePacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                        animatePacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
                         session.sendUpstreamPacket(animatePacket);
                     }
 
@@ -333,7 +332,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     boat.moveAbsoluteWithoutAdjustments(position, vehicle.getYaw(), vehicle.isOnGround(), true);
                 } else {
                     // This doesn't work if teleported is false
-                    vehicle.moveAbsolute(position,
+                    vehicle.moveAbsoluteRaw(position,
                         vehicle.getYaw(), vehicle.getPitch(), vehicle.getHeadYaw(),
                         vehicle.isOnGround(), true);
                 }

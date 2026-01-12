@@ -35,6 +35,8 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -46,7 +48,12 @@ import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class SkullCache {
     private final int maxVisibleSkulls;
@@ -197,8 +204,7 @@ public class SkullCache {
         }
         if (!cullingEnabled || totalSkullEntities < maxVisibleSkulls) {
             // Create a new entity
-            long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
-            skull.entity = new SkullPlayerEntity(session, geyserId);
+            skull.entity = new SkullPlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, UUID.randomUUID(), EntityDefinitions.PLAYER));
             skull.entity.spawnEntity();
             skull.entity.updateSkull(skull);
             totalSkullEntities++;

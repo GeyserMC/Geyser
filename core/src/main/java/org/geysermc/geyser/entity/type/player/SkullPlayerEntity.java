@@ -30,18 +30,13 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.WallSkullBlock;
 import org.geysermc.geyser.level.physics.Direction;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
-import org.geysermc.geyser.skin.SkinManager;
-import org.geysermc.geyser.util.PlayerListUtils;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -58,8 +53,8 @@ public class SkullPlayerEntity extends AvatarEntity {
     @Getter
     private Vector3i skullPosition;
 
-    public SkullPlayerEntity(GeyserSession session, long geyserId) {
-        super(session, 0, geyserId, UUID.randomUUID(), EntityDefinitions.PLAYER, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, "");
+    public SkullPlayerEntity(EntitySpawnContext context) {
+        super(context, "");
     }
 
     @Override
@@ -82,12 +77,10 @@ public class SkullPlayerEntity extends AvatarEntity {
             updateBedrockMetadata();
 
             skullUUID = skull.getUuid();
-            PlayerListUtils.batchSendPlayerList(session, List.of(SkinManager.buildCachedEntry(session, this)), PlayerListPacket.Action.ADD);
             setSkin(skull.getTexturesProperty(), false, () -> session.scheduleInEventLoop(() -> {
                 // Delay to minimize split-second "player" pop-in
                 setFlag(EntityFlag.INVISIBLE, false);
                 updateBedrockMetadata();
-                PlayerListUtils.batchSendPlayerList(session, List.of(new PlayerListPacket.Entry(uuid)), PlayerListPacket.Action.REMOVE);
             }, 250, TimeUnit.MILLISECONDS));
         } else {
             // Just a rotation/position change
@@ -115,6 +108,11 @@ public class SkullPlayerEntity extends AvatarEntity {
             rotation = (180f + blockState.getValue(Properties.ROTATION_16, 0) * 22.5f) % 360;
         }
 
-        moveAbsolute(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);
+        moveAbsoluteRaw(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);
+    }
+
+    @Override
+    public boolean isListed() {
+        return false;
     }
 }
