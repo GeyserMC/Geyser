@@ -390,12 +390,6 @@ public class LivingEntity extends Entity implements Tickable {
     }
 
     @Override
-    public void position(Vector3f position) {
-        super.position(position);
-        this.lerpPosition = position;
-    }
-
-    @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         if (this instanceof ClientVehicle clientVehicle) {
             if (clientVehicle.isClientControlled()) {
@@ -413,7 +407,7 @@ public class LivingEntity extends Entity implements Tickable {
             setPitch(pitch);
             setHeadYaw(headYaw);
 
-            this.lerpPosition = Vector3f.from(lerpPosition.getX() + relX, lerpPosition.getY() + relY, lerpPosition.getZ() + relZ);
+            this.lerpPosition = Vector3f.from(position().getX() + relX, position().getY() + relY, position().getZ() + relZ);
             this.lerpSteps = 3;
         } else {
             super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
@@ -426,12 +420,11 @@ public class LivingEntity extends Entity implements Tickable {
         setPitch(pitch);
         setHeadYaw(headYaw);
 
-        this.lerpPosition = javaPosition;
-
         // It's vanilla behaviour to lerp if the position is within 64 blocks, however we also check if the position is close enough to the player
         // position to see if it can actually affect anything to save network.
         if (shouldLerp() && javaPosition.distanceSquared(position()) < 4096 && javaPosition.distanceSquared(session.getPlayerEntity().position()) < 4096) {
             this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = true;
+            this.lerpPosition = javaPosition;
             this.lerpSteps = 3;
         } else {
             super.moveAbsolute(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
@@ -473,7 +466,7 @@ public class LivingEntity extends Entity implements Tickable {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
             }
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
-            position(Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal));
+            super.position(Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal));
             moveEntityPacket.setRuntimeEntityId(geyserId);
             moveEntityPacket.setX(bedrockPosition().getX());
             moveEntityPacket.setY(bedrockPosition().getY());
