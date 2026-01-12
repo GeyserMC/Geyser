@@ -149,4 +149,18 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
             super.removeEffect(effect);
         }
     }
+
+    @Override
+    public boolean canFloatWhileRidden() {
+        return true;
+    }
+
+    @Override
+    public float getEyeHeight() {
+        if (vehicle.getFlag(EntityFlag.STANDING)) {
+            return vehicle.isBaby() ? 1.02375f : 2.275f;
+        }
+
+        return vehicle.isBaby() ? 0.38025f : 0.845f;
+    }
 }
