@@ -144,10 +144,10 @@ public abstract class AvatarEntity extends LivingEntity {
 
     @Override
     public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        position(javaPosition);
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
+        position(javaPosition);
 
         setOnGround(isOnGround);
 
@@ -189,7 +189,7 @@ public abstract class AvatarEntity extends LivingEntity {
         if (getFlag(EntityFlag.SLEEPING)) {
             if (bedPosition != null && (bedPosition.getY() == 0 || bedPosition.distanceSquared(position().toInt()) > 4)) {
                 // Force the player movement by using a teleport
-                movePlayerPacket.setPosition(Vector3f.from(position().getX(), position().getY() - offset + 0.2f, position().getZ()));
+                movePlayerPacket.setPosition(Vector3f.from(position().getX(), position().getY() + 0.2f, position().getZ()));
                 movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
             }
         }

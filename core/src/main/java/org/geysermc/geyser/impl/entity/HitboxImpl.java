@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.impl.entity;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
@@ -47,7 +48,7 @@ public record HitboxImpl(
         }
 
         List<Hitbox> boxes = new ArrayList<>();
-        List<NbtMap> hitboxes = metaDataMap.getList("Hitxboxes", NbtType.COMPOUND);
+        List<NbtMap> hitboxes = metaDataMap.getList("Hitboxes", NbtType.COMPOUND);
         for (NbtMap hitbox : hitboxes) {
             boxes.add(new HitboxImpl(
                Vector3f.from(hitbox.getFloat("MinX"), hitbox.getFloat("MinY"), hitbox.getFloat("MinZ")),
@@ -88,21 +89,21 @@ public record HitboxImpl(
         Vector3f min, max, pivot;
 
         @Override
-        public Hitbox.Builder min(Vector3f min) {
+        public Hitbox.Builder min(@NonNull Vector3f min) {
             Objects.requireNonNull(min, "min");
             this.min = min;
             return this;
         }
 
         @Override
-        public Hitbox.Builder max(Vector3f max) {
+        public Hitbox.Builder max(@NonNull Vector3f max) {
             Objects.requireNonNull(max, "max");
             this.max = max;
             return this;
         }
 
         @Override
-        public Hitbox.Builder pivot(Vector3f pivot) {
+        public Hitbox.Builder pivot(@NonNull Vector3f pivot) {
             Objects.requireNonNull(pivot, "pivot");
             this.pivot = pivot;
             return this;
