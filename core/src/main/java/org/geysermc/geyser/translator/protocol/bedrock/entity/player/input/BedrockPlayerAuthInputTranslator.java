@@ -179,7 +179,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     if (packet.getInputMode().equals(InputMode.TOUCH)) {
                         AnimatePacket animatePacket = new AnimatePacket();
                         animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
-                        animatePacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                        animatePacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
                         session.sendUpstreamPacket(animatePacket);
                     }
 

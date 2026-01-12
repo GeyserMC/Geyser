@@ -94,7 +94,7 @@ public class SkinManager {
             // The server either didn't have a texture to send, or we didn't have the texture ID cached.
             // Let's see if this player is a Bedrock player, and if so, let's pull their skin.
             // Otherwise, grab the default player skin
-            SkinData fallbackSkinData = SkinProvider.determineFallbackSkinData(playerEntity.getUuid());
+            SkinData fallbackSkinData = SkinProvider.determineFallbackSkinData(playerEntity.uuid());
             if (skin == null) {
                 skin = fallbackSkinData.skin();
                 geometry = fallbackSkinData.geometry();
@@ -106,12 +106,12 @@ public class SkinManager {
 
         return PlayerListUtils.buildEntryManually(
                 session,
-                playerEntity.getUuid(),
+                playerEntity.uuid(),
                 playerEntity.getUsername(),
-                playerEntity.getGeyserId(),
+                playerEntity.geyserId(),
                 getSkin(session, skin.textureUrl(), skin, cape, geometry),
                 // Default to white when waypoint colour is unknown, which is the most visible
-                session.getWaypointCache().getWaypointColor(playerEntity.getUuid()).orElse(Color.WHITE)
+                session.getWaypointCache().getWaypointColor(playerEntity.uuid()).orElse(Color.WHITE)
         );
     }
 
@@ -121,14 +121,14 @@ public class SkinManager {
         SkinGeometry geometry = skinData.geometry();
 
         // Since 1.21.130: PlayerSkinPacket only works if player is listed; might as well always use the player list packet
-        if (entity.getUuid().equals(session.getPlayerEntity().getUuid()) || (GameProtocol.is1_21_130orHigher(session.protocolVersion()) && !entity.isListed())) {
+        if (entity.uuid().equals(session.getPlayerEntity().uuid()) || (GameProtocol.is1_21_130orHigher(session.protocolVersion()) && !entity.isListed())) {
             PlayerListPacket.Entry entry = PlayerListUtils.buildEntryManually(
                 session,
-                entity.getUuid(),
+                entity.uuid(),
                 entity.getUsername(),
-                entity.getGeyserId(),
+                entity.geyserId(),
                 getSkin(session, skin.textureUrl(), skin, cape, geometry),
-                session.getWaypointCache().getWaypointColor(entity.getUuid()).orElse(Color.WHITE)
+                session.getWaypointCache().getWaypointColor(entity.uuid()).orElse(Color.WHITE)
             );
 
             // Slight delay ensures skins are actually shown
@@ -137,7 +137,7 @@ public class SkinManager {
             }, 100, TimeUnit.MILLISECONDS);
         } else {
             PlayerSkinPacket packet = new PlayerSkinPacket();
-            packet.setUuid(entity.getUuid());
+            packet.setUuid(entity.uuid());
             packet.setOldSkinName("");
             packet.setNewSkinName(skin.textureUrl());
             packet.setSkin(getSkin(session, skin.textureUrl(), skin, cape, geometry));
@@ -237,7 +237,7 @@ public class SkinManager {
     public static void handleBedrockSkin(AvatarEntity playerEntity, BedrockClientData clientData) {
         GeyserImpl geyser = GeyserImpl.getInstance();
         if (geyser.config().debugMode()) {
-            geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.skin.bedrock.register", playerEntity.getUsername(), playerEntity.getUuid()));
+            geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.skin.bedrock.register", playerEntity.getUsername(), playerEntity.uuid()));
         }
 
         try {
@@ -248,8 +248,8 @@ public class SkinManager {
             byte[] geometryBytes = clientData.getGeometryData();
 
             if (skinBytes.length <= (128 * 128 * 4) && !clientData.isPersonaSkin()) {
-                SkinProvider.storeBedrockSkin(playerEntity.getUuid(), clientData.getSkinId(), skinBytes);
-                SkinProvider.storeBedrockGeometry(playerEntity.getUuid(), geometryNameBytes, geometryBytes);
+                SkinProvider.storeBedrockSkin(playerEntity.uuid(), clientData.getSkinId(), skinBytes);
+                SkinProvider.storeBedrockGeometry(playerEntity.uuid(), geometryNameBytes, geometryBytes);
             } else if (geyser.config().debugMode()) {
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.skin.bedrock.fail", playerEntity.getUsername()));
                 geyser.getLogger().debug("The size of '" + playerEntity.getUsername() + "' skin is: " + clientData.getSkinImageWidth() + "x" + clientData.getSkinImageHeight());

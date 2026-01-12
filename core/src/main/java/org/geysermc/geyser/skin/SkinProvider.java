@@ -241,10 +241,10 @@ public class SkinProvider {
         SkinManager.GameProfileData data = SkinManager.GameProfileData.from(entity);
         if (data == null) {
             // This player likely does not have a textures property
-            return CompletableFuture.completedFuture(determineFallbackSkinData(entity.getUuid()));
+            return CompletableFuture.completedFuture(determineFallbackSkinData(entity.uuid()));
         }
 
-        return requestSkinAndCape(entity.getUuid(), data.skinUrl(), data.capeUrl())
+        return requestSkinAndCape(entity.uuid(), data.skinUrl(), data.capeUrl())
                 .thenApplyAsync(skinAndCape -> {
                     try {
                         Skin skin = skinAndCape.skin();
@@ -253,17 +253,17 @@ public class SkinProvider {
 
                         // Whether we should see if this player has a Bedrock skin we should check for on failure of
                         // any skin property
-                        boolean checkForBedrock = entity.getUuid().version() != 4;
+                        boolean checkForBedrock = entity.uuid().version() != 4;
 
                         if (cape.failed() && checkForBedrock) {
-                            cape = getCachedBedrockCape(entity.getUuid());
+                            cape = getCachedBedrockCape(entity.uuid());
                         }
 
                         // Call event to allow extensions to modify the skin, cape and geo
-                        boolean isBedrock = GeyserImpl.getInstance().connectionByUuid(entity.getUuid()) != null;
+                        boolean isBedrock = GeyserImpl.getInstance().connectionByUuid(entity.uuid()) != null;
                         SkinData skinData = new SkinData(skin, cape, geometry);
                         final EventSkinData eventSkinData = new EventSkinData(skinData);
-                        GeyserImpl.getInstance().eventBus().fire(new SessionSkinApplyEvent(session, entity.getUsername(), entity.getUuid(), data.isAlex(), isBedrock, skinData) {
+                        GeyserImpl.getInstance().eventBus().fire(new SessionSkinApplyEvent(session, entity.getUsername(), entity.uuid(), data.isAlex(), isBedrock, skinData) {
                             @Override
                             public SkinData skinData() {
                                 return eventSkinData.skinData();
@@ -287,7 +287,7 @@ public class SkinProvider {
 
                         return eventSkinData.skinData();
                     } catch (Exception e) {
-                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
+                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.uuid()), e);
                     }
 
                     return new SkinData(skinAndCape.skin(), skinAndCape.cape(), null);

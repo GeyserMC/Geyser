@@ -146,7 +146,7 @@ public class PistonCache {
             playerEntity.setMotion(playerMotion);
 
             SetEntityMotionPacket setEntityMotionPacket = new SetEntityMotionPacket();
-            setEntityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+            setEntityMotionPacket.setRuntimeEntityId(playerEntity.geyserId());
             setEntityMotionPacket.setMotion(playerMotion);
             session.sendUpstreamPacket(setEntityMotionPacket);
         }

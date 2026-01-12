@@ -58,13 +58,13 @@ public class BedrockPlayerActionTranslator extends PacketTranslator<PlayerAction
                 SessionPlayerEntity entity = session.getPlayerEntity();
                 // Respawn process is finished and the server and client are both OK with respawning.
                 EntityEventPacket eventPacket = new EntityEventPacket();
-                eventPacket.setRuntimeEntityId(entity.getGeyserId());
+                eventPacket.setRuntimeEntityId(entity.geyserId());
                 eventPacket.setType(EntityEventType.RESPAWN);
                 eventPacket.setData(0);
                 session.sendUpstreamPacket(eventPacket);
                 // Resend attributes or else in rare cases the user can think they're not dead when they are, upon joining the server
                 UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-                attributesPacket.setRuntimeEntityId(entity.getGeyserId());
+                attributesPacket.setRuntimeEntityId(entity.geyserId());
                 attributesPacket.getAttributes().addAll(entity.getAttributes().values());
                 session.sendUpstreamPacket(attributesPacket);
 
@@ -112,7 +112,7 @@ public class BedrockPlayerActionTranslator extends PacketTranslator<PlayerAction
                 session.sendUpstreamPacket(spawnPacket);
 
                 UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-                attributesPacket.setRuntimeEntityId(entity.getGeyserId());
+                attributesPacket.setRuntimeEntityId(entity.geyserId());
                 attributesPacket.getAttributes().addAll(entity.getAttributes().values());
                 session.sendUpstreamPacket(attributesPacket);
             }

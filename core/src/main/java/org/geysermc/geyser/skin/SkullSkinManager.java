@@ -64,7 +64,7 @@ public class SkullSkinManager extends SkinManager {
                 PlayerListUtils.sendSkinUsingPlayerList(session, PlayerListUtils.forSkullPlayerEntity(entity, serializedSkin), entity, false);
             } else {
                 PlayerSkinPacket packet = new PlayerSkinPacket();
-                packet.setUuid(entity.getUuid());
+                packet.setUuid(entity.uuid());
                 packet.setOldSkinName("");
                 packet.setNewSkinName(skin.textureUrl());
                 packet.setSkin(serializedSkin);
@@ -87,7 +87,7 @@ public class SkullSkinManager extends SkinManager {
                 applySkin.accept(fallback.skin(), null);
             }
         } else {
-            SkinProvider.requestSkin(entity.getUuid(), data.skinUrl(), true)
+            SkinProvider.requestSkin(entity.uuid(), data.skinUrl(), true)
                     .whenCompleteAsync(applySkin);
         }
     }

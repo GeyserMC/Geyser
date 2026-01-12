@@ -25,24 +25,20 @@
 
 package org.geysermc.geyser.entity.type.living.monster;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-
-import java.util.UUID;
 
 public class VexEntity extends MonsterEntity {
 
-    public VexEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public VexEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     public void setVexFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
         // Set the target to the player to force the attack animation
         // even if the player isn't the target as we dont get the target on Java
-        dirtyMetadata.put(EntityDataTypes.TARGET_EID, (xd & 0x01) == 0x01 ? session.getPlayerEntity().getGeyserId() : 0);
+        dirtyMetadata.put(EntityDataTypes.TARGET_EID, (xd & 0x01) == 0x01 ? session.getPlayerEntity().geyserId() : 0);
     }
 }
