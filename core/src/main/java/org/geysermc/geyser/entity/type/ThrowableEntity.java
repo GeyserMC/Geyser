@@ -30,12 +30,9 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
-
-import java.util.UUID;
 
 /**
  * Used as a class for any object-like entity that moves as a projectile
@@ -44,8 +41,8 @@ public class ThrowableEntity extends Entity implements Tickable {
 
     protected Vector3f lastJavaPosition;
 
-    public ThrowableEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public ThrowableEntity(EntitySpawnContext context) {
+        super(context);
         this.lastJavaPosition = position;
     }
 
@@ -108,7 +105,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         }
 
         if (!moveEntityDeltaPacket.getFlags().isEmpty()) {
-            session.sendUpstreamPacket(moveEntityDeltaPacket);
+            session.getQueuedImmediatelyPackets().add(moveEntityDeltaPacket);
         }
     }
 
@@ -184,13 +181,13 @@ public class ThrowableEntity extends Entity implements Tickable {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         moveAbsoluteImmediate(lastJavaPosition.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
         lastJavaPosition = position;
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         moveAbsoluteImmediate(position, yaw, pitch, headYaw, isOnGround, teleported);
         lastJavaPosition = position;
     }

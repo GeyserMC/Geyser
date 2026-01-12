@@ -41,8 +41,8 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.geyser.api.skin.SkinData;
-import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
@@ -61,7 +61,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 
 public abstract class AvatarEntity extends LivingEntity {
     public static final float SNEAKING_POSE_HEIGHT = 1.5f;
@@ -94,9 +93,8 @@ public abstract class AvatarEntity extends LivingEntity {
         BASE_ABILITY_LAYER = Collections.singletonList(abilityLayer);
     }
 
-    public AvatarEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition,
-                        Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw, String username) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public AvatarEntity(EntitySpawnContext context, String username) {
+        super(context);
         this.username = username;
         this.nametag = username;
     }
@@ -134,8 +132,19 @@ public abstract class AvatarEntity extends LivingEntity {
         session.sendUpstreamPacket(addPlayerPacket);
     }
 
+    // The player entity already lerp on bedrock, so don't lerp on our side!
     @Override
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
+    }
+
+    @Override
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    }
+
+    @Override
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         setPosition(position);
         setYaw(yaw);
         setPitch(pitch);
@@ -162,7 +171,7 @@ public abstract class AvatarEntity extends LivingEntity {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);

@@ -30,12 +30,11 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.WallSkullBlock;
 import org.geysermc.geyser.level.physics.Direction;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 
 import java.util.Objects;
@@ -54,8 +53,8 @@ public class SkullPlayerEntity extends AvatarEntity {
     @Getter
     private Vector3i skullPosition;
 
-    public SkullPlayerEntity(GeyserSession session, long geyserId) {
-        super(session, 0, geyserId, UUID.randomUUID(), EntityDefinitions.PLAYER, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, "");
+    public SkullPlayerEntity(EntitySpawnContext context) {
+        super(context, "");
     }
 
     @Override
@@ -109,7 +108,7 @@ public class SkullPlayerEntity extends AvatarEntity {
             rotation = (180f + blockState.getValue(Properties.ROTATION_16, 0) * 22.5f) % 360;
         }
 
-        moveAbsolute(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);
+        moveAbsoluteRaw(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);
     }
 
     @Override

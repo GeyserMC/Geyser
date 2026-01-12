@@ -32,18 +32,15 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.SnifferState;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
-
-import java.util.UUID;
 
 public class SnifferEntity extends AnimalEntity implements Tickable {
     private static final float DIGGING_HEIGHT = EntityDefinitions.SNIFFER.height() - 0.4f;
@@ -53,8 +50,8 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
     private Pose pose = Pose.STANDING; // Needed to call setDimensions for DIGGING state
     private int digTicks;
 
-    public SnifferEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public SnifferEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override
@@ -103,6 +100,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
 
     @Override
     public void tick() {
+        super.tick();
         // The java client renders digging particles on its own, but bedrock does not
         if (digTicks > 0 && --digTicks < DIG_START && digTicks % 5 == 0) {
             Vector3f rot = Vector3f.createDirectionDeg(0, -getYaw()).mul(2.25f);

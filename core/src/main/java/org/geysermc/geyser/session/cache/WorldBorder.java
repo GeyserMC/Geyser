@@ -168,7 +168,7 @@ public class WorldBorder {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Move the player back, but allow gravity to take place
             // Teleported = true makes going back better, but disconnects the player from their mounted entity
-            playerEntity.moveAbsolute(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.offset()), playerEntity.getPosition().getZ()),
+            playerEntity.moveAbsoluteRaw(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.offset()), playerEntity.getPosition().getZ()),
                     playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
         }
         return isInWorldBorder;

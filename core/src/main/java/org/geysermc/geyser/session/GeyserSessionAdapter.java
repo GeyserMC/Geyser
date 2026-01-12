@@ -144,7 +144,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
                 uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + session.getProtocol().getProfile().getName()).getBytes(StandardCharsets.UTF_8));
             }
         }
-        session.getPlayerEntity().setUuid(uuid);
+        session.getPlayerEntity().uuid(uuid);
         session.getPlayerEntity().setUsername(session.getProtocol().getProfile().getName());
 
         String locale = session.getClientData().getLanguageCode();
