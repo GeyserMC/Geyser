@@ -74,7 +74,7 @@ public class CreeperEntity extends MonsterEntity {
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (itemInHand.is(session, ItemTag.CREEPER_IGNITERS)) {
             // Ignite creeper - as of 1.19.3
-            session.playSoundEvent(SoundEvent.IGNITE, position);
+            session.playSoundEvent(SoundEvent.IGNITE, getBedrockPosition());
             return InteractionResult.SUCCESS;
         } else {
             return super.mobInteract(hand, itemInHand);

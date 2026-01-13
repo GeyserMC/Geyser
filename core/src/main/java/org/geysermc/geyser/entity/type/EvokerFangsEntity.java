@@ -57,7 +57,7 @@ public class EvokerFangsEntity extends Entity implements Tickable {
         if (!silent) {
             // Play the chomp sound
             PlaySoundPacket packet = new PlaySoundPacket();
-            packet.setPosition(this.position);
+            packet.setPosition(this.getBedrockPosition());
             packet.setSound("mob.evocation_fangs.attack");
             packet.setVolume(1.0f);
             packet.setPitch(ThreadLocalRandom.current().nextFloat() * 0.2f + 0.85f);

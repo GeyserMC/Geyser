@@ -51,7 +51,7 @@ public class JavaSetHealthTranslator extends PacketTranslator<ClientboundSetHeal
             // https://github.com/GeyserMC/Geyser/issues/2957
             RespawnPacket respawnPacket = new RespawnPacket();
             respawnPacket.setRuntimeEntityId(0);
-            respawnPacket.setPosition(entity.getPosition());
+            respawnPacket.setPosition(entity.getBedrockPosition());
             respawnPacket.setState(RespawnPacket.State.SERVER_READY);
             session.sendUpstreamPacket(respawnPacket);
         }

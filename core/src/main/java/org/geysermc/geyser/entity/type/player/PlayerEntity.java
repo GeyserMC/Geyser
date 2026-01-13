@@ -160,7 +160,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
                 return;
             }
             // The parrot is a separate entity in Bedrock, but part of the player entity in Java
-            EntitySpawnContext context = EntitySpawnContext.inherited(session, EntityDefinitions.PARROT, this, position);
+            EntitySpawnContext context = EntitySpawnContext.inherited(session, EntityDefinitions.PARROT, this, this.position);
             ParrotEntity parrot = new ParrotEntity(context);
             parrot.spawnEntity();
             parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, variant.getAsInt());
@@ -219,11 +219,6 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
      */
     public UUID getTabListUuid() {
         return uuid();
-    }
-
-    @Override
-    public Vector3f position() {
-        return this.position.down(definition.offset());
     }
 
     // From 1.21.8 code, should be correct since some pose should be prioritized.

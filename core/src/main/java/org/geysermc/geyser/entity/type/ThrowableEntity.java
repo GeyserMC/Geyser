@@ -43,7 +43,7 @@ public class ThrowableEntity extends Entity implements Tickable {
 
     public ThrowableEntity(EntitySpawnContext context) {
         super(context);
-        this.lastJavaPosition = position;
+        this.lastJavaPosition = this.position;
     }
 
     /**
@@ -55,7 +55,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         if (removedInVoid()) {
             return;
         }
-        moveAbsoluteImmediate(position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
+        moveAbsoluteImmediate(this.position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
         float drag = getDrag();
         float gravity = getGravity();
         motion = motion.mul(drag).down(gravity);
@@ -74,34 +74,37 @@ public class ThrowableEntity extends Entity implements Tickable {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
         }
 
-        if (this.position.getX() != position.getX()) {
-            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-            moveEntityDeltaPacket.setX(position.getX());
-        }
-        if (this.position.getY() != position.getY()) {
-            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-            moveEntityDeltaPacket.setY(position.getY());
-        }
-        if (this.position.getZ() != position.getZ()) {
-            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-            moveEntityDeltaPacket.setZ(position.getZ());
-        }
+        Vector3f oldJavaPosition = this.position;
         setPosition(position);
+        Vector3f bedrockPosition = getBedrockPosition();
+
+        if (oldJavaPosition.getX() != position.getX()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+            moveEntityDeltaPacket.setX(bedrockPosition.getX());
+        }
+        if (oldJavaPosition.getY() != position.getY()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+            moveEntityDeltaPacket.setY(bedrockPosition.getY());
+        }
+        if (oldJavaPosition.getZ() != position.getZ()) {
+            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+            moveEntityDeltaPacket.setZ(bedrockPosition.getZ());
+        }
 
         if (getYaw() != yaw) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
-            moveEntityDeltaPacket.setYaw(yaw);
             setYaw(yaw);
+            moveEntityDeltaPacket.setYaw(getYaw());
         }
         if (getPitch() != pitch) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
-            moveEntityDeltaPacket.setPitch(pitch);
             setPitch(pitch);
+            moveEntityDeltaPacket.setPitch(getPitch());
         }
         if (getHeadYaw() != headYaw) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
-            moveEntityDeltaPacket.setHeadYaw(headYaw);
             setHeadYaw(headYaw);
+            moveEntityDeltaPacket.setHeadYaw(getHeadYaw());
         }
 
         if (!moveEntityDeltaPacket.getFlags().isEmpty()) {
@@ -165,7 +168,7 @@ public class ThrowableEntity extends Entity implements Tickable {
      * @return true if this entity is currently in water.
      */
     protected boolean isInWater() {
-        int block = session.getGeyser().getWorldManager().getBlockAt(session, position.toInt());
+        int block = session.getGeyser().getWorldManager().getBlockAt(session, this.position.toInt());
         return BlockStateValues.getWaterLevel(block) != -1;
     }
 
@@ -174,7 +177,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         if (definition.entityType() == EntityType.ENDER_PEARL) {
             LevelEventPacket particlePacket = new LevelEventPacket();
             particlePacket.setType(LevelEvent.PARTICLE_TELEPORT);
-            particlePacket.setPosition(position);
+            particlePacket.setPosition(getBedrockPosition());
             session.sendUpstreamPacket(particlePacket);
         }
         super.despawnEntity();
@@ -183,7 +186,7 @@ public class ThrowableEntity extends Entity implements Tickable {
     @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         moveAbsoluteImmediate(lastJavaPosition.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
-        lastJavaPosition = position;
+        lastJavaPosition = this.position;
     }
 
     @Override
@@ -198,7 +201,7 @@ public class ThrowableEntity extends Entity implements Tickable {
      * @return true if the entity was removed
      */
     public boolean removedInVoid() {
-        if (position.getY() < session.getDimensionType().minY() - 64) {
+        if (this.position.getY() < session.getDimensionType().minY() - 64) {
             session.getEntityCache().removeEntity(this);
             return true;
         }

@@ -151,7 +151,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                 } else if (data.getPositionSource() instanceof EntityPositionSource entityPositionSource) {
                     Entity entity = session.getEntityCache().getEntityByJavaId(entityPositionSource.getEntityId());
                     if (entity != null) {
-                        target = entity.getPosition().up(entityPositionSource.getYOffset());
+                        target = entity.getBedrockPosition().up(entityPositionSource.getYOffset());
                     } else {
                         session.getGeyser().getLogger().debug("Unable to find entity with Java Id: " + entityPositionSource.getEntityId() + " for vibration particle.");
                         return null;

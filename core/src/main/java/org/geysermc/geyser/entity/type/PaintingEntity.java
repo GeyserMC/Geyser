@@ -92,7 +92,7 @@ public class PaintingEntity extends HangingEntity {
 
         valid = true;
 
-        session.getGeyser().getLogger().debug("Spawned painting on " + position);
+        session.getGeyser().getLogger().debug("Spawned painting on " + this.position);
     }
 
     @Override

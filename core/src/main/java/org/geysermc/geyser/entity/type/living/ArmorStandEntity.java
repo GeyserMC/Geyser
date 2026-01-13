@@ -92,11 +92,9 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void spawnEntity() {
-        Vector3f javaPosition = position;
         // Apply the offset if we're the second entity
-        position = position.up(getYOffset());
+        setOffset(getYOffset());
         super.spawnEntity();
-        position = javaPosition;
     }
 
     @Override
@@ -109,7 +107,7 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveAbsoluteRaw(position.add(relX, relY, relZ), yaw, pitch, headYaw, onGround, false);
+        moveAbsoluteRaw(this.position.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
     }
 
     @Override
@@ -118,9 +116,8 @@ public class ArmorStandEntity extends LivingEntity {
             secondEntity.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
         }
         // Fake the height to be above where it is so the nametag appears in the right location
-        float yOffset = getYOffset();
-        super.moveAbsoluteRaw(yOffset != 0 ? position.up(yOffset) : position , yaw, yaw, yaw, isOnGround, teleported);
-        this.position = position;
+        setOffset(getYOffset());
+        super.moveAbsoluteRaw(position, yaw, yaw, yaw, isOnGround, teleported);
     }
 
     @Override
@@ -341,7 +338,7 @@ public class ArmorStandEntity extends LivingEntity {
             if (secondEntity == null) {
                 // Create the second entity. It doesn't need to worry about the items, but it does need to worry about
                 // the metadata as it will hold the name tag.
-                secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, position));
+                secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, this.position));
                 secondEntity.primaryEntity = false;
             }
             // Copy metadata

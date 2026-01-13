@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living.monster;
 
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
@@ -101,12 +102,13 @@ public class CreakingEntity extends MonsterEntity {
         if (this.homePosition != null) {
             LevelEventGenericPacket levelEventGenericPacket = new LevelEventGenericPacket();
             levelEventGenericPacket.setType(LevelEvent.PARTICLE_CREAKING_HEART_TRIAL);
+            Vector3f bedrockPosition = getBedrockPosition();
             levelEventGenericPacket.setTag(
                 NbtMap.builder()
                     .putInt("CreakingAmount", 20)
-                    .putFloat("CreakingX", position.getX())
-                    .putFloat("CreakingY", position.getY())
-                    .putFloat("CreakingZ", position.getZ())
+                    .putFloat("CreakingX", bedrockPosition.getX())
+                    .putFloat("CreakingY", bedrockPosition.getY())
+                    .putFloat("CreakingZ", bedrockPosition.getZ())
                     .putInt("HeartAmount", 20)
                     .putFloat("HeartX", homePosition.getX())
                     .putFloat("HeartY", homePosition.getY())
