@@ -44,7 +44,7 @@ public class SquidEntity extends AgeableWaterEntity implements Tickable {
 
     public SquidEntity(EntitySpawnContext context) {
         super(context);
-        this.lastPosition = position.toInt();
+        this.lastPosition = this.position.toInt();
     }
 
     @Override
@@ -132,7 +132,7 @@ public class SquidEntity extends AgeableWaterEntity implements Tickable {
     }
 
     private void checkInWater() {
-        Vector3i newPosition = position.toInt();
+        Vector3i newPosition = this.position.toInt();
         if (newPosition.equals(lastPosition)) {
             return;
         } else {

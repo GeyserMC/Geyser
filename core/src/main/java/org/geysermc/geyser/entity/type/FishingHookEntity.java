@@ -124,7 +124,7 @@ public class FishingHookEntity extends ThrowableEntity {
             }
             PlaySoundPacket playSoundPacket = new PlaySoundPacket();
             playSoundPacket.setSound("random.splash");
-            playSoundPacket.setPosition(position);
+            playSoundPacket.setPosition(getBedrockPosition());
             playSoundPacket.setVolume(volume);
             playSoundPacket.setPitch(1f + ThreadLocalRandom.current().nextFloat() * 0.3f);
             session.sendUpstreamPacket(playSoundPacket);
@@ -143,7 +143,7 @@ public class FishingHookEntity extends ThrowableEntity {
         float gravity = getGravity();
         motion = motion.down(gravity);
 
-        moveAbsoluteImmediate(position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
+        moveAbsoluteImmediate(this.position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
 
         float drag = getDrag();
         motion = motion.mul(drag);
@@ -161,7 +161,7 @@ public class FishingHookEntity extends ThrowableEntity {
      * @return true if this entity is currently in air.
      */
     protected boolean isInAir() {
-        int block = session.getGeyser().getWorldManager().getBlockAt(session, position.toInt());
+        int block = session.getGeyser().getWorldManager().getBlockAt(session, this.position.toInt());
         return block == Block.JAVA_AIR_ID;
     }
 

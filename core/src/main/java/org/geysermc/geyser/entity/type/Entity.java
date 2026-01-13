@@ -104,6 +104,7 @@ public class Entity implements GeyserEntity {
 
     protected Vector3f position;
     protected Vector3f motion;
+    protected Vector3f offset;
 
     /**
      * x = Yaw, y = Pitch, z = HeadYaw
@@ -167,6 +168,7 @@ public class Entity implements GeyserEntity {
         this.geyserId = context.geyserId();
         this.uuid = context.uuid();
         this.motion = context.motion();
+        this.offset = context.offset();
         this.yaw = context.yaw();
         this.pitch = context.pitch();
         this.headYaw = context.headYaw();
@@ -205,7 +207,7 @@ public class Entity implements GeyserEntity {
         addEntityPacket.setIdentifier(definition.identifier());
         addEntityPacket.setRuntimeEntityId(geyserId);
         addEntityPacket.setUniqueEntityId(geyserId);
-        addEntityPacket.setPosition(position);
+        addEntityPacket.setPosition(getBedrockPosition());
         addEntityPacket.setMotion(motion);
         addEntityPacket.setRotation(Vector2f.from(pitch, yaw));
         addEntityPacket.setHeadRotation(headYaw);
@@ -269,20 +271,20 @@ public class Entity implements GeyserEntity {
             clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
         }
 
-        position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+        setPosition(position.add(relX, relY, relZ));
 
         MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
         if (relX != 0.0) {
-            moveEntityPacket.setX(position.getX());
+            moveEntityPacket.setX(getBedrockPosition().getX());
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
         }
         if (relY != 0.0) {
-            moveEntityPacket.setY(position.getY());
+            moveEntityPacket.setY(getBedrockPosition().getY());
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
         }
         if (relZ != 0.0) {
-            moveEntityPacket.setZ(position.getZ());
+            moveEntityPacket.setZ(getBedrockPosition().getZ());
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
         }
         if (pitch != this.pitch) {
@@ -325,12 +327,16 @@ public class Entity implements GeyserEntity {
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(position);
+        moveEntityPacket.setPosition(getBedrockPosition());
         moveEntityPacket.setRotation(getBedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(teleported);
 
         session.sendUpstreamPacket(moveEntityPacket);
+    }
+
+    public Vector3f position() {
+        return position;
     }
 
     /**
@@ -653,6 +659,16 @@ public class Entity implements GeyserEntity {
     }
 
     /**
+     * Gets the Bedrock edition position with the offset applied
+     */
+    public Vector3f getBedrockPosition() {
+        if (offset == Vector3f.ZERO) {
+            return position;
+        }
+        return position.add(offset);
+    }
+
+    /**
      * Update the mount offsets of each passenger on this vehicle
      */
     protected void updatePassengerOffsets() {
@@ -755,7 +771,7 @@ public class Entity implements GeyserEntity {
         List<Leashable> leashedInRange = session.getEntityCache().getEntities().values().stream()
             .filter(entity -> entity instanceof Leashable leashablex && leashablex.leashHolderBedrockId() == this.geyserId())
             .filter(entity -> {
-                BoundingBox leashedBB = new BoundingBox(entity.position.toDouble(), entity.boundingBoxWidth, entity.boundingBoxHeight, entity.boundingBoxWidth);
+                BoundingBox leashedBB = new BoundingBox(entity.position().toDouble(), entity.boundingBoxWidth, entity.boundingBoxHeight, entity.boundingBoxWidth);
                 return searchBB.checkIntersection(leashedBB);
             }).map(Leashable.class::cast).toList();
 

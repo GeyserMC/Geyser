@@ -48,6 +48,7 @@ public class EntitySpawnContext {
     private final UUID uuid;
     private Vector3f position;
     private Vector3f motion;
+    private Vector3f offset;
     private float yaw;
     private float pitch;
     private float headYaw;
@@ -83,7 +84,8 @@ public class EntitySpawnContext {
         this.entityTypeDefinition = definition;
         this.javaId = javaId;
         this.uuid = uuid;
-        this.position = position.up(definition.offset());
+        this.position = position;
+        this.offset = definition.offset() == 0F ? Vector3f.ZERO : Vector3f.from(0, definition.offset(), 0);
         this.motion = motion;
         this.yaw = yaw;
         this.pitch = pitch;

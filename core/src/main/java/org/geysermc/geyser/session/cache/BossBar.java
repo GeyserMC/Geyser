@@ -117,7 +117,7 @@ public class BossBar {
         addEntityPacket.setRuntimeEntityId(entityId);
         addEntityPacket.setIdentifier("minecraft:creeper");
         addEntityPacket.setEntityType(33);
-        addEntityPacket.setPosition(session.getPlayerEntity().getPosition().sub(0D, -10D, 0D));
+        addEntityPacket.setPosition(session.getPlayerEntity().position().down(10));
         addEntityPacket.setRotation(Vector2f.ZERO);
         addEntityPacket.setMotion(Vector3f.ZERO);
         EntityDataMap metadata = addEntityPacket.getMetadata();

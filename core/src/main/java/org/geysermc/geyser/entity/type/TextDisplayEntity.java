@@ -56,11 +56,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         super(context);
     }
 
-    @Override
-    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        super.moveRelativeRaw(relX, relY + definition.offset(), relZ, yaw, pitch, headYaw, isOnGround);
-    }
-
     /**
      * Calculates the Y offset needed to match Java Edition's text centering
      * behavior for multi-line text displays.
@@ -80,11 +75,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     @Override
-    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsoluteRaw(position.add(0, calculateLineOffset(), 0), yaw, pitch, headYaw, isOnGround, teleported);
-    }
-
-    @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Remove armor stand body / hitbox
@@ -101,6 +91,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         // If the line count changed, update the position to account for the new offset
         if (previousLineCount != lineCount) {
+            setOffset(Vector3f.from(0, calculateLineOffset(), 0));
             moveAbsoluteRaw(position, yaw, pitch, headYaw, onGround, false);
         }
     }
