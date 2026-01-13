@@ -132,15 +132,10 @@ public abstract class AvatarEntity extends LivingEntity {
         session.sendUpstreamPacket(addPlayerPacket);
     }
 
-    // The player entity already lerp on bedrock, so don't lerp on our side!
+    // The player entity already lerps client-sided on bedrock
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
-    }
-
-    @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    public boolean shouldLerp() {
+        return false;
     }
 
     @Override

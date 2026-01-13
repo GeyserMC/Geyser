@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.entity.type.living.monster;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
@@ -43,13 +42,8 @@ public class ShulkerEntity extends GolemEntity {
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
-    }
-
-    @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    public boolean shouldLerp() {
+        return false;
     }
 
     @Override
