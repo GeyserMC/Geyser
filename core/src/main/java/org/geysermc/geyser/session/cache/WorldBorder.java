@@ -81,11 +81,6 @@ public class WorldBorder {
     @Setter
     private int absoluteMaxSize = 29999984;
 
-    /**
-     * The world coordinate scale as sent in the dimension registry. Used to scale the center X and Z.
-     */
-    private double worldCoordinateScale = 1.0D;
-
     @Getter
     private boolean resizing;
     private double currentDiameter;
@@ -123,14 +118,6 @@ public class WorldBorder {
         this.session = session;
         // Initialize all min/max/warning variables
         update();
-    }
-
-    public void setWorldCoordinateScale(double worldCoordinateScale) {
-        boolean needsUpdate = worldCoordinateScale != this.worldCoordinateScale;
-        this.worldCoordinateScale = worldCoordinateScale;
-        if (needsUpdate) {
-            this.update();
-        }
     }
 
     /**
