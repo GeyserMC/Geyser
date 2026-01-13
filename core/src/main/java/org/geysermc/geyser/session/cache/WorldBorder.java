@@ -257,9 +257,8 @@ public class WorldBorder {
         }
         
         double absoluteMinSize = -this.absoluteMaxSize;
-        // Used in the Nether by default
-        double centerX = this.center.getX() / this.worldCoordinateScale;
-        double centerZ = this.center.getY() / this.worldCoordinateScale; // Mapping 2D vector to 3D coordinates >> Y becomes Z
+        double centerX = this.center.getX();
+        double centerZ = this.center.getY(); // Mapping 2D vector to 3D coordinates >> Y becomes Z
 
         this.minX = GenericMath.clamp(centerX - radius, absoluteMinSize, this.absoluteMaxSize);
         this.minZ = GenericMath.clamp(centerZ - radius, absoluteMinSize, this.absoluteMaxSize);
