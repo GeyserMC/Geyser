@@ -93,7 +93,7 @@ public class ArmorStandEntity extends LivingEntity {
     @Override
     public void spawnEntity() {
         // Apply the offset if we're the second entity
-        setOffset(Vector3f.from(0, getYOffset(), 0));
+        setOffset(getYOffset());
         super.spawnEntity();
     }
 
@@ -116,7 +116,7 @@ public class ArmorStandEntity extends LivingEntity {
             secondEntity.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
         }
         // Fake the height to be above where it is so the nametag appears in the right location
-        setOffset(Vector3f.from(0, getYOffset(), 0));
+        setOffset(getYOffset());
         super.moveAbsoluteRaw(position, yaw, yaw, yaw, isOnGround, teleported);
     }
 

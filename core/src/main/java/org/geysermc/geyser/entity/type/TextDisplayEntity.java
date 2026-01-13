@@ -28,7 +28,6 @@ package org.geysermc.geyser.entity.type;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
@@ -91,7 +90,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         // If the line count changed, update the position to account for the new offset
         if (previousLineCount != lineCount) {
-            setOffset(Vector3f.from(0, calculateLineOffset(), 0));
+            setOffset(calculateLineOffset());
             moveAbsoluteRaw(position, yaw, pitch, headYaw, onGround, false);
         }
     }

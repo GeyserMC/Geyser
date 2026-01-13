@@ -216,7 +216,7 @@ public class SessionPlayerEntity extends PlayerEntity {
      * @param position the new position of the Bedrock player
      */
     public void setPositionFromBedrockPos(Vector3f position) {
-        this.position = position.sub(offset);
+        this.position = position.down(offset);
 
         // Player is "above" the void so they're not supposed to no clip.
         if (session.isNoClip() && position.getY() - EntityDefinitions.PLAYER.offset() >= session.getBedrockDimension().minY() - 5) {

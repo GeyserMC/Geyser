@@ -115,7 +115,7 @@ public class ItemEntity extends ThrowableEntity {
             // Move the item entity down so it doesn't float above the water
             offset = -definition.offset();
         }
-        setOffset(Vector3f.from(0, offset, 0));
+        setOffset(offset);
         super.moveAbsoluteImmediate(position, 0, 0, 0, isOnGround, teleported);
         this.position = position;
 
