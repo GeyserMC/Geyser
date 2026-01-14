@@ -30,15 +30,19 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.RequiredArgsConstructor;
-import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
-import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
+
+import java.util.Collections;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -92,13 +96,25 @@ public class FormCache {
 
         // Hack to fix the (url) image loading bug
         if (form instanceof SimpleForm) {
-            NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-            latencyPacket.setFromServer(true);
-            latencyPacket.setTimestamp(MAGIC_FORM_IMAGE_HACK_TIMESTAMP);
-            session.scheduleInEventLoop(
-                    () -> session.sendUpstreamPacket(latencyPacket),
-                    500, TimeUnit.MILLISECONDS
-            );
+            // Two delays:
+            // First, 500ms, before we send the network stack latency packet
+            session.scheduleInEventLoop(() -> session.sendNetworkLatencyStackPacket(MAGIC_FORM_IMAGE_HACK_TIMESTAMP, false, () -> {
+                    // Then, wait 500ms after we receive the response, then update attributes to get the image to show
+                    session.scheduleInEventLoop(() -> {
+                        // Hack to fix the url image loading bug
+                        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+                        attributesPacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
+
+                        AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
+                        if (attribute != null) {
+                            attributesPacket.setAttributes(Collections.singletonList(attribute));
+                        } else {
+                            attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
+                        }
+
+                        session.sendUpstreamPacket(attributesPacket);
+                    }, 500, TimeUnit.MILLISECONDS);
+                }), 500, TimeUnit.MILLISECONDS);
         }
     }
 

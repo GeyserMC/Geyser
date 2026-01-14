@@ -40,6 +40,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
@@ -131,7 +132,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     private float javaYaw;
 
     public SessionPlayerEntity(GeyserSession session) {
-        super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
+        super(new EntitySpawnContext(session, EntityDefinitions.PLAYER, -1, null), null, null);
 
         valid = true;
     }
@@ -161,8 +162,8 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
         session.getCollisionManager().updatePlayerBoundingBox(this.position.down(definition.offset()));
     }
 

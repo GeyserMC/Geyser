@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,19 +25,15 @@
 
 package org.geysermc.geyser.entity.type;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.inventory.item.Potion;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-
-import java.util.UUID;
 
 public class ArrowEntity extends AbstractArrowEntity {
 
-    public ArrowEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public ArrowEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     public void setPotionEffectColor(IntEntityMetadata entityMetadata) {
@@ -46,7 +42,8 @@ public class ArrowEntity extends AbstractArrowEntity {
         if (potionColor == -1) {
             dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) 0);
         } else {
-            dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, Potion.toTippedArrowId(potionColor));
+            // Strip out the alpha channel if it exists before sending to Bedrock
+            dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, Potion.toTippedArrowId(potionColor & 0xFFFFFF));
         }
     }
 }

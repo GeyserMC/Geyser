@@ -31,19 +31,16 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
-import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.vehicle.BoatVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundPaddleBoatPacket;
-
-import java.util.UUID;
 
 public class BoatEntity extends Entity implements Tickable, Leashable, ClientVehicle {
 
@@ -76,9 +73,12 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
     // This is the best value, I can't really found any value that doesn't look choppy and laggy or that is not too slow, blame bedrock.
     private final float ROWING_SPEED = 0.04f;
 
-    public BoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, BoatVariant variant) {
+    public BoatEntity(EntitySpawnContext context, BoatVariant variant) {
+        super(context);
         // Initial rotation is incorrect
-        super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw + 90, 0, yaw + 90);
+        setYaw(yaw + 90);
+        setPitch(0);
+        setHeadYaw(headYaw + 90);
         this.variant = variant;
 
         dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
@@ -96,7 +96,7 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // We don't include the rotation (y) as it causes the boat to appear sideways
         setPosition(position.add(0d, this.definition.offset(), 0d));
         setYaw(yaw + 90);
@@ -122,22 +122,22 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
      * Move the boat without making the adjustments needed to translate from Java
      */
     public void moveAbsoluteWithoutAdjustments(Vector3f position, float yaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position, yaw, 0, yaw, isOnGround, teleported);
+        super.moveAbsoluteRaw(position, yaw, 0, yaw, isOnGround, teleported);
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        super.moveRelative(relX, relY, relZ, yaw, 0, yaw, isOnGround);
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelativeRaw(relX, relY, relZ, yaw, 0, yaw, isOnGround);
     }
 
     @Override
     public void updatePositionAndRotation(double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(moveX, moveY, moveZ, yaw + 90, pitch, isOnGround);
+        moveRelative(moveX, moveY, moveZ, yaw + 90, 0, 0, isOnGround);
     }
 
     @Override
     public void updateRotation(float yaw, float pitch, boolean isOnGround) {
-        moveRelative(0, 0, 0, yaw + 90, 0, 0, isOnGround);
+        moveRelativeRaw(0, 0, 0, yaw + 90, 0, 0, isOnGround);
     }
 
     public void setPaddlingLeft(BooleanEntityMetadata entityMetadata) {
