@@ -110,7 +110,10 @@ public class MinecartEntity extends Entity implements Tickable {
             return;
         }
 
-        if ((relX != 0 || relY != 0 || relZ != 0) && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+        // temp fix till we separate java entity position from bedrock pos
+        Vector3f javaPosition = position.down(definition.offset());
+
+        if ((relX != 0 || relY != 0 || relZ != 0) && javaPosition.distanceSquared(session.getPlayerEntity().position()) < 4096) {
             this.dirtyPitch = pitch != this.pitch;
             this.dirtyYaw = yaw != this.yaw;
             this.dirtyHeadYaw = headYaw != this.headYaw;
@@ -120,7 +123,7 @@ public class MinecartEntity extends Entity implements Tickable {
             setHeadYaw(headYaw);
             setOnGround(isOnGround);
 
-            this.lerpPosition = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+            this.lerpPosition = Vector3f.from(javaPosition.getX() + relX, javaPosition.getY() + relY, javaPosition.getZ() + relZ);
             this.steps = 3;
         } else {
             super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
