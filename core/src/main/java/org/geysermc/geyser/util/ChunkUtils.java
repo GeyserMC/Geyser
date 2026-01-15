@@ -231,7 +231,5 @@ public class ChunkUtils {
 
         session.getChunkCache().setMinY(minY);
         session.getChunkCache().setHeightY(height);
-
-        session.getWorldBorder().setWorldCoordinateScale(dimension.worldCoordinateScale());
     }
 }
