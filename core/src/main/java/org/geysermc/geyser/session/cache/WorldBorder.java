@@ -81,11 +81,6 @@ public class WorldBorder {
     @Setter
     private int absoluteMaxSize = 29999984;
 
-    /**
-     * The world coordinate scale as sent in the dimension registry. Used to scale the center X and Z.
-     */
-    private double worldCoordinateScale = 1.0D;
-
     @Getter
     private boolean resizing;
     private double currentDiameter;
@@ -123,14 +118,6 @@ public class WorldBorder {
         this.session = session;
         // Initialize all min/max/warning variables
         update();
-    }
-
-    public void setWorldCoordinateScale(double worldCoordinateScale) {
-        boolean needsUpdate = worldCoordinateScale != this.worldCoordinateScale;
-        this.worldCoordinateScale = worldCoordinateScale;
-        if (needsUpdate) {
-            this.update();
-        }
     }
 
     /**
@@ -257,9 +244,8 @@ public class WorldBorder {
         }
         
         double absoluteMinSize = -this.absoluteMaxSize;
-        // Used in the Nether by default
-        double centerX = this.center.getX() / this.worldCoordinateScale;
-        double centerZ = this.center.getY() / this.worldCoordinateScale; // Mapping 2D vector to 3D coordinates >> Y becomes Z
+        double centerX = this.center.getX();
+        double centerZ = this.center.getY(); // Mapping 2D vector to 3D coordinates >> Y becomes Z
 
         this.minX = GenericMath.clamp(centerX - radius, absoluteMinSize, this.absoluteMaxSize);
         this.minZ = GenericMath.clamp(centerZ - radius, absoluteMinSize, this.absoluteMaxSize);
