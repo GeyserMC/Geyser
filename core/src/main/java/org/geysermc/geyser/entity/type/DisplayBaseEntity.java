@@ -26,18 +26,19 @@
 package org.geysermc.geyser.entity.type;
 
 import net.kyori.adventure.text.Component;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public class DisplayBaseEntity extends Entity {
 
-    private @Nullable Vector3f baseTranslation;
+    private @NonNull Vector3f baseTranslation = Vector3f.ZERO;
 
     public DisplayBaseEntity(EntitySpawnContext context) {
         super(context);
@@ -55,14 +56,35 @@ public class DisplayBaseEntity extends Entity {
         // On JE: custom name does not override text display.
     }
 
-    public void setTranslation(EntityMetadata<Vector3f, ?> translationMeta){
-        this.baseTranslation = translationMeta.getValue();
-        if (this.baseTranslation == null) {
+    public void setTranslation(EntityMetadata<Vector3f, ?> translationMeta) {
+        Vector3f oldTranslation = this.baseTranslation;
+        this.baseTranslation = translationMeta.getValue() == null ? Vector3f.ZERO : translationMeta.getValue();
+
+        // If translations are the same, don't update
+        if (Objects.equals(oldTranslation, this.baseTranslation)) {
             return;
         }
+
+        // No more translation, remove the old
+        if (Vector3f.ZERO.equals(this.baseTranslation)) {
+            if (vehicle == null) {
+                this.setRiderSeatPosition(this.baseTranslation);
+                this.moveRelativeRaw(-oldTranslation.getX(), -oldTranslation.getY(), -oldTranslation.getZ(), yaw, pitch, headYaw, false);
+            } else {
+                EntityUtils.updateMountOffset(this, this.vehicle, true, true, 0, 1);
+                this.updateBedrockMetadata();
+            }
+            return;
+        }
+
+        // Use the diff between the old and new translation
+        float xTranslation = oldTranslation.getX() - this.baseTranslation.getX();
+        float yTranslation = oldTranslation.getY() - this.baseTranslation.getY();
+        float zTranslation = oldTranslation.getZ() - this.baseTranslation.getZ();
+
         if (this.vehicle == null) {
             this.setRiderSeatPosition(this.baseTranslation);
-            this.moveRelativeRaw(this.baseTranslation.getX(), this.baseTranslation.getY(), this.baseTranslation.getZ(), yaw, pitch, headYaw, false);
+            this.moveRelativeRaw(xTranslation, yTranslation, zTranslation, yaw, pitch, headYaw, false);
         } else {
             EntityUtils.updateMountOffset(this, this.vehicle, true, true, 0, 1);
             this.updateBedrockMetadata();
