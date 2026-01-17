@@ -42,23 +42,15 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     /**
      * The height offset per line of text in a text display entity when rendered
-     * as an armor stand nametag on Bedrock Edition.
-     * <p>
-     * This value was empirically adjusted to match Java Edition's multi-line text
-     * centering behavior. Note that this differs from the 0.1414f multiplier used
-     * in {@link org.geysermc.geyser.util.EntityUtils} for mount offset calculations.
+     * as an armor stand nametag on Bedrock Edition. This value was empirically adjusted
+     * to match Java Edition's multi-line text centering behavior.
      */
-    private static final float LINE_HEIGHT_OFFSET = 0.12f;
+    private static final float LINE_HEIGHT_OFFSET = 0.1414f;
 
     private int lineCount;
 
     public TextDisplayEntity(EntitySpawnContext context) {
         super(context);
-    }
-
-    @Override
-    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        super.moveRelativeRaw(relX, relY + definition.offset(), relZ, yaw, pitch, headYaw, isOnGround);
     }
 
     /**
@@ -72,16 +64,16 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      * 
      * @return the Y offset to apply based on the number of lines
      */
-    private float calculateLineOffset() {
+    public float calculateLineOffset() {
         if (lineCount == 0) {
             return 0;
         }
-        return LINE_HEIGHT_OFFSET * lineCount;
+        return -0.6f + LINE_HEIGHT_OFFSET * lineCount;
     }
 
     @Override
     public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsoluteRaw(position.add(0, calculateLineOffset(), 0), yaw, pitch, headYaw, isOnGround, teleported);
+        super.moveAbsoluteRaw(position.up(calculateLineOffset()), yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     @Override
@@ -95,21 +87,20 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     public void setText(EntityMetadata<Component, ?> entityMetadata) {
         this.dirtyMetadata.put(EntityDataTypes.NAME, MessageTranslator.convertMessage(entityMetadata.getValue(), session.locale()));
-        
-        int previousLineCount = lineCount;
-        calculateLineCount(entityMetadata.getValue());
+        int newLineCount = calculateLineCount(entityMetadata.getValue());
 
         // If the line count changed, update the position to account for the new offset
-        if (previousLineCount != lineCount) {
-            moveAbsoluteRaw(position, yaw, pitch, headYaw, onGround, false);
+        if (this.lineCount != newLineCount) {
+            Vector3f positionWithoutOffset = position.down(calculateLineOffset());
+            this.lineCount = newLineCount;
+            moveAbsoluteRaw(positionWithoutOffset, yaw, pitch, headYaw, onGround, false);
         }
     }
 
-    private void calculateLineCount(@Nullable Component text) {
+    private int calculateLineCount(@Nullable Component text) {
         if (text == null) {
-            lineCount = 0;
-            return;
+            return 0;
         }
-        lineCount = PlainTextComponentSerializer.plainText().serialize(text).split("\n").length;
+        return PlainTextComponentSerializer.plainText().serialize(text).split("\n").length;
     }
 }
