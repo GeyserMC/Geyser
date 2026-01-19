@@ -391,9 +391,6 @@ public class LivingEntity extends Entity implements Tickable {
 
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        // Lerp position should always be used as base to ensure we don't de-sync with the position provided by the server
-        this.lerpPosition = lerpPosition.add(relX, relY, relZ);
-
         if (this instanceof ClientVehicle clientVehicle) {
             if (clientVehicle.isClientControlled()) {
                 return;
@@ -411,6 +408,8 @@ public class LivingEntity extends Entity implements Tickable {
             setHeadYaw(headYaw);
             setOnGround(isOnGround);
 
+            // Lerp position should be used as base if we have lerp steps left to ensure we don't de-sync with the position provided by the server
+            this.lerpPosition = lerpSteps == 0 ? this.position.add(relX, relY, relZ) : this.lerpPosition.add(relX, relY, relZ);
             this.lerpSteps = 3;
         } else {
             super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
@@ -419,9 +418,6 @@ public class LivingEntity extends Entity implements Tickable {
 
     @Override
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        // Always update this position to ensure we don't de-sync with the server position
-        this.lerpPosition = position;
-
         // It's vanilla behaviour to lerp if the position is within 64 blocks, however we also check if the position is close enough to the player
         // position to see if it can actually affect anything to save network.
         if (shouldLerp() && position.distanceSquared(this.position) < 4096 && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
@@ -432,6 +428,7 @@ public class LivingEntity extends Entity implements Tickable {
             setHeadYaw(headYaw);
             setOnGround(isOnGround);
 
+            this.lerpPosition = position;
             this.lerpSteps = 3;
         } else {
             super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
