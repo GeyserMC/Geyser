@@ -28,7 +28,11 @@ dependencies {
 
     implementation(libs.adventure.text.serializer.bungeecord)
 
-    compileOnly(libs.folia.api)
+    compileOnly(libs.folia.api) {
+        attributes {
+            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 21)
+        }
+    }
 
     compileOnlyApi(libs.viaversion)
 
@@ -74,6 +78,14 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         // Commodore includes Brigadier
         exclude(dependency("com.mojang:.*"))
     }
+}
+
+tasks.withType(xyz.jpenilla.runtask.task.AbstractRun::class) {
+    javaLauncher = javaToolchains.launcherFor {
+        vendor = JvmVendorSpec.JETBRAINS
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+    jvmArgs("-XX:+AllowEnhancedClassRedefinition")
 }
 
 modrinth {
