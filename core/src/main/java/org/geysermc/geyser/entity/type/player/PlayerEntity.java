@@ -88,12 +88,11 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
 
         // Remove the entries if limited entries are desired
         // We never added to the waypoint cache with limited entries, so, no need to remove
-        if (listed && PlayerListUtils.shouldLimitPlayerListEntries(session)) {
+        if (PlayerListUtils.shouldLimitPlayerListEntries(session)) {
             PlayerListPacket packet = new PlayerListPacket();
             packet.getEntries().add(new PlayerListPacket.Entry(getTabListUuid()));
             packet.setAction(PlayerListPacket.Action.REMOVE);
             session.sendUpstreamPacket(packet);
-            listed = false;
         }
 
         // Since we re-use player entities: Clear flags, held item, etc
