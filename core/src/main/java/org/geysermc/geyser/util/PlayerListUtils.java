@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class PlayerListUtils {
-    private static final boolean HIDE_PLAYER_LIST_PS = Boolean.getBoolean("Geyser.NoPlayerListPs");
+    private static final boolean HIDE_PLAYER_LIST_PS = Boolean.getBoolean("Geyser.NoPlayerListPS");
 
     static final int MAX_PLAYER_LIST_PACKET_ENTRIES = 1000;
 
@@ -129,7 +129,11 @@ public class PlayerListUtils {
         }
     }
 
-    public static boolean shouldLimitPlayerlistEntries(GeyserSession session) {
+    /**
+     * Whether Geyser should limit the player list entries shown to the amount of players actually displayed / near the player
+     * Avoids client crashes when opening the chat on playstation consoles
+     */
+    public static boolean shouldLimitPlayerListEntries(GeyserSession session) {
         return HIDE_PLAYER_LIST_PS && session.platform() == BedrockPlatform.PS4;
     }
 }
