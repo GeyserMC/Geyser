@@ -408,7 +408,8 @@ public class LivingEntity extends Entity implements Tickable {
             setHeadYaw(headYaw);
             setOnGround(isOnGround);
 
-            this.lerpPosition = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+            // Lerp position should be used as base if we have lerp steps left to ensure we don't de-sync with the position provided by the server
+            this.lerpPosition = lerpSteps == 0 ? this.position.add(relX, relY, relZ) : this.lerpPosition.add(relX, relY, relZ);
             this.lerpSteps = 3;
         } else {
             super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
@@ -435,6 +436,10 @@ public class LivingEntity extends Entity implements Tickable {
     }
 
     public boolean shouldLerp() {
+        // We'll already send movement of these on our end every tick
+        if (this instanceof ClientVehicle clientVehicle) {
+            return !clientVehicle.isClientControlled();
+        }
         return true;
     }
 
