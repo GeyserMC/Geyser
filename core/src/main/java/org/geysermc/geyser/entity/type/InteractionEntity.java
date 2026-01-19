@@ -31,10 +31,9 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
-import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
@@ -43,7 +42,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 
 import java.util.Optional;
-import java.util.UUID;
 
 public class InteractionEntity extends Entity {
 
@@ -53,8 +51,8 @@ public class InteractionEntity extends Entity {
      */
     private boolean response = false;
 
-    public InteractionEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public InteractionEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     /**
@@ -94,7 +92,7 @@ public class InteractionEntity extends Entity {
         // but the bedrock client won't arm swing itself because of our armor stand workaround
         if (response) {
             AnimatePacket animatePacket = new AnimatePacket();
-            animatePacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+            animatePacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
             animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
             session.sendUpstreamPacket(animatePacket);
 
@@ -120,16 +118,16 @@ public class InteractionEntity extends Entity {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveAbsolute(position.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        moveAbsoluteRaw(position.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         if (secondEntity != null) {
-            secondEntity.moveAbsolute(position.up(getBoundingBoxHeight()), yaw, pitch, headYaw, isOnGround, teleported);
+            secondEntity.moveAbsoluteRaw(position.up(getBoundingBoxHeight()), yaw, pitch, headYaw, isOnGround, teleported);
         }
-        super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
+        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     public void setWidth(FloatEntityMetadata width) {
@@ -143,7 +141,7 @@ public class InteractionEntity extends Entity {
         setBoundingBoxHeight(Math.min(height.getPrimitiveValue(), 64f));
 
         if (secondEntity != null) {
-            secondEntity.moveAbsolute(position.up(getBoundingBoxHeight()), yaw, pitch, onGround, true);
+            secondEntity.moveAbsoluteRaw(position.up(getBoundingBoxHeight()), yaw, pitch, headYaw, onGround, true);
         }
     }
 
@@ -161,8 +159,7 @@ public class InteractionEntity extends Entity {
         }
 
         if (this.secondEntity == null) {
-            secondEntity = new ArmorStandEntity(session, 0, session.getEntityCache().getNextEntityId().incrementAndGet(), null,
-                EntityDefinitions.ARMOR_STAND, position.up(getBoundingBoxHeight()), motion, getYaw(), getPitch(), getHeadYaw());
+            secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, position.up(getBoundingBoxHeight())));
         }
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, isNameTagVisible ? (byte) 1 : (byte) 0);

@@ -31,6 +31,7 @@ import lombok.Builder;
 import lombok.Value;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemGroup;
@@ -73,6 +74,11 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
     List<ItemDefinition> buckets;
     List<ItemDefinition> boats;
     Int2ObjectMap<String> customIdMappings;
+    // the item definition runtime id that is actually for the block
+    // that has the block definition with a 0 runtime id
+    // as of 1.21.110: cyan_terracotta
+    // array since it could be multiple
+    Integer[] zeroBlockDefinitionRuntimeId;
 
     Object2ObjectMap<CustomBlockData, ItemDefinition> customBlockItemDefinitions;
 
@@ -153,7 +159,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
             return lightBlock;
         }
 
-        boolean isBlock = data.getBlockDefinition() != null;
+        boolean isBlock = isValidBlockItem(data);
         boolean hasDamage = data.getDamage() != 0;
 
         for (ItemMapping mapping : this.items) {
@@ -178,6 +184,28 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
 
         GeyserImpl.getInstance().getLogger().debug("Missing mapping for bedrock item " + data);
         return ItemMapping.AIR;
+    }
+
+    public boolean isValidBlockItem(ItemData itemData) {
+        BlockDefinition blockDefinition = itemData.getBlockDefinition();
+        if (blockDefinition == null) {
+            return false;
+        }
+
+        if (blockDefinition.getRuntimeId() != 0) {
+            return true;
+        }
+
+        // Bedrock likes sending ""block definitions"" that aren't actually any
+        // Unfortunately, unlike Java, a block definition with runtime id 0 is not air,
+        // but a block. For example, in 1.21.110: cyan terracotta.
+        for (int other : zeroBlockDefinitionRuntimeId) {
+            if (itemData.getDefinition().getRuntimeId() == other) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Nullable

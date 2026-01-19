@@ -81,11 +81,6 @@ public class WorldBorder {
     @Setter
     private int absoluteMaxSize = 29999984;
 
-    /**
-     * The world coordinate scale as sent in the dimension registry. Used to scale the center X and Z.
-     */
-    private double worldCoordinateScale = 1.0D;
-
     @Getter
     private boolean resizing;
     private double currentDiameter;
@@ -125,14 +120,6 @@ public class WorldBorder {
         update();
     }
 
-    public void setWorldCoordinateScale(double worldCoordinateScale) {
-        boolean needsUpdate = worldCoordinateScale != this.worldCoordinateScale;
-        this.worldCoordinateScale = worldCoordinateScale;
-        if (needsUpdate) {
-            this.update();
-        }
-    }
-
     /**
      * @return true as long as the player entity is within the world limits.
      */
@@ -168,7 +155,7 @@ public class WorldBorder {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Move the player back, but allow gravity to take place
             // Teleported = true makes going back better, but disconnects the player from their mounted entity
-            playerEntity.moveAbsolute(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.offset()), playerEntity.getPosition().getZ()),
+            playerEntity.moveAbsoluteRaw(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.offset()), playerEntity.getPosition().getZ()),
                     playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
         }
         return isInWorldBorder;
@@ -257,9 +244,8 @@ public class WorldBorder {
         }
         
         double absoluteMinSize = -this.absoluteMaxSize;
-        // Used in the Nether by default
-        double centerX = this.center.getX() / this.worldCoordinateScale;
-        double centerZ = this.center.getY() / this.worldCoordinateScale; // Mapping 2D vector to 3D coordinates >> Y becomes Z
+        double centerX = this.center.getX();
+        double centerZ = this.center.getY(); // Mapping 2D vector to 3D coordinates >> Y becomes Z
 
         this.minX = GenericMath.clamp(centerX - radius, absoluteMinSize, this.absoluteMaxSize);
         this.minZ = GenericMath.clamp(centerZ - radius, absoluteMinSize, this.absoluteMaxSize);

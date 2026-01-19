@@ -25,18 +25,10 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
-import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
-import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.InventoryUtils;
-import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundKeepAlivePacket;
-
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Used to send the forwarded keep alive packet back to the server
@@ -46,47 +38,18 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
 
     @Override
     public void translate(GeyserSession session, NetworkStackLatencyPacket packet) {
-        // negative timestamps are used as hack to fix the url image loading bug
-        if (packet.getTimestamp() >= 0) {
-            if (session.getGeyser().config().gameplay().forwardPlayerPing()) {
-                // use our cached value because
-                // a) bedrock can be inaccurate with the value returned
-                // b) playstation replies with a different magnitude than other platforms
-                // c) 1.20.10 and later reply with a different magnitude
-                Long keepAliveId = session.getKeepAliveCache().poll();
-                if (keepAliveId == null) {
-                    session.getGeyser().getLogger().debug("Received a latency packet that we don't have a KeepAlive for: " + packet);
-                    return;
-                }
-
-                ServerboundKeepAlivePacket keepAlivePacket = new ServerboundKeepAlivePacket(keepAliveId);
-                session.sendDownstreamPacket(keepAlivePacket);
-            }
+        // We should receive these packets in the same order they were sent
+        final Runnable latencyPing = session.getLatencyPingCache().poll();
+        if (latencyPing == null) {
+            session.getGeyser().getLogger().debug("Received a latency packet that we don't have a ping for: " + packet);
             return;
         }
 
-        if (session.getPendingOrCurrentBedrockInventoryId() != -1) {
-            InventoryUtils.openPendingInventory(session);
-        } else {
-            session.scheduleInEventLoop(() -> {
-                // Hack to fix the url image loading bug
-                UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-                attributesPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
-
-                AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
-                if (attribute != null) {
-                    attributesPacket.setAttributes(Collections.singletonList(attribute));
-                } else {
-                    attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
-                }
-
-                session.sendUpstreamPacket(attributesPacket);
-            }, 500, TimeUnit.MILLISECONDS);
-        }
+        latencyPing.run();
     }
 
     @Override
     public boolean shouldExecuteInEventLoop() {
-        return false;
+        return false; // Controlled by the latency ping cache runnables instead
     }
 }

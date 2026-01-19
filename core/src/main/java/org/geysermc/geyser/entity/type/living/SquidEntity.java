@@ -26,68 +26,73 @@
 package org.geysermc.geyser.entity.type.living;
 
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.geyser.session.GeyserSession;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class SquidEntity extends AgeableWaterEntity implements Tickable {
     private float targetPitch;
     private float targetYaw;
+    private Vector3i lastPosition;
 
     private CompletableFuture<Boolean> inWater = CompletableFuture.completedFuture(Boolean.FALSE);
 
-    public SquidEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public SquidEntity(EntitySpawnContext context) {
+        super(context);
+        this.lastPosition = position.toInt();
     }
 
     @Override
     public void tick() {
-        boolean pitchChanged;
-        boolean yawChanged;
         float oldPitch = pitch;
         if (inWater.join()) {
             float oldYaw = yaw;
             pitch += (targetPitch - pitch) * 0.1f;
             yaw += (targetYaw - yaw) * 0.1f;
-            yawChanged = oldYaw != yaw;
+            dirtyYaw = oldYaw != yaw;
         } else {
             pitch += (-90 - pitch) * 0.02f;
-            yawChanged = false;
+            dirtyYaw = false;
         }
-        pitchChanged = oldPitch != pitch;
+        dirtyPitch = oldPitch != pitch;
 
-        if (pitchChanged || yawChanged) {
-            MoveEntityDeltaPacket packet = new MoveEntityDeltaPacket();
-            packet.setRuntimeEntityId(geyserId);
+        if (getLerpSteps() == 0) {
+            if (dirtyPitch || dirtyYaw) {
+                MoveEntityDeltaPacket packet = new MoveEntityDeltaPacket();
+                packet.setRuntimeEntityId(geyserId);
 
-            if (pitchChanged) {
-                packet.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
-                packet.setPitch(pitch);
+                if (dirtyPitch) {
+                    packet.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+                    packet.setPitch(pitch);
+                    dirtyPitch = false;
+                }
+                if (dirtyYaw) {
+                    packet.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+                    packet.setYaw(yaw);
+                    dirtyYaw = false;
+                }
+
+                session.sendUpstreamPacket(packet);
             }
-            if (yawChanged) {
-                packet.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
-                packet.setYaw(yaw);
-            }
-
-            session.sendUpstreamPacket(packet);
         }
+
+        super.tick();
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
         checkInWater();
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
         checkInWater();
     }
 
@@ -127,10 +132,17 @@ public class SquidEntity extends AgeableWaterEntity implements Tickable {
     }
 
     private void checkInWater() {
+        Vector3i newPosition = position.toInt();
+        if (newPosition.equals(lastPosition)) {
+            return;
+        } else {
+            lastPosition = newPosition;
+        }
+
         if (getFlag(EntityFlag.RIDING)) {
             inWater = CompletableFuture.completedFuture(false);
         } else {
-            inWater = session.getGeyser().getWorldManager().getBlockAtAsync(session, position.toInt())
+            inWater = session.getGeyser().getWorldManager().getBlockAtAsync(session, newPosition)
                     .thenApply(block -> BlockStateValues.getWaterLevel(block) != -1);
         }
     }
