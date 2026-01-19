@@ -101,9 +101,11 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                 }
 
                 if (entry.isListed()) {
-                    PlayerListPacket.Entry playerListEntry = SkinManager.buildEntryFromCachedSkin(session, entity);
-                    toAdd.add(playerListEntry);
-                    session.getWaypointCache().listPlayer(entity);
+                    if (!PlayerListUtils.shouldLimitPlayerListEntries(session)) {
+                        PlayerListPacket.Entry playerListEntry = SkinManager.buildEntryFromCachedSkin(session, entity);
+                        toAdd.add(playerListEntry);
+                        session.getWaypointCache().listPlayer(entity);
+                    }
                 } else {
                     // No need to unlist players that were never listed
                     if (entity.isListed()) {
