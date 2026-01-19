@@ -27,6 +27,7 @@ package org.geysermc.geyser.util;
 
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
+import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -36,6 +37,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class PlayerListUtils {
+    private static final boolean HIDE_PLAYER_LIST_PS = Boolean.getBoolean("Geyser.NoPlayerListPS");
+
     static final int MAX_PLAYER_LIST_PACKET_ENTRIES = 1000;
 
     /**
@@ -124,5 +127,13 @@ public class PlayerListUtils {
             unlistPacket.getEntries().add(new PlayerListPacket.Entry(entity.uuid()));
             session.sendUpstreamPacket(unlistPacket);
         }
+    }
+
+    /**
+     * Whether Geyser should limit the player list entries shown to the amount of players actually displayed / near the player
+     * Avoids client crashes when opening the chat on playstation consoles
+     */
+    public static boolean shouldLimitPlayerListEntries(GeyserSession session) {
+        return HIDE_PLAYER_LIST_PS && session.platform() == BedrockPlatform.PS4;
     }
 }
