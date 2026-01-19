@@ -87,14 +87,16 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         super.despawnEntity();
 
         // Remove the entries if limited entries are desired
-        // We never added to the waypoint cache with limited entries, so, no need to remove
+        // While we do not explicitly list players, the skin loading code would
+        // send the player list entry after fetching the skin sent by the Java server.
         if (PlayerListUtils.shouldLimitPlayerListEntries(session)) {
             PlayerListPacket packet = new PlayerListPacket();
             packet.getEntries().add(new PlayerListPacket.Entry(getTabListUuid()));
             packet.setAction(PlayerListPacket.Action.REMOVE);
             session.sendUpstreamPacket(packet);
 
-            // To ensure waypoints still remain, if needed
+            // To ensure waypoints still remain, if any were added while the
+            // player had a valid player list entry
             session.getWaypointCache().unlistPlayer(this);
         }
 
