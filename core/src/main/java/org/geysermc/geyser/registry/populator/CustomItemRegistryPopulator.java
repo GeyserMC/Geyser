@@ -325,10 +325,6 @@ public class CustomItemRegistryPopulator {
             computeConsumableProperties(consumable, foodProperties, itemProperties, componentBuilder);
         });
 
-        computeUseEffectsProperties(itemProperties, componentBuilder,
-            context.components().getOrDefault(DataComponentTypes.USE_EFFECTS, DEFAULT_USE_EFFECTS),
-            consumableComponent.map(Consumable::consumeSeconds));
-
         UseCooldown useCooldown = context.components().get(DataComponentTypes.USE_COOLDOWN);
         if (useCooldown != null) {
             computeUseCooldownProperties(useCooldown, itemIdentifier, componentBuilder);
@@ -369,6 +365,13 @@ public class CustomItemRegistryPopulator {
         } else if (context.definition().components().get(GeyserItemDataComponent.PROJECTILE) != null) {
             // Is already called in computeThrowableProperties, which is why this is an else if statement
             computeProjectileProperties(componentBuilder);
+        }
+
+        // Bedrock doesn't really use these otherwise
+        if (throwable != null || chargeable != null || consumableComponent.isPresent()) {
+            computeUseEffectsProperties(itemProperties, componentBuilder,
+                context.components().getOrDefault(DataComponentTypes.USE_EFFECTS, DEFAULT_USE_EFFECTS),
+                consumableComponent.map(Consumable::consumeSeconds));
         }
 
         Unit entityPlacer = context.vanillaMapping().map(mapping -> {
