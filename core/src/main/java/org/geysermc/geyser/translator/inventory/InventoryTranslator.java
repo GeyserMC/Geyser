@@ -98,11 +98,11 @@ public abstract class InventoryTranslator<Type extends Inventory> {
     private static final Map<ContainerType, InventoryTranslator<? extends Inventory>> INVENTORY_TRANSLATORS = new EnumMap<>(ContainerType.class) {
         {
             /* Chest UIs */
-            put(ContainerType.GENERIC_9X1, new SingleChestInventoryTranslator(9));
-            put(ContainerType.GENERIC_9X2, new SingleChestInventoryTranslator(18));
+            put(ContainerType.GENERIC_9X1, new SingleChestInventoryTranslator(9, "geyseropt_row_1_limit:"));
+            put(ContainerType.GENERIC_9X2, new SingleChestInventoryTranslator(18, "geyseropt_row_2_limit:"));
             put(ContainerType.GENERIC_9X3, new SingleChestInventoryTranslator(27));
-            put(ContainerType.GENERIC_9X4, new DoubleChestInventoryTranslator(36));
-            put(ContainerType.GENERIC_9X5, new DoubleChestInventoryTranslator(45));
+            put(ContainerType.GENERIC_9X4, new DoubleChestInventoryTranslator(36, "geyseropt_row_4_limit:"));
+            put(ContainerType.GENERIC_9X5, new DoubleChestInventoryTranslator(45, "geyseropt_row_5_limit:"));
             put(ContainerType.GENERIC_9X6, new DoubleChestInventoryTranslator(54));
 
             /* Furnaces */

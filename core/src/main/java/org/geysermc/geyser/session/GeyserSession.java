@@ -135,6 +135,9 @@ import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMappings;
+import org.geysermc.geyser.scoreboard.Objective;
+import org.geysermc.geyser.scoreboard.Scoreboard;
+import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.session.cache.AdvancementsCache;
@@ -163,6 +166,7 @@ import org.geysermc.geyser.session.dialog.BuiltInDialog;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.session.dialog.DialogManager;
 import org.geysermc.geyser.skin.SkinManager;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -177,6 +181,8 @@ import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.ProtocolState;
 import org.geysermc.mcprotocollib.protocol.data.game.ServerLink;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.BlankFormat;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
@@ -184,6 +190,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.HandPreference;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreType;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ChatVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ParticleStatus;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.SkinPart;
@@ -1318,33 +1326,22 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         if (getGeyser().config().gameplay().enableIntegratedPack()) {
             if (showCooldown) {
-                SetTitlePacket titlePacket = new SetTitlePacket();
-                titlePacket.setType(SetTitlePacket.Type.TITLE);
-                titlePacket.setText(CooldownUtils.getIntegratedPackTitle(this, sessionPreference));
-                titlePacket.setXuid("");
-                titlePacket.setPlatformOnlineId("");
-                sendUpstreamPacket(titlePacket);
+                sendJsonUIData(
+                        sessionPreference.equals(CooldownUtils.CooldownType.TITLE) ?
+                                "crosshair_cooldown" :
+                                "hotbar_cooldown",
+                        CooldownUtils.getIntegratedPackTitle(this, sessionPreference)
+                );
 
                 needCooldownTitleReset = true;
             } else if (needCooldownTitleReset) {
                 // Clear both, users can change their preference on the fly
-                SetTitlePacket titlePacket = new SetTitlePacket();
-                titlePacket.setType(SetTitlePacket.Type.TITLE);
-                titlePacket.setText("geyseropt:cooldown_crosshair ");
-                titlePacket.setXuid("");
-                titlePacket.setPlatformOnlineId("");
-                sendUpstreamPacket(titlePacket);
-
-                titlePacket = new SetTitlePacket();
-                titlePacket.setType(SetTitlePacket.Type.TITLE);
-                titlePacket.setText("geyseropt:cooldown_hotbar ");
-                titlePacket.setXuid("");
-                titlePacket.setPlatformOnlineId("");
-                sendUpstreamPacket(titlePacket);
+                sendJsonUIData("crosshair_cooldown", " ");
+                sendJsonUIData("hotbar_cooldown", " ");
 
                 needCooldownTitleReset = false;
             }
-        } else {
+        } else { // No integrated pack
             if (showCooldown) {
                 // Set the times to stay a bit with no fade in nor out
                 SetTitlePacket titlePacket = new SetTitlePacket();
@@ -1390,6 +1387,27 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
                 needCooldownTitleReset = false;
             }
+        }
+    }
+
+    public void sendJsonUIData(String key, String value) {
+        int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
+
+        Component component = Component.text("geyseropt:%s:%s".formatted(key, value));
+
+        Scoreboard scoreboard = worldCache.getScoreboard();
+        if (scoreboard.getObjectiveSlots().containsKey(ScoreboardPosition.PLAYER_LIST)) {
+            Objective objective = scoreboard.getObjectiveSlots().get(ScoreboardPosition.PLAYER_LIST).objective();
+            objective.updateProperties(component, objective.getType(), objective.getNumberFormat());
+        } else {
+            Objective objective = scoreboard.registerNewObjective("GeyserOpt-JSONUI-Communication");
+            if (objective == null) objective = scoreboard.getObjective("GeyserOpt-JSONUI-Communication");
+            objective.updateProperties(component, ScoreType.INTEGER, BlankFormat.INSTANCE);
+            scoreboard.displayObjective("GeyserOpt-JSONUI-Communication", ScoreboardPosition.PLAYER_LIST);
+        }
+
+        if (pps < ScoreboardUpdater.FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
+            scoreboard.onUpdate();
         }
     }
 

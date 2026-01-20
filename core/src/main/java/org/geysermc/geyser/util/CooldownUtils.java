@@ -76,8 +76,6 @@ public class CooldownUtils {
     }
 
     public static String getIntegratedPackTitle(GeyserSession session, CooldownType sessionPreference) {
-        String prefix = sessionPreference.equals(CooldownType.TITLE) ? "geyseropt:cooldown_crosshair" : "geyseropt:cooldown_hotbar";
-
         long time = System.currentTimeMillis() - session.getLastHitTime();
         double tickrateMultiplier = Math.max(session.getMillisecondsPerTick() / 50, 1.0);
         double cooldown = MathUtils.restrain(((double) time) * session.getAttackSpeed() / (tickrateMultiplier * 1000.0), 1.0);
@@ -96,9 +94,9 @@ public class CooldownUtils {
         } else if (session.getMouseoverEntity() != null) {
             offset += (byte) 17; // 17 is the hover one
         } else { // We shouldn't really get to here, but if we do, cooldown is over, just return a space string (thanks bedrock)
-            return prefix + " ";
+            return " ";
         }
-        return prefix + (char) (0xEF00 + offset);
+        return String.valueOf((char) (0xEF00 + offset));
     }
 
     @Getter
