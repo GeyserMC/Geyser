@@ -133,7 +133,7 @@ public interface NodeReader<T> {
             try {
                 return Enum.valueOf(clazz, s);
             } catch (IllegalArgumentException exception) {
-                throw new InvalidCustomMappingsFileException("unknown element, must be one of ["
+                throw new InvalidCustomMappingsFileException("unknown element in enum " + clazz.getSimpleName() + ", must be one of ["
                     + String.join(", ", Arrays.stream(clazz.getEnumConstants()).map(E::toString).toArray(String[]::new)).toLowerCase() + "]");
             }
         });
