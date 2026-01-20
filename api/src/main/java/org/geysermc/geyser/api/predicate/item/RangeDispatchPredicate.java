@@ -37,6 +37,7 @@ import org.jetbrains.annotations.ApiStatus;
  * These can be created using the factories in the {@link ItemRangeDispatchPredicate} interface.
  *
  * @see ItemRangeDispatchPredicate
+ * @since 2.9.3
  */
 @ApiStatus.NonExtendable
 public interface RangeDispatchPredicate extends MinecraftPredicate<ItemPredicateContext>, GeyserProvided {
@@ -44,11 +45,13 @@ public interface RangeDispatchPredicate extends MinecraftPredicate<ItemPredicate
     /**
      * @see Property
      * @return the property type to check against
+     * @since 2.9.3
      */
     @NonNull Property property();
 
     /**
      * @return the threshold above which this predicate is true
+     * @since 2.9.3
      */
     double threshold();
 
@@ -57,6 +60,7 @@ public interface RangeDispatchPredicate extends MinecraftPredicate<ItemPredicate
      * If this predicate is any other property, this method will return 0.
      *
      * @return the index
+     * @since 2.9.3
      */
     @NonNegative int index();
 
@@ -66,21 +70,43 @@ public interface RangeDispatchPredicate extends MinecraftPredicate<ItemPredicate
      * not one of the two listed, this will always return false.
      *
      * @return whether this predicate is normalised
+     * @since 2.9.3
      */
     boolean normalised();
 
     /**
      * @return whether this predicate is negated
+     * @since 2.9.3
      */
     boolean negated();
 
     /**
      * The different properties available to check the range of
+     * @since 2.9.3
      */
     enum Property {
+        /**
+         * Checks the amount of items in a bundle
+         * @since 2.9.3
+         */
         BUNDLE_FULLNESS,
+
+        /**
+         * Checks the damage of the item
+         * @since 2.9.3
+         */
         DAMAGE,
+
+        /**
+         * Checks the amount of items in the item stack
+         * @since 2.9.3
+         */
         COUNT,
+
+        /**
+         * Checks the floats list in the custom model data component
+         * @since 2.9.3
+         */
         CUSTOM_MODEL_DATA
     }
 }

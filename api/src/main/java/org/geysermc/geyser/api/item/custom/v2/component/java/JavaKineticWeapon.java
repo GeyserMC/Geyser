@@ -34,6 +34,7 @@ import org.geysermc.geyser.api.util.GenericBuilder;
 
 /**
  * The kinetic weapon component is used to specify a spear-like attack when the item is in use.
+ * @since 2.9.3
  */
 public interface JavaKineticWeapon {
 
@@ -41,6 +42,7 @@ public interface JavaKineticWeapon {
      * The minimum use time, in ticks, required for the weapon to be active. Defaults to 0.
      *
      * @return the minimum use time, in ticks, required for the weapon to be active
+     * @since 2.9.3
      */
     @NonNegative int delayTicks();
 
@@ -48,6 +50,7 @@ public interface JavaKineticWeapon {
      * The condition that has to meet for the attacker to dismount the target.
      *
      * @return the condition to dismount the target
+     * @since 2.9.3
      */
     @Nullable Condition dismountConditions();
 
@@ -55,6 +58,7 @@ public interface JavaKineticWeapon {
      * Creates a builder for the kinetic weapon component.
      *
      * @return a new builder
+     * @since 2.9.3
      */
     static @NonNull Builder builder() {
         return GeyserApi.api().provider(Builder.class);
@@ -67,6 +71,7 @@ public interface JavaKineticWeapon {
      * @see Condition
      * @see Condition#maxDurationTicks()
      * @return the new {@link Condition}
+     * @since 2.9.3
      */
     static @NonNull Condition condition(@NonNegative int maxDurationTicks) {
         return condition(maxDurationTicks, 0.0F, 0.0F);
@@ -83,6 +88,7 @@ public interface JavaKineticWeapon {
      * @see Condition#minSpeed()
      * @see Condition#minRelativeSpeed()
      * @return the new {@link Condition}
+     * @since 2.9.3
      */
     static @NonNull Condition condition(@NonNegative int maxDurationTicks, float minSpeed, float minRelativeSpeed) {
         return Condition.builder(maxDurationTicks)
@@ -93,6 +99,7 @@ public interface JavaKineticWeapon {
 
     /**
      * Builder for the kinetic weapon component.
+     * @since 2.9.3
      */
     interface Builder extends GenericBuilder<JavaKineticWeapon> {
 
@@ -102,12 +109,14 @@ public interface JavaKineticWeapon {
          * @param delayTicks the minimum use time, in ticks, required for the weapon to be active
          * @see JavaKineticWeapon#delayTicks()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder delayTicks(@NonNegative int delayTicks);
 
         /**
          * Shorthand for {@link Builder#dismountConditions(Condition)}.
+         * @since 2.9.3
          */
         @This
         default Builder dismountConditions(Condition.@NonNull Builder dismountConditions) {
@@ -120,6 +129,7 @@ public interface JavaKineticWeapon {
          * @param dismountConditions the condition to dismount the target
          * @see JavaKineticWeapon#dismountConditions()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder dismountConditions(@Nullable Condition dismountConditions);
@@ -128,13 +138,15 @@ public interface JavaKineticWeapon {
          * Creates the kinetic weapon component.
          *
          * @return the new component
+         * @since 2.9.3
          */
         @Override
         JavaKineticWeapon build();
     }
 
     /**
-     * A condition used during the attack of a {@link JavaKineticWeapon}/
+     * A condition used during the attack of a {@link JavaKineticWeapon}.
+     * @since 2.9.3
      */
     interface Condition {
 
@@ -142,6 +154,7 @@ public interface JavaKineticWeapon {
          * The time in ticks after which the condition is no longer checked (and thus always fails), starting once {@link JavaKineticWeapon#delayTicks()} has passed.
          *
          * @return the time in ticks after which the condition is no longer checked
+         * @since 2.9.3
          */
         @NonNegative int maxDurationTicks();
 
@@ -149,6 +162,7 @@ public interface JavaKineticWeapon {
          * The minimum speed of the attacker, in blocks per second, required for the condition to pass. Defaults to 0.
          *
          * @return the minimum speed of the attacker, in blocks per second
+         * @since 2.9.3
          */
         float minSpeed();
 
@@ -156,6 +170,7 @@ public interface JavaKineticWeapon {
          * The minimum relative speed between the attacker and the target, in blocks per second, required for the condition to pass. Defaults to 0.
          *
          * @return the minimum relative speed between the attacker and the target, in blocks per second
+         * @since 2.9.3
          */
         float minRelativeSpeed();
 
@@ -166,6 +181,7 @@ public interface JavaKineticWeapon {
          * @see Condition
          * @see Condition#maxDurationTicks()
          * @return a new builder
+         * @since 2.9.3
          */
         static @NonNull Builder builder(@NonNegative int maxDurationTicks) {
             return GeyserApi.api().provider(Builder.class, maxDurationTicks);
@@ -173,6 +189,7 @@ public interface JavaKineticWeapon {
 
         /**
          * Builder for a {@link Condition}.
+         * @since 2.9.3
          */
         interface Builder extends GenericBuilder<Condition> {
 
@@ -182,6 +199,7 @@ public interface JavaKineticWeapon {
              * @param minSpeed the minimum speed of the attacker, in blocks per second
              * @see Condition#minSpeed()
              * @return this builder
+             * @since 2.9.3
              */
             @This
             Builder minSpeed(float minSpeed);
@@ -192,6 +210,7 @@ public interface JavaKineticWeapon {
              * @param minRelativeSpeed the minimum relative speed between the attacker and the target, in blocks per second
              * @see Condition#minRelativeSpeed()
              * @return this builder
+             * @since 2.9.3
              */
             @This
             Builder minRelativeSpeed(float minRelativeSpeed);
@@ -200,6 +219,7 @@ public interface JavaKineticWeapon {
              * Creates the {@link Condition}.
              *
              * @return the new {@link Condition}
+             * @since 2.9.3
              */
             @Override
             Condition build();

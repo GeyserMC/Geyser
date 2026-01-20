@@ -34,6 +34,7 @@ import org.geysermc.geyser.api.util.Identifier;
  * Contains factories for often-used "match" predicates, that match for a value in {@link MinecraftPredicateContext}.
  *
  * <p>Predicates created through these factories support conflict detection when used with custom items. It is as such preferred to use these over custom defined predicates when possible.</p>
+ * @since 2.9.3
  */
 public interface MatchPredicate {
 
@@ -42,6 +43,7 @@ public interface MatchPredicate {
      *
      * @see MinecraftPredicateContext#dimension()
      * @see DimensionPredicate
+     * @since 2.9.3
      */
     static MinecraftPredicate<MinecraftPredicateContext> dimension(@NonNull Identifier dimension) {
         return GeyserApi.api().provider(DimensionPredicate.class, dimension, false);

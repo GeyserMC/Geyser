@@ -31,6 +31,7 @@ import org.jetbrains.annotations.ApiStatus;
  * An interface for builders.
  *
  * @param <T> the type of the object built
+ * @since 2.9.3
  */
 @ApiStatus.Internal
 public interface GenericBuilder<T> {

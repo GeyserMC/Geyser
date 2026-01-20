@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.util;
 
 /**
  * A {@link Unit#INSTANCE} is used to indicate the presence of something.
+ * @since 2.9.3
  */
 public enum Unit {
     INSTANCE

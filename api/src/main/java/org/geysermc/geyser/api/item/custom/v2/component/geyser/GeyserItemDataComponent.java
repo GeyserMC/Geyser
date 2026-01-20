@@ -42,6 +42,7 @@ import java.util.function.Predicate;
  *
  * @see ItemDataComponent
  * @see CustomItemDefinition#components()
+ * @since 2.9.3
  */
 @ApiStatus.NonExtendable
 public interface GeyserItemDataComponent {
@@ -51,6 +52,7 @@ public interface GeyserItemDataComponent {
      * A list of bedrock item identifiers can be given as ammunition.
      *
      * @see GeyserChargeable
+     * @since 2.9.3
      */
     ItemDataComponent<GeyserChargeable> CHARGEABLE = createGeyser("chargeable");
 
@@ -58,6 +60,7 @@ public interface GeyserItemDataComponent {
      * Places a visual indicator (=tooltip) of the item's attack damage. Must be at or above 0.
      *
      * <p>Attribute modifiers are automatically translated for custom vanilla items, but not for non-vanilla ones, which is why this component is here.</p>
+     * @since 2.9.3
      */
     ItemDataComponent<Integer> ATTACK_DAMAGE = createGeyser("attack_damage", i -> i >= 0);
 
@@ -65,6 +68,7 @@ public interface GeyserItemDataComponent {
      * Indicates which block the item should place and whether it should replace the original item for that block.
      *
      * @see GeyserBlockPlacer
+     * @since 2.9.3
      */
     ItemDataComponent<GeyserBlockPlacer> BLOCK_PLACER = createGeyser("block_placer");
 
@@ -73,6 +77,7 @@ public interface GeyserItemDataComponent {
      * allows specifying if the client should display a swing animation when the item is thrown.
      *
      * @see GeyserThrowableComponent
+     * @since 2.9.3
      */
     ItemDataComponent<GeyserThrowableComponent> THROWABLE = createGeyser("throwable");
 
@@ -80,6 +85,7 @@ public interface GeyserItemDataComponent {
      * Marks the item as a projectile, meaning it can be used as ammunition in the chargeable component.
      *
      * @see GeyserChargeable#ammunition()
+     * @since 2.9.3
      */
     ItemDataComponent<Unit> PROJECTILE = createGeyser("projectile");
 
@@ -87,6 +93,7 @@ public interface GeyserItemDataComponent {
      * Marks the item as an entity placer, meaning it can place entities, e.g. a boat or minecart item.
      *
      * <p>All items placing entities should be marked with this component to prevent client-side desyncs.</p>
+     * @since 2.9.3
      */
     ItemDataComponent<Unit> ENTITY_PLACER = createGeyser("entity_placer");
 

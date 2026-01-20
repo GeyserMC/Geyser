@@ -34,17 +34,20 @@ import org.jetbrains.annotations.ApiStatus;
  * Represents charged projectiles which are stored in the {@code minecraft:charged_projectiles} component.
  *
  * @see ItemPredicateContext#chargedProjectiles()
+ * @since 2.9.3
  */
 @ApiStatus.NonExtendable
 public interface ChargedProjectile {
 
     /**
      * @return the type of the projectile
+     * @since 2.9.3
      */
     @NonNull ChargeType type();
 
     /**
      * @return the amount present of this projectile
+     * @since 2.9.3
      */
     @Positive int count();
 
@@ -54,18 +57,25 @@ public interface ChargedProjectile {
      * @param type the charge type of the projectile
      * @param count the amount of charges present
      * @return the charged projectile
+     * @since 2.9.3
      */
     static ChargedProjectile of(@NonNull ChargeType type, @Positive int count) {
         return GeyserApi.api().provider(ChargedProjectile.class, type, count);
     }
 
+    /**
+     * Represents the type of the charge
+     * @since 2.9.3
+     */
     enum ChargeType {
         /**
          * Any item that is not {@code minecraft:firework_rocket}.
+         * @since 2.9.3
          */
         ARROW,
         /**
          * {@code minecraft:firework_rocket}
+         * @since 2.9.3
          */
         ROCKET
     }

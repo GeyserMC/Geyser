@@ -42,6 +42,7 @@ import java.util.function.Predicate;
  *
  * @see CustomItemDefinition#components()
  * @see GeyserItemDataComponent
+ * @since 2.9.3
  */
 public interface JavaItemDataComponents {
 
@@ -52,6 +53,7 @@ public interface JavaItemDataComponents {
      * <p>Note that due to a bug on Bedrock, not all consume animations appear perfectly. See {@link JavaConsumable.Animation}.</p>
      *
      * @see JavaConsumable
+     * @since 2.9.3
      */
     ItemDataComponent<JavaConsumable> CONSUMABLE = create("consumable");
 
@@ -62,6 +64,7 @@ public interface JavaItemDataComponents {
      * <p>Note that on Bedrock, equippables can't have a stack size above 1.</p>
      *
      * @see JavaEquippable
+     * @since 2.9.3
      */
     ItemDataComponent<JavaEquippable> EQUIPPABLE = create("equippable");
 
@@ -69,16 +72,19 @@ public interface JavaItemDataComponents {
      * Food properties of the item. All properties properly translate over to Bedrock.
      *
      * @see JavaFoodProperties
+     * @since 2.9.3
      */
     ItemDataComponent<JavaFoodProperties> FOOD = create("food");
 
     /**
      * Max damage value of the item. Must be at or above 0. Items with a max damage value above 0 cannot have a stack size above 1.
+     * @since 2.9.3
      */
     ItemDataComponent<Integer> MAX_DAMAGE = create("max_damage", i -> i >= 0);
 
     /**
      * Max stack size of the item. Must be between 1 and 99. Items with a max stack size value above 1 cannot have a max damage value above 0.
+     * @since 2.9.3
      */
     ItemDataComponent<Integer> MAX_STACK_SIZE = create("max_stack_size", i -> i >= 1 && i <= 99); // Reverse lambda
 
@@ -89,6 +95,7 @@ public interface JavaItemDataComponents {
      * or the item itself (in case of non-vanilla custom items) will be used.</p>
      *
      * @see JavaUseCooldown
+     * @since 2.9.3
      */
     ItemDataComponent<JavaUseCooldown> USE_COOLDOWN = create("use_cooldown");
 
@@ -98,6 +105,7 @@ public interface JavaItemDataComponents {
      * <p>This component does not translate over perfectly, due to the way enchantments work on Bedrock. The component will be mapped to the {@code minecraft:enchantable} bedrock component with {@code slot=all},
      * and an enchantable value of what this component was set to.
      * This should, but does not guarantee, allow for compatibility with vanilla enchantments. Non-vanilla enchantments are unlikely to work.</p>
+     * @since 2.9.3
      */
     ItemDataComponent<Integer> ENCHANTABLE = create("enchantable", i -> i >= 0);
 
@@ -106,6 +114,7 @@ public interface JavaItemDataComponents {
      * For non-vanilla custom items, this component also stores the tool's rules and default mining speed, to correctly calculate block breaking speed.
      *
      * @see JavaToolProperties
+     * @since 2.9.3
      */
     ItemDataComponent<JavaToolProperties> TOOL = create("tool");
 
@@ -113,11 +122,13 @@ public interface JavaItemDataComponents {
      * Marks which items can be used to repair the item.
      *
      * @see JavaRepairable
+     * @since 2.9.3
      */
     ItemDataComponent<JavaRepairable> REPAIRABLE = create("repairable");
 
     /**
      * Overrides the item's enchantment glint.
+     * @since 2.9.3
      */
     ItemDataComponent<Boolean> ENCHANTMENT_GLINT_OVERRIDE = create("enchantment_glint_override");
 
@@ -126,6 +137,7 @@ public interface JavaItemDataComponents {
      * {@link JavaItemDataComponents#PIERCING_WEAPON} components.
      *
      * @see JavaAttackRange
+     * @since 2.9.3
      */
     ItemDataComponent<JavaAttackRange> ATTACK_RANGE = create("attack_range");
 
@@ -133,6 +145,7 @@ public interface JavaItemDataComponents {
      * Specifies a spear-like attack when the item is in use. Only properties required on the Bedrock client are translated.
      *
      * @see JavaKineticWeapon
+     * @since 2.9.3
      */
     ItemDataComponent<JavaKineticWeapon> KINETIC_WEAPON = create("kinetic_weapon");
 
@@ -140,6 +153,7 @@ public interface JavaItemDataComponents {
      * Specifies a stab-like attack when using the item. Only properties required on the Bedrock client are translated.
      *
      * @see JavaPiercingWeapon
+     * @since 2.9.3
      */
     ItemDataComponent<JavaPiercingWeapon> PIERCING_WEAPON = create("piercing_weapon");
 
@@ -148,6 +162,7 @@ public interface JavaItemDataComponents {
      * cannot be specified, only the duration of the animation.
      *
      * @see JavaSwingAnimation
+     * @since 2.9.3
      */
     ItemDataComponent<JavaSwingAnimation> SWING_ANIMATION = create("swing_animation");
 
@@ -155,6 +170,7 @@ public interface JavaItemDataComponents {
      * Specifies how the player behaves when using the item. Due to Bedrock limitations, the {@code can_sprint} property cannot be translated.
      *
      * @see JavaUseEffects
+     * @since 2.9.3
      */
     ItemDataComponent<JavaUseEffects> USE_EFFECTS = create("use_effects");
 

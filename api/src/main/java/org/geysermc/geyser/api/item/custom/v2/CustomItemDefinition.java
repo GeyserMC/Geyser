@@ -64,6 +64,8 @@ import java.util.Objects;
  * <p>Please note! While this system in most cases ensures predicates will be checked in the correct order,
  * the range dispatch predicate sorting only works when 2 definitions only have 1 range dispatch predicate that is similar enough. With more complicated predicate checks,
  * it is recommended to make use of priority values, to ensure the intended order.</p>
+ *
+ * @since 2.9.3
  */
 @ApiStatus.NonExtendable
 public interface CustomItemDefinition {
@@ -72,6 +74,7 @@ public interface CustomItemDefinition {
      * The Bedrock identifier for this custom item. It cannot be in the {@code minecraft} namespace.
      *
      * @return the Bedrock item identifier
+     * @since 2.9.3
      */
     @NonNull Identifier bedrockIdentifier();
 
@@ -79,6 +82,7 @@ public interface CustomItemDefinition {
      * The display name of the item. If none is set, the display name is taken from the item's Bedrock identifier.
      *
      * @return the display name shown to Bedrock clients
+     * @since 2.9.3
      */
     @NonNull String displayName();
 
@@ -88,6 +92,7 @@ public interface CustomItemDefinition {
      * <p>If multiple item definitions for a model are registered, then only one can have no predicate.</p>
      *
      * @return the identifier of the Java item model used to match this definition
+     * @since 2.9.3
      */
     @NonNull Identifier model();
 
@@ -101,6 +106,7 @@ public interface CustomItemDefinition {
      * <p>{@code my_datapack:cool_items/cool_item_1} => {@code my_datapack.cool_items_cool_item_1}</p>
      *
      * @return the icon shown to Bedrock players
+     * @since 2.9.3
      */
     @NonNull String icon();
 
@@ -113,21 +119,27 @@ public interface CustomItemDefinition {
      * <p>It is recommended to use built-in predicates created from classes such as {@link MatchPredicate}, {@link ItemMatchPredicate},
      * {@link ItemRangeDispatchPredicate}, and {@link ItemConditionPredicate} when possible. These predicates
      * have built in conflict detection, value caching, and, in the case of range dispatch predicates, proper predicate sorting. This makes bugs easier to discover, and is generally more performant.</p>
+     *
+     * @since 2.9.3
      */
     @NonNull List<MinecraftPredicate<? super ItemPredicateContext>> predicates();
 
     /**
      * The predicate strategy used when evaluating predicates. Determines if one of, or all of the predicates have to pass for this item definition to be used. Defaults to {@link PredicateStrategy#AND}.
+     *
+     * @since 2.9.3
      */
     @NonNull PredicateStrategy predicateStrategy();
 
     /**
      * @return the priority of this definition. For all definitions for a single Java item model, definitions with a higher priority will be matched first. Defaults to 0.
+     * @since 2.9.3
      */
     int priority();
 
     /**
      * @return the item's Bedrock options. These describe item properties that can't be described in item components, e.g. item texture size and if the item is allowed in the off-hand.
+     * @since 2.9.3
      */
     @NonNull CustomItemBedrockOptions bedrockOptions();
 
@@ -147,6 +159,10 @@ public interface CustomItemDefinition {
      *     <li>{@code minecraft:tool} ({@link JavaItemDataComponents#TOOL})</li>
      *     <li>{@code minecraft:repairable} ({@link JavaItemDataComponents#REPAIRABLE})</li>
      *     <li>{@code minecraft:enchantment_glint_override} ({@link JavaItemDataComponents#ENCHANTMENT_GLINT_OVERRIDE})</li>
+     *     <li>{@code minecraft:attack_range} ({@link JavaItemDataComponents#ATTACK_RANGE})</li>
+     *     <li>{@code minecraft:piercing_weapon} ({@link JavaItemDataComponents#PIERCING_WEAPON})</li>
+     *     <li>{@code minecraft:use_effects} ({@link JavaItemDataComponents#USE_EFFECTS})</li>
+     *     <li>{@code minecraft:kinetic_weapon} ({@link JavaItemDataComponents#KINETIC_WEAPON}</li>
      * </ul>
      *
      * <p>Note: some components, for example {@code minecraft:rarity} and {@code minecraft:attribute_modifiers}, are translated automatically, and do not have to be specified here.
@@ -155,6 +171,7 @@ public interface CustomItemDefinition {
      * @see JavaItemDataComponents
      * @see CustomItemDefinition#removedComponents()
      * @return the item's data component patch
+     * @since 2.9.3
      */
     @NonNull
     ItemDataComponentMap components();
@@ -165,6 +182,7 @@ public interface CustomItemDefinition {
      *
      * @see CustomItemDefinition#components()
      * @return a list of removed default item data components
+     * @since 2.9.3
      */
     @NonNull List<Identifier> removedComponents();
 
@@ -176,6 +194,7 @@ public interface CustomItemDefinition {
      * @see CustomItemDefinition#bedrockIdentifier()
      * @see CustomItemDefinition#model()
      * @return a new builder
+     * @since 2.9.3
      */
     static Builder builder(@NonNull Identifier bedrockIdentifier, @NonNull Identifier itemModel) {
         return GeyserApi.api().provider(Builder.class, bedrockIdentifier, itemModel);
@@ -183,6 +202,7 @@ public interface CustomItemDefinition {
 
     /**
      * The builder for the custom item definition.
+     * @since 2.9.3
      */
     interface Builder extends GenericBuilder<CustomItemDefinition> {
 
@@ -192,6 +212,7 @@ public interface CustomItemDefinition {
          *
          * @param displayName the display name to show for Bedrock clients.
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder displayName(@NonNull String displayName);
@@ -202,6 +223,7 @@ public interface CustomItemDefinition {
          *
          * @param priority the priority
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder priority(int priority);
@@ -214,6 +236,7 @@ public interface CustomItemDefinition {
          * @see CustomItemBedrockOptions
          * @param options the bedrock item options
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options);
@@ -224,6 +247,7 @@ public interface CustomItemDefinition {
          *
          * @param predicate a predicate that must match for this item to be used
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder predicate(@NonNull MinecraftPredicate<? super ItemPredicateContext> predicate);
@@ -233,6 +257,7 @@ public interface CustomItemDefinition {
          *
          * @param strategy the predicate strategy to use
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder predicateStrategy(@NonNull PredicateStrategy strategy);
@@ -250,6 +275,7 @@ public interface CustomItemDefinition {
          * @param <T> the value held by the component
          * @throws IllegalArgumentException when the added component was removed using {@link CustomItemDefinition.Builder#removeComponent(Identifier)}
          * @return this builder
+         * @since 2.9.3
          */
         @This
         <T> Builder component(@NonNull ItemDataComponent<T> component, @NonNull T value);
@@ -263,6 +289,7 @@ public interface CustomItemDefinition {
          * @throws IllegalArgumentException when the added component was removed using {@link CustomItemDefinition.Builder#removeComponent(Identifier)}
          * @see CustomItemDefinition.Builder#component(ItemDataComponent, Object)
          * @return this builder
+         * @since 2.9.3
          */
         @This
         default <T> Builder component(@NonNull ItemDataComponent<T> component, @NonNull GenericBuilder<T> builder) {
@@ -280,6 +307,7 @@ public interface CustomItemDefinition {
          * @param component the identifier of the vanilla base component to remove
          * @throws IllegalArgumentException when the removed component was added using {@link CustomItemDefinition.Builder#component(ItemDataComponent, Object)}
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder removeComponent(@NonNull Identifier component);
@@ -290,6 +318,7 @@ public interface CustomItemDefinition {
          * @param component the component type to remove
          * @throws IllegalArgumentException when the removed component was added using {@link CustomItemDefinition.Builder#component(ItemDataComponent, Object)}
          * @return this builder
+         * @since 2.9.3
          */
         @This
         default Builder removeComponent(@NonNull ItemDataComponent<?> component) {
@@ -304,6 +333,7 @@ public interface CustomItemDefinition {
          * Creates the custom item definition.
          *
          * @return the new custom item definition
+         * @since 2.9.3
          */
         @Override
         CustomItemDefinition build();

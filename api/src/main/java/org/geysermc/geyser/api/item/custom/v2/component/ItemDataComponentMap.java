@@ -29,16 +29,19 @@ import java.util.Set;
 
 /**
  * A map of data components to their values. Mainly used internally when mapping custom items.
+ * @since 2.9.3
  */
 public interface ItemDataComponentMap {
 
     /**
-     * @return the value of the given component, or null if it is not in the map.
+     * @return the value of the given component, or null if it is not in the map
+     * @since 2.9.3
      */
     <T> T get(ItemDataComponent<T> type);
 
     /**
-     * @return the value of the given component, or {@code fallback} if it is null.
+     * @return the value of the given component, or {@code fallback} if it is null
+     * @since 2.9.3
      */
     default <T> T getOrDefault(ItemDataComponent<T> type, T fallback) {
         T value = get(type);
@@ -46,7 +49,8 @@ public interface ItemDataComponentMap {
     }
 
     /**
-     * @return all data components in this map.
+     * @return all data components in this map
+     * @since 2.9.3
      */
     Set<ItemDataComponent<?>> keySet();
 }

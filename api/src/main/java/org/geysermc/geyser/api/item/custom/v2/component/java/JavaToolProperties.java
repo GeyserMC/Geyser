@@ -38,6 +38,7 @@ import java.util.List;
  * The tool properties component can be used to mark
  * if the item can destroy blocks when used in creative mode. For non-vanilla items, it is also important to set a default mining speed
  * and all the rules the tool has, to ensure proper block breaking. For vanilla-item overrides, Geyser is able to handle this automatically.
+ * @since 2.9.3
  */
 public interface JavaToolProperties {
 
@@ -46,6 +47,7 @@ public interface JavaToolProperties {
      * Doesn't have to be set for vanilla-item overrides.
      *
      * @return a list of rules this tool has
+     * @since 2.9.3
      */
     List<@NonNull Rule> rules();
 
@@ -54,6 +56,7 @@ public interface JavaToolProperties {
      * Defaults to 0.0, and doesn't have to be set for vanilla-item overrides.
      *
      * @return the default mining speed of the tool
+     * @since 2.9.3
      */
     @Positive float defaultMiningSpeed();
 
@@ -62,6 +65,7 @@ public interface JavaToolProperties {
      * creative mode. Defaults to {@code true}.
      *
      * @return whether this item can destroy blocks in creative mode
+     * @since 2.9.3
      */
     boolean canDestroyBlocksInCreative();
 
@@ -69,6 +73,7 @@ public interface JavaToolProperties {
      * Creates a builder for the tool properties component.
      *
      * @return a new builder
+     * @since 2.9.3
      */
     static @NonNull Builder builder() {
         return GeyserApi.api().provider(JavaToolProperties.Builder.class);
@@ -79,6 +84,7 @@ public interface JavaToolProperties {
      *
      * @param canDestroyBlocksInCreative determines if the item will break blocks in creative mode
      * @return a tool properties component
+     * @since 2.9.3
      */
     static @NonNull JavaToolProperties of(boolean canDestroyBlocksInCreative) {
         return builder().canDestroyBlocksInCreative(canDestroyBlocksInCreative).build();
@@ -86,6 +92,7 @@ public interface JavaToolProperties {
 
     /**
      * Builder for the tool properties component.
+     * @since 2.9.3
      */
     interface Builder extends GenericBuilder<JavaToolProperties> {
 
@@ -95,6 +102,7 @@ public interface JavaToolProperties {
          * @param rule the rule to add
          * @see JavaToolProperties#rules()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder rule(@NonNull Rule rule);
@@ -105,6 +113,7 @@ public interface JavaToolProperties {
          * @param defaultMiningSpeed the default mining speed of this tool
          * @see JavaToolProperties#defaultMiningSpeed()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder defaultMiningSpeed(@Positive float defaultMiningSpeed);
@@ -116,6 +125,7 @@ public interface JavaToolProperties {
          * @param canDestroyBlocksInCreative determines if the item will break blocks in creative mode
          * @see JavaToolProperties#canDestroyBlocksInCreative()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder canDestroyBlocksInCreative(boolean canDestroyBlocksInCreative);
@@ -124,6 +134,7 @@ public interface JavaToolProperties {
          * Creates the tool properties component.
          *
          * @return the new component
+         * @since 2.9.3
          */
         @Override
         JavaToolProperties build();
@@ -131,16 +142,19 @@ public interface JavaToolProperties {
 
     /**
      * A rule for a tool. Consists of a {@link Holders} of block identifiers, and a speed to use for those blocks.
+     * @since 2.9.3
      */
     interface Rule {
 
         /**
          * @return the {@link Holders} of block identifiers that this rule is for
+         * @since 2.9.3
          */
         @NonNull Holders blocks();
 
         /**
          * @return the speed to use when mining a block that matches this rule
+         * @since 2.9.3
          */
         float speed();
 
@@ -148,6 +162,7 @@ public interface JavaToolProperties {
          * Creates a builder for a tool rule.
          *
          * @return a new builder
+         * @since 2.9.3
          */
         static @NonNull Builder builder() {
             return GeyserApi.api().provider(Rule.Builder.class);
@@ -159,6 +174,7 @@ public interface JavaToolProperties {
          * @param blocks the {@link Holders} of block identifiers that this rule is for
          * @param speed the speed to use when mining a block that matches this rule
          * @return a tool rule
+         * @since 2.9.3
          */
         static @NonNull Rule of(@NonNull Holders blocks, @Positive float speed) {
             return Rule.builder().blocks(blocks).speed(speed).build();
@@ -166,6 +182,7 @@ public interface JavaToolProperties {
 
         /**
          * Builder for a tool rule.
+         * @since 2.9.3
          */
         interface Builder extends GenericBuilder<Rule> {
 
@@ -174,6 +191,7 @@ public interface JavaToolProperties {
              *
              * @param blocks the {@link Holders} of block identifiers that this rule is for
              * @return this builder
+             * @since 2.9.3
              */
             @This
             Builder blocks(@NonNull Holders blocks);
@@ -183,6 +201,7 @@ public interface JavaToolProperties {
              *
              * @param speed the speed to use
              * @return this builder
+             * @since 2.9.3
              */
             @This
             Builder speed(@Positive float speed);
@@ -191,6 +210,7 @@ public interface JavaToolProperties {
              * Creates the rule.
              *
              * @return the new rule
+             * @since 2.9.3
              */
             @Override
             Rule build();

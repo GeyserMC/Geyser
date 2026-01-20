@@ -39,6 +39,7 @@ import java.util.List;
  * or bows. This includes the draw duration, whether the item
  * charges on being drawn, and the ammunition that can be
  * used by the item.
+ * @since 2.9.3
  */
 public interface GeyserChargeable {
 
@@ -47,6 +48,7 @@ public interface GeyserChargeable {
      * can be drawn before releasing automatically. Defaults to {@code 0.0}.
      *
      * @return the maximum draw duration
+     * @since 2.9.3
      */
     @NonNegative float maxDrawDuration();
 
@@ -54,6 +56,7 @@ public interface GeyserChargeable {
      * Whether the item is being charged when being drawn, like a crossbow. Defaults to {@code false}.
      *
      * @return whether drawing the item charges it
+     * @since 2.9.3
      */
     boolean chargeOnDraw();
 
@@ -66,6 +69,7 @@ public interface GeyserChargeable {
      * Non-vanilla custom items can mark an item as a projectile and add this component by specifying the {@link GeyserItemDataComponent#PROJECTILE} component.</p>
      *
      * @return all valid ammunition items
+     * @since 2.9.3
      */
     List<@NonNull Identifier> ammunition();
 
@@ -73,6 +77,7 @@ public interface GeyserChargeable {
      * Creates a builder for the Chargeable component.
      *
      * @return a new builder
+     * @since 2.9.3
      */
     static @NonNull Builder builder() {
         return GeyserApi.api().provider(GeyserChargeable.Builder.class);
@@ -80,6 +85,7 @@ public interface GeyserChargeable {
 
     /**
      * Builder for the chargeable component.
+     * @since 2.9.3
      */
     interface Builder extends GenericBuilder<GeyserChargeable> {
 
@@ -89,6 +95,7 @@ public interface GeyserChargeable {
          * @param maxDrawDuration the non-negative maximum charging duration
          * @see GeyserChargeable#maxDrawDuration()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder maxDrawDuration(@NonNegative float maxDrawDuration);
@@ -99,6 +106,7 @@ public interface GeyserChargeable {
          * @param chargeOnDraw whether drawing charges the item
          * @see GeyserChargeable#chargeOnDraw()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder chargeOnDraw(boolean chargeOnDraw);
@@ -110,6 +118,7 @@ public interface GeyserChargeable {
          * @param ammunition the Bedrock item identifier of possible ammunition
          * @see GeyserChargeable#ammunition()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder ammunition(@NonNull Identifier ammunition);
@@ -118,6 +127,7 @@ public interface GeyserChargeable {
          * Creates the chargeable component.
          *
          * @return the new component
+         * @since 2.9.3
          */
         @Override
         GeyserChargeable build();

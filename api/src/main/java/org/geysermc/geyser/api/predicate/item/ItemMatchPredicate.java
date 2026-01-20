@@ -41,6 +41,7 @@ import org.jetbrains.annotations.ApiStatus;
  *
  * <p>Predicates created through these factories support conflict detection when used with custom items.
  * It is as such preferred to use these over custom defined predicates when possible.</p>
+ * @since 2.9.3
  */
 @ApiStatus.NonExtendable
 public interface ItemMatchPredicate extends MatchPredicate {
@@ -50,6 +51,7 @@ public interface ItemMatchPredicate extends MatchPredicate {
      *
      * @see ItemPredicateContext#chargedProjectiles()
      * @see ChargeTypePredicate
+     * @since 2.9.3
      */
     static MinecraftPredicate<ItemPredicateContext> chargeType(ChargedProjectile.@NonNull ChargeType type) {
         return GeyserApi.api().provider(ChargeTypePredicate.class, type);
@@ -60,6 +62,7 @@ public interface ItemMatchPredicate extends MatchPredicate {
      *
      * @see ItemPredicateContext#trimMaterial()
      * @see TrimMaterialPredicate
+     * @since 2.9.3
      */
     static MinecraftPredicate<ItemPredicateContext> trimMaterial(@NonNull Identifier material) {
         return GeyserApi.api().provider(TrimMaterialPredicate.class, material);
@@ -70,6 +73,7 @@ public interface ItemMatchPredicate extends MatchPredicate {
      *
      * @see ItemPredicateContext#customModelDataString(int)
      * @see CustomModelDataPredicate.StringPredicate
+     * @since 2.9.3
      */
     static MinecraftPredicate<ItemPredicateContext> customModelData(@NonNegative int index, @Nullable String string) {
         return GeyserApi.api().provider(CustomModelDataPredicate.StringPredicate.class, string, index);

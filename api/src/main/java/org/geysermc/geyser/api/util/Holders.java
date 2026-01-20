@@ -35,6 +35,7 @@ import java.util.List;
 /**
  * Similar to the {@code HolderSet}s in Minecraft, a Holders object can represent either a list of identifiers, or an identifier of a Minecraft registry tag. What these identifiers represent, depends on the context
  * in which to Holders object is used.
+ * @since 2.9.3
  */
 @ApiStatus.NonExtendable
 public interface Holders {
@@ -44,6 +45,7 @@ public interface Holders {
      *
      * @param identifier the identifier the Holders object consists of
      * @return a new Holders object
+     * @since 2.9.3
      */
     static Holders of(Identifier identifier) {
         return builder().with(identifier).build();
@@ -54,6 +56,7 @@ public interface Holders {
      *
      * @param identifiers the identifiers the Holders object consists of
      * @return a new Holders object
+     * @since 2.9.3
      */
     static Holders of(List<Identifier> identifiers) {
         Builder builder = builder();
@@ -66,6 +69,7 @@ public interface Holders {
      *
      * @param tag the tag the Holders object consists of
      * @return a new Holders object
+     * @since 2.9.3
      */
     static Holders ofTag(Identifier tag) {
         return builder().tag(tag).build();
@@ -75,6 +79,7 @@ public interface Holders {
      * Creates a builder for a Holders object.
      *
      * @return a new builder
+     * @since 2.9.3
      */
     static Builder builder() {
         return GeyserApi.api().provider(Holders.Builder.class);
@@ -82,6 +87,7 @@ public interface Holders {
 
     /**
      * Builder for the Holders object
+     * @since 2.9.3
      */
     interface Builder extends GenericBuilder<Holders> {
 
@@ -92,6 +98,7 @@ public interface Holders {
          * @param identifier the identifier to add to the Holders object
          * @throws IllegalArgumentException when a tag has been set
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder with(@NonNull Identifier identifier);
@@ -103,6 +110,7 @@ public interface Holders {
          * @param tag the tag to set
          * @throws IllegalArgumentException when at least one identifier has already been added
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder tag(@NonNull Identifier tag);
@@ -111,6 +119,7 @@ public interface Holders {
          * Creates the Holders object.
          *
          * @return the new Holders object
+         * @since 2.9.3
          */
         @Override
         Holders build();

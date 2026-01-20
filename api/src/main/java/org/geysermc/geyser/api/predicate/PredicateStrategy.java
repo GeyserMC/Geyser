@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.predicate;
 
 /**
  * Represents all possible strategies for evaluating multiple predicates.
+ * @since 2.9.3
  */
 public enum PredicateStrategy {
     /**

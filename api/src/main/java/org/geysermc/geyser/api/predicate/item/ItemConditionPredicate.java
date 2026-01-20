@@ -38,6 +38,7 @@ import org.jetbrains.annotations.ApiStatus;
  *
  * <p>Predicates created through factories here support conflict detection when used with custom items.
  * It is as such preferred to use these over custom defined predicates when possible.</p>
+ * @since 2.9.3
  */
 @ApiStatus.NonExtendable
 public interface ItemConditionPredicate {
@@ -46,6 +47,7 @@ public interface ItemConditionPredicate {
      * Checks if the item is unbreakable.
      *
      * @see ItemPredicateContext#unbreakable()
+     * @since 2.9.3
      */
     MinecraftPredicate<ItemPredicateContext> UNBREAKABLE = ItemPredicateContext::unbreakable;
 
@@ -54,6 +56,7 @@ public interface ItemConditionPredicate {
      *
      * @see ItemPredicateContext#unbreakable()
      * @see ItemPredicateContext#maxDamage()
+     * @since 2.9.3
      */
     MinecraftPredicate<ItemPredicateContext> DAMAGEABLE = context -> !context.unbreakable() && context.maxDamage() > 0;
 
@@ -63,6 +66,7 @@ public interface ItemConditionPredicate {
      * @see ItemConditionPredicate#DAMAGEABLE
      * @see ItemPredicateContext#damage()
      * @see ItemPredicateContext#maxDamage()
+     * @since 2.9.3
      */
     MinecraftPredicate<ItemPredicateContext> BROKEN = DAMAGEABLE.and(context -> context.damage() >= context.maxDamage() - 1);
 
@@ -71,6 +75,7 @@ public interface ItemConditionPredicate {
      *
      * @see ItemConditionPredicate#DAMAGEABLE
      * @see ItemPredicateContext#damage()
+     * @since 2.9.3
      */
     MinecraftPredicate<ItemPredicateContext> DAMAGED = DAMAGEABLE.and(context -> context.damage() >= 0);
 
@@ -78,6 +83,7 @@ public interface ItemConditionPredicate {
      * Checks if the session player is holding a fishing rod cast.
      *
      * @see ItemPredicateContext#hasFishingRodCast()
+     * @since 2.9.3
      */
     MinecraftPredicate<ItemPredicateContext> FISHING_ROD_CAST = ItemPredicateContext::hasFishingRodCast;
 
@@ -86,6 +92,7 @@ public interface ItemConditionPredicate {
      *
      * @see ItemPredicateContext#customModelDataFlag(int)
      * @see CustomModelDataPredicate.FlagPredicate
+     * @since 2.9.3
      */
     static MinecraftPredicate<ItemPredicateContext> customModelData(@NonNegative int index) {
         return GeyserApi.api().provider(CustomModelDataPredicate.FlagPredicate.class, index);
@@ -96,6 +103,7 @@ public interface ItemConditionPredicate {
      *
      * @see ItemPredicateContext#components()
      * @see HasComponentPredicate
+     * @since 2.9.3
      */
     static MinecraftPredicate<ItemPredicateContext> hasComponent(@NonNull Identifier component) {
         return GeyserApi.api().provider(HasComponentPredicate.class, component);

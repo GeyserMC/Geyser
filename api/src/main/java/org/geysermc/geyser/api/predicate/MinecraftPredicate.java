@@ -41,6 +41,7 @@ import java.util.function.Predicate;
  *
  * @param <C> the predicate context.
  * @see CustomItemDefinition#predicates()
+ * @since 2.9.3
  */
 @FunctionalInterface
 public interface MinecraftPredicate<C extends MinecraftPredicateContext> extends Predicate<C> {

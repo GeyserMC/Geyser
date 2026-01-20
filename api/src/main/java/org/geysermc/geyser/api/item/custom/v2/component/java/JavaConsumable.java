@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.util.GenericBuilder;
  * The consumable component is used to mark
  * an item as consumable. Further, it allows specifying
  * the consume duration and animation to play when consuming.
+ * @since 2.9.3
  */
 public interface JavaConsumable {
 
@@ -43,6 +44,7 @@ public interface JavaConsumable {
      * This it the amount of time the animation will play for. Defaults to {@code 1.6}.
      *
      * @return the consume duration, in seconds
+     * @since 2.9.3
      */
     @Positive float consumeSeconds();
 
@@ -50,6 +52,7 @@ public interface JavaConsumable {
      * The animation that should play when consuming the item. Defaults to {@link Animation#EAT}.
      * 
      * @return the animation to play
+     * @since 2.9.3
      */
     @NonNull Animation animation();
 
@@ -57,6 +60,7 @@ public interface JavaConsumable {
      * Creates a builder for the consumable component.
      *
      * @return a new builder
+     * @since 2.9.3
      */
     static @NonNull Builder builder() {
         return GeyserApi.api().provider(JavaConsumable.Builder.class);
@@ -68,6 +72,7 @@ public interface JavaConsumable {
      * @param consumeSeconds the consume duration, in seconds
      * @param animation the animation to play when consuming
      * @return the consumable component
+     * @since 2.9.3
      */
     static @NonNull JavaConsumable of(float consumeSeconds, Animation animation) {
         return JavaConsumable.builder().consumeSeconds(consumeSeconds).animation(animation).build();
@@ -77,48 +82,59 @@ public interface JavaConsumable {
      * Not all animations work perfectly on bedrock. Bedrock behaviour is noted per animation. The {@code toot_horn} animation does not exist on bedrock, and is therefore not listed here.
      *
      * <p>Bedrock behaviour is accurate as of version 1.21.94.</p>
+     * @since 2.9.3
      */
     enum Animation {
         /**
          * Does nothing in 1st person, appears as drinking in 3rd person.
+         * @since 2.9.3
          */
         NONE,
         /**
          * Appears to look correctly.
+         * @since 2.9.3
          */
         EAT,
         /**
          * Appears to look correctly (same as eating, but without consume particles).
+         * @since 2.9.3
          */
         DRINK,
         /**
          * Does nothing in 1st person, drinking in 3rd person.
+         * @since 2.9.3
          */
         BLOCK,
         /**
          * Does nothing in 1st person, drinking in 3rd person.
+         * @since 2.9.3
          */
         BOW,
         /**
          * Does nothing in 1st person, but looks like spear in 3rd person.
+         * @since 2.9.3
          */
         SPEAR,
         /**
          * Does nothing in 1st person, drinking in 3rd person.
+         * @since 2.9.3
          */
         CROSSBOW,
         /**
          * Does nothing in 1st person, but looks like spyglass in 3rd person.
+         * @since 2.9.3
          */
         SPYGLASS,
         /**
          * Brush in 1st and 3rd person. Will look weird when not displayed handheld.
+         * @since 2.9.3
          */
         BRUSH;
     }
 
     /**
      * Builder for the consumable component.
+     * @since 2.9.3
      */
     interface Builder extends GenericBuilder<JavaConsumable> {
         /**
@@ -128,6 +144,7 @@ public interface JavaConsumable {
          * @param consumeSeconds the seconds it takes to consume the item
          * @see JavaConsumable#consumeSeconds()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder consumeSeconds(@Positive float consumeSeconds);
@@ -140,6 +157,7 @@ public interface JavaConsumable {
          * @param animation the animation to play
          * @see JavaConsumable#animation()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder animation(@NonNull Animation animation);
@@ -148,6 +166,7 @@ public interface JavaConsumable {
          * Creates the consumable component.
          *
          * @return the new component
+         * @since 2.9.3
          */
         @Override
         JavaConsumable build();

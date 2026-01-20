@@ -61,6 +61,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
     /**
      * A multimap of all the already registered custom item definitions
      * indexed by the {@link Identifier} of the Java item which the item is based on.
+     * @since 2.9.3
      */
     @NonNull
     Map<Identifier, Collection<CustomItemDefinition>> customItemDefinitions();
@@ -80,6 +81,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * A multimap of all the already registered non-vanilla custom item definitions indexed by the non-vanilla Java item {@link Identifier} these are mapped to.
      *
      * <p>This multimap will, at the moment, always have one entry per key.</p>
+     * @since 2.9.3
      */
     @NonNull
     Map<Identifier, Collection<NonVanillaCustomItemDefinition>> nonVanillaCustomItemDefinitions();
@@ -103,6 +105,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * @param identifier of the Java edition base item
      * @param customItemDefinition the custom item definition to register
      * @throws CustomItemDefinitionRegisterException when an error occurred while registering the item
+     * @since 2.9.3
      */
     void register(@NonNull Identifier identifier, @NonNull CustomItemDefinition customItemDefinition);
 
@@ -122,6 +125,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      *
      * @param customItemDefinition the custom item definition to register
      * @throws CustomItemDefinitionRegisterException when an error occurred while registering the item
+     * @since 2.9.3
      */
     void register(@NonNull NonVanillaCustomItemDefinition customItemDefinition);
 }

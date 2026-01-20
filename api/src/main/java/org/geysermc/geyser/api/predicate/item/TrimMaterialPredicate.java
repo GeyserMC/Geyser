@@ -34,17 +34,20 @@ import org.jetbrains.annotations.ApiStatus;
 
 /**
  * @see ItemMatchPredicate#trimMaterial(Identifier)
+ * @since 2.9.3
  */
 @ApiStatus.NonExtendable
 public interface TrimMaterialPredicate extends MinecraftPredicate<ItemPredicateContext>, GeyserProvided {
 
     /**
      * @return the identifier of the trim material to check for
+     * @since 2.9.3
      */
     @NonNull Identifier trimMaterial();
 
     /**
      * @return whether this predicate is negated
+     * @since 2.9.3
      */
     boolean negated();
 }

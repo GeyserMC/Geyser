@@ -42,6 +42,7 @@ import java.util.function.Predicate;
  * @see JavaItemDataComponents
  * @see GeyserItemDataComponent
  * @see CustomItemDefinition#components()
+ * @since 2.9.3
  */
 @ApiStatus.NonExtendable
 public interface ItemDataComponent<T> extends GeyserProvided {
@@ -50,6 +51,7 @@ public interface ItemDataComponent<T> extends GeyserProvided {
      * The identifier of the data component.
      *
      * @return the identifier
+     * @since 2.9.3
      */
     @NonNull
     Identifier identifier();
@@ -58,6 +60,7 @@ public interface ItemDataComponent<T> extends GeyserProvided {
      * The predicate used to validate the component.
      *
      * @return the validator
+     * @since 2.9.3
      */
     @NonNull
     Predicate<T> validator();
@@ -66,6 +69,7 @@ public interface ItemDataComponent<T> extends GeyserProvided {
      * Whether the component exists in vanilla Minecraft.
      *
      * @return whether this component is vanilla
+     * @since 2.9.3
      */
     boolean vanilla();
 }

@@ -34,6 +34,7 @@ import org.geysermc.geyser.api.util.Holders;
 /**
  * The repairable component determines which other items can be used
  * to repair the item.
+ * @since 2.9.3
  */
 public interface JavaRepairable {
 
@@ -41,6 +42,7 @@ public interface JavaRepairable {
      * The {@link Holders} of item identifiers that can be used to repair the item.
      *
      * @return the {@link Holders} of item identifiers
+     * @since 2.9.3
      */
     @NonNull Holders items();
 
@@ -48,6 +50,7 @@ public interface JavaRepairable {
      * Creates a builder for the repairable component.
      *
      * @return a new builder
+     * @since 2.9.3
      */
     static @NonNull Builder builder() {
         return GeyserApi.api().provider(JavaRepairable.Builder.class);
@@ -59,6 +62,7 @@ public interface JavaRepairable {
      * @param items the {@link Holders} of the items that
      *      can repair the item
      * @return the repairable component
+     * @since 2.9.3
      */
     static @NonNull JavaRepairable of(@NonNull Holders items) {
         return JavaRepairable.builder().items(items).build();
@@ -66,6 +70,7 @@ public interface JavaRepairable {
 
     /**
      * Builder for the repairable component.
+     * @since 2.9.3
      */
     interface Builder extends GenericBuilder<JavaRepairable> {
 
@@ -75,6 +80,7 @@ public interface JavaRepairable {
          * @param items the {@link Holders} of item identifiers that can be used to repair the item
          * @see JavaRepairable#items()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder items(@NonNull Holders items);
@@ -83,6 +89,7 @@ public interface JavaRepairable {
          * Creates the repairable component.
          *
          * @return the new component
+         * @since 2.9.3
          */
         @Override
         JavaRepairable build();

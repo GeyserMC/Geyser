@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.util.GenericBuilder;
  * The swing animation component is used to specify the swing animation to play when attacking or interacting using the item.
  *
  * <p>Currently, only the duration property is supported on Bedrock.</p>
+ * @since 2.9.3
  */
 public interface JavaSwingAnimation {
 
@@ -42,6 +43,7 @@ public interface JavaSwingAnimation {
      * The duration of the swing animation, in ticks. Defaults to 6.
      *
      * @return the duration of the swing animation, in ticks
+     * @since 2.9.3
      */
     @Positive int duration();
 
@@ -49,6 +51,7 @@ public interface JavaSwingAnimation {
      * Creates a builder for the swing animation component.
      *
      * @return a new builder
+     * @since 2.9.3
      */
     static @NonNull Builder builder() {
         return GeyserApi.api().provider(Builder.class);
@@ -58,7 +61,8 @@ public interface JavaSwingAnimation {
      * Creates a swing animation component.
      *
      * @param duration the duration of the swing animation, in ticks
-     * @return the new swing animation component.
+     * @return the new swing animation component
+     * @since 2.9.3
      */
     static @NonNull JavaSwingAnimation of(@Positive int duration) {
         return builder()
@@ -68,6 +72,7 @@ public interface JavaSwingAnimation {
 
     /**
      * Builder for the swing animation component.
+     * @since 2.9.3
      */
     interface Builder extends GenericBuilder<JavaSwingAnimation> {
 
@@ -77,6 +82,7 @@ public interface JavaSwingAnimation {
          * @param duration the duration of the swing animation, in ticks
          * @see JavaSwingAnimation#duration()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder duration(@Positive int duration);
@@ -85,6 +91,7 @@ public interface JavaSwingAnimation {
          * Creates the swing animation component.
          *
          * @return the new component
+         * @since 2.9.3
          */
         @Override
         JavaSwingAnimation build();

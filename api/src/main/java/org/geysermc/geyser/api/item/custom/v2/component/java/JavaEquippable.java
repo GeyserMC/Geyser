@@ -33,6 +33,7 @@ import org.geysermc.geyser.api.util.GenericBuilder;
 /**
  * The equippable component is used to mark an item as equippable.
  * Bedrock allows specifying the slot where an item can be worn.
+ * @since 2.9.3
  */
 public interface JavaEquippable {
 

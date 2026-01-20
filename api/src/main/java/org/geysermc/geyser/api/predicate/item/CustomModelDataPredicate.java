@@ -36,45 +36,53 @@ import org.jetbrains.annotations.ApiStatus;
  * Contains predicates checking the {@code minecraft:custom_model_data} item component.
  * For checking for floats, use {@link ItemRangeDispatchPredicate#customModelData},
  * or {@link ItemRangeDispatchPredicate#legacyCustomModelData} for dealing with the pre-1.21.4 custom model data format.
+ * @since 2.9.3
  */
 @ApiStatus.NonExtendable
 public interface CustomModelDataPredicate {
 
     /**
      * @see ItemConditionPredicate#customModelData(int)
+     * @since 2.9.3
      */
     @ApiStatus.NonExtendable
     interface FlagPredicate extends MinecraftPredicate<ItemPredicateContext>, GeyserProvided {
 
         /**
          * @return the index to check the value of a flag on
+         * @since 2.9.3
          */
         @NonNegative int index();
 
         /**
          * @return whether this predicate is negated. When negated, will return true for both false flags and missing flags
+         * @since 2.9.3
          */
         boolean negated();
     }
 
     /**
      * @see ItemMatchPredicate#customModelData(int, String)
+     * @since 2.9.3
      */
     @ApiStatus.NonExtendable
     interface StringPredicate extends MinecraftPredicate<ItemPredicateContext>, GeyserProvided {
 
         /**
          * @return the string to compare against. Can be null to check for a missing string
+         * @since 2.9.3
          */
         @Nullable String string();
 
         /**
          * @return the index of the string to match the {@link StringPredicate#string()} against
+         * @since 2.9.3
          */
         @NonNegative int index();
 
         /**
          * @return whether this predicate is negated
+         * @since 2.9.3
          */
         boolean negated();
     }

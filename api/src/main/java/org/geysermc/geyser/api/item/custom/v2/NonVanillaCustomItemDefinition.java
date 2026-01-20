@@ -49,6 +49,7 @@ import java.util.List;
  * Java non-vanilla item.</p>
  *
  * <p>Non-vanilla item definitions can be configured with additional components defined in {@link GeyserItemDataComponent}.</p>
+ * @since 2.9.3
  */
 @ApiStatus.NonExtendable
 public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
@@ -57,6 +58,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * The item's Java identifier.
      *
      * @return the item's Java identifier
+     * @since 2.9.3
      */
     @NonNull Identifier identifier();
 
@@ -66,6 +68,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * <p>In mods, you can get this by using the {@code getId} method on the item {@code Registry} (Mojmap): {@code BuiltInRegistries.ITEM.getId(<item>)}</p>
      *
      * @return the item's Java network ID
+     * @since 2.9.3
      */
     @NonNegative int javaId();
 
@@ -73,6 +76,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * The item's Java translation string. When present, Geyser will translate this string using its loaded locales and send it to the bedrock client as the item's name.
      *
      * @return the item's Java translation string
+     * @since 2.9.3
      */
     @Nullable String translationString();
 
@@ -82,6 +86,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * <p>Trying to use predicates will result in an error.</p>
      *
      * @throws UnsupportedOperationException always, since predicate usage is not supported
+     * @since 2.9.3
      */
     @Override
     @NonNull
@@ -95,6 +100,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * <p>Trying to use predicates will result in an error.</p>
      *
      * @throws UnsupportedOperationException always, since predicate usage is not supported
+     * @since 2.9.3
      */
     @Override
     @NonNull
@@ -108,6 +114,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * <p>Trying to use predicates will result in an error.</p>
      *
      * @throws UnsupportedOperationException always, since predicate usage is not supported
+     * @since 2.9.3
      */
     @Override
     default int priority() {
@@ -124,6 +131,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * @see CustomItemDefinition#components()
      * @see GeyserItemDataComponent
      * @return the item's default data components
+     * @since 2.9.3
      */
     @Override
     @NonNull
@@ -137,6 +145,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * @see NonVanillaCustomItemDefinition#identifier()
      * @see NonVanillaCustomItemDefinition#javaId()
      * @return a new builder
+     * @since 2.9.3
      */
     static Builder builder(@NonNull Identifier javaIdentifier, int javaId) {
         return builder(javaIdentifier, javaIdentifier, javaId);
@@ -152,6 +161,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
      * @see NonVanillaCustomItemDefinition#bedrockIdentifier()
      * @see NonVanillaCustomItemDefinition#javaId()
      * @return a new builder
+     * @since 2.9.3
      */
     static Builder builder(@NonNull Identifier javaIdentifier, @NonNull Identifier bedrockIdentifier, int javaId) {
         return GeyserApi.api().provider(Builder.class, javaIdentifier, bedrockIdentifier, javaId);
@@ -159,11 +169,13 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
 
     /**
      * Builder for non-vanilla custom item definitions.
+     * @since 2.9.3
      */
     interface Builder extends CustomItemDefinition.Builder {
 
         /**
          * {@inheritDoc}
+         * @since 2.9.3
          */
         @Override
         @This
@@ -171,6 +183,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
 
         /**
          * {@inheritDoc}
+         * @since 2.9.3
          */
         @Override
         @This
@@ -178,6 +191,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
 
         /**
          * {@inheritDoc}
+         * @since 2.9.3
          */
         @Override
         @This
@@ -185,6 +199,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
 
         /**
          * {@inheritDoc}
+         * @since 2.9.3
          */
         @Override
         @This
@@ -195,6 +210,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
          *
          * @param translationString the Java translation string of the item
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder translationString(@Nullable String translationString);
@@ -203,6 +219,7 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
          * Creates the non-vanilla custom item definition.
          *
          * @return the new non-vanilla custom item definition
+         * @since 2.9.3
          */
         @Override
         NonVanillaCustomItemDefinition build();

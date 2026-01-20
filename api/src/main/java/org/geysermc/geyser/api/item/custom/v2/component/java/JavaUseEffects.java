@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.util.GenericBuilder;
  * The use effects component is used to specify how the player behaves when using the item.
  *
  * <p>Currently, the {@code can_sprint} property is not supported on Bedrock.</p>
+ * @since 2.9.3
  */
 public interface JavaUseEffects {
 
@@ -42,6 +43,7 @@ public interface JavaUseEffects {
      * The speed multiplier to apply to the player while using the item. Defaults to 0.2.
      *
      * @return the speed multiplier to apply while using the item
+     * @since 2.9.3
      */
     @IntRange(from = 0, to = 1) float speedMultiplier();
 
@@ -49,6 +51,7 @@ public interface JavaUseEffects {
      * Creates a builder for the use effects component.
      *
      * @return a new builder
+     * @since 2.9.3
      */
     static @NonNull Builder builder() {
         return GeyserApi.api().provider(Builder.class);
@@ -58,7 +61,8 @@ public interface JavaUseEffects {
      * Creates a use effects component.
      *
      * @param speedMultiplier the speed multiplier to apply while using the item
-     * @return the new use effects component.
+     * @return the new use effects component
+     * @since 2.9.3
      */
     static @NonNull JavaUseEffects of(@IntRange(from = 0, to = 1) float speedMultiplier) {
         return builder()
@@ -68,6 +72,7 @@ public interface JavaUseEffects {
 
     /**
      * Builder for the use effects component.
+     * @since 2.9.3
      */
     interface Builder extends GenericBuilder<JavaUseEffects> {
 
@@ -76,6 +81,7 @@ public interface JavaUseEffects {
          *
          * @param speedMultiplier the speed multiplier to apply while using the item
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder speedMultiplier(@IntRange(from = 0, to = 1) float speedMultiplier);
@@ -84,6 +90,7 @@ public interface JavaUseEffects {
          * Creates the use effects component.
          *
          * @return the new component
+         * @since 2.9.3
          */
         @Override
         JavaUseEffects build();

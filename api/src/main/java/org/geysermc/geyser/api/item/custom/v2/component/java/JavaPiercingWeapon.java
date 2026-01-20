@@ -30,11 +30,13 @@ import org.geysermc.geyser.api.GeyserApi;
 
 /**
  * The piercing weapon component is used to specify a stab-like attack when using the item.
+ * @since 2.9.3
  */
 public interface JavaPiercingWeapon {
 
     /**
      * @return the piercing weapon component
+     * @since 2.9.3
      */
     static @NonNull JavaPiercingWeapon instance() {
         return GeyserApi.api().provider(JavaPiercingWeapon.class);

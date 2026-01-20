@@ -34,6 +34,8 @@ import org.geysermc.geyser.api.util.Identifier;
 /**
  * Allows modifying items so these can place blocks or take on the
  * icon of the block they place.
+ *
+ * @since 2.9.3
  */
 public interface GeyserBlockPlacer {
 
@@ -43,6 +45,7 @@ public interface GeyserBlockPlacer {
      * This is a Bedrock edition block identifier.
      *
      * @return the identifier of the block to place
+     * @since 2.9.3
      */
     @NonNull Identifier block();
 
@@ -52,6 +55,7 @@ public interface GeyserBlockPlacer {
      *
      * @return whether to use the 3d block rendering for the
      *      item icon
+     * @since 2.9.3
      */
     boolean useBlockIcon();
 
@@ -59,6 +63,7 @@ public interface GeyserBlockPlacer {
      * Creates a builder for the block placer component.
      *
      * @return a new builder
+     * @since 2.9.3
      */
     static @NonNull Builder builder() {
         return GeyserApi.api().provider(GeyserBlockPlacer.Builder.class);
@@ -70,6 +75,7 @@ public interface GeyserBlockPlacer {
      * @param block the identifier of the block to place
      * @param useBlockIcon whether to use the 3d block rendering for the item icon
      * @return the block placer component
+     * @since 2.9.3
      */
     static @NonNull GeyserBlockPlacer of(@NonNull Identifier block, boolean useBlockIcon) {
         return GeyserBlockPlacer.builder().block(block).useBlockIcon(useBlockIcon).build();
@@ -77,6 +83,7 @@ public interface GeyserBlockPlacer {
 
     /**
      * Builder for the block placer component.
+     * @since 2.9.3
      */
     interface Builder extends GenericBuilder<GeyserBlockPlacer> {
 
@@ -88,6 +95,7 @@ public interface GeyserBlockPlacer {
          * @param block the identifier of the block
          * @see GeyserBlockPlacer#block()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder block(@NonNull Identifier block);
@@ -99,6 +107,7 @@ public interface GeyserBlockPlacer {
          * @param useBlockIcon whether to use the block icon
          * @see GeyserBlockPlacer#useBlockIcon()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder useBlockIcon(boolean useBlockIcon);
@@ -107,6 +116,7 @@ public interface GeyserBlockPlacer {
          * Creates the block placer component.
          *
          * @return the new component
+         * @since 2.9.3
          */
         @Override
         GeyserBlockPlacer build();

@@ -38,6 +38,7 @@ import org.jetbrains.annotations.ApiStatus;
  * It is as such preferred to use these over custom defined predicates when possible.</p>
  *
  * @see RangeDispatchPredicate
+ * @since 2.9.3
  */
 @ApiStatus.NonExtendable
 public interface ItemRangeDispatchPredicate {
@@ -48,6 +49,7 @@ public interface ItemRangeDispatchPredicate {
      * <p>Usually used with bundles, but works for any item with the {@code minecraft:bundle_contents} component.</p>
      *
      * @see ItemPredicateContext#bundleFullness()
+     * @since 2.9.3
      */
     static MinecraftPredicate<ItemPredicateContext> bundleFullness(int threshold) {
         return GeyserApi.api().provider(RangeDispatchPredicate.class, RangeDispatchPredicate.Property.BUNDLE_FULLNESS, threshold);
@@ -57,6 +59,7 @@ public interface ItemRangeDispatchPredicate {
      * Creates a predicate checking the item's damage value.
      *
      * @see ItemPredicateContext#damage()
+     * @since 2.9.3
      */
     static MinecraftPredicate<ItemPredicateContext> damage(int threshold) {
         return GeyserApi.api().provider(RangeDispatchPredicate.class, RangeDispatchPredicate.Property.DAMAGE, threshold);
@@ -67,6 +70,7 @@ public interface ItemRangeDispatchPredicate {
      *
      * @see ItemPredicateContext#damage()
      * @see ItemPredicateContext#maxDamage()
+     * @since 2.9.3
      */
     static MinecraftPredicate<ItemPredicateContext> normalisedDamage(double threshold) {
         return GeyserApi.api().provider(RangeDispatchPredicate.class, RangeDispatchPredicate.Property.DAMAGE, threshold, true);
@@ -76,6 +80,7 @@ public interface ItemRangeDispatchPredicate {
      * Creates a predicate checking the item's stack count.
      *
      * @see ItemPredicateContext#count()
+     * @since 2.9.3
      */
     static MinecraftPredicate<ItemPredicateContext> count(int threshold) {
         return GeyserApi.api().provider(RangeDispatchPredicate.class, RangeDispatchPredicate.Property.COUNT, threshold);
@@ -85,7 +90,8 @@ public interface ItemRangeDispatchPredicate {
      * Creates a predicate checking the item's stack count, normalised ({@code count / max_stack_size}).
      *
      * @see ItemPredicateContext#count()
-     * @see ItemPredicateContext#maxStackSize() ()
+     * @see ItemPredicateContext#maxStackSize()
+     * @since 2.9.3
      */
     static MinecraftPredicate<ItemPredicateContext> normalisedCount(double threshold) {
         return GeyserApi.api().provider(RangeDispatchPredicate.class, RangeDispatchPredicate.Property.COUNT, threshold, true);
@@ -95,6 +101,7 @@ public interface ItemRangeDispatchPredicate {
      * Creates a predicate checking for the first of the item's custom model data floats, which is the custom model data value on Java servers below 1.21.4.
      *
      * @see ItemPredicateContext#customModelDataFloat(int)
+     * @since 2.9.3
      */
     static MinecraftPredicate<ItemPredicateContext> legacyCustomModelData(int data) {
         return GeyserApi.api().provider(RangeDispatchPredicate.class, RangeDispatchPredicate.Property.CUSTOM_MODEL_DATA, data);
@@ -104,6 +111,7 @@ public interface ItemRangeDispatchPredicate {
      * Creates a predicate checking one of the item's custom model data floats.
      *
      * @see ItemPredicateContext#customModelDataFloat(int)
+     * @since 2.9.3
      */
     static MinecraftPredicate<ItemPredicateContext> customModelData(@NonNegative int index, float data) {
         return GeyserApi.api().provider(RangeDispatchPredicate.class, RangeDispatchPredicate.Property.CUSTOM_MODEL_DATA, data, index);

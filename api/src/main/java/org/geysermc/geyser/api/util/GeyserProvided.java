@@ -31,6 +31,7 @@ import org.jetbrains.annotations.ApiStatus;
  * Is used to mark interfaces and classes that should not be implemented / extended by developers,
  * and are instead provided by Geyser. Attempting to pass a custom implementation for classes extending
  * this interface will result in exceptions.
+ * @since 2.9.3
  */
 @ApiStatus.NonExtendable
 public interface GeyserProvided {

@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.util.Identifier;
 
 /**
  * The use cooldown component is used to add an item use cooldown to items.
+ * @since 2.9.3
  */
 public interface JavaUseCooldown {
 
@@ -43,6 +44,7 @@ public interface JavaUseCooldown {
      * spend cooling down before being usable again.
      *
      * @return the cooldown duration
+     * @since 2.9.3
      */
     @Positive float seconds();
 
@@ -53,6 +55,7 @@ public interface JavaUseCooldown {
      * being used.
      *
      * @return the cooldown identifier
+     * @since 2.9.3
      */
     @Nullable Identifier cooldownGroup();
 
@@ -60,6 +63,7 @@ public interface JavaUseCooldown {
      * Creates a builder for the use cooldown component.
      *
      * @return a new builder
+     * @since 2.9.3
      */
     static @NonNull Builder builder() {
         return GeyserApi.api().provider(JavaUseCooldown.Builder.class);
@@ -67,6 +71,7 @@ public interface JavaUseCooldown {
 
     /**
      * Builder for the use cooldown component.
+     * @since 2.9.3
      */
     interface Builder extends GenericBuilder<JavaUseCooldown> {
 
@@ -77,6 +82,7 @@ public interface JavaUseCooldown {
          * @param seconds the cooldown time
          * @see JavaUseCooldown#seconds()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder seconds(@Positive float seconds);
@@ -90,6 +96,7 @@ public interface JavaUseCooldown {
          * @param cooldownGroup the cooldown group identifier
          * @see JavaUseCooldown#cooldownGroup()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder cooldownGroup(@Nullable Identifier cooldownGroup);
@@ -98,6 +105,7 @@ public interface JavaUseCooldown {
          * Creates the use cooldown component.
          *
          * @return the new component
+         * @since 2.9.3
          */
         @Override
         JavaUseCooldown build();

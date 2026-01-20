@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.util.GenericBuilder;
  * The attack range component is used to specify the
  * attack ranges of an item. Because of limitations on Bedrock, these only apply to items that also have
  * a {@link JavaItemDataComponents#KINETIC_WEAPON} or a {@link JavaItemDataComponents#PIERCING_WEAPON} component.
+ * @since 2.9.3
  */
 public interface JavaAttackRange {
 
@@ -42,6 +43,7 @@ public interface JavaAttackRange {
      * The minimum distance in blocks from the user to the target for the user to be able to attack that target. Defaults to 0.
      *
      * @return the minimum distance for attacks, in blocks
+     * @since 2.9.3
      */
     @IntRange(from = 0, to = 64) float minReach();
 
@@ -49,6 +51,7 @@ public interface JavaAttackRange {
      * The maximum distance in blocks from the user to the target for the user to be able to attack that target. Defaults to 3.
      *
      * @return the maximum distance for attacks, in blocks
+     * @since 2.9.3
      */
     @IntRange(from = 0, to = 64) float maxReach();
 
@@ -56,6 +59,7 @@ public interface JavaAttackRange {
      * The minimum distance in blocks from the user to the target for the user to be able to attack that target, if the user is in creative mode. Defaults to 0.
      *
      * @return the minimum distance for attacks made in creative mode, in blocks
+     * @since 2.9.3
      */
     @IntRange(from = 0, to = 64) float minCreativeReach();
 
@@ -63,6 +67,7 @@ public interface JavaAttackRange {
      * The maximum distance in blocks from the user to the target for the user to be able to attack that target, if the user is in creative mode. Defaults to 5.
      *
      * @return the maximum distance for attacks made in creative mode, in blocks
+     * @since 2.9.3
      */
     @IntRange(from = 0, to = 64) float maxCreativeReach();
 
@@ -70,6 +75,7 @@ public interface JavaAttackRange {
      * The margin applied to the target hitbox when attacking. Defaults to 0.3.
      *
      * @return the margin applied to the target hitbox when attacking
+     * @since 2.9.3
      */
     @IntRange(from = 0, to = 1) float hitboxMargin();
 
@@ -77,6 +83,7 @@ public interface JavaAttackRange {
      * Creates a builder for the attack range component.
      *
      * @return a new builder
+     * @since 2.9.3
      */
     static @NonNull Builder builder() {
         return GeyserApi.api().provider(Builder.class);
@@ -84,6 +91,7 @@ public interface JavaAttackRange {
 
     /**
      * Builder for the attack range component.
+     * @since 2.9.3
      */
     interface Builder extends GenericBuilder<JavaAttackRange> {
 
@@ -93,6 +101,7 @@ public interface JavaAttackRange {
          * @param minReach the minimum distance for attacks, in blocks
          * @see JavaAttackRange#minReach()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder minReach(@IntRange(from = 0, to = 64) float minReach);
@@ -103,6 +112,7 @@ public interface JavaAttackRange {
          * @param maxReach the maximum distance for attacks, in blocks
          * @see JavaAttackRange#maxReach()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder maxReach(@IntRange(from = 0, to = 64) float maxReach);
@@ -113,6 +123,7 @@ public interface JavaAttackRange {
          * @param minCreativeReach the minimum distance for attacks made in creative mode, in blocks
          * @see JavaAttackRange#minCreativeReach()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder minCreativeReach(@IntRange(from = 0, to = 64) float minCreativeReach);
@@ -123,6 +134,7 @@ public interface JavaAttackRange {
          * @param maxCreativeReach the maximum distance for attacks made in creative mode, in blocks
          * @see JavaAttackRange#maxCreativeReach()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder maxCreativeReach(@IntRange(from = 0, to = 64) float maxCreativeReach);
@@ -133,6 +145,7 @@ public interface JavaAttackRange {
          * @param hitboxMargin the margin applied to the target hitbox when attacking
          * @see JavaAttackRange#hitboxMargin()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder hitboxMargin(@IntRange(from = 0, to = 1) float hitboxMargin);
@@ -141,6 +154,7 @@ public interface JavaAttackRange {
          * Creates the attack range component.
          *
          * @return the new component
+         * @since 2.9.3
          */
         @Override
         JavaAttackRange build();

@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.util.GenericBuilder;
  * The food properties component can be used to define properties
  * for consumable items. This includes setting the nutrition and
  * saturation values, and whether the item can always be eaten.
+ * @since 2.9.3
  */
 public interface JavaFoodProperties {
 
@@ -42,6 +43,7 @@ public interface JavaFoodProperties {
      * The nutrition of the item. Defaults to {@code 0}.
      *
      * @return the nutrition
+     * @since 2.9.3
      */
     @NonNegative int nutrition();
 
@@ -49,6 +51,7 @@ public interface JavaFoodProperties {
      * The saturation of the item. Defaults to {@code 0.0}.
      *
      * @return the saturation
+     * @since 2.9.3
      */
     @NonNegative float saturation();
 
@@ -58,6 +61,7 @@ public interface JavaFoodProperties {
      * include items such as golden apples. Defaults to {@code false}.
      *
      * @return whether the item can always be eaten
+     * @since 2.9.3
      */
     boolean canAlwaysEat();
 
@@ -65,6 +69,7 @@ public interface JavaFoodProperties {
      * Creates a builder for the food properties component.
      *
      * @return a new builder
+     * @since 2.9.3
      */
     static @NonNull Builder builder() {
         return GeyserApi.api().provider(JavaFoodProperties.Builder.class);
@@ -77,6 +82,7 @@ public interface JavaFoodProperties {
      * @param saturation the saturation of the item
      * @param canAlwaysEat whether the item can always be eaten
      * @return the food properties component
+     * @since 2.9.3
      */
     static @NonNull JavaFoodProperties of(int nutrition, float saturation, boolean canAlwaysEat) {
         return JavaFoodProperties.builder().nutrition(nutrition).saturation(saturation).canAlwaysEat(canAlwaysEat).build();
@@ -84,6 +90,7 @@ public interface JavaFoodProperties {
 
     /**
      * Builder for the food properties component.
+     * @since 2.9.3
      */
     interface Builder extends GenericBuilder<JavaFoodProperties> {
 
@@ -93,6 +100,7 @@ public interface JavaFoodProperties {
          * @param nutrition the nutrition of the item.
          * @see JavaFoodProperties#nutrition()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder nutrition(@NonNegative int nutrition);
@@ -103,6 +111,7 @@ public interface JavaFoodProperties {
          * @param saturation the saturation of the item
          * @see JavaFoodProperties#saturation()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder saturation(@NonNegative float saturation);
@@ -114,6 +123,7 @@ public interface JavaFoodProperties {
          * @param canAlwaysEat whether the item can always be eaten
          * @see JavaFoodProperties#canAlwaysEat()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder canAlwaysEat(boolean canAlwaysEat);
@@ -122,6 +132,7 @@ public interface JavaFoodProperties {
          * Creates the food properties component.
          *
          * @return the new component
+         * @since 2.9.3
          */
         @Override
         JavaFoodProperties build();

@@ -36,6 +36,7 @@ import org.geysermc.geyser.api.util.GenericBuilder;
  * instead of having to use individual presses.
  *
  * <p>The component also allows specifying whether bedrock clients should display a swing animation when throwing the item. This defaults to true.</p>
+ * @since 2.9.3
  */
 public interface GeyserThrowableComponent {
 
@@ -43,6 +44,7 @@ public interface GeyserThrowableComponent {
      * Whether bedrock clients should display a swing animation when throwing the item. Defaults to true.
      *
      * @return true if bedrock clients should display a swing animation when throwing the item
+     * @since 2.9.3
      */
     boolean doSwingAnimation();
 
@@ -50,6 +52,7 @@ public interface GeyserThrowableComponent {
      * Creates a new builder for the throwable component.
      *
      * @return a new builder
+     * @since 2.9.3
      */
     static @NonNull Builder builder() {
         return GeyserApi.api().provider(GeyserThrowableComponent.Builder.class);
@@ -60,6 +63,7 @@ public interface GeyserThrowableComponent {
      *
      * @param doSwingAnimation whether bedrock clients should display a swing animation when throwing the item
      * @return a throwable component
+     * @since 2.9.3
      */
     static @NonNull GeyserThrowableComponent of(boolean doSwingAnimation) {
         return builder().doSwingAnimation(doSwingAnimation).build();
@@ -67,6 +71,7 @@ public interface GeyserThrowableComponent {
 
     /**
      * Builder for the throwable component.
+     * @since 2.9.3
      */
     interface Builder extends GenericBuilder<GeyserThrowableComponent> {
 
@@ -76,6 +81,7 @@ public interface GeyserThrowableComponent {
          * @param doSwingAnimation whether bedrock clients should display a swing animation when throwing the item
          * @see GeyserThrowableComponent#doSwingAnimation()
          * @return this builder
+         * @since 2.9.3
          */
         @This
         Builder doSwingAnimation(boolean doSwingAnimation);
@@ -84,6 +90,7 @@ public interface GeyserThrowableComponent {
          * Creates the throwable component.
          *
          * @return the new component
+         * @since 2.9.3
          */
         @Override
         GeyserThrowableComponent build();

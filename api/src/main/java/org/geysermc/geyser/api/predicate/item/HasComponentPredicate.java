@@ -34,17 +34,20 @@ import org.jetbrains.annotations.ApiStatus;
 
 /**
  * @see ItemConditionPredicate#hasComponent(Identifier)
+ * @since 2.9.3
  */
 @ApiStatus.NonExtendable
 public interface HasComponentPredicate extends MinecraftPredicate<ItemPredicateContext>, GeyserProvided {
 
     /**
      * @return the identifier of the item data component to check against
+     * @since 2.9.3
      */
     @NonNull Identifier component();
 
     /**
      * @return whether this predicate is negated
+     * @since 2.9.3
      */
     boolean negated();
 }
