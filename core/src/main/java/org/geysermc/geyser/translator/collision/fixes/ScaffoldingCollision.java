@@ -62,8 +62,8 @@ public class ScaffoldingCollision extends BlockCollision {
 
         boolean canStandOn = playerCollision.getMin(Axis.Y) >= y + 1 && !session.isSneaking();
 
-        // If these condition are met, then the scaffolding will have a bottom collision that is 0.125 block height.
-        // However, this is not the case in Bedrock, so we push the player up by 0.125 blocks so player won't get setback.
+        // If these condition are met, then the scaffolding will have a bottom collision that is 0.125 block high.
+        // However, this is not the case in Bedrock, so we push the player up by 0.125 blocks so the player won't get setback.
         if (!canStandOn && this.bottom && playerCollision.getMin(Axis.Y) >= y) {
             double distance = y + 0.125 - (playerCollision.getMin(Axis.Y));
             if (Math.abs(distance) < 0.125F + CollisionManager.COLLISION_TOLERANCE * 1.01F) {
