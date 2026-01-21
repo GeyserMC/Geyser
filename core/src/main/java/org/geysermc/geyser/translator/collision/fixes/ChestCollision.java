@@ -48,7 +48,7 @@ public class ChestCollision extends BlockCollision {
 
         final SessionPlayerEntity player = session.getPlayerEntity();
 
-        // Player haven't even fall on the blocks yet, no need to move them down.
+        // Player didn't fall on the blocks yet, no need to move them down.
         if (!player.isCollidingVertically()) {
             return;
         }
