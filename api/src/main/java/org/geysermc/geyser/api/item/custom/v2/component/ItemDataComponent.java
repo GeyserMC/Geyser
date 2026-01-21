@@ -27,7 +27,7 @@ package org.geysermc.geyser.api.item.custom.v2.component;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponents;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
 import org.geysermc.geyser.api.util.GeyserProvided;
 import org.geysermc.geyser.api.util.Identifier;
@@ -40,7 +40,7 @@ import java.util.function.Predicate;
  * It is expected that any components set on a {@link CustomItemDefinition} are always present on the item server-side.
  *
  * @see JavaItemDataComponents
- * @see GeyserItemDataComponent
+ * @see GeyserItemDataComponents
  * @see CustomItemDefinition#components()
  * @since 2.9.3
  */

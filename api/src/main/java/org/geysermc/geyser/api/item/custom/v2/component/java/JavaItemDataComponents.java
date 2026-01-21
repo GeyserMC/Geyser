@@ -28,7 +28,7 @@ package org.geysermc.geyser.api.item.custom.v2.component.java;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponents;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.function.Predicate;
@@ -41,7 +41,7 @@ import java.util.function.Predicate;
  * be present on the item server-side to avoid de-syncs.
  *
  * @see CustomItemDefinition#components()
- * @see GeyserItemDataComponent
+ * @see GeyserItemDataComponents
  * @since 2.9.3
  */
 public interface JavaItemDataComponents {

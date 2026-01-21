@@ -30,7 +30,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponents;
 import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponentMap;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
@@ -48,7 +48,7 @@ import java.util.List;
  * right now with vanilla custom item definitions, is currently not implemented, so only one definition can be created for each
  * Java non-vanilla item.</p>
  *
- * <p>Non-vanilla item definitions can be configured with additional components defined in {@link GeyserItemDataComponent}.</p>
+ * <p>Non-vanilla item definitions can be configured with additional components defined in {@link GeyserItemDataComponents}.</p>
  * @since 2.9.3
  */
 @ApiStatus.NonExtendable
@@ -122,14 +122,14 @@ public interface NonVanillaCustomItemDefinition extends CustomItemDefinition {
     }
 
     /**
-     * On top of vanilla Minecraft's item components, custom ones defined by Geyser in {@link GeyserItemDataComponent} can
+     * On top of vanilla Minecraft's item components, custom ones defined by Geyser in {@link GeyserItemDataComponents} can
      * also be used. Like with vanilla data components, it is still expected that the item <em>always</em> has the behaviour defined by its components.
      *
      * <p>Default component removals are not supported for non-vanilla items, since here the data component map defines default components, instead of
      * a patch on top of a vanilla base item.</p>
      *
      * @see CustomItemDefinition#components()
-     * @see GeyserItemDataComponent
+     * @see GeyserItemDataComponents
      * @return the item's default data components
      * @since 2.9.3
      */

@@ -36,7 +36,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserBlockPlacer;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserChargeable;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponents;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaConsumable;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaEquippable;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaFoodProperties;
@@ -196,7 +196,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
             )
             .component(JavaItemDataComponents.MAX_STACK_SIZE, stackSize())
             .component(JavaItemDataComponents.MAX_DAMAGE, maxDamage())
-            .component(GeyserItemDataComponent.ATTACK_DAMAGE, attackDamage())
+            .component(GeyserItemDataComponents.ATTACK_DAMAGE, attackDamage())
             .translationString(translationString());
 
         if (isHat()) {
@@ -219,14 +219,14 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
 
         if (isChargeable() && toolType() != null) {
             if (toolType().equals("bow")) {
-                definition.component(GeyserItemDataComponent.CHARGEABLE, GeyserChargeable.builder().maxDrawDuration(1.0F).chargeOnDraw(true).ammunition(Identifier.of("arrow")));
+                definition.component(GeyserItemDataComponents.CHARGEABLE, GeyserChargeable.builder().maxDrawDuration(1.0F).chargeOnDraw(true).ammunition(Identifier.of("arrow")));
             } else {
-                definition.component(GeyserItemDataComponent.CHARGEABLE, GeyserChargeable.builder().ammunition(Identifier.of("arrow")));
+                definition.component(GeyserItemDataComponents.CHARGEABLE, GeyserChargeable.builder().ammunition(Identifier.of("arrow")));
             }
         }
 
         if (block() != null) {
-            definition.component(GeyserItemDataComponent.BLOCK_PLACER, GeyserBlockPlacer.builder().block(Identifier.of(block())));
+            definition.component(GeyserItemDataComponents.BLOCK_PLACER, GeyserBlockPlacer.builder().block(Identifier.of(block())));
         }
 
         return definition;

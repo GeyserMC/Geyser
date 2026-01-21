@@ -66,7 +66,7 @@ public interface GeyserChargeable {
      * For example, this can contain {@code minecraft:arrow} to allow arrows to be shot.
      *
      * <p>Items listed <em>must</em> have a {@code minecraft:projectile} component on bedrock to work.
-     * Non-vanilla custom items can mark an item as a projectile and add this component by specifying the {@link GeyserItemDataComponent#PROJECTILE} component.</p>
+     * Non-vanilla custom items can mark an item as a projectile and add this component by specifying the {@link GeyserItemDataComponents#PROJECTILE} component.</p>
      *
      * @return all valid ammunition items
      * @since 2.9.3

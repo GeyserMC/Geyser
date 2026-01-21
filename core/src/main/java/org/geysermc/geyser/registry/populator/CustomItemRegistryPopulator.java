@@ -42,7 +42,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinitionRegisterExcept
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserBlockPlacer;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserChargeable;
-import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponent;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponents;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserThrowableComponent;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaRepairable;
@@ -252,7 +252,7 @@ public class CustomItemRegistryPopulator {
         setupBasicItemInfo(context.definition(), context.components(), itemProperties, componentBuilder);
 
         computeToolProperties(itemProperties, componentBuilder);
-        Integer attackDamage = context.definition().components().get(GeyserItemDataComponent.ATTACK_DAMAGE);
+        Integer attackDamage = context.definition().components().get(GeyserItemDataComponents.ATTACK_DAMAGE);
         if (attackDamage != null) {
             itemProperties.putInt("damage", attackDamage);
             componentBuilder.putCompound("minecraft:damage", NbtMap.builder()
@@ -338,7 +338,7 @@ public class CustomItemRegistryPopulator {
                 return GeyserBlockPlacer.builder().block(Identifier.of(mapping.getBedrockIdentifier())).build();
             }
             return null;
-        }).orElse(context.definition().components().get(GeyserItemDataComponent.BLOCK_PLACER));
+        }).orElse(context.definition().components().get(GeyserItemDataComponents.BLOCK_PLACER));
 
         if (blockPlacer != null) {
             computeBlockItemProperties(blockPlacer, componentBuilder);
@@ -348,7 +348,7 @@ public class CustomItemRegistryPopulator {
             case "minecraft:bow" -> GeyserChargeable.builder().maxDrawDuration(1.0F).ammunition(Identifier.of("arrow")).build();
             case "minecraft:crossbow" -> GeyserChargeable.builder().chargeOnDraw(true).ammunition(Identifier.of("arrow")).build();
             default -> null;
-        }).orElse(context.definition().components().get(GeyserItemDataComponent.CHARGEABLE));
+        }).orElse(context.definition().components().get(GeyserItemDataComponents.CHARGEABLE));
 
         if (chargeable != null) {
             computeChargeableProperties(itemProperties, componentBuilder, chargeable);
@@ -358,11 +358,11 @@ public class CustomItemRegistryPopulator {
             case "minecraft:experience_bottle", "minecraft:egg", "minecraft:ender_pearl", "minecraft:ender_eye",
                  "minecraft:lingering_potion", "minecraft:snowball", "minecraft:splash_potion" -> GeyserThrowableComponent.of(true);
             default -> null;
-        }).orElse(context.definition().components().get(GeyserItemDataComponent.THROWABLE));
+        }).orElse(context.definition().components().get(GeyserItemDataComponents.THROWABLE));
 
         if (throwable != null) {
             computeThrowableProperties(componentBuilder, throwable);
-        } else if (context.definition().components().get(GeyserItemDataComponent.PROJECTILE) != null) {
+        } else if (context.definition().components().get(GeyserItemDataComponents.PROJECTILE) != null) {
             // Is already called in computeThrowableProperties, which is why this is an else if statement
             computeProjectileProperties(componentBuilder);
         }
@@ -379,7 +379,7 @@ public class CustomItemRegistryPopulator {
                 return Unit.INSTANCE;
             }
             return null;
-        }).orElse(context.definition().components().get(GeyserItemDataComponent.ENTITY_PLACER));
+        }).orElse(context.definition().components().get(GeyserItemDataComponents.ENTITY_PLACER));
 
         if (entityPlacer != null) {
             computeEntityPlacerProperties(componentBuilder);
@@ -396,7 +396,7 @@ public class CustomItemRegistryPopulator {
 
         // Don't send an icon if the item has a block placer component, and is set to use its block as icon
         // This makes bedrock use a 3D render of the block this item places as icon
-        GeyserBlockPlacer blockPlacer = definition.components().get(GeyserItemDataComponent.BLOCK_PLACER);
+        GeyserBlockPlacer blockPlacer = definition.components().get(GeyserItemDataComponents.BLOCK_PLACER);
         if (blockPlacer == null || !blockPlacer.useBlockIcon()) {
             NbtMap iconMap = NbtMap.builder()
                 .putCompound("textures", NbtMap.builder()

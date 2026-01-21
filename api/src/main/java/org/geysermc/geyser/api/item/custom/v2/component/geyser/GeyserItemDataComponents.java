@@ -45,7 +45,7 @@ import java.util.function.Predicate;
  * @since 2.9.3
  */
 @ApiStatus.NonExtendable
-public interface GeyserItemDataComponent {
+public interface GeyserItemDataComponents {
 
     /**
      * Marks this item as chargeable, meaning an item functions as a bow or a crossbow.
