@@ -58,7 +58,7 @@ public class ChestCollision extends BlockCollision {
         playerCollision.setSizeY(playerCollision.getSizeY() + collisionExpansion);
 
         double beforeYVelocity = player.getLastTickEndVelocity().getY();
-        // If the player is already colliding with the block or player velocity y is larger than 0 then player likely don't need to be correct.
+        // If the player is already colliding with the block or player velocity y is larger than 0, then the player likely does not need a correction
         if (beforeYVelocity > 0 || playerCollision.getMin(Axis.Y) - player.position().getY() > 0 || this.checkIntersection(x, y, z, playerCollision)) {
             playerCollision.setSizeY(playerCollision.getSizeX() - collisionExpansion);
             return;
