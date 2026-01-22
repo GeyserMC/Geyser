@@ -30,11 +30,14 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserChargedProjectile;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.translator.inventory.BundleInventoryTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.geyser.util.thirdparty.Fraction;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
@@ -43,11 +46,12 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public record GeyserItemPredicateContext(Supplier<Identifier> dimensionSupplier, int count, Supplier<Integer> maxStackSizeSupplier,
                                          Supplier<Integer> damageSupplier, Supplier<Integer> maxDamageSupplier,
                                          Supplier<Boolean> fishingRodCastSupplier, Supplier<Boolean> unbreakableSupplier,
-                                         Supplier<Integer> bundleFullnessSupplier, Supplier<Identifier> trimMaterialSupplier, Supplier<List<ChargedProjectile>> chargedProjectilesSupplier,
+                                         Supplier<Float> bundleFullnessSupplier, Supplier<Identifier> trimMaterialSupplier, Supplier<List<ChargedProjectile>> chargedProjectilesSupplier,
                                          Supplier<List<Identifier>> componentsSupplier, Supplier<List<Boolean>> customModelDataFlagsSupplier, Supplier<List<String>> customModelDataStringsSupplier,
                                          Supplier<List<Float>> customModelDataFloatsSupplier) implements ItemPredicateContext {
     private static final CustomModelData EMPTY_CUSTOM_MODEL_DATA = new CustomModelData(List.of(), List.of(), List.of(), List.of());
@@ -83,7 +87,7 @@ public record GeyserItemPredicateContext(Supplier<Identifier> dimensionSupplier,
     }
 
     @Override
-    public int bundleFullness() {
+    public float bundleFullness() {
         return bundleFullnessSupplier.get();
     }
 
@@ -146,15 +150,14 @@ public record GeyserItemPredicateContext(Supplier<Identifier> dimensionSupplier,
         Supplier<Boolean> fishingRodCast = Suppliers.memoize(session::hasFishingRodCast);
         Supplier<Boolean> unbreakable = Suppliers.memoize((() -> components.get(DataComponentTypes.UNBREAKABLE) != null));
 
-        Supplier<Integer> bundleFullness = Suppliers.memoize(() -> {
+        Supplier<Float> bundleFullness = Suppliers.memoize(() -> {
             List<ItemStack> bundleStacks = components.get(DataComponentTypes.BUNDLE_CONTENTS);
-            int fullness = 0;
             if (bundleStacks != null) {
-                for (ItemStack stack : bundleStacks) {
-                    fullness += stack.getAmount();
-                }
+                Fraction fraction = BundleInventoryTranslator.calculateBundleWeight(bundleStacks.stream()
+                    .map(stack -> GeyserItemStack.from(session, stack)).collect(Collectors.toList()));
+                return fraction.floatValue();
             }
-            return fullness;
+            return 0f;
         });
 
         Supplier<Identifier> trimMaterial = Suppliers.memoize(() -> {

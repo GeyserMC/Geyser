@@ -77,10 +77,10 @@ public interface ItemPredicateContext extends MinecraftPredicateContext {
     boolean unbreakable();
 
     /**
-     * @return the total stack size of all the items in the {@code minecraft:bundle_contents} component, or 0 if not present
+     * @return the bundle's fullness from the {@code minecraft:bundle_contents} component, or 0 if not present
      * @since 2.9.3
      */
-    int bundleFullness();
+    float bundleFullness();
 
     /**
      * @return the identifier of the item's trim material, or null if no trim is present

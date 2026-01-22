@@ -281,7 +281,7 @@ public final class BundleCache {
          */
         private boolean freshFromServer = true;
 
-        BundleData(GeyserSession session, List<ItemStack> contents) {
+        public BundleData(GeyserSession session, List<ItemStack> contents) {
             this();
             for (ItemStack content : contents) {
                 GeyserItemStack itemStack = GeyserItemStack.from(session, content);
