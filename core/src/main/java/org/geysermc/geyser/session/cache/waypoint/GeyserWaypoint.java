@@ -33,12 +33,12 @@ import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerLocationPacket;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.TrackedWaypoint;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
 
 import java.awt.Color;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.UUID;
 
 @Accessors(fluent = true)
@@ -47,20 +47,26 @@ public abstract class GeyserWaypoint {
 
     @Getter
     private final Color color;
-    private final UUID entityUuid;
+    private UUID entityUuid;
     private long entityId;
     private boolean sendListPackets;
 
     protected Vector3f position = Vector3f.ZERO;
     private Vector3f lastSent = null;
 
-    public GeyserWaypoint(GeyserSession session, Optional<UUID> uuid, OptionalLong entityId, Color color) {
+    public GeyserWaypoint(GeyserSession session, Optional<PlayerEntity> player, Color color) {
         this.session = session;
         this.color = color;
 
-        this.entityUuid = uuid.orElseGet(UUID::randomUUID);
-        this.entityId = entityId.orElseGet(() -> session.getEntityCache().getNextEntityId().incrementAndGet());
-        this.sendListPackets = entityId.isEmpty();
+        if (player.isPresent()) {
+            this.entityUuid = player.get().uuid();
+            this.entityId = player.get().geyserId();
+            this.sendListPackets = false;
+        } else {
+            this.entityUuid = UUID.randomUUID();
+            this.entityId = session.getEntityCache().getNextEntityId().incrementAndGet();
+            this.sendListPackets = true;
+        }
     }
 
     public void track(WaypointData data) {
@@ -90,10 +96,12 @@ public abstract class GeyserWaypoint {
             }
             untrack();
             entityId = entity.geyserId();
+            entityUuid = entity.uuid();
             sendListPackets = false;
             sendLocationPacket(true);
         } else if (entity == null) { // Previously had an attached player, and now that player is gone
             entityId = session.getEntityCache().getNextEntityId().incrementAndGet();
+            entityUuid = UUID.randomUUID();
             sendListPackets = true;
             sendListPackets(PlayerListPacket.Action.ADD);
             sendLocationPacket(true);
@@ -117,9 +125,16 @@ public abstract class GeyserWaypoint {
             PlayerListPacket packet = new PlayerListPacket();
             packet.setAction(action);
 
+            // Not sending a skin causes a player list entry to be invalid,
+            // leading to waypoints not showing
             PlayerListPacket.Entry entry = new PlayerListPacket.Entry(entityUuid);
             entry.setEntityId(entityId);
             entry.setColor(color);
+            entry.setName("");
+            entry.setSkin(SkinProvider.EMPTY_SERIALIZED_SKIN);
+            entry.setXuid("");
+            entry.setPlatformChatId("");
+            entry.setTrustedSkin(true);
             packet.getEntries().add(entry);
 
             session.sendUpstreamPacket(packet);
@@ -128,13 +143,13 @@ public abstract class GeyserWaypoint {
 
     public abstract void setData(WaypointData data);
 
-    public static @Nullable GeyserWaypoint create(GeyserSession session, Optional<UUID> uuid, OptionalLong entityId, TrackedWaypoint waypoint) {
+    public static @Nullable GeyserWaypoint create(GeyserSession session, Optional<PlayerEntity> player, TrackedWaypoint waypoint) {
         Color color = getWaypointColor(waypoint);
         return switch (waypoint.type()) {
             case EMPTY -> null;
-            case VEC3I -> new CoordinatesWaypoint(session, uuid, entityId, color);
-            case CHUNK -> new ChunkWaypoint(session, uuid, entityId, color);
-            case AZIMUTH -> new AzimuthWaypoint(session, uuid, entityId, color);
+            case VEC3I -> new CoordinatesWaypoint(session, player, color);
+            case CHUNK -> new ChunkWaypoint(session, player, color);
+            case AZIMUTH -> new AzimuthWaypoint(session, player, color);
         };
     }
 
