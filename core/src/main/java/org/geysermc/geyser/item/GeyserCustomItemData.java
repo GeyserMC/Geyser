@@ -32,14 +32,23 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
+import org.geysermc.geyser.api.predicate.item.ItemRangeDispatchPredicate;
+import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.util.TriState;
 
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @EqualsAndHashCode
 @ToString
+@Deprecated
 public class GeyserCustomItemData implements CustomItemData {
     private final String name;
     private final CustomItemOptions customItemOptions;
@@ -130,6 +139,35 @@ public class GeyserCustomItemData implements CustomItemData {
     @Override
     public @NonNull Set<String> tags() {
         return tags;
+    }
+
+    public CustomItemDefinition.Builder toDefinition(Identifier javaItem) {
+        CustomItemDefinition.Builder definition = CustomItemDefinition.builder(Identifier.of("geyser_custom", name()), javaItem)
+            .displayName(displayName())
+            .bedrockOptions(CustomItemBedrockOptions.builder()
+                .icon(icon())
+                .allowOffhand(allowOffhand())
+                .displayHandheld(displayHandheld())
+                .creativeCategory(creativeCategory().isEmpty() ? CreativeCategory.NONE : CreativeCategory.values()[creativeCategory().getAsInt()])
+                .creativeGroup(creativeGroup())
+                .tags(tags().stream().map(Identifier::of).collect(Collectors.toSet()))
+            );
+
+        CustomItemOptions options = customItemOptions();
+        if (options.customModelData().isPresent()) {
+            definition.predicate(ItemRangeDispatchPredicate.legacyCustomModelData(options.customModelData().getAsInt()));
+        }
+        if (options.damagePredicate().isPresent()) {
+            definition.predicate(ItemRangeDispatchPredicate.damage(options.damagePredicate().getAsInt()));
+        }
+        if (options.unbreakable() != TriState.NOT_SET) {
+            if (options.unbreakable() == TriState.TRUE) {
+                definition.predicate(ItemConditionPredicate.UNBREAKABLE);
+            } else {
+                definition.predicate(ItemConditionPredicate.UNBREAKABLE.negate());
+            }
+        }
+        return definition;
     }
 
     public static class Builder implements CustomItemData.Builder {

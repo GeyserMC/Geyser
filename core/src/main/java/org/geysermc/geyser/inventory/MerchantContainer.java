@@ -53,7 +53,7 @@ public class MerchantContainer extends Container {
     public void onTradeSelected(GeyserSession session, int slot) {
         if (villagerTrades != null && slot >= 0 && slot < villagerTrades.size()) {
             VillagerTrade trade = villagerTrades.get(slot);
-            setItem(2, GeyserItemStack.from(trade.getResult()), session);
+            setItem(2, GeyserItemStack.from(session, trade.getResult()), session);
 
             tradeExperience += trade.getXp();
             villager.getDirtyMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, tradeExperience);

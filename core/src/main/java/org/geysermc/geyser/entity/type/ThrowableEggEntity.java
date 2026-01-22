@@ -42,15 +42,16 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 public class ThrowableEggEntity extends ThrowableItemEntity {
 
     // Used for egg break particles
-    private GeyserItemStack itemStack = GeyserItemStack.of(Items.EGG.javaId(), 1);
+    private GeyserItemStack itemStack;
 
     public ThrowableEggEntity(EntitySpawnContext context) {
         super(context);
+        itemStack = GeyserItemStack.of(session, Items.EGG.javaId(), 1);
     }
 
     @Override
     public void setItem(EntityMetadata<ItemStack, ?> entityMetadata) {
-        GeyserItemStack stack = GeyserItemStack.from(entityMetadata.getValue());
+        GeyserItemStack stack = GeyserItemStack.from(session, entityMetadata.getValue());
         TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, getVariantOrFallback(session, stack));
         updateBedrockEntityProperties();
         this.itemStack = stack;

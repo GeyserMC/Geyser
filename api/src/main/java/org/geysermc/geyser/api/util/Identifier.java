@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.util;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * An identifying object for representing unique objects.
@@ -52,6 +53,7 @@ import org.geysermc.geyser.api.GeyserApi;
  *
  * @since 2.9.0
  */
+@ApiStatus.NonExtendable
 public interface Identifier {
 
     /**

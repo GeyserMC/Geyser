@@ -91,5 +91,8 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         // and this packet indirectly creates the new one.
         // This makes this packet a good place to reset the scoreboard.
         session.getWorldCache().resetScoreboard();
+
+        // Resolve API components from non-vanilla registered items that required registry data to map to MCPL components
+        session.getComponentCache().resolveComponents();
     }
 }
