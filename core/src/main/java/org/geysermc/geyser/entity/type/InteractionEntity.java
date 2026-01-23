@@ -81,7 +81,7 @@ public class InteractionEntity extends Entity {
     }
 
     @Override
-    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
+    public void setCustomNameVisible(BooleanEntityMetadata entityMetadata) {
         isNameTagVisible = entityMetadata.getPrimitiveValue();
         this.updateNameTag();
     }
@@ -112,8 +112,8 @@ public class InteractionEntity extends Entity {
     }
 
     @Override
-    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        super.setDisplayName(entityMetadata);
+    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        super.setCustomName(entityMetadata);
         this.updateNameTag();
     }
 
@@ -171,6 +171,8 @@ public class InteractionEntity extends Entity {
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
         if (!secondEntity.valid) { // Spawn the entity once
             secondEntity.spawnEntity();
+        } else {
+            secondEntity.updateBedrockMetadata();
         }
     }
 }

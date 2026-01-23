@@ -131,7 +131,7 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.NONE)
     private float boundingBoxWidth;
     @Setter(AccessLevel.NONE)
-    protected String displayName;
+    protected @Nullable String customName = null;
     @Setter(AccessLevel.NONE)
     protected boolean silent = false;
     /* Metadata end */
@@ -161,7 +161,6 @@ public class Entity implements GeyserEntity {
     public Entity(EntitySpawnContext context) {
         this.session = context.session();
         this.definition = context.entityTypeDefinition();
-        this.displayName = standardDisplayName();
 
         this.entityId = context.javaId();
         this.geyserId = context.geyserId();
@@ -489,21 +488,17 @@ public class Entity implements GeyserEntity {
         return uuid != null ? uuid.toString() : null;
     }
 
-    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // displayName is shown when always display name is enabled. Either with or without team.
-        // That's why there are both a displayName and a nametag variable.
-        // Displayname is ignored for players, and is always their username.
+    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        // customName is shown when always custom name is enabled. Either with or without team.
+        // That's why there are both a customName and a nametag variable.
+        // CustomName is ignored for players, and is always their username.
         Optional<Component> name = entityMetadata.getValue();
         if (name.isPresent()) {
-            String displayName = MessageTranslator.convertMessage(name.get(), session.locale());
-            this.displayName = displayName;
-            setNametag(displayName, true);
+            this.customName = MessageTranslator.convertMessage(name.get(), session.locale());
+            setNametag(customName, true);
             return;
         }
-
-        // if no displayName is set, use entity name (ENDER_DRAGON -> Ender Dragon)
-        // maybe we can/should use a translatable here instead?
-        this.displayName = standardDisplayName();
+        this.customName = null;
         setNametag(null, true);
     }
 
@@ -511,9 +506,9 @@ public class Entity implements GeyserEntity {
         return EntityUtils.translatedEntityName(definition.entityType(), session);
     }
 
-    protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
+    protected void setNametag(@Nullable String nametag, boolean applyTeamStyling) {
         // ensure that the team format is used when nametag changes
-        if (nametag != null && fromDisplayName) {
+        if (nametag != null && applyTeamStyling) {
             var team = session.getWorldCache().getScoreboard().getTeamFor(teamIdentifier());
             if (team != null) {
                 updateNametag(team);
@@ -531,9 +526,14 @@ public class Entity implements GeyserEntity {
             return;
         }
 
-        dirtyMetadata.put(EntityDataTypes.NAME, nametag);
+        setNameEntityData(nametag);
         // if nametag (player with team) is hidden for player, so should the score (belowname)
         scoreVisibility(!nametag.isEmpty());
+    }
+
+    // See TextDisplayEntity for context
+    protected void setNameEntityData(String nametag) {
+        dirtyMetadata.put(EntityDataTypes.NAME, nametag);
     }
 
     public void updateNametag(@Nullable Team team) {
@@ -560,7 +560,34 @@ public class Entity implements GeyserEntity {
 
     protected void scoreVisibility(boolean show) {}
 
-    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
+    /*
+     * Returns the appropriate name to use for nametags:
+     * Either the custom name, or default type name fallback
+     * Mirrors Mojmap Entity#getName
+     */
+    public String getDisplayName() {
+        if (this.customName != null) {
+            return this.customName;
+        }
+        return standardDisplayName();
+    }
+
+    public void setCustomNameVisible(BooleanEntityMetadata entityMetadata) {
+        if (entityMetadata.getPrimitiveValue()) {
+            // Java client behavior, must show a nametag
+            // If no custom name is set, it'll be the entity type name
+            if (this.nametag.isBlank()) {
+                setNametag(getDisplayName(), true);
+            }
+        } else {
+            // If we have no custom name override, we have to reset the nametag
+            // And we have to reset the nametag for mannequins since those do not show
+            // custom names unless explicitly "told" by the server. This clashes with the Bedrock
+            // client assuming that player entities should have their name shown
+            if (customName == null) {
+                setNametag(null, true);
+            }
+        }
         dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
     }
 

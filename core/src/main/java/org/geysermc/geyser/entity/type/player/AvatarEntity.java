@@ -273,18 +273,18 @@ public abstract class AvatarEntity extends LivingEntity {
     }
 
     @Override
-    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
         // Doesn't do anything for players
         if (!(this instanceof PlayerEntity)) {
-            super.setDisplayName(entityMetadata);
+            super.setCustomName(entityMetadata);
         }
     }
 
     @Override
-    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
+    public void setCustomNameVisible(BooleanEntityMetadata entityMetadata) {
         // Doesn't do anything for players
         if (!(this instanceof PlayerEntity)) {
-            super.setDisplayNameVisible(entityMetadata);
+            super.setCustomNameVisible(entityMetadata);
         }
     }
 
