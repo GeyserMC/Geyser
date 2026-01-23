@@ -17,6 +17,9 @@ on:
       - 'Jenkinsfile '
       - 'README.md'
 
+concurrency:
+  group: ci-${{ github.ref }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
