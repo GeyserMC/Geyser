@@ -46,22 +46,23 @@ public class DoorCollision extends BlockCollision {
      * 3 = south
      * 4 = west
      */
-    private int facing;
+    private final int facing;
 
     public DoorCollision(BlockState state, BoundingBox[] defaultBoxes) {
         super(defaultBoxes);
-        facing = switch (state.getValue(Properties.HORIZONTAL_FACING)) {
+
+        Direction direction = state.getValue(Properties.HORIZONTAL_FACING);
+        if (state.getValue(Properties.OPEN)) {
+            direction = state.getValue(Properties.DOOR_HINGE).equals("right") ? direction.counterClockWise() : direction.clockWise();
+        }
+
+        this.facing = switch (direction) {
             case NORTH -> 1;
             case EAST -> 2;
             case SOUTH -> 3;
             case WEST -> 4;
             default -> throw new IllegalStateException();
         };
-
-        // If the door is open it changes direction
-        if (state.getValue(Properties.OPEN)) {
-            facing = facing % 2 + 1;
-        }
     }
 
     @Override
