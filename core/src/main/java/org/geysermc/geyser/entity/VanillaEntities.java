@@ -443,7 +443,6 @@ public final class VanillaEntities {
             TEXT_DISPLAY = VanillaEntityType.inherited(TextDisplayEntity::new, displayBase)
                     .type(BuiltinEntityType.TEXT_DISPLAY)
                     .bedrockDefinition(BedrockEntityDefinitions.ARMOR_STAND)
-                    .offset(-0.5f)
                     .addTranslator(MetadataTypes.COMPONENT, TextDisplayEntity::setText)
                     .addTranslator(null) // Line width
                     .addTranslator(null) // Background color

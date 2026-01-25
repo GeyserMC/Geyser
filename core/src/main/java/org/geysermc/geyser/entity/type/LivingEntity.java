@@ -406,8 +406,10 @@ public class LivingEntity extends Entity implements Tickable {
             setYaw(yaw);
             setPitch(pitch);
             setHeadYaw(headYaw);
+            setOnGround(isOnGround);
 
-            this.lerpPosition = Vector3f.from(position().getX() + relX, position().getY() + relY, position().getZ() + relZ);
+            // Lerp position should be used as base if we have lerp steps left to ensure we don't de-sync with the position provided by the server
+            this.lerpPosition = lerpSteps == 0 ? this.position().add(relX, relY, relZ) : this.lerpPosition.add(relX, relY, relZ);
             this.lerpSteps = 3;
         } else {
             super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
@@ -416,14 +418,16 @@ public class LivingEntity extends Entity implements Tickable {
 
     @Override
     public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        setYaw(yaw);
-        setPitch(pitch);
-        setHeadYaw(headYaw);
-
         // It's vanilla behaviour to lerp if the position is within 64 blocks, however we also check if the position is close enough to the player
         // position to see if it can actually affect anything to save network.
-        if (shouldLerp() && javaPosition.distanceSquared(position()) < 4096 && javaPosition.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+        if (shouldLerp() && javaPosition.distanceSquared(javaPosition) < 4096 && javaPosition.distanceSquared(session.getPlayerEntity().position()) < 4096) {
             this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = true;
+
+            setYaw(yaw);
+            setPitch(pitch);
+            setHeadYaw(headYaw);
+            setOnGround(isOnGround);
+
             this.lerpPosition = javaPosition;
             this.lerpSteps = 3;
         } else {
@@ -432,6 +436,10 @@ public class LivingEntity extends Entity implements Tickable {
     }
 
     public boolean shouldLerp() {
+        // We'll already send movement of these on our end every tick
+        if (this instanceof ClientVehicle clientVehicle) {
+            return !clientVehicle.isClientControlled();
+        }
         return true;
     }
 
@@ -466,14 +474,14 @@ public class LivingEntity extends Entity implements Tickable {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
             }
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
-            super.position(Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal));
+            position(Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal));
             moveEntityPacket.setRuntimeEntityId(geyserId);
             moveEntityPacket.setX(bedrockPosition().getX());
             moveEntityPacket.setY(bedrockPosition().getY());
             moveEntityPacket.setZ(bedrockPosition().getZ());
-            moveEntityPacket.setYaw(this.yaw);
-            moveEntityPacket.setPitch(this.pitch);
-            moveEntityPacket.setHeadYaw(this.headYaw);
+            moveEntityPacket.setYaw(getYaw());
+            moveEntityPacket.setPitch(getPitch());
+            moveEntityPacket.setHeadYaw(getHeadYaw());
 
             this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = false;
 
@@ -646,6 +654,9 @@ public class LivingEntity extends Entity implements Tickable {
                     // Attribute on Java, entity data on Bedrock
                     setAttributeScale((float) AttributeUtils.calculateValue(javaAttribute));
                     updateBedrockMetadata();
+                    if (this instanceof ClientVehicle clientVehicle) {
+                        clientVehicle.getVehicleComponent().setScale(scale * attributeScale);
+                    }
                 }
                 case WATER_MOVEMENT_EFFICIENCY -> {
                     if (this instanceof ClientVehicle clientVehicle) {

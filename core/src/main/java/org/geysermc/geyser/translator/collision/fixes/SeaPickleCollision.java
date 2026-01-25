@@ -23,30 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.waypoint;
+package org.geysermc.geyser.translator.collision.fixes;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import lombok.EqualsAndHashCode;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.Axis;
+import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.ChunkWaypointData;
-import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
+import org.geysermc.geyser.translator.collision.BlockCollision;
+import org.geysermc.geyser.translator.collision.CollisionRemapper;
 
-import java.awt.Color;
-import java.util.Optional;
-
-public class ChunkWaypoint extends GeyserWaypoint {
-
-    public ChunkWaypoint(GeyserSession session, Optional<PlayerEntity> player, Color color) {
-        super(session, player, color);
+@EqualsAndHashCode(callSuper = true)
+@CollisionRemapper(regex = "^sea_pickle$", passDefaultBoxes = true)
+public class SeaPickleCollision extends BlockCollision {
+    public SeaPickleCollision(BlockState state, BoundingBox[] boxes) {
+        super(boxes);
     }
 
     @Override
-    public void setData(WaypointData data) {
-        if (data instanceof ChunkWaypointData chunkData) {
-            // Set position in centre of chunk
-            position = Vector3f.from(chunkData.chunkX() * 16.0F + 8.0F, session.getPlayerEntity().position().getY(), chunkData.chunkZ() * 16.0F + 8.0F);
-        } else {
-            session.getGeyser().getLogger().warning("Received incorrect waypoint data " + data.getClass() + " for chunk waypoint");
-        }
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision) {
+        // Sea pickles have no collision on Bedrock but do on Java).
+        double maxY = blockCollision.getMax(Axis.Y) - y;
+        blockCollision.pushOutOfBoundingBox(playerCollision, Direction.UP, maxY + CollisionManager.COLLISION_TOLERANCE * 1.01F);
     }
 }

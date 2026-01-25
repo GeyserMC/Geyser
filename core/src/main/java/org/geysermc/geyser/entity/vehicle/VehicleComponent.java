@@ -78,7 +78,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
     protected float moveSpeed;
     protected double gravity;
     @Getter @Setter
-    protected double waterMovementEfficiency, movementEfficiency;
+    protected double waterMovementEfficiency, movementEfficiency, scale;
     protected int effectLevitation;
     protected boolean effectSlowFalling;
     protected boolean effectWeaving;
@@ -90,6 +90,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         this.gravity = AttributeType.Builtin.GRAVITY.getDef();
         this.waterMovementEfficiency = AttributeType.Builtin.WATER_MOVEMENT_EFFICIENCY.getDef();
         this.movementEfficiency = AttributeType.Builtin.WATER_MOVEMENT_EFFICIENCY.getDef();
+        this.scale = AttributeType.Builtin.SCALE.getDef();
 
         double width = vehicle.getBoundingBoxWidth();
         double height = vehicle.getBoundingBoxHeight();
@@ -182,7 +183,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         ObjectDoublePair<Fluid> fluidHeight = updateFluidMovement(ctx);
         inWater = fluidHeight.left() == Fluid.WATER;
         switch (fluidHeight.left()) {
-            case WATER -> waterMovement(ctx);
+            case WATER -> waterMovement(ctx, fluidHeight.rightDouble());
             case LAVA -> {
                 if (vehicle.canWalkOnLava() && ctx.centerBlock().is(Blocks.LAVA)) {
                     landMovement(ctx);
@@ -196,6 +197,14 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
 
     public boolean isPushedByFluid() {
         return true;
+    }
+
+    public boolean canFloatWhileRidden() {
+        return false;
+    }
+
+    public float getEyeHeight() {
+        return 0;
     }
 
     /**
@@ -391,7 +400,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
     }
 
     // Mojmap: LivingEntity#travelInFluid
-    protected void waterMovement(VehicleContext ctx) {
+    protected void waterMovement(VehicleContext ctx, double height) {
         double gravity = getGravity();
         float drag = vehicle.getFlag(EntityFlag.SPRINTING) ? 0.9f : getWaterSlowDown();
         double originalY = ctx.centerPos().getY();
@@ -425,6 +434,10 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
 
         if (horizontalCollision && shouldApplyFluidJumpBoost(ctx, originalY)) {
             vehicle.setMotion(Vector3f.from(vehicle.getMotion().getX(), 0.3f, vehicle.getMotion().getZ()));
+        }
+
+        if (canFloatWhileRidden() && height > (getEyeHeight() * scale < 0.4 ? 0 : 0.4)) {
+            vehicle.setMotion(vehicle.getMotion().add(0, 0.04f, 0));
         }
     }
 

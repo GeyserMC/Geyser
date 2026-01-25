@@ -48,7 +48,7 @@ public class GeyserEnchantOption {
             "enemy on fire", "spider sad", "aj ferguson", "redned", "more items thx", "fast tool", "give me block",
             "less breaky break", "cube craft", "strong arrow", "fist arrow", "spicy arrow", "many many arrows", "geyser",
             "come here fish", "you are elsa", "xp heals tools", "tim two zero three", "dragon proxy waz here",
-            "stabby stab", "supreme mortal", "i like this", "avatar i guess", "more arrows", "in and out",
+            "stabby stab", "supreme mortal", "i like this", "avatar i guess", "more arrows", "in and out", "irauri ingot",
             "fly finder seventeen", "fast walk nether", "davchoo", "onechris", "death bringer thirteen", "kastle");
 
     @Getter

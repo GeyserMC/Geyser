@@ -33,6 +33,8 @@ import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.bytes.ByteArrays;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
+import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.SessionSkinApplyEvent;
 import org.geysermc.geyser.api.network.AuthType;
@@ -99,6 +101,7 @@ public class SkinProvider {
     static final SkinGeometry SKULL_GEOMETRY;
     static final SkinGeometry WEARING_CUSTOM_SKULL;
     static final SkinGeometry WEARING_CUSTOM_SKULL_SLIM;
+    public static final SerializedSkin EMPTY_SERIALIZED_SKIN;
 
     static {
         // Generate the empty texture to use as an emergency fallback
@@ -130,6 +133,17 @@ public class SkinProvider {
         WEARING_CUSTOM_SKULL = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkull\"}}", wearingCustomSkull);
         String wearingCustomSkullSlim = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.wearingCustomSkullSlim.json"), StandardCharsets.UTF_8);
         WEARING_CUSTOM_SKULL_SLIM = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkullSlim\"}}", wearingCustomSkullSlim);
+
+        /* Used for non-player waypoints... Bedrock requires a skin being sent. Lovely. */
+        EMPTY_SERIALIZED_SKIN = SerializedSkin.builder()
+            .fullSkinId("emptyFullSkinId")
+            .skinId("skinId")
+            .skinData(ImageData.of(EMPTY_SKIN.skinData()))
+            .capeData(ImageData.EMPTY)
+            .geometryName(SkinGeometry.SLIM.geometryName())
+            .geometryData(SkinGeometry.SLIM.geometryData())
+            .premium(true)
+            .build();
     }
 
     public static ExecutorService getExecutorService() {

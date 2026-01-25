@@ -130,6 +130,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Getter @Setter
     private float javaYaw;
 
+    /**
+     * If the player is colliding on the vertical axis or not according to the client.
+     */
+    @Getter @Setter
+    private boolean collidingVertically;
+
     public SessionPlayerEntity(GeyserSession session) {
         super(new EntitySpawnContext(session, VanillaEntities.PLAYER, -1, null), null, null);
 
