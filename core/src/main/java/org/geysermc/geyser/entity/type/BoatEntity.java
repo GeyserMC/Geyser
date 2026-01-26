@@ -98,7 +98,7 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
     @Override
     public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // We don't include the rotation (y) as it causes the boat to appear sideways
-        position(javaPosition);
+        setPosition(javaPosition);
         setYaw(yaw + 90);
         setHeadYaw(yaw + 90);
         setOnGround(isOnGround);

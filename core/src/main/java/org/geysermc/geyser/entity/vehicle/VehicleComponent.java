@@ -761,7 +761,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
      */
     protected void moveVehicle(Vector3d javaPos, Vector3f lastRotation) {
         Vector3f oldPosition = vehicle.position();
-        vehicle.position(javaPos.toFloat());
+        vehicle.setPosition(javaPos.toFloat());
 
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(vehicle.geyserId());

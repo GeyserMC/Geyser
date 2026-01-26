@@ -139,7 +139,7 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
     @Override
     protected void moveVehicle(Vector3d javaPos, Vector3f lastRotation) {
         Vector3f oldPosition = vehicle.position();
-        vehicle.position(javaPos.toFloat());
+        vehicle.setPosition(javaPos.toFloat());
 
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(vehicle.geyserId());

@@ -131,7 +131,7 @@ public class DimensionUtils {
 
         setBedrockDimension(session, bedrockDimension);
 
-        session.getPlayerEntity().position(pos);
+        session.getPlayerEntity().setPosition(pos);
         session.getPlayerEntity().setMotion(Vector3f.ZERO);
         session.getPlayerEntity().setLastTickEndVelocity(Vector3f.ZERO);
         session.setSpawned(false);

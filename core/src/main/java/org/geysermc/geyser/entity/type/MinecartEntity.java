@@ -141,6 +141,8 @@ public class MinecartEntity extends Entity implements Tickable {
             float lerpZTotal = GenericMath.lerp(position().getZ(), this.lerpPosition.getZ(), time);
 
             MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
+            moveEntityPacket.setRuntimeEntityId(geyserId);
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
             if (onGround) {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
             }
@@ -162,9 +164,9 @@ public class MinecartEntity extends Entity implements Tickable {
             if (this.dirtyPitch) {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
             }
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
-            position(Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal));
-            moveEntityPacket.setRuntimeEntityId(geyserId);
+
+            setPosition(Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal));
+
             moveEntityPacket.setX(bedrockPosition().getX());
             moveEntityPacket.setY(bedrockPosition().getY());
             moveEntityPacket.setZ(bedrockPosition().getZ());
@@ -202,7 +204,7 @@ public class MinecartEntity extends Entity implements Tickable {
 
             Vector3f position = getCurrentLerpPosition(delta).toFloat();
             Vector3f movement = getCurrentLerpMovement(delta).toFloat();
-            position(position);
+            setPosition(position);
             setMotion(movement);
 
             setYaw(180.0F - getCurrentLerpYaw(delta));

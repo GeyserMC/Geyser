@@ -142,7 +142,7 @@ public abstract class AvatarEntity extends LivingEntity {
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
-        position(javaPosition);
+        setPosition(javaPosition);
 
         setOnGround(isOnGround);
 
@@ -169,7 +169,7 @@ public abstract class AvatarEntity extends LivingEntity {
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
-        position(position().add(relX, relY, relZ));
+        setPosition(position().add(relX, relY, relZ));
 
         setOnGround(isOnGround);
 
@@ -197,13 +197,13 @@ public abstract class AvatarEntity extends LivingEntity {
     }
 
     @Override
-    public void position(Vector3f position) {
+    public void setPosition(Vector3f position) {
         if (this.bedPosition != null) {
             // As of Bedrock 1.21.22 and Fabric 1.21.1
             // Messes with Bedrock if we send this to the client itself, though.
-            super.position(position.up(0.2f));
+            super.setPosition(position.up(0.2f));
         } else {
-            super.position(position);
+            super.setPosition(position);
         }
     }
 
@@ -213,7 +213,7 @@ public abstract class AvatarEntity extends LivingEntity {
         if (bedPosition != null) {
             // Required to sync position of entity to bed
             // Fixes https://github.com/GeyserMC/Geyser/issues/3595 on vanilla 1.19.3 servers - did not happen on Paper
-            this.position(bedPosition.toFloat());
+            this.setPosition(bedPosition.toFloat());
 
             // TODO evaluate if needed
             int bed = session.getGeyser().getWorldManager().getBlockAt(session, bedPosition);

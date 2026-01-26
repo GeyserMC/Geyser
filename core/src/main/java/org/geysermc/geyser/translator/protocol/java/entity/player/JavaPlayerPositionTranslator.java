@@ -66,7 +66,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         acceptTeleport(session, position, newYaw, newPitch, teleportId);
 
         if (!session.isSpawned()) {
-            entity.position(position.toFloat());
+            entity.setPosition(position.toFloat());
             entity.setYaw(packet.getYRot());
             entity.setPitch(packet.getXRot());
             entity.setHeadYaw(packet.getYRot());

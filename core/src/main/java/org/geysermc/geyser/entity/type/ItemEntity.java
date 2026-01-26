@@ -118,7 +118,7 @@ public class ItemEntity extends ThrowableEntity {
             this.offset = Math.abs(offset);
         }
         super.moveAbsoluteImmediate(javaPosition, 0, 0, 0, isOnGround, teleported);
-        position(javaPosition);
+        setPosition(javaPosition);
 
         waterLevel = session.getGeyser().getWorldManager().getBlockAtAsync(session, javaPosition.getFloorX(), javaPosition.getFloorY(), javaPosition.getFloorZ())
                 .thenApply(BlockStateValues::getWaterLevel);

@@ -474,7 +474,7 @@ public class LivingEntity extends Entity implements Tickable {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
             }
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
-            position(Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal));
+            setPosition(Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal));
             moveEntityPacket.setRuntimeEntityId(geyserId);
             moveEntityPacket.setX(bedrockPosition().getX());
             moveEntityPacket.setY(bedrockPosition().getY());

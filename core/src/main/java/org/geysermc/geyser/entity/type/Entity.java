@@ -113,10 +113,8 @@ public class Entity implements GeyserEntity {
     /**
      * The entity position as it is known to the Java server
      */
-    @Accessors(fluent = true)
+    @Setter
     private Vector3f position;
-    @Setter(AccessLevel.NONE)
-    private Vector3f bedrockPosition;
     protected Vector3f motion;
 
     /**
@@ -203,7 +201,7 @@ public class Entity implements GeyserEntity {
         this.valid = false;
         this.propertyManager = bedrockDefinition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(bedrockDefinition.registeredProperties());
 
-        position(context.position());
+        setPosition(context.position());
         setAirSupply(getMaxAir());
 
         initializeMetadata();
@@ -299,8 +297,7 @@ public class Entity implements GeyserEntity {
             clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
         }
 
-        // Use fluid setter to ensure bedrockPosition is updated
-        position(Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ));
+        setPosition(position.add(relX, relY, relZ));
 
         MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
@@ -347,7 +344,7 @@ public class Entity implements GeyserEntity {
     }
 
     public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        position(position);
+        setPosition(javaPosition);
         // Setters are intentional so it can be overridden in places like AbstractArrowEntity
         setYaw(yaw);
         setPitch(pitch);
@@ -717,13 +714,11 @@ public class Entity implements GeyserEntity {
         return this.valid;
     }
 
-    public void position(Vector3f position) {
-        this.position = position;
-        this.bedrockPosition = position.up(offset);
-    }
-
     public Vector3f bedrockPosition() {
-        return bedrockPosition;
+        if (this.offset == 0f) {
+            return position;
+        }
+        return position.up(offset);
     }
 
     /**
@@ -886,6 +881,11 @@ public class Entity implements GeyserEntity {
     @Override
     public @NonNull GeyserEntityDefinition definition() {
         return bedrockDefinition;
+    }
+
+    @Override
+    public @NonNull Vector3f position() {
+        return position;
     }
 
     @Override

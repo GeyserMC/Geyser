@@ -173,7 +173,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    public void position(Vector3f position) {
+    public void setPosition(Vector3f position) {
         if (valid) { // Don't update during session init
             session.getCollisionManager().updatePlayerBoundingBox(position);
 
@@ -181,7 +181,7 @@ public class SessionPlayerEntity extends PlayerEntity {
                 session.setNoClip(false);
             }
         }
-        super.position(position);
+        super.setPosition(position);
     }
 
     /**
@@ -217,7 +217,7 @@ public class SessionPlayerEntity extends PlayerEntity {
      * Set the player's position from a position sent in a Bedrock packet
      */
     public void setPositionFromBedrock(Vector3f position) {
-        position(position.down(offset));
+        this.setPosition(position.down(offset));
 
         // Player is "above" the void so they're not supposed to no clip.
         if (session.isNoClip() && position().getY() >= session.getBedrockDimension().minY() - 5) {

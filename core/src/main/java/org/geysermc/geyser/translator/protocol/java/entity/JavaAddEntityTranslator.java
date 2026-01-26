@@ -84,7 +84,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
                 }
 
                 entity.setEntityId(packet.getEntityId());
-                entity.position(context.position());
+                entity.setPosition(context.position());
                 entity.setYaw(packet.getYaw());
                 entity.setPitch(packet.getPitch());
                 entity.setHeadYaw(packet.getHeadYaw());

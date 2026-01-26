@@ -61,8 +61,10 @@ public class ThrowableEntity extends Entity implements Tickable {
         motion = motion.mul(drag).down(gravity);
     }
 
-    // TODO offsets!!!
     protected void moveAbsoluteImmediate(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        Vector3f oldPosition = position();
+        setPosition(javaPosition);
+
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(geyserId);
 
@@ -75,19 +77,18 @@ public class ThrowableEntity extends Entity implements Tickable {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
         }
 
-        if (this.position().getX() != javaPosition.getX()) {
+        if (this.position().getX() != oldPosition.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-            moveEntityDeltaPacket.setX(javaPosition.getX());
+            moveEntityDeltaPacket.setX(bedrockPosition().getX());
         }
-        if (this.position().getY() != javaPosition.getY()) {
+        if (this.position().getY() != oldPosition.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-            moveEntityDeltaPacket.setY(javaPosition.getY() + offset);
+            moveEntityDeltaPacket.setY(bedrockPosition().getY());
         }
-        if (this.position().getZ() != javaPosition.getZ()) {
+        if (this.position().getZ() != oldPosition.getZ()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-            moveEntityDeltaPacket.setZ(javaPosition.getZ());
+            moveEntityDeltaPacket.setZ(bedrockPosition().getZ());
         }
-        position(javaPosition);
 
         if (getYaw() != yaw) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);

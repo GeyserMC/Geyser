@@ -63,7 +63,7 @@ public class FireballEntity extends ThrowableEntity {
             newPosition = tickMovement(newPosition);
         }
         super.moveAbsoluteImmediate(newPosition, yaw, pitch, headYaw, isOnGround, teleported);
-        position(javaPosition);
+        setPosition(javaPosition);
         this.motion = lastMotion;
     }
 
