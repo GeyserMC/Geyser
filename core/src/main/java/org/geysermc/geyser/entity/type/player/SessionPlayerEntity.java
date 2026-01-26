@@ -430,9 +430,9 @@ public class SessionPlayerEntity extends PlayerEntity {
                 GeyserAttributeType.ABSORPTION.getAttribute(0f)));
         session.sendUpstreamPacket(attributesPacket);
 
-        dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, 0);
         dirtyMetadata.put(EntityDataTypes.EFFECT_AMBIENCE, (byte) 0);
         dirtyMetadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, 0f);
+        dirtyMetadata.put(EntityDataTypes.VISIBLE_MOB_EFFECTS, 0L);
 
         silent = false;
     }
