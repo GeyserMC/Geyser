@@ -37,10 +37,10 @@ public class PhantomEntity extends FlyingEntity {
     public void setPhantomScale(IntEntityMetadata entityMetadata) {
         int size = entityMetadata.getPrimitiveValue();
         float modelScale = 1f + 0.15f * size;
-        float boundsScale = (1f + (0.2f * size) / definition.width()) / modelScale;
+        float boundsScale = (1f + (0.2f * size) / width) / modelScale;
 
-        setBoundingBoxWidth(boundsScale * definition.width());
-        setBoundingBoxHeight(boundsScale * definition.height());
+        setBoundingBoxWidth(boundsScale * width);
+        setBoundingBoxHeight(boundsScale * height);
         setScale(modelScale);
     }
 

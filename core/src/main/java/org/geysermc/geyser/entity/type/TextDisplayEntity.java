@@ -91,7 +91,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         // If the line count changed, update the position to account for the new offset
         if (this.lineCount != newLineCount) {
-            Vector3f positionWithoutOffset = position.down(calculateLineOffset());
+            Vector3f positionWithoutOffset = position().down(calculateLineOffset());
             this.lineCount = newLineCount;
             moveAbsoluteRaw(positionWithoutOffset, yaw, pitch, headYaw, onGround, false);
         }
