@@ -237,9 +237,11 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         @Override
         Builder displayHandheld(boolean displayHandheld);
 
+        @Deprecated
         @Override
         Builder textureSize(int textureSize);
 
+        @Deprecated
         @Override
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 
