@@ -29,6 +29,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
@@ -223,6 +224,17 @@ public class GeyserCustomItemData implements CustomItemData {
             if (this.icon == null) {
                 this.icon = this.name;
             }
+
+            if (textureSize != 16) {
+                GeyserImpl.getInstance().getLogger().warning("The custom item %s is using a non-standard texture size! ".formatted(name) +
+                    "This feature is deprecated and will be removed in a future version! Please migrate to attachables for texture resizing.");
+            }
+
+            if (renderOffsets != null) {
+                GeyserImpl.getInstance().getLogger().warning("The custom item %s is using render offsets! ".formatted(name) +
+                    "These are deprecated and will be removed in a future version! Please migrate to attachables.");
+            }
+
             return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.icon, this.allowOffhand,
                     this.displayHandheld, this.creativeCategory, this.creativeGroup, this.textureSize, this.renderOffsets, this.tags);
         }
