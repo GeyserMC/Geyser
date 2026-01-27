@@ -79,7 +79,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
 
         // Since 1.20.60, the nametag does not show properly if this is not set :/
         // The nametag does disappear properly when the player is invisible though.
-        //dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
+        dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
     }
 
     @Override

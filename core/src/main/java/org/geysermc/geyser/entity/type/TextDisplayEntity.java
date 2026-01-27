@@ -44,20 +44,19 @@ import org.jetbrains.annotations.Nullable;
 public class TextDisplayEntity extends DisplayBaseEntity {
 
     /**
-     * On Java Edition, armor stands can have a custom name shown additionally to
-     * the text in the display. They are rendered separately, and can cross each other...
-     */
-    private @Nullable ArmorStandEntity secondEntity = null;
-    private boolean isNameTagVisible = false;
-    private boolean isVisible = true;
-
-    /**
      * The height offset per line of text in a text display entity when rendered
      * as an armor stand nametag on Bedrock Edition. This value was empirically adjusted
      * to match Java Edition's multi-line text centering behavior.
      */
     private static final float LINE_HEIGHT_OFFSET = 0.1414f;
 
+    /**
+     * On Java Edition, armor stands can have a custom name shown additionally to
+     * the text in the display. They are rendered separately, and can cross each other...
+     */
+    private @Nullable ArmorStandEntity secondEntity = null;
+    private boolean isNameTagVisible = false;
+    private boolean isInvisible = false;
     private int lineCount;
 
     public TextDisplayEntity(EntitySpawnContext context) {
@@ -77,7 +76,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     protected void setInvisible(boolean value) {
         // we'll keep the text display armor stand always invisible; would reveal the armor stand otherwise
         // but we would need to adjust the nametag
-        isVisible = value;
+        isInvisible = value;
         this.updateNameTag();
     }
 
@@ -89,13 +88,17 @@ public class TextDisplayEntity extends DisplayBaseEntity {
             // If no custom name is set, it'll be the entity type name
             if (this.nametag.isBlank()) {
                 setNametag(getDisplayName(), true);
+                return;
             }
         } else {
             // If we have no custom name override, we have to reset the nametag
             if (customName == null) {
                 setNametag(null, true);
+                return;
             }
         }
+        // setNametag would already call updateNameTag; but we gotta update visibility
+        this.updateNameTag();
     }
 
     @Override
@@ -106,45 +109,30 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         super.despawnEntity();
     }
 
-    /**
-     * Calculates the Y offset needed to match Java Edition's text centering
-     * behavior for multi-line text displays.
-     * <p>
-     * In Java Edition, multi-line text displays are centered vertically.
-     * This value differs from the 0.1414f multiplier used in {@link org.geysermc.geyser.util.EntityUtils}
-     * for text displays mounted on players, as this handles the base positioning
-     * rather than mount offset calculations.
-     *
-     * @return the Y offset to apply based on the number of lines
-     */
-    public float calculateLineOffset() {
-        if (lineCount == 0) {
-            return 0;
-        }
-        return -0.6f + LINE_HEIGHT_OFFSET * lineCount;
-    }
-
     @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveAbsoluteRaw(position.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
+        if (secondEntity != null) {
+            secondEntity.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        }
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
     }
 
     @Override
     public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         if (secondEntity != null) {
-            secondEntity.moveAbsoluteRaw(position.up(0.6f), yaw, pitch, headYaw, isOnGround, teleported);
+            secondEntity.moveAbsoluteRaw(position.down(LINE_HEIGHT_OFFSET), yaw, pitch, headYaw, isOnGround, teleported);
         }
         super.moveAbsoluteRaw(position.up(calculateLineOffset()), yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     public void setText(EntityMetadata<Component, ?> entityMetadata) {
         this.dirtyMetadata.put(EntityDataTypes.NAME, MessageTranslator.convertMessage(entityMetadata.getValue(), session.locale()));
-        int newLineCount = calculateLineCount(entityMetadata.getValue());
+        int oldLineCount = this.lineCount;
+        this.lineCount = calculateLineCount(entityMetadata.getValue());
 
         // If the line count changed, update the position to account for the new offset
-        if (this.lineCount != newLineCount) {
+        if (this.lineCount != oldLineCount) {
             Vector3f positionWithoutOffset = position.down(calculateLineOffset());
-            this.lineCount = newLineCount;
             moveAbsoluteRaw(positionWithoutOffset, yaw, pitch, headYaw, onGround, false);
         }
     }
@@ -163,7 +151,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     public void updateNameTag() {
         // Text displays are special: isNameTagVisible must be set for the custom name to ever show
-        if (this.nametag.isBlank() || !isVisible || !isNameTagVisible) {
+        if (this.nametag.isBlank() || isInvisible || !isNameTagVisible) {
             if (secondEntity != null) {
                 secondEntity.despawnEntity();
                 secondEntity = null;
@@ -172,7 +160,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         }
 
         if (this.secondEntity == null) {
-            secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, position.down(calculateLineOffset()).up(0.6f)));
+            secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, position.down(calculateLineOffset()).down(LINE_HEIGHT_OFFSET)));
         }
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, this.nametag);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
@@ -187,5 +175,23 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         } else {
             secondEntity.updateBedrockMetadata();
         }
+    }
+
+    /**
+     * Calculates the Y offset needed to match Java Edition's text centering
+     * behavior for multi-line text displays.
+     * <p>
+     * In Java Edition, multi-line text displays are centered vertically.
+     * This value differs from the 0.1414f multiplier used in {@link org.geysermc.geyser.util.EntityUtils}
+     * for text displays mounted on players, as this handles the base positioning
+     * rather than mount offset calculations.
+     *
+     * @return the Y offset to apply based on the number of lines
+     */
+    public float calculateLineOffset() {
+        if (lineCount == 0) {
+            return 0;
+        }
+        return -0.6f + LINE_HEIGHT_OFFSET * lineCount;
     }
 }

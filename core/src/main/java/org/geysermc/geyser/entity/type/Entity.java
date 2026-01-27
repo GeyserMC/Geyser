@@ -131,6 +131,7 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.NONE)
     private float boundingBoxWidth;
     @Setter(AccessLevel.NONE)
+    @Getter(AccessLevel.NONE)
     protected @Nullable String customName = null;
     @Setter(AccessLevel.NONE)
     protected boolean silent = false;
