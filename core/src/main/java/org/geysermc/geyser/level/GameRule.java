@@ -33,64 +33,65 @@ import lombok.Getter;
  */
 // TODO gamerules with feature flags (e.g. minecart speed with minecart experiment)
 public enum GameRule {
-    COMMANDBLOCKOUTPUT("command_block_output", true),
-    LOGADMINCOMMANDS("log_admin_commands", true), // JE only
-    SENDCOMMANDFEEDBACK("send_command_feedback", true),
-    SHOWADVANCEMENTMESSAGES("show_advancement_messages", true), // JE only
-    SHOWDEATHMESSAGES("show_death_messages", true),
-    BLOCKDROPS("block_drops", true),
-    BLOCKEXPLOSIONDROPDECAY("block_explosion_drop_decay", true), // JE only
-    ENTITYDROPS("entity_drops", true),
-    MOBDROPS("mob_drops", true),
-    MOBEXPLOSIONDROPDECAY("mob_explosion_drop_decay", true), // JE only
-    PROJECTILESCANBREAKBLOCKS("projectiles_can_break_blocks", true),
-    TNTEXPLOSIONDROPDECAY("tnt_explosion_drop_decay", false),
-    COMMANDBLOCKSWORK("command_blocks_work", true),
-    GLOBALSOUNDEVENTS("global_sound_events", true), // JE only
-    MAXBLOCKMODIFICATIONS("max_block_modifications", 32768), // JE only
-    MAXCOMMANDFORKS("max_command_forks", 65536), // JE only
-    MAXCOMMANDSEQUENCELENGTH("max_command_sequence_length", 65536),
-    REDUCEDDEBUGINFO("reduced_debug_info", false), // JE only
-    TNTEXPLODES("tnt_explodes", true),
-    FORGIVEDEADPLAYERS("forgive_dead_players", true), // JE only
-    MAXENTITYCRAMMING("max_entity_cramming", 24), // JE only
-    MOBGRIEFING("mob_griefing", true),
-    RAIDS("raids", true), // JE only
-    UNIVERSALANGER("universal_anger", false), // JE only
-    ALLOWENTERINGNETHERUSINGPORTALS("allow_entering_nether_using_portals", true), // JE only
-    DROWNINGDAMAGE("drowning_damage", true),
-    ELYTRAMOVEMENTCHECK("elytra_movement_check", true), // JE only
-    ENDERPEARLSVANISHONDEATH("ender_pearls_vanish_on_death", true), // JE only
-    FALLDAMAGE("fall_damage", true),
-    FIREDAMAGE("fire_damage", true),
-    FIRESPREADRADIUSAROUNDPLAYER("fire_spread_radius_around_player", 128), // JE only
-    FREEZEDAMAGE("freeze_damage", true),
-    IMMEDIATERESPAWN("immediate_respawn", false),
-    KEEPINVENTORY("keep_inventory", false),
-    LIMITEDCRAFTING("limited_crafting", false),
-    LOCATORBAR("locator_bar", true),
-    NATURALHEALTHREGENERATION("natural_health_regeneration", true),
-    PLAYERMOVEMENTCHECK("player_movement_check", true), // JE only
-    PLAYERSNETHERPORTALCREATIVEDELAY("players_nether_portal_creative_delay", 0), // JE only
-    PLAYERSNETHERPORTALDEFAULTDELAY("players_nether_portal_default_delay", 80), // JE only
-    PLAYERSSLEEPINGPERCENTAGE("players_sleeping_percentage", 100),
-    PVP("pvp", true),
-    RESPAWNRADIUS("respawn_radius", 10),
-    SPAWNMONSTERS("spawn_monsters", true), // JE only
-    SPECTATORSGENERATECHUNKS("spectators_generate_chunks", true), // JE only
-    SPAWNMOBS("spawn_mobs", true),
-    SPAWNPATROLS("spawn_patrols", true), // JE only
-    SPAWNPHANTOMS("spawn_phantoms", true),
-    SPAWNWANDERINGTRADERS("spawn_wandering_traders", true), // JE only
-    SPAWNWARDENS("spawn_wardens", true), // JE only
-    SPAWNERBLOCKSWORK("spawner_blocks_work", true), // JE only
-    ADVANCETIME("advance_time", true),
-    ADVANCEWEATHER("advance_weather", true),
-    LAVASOURCECONVERSION("lava_source_conversion", false), // JE only
-    MAXSNOWACCUMULATIONHEIGHT("max_snow_accumulation_height", 1), // JE only
-    RANDOMTICKSPEED("random_tick_speed", 3),
-    SPREADVINES("spread_vines", true), // JE only
-    WATERSOURCECONVERSION("water_source_conversion", true); // JE only
+    ADVANCE_TIME("gamerule.doDaylightCycle", true),
+    ADVANCE_WEATHER("gamerule.doWeatherCycle", true),
+    ALLOW_ENTERING_NETHER_USING_PORTALS("gamerule.allowEnteringNetherUsingPortals", true),
+    BLOCK_DROPS("gamerule.doTileDrops", true),
+    BLOCK_EXPLOSION_DROP_DECAY("gamerule.blockExplosionDropDecay", true),
+    COMMAND_BLOCKS_WORK("gamerule.commandBlocksEnabled", true),
+    COMMAND_BLOCK_OUTPUT("gamerule.commandBlockOutput", true),
+    DROWNING_DAMAGE("gamerule.drowningDamage", true),
+    ELYTRA_MOVEMENT_CHECK("gamerule.minecraft.elytra_movement_check", true),
+    ENDER_PEARLS_VANISH_ON_DEATH("gamerule.enderPearlsVanishOnDeath", true),
+    ENTITY_DROPS("gamerule.doEntityDrops", true),
+    FALL_DAMAGE("gamerule.fallDamage", true),
+    FIRE_DAMAGE("gamerule.fireDamage", true),
+    FIRE_SPREAD_RADIUS_AROUND_PLAYER("gamerule.minecraft.fire_spread_radius_around_player", 128),
+    FORGIVE_DEAD_PLAYERS("gamerule.forgiveDeadPlayers", true),
+    FREEZE_DAMAGE("gamerule.freezeDamage", true),
+    GLOBAL_SOUND_EVENTS("gamerule.globalSoundEvents", true),
+    IMMEDIATE_RESPAWN("gamerule.doImmediateRespawn", false),
+    KEEP_INVENTORY("gamerule.keepInventory", false),
+    LAVA_SOURCE_CONVERSION("gamerule.lavaSourceConversion", false),
+    LIMITED_CRAFTING("gamerule.doLimitedCrafting", false),
+    LOCATOR_BAR("gamerule.locatorBar", true),
+    LOG_ADMIN_COMMANDS("gamerule.logAdminCommands", true),
+    MAX_BLOCK_MODIFICATIONS("gamerule.commandModificationBlockLimit", 32768),
+    MAX_COMMAND_FORKS("gamerule.maxCommandForkCount", 65536),
+    MAX_COMMAND_SEQUENCE_LENGTH("gamerule.maxCommandChainLength", 65536),
+    MAX_ENTITY_CRAMMING("gamerule.maxEntityCramming", 24),
+    MAX_MINECART_SPEED("gamerule.minecartMaxSpeed", 8),
+    MAX_SNOW_ACCUMULATION_HEIGHT("gamerule.snowAccumulationHeight", 1),
+    MOB_DROPS("gamerule.doMobLoot", true),
+    MOB_EXPLOSION_DROP_DECAY("gamerule.mobExplosionDropDecay", true),
+    MOB_GRIEFING("gamerule.mobGriefing", true),
+    NATURAL_HEALTH_REGENERATION("gamerule.naturalRegeneration", true),
+    PLAYER_MOVEMENT_CHECK("gamerule.minecraft.player_movement_check", true),
+    PLAYERS_NETHER_PORTAL_CREATIVE_DELAY("gamerule.playersNetherPortalCreativeDelay", 0),
+    PLAYERS_NETHER_PORTAL_DEFAULT_DELAY("gamerule.playersNetherPortalDefaultDelay", 80),
+    PLAYERS_SLEEPING_PERCENTAGE("gamerule.playersSleepingPercentage", 100),
+    PROJECTILES_CAN_BREAK_BLOCKS("gamerule.projectilesCanBreakBlocks", true),
+    PVP("gamerule.pvp", true),
+    RAIDS("gamerule.minecraft.raids", true),
+    RANDOM_TICK_SPEED("gamerule.randomTickSpeed", 3),
+    REDUCED_DEBUG_INFO("gamerule.reducedDebugInfo", false),
+    RESPAWN_RADIUS("gamerule.spawnRadius", 10),
+    SEND_COMMAND_FEEDBACK("gamerule.sendCommandFeedback", true),
+    SHOW_ADVANCEMENT_MESSAGES("gamerule.announceAdvancements", true),
+    SHOW_DEATH_MESSAGES("gamerule.showDeathMessages", true),
+    SPAWNER_BLOCKS_WORK("gamerule.spawnerBlocksEnabled", true),
+    SPAWN_MOBS("gamerule.doMobSpawning", true),
+    SPAWN_MONSTERS("gamerule.spawnMonsters", true),
+    SPAWN_PATROLS("gamerule.doPatrolSpawning", true),
+    SPAWN_PHANTOMS("gamerule.doInsomnia", true),
+    SPAWN_WANDERING_TRADERS("gamerule.doTraderSpawning", true),
+    SPAWN_WARDENS("gamerule.doWardenSpawning", true),
+    SPECTATORS_GENERATE_CHUNKS("gamerule.spectatorsGenerateChunks", true),
+    SPREAD_VINES("gamerule.doVinesSpread", true),
+    TNT_EXPLODES("gamerule.tntExplodes", true),
+    TNT_EXPLOSION_DROP_DECAY("gamerule.tntExplosionDropDecay", false),
+    UNIVERSAL_ANGER("gamerule.universalAnger", false),
+    WATER_SOURCE_CONVERSION("gamerule.waterSourceConversion", true);
 
     public static final GameRule[] VALUES = values();
 
