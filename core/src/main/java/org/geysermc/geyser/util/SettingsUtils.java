@@ -37,8 +37,6 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
-import java.util.Locale;
-
 public class SettingsUtils {
     /**
      * Build a settings form for the given session and store it for later
