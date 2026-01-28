@@ -62,7 +62,6 @@ public enum GameRule {
     MAX_COMMAND_FORKS("gamerule.maxCommandForkCount", 65536),
     MAX_COMMAND_SEQUENCE_LENGTH("gamerule.maxCommandChainLength", 65536),
     MAX_ENTITY_CRAMMING("gamerule.maxEntityCramming", 24),
-    MAX_MINECART_SPEED("gamerule.minecartMaxSpeed", 8),
     MAX_SNOW_ACCUMULATION_HEIGHT("gamerule.snowAccumulationHeight", 1),
     MOB_DROPS("gamerule.doMobLoot", true),
     MOB_EXPLOSION_DROP_DECAY("gamerule.mobExplosionDropDecay", true),
