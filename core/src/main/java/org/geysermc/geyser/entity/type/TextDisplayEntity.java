@@ -194,11 +194,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     /**
      * Calculates the Y offset needed to match Java Edition's text centering
      * behavior for multi-line text displays.
-     * <p>
      * In Java Edition, multi-line text displays are centered vertically.
-     * This value differs from the 0.1414f multiplier used in {@link org.geysermc.geyser.util.EntityUtils}
-     * for text displays mounted on players, as this handles the base positioning
-     * rather than mount offset calculations.
      *
      * @return the Y offset to apply based on the number of lines
      */
