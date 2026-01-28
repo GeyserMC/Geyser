@@ -132,7 +132,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         // If the line count changed, update the position to account for the new offset
         if (this.lineCount != oldLineCount) {
-            Vector3f positionWithoutOffset = position.down(calculateLineOffset());
+            Vector3f positionWithoutOffset = position.down(calculateLineOffset(oldLineCount));
             moveAbsoluteRaw(positionWithoutOffset, yaw, pitch, headYaw, onGround, false);
         }
     }
@@ -185,6 +185,13 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     /**
+     * Calculates the line offset for the current line count.
+     */
+    public float calculateLineOffset() {
+        return calculateLineOffset(lineCount);
+    }
+
+    /**
      * Calculates the Y offset needed to match Java Edition's text centering
      * behavior for multi-line text displays.
      * <p>
@@ -195,7 +202,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      *
      * @return the Y offset to apply based on the number of lines
      */
-    public float calculateLineOffset() {
+    public static float calculateLineOffset(int lineCount) {
         if (lineCount == 0) {
             return 0;
         }
