@@ -27,6 +27,8 @@ package org.geysermc.geyser.level;
 
 import lombok.Getter;
 
+import java.util.Locale;
+
 /**
  * This enum stores each gamerule along with the value type and the default.
  * It is used to construct the list for the settings menu
@@ -96,21 +98,21 @@ public enum GameRule {
     public static final GameRule[] VALUES = values();
 
     @Getter
-    private final String javaID;
+    private final String translation;
 
     @Getter
     private final Class<?> type;
 
     private final int defaultValue;
 
-    GameRule(String javaID, boolean defaultValue) {
-        this.javaID = javaID;
+    GameRule(String translation, boolean defaultValue) {
+        this.translation = translation;
         this.type = Boolean.class;
         this.defaultValue = defaultValue ? 1 : 0;
     }
 
-    GameRule(String javaID, int defaultValue) {
-        this.javaID = javaID;
+    GameRule(String translation, int defaultValue) {
+        this.translation = translation;
         this.type = Integer.class;
         this.defaultValue = defaultValue;
     }
@@ -121,5 +123,9 @@ public enum GameRule {
 
     public int getDefaultIntValue() {
         return defaultValue;
+    }
+
+    public String getJavaID() {
+        return name().toLowerCase(Locale.ROOT);
     }
 }

@@ -93,9 +93,9 @@ public class SettingsUtils {
             for (GameRule gamerule : GameRule.VALUES) {
                 // Add the relevant form item based on the gamerule type
                 if (Boolean.class.equals(gamerule.getType())) {
-                    builder.toggle(gamerule.getJavaID(), worldManager.getGameRuleBool(session, gamerule));
+                    builder.toggle(gamerule.getTranslation(), worldManager.getGameRuleBool(session, gamerule));
                 } else if (Integer.class.equals(gamerule.getType())) {
-                    builder.input(gamerule.getJavaID(), "", String.valueOf(worldManager.getGameRuleInt(session, gamerule)));
+                    builder.input(gamerule.getTranslation(), "", String.valueOf(worldManager.getGameRuleInt(session, gamerule)));
                 }
             }
         }
@@ -128,12 +128,12 @@ public class SettingsUtils {
                     if (Boolean.class.equals(gamerule.getType())) {
                         boolean value = response.next();
                         if (value != session.getGeyser().getWorldManager().getGameRuleBool(session, gamerule)) {
-                            session.getGeyser().getWorldManager().setGameRule(session, gamerule.name().toLowerCase(), value);
+                            session.getGeyser().getWorldManager().setGameRule(session, gamerule.getJavaID(), value);
                         }
                     } else if (Integer.class.equals(gamerule.getType())) {
                         int value = Integer.parseInt(response.next());
                         if (value != session.getGeyser().getWorldManager().getGameRuleInt(session, gamerule)) {
-                            session.getGeyser().getWorldManager().setGameRule(session, gamerule.name().toLowerCase(), value);
+                            session.getGeyser().getWorldManager().setGameRule(session, gamerule.getJavaID(), value);
                         }
                     }
                 }
