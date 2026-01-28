@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.collision.fixes;
 import lombok.EqualsAndHashCode;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.level.physics.Direction;
@@ -68,6 +69,12 @@ public class DoorCollision extends BlockCollision {
     @Override
     protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision) {
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
+        double north = blockCollision.getMin(Axis.Z) - playerCollision.getMax(Axis.Z);
+        double south = blockCollision.getMax(Axis.Z) - playerCollision.getMin(Axis.Z);
+        double east = blockCollision.getMax(Axis.X) - playerCollision.getMin(Axis.X);
+        double west = blockCollision.getMin(Axis.X) - playerCollision.getMax(Axis.X);
+        System.out.println("Intersection: " + north + "," + south + "," + east + "," + west);
+
         switch (this.facing) {
             case 1 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.NORTH, MAX_PUSH_DISTANCE);
             case 2 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.EAST, MAX_PUSH_DISTANCE);

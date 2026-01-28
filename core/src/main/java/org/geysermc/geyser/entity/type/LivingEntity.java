@@ -44,6 +44,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.HappyGhastVehicleComponent;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -348,6 +349,11 @@ public class LivingEntity extends Entity implements Tickable {
     private void setAttributeScale(float scale) {
         this.attributeScale = MathUtils.clamp(scale, GeyserAttributeType.SCALE.getMinimum(), GeyserAttributeType.SCALE.getMaximum());
         applyScale();
+
+        if (this instanceof SessionPlayerEntity) {
+            session.getCollisionManager().setScale(this.attributeScale);
+            session.getCollisionManager().updatePlayerBoundingBox();
+        }
     }
 
     private void applyScale() {
