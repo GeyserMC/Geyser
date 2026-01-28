@@ -149,6 +149,18 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         updateNameTag();
     }
 
+    @Override
+    public void updateBedrockMetadata() {
+        if (secondEntity != null) {
+            if (!secondEntity.valid) { // Spawn the entity once
+                secondEntity.spawnEntity();
+            } else {
+                secondEntity.updateBedrockMetadata();
+            }
+        }
+        super.updateBedrockMetadata();
+    }
+
     public void updateNameTag() {
         // Text displays are special: isNameTagVisible must be set for the custom name to ever show
         if (this.nametag.isBlank() || isInvisible || !isNameTagVisible) {
@@ -170,11 +182,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
-        if (!secondEntity.valid) { // Spawn the entity once
-            secondEntity.spawnEntity();
-        } else {
-            secondEntity.updateBedrockMetadata();
-        }
     }
 
     /**

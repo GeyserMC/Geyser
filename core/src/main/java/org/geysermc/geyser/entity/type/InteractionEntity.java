@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.entity.type;
 
-import net.kyori.adventure.text.Component;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
@@ -35,13 +34,10 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.util.InteractionResult;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
-
-import java.util.Optional;
 
 public class InteractionEntity extends Entity {
 
@@ -60,10 +56,8 @@ public class InteractionEntity extends Entity {
      * By having a second entity, we can still show the nametag while keeping the interaction entity invisible.
      */
     private ArmorStandEntity secondEntity = null;
-
     private boolean isNameTagVisible = false;
-
-    private boolean isVisible = true;
+    private boolean isInvisible = false;
 
     @Override
     protected void initializeMetadata() {
@@ -76,13 +70,28 @@ public class InteractionEntity extends Entity {
     @Override
     protected void setInvisible(boolean value) {
         // Always invisible; would reveal the armor stand otherwise
-        isVisible = value;
+        isInvisible = value;
         this.updateNameTag();
     }
 
     @Override
     public void setCustomNameVisible(BooleanEntityMetadata entityMetadata) {
-        isNameTagVisible = entityMetadata.getPrimitiveValue();
+        this.isNameTagVisible = entityMetadata.getPrimitiveValue();
+        if (isNameTagVisible) {
+            // Java client behavior, must show a nametag
+            // If no custom name is set, it'll be the entity type name
+            if (this.nametag.isBlank()) {
+                setNametag(getDisplayName(), true);
+                return;
+            }
+        } else {
+            // If we have no custom name override, we have to reset the nametag
+            if (customName == null) {
+                setNametag(null, true);
+                return;
+            }
+        }
+        // setNametag would already call updateNameTag; but we gotta update visibility
         this.updateNameTag();
     }
 
@@ -109,12 +118,6 @@ public class InteractionEntity extends Entity {
             secondEntity.despawnEntity();
         }
         super.despawnEntity();
-    }
-
-    @Override
-    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        super.setCustomName(entityMetadata);
-        this.updateNameTag();
     }
 
     @Override
@@ -149,8 +152,26 @@ public class InteractionEntity extends Entity {
         this.response = response.getPrimitiveValue();
     }
 
+    @Override
+    protected void setNameEntityData(String nametag) {
+        updateNameTag();
+    }
+
+    @Override
+    public void updateBedrockMetadata() {
+        // We should bundle metadata updates to ensure these look proper
+        if (secondEntity != null) {
+            if (!secondEntity.valid) { // Spawn the entity once
+                secondEntity.spawnEntity();
+            } else {
+                secondEntity.updateBedrockMetadata();
+            }
+        }
+        super.updateBedrockMetadata();
+    }
+
     public void updateNameTag() {
-        if (this.nametag.isBlank() || !isVisible) {
+        if (this.nametag.isBlank() || isInvisible) {
             if (secondEntity != null) {
                 secondEntity.despawnEntity();
                 secondEntity = null;
@@ -161,7 +182,7 @@ public class InteractionEntity extends Entity {
         if (this.secondEntity == null) {
             secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, position.up(getBoundingBoxHeight())));
         }
-        secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
+        secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, this.nametag);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, isNameTagVisible ? (byte) 1 : (byte) 0);
         // Scale to 0 to show nametag
         secondEntity.setScale(0f);
@@ -169,10 +190,5 @@ public class InteractionEntity extends Entity {
         secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
-        if (!secondEntity.valid) { // Spawn the entity once
-            secondEntity.spawnEntity();
-        } else {
-            secondEntity.updateBedrockMetadata();
-        }
     }
 }

@@ -270,41 +270,56 @@ public class Entity implements GeyserEntity {
         }
 
         position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+        setOnGround(isOnGround);
 
-        MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
-        moveEntityPacket.setRuntimeEntityId(geyserId);
-        if (relX != 0.0) {
-            moveEntityPacket.setX(position.getX());
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-        }
-        if (relY != 0.0) {
-            moveEntityPacket.setY(position.getY());
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-        }
-        if (relZ != 0.0) {
-            moveEntityPacket.setZ(position.getZ());
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-        }
+        boolean dirtyPitch = false, dirtyYaw = false, dirtyHeadYaw = false;
         if (pitch != this.pitch) {
             this.pitch = pitch;
-            moveEntityPacket.setPitch(pitch);
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+            dirtyPitch = true;
         }
+
         if (yaw != this.yaw) {
             this.yaw = yaw;
-            moveEntityPacket.setYaw(yaw);
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+            dirtyYaw = true;
         }
+
         if (headYaw != this.headYaw) {
             this.headYaw = headYaw;
-            moveEntityPacket.setHeadYaw(headYaw);
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+            dirtyHeadYaw = true;
         }
-        setOnGround(isOnGround);
-        if (isOnGround) {
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+
+        if (isValid()) {
+            MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
+            moveEntityPacket.setRuntimeEntityId(geyserId);
+            if (relX != 0.0) {
+                moveEntityPacket.setX(position.getX());
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+            }
+            if (relY != 0.0) {
+                moveEntityPacket.setY(position.getY());
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+            }
+            if (relZ != 0.0) {
+                moveEntityPacket.setZ(position.getZ());
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+            }
+            if (dirtyPitch) {
+                moveEntityPacket.setPitch(pitch);
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+            }
+            if (dirtyYaw) {
+                moveEntityPacket.setYaw(yaw);
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+            }
+            if (dirtyHeadYaw) {
+                moveEntityPacket.setHeadYaw(headYaw);
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+            }
+            if (isOnGround) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+            }
+            session.sendUpstreamPacket(moveEntityPacket);
         }
-        session.sendUpstreamPacket(moveEntityPacket);
     }
 
     public void moveAbsolute(Vector3f position, float yaw, float pitch, boolean isOnGround, boolean teleported) {
@@ -323,14 +338,16 @@ public class Entity implements GeyserEntity {
         setHeadYaw(headYaw);
         setOnGround(isOnGround);
 
-        MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
-        moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(position);
-        moveEntityPacket.setRotation(getBedrockRotation());
-        moveEntityPacket.setOnGround(isOnGround);
-        moveEntityPacket.setTeleported(teleported);
+        if (isValid()) {
+            MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+            moveEntityPacket.setRuntimeEntityId(geyserId);
+            moveEntityPacket.setPosition(position);
+            moveEntityPacket.setRotation(getBedrockRotation());
+            moveEntityPacket.setOnGround(isOnGround);
+            moveEntityPacket.setTeleported(teleported);
 
-        session.sendUpstreamPacket(moveEntityPacket);
+            session.sendUpstreamPacket(moveEntityPacket);
+        }
     }
 
     /**
