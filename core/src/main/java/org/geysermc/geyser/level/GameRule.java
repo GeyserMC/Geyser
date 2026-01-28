@@ -33,47 +33,64 @@ import lombok.Getter;
  */
 // TODO gamerules with feature flags (e.g. minecart speed with minecart experiment)
 public enum GameRule {
-    ANNOUNCEADVANCEMENTS("announceAdvancements", true), // JE only
-    COMMANDBLOCKOUTPUT("commandBlockOutput", true),
-    DISABLEELYTRAMOVEMENTCHECK("disableElytraMovementCheck", false), // JE only
-    DISABLERAIDS("disableRaids", false), // JE only
-    DODAYLIGHTCYCLE("doDaylightCycle", true),
-    DOENTITYDROPS("doEntityDrops", true),
-    DOFIRETICK("doFireTick", true),
-    DOIMMEDIATERESPAWN("doImmediateRespawn", false),
-    DOINSOMNIA("doInsomnia", true),
-    DOLIMITEDCRAFTING("doLimitedCrafting", false), // JE only
-    DOMOBLOOT("doMobLoot", true),
-    DOMOBSPAWNING("doMobSpawning", true),
-    DOPATROLSPAWNING("doPatrolSpawning", true), // JE only
-    DOTILEDROPS("doTileDrops", true),
-    DOTRADERSPAWNING("doTraderSpawning", true), // JE only
-    DOWEATHERCYCLE("doWeatherCycle", true),
-    DROWNINGDAMAGE("drowningDamage", true),
-    FALLDAMAGE("fallDamage", true),
-    FIREDAMAGE("fireDamage", true),
-    FREEZEDAMAGE("freezeDamage", true),
-    FORGIVEDEADPLAYERS("forgiveDeadPlayers", true), // JE only
-    KEEPINVENTORY("keepInventory", false),
-    LOGADMINCOMMANDS("logAdminCommands", true), // JE only
-    MAXCOMMANDCHAINLENGTH("maxCommandChainLength", 65536),
-    MAXENTITYCRAMMING("maxEntityCramming", 24), // JE only
-    MOBGRIEFING("mobGriefing", true),
-    NATURALREGENERATION("naturalRegeneration", true),
-    PLAYERSSLEEPINGPERCENTAGE("playersSleepingPercentage", 100), // JE only
-    RANDOMTICKSPEED("randomTickSpeed", 3),
-    REDUCEDDEBUGINFO("reducedDebugInfo", false), // JE only
-    SENDCOMMANDFEEDBACK("sendCommandFeedback", true),
-    SHOWDEATHMESSAGES("showDeathMessages", true),
-    SPAWNRADIUS("spawnRadius", 10),
-    SPECTATORSGENERATECHUNKS("spectatorsGenerateChunks", true), // JE only
-    UNIVERSALANGER("universalAnger", false),
-    LOCATORBAR("locatorBar", true),
-    ALLOWENTERINGNETHERUSINGPORTALS("allowEnteringNetherUsingPortals", true), // JE only
-    COMMANDBLOCKSENABLED("commandBlocksEnabled", true),
+    COMMANDBLOCKOUTPUT("command_block_output", true),
+    LOGADMINCOMMANDS("log_admin_commands", true), // JE only
+    SENDCOMMANDFEEDBACK("send_command_feedback", true),
+    SHOWADVANCEMENTMESSAGES("show_advancement_messages", true), // JE only
+    SHOWDEATHMESSAGES("show_death_messages", true),
+    BLOCKDROPS("block_drops", true),
+    BLOCKEXPLOSIONDROPDECAY("block_explosion_drop_decay", true), // JE only
+    ENTITYDROPS("entity_drops", true),
+    MOBDROPS("mob_drops", true),
+    MOBEXPLOSIONDROPDECAY("mob_explosion_drop_decay", true), // JE only
+    PROJECTILESCANBREAKBLOCKS("projectiles_can_break_blocks", true),
+    TNTEXPLOSIONDROPDECAY("tnt_explosion_drop_decay", false),
+    COMMANDBLOCKSWORK("command_blocks_work", true),
+    GLOBALSOUNDEVENTS("global_sound_events", true), // JE only
+    MAXBLOCKMODIFICATIONS("max_block_modifications", 32768), // JE only
+    MAXCOMMANDFORKS("max_command_forks", 65536), // JE only
+    MAXCOMMANDSEQUENCELENGTH("max_command_sequence_length", 65536),
+    REDUCEDDEBUGINFO("reduced_debug_info", false), // JE only
+    TNTEXPLODES("tnt_explodes", true),
+    FORGIVEDEADPLAYERS("forgive_dead_players", true), // JE only
+    MAXENTITYCRAMMING("max_entity_cramming", 24), // JE only
+    MOBGRIEFING("mob_griefing", true),
+    RAIDS("raids", true), // JE only
+    UNIVERSALANGER("universal_anger", false), // JE only
+    ALLOWENTERINGNETHERUSINGPORTALS("allow_entering_nether_using_portals", true), // JE only
+    DROWNINGDAMAGE("drowning_damage", true),
+    ELYTRAMOVEMENTCHECK("elytra_movement_check", true), // JE only
+    ENDERPEARLSVANISHONDEATH("ender_pearls_vanish_on_death", true), // JE only
+    FALLDAMAGE("fall_damage", true),
+    FIREDAMAGE("fire_damage", true),
+    FIRESPREADRADIUSAROUNDPLAYER("fire_spread_radius_around_player", 128), // JE only
+    FREEZEDAMAGE("freeze_damage", true),
+    IMMEDIATERESPAWN("immediate_respawn", false),
+    KEEPINVENTORY("keep_inventory", false),
+    LIMITEDCRAFTING("limited_crafting", false),
+    LOCATORBAR("locator_bar", true),
+    NATURALHEALTHREGENERATION("natural_health_regeneration", true),
+    PLAYERMOVEMENTCHECK("player_movement_check", true), // JE only
+    PLAYERSNETHERPORTALCREATIVEDELAY("players_nether_portal_creative_delay", 0), // JE only
+    PLAYERSNETHERPORTALDEFAULTDELAY("players_nether_portal_default_delay", 80), // JE only
+    PLAYERSSLEEPINGPERCENTAGE("players_sleeping_percentage", 100),
     PVP("pvp", true),
-    SPAWNMONSTERS("spawnMonsters", true),
-    SPAWNERBLOCKSENABLED("spawnerBlocksEnabled", true);
+    RESPAWNRADIUS("respawn_radius", 10),
+    SPAWNMONSTERS("spawn_monsters", true), // JE only
+    SPECTATORSGENERATECHUNKS("spectators_generate_chunks", true), // JE only
+    SPAWNMOBS("spawn_mobs", true),
+    SPAWNPATROLS("spawn_patrols", true), // JE only
+    SPAWNPHANTOMS("spawn_phantoms", true),
+    SPAWNWANDERINGTRADERS("spawn_wandering_traders", true), // JE only
+    SPAWNWARDENS("spawn_wardens", true), // JE only
+    SPAWNERBLOCKSWORK("spawner_blocks_work", true), // JE only
+    ADVANCETIME("advance_time", true),
+    ADVANCEWEATHER("advance_weather", true),
+    LAVASOURCECONVERSION("lava_source_conversion", false), // JE only
+    MAXSNOWACCUMULATIONHEIGHT("max_snow_accumulation_height", 1), // JE only
+    RANDOMTICKSPEED("random_tick_speed", 3),
+    SPREADVINES("spread_vines", true), // JE only
+    WATERSOURCECONVERSION("water_source_conversion", true); // JE only
 
     public static final GameRule[] VALUES = values();
 
