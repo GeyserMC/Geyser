@@ -26,6 +26,8 @@
 package org.geysermc.geyser.translator.collision.fixes;
 
 import lombok.EqualsAndHashCode;
+import org.cloudburstmc.math.vector.Vector3d;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -49,7 +51,7 @@ public class EndPortalCollision extends BlockCollision {
     }
 
     @Override
-    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision) {
+    protected void correctPosition(GeyserSession session, Vector3i position, Vector3d ulp, BoundingBox blockCollision, BoundingBox playerCollision) {
         if (!this.eye) {
             return;
         }

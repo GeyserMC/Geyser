@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -81,14 +82,14 @@ public class BlockCollision {
             boundingBox.pushOutOfBoundingBox(playerCollision, Direction.UP, pushAwayTolerance);
             boundingBox.pushOutOfBoundingBox(playerCollision, Direction.DOWN, pushAwayTolerance);
 
-            correctPosition(session, x, y, z, boundingBox, playerCollision);
+            correctPosition(session, Vector3i.from(x, y, z), Vector3d.from(xPushAwayTolerance, 0, zPushAwayTolerance), boundingBox, playerCollision);
         }
 
         // Revert back to the old collision size.
         playerCollision.expand(-collisionExpansion, 0, -collisionExpansion);
     }
 
-    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision) {
+    protected void correctPosition(GeyserSession session, Vector3i position, Vector3d ulp, BoundingBox blockCollision, BoundingBox playerCollision) {
     }
 
     public boolean checkIntersection(double x, double y, double z, BoundingBox playerCollision) {

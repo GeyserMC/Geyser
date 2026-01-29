@@ -26,11 +26,11 @@
 package org.geysermc.geyser.translator.collision.fixes;
 
 import lombok.EqualsAndHashCode;
+import org.cloudburstmc.math.vector.Vector3d;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
-import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.collision.BlockCollision;
@@ -39,8 +39,6 @@ import org.geysermc.geyser.translator.collision.CollisionRemapper;
 @EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "_door$", usesParams = true, passDefaultBoxes = true)
 public class DoorCollision extends BlockCollision {
-    private final static double MAX_PUSH_DISTANCE = 0.005 + CollisionManager.COLLISION_TOLERANCE * 1.01;
-
     /**
      * 1 = north
      * 2 = east
@@ -67,19 +65,13 @@ public class DoorCollision extends BlockCollision {
     }
 
     @Override
-    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision) {
+    protected void correctPosition(GeyserSession session, Vector3i position, Vector3d ulp, BoundingBox blockCollision, BoundingBox playerCollision) {
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
-        double north = blockCollision.getMin(Axis.Z) - playerCollision.getMax(Axis.Z);
-        double south = blockCollision.getMax(Axis.Z) - playerCollision.getMin(Axis.Z);
-        double east = blockCollision.getMax(Axis.X) - playerCollision.getMin(Axis.X);
-        double west = blockCollision.getMin(Axis.X) - playerCollision.getMax(Axis.X);
-        System.out.println("Intersection: " + north + "," + south + "," + east + "," + west);
-
         switch (this.facing) {
-            case 1 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.NORTH, MAX_PUSH_DISTANCE);
-            case 2 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.EAST, MAX_PUSH_DISTANCE);
-            case 3 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.SOUTH, MAX_PUSH_DISTANCE);
-            case 4 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.WEST, MAX_PUSH_DISTANCE);
+            case 1 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.NORTH, 0.005 + ulp.getZ());
+            case 2 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.EAST, 0.005 + ulp.getX());
+            case 3 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.SOUTH, 0.005 + ulp.getZ());
+            case 4 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.WEST, 0.005 + ulp.getX());
         }
     }
 }
