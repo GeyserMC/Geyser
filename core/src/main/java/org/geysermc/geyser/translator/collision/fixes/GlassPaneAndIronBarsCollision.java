@@ -73,23 +73,23 @@ public class GlassPaneAndIronBarsCollision extends BlockCollision {
     }
 
     @Override
-    protected void correctPosition(GeyserSession session, Vector3i position, Vector3d ulp, BoundingBox blockCollision, BoundingBox playerCollision) {
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision, double ulpX, double ulpZ) {
         // Check for glass pane/iron bars bug (pane/iron bars is 0.5 blocks thick on Bedrock but 0.5625 on Java when only 1 side is connected).
         // Also, we want to flip the direction since the direction here is indicating the block side the glass is connected to.
         if (this.facing == 2 || this.facing == 6 || this.facing == 5) { // East
-            blockCollision.pushOutOfBoundingBox(playerCollision, Direction.WEST, 0.0625 + ulp.getX());
+            blockCollision.pushOutOfBoundingBox(playerCollision, Direction.WEST, 0.0625 + ulpX);
         }
 
         if (this.facing == 1 || this.facing == 5 || this.facing == 8) { // North.
-            blockCollision.pushOutOfBoundingBox(playerCollision, Direction.SOUTH, 0.0625 + ulp.getZ());
+            blockCollision.pushOutOfBoundingBox(playerCollision, Direction.SOUTH, 0.0625 + ulpZ);
         }
 
         if (this.facing == 3 || this.facing == 6 || this.facing == 7) { // South
-            blockCollision.pushOutOfBoundingBox(playerCollision, Direction.NORTH, 0.0625 + ulp.getZ());
+            blockCollision.pushOutOfBoundingBox(playerCollision, Direction.NORTH, 0.0625 + ulpZ);
         }
 
         if (this.facing == 4 || this.facing == 7 || this.facing == 8) { // West
-            blockCollision.pushOutOfBoundingBox(playerCollision, Direction.EAST, 0.0625 + ulp.getX());
+            blockCollision.pushOutOfBoundingBox(playerCollision, Direction.EAST, 0.0625 + ulpX);
         }
     }
 }

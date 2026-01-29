@@ -65,13 +65,13 @@ public class DoorCollision extends BlockCollision {
     }
 
     @Override
-    protected void correctPosition(GeyserSession session, Vector3i position, Vector3d ulp, BoundingBox blockCollision, BoundingBox playerCollision) {
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision, double ulpX, double ulpZ) {
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
         switch (this.facing) {
-            case 1 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.NORTH, 0.005 + ulp.getZ());
-            case 2 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.EAST, 0.005 + ulp.getX());
-            case 3 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.SOUTH, 0.005 + ulp.getZ());
-            case 4 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.WEST, 0.005 + ulp.getX());
+            case 1 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.NORTH, 0.005 + ulpZ);
+            case 2 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.EAST, 0.005 + ulpX);
+            case 3 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.SOUTH, 0.005 + ulpZ);
+            case 4 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.WEST, 0.005 + ulpX);
         }
     }
 }

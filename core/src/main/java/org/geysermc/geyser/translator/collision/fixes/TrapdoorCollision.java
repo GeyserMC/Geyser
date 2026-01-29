@@ -55,9 +55,9 @@ public class TrapdoorCollision extends BlockCollision {
     }
 
     @Override
-    protected void correctPosition(GeyserSession session, Vector3i position, Vector3d ulp, BoundingBox blockCollision, BoundingBox playerCollision) {
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision, double ulpX, double ulpZ) {
         // Check for trapdoor bug (trapdoors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
-        final double maxPushDistance = 0.005 + (facing == Direction.EAST || facing == Direction.WEST ? ulp.getX() : ulp.getZ());
+        final double maxPushDistance = 0.005 + (facing == Direction.EAST || facing == Direction.WEST ? ulpX : ulpZ);
         blockCollision.pushOutOfBoundingBox(playerCollision, facing, maxPushDistance);
     }
 }

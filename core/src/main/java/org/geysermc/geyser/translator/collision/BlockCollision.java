@@ -82,14 +82,14 @@ public class BlockCollision {
             boundingBox.pushOutOfBoundingBox(playerCollision, Direction.UP, pushAwayTolerance);
             boundingBox.pushOutOfBoundingBox(playerCollision, Direction.DOWN, pushAwayTolerance);
 
-            correctPosition(session, Vector3i.from(x, y, z), Vector3d.from(xPushAwayTolerance, 0, zPushAwayTolerance), boundingBox, playerCollision);
+            correctPosition(session, x, y, z, boundingBox, playerCollision, xPushAwayTolerance, zPushAwayTolerance);
         }
 
         // Revert back to the old collision size.
         playerCollision.expand(-collisionExpansion, 0, -collisionExpansion);
     }
 
-    protected void correctPosition(GeyserSession session, Vector3i position, Vector3d ulp, BoundingBox blockCollision, BoundingBox playerCollision) {
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision, double ulpX, double ulpZ) {
     }
 
     public boolean checkIntersection(double x, double y, double z, BoundingBox playerCollision) {

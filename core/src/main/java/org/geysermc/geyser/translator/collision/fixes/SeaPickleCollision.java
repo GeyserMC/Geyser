@@ -45,9 +45,9 @@ public class SeaPickleCollision extends BlockCollision {
     }
 
     @Override
-    protected void correctPosition(GeyserSession session, Vector3i position, Vector3d ulp, BoundingBox blockCollision, BoundingBox playerCollision) {
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision, double ulpX, double ulpZ) {
         // Sea pickles have no collision on Bedrock but do on Java).
-        double maxY = blockCollision.getMax(Axis.Y) - position.getY();
+        double maxY = blockCollision.getMax(Axis.Y) - y;
         blockCollision.pushOutOfBoundingBox(playerCollision, Direction.UP, maxY + CollisionManager.COLLISION_TOLERANCE * 1.01F);
     }
 }

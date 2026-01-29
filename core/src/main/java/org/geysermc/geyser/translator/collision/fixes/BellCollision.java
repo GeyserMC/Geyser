@@ -51,7 +51,7 @@ public class BellCollision extends BlockCollision {
     }
 
     @Override
-    protected void correctPosition(GeyserSession session, Vector3i position, Vector3d ulp, BoundingBox blockCollision, BoundingBox playerCollision) {
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision, double ulpX, double ulpZ) {
         if (!this.standing) {
             return;
         }
