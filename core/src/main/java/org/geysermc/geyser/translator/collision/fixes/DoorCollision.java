@@ -26,8 +26,6 @@
 package org.geysermc.geyser.translator.collision.fixes;
 
 import lombok.EqualsAndHashCode;
-import org.cloudburstmc.math.vector.Vector3d;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
