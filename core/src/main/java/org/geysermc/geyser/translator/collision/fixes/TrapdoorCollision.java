@@ -43,7 +43,6 @@ public class TrapdoorCollision extends BlockCollision {
 
     public TrapdoorCollision(BlockState state, BoundingBox[] defaultBoxes) {
         super(defaultBoxes);
-
         if (state.getValue(Properties.OPEN)) {
             facing = state.getValue(Properties.HORIZONTAL_FACING);
         } else {
