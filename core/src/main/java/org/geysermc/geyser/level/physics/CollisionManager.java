@@ -135,7 +135,6 @@ public class CollisionManager {
         double playerHeight = session.getPlayerEntity().getBoundingBoxHeight();
         playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2.0) + (playerHeight / 2.0));
         playerBoundingBox.setSizeY(playerHeight);
-
         playerBoundingBox.setSizeX(session.getPlayerEntity().getBoundingBoxWidth());
         playerBoundingBox.setSizeZ(session.getPlayerEntity().getBoundingBoxWidth());
 
