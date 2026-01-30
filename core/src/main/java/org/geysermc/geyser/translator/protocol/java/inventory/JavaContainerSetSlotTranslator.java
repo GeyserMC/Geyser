@@ -199,7 +199,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                     false,
                     RecipeUnlockingRequirement.INVALID
             ));
-            craftPacket.setCleanRecipes(false);
+            session.getCraftingDataPacket().getCraftingData().addAll(craftPacket.getCraftingData());
             session.sendUpstreamPacket(craftPacket);
 
             index = 0;
@@ -272,7 +272,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 "smithing_table",
                 session.getLastRecipeNetId().incrementAndGet()
             ));
-            craftPacket.setCleanRecipes(false);
+            session.getCraftingDataPacket().getCraftingData().addAll(craftPacket.getCraftingData());
             session.sendUpstreamPacket(craftPacket);
 
             // Just set one of the slots to air, then right back to its proper item.

@@ -90,7 +90,10 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     @Override
     public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
         int netId = session.getLastRecipeNetId().get();
-        CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
+        CraftingDataPacket craftingDataPacket = session.getCraftingDataPacket();
+        craftingDataPacket.getCraftingData().removeIf(recipeData -> recipeData instanceof SmithingTransformRecipeData
+                || recipeData instanceof SmithingTrimRecipeData
+                || recipeData instanceof ShapelessRecipeData && ((ShapelessRecipeData) recipeData).getTag().equals("stonecutter"));
 
         boolean oldSmithingTable;
         int[] smithingBase = packet.getItemSets().get(SMITHING_BASE);
@@ -99,8 +102,18 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         if (smithingBase == null || smithingTemplate == null || smithingAddition == null) {
             // We're probably on a version before the smithing table got expanded functionality.
             oldSmithingTable = true;
-            addSmithingTransformRecipes(session, craftingDataPacket.getCraftingData());
-            netId = session.getLastRecipeNetId().get(); // Was updated in the above method.
+
+            ItemMapping template = session.getItemMappings().getStoredItems().upgradeTemplate();
+
+            for (String identifier : NETHERITE_UPGRADES) {
+                craftingDataPacket.getCraftingData().add(SmithingTransformRecipeData.of(identifier + "_smithing",
+                        getDescriptorFromId(session, template.getBedrockIdentifier()),
+                        getDescriptorFromId(session, identifier.replace("netherite", "diamond")),
+                        getDescriptorFromId(session, "minecraft:netherite_ingot"),
+                        ItemData.builder().definition(Objects.requireNonNull(session.getItemMappings().getDefinition(identifier))).count(1).build(),
+                        "smithing_table",
+                        netId++));
+            }
         } else {
             oldSmithingTable = false;
             // BDS sends armor trim templates and materials before the CraftingDataPacket
@@ -175,20 +188,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         session.sendUpstreamPacket(craftingDataPacket);
         session.setStonecutterRecipes(stonecutterRecipeMap);
         session.getLastRecipeNetId().set(netId);
-    }
-    
-    private void addSmithingTransformRecipes(GeyserSession session, List<RecipeData> recipes) {
-        ItemMapping template = session.getItemMappings().getStoredItems().upgradeTemplate();
-
-        for (String identifier : NETHERITE_UPGRADES) {
-            recipes.add(SmithingTransformRecipeData.of(identifier + "_smithing",
-                    getDescriptorFromId(session, template.getBedrockIdentifier()),
-                    getDescriptorFromId(session, identifier.replace("netherite", "diamond")),
-                    getDescriptorFromId(session, "minecraft:netherite_ingot"),
-                    ItemData.builder().definition(Objects.requireNonNull(session.getItemMappings().getDefinition(identifier))).count(1).build(),
-                    "smithing_table",
-                    session.getLastRecipeNetId().getAndIncrement()));
-        }
     }
 
     private ItemDescriptorWithCount getDescriptorFromId(GeyserSession session, String bedrockId) {
