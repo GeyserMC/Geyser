@@ -42,26 +42,39 @@ import java.util.concurrent.CompletableFuture;
 public interface EntityData {
 
     /**
+     * @deprecated use {@link #byGeyserId(long)}
+     */
+    @Deprecated
+    @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
+
+    /**
      * Returns a {@link GeyserEntity} to e.g. make them play an emote.
      *
      * @param javaId the Java entity ID to look up
      * @return a {@link GeyserEntity} if present in this connection's entity tracker
      */
-    @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
+    @Nullable GeyserEntity byJavaId(@NonNegative int javaId);
 
     /**
-     * Displays a player entity as emoting to this client.
-     *
-     * @param emoter the player entity emoting
-     * @param emoteId the emote ID to send to this client
+     * Returns a {@link GeyserEntity} to e.g. update entity properties.
      */
+    @Nullable GeyserEntity byUuid(@NonNull UUID javaUuid);
+
+    /**
+     * Returns a {@link GeyserEntity} based on a Geyser entity id
+     */
+    @Nullable GeyserEntity byGeyserId(@NonNegative long geyserId);
+
+    /**
+     * @deprecated use {@link GeyserConnection#showEmote(GeyserPlayerEntity, String)} instead
+     */
+    @Deprecated
     void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
 
     /**
-     * Gets the {@link GeyserPlayerEntity} of this connection.
-     *
-     * @return the {@link GeyserPlayerEntity} of this connection
+     * @deprecated use {@link GeyserConnection#playerEntity()}
      */
+    @Deprecated
     @NonNull GeyserPlayerEntity playerEntity();
 
     /**
@@ -83,8 +96,8 @@ public interface EntityData {
     boolean isMovementLocked();
 
     /**
-     * Sends a request to the Java server to switch the items in the main and offhand.
-     * There is no guarantee of the server accepting the request.
+     * @deprecated use {@link GeyserConnection#switchHands()}
      */
+    @Deprecated
     void switchHands();
 }

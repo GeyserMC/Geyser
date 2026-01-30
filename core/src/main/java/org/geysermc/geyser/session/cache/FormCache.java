@@ -31,10 +31,10 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
@@ -43,7 +43,6 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Collections;
-
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 

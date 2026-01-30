@@ -309,9 +309,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         if (sendMovement) {
             // We only need to determine onGround status this way for client predicted vehicles.
             // For other vehicle, Geyser already handle it in VehicleComponent or the Java server handle it.
-            Vector3f position = vehicle.getPosition();
+            Vector3f position = vehicle.position();
             final BoundingBox box = new BoundingBox(
-                position.down(vehicle instanceof BoatEntity ? vehicle.getDefinition().offset() : 0).up(vehicle.getBoundingBoxHeight() / 2f).toDouble(),
+                position.up(vehicle.getBoundingBoxHeight() / 2f).toDouble(),
                 vehicle.getBoundingBoxWidth(), vehicle.getBoundingBoxHeight(), vehicle.getBoundingBoxWidth()
             );
 
@@ -320,7 +320,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             Vector3d correctedMovement = session.getCollisionManager().correctMovementForCollisions(movement, box, true, false);
             vehicle.setOnGround(correctedMovement.getY() != movement.getY() && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
 
-            Vector3f vehiclePosition = packet.getPosition();
+            Vector3f vehiclePosition = packet.getPosition().down(vehicle.getOffset());
             Vector2f vehicleRotation = packet.getVehicleRotation();
             if (vehicleRotation == null) {
                 return; // If the client just got in or out of a vehicle for example.
@@ -337,11 +337,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                         vehicle.isOnGround(), true);
                 }
                 return;
-            }
-
-            if (vehicle instanceof BoatEntity) {
-                // Remove some Y position to prevents boats flying up
-                vehiclePosition = vehiclePosition.down(vehicle.getDefinition().offset());
             }
 
             vehicle.setPosition(vehiclePosition);

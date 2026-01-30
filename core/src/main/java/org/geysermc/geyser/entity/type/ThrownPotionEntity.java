@@ -31,7 +31,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -69,7 +69,7 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
                     }
                 }
 
-                boolean isLingering = definition.entityType() == EntityType.LINGERING_POTION;
+                boolean isLingering = javaTypeDefinition.type().is(BuiltinEntityType.LINGERING_POTION);
                 setFlag(EntityFlag.LINGERING, isLingering);
             }
         }

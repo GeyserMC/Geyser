@@ -30,8 +30,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.entity.type.BoatEntity;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -60,12 +59,12 @@ final class BedrockMovePlayer {
 
         // Ignore movement packets until Bedrock's position matches the teleported position
         if (session.getUnconfirmedTeleport() != null) {
-            session.confirmTeleport(packet.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0));
+            session.confirmTeleport(packet.getPosition().down(VanillaEntities.PLAYER_ENTITY_OFFSET));
             return;
         }
 
         // This is vanilla behaviour, LocalPlayer#sendPosition 1.21.8.
-        boolean actualPositionChanged = entity.getPosition().distanceSquared(packet.getPosition()) > 4e-8;
+        boolean actualPositionChanged = entity.bedrockPosition().distanceSquared(packet.getPosition()) > 4e-8;
 
         if (actualPositionChanged) {
             // Send book update before the player moves
@@ -127,7 +126,7 @@ final class BedrockMovePlayer {
         // Therefore, we're fixing this by allowing player to no clip to clip through the floor, not only this fixed the issue but
         // player y velocity should match java perfectly, much better than teleport player right down :)
         // Shouldn't mess with anything because beyond this point there is nothing to collide and not even entities since they're prob dead.
-        if (packet.getPosition().getY() - EntityDefinitions.PLAYER.offset() < session.getBedrockDimension().minY() - 5) {
+        if (packet.getPosition().getY() - VanillaEntities.PLAYER_ENTITY_OFFSET < session.getBedrockDimension().minY() - 5) {
             // Ensuring that we still can collide with collidable entity that are also in the void (eg: boat, shulker)
             boolean possibleOnGround = false;
 
@@ -148,7 +147,7 @@ final class BedrockMovePlayer {
                 final BoundingBox entityBoundingBox = new BoundingBox(0, 0, 0, other.getBoundingBoxWidth(), other.getBoundingBoxHeight(), other.getBoundingBoxWidth());
 
                 // Also offset the position down for boat as their position is offset.
-                entityBoundingBox.translate(other.getPosition().down(other instanceof BoatEntity ? other.getDefinition().offset() : 0).toDouble());
+                entityBoundingBox.translate(other.position().toDouble());
 
                 if (entityBoundingBox.checkIntersection(boundingBox)) {
                     possibleOnGround = true;
@@ -179,11 +178,11 @@ final class BedrockMovePlayer {
 
             // Player position MUST be updated on our end, otherwise e.g. chunk loading breaks
             if (hasVehicle) {
-                entity.setPositionManual(packet.getPosition());
+                entity.setPositionFromBedrock(packet.getPosition());
                 session.getSkullCache().updateVisibleSkulls();
             }
         } else if (positionChangedAndShouldUpdate) {
-            if (isValidMove(session, entity.getPosition(), packet.getPosition())) {
+            if (isValidMove(session, entity.bedrockPosition(), packet.getPosition())) {
                 CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), isOnGround, packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
                 if (result != null) { // A null return value cancels the packet
                     Vector3d position = result.correctedMovement();
@@ -207,7 +206,7 @@ final class BedrockMovePlayer {
                             movePacket = new ServerboundMovePlayerPosPacket(isOnGround, horizontalCollision, position.getX(), position.getY(), position.getZ());
                         }
 
-                        entity.setPositionManual(packet.getPosition());
+                        entity.setPositionFromBedrock(packet.getPosition());
 
                         // Send final movement changes
                         session.sendDownstreamGamePacket(movePacket);
@@ -235,10 +234,10 @@ final class BedrockMovePlayer {
 
         // Move parrots to match if applicable
         if (entity.getLeftParrot() != null) {
-            entity.getLeftParrot().moveAbsoluteRaw(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
+            entity.getLeftParrot().moveAbsoluteRaw(entity.position(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
         }
         if (entity.getRightParrot() != null) {
-            entity.getRightParrot().moveAbsoluteRaw(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
+            entity.getRightParrot().moveAbsoluteRaw(entity.position(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
         }
     }
 
