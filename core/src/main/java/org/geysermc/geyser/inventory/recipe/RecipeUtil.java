@@ -28,6 +28,7 @@ package org.geysermc.geyser.inventory.recipe;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.IntComparators;
+import it.unimi.dsi.fastutil.ints.IntObjectMutablePair;
 import it.unimi.dsi.fastutil.ints.IntObjectPair;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
@@ -83,7 +84,7 @@ public class RecipeUtil {
     );
 
     // Arrays are usually an issue in maps, but because it's referencing the tag array that is unchanged, it actually works out for us.
-    private static final ThreadLocal<IntObjectPair<Map<int[], List<ItemDescriptorWithCount>>>> TAG_TO_ITEM_DESCRIPTOR_CACHE = ThreadLocal.withInitial(() -> IntObjectPair.of(0, new Object2ObjectOpenHashMap<>()));
+    private static final ThreadLocal<IntObjectPair<Map<int[], List<ItemDescriptorWithCount>>>> TAG_TO_ITEM_DESCRIPTOR_CACHE = ThreadLocal.withInitial(() -> IntObjectMutablePair.of(0, new Object2ObjectOpenHashMap<>()));
 
     public static List<ItemDescriptorWithCount> translateToInput(GeyserSession session, SlotDisplay slotDisplay) {
         if (slotDisplay instanceof EmptySlotDisplay) {

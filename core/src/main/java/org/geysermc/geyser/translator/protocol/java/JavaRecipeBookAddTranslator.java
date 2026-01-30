@@ -29,12 +29,11 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
-import org.geysermc.geyser.inventory.recipe.RecipeUtil;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -111,6 +110,8 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             session.sendUpstreamPacket(craftingDataPacket);
             session.sendUpstreamPacket(recipesPacket);
         }
-        session.getLastRecipeNetId().set(netId);
+        if (session.getLastRecipeNetId().get() != netId) {
+            GeyserImpl.getInstance().getLogger().debug("Recipe net IDs out of sync! Expected " + session.getLastRecipeNetId().get() + " but got " + netId);
+        }
     }
 }

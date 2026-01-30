@@ -178,7 +178,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             session.getCraftingRecipes().put(session.getLastRecipeNetId().get(), geyserRecipe);
 
             CraftingDataPacket craftPacket = new CraftingDataPacket();
-            craftPacket.getCraftingData().add(geyserRecipe.asRecipeData(session).getFirst());
+            craftPacket.getCraftingData().add(geyserRecipe.asRecipeData(session).get(0));
             session.sendUpstreamPacket(craftPacket);
 
             index = 0;
@@ -242,7 +242,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             session.getSmithingRecipes().add(geyserRecipe);
 
             CraftingDataPacket craftPacket = new CraftingDataPacket();
-            craftPacket.getCraftingData().add(geyserRecipe.asRecipeData(session).getFirst());
+            craftPacket.getCraftingData().add(geyserRecipe.asRecipeData(session).get(0));
             session.sendUpstreamPacket(craftPacket);
 
             // Just set one of the slots to air, then right back to its proper item.
