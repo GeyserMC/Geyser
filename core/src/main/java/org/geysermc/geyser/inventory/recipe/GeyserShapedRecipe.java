@@ -39,10 +39,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-public record GeyserShapedRecipe(int id, int width, int height, List<SlotDisplay> ingredients, SlotDisplay result) implements GeyserRecipe {
+public record GeyserShapedRecipe(int id,
+                                 int netId,
+                                 int width,
+                                 int height,
+                                 List<SlotDisplay> ingredients,
+                                 SlotDisplay result) implements GeyserRecipe {
 
-    public GeyserShapedRecipe(int id, ShapedCraftingRecipeDisplay data) {
-        this(id, data.width(), data.height(), data.ingredients(), data.result());
+    public GeyserShapedRecipe(int id, int netId, ShapedCraftingRecipeDisplay data) {
+        this(id, netId, data.width(), data.height(), data.ingredients(), data.result());
     }
 
     @Override
@@ -64,8 +69,8 @@ public record GeyserShapedRecipe(int id, int width, int height, List<SlotDisplay
         for (List<ItemDescriptorWithCount> inputs : left) {
             recipeData.add(ShapedRecipeData.shaped(id + "_" + i, width, height, inputs,
                     Collections.singletonList(output), UUID.randomUUID(), "crafting_table", 0,
-                    session.getLastRecipeNetId().getAndIncrement(), false, RecipeUnlockingRequirement.INVALID));
-
+                    netId + i, false, RecipeUnlockingRequirement.INVALID));
+            i++;
         }
         return recipeData;
     }

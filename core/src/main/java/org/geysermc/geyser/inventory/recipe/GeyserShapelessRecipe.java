@@ -39,10 +39,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-public record GeyserShapelessRecipe(int id, List<SlotDisplay> ingredients, SlotDisplay result) implements GeyserRecipe {
+public record GeyserShapelessRecipe(int id,
+                                    int netId,
+                                    List<SlotDisplay> ingredients,
+                                    SlotDisplay result) implements GeyserRecipe {
 
-    public GeyserShapelessRecipe(int id, ShapelessCraftingRecipeDisplay data) {
-        this(id, data.ingredients(), data.result());
+    public GeyserShapelessRecipe(int id, int netId, ShapelessCraftingRecipeDisplay data) {
+        this(id, netId, data.ingredients(), data.result());
     }
 
     @Override
@@ -64,7 +67,8 @@ public record GeyserShapelessRecipe(int id, List<SlotDisplay> ingredients, SlotD
         for (List<ItemDescriptorWithCount> inputs : left) {
             recipeData.add(ShapelessRecipeData.shapeless(id + "_" + i, inputs,
                     Collections.singletonList(output), UUID.randomUUID(), "crafting_table", 0,
-                    session.getLastRecipeNetId().getAndIncrement(), RecipeUnlockingRequirement.INVALID));
+                    netId + i, RecipeUnlockingRequirement.INVALID));
+            i++;
         }
         return recipeData;
     }

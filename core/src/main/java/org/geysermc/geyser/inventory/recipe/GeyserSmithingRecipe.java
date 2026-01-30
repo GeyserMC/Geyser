@@ -39,12 +39,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public record GeyserSmithingRecipe(int id,
+                                   int netId,
                                    SlotDisplay template,
                                    SlotDisplay base,
                                    SlotDisplay addition,
                                    SlotDisplay result) implements GeyserRecipe {
-    public GeyserSmithingRecipe(int id, SmithingRecipeDisplay display) {
-        this(id, display.template(), display.base(), display.addition(), display.result());
+    public GeyserSmithingRecipe(int id, int netId, SmithingRecipeDisplay display) {
+        this(id, netId, display.template(), display.base(), display.addition(), display.result());
     }
 
     @Override
@@ -72,8 +73,9 @@ public record GeyserSmithingRecipe(int id,
             for (ItemDescriptorWithCount base : bases) {
                 for (ItemDescriptorWithCount addition : additions) {
                     // Note: vanilla inputs use aux value of Short.MAX_VALUE
-                    recipeData.add(SmithingTransformRecipeData.of(id + "_" + i++, template, base, addition,
-                            output.right(), "smithing_table", session.getLastRecipeNetId().getAndIncrement()));
+                    recipeData.add(SmithingTransformRecipeData.of(id + "_" + i, template, base, addition,
+                            output.right(), "smithing_table", netId + i));
+                    i++;
                 }
             }
         }

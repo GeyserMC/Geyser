@@ -154,6 +154,8 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 return;
             }
 
+            int newRecipeId = session.getLastRecipeNetId().incrementAndGet();
+
             ItemData[] ingredients = new ItemData[height * width];
             //construct ingredient list and clear slots on client
             List<SlotDisplay> javaIngredients = new ArrayList<>(height * width);
@@ -173,8 +175,8 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 }
             }
 
-            GeyserRecipe geyserRecipe = new GeyserShapedRecipe(ThreadLocalRandom.current().nextInt(), width, height,
-                javaIngredients, new ItemStackSlotDisplay(item));
+            GeyserRecipe geyserRecipe = new GeyserShapedRecipe(ThreadLocalRandom.current().nextInt(), newRecipeId,
+                    width, height, javaIngredients, new ItemStackSlotDisplay(item));
             session.getCraftingRecipes().put(session.getLastRecipeNetId().get(), geyserRecipe);
 
             CraftingDataPacket craftPacket = new CraftingDataPacket();
@@ -234,6 +236,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
             GeyserSmithingRecipe geyserRecipe = new GeyserSmithingRecipe(
                 ThreadLocalRandom.current().nextInt(),
+                session.getLastRecipeNetId().incrementAndGet(),
                 template.asSlotDisplay(),
                 input.asSlotDisplay(),
                 material.asSlotDisplay(),

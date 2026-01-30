@@ -29,7 +29,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
@@ -62,10 +61,13 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
 
         for (ClientboundRecipeBookAddPacket.Entry entry : packet.getEntries()) {
             RecipeDisplayEntry contents = entry.contents();
-            RecipeDisplay display = contents.display();
+            if (javaToBedrockRecipeIds.containsKey(contents.id())) {
+                continue;
+            }
 
+            RecipeDisplay display = contents.display();
             if (display instanceof ShapedCraftingRecipeDisplay shapedRecipe) {
-                GeyserRecipe geyserRecipe = new GeyserShapedRecipe(contents.id(), shapedRecipe);
+                GeyserRecipe geyserRecipe = new GeyserShapedRecipe(contents.id(), netId, shapedRecipe);
 
                 List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
                 craftingDataPacket.getCraftingData().addAll(recipeData);
@@ -79,7 +81,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 }
                 javaToBedrockRecipeIds.put(contents.id(), List.copyOf(bedrockRecipeIds));
             } else if (display instanceof ShapelessCraftingRecipeDisplay shapelessRecipe) {
-                GeyserRecipe geyserRecipe = new GeyserShapelessRecipe(contents.id(), shapelessRecipe);
+                GeyserRecipe geyserRecipe = new GeyserShapelessRecipe(contents.id(), netId, shapelessRecipe);
 
                 List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
                 craftingDataPacket.getCraftingData().addAll(recipeData);
@@ -93,7 +95,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 }
                 javaToBedrockRecipeIds.put(contents.id(), List.copyOf(bedrockRecipeIds));
             } else if (display instanceof SmithingRecipeDisplay smithingRecipe) {
-                GeyserSmithingRecipe geyserRecipe = new GeyserSmithingRecipe(contents.id(), smithingRecipe);
+                GeyserSmithingRecipe geyserRecipe = new GeyserSmithingRecipe(contents.id(), netId, smithingRecipe);
                 session.getSmithingRecipes().add(geyserRecipe);
 
                 List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
@@ -110,8 +112,6 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             session.sendUpstreamPacket(craftingDataPacket);
             session.sendUpstreamPacket(recipesPacket);
         }
-        if (session.getLastRecipeNetId().get() != netId) {
-            GeyserImpl.getInstance().getLogger().debug("Recipe net IDs out of sync! Expected " + session.getLastRecipeNetId().get() + " but got " + netId);
-        }
+        session.getLastRecipeNetId().set(netId);
     }
 }
