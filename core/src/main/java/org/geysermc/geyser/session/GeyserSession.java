@@ -84,7 +84,6 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
-import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
@@ -523,9 +522,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes;
     private final List<GeyserSmithingRecipe> smithingRecipes = new ArrayList<>();
-
-    @Setter
-    private CraftingDataPacket craftingDataPacket;
 
     /**
      * Whether to work around 1.13's different behavior in villager trading menus.

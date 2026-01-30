@@ -25,19 +25,48 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.ShapedCraftingRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
-public record GeyserShapedRecipe(int width, int height, List<SlotDisplay> ingredients, SlotDisplay result) implements GeyserRecipe {
+public record GeyserShapedRecipe(int id, int width, int height, List<SlotDisplay> ingredients, SlotDisplay result) implements GeyserRecipe {
 
-    public GeyserShapedRecipe(ShapedCraftingRecipeDisplay data) {
-        this(data.width(), data.height(), data.ingredients(), data.result());
+    public GeyserShapedRecipe(int id, ShapedCraftingRecipeDisplay data) {
+        this(id, data.width(), data.height(), data.ingredients(), data.result());
     }
 
     @Override
     public boolean isShaped() {
         return true;
+    }
+
+    @Override
+    public List<RecipeData> asRecipeData(GeyserSession session) {
+        var bedrockRecipes = RecipeUtil.combinations(session, result, ingredients);
+        if (bedrockRecipes == null) {
+            return List.of();
+        }
+
+        List<RecipeData> recipeData = new ArrayList<>();
+        ItemData output = bedrockRecipes.right();
+        List<List<ItemDescriptorWithCount>> left = bedrockRecipes.left();
+        int i = 0;
+        for (List<ItemDescriptorWithCount> inputs : left) {
+            recipeData.add(ShapedRecipeData.shaped(id + "_" + i, width, height, inputs,
+                    Collections.singletonList(output), UUID.randomUUID(), "crafting_table", 0,
+                    session.getLastRecipeNetId().getAndIncrement(), false, RecipeUnlockingRequirement.INVALID));
+
+        }
+        return recipeData;
     }
 }
