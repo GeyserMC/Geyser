@@ -112,8 +112,5 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             session.sendUpstreamPacket(recipesPacket);
         }
         session.getLastRecipeNetId().set(netId);
-
-        // Multi-version can mean different Bedrock item IDs
-        RecipeUtil.clearCache();
     }
 }
