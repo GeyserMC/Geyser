@@ -130,8 +130,8 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
-    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        super.setDisplayName(entityMetadata);
+    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        super.setCustomName(entityMetadata);
         updateSecondEntityStatus(false);
     }
 
@@ -300,8 +300,8 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
-    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
-        super.setDisplayNameVisible(entityMetadata);
+    public void setCustomNameVisible(BooleanEntityMetadata entityMetadata) {
+        super.setCustomNameVisible(entityMetadata);
         isNameTagVisible = entityMetadata.getPrimitiveValue();
         updateSecondEntityStatus(false);
     }
