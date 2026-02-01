@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.session.cache;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2d;
@@ -32,16 +34,11 @@ import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import lombok.Getter;
-import lombok.Setter;
-import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
-
-import java.util.Optional;
 
 import static org.geysermc.geyser.level.physics.CollisionManager.COLLISION_TOLERANCE;
 
@@ -160,7 +157,7 @@ public class WorldBorder {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Move the player back, but allow gravity to take place
             // Teleported = true makes going back better, but disconnects the player from their mounted entity
-            playerEntity.moveAbsolute(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.offset()), playerEntity.getPosition().getZ()),
+            playerEntity.moveAbsolute(Vector3f.from(playerEntity.getPosition().getX(), newPosition.getY(), playerEntity.getPosition().getZ()),
                 playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
         }
         return isInWorldBorder;
