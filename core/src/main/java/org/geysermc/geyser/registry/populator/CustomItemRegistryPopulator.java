@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinitionRegisterException;
@@ -56,6 +57,7 @@ import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.impl.HoldersImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.NonVanillaItem;
@@ -272,7 +274,8 @@ public class CustomItemRegistryPopulator {
 
         Equippable equippable = context.components().get(DataComponentTypes.EQUIPPABLE);
         if (equippable != null) {
-            computeArmorProperties(equippable, context.definition().bedrockOptions().protectionValue(), componentBuilder);
+            boolean renderOffsets = context.definition() instanceof GeyserCustomItemDefinition definition && definition.isOldConvertedItem();
+            computeArmorProperties(equippable, context.definition().bedrockOptions().protectionValue(), componentBuilder, renderOffsets);
         }
 
         Integer enchantmentValue = context.components().get(DataComponentTypes.ENCHANTABLE);
@@ -383,6 +386,27 @@ public class CustomItemRegistryPopulator {
 
         if (entityPlacer != null) {
             computeEntityPlacerProperties(componentBuilder);
+        }
+
+        // this is not ideal, remove once v1 is removed!
+        if (context.definition() instanceof GeyserCustomItemDefinition definition && definition.isOldConvertedItem()) {
+            CustomRenderOffsets renderOffsets = definition.getRenderOffsets();
+            if (renderOffsets != null) {
+                componentBuilder.remove("minecraft:render_offsets");
+                componentBuilder.putCompound("minecraft:render_offsets", toNbtMap(renderOffsets));
+            } else if (definition.getTextureSize() != 16 && !componentBuilder.containsKey("minecraft:render_offsets")) {
+                float scale1 = (float) (0.075 / (definition.getTextureSize() / 16f));
+                float scale2 = (float) (0.125 / (definition.getTextureSize() / 16f));
+                float scale3 = (float) (0.075 / (definition.getTextureSize() / 16f * 2.4f));
+
+                componentBuilder.putCompound("minecraft:render_offsets",
+                    NbtMap.builder().putCompound("main_hand", NbtMap.builder()
+                            .putCompound("first_person", xyzToScaleList(scale3, scale3, scale3))
+                            .putCompound("third_person", xyzToScaleList(scale1, scale2, scale1)).build())
+                        .putCompound("off_hand", NbtMap.builder()
+                            .putCompound("first_person", xyzToScaleList(scale1, scale2, scale1))
+                            .putCompound("third_person", xyzToScaleList(scale1, scale2, scale1)).build()).build());
+            }
         }
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
@@ -501,7 +525,7 @@ public class CustomItemRegistryPopulator {
             .build());
     }
 
-    private static void computeArmorProperties(Equippable equippable, int protectionValue, NbtMapBuilder componentBuilder) {
+    private static void computeArmorProperties(Equippable equippable, int protectionValue, NbtMapBuilder componentBuilder, boolean includeRenderOffsets) {
         String slotName = switch (equippable.slot()) {
             case BOOTS -> "armor.feet";
             case LEGGINGS -> "armor.legs";
@@ -513,6 +537,20 @@ public class CustomItemRegistryPopulator {
         };
         if (slotName.isEmpty()) {
             return;
+        }
+
+        if (includeRenderOffsets) {
+            String renderOffsetType = switch (equippable.slot()) {
+                case BOOTS -> "boots";
+                case LEGGINGS -> "leggings";
+                case CHESTPLATE -> "chestplates";
+                case HELMET -> "helmets";
+                default -> null;
+            };
+
+            if (renderOffsetType != null) {
+                componentBuilder.putString("render_offsets", renderOffsetType);
+            }
         }
 
         componentBuilder.putCompound("minecraft:wearable", NbtMap.builder()
@@ -707,5 +745,80 @@ public class CustomItemRegistryPopulator {
                 builder.putList("item_tags", NbtType.STRING, tagList);
             }
         }
+    }
+
+    private static NbtMap toNbtMap(CustomRenderOffsets renderOffsets) {
+        NbtMapBuilder builder = NbtMap.builder();
+
+        CustomRenderOffsets.Hand mainHand = renderOffsets.mainHand();
+        if (mainHand != null) {
+            NbtMap nbt = toNbtMap(mainHand);
+            if (nbt != null) {
+                builder.putCompound("main_hand", nbt);
+            }
+        }
+        CustomRenderOffsets.Hand offhand = renderOffsets.offhand();
+        if (offhand != null) {
+            NbtMap nbt = toNbtMap(offhand);
+            if (nbt != null) {
+                builder.putCompound("off_hand", nbt);
+            }
+        }
+
+        return builder.build();
+    }
+
+    private static @Nullable NbtMap toNbtMap(CustomRenderOffsets.Hand hand) {
+        NbtMap firstPerson = toNbtMap(hand.firstPerson());
+        NbtMap thirdPerson = toNbtMap(hand.thirdPerson());
+
+        if (firstPerson == null && thirdPerson == null) {
+            return null;
+        }
+
+        NbtMapBuilder builder = NbtMap.builder();
+        if (firstPerson != null) {
+            builder.putCompound("first_person", firstPerson);
+        }
+        if (thirdPerson != null) {
+            builder.putCompound("third_person", thirdPerson);
+        }
+
+        return builder.build();
+    }
+
+    private static @Nullable NbtMap toNbtMap(CustomRenderOffsets.@Nullable Offset offset) {
+        if (offset == null) {
+            return null;
+        }
+
+        CustomRenderOffsets.OffsetXYZ position = offset.position();
+        CustomRenderOffsets.OffsetXYZ rotation = offset.rotation();
+        CustomRenderOffsets.OffsetXYZ scale = offset.scale();
+
+        if (position == null && rotation == null && scale == null) {
+            return null;
+        }
+
+        NbtMapBuilder builder = NbtMap.builder();
+        if (position != null) {
+            builder.putList("position", NbtType.FLOAT, toList(position));
+        }
+        if (rotation != null) {
+            builder.putList("rotation", NbtType.FLOAT, toList(rotation));
+        }
+        if (scale != null) {
+            builder.putList("scale", NbtType.FLOAT, toList(scale));
+        }
+
+        return builder.build();
+    }
+
+    private static List<Float> toList(CustomRenderOffsets.OffsetXYZ xyz) {
+        return List.of(xyz.x(), xyz.y(), xyz.z());
+    }
+
+    private static NbtMap xyzToScaleList(float x, float y, float z) {
+        return NbtMap.builder().putList("scale", NbtType.FLOAT, List.of(x, y, z)).build();
     }
 }

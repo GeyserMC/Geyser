@@ -28,8 +28,10 @@ package org.geysermc.geyser.item.custom;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
@@ -60,6 +62,12 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
     private final @NonNull CustomItemBedrockOptions bedrockOptions;
     private final @NonNull ItemDataComponentMap components;
     private final @NonNull List<Identifier> removedComponents;
+    @Getter
+    private final CustomRenderOffsets renderOffsets;
+    @Getter
+    private final boolean isOldConvertedItem;
+    @Getter
+    private final int textureSize;
 
     public GeyserCustomItemDefinition(Builder builder) {
         this.bedrockIdentifier = builder.bedrockIdentifier;
@@ -75,6 +83,9 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         this.bedrockOptions = builder.bedrockOptions;
         this.components = new ComponentMapItem(builder.components);
         this.removedComponents = builder.removedComponents;
+        this.renderOffsets = builder.renderOffsets;
+        this.textureSize = builder.textureSize;
+        this.isOldConvertedItem = builder.isOldConvertedItem;
     }
 
     @Override
@@ -139,6 +150,9 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
         private int priority = 0;
         private CustomItemBedrockOptions bedrockOptions = CustomItemBedrockOptions.builder().build();
         private PredicateStrategy predicateStrategy = PredicateStrategy.AND;
+        private CustomRenderOffsets renderOffsets;
+        private boolean isOldConvertedItem = false;
+        private int textureSize = 16;
 
         public Builder(@NonNull Identifier bedrockIdentifier, @NonNull Identifier model) {
             Objects.requireNonNull(bedrockIdentifier, "bedrockIdentifier cannot be null");
@@ -214,6 +228,18 @@ public class GeyserCustomItemDefinition implements CustomItemDefinition {
             }
             removedComponents.add(component);
             return this;
+        }
+
+        public void renderOffsets(CustomRenderOffsets offsets) {
+            this.renderOffsets = offsets;
+        }
+
+        public void isOldConvertedItem() {
+            this.isOldConvertedItem = true;
+        }
+
+        public void textureSize(int textureSize) {
+            this.textureSize = textureSize;
         }
 
         @Override
