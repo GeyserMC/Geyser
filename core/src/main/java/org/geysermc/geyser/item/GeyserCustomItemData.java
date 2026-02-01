@@ -159,7 +159,7 @@ public class GeyserCustomItemData implements CustomItemData {
             definition.predicate(ItemRangeDispatchPredicate.legacyCustomModelData(options.customModelData().getAsInt()));
         }
         if (options.damagePredicate().isPresent()) {
-            definition.predicate(ItemRangeDispatchPredicate.damage(options.damagePredicate().getAsInt()));
+            definition.predicate(ItemRangeDispatchPredicate.normalisedDamage(options.damagePredicate().getAsInt()));
         }
         if (options.unbreakable() != TriState.NOT_SET) {
             if (options.unbreakable() == TriState.TRUE) {
