@@ -35,8 +35,8 @@ import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
 public enum ItemRangeDispatchProperty implements PredicateReader<ItemPredicateContext> {
     BUNDLE_FULLNESS(ItemRangeDispatchPredicate::bundleFullness),
-    DAMAGE(ItemRangeDispatchPredicate::damage, ItemRangeDispatchPredicate::normalisedDamage),
-    COUNT(ItemRangeDispatchPredicate::count, ItemRangeDispatchPredicate::normalisedCount),
+    DAMAGE(ItemRangeDispatchPredicate::damage, ItemRangeDispatchPredicate::normalizedDamage),
+    COUNT(ItemRangeDispatchPredicate::count, ItemRangeDispatchPredicate::normalizedCount),
     CUSTOM_MODEL_DATA((element, context) -> {
         int index = MappingsUtil.readOrDefault(element, "index", NodeReader.NON_NEGATIVE_INT, 0, context);
         return ItemRangeDispatchPredicate.customModelData(index, (float) readThreshold(element, context));
@@ -52,10 +52,10 @@ public enum ItemRangeDispatchProperty implements PredicateReader<ItemPredicateCo
         this((element, context) -> creator.create((int) readThreshold(element, context)));
     }
 
-    ItemRangeDispatchProperty(PredicateCreator<ItemPredicateContext, Integer> creator, PredicateCreator<ItemPredicateContext, Double> normalised) {
+    ItemRangeDispatchProperty(PredicateCreator<ItemPredicateContext, Integer> creator, PredicateCreator<ItemPredicateContext, Double> normalized) {
         this((element, context) -> {
             double threshold = readThreshold(element, context);
-            return normalised(element, context) ? normalised.create(threshold) : creator.create((int) threshold);
+            return normalized(element, context) ? normalized.create(threshold) : creator.create((int) threshold);
         });
     }
 
@@ -67,7 +67,7 @@ public enum ItemRangeDispatchProperty implements PredicateReader<ItemPredicateCo
         return threshold / scale;
     }
 
-    private static boolean normalised(JsonElement element, String... context) throws InvalidCustomMappingsFileException {
+    private static boolean normalized(JsonElement element, String... context) throws InvalidCustomMappingsFileException {
         return MappingsUtil.readOrDefault(element, "normalize", NodeReader.BOOLEAN, false, context);
     }
 

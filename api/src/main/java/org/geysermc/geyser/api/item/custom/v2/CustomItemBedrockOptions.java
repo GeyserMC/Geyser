@@ -67,8 +67,8 @@ public interface CustomItemBedrockOptions {
     boolean displayHandheld();
 
     /**
-     * Since Bedrock doesn't properly support setting item armour values over attributes, this value
-     * determines how many armour points should be shown when this item is worn. This is purely visual.
+     * Since Bedrock doesn't properly support setting item armor values over attributes, this value
+     * determines how many armor points should be shown when this item is worn. This is purely visual.
      *
      * <p>Only has an effect when the item is equippable, and defaults to 0.</p>
      *

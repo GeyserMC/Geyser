@@ -35,8 +35,8 @@ import org.jetbrains.annotations.ApiStatus;
 import java.util.function.Predicate;
 
 /**
- * Geyser data components are data components used for non-vanilla items only. Like vanilla data components, they indicate behaviour of custom items, and like vanilla data components, it is expected
- * that this behaviour is also present server-side and on Java clients.
+ * Geyser data components are data components used for non-vanilla items only. Like vanilla data components, they indicate behavior of custom items, and like vanilla data components, it is expected
+ * that this behavior is also present server-side and on Java clients.
  *
  * <p>Most components in this class will likely be deprecated in the future as Mojang introduces Java counterparts.</p>
  *

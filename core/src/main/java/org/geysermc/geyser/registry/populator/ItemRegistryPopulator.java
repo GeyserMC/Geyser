@@ -29,7 +29,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.common.collect.SortedSetMultimap;
-import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -820,7 +819,7 @@ public class ItemRegistryPopulator {
      * bedrock identifier is equal.</p>
      *
      * <p>Please note! The range dispatch predicate sorting only works when two definitions both only have one range dispatch predicate, both of which have the same properties
-     * (property, index, normalised, negated). If there's a more complicated setup with e.g. multiple range dispatch predicates, priority values should be used to ensure
+     * (property, index, normalized, negated). If there's a more complicated setup with e.g. multiple range dispatch predicates, priority values should be used to ensure
      * proper sorting.</p>
      */
     private static class CustomItemDefinitionComparator implements Comparator<GeyserCustomMappingData> {
@@ -862,7 +861,7 @@ public class ItemRegistryPopulator {
                         .filter(otherPredicate ->
                             otherPredicate.rangeProperty() == rangeDispatch.rangeProperty()
                             && otherPredicate.index() == rangeDispatch.index()
-                            && otherPredicate.normalised() == rangeDispatch.normalised()
+                            && otherPredicate.normalized() == rangeDispatch.normalized()
                             && otherPredicate.negated() == rangeDispatch.negated())
                         .findFirst();
 

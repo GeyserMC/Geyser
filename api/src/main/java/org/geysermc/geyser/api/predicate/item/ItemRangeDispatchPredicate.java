@@ -66,13 +66,13 @@ public interface ItemRangeDispatchPredicate {
     }
 
     /**
-     * Creates a predicate checking the item's damage value, normalised ({@code damage / max_damage}). Always returns false is {@code max_damage} is 0.
+     * Creates a predicate checking the item's damage value, normalized ({@code damage / max_damage}). Always returns false is {@code max_damage} is 0.
      *
      * @see ItemPredicateContext#damage()
      * @see ItemPredicateContext#maxDamage()
      * @since 2.9.3
      */
-    static MinecraftPredicate<ItemPredicateContext> normalisedDamage(double threshold) {
+    static MinecraftPredicate<ItemPredicateContext> normalizedDamage(double threshold) {
         return GeyserApi.api().provider(RangeDispatchPredicate.class, RangeDispatchPredicate.Property.DAMAGE, threshold, true);
     }
 
@@ -87,13 +87,13 @@ public interface ItemRangeDispatchPredicate {
     }
 
     /**
-     * Creates a predicate checking the item's stack count, normalised ({@code count / max_stack_size}).
+     * Creates a predicate checking the item's stack count, normalized ({@code count / max_stack_size}).
      *
      * @see ItemPredicateContext#count()
      * @see ItemPredicateContext#maxStackSize()
      * @since 2.9.3
      */
-    static MinecraftPredicate<ItemPredicateContext> normalisedCount(double threshold) {
+    static MinecraftPredicate<ItemPredicateContext> normalizedCount(double threshold) {
         return GeyserApi.api().provider(RangeDispatchPredicate.class, RangeDispatchPredicate.Property.COUNT, threshold, true);
     }
 

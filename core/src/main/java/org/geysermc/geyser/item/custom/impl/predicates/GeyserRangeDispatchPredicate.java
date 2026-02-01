@@ -36,7 +36,7 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public record GeyserRangeDispatchPredicate(@NonNull GeyserRangeDispatchProperty rangeProperty, double threshold, @NonNegative int index, boolean normalised, boolean negated) implements RangeDispatchPredicate, GeyserCoreProvided {
+public record GeyserRangeDispatchPredicate(@NonNull GeyserRangeDispatchProperty rangeProperty, double threshold, @NonNegative int index, boolean normalized, boolean negated) implements RangeDispatchPredicate, GeyserCoreProvided {
 
     @Override
     public @NonNull Property property() {
@@ -51,8 +51,8 @@ public record GeyserRangeDispatchPredicate(@NonNull GeyserRangeDispatchProperty 
         }
     }
 
-    public GeyserRangeDispatchPredicate(GeyserRangeDispatchProperty property, double threshold, boolean normalised) {
-        this(property, threshold, 0, normalised, false);
+    public GeyserRangeDispatchPredicate(GeyserRangeDispatchProperty property, double threshold, boolean normalized) {
+        this(property, threshold, 0, normalized, false);
     }
 
     public GeyserRangeDispatchPredicate(GeyserRangeDispatchProperty property, double threshold, int index) {
@@ -66,7 +66,7 @@ public record GeyserRangeDispatchPredicate(@NonNull GeyserRangeDispatchProperty 
     @Override
     public boolean test(ItemPredicateContext context) {
         Number value = rangeProperty.getter.apply(context, this);
-        if (normalised) {
+        if (normalized) {
             if (value == null || rangeProperty.maxGetter == null) {
                 return false;
             }
@@ -82,7 +82,7 @@ public record GeyserRangeDispatchPredicate(@NonNull GeyserRangeDispatchProperty 
 
     @Override
     public @NonNull MinecraftPredicate<ItemPredicateContext> negate() {
-        return new GeyserRangeDispatchPredicate(rangeProperty, threshold, index, normalised, !negated);
+        return new GeyserRangeDispatchPredicate(rangeProperty, threshold, index, normalized, !negated);
     }
 
     public enum GeyserRangeDispatchProperty {

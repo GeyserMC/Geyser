@@ -66,13 +66,13 @@ public interface RangeDispatchPredicate extends MinecraftPredicate<ItemPredicate
 
     /**
      * Some predicates, such as {@link Property#DAMAGE} and {@link Property#COUNT},
-     * can be normalised against their maximum properties. If the property is
+     * can be normalized against their maximum properties. If the property is
      * not one of the two listed, this will always return false.
      *
-     * @return whether this predicate is normalised
+     * @return whether this predicate is normalized
      * @since 2.9.3
      */
-    boolean normalised();
+    boolean normalized();
 
     /**
      * @return whether this predicate is negated

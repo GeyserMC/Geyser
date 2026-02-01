@@ -49,7 +49,7 @@ public enum CreativeCategory {
     }
 
     /**
-     * Gets the bedrock name (used in behaviour packs) of the category.
+     * Gets the bedrock name (used in behavior packs) of the category.
      * 
      * @return the name of the category
      */

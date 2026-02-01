@@ -36,7 +36,7 @@ import org.jetbrains.annotations.ApiStatus;
 import java.util.function.Predicate;
 
 /**
- * Data components are used to indicate item behaviour.
+ * Data components are used to indicate item behavior.
  * It is expected that any components set on a {@link CustomItemDefinition} are always present on the item server-side.
  *
  * @see JavaItemDataComponents

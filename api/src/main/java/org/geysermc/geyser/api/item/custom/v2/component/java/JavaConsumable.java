@@ -79,9 +79,9 @@ public interface JavaConsumable {
     }
 
     /**
-     * Not all animations work perfectly on bedrock. Bedrock behaviour is noted per animation. The {@code toot_horn} animation does not exist on bedrock, and is therefore not listed here.
+     * Not all animations work perfectly on bedrock. Bedrock behavior is noted per animation. The {@code toot_horn} animation does not exist on bedrock, and is therefore not listed here.
      *
-     * <p>Bedrock behaviour is accurate as of version 1.21.94.</p>
+     * <p>Bedrock behavior is accurate as of version 1.21.94.</p>
      * @since 2.9.3
      */
     enum Animation {
