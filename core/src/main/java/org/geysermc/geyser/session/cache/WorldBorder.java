@@ -31,15 +31,17 @@ import org.cloudburstmc.math.vector.Vector2d;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import lombok.Getter;
 import lombok.Setter;
+import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
+
+import java.util.Optional;
 
 import static org.geysermc.geyser.level.physics.CollisionManager.COLLISION_TOLERANCE;
 
@@ -48,42 +50,49 @@ public class WorldBorder {
 
     @Setter
     private @NonNull Vector2d center = Vector2d.ZERO;
+
     /**
-     * The diameter in blocks of the world border before it got changed or similar to newDiameter if not changed.
+     * Progress through the current movement
      */
-    @Setter
-    private double oldDiameter = DEFAULT_WORLD_BORDER_SIZE;
+    private long lerpProgress;
+
+    /**
+     * The duration of the current movement
+     */
+    private long lerpDuration;
+
     /**
      * The diameter in blocks of the new world border.
      */
     @Setter
-    private double newDiameter = DEFAULT_WORLD_BORDER_SIZE;
+    private double size = DEFAULT_WORLD_BORDER_SIZE;
     /**
-     * The speed to apply an expansion/shrinking of the world border.
-     * When a client joins they get the actual border oldDiameter and the time left to reach the newDiameter.
+     * The target diameter
      */
     @Setter
-    private long speed = 0;
+    private double to = DEFAULT_WORLD_BORDER_SIZE;
     /**
-     * The time in seconds before a shrinking world border would hit a not moving player.
-     * Creates the same visual warning effect as warningBlocks.
+     * The diameter the current moving target came from
      */
     @Setter
-    private int warningDelay = 15;
+    private double from = DEFAULT_WORLD_BORDER_SIZE;
     /**
      * Block length before you reach the border to show warning particles.
      */
     @Setter
     private int warningBlocks = 5;
+
+    @Setter
+    private int warningDelay = 15;
     /**
      * The world border cannot go beyond this number, positive or negative, in world coordinates
      */
     @Setter
     private int absoluteMaxSize = 29999984;
 
+    @Setter
     @Getter
     private boolean resizing;
-    private double currentDiameter;
 
     /*
      * Boundaries of the actual world border.
@@ -107,10 +116,6 @@ public class WorldBorder {
      */
     private int currentWallTick;
 
-    /**
-     * If the world border is resizing, this variable saves how many ticks have progressed in the resizing
-     */
-    private long lastUpdatedWorldBorderTime = 0;
 
     private final GeyserSession session;
 
@@ -140,7 +145,7 @@ public class WorldBorder {
     public boolean isCloseToBorderBoundaries() {
         Vector3f position = session.getPlayerEntity().getPosition();
         return !(position.getX() > minX + CLOSE_TO_BORDER && position.getX() < maxX - CLOSE_TO_BORDER
-                && position.getZ() > minZ + CLOSE_TO_BORDER && position.getZ() < maxZ - CLOSE_TO_BORDER);
+            && position.getZ() > minZ + CLOSE_TO_BORDER && position.getZ() < maxZ - CLOSE_TO_BORDER);
     }
 
     /**
@@ -155,8 +160,8 @@ public class WorldBorder {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Move the player back, but allow gravity to take place
             // Teleported = true makes going back better, but disconnects the player from their mounted entity
-            playerEntity.moveAbsoluteRaw(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.offset()), playerEntity.getPosition().getZ()),
-                    playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
+            playerEntity.moveAbsolute(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.offset()), playerEntity.getPosition().getZ()),
+                playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
         }
         return isInWorldBorder;
     }
@@ -167,9 +172,9 @@ public class WorldBorder {
         Vector3f currentEntityPosition = session.getPlayerEntity().getPosition();
         // Make sure we can't move out of the world border, but if we're out of the world border, we can move in
         return (entityX == (int) minX && currentEntityPosition.getX() > newEntityPosition.getX()) ||
-                (entityX == (int) maxX && currentEntityPosition.getX() < newEntityPosition.getX()) ||
-                (entityZ == (int) minZ && currentEntityPosition.getZ() > newEntityPosition.getZ()) ||
-                (entityZ == (int) maxZ && currentEntityPosition.getZ() < newEntityPosition.getZ());
+            (entityX == (int) maxX && currentEntityPosition.getX() < newEntityPosition.getX()) ||
+            (entityZ == (int) minZ && currentEntityPosition.getZ() > newEntityPosition.getZ()) ||
+            (entityZ == (int) maxZ && currentEntityPosition.getZ() < newEntityPosition.getZ());
     }
 
     /**
@@ -238,14 +243,15 @@ public class WorldBorder {
          */
         double radius;
         if (resizing) {
-            radius = this.currentDiameter / 2.0D;
+            radius = this.size / 2.0D;
         } else {
-            radius = this.newDiameter / 2.0D;
+            radius = this.size / 2.0D;
         }
-        
+
         double absoluteMinSize = -this.absoluteMaxSize;
-        double centerX = this.center.getX();
-        double centerZ = this.center.getY(); // Mapping 2D vector to 3D coordinates >> Y becomes Z
+        // Used in the Nether by default
+        double centerX = this.center.getX() / this.worldCoordinateScale;
+        double centerZ = this.center.getY() / this.worldCoordinateScale; // Mapping 2D vector to 3D coordinates >> Y becomes Z
 
         this.minX = GenericMath.clamp(centerX - radius, absoluteMinSize, this.absoluteMaxSize);
         this.minZ = GenericMath.clamp(centerZ - radius, absoluteMinSize, this.absoluteMaxSize);
@@ -261,26 +267,33 @@ public class WorldBorder {
         this.warningMaxZ = this.maxZ - this.warningBlocks;
     }
 
-    public void resize() {
-        if (this.lastUpdatedWorldBorderTime >= this.speed) {
-            // Diameter has now updated to the new diameter
+    public void tick() {
+        if (!resizing) return;
+        this.lerpProgress++;
+        this.size = this.calculateSize();
+        if (this.lerpProgress >= this.lerpDuration) {
             this.resizing = false;
-            this.lastUpdatedWorldBorderTime = 0;
-        } else if (resizing) {
-            this.currentDiameter = this.oldDiameter + ((double) this.lastUpdatedWorldBorderTime / (double) this.speed) * (this.newDiameter - this.oldDiameter);
-            this.lastUpdatedWorldBorderTime += 50;
+            this.lerpProgress = 0;
+            this.lerpDuration = 0;
+            this.from = this.to;
+        } else {
+            this.resizing = true;
         }
         update();
     }
 
-    public void setResizing(boolean resizing) {
-        this.resizing = resizing;
-        if (!resizing) {
-            this.lastUpdatedWorldBorderTime = 0;
-        }
+    public void startResize(double from, double to, long lerpDuration) {
+        this.from = from;
+        this.to = to;
+        this.lerpDuration = lerpDuration;
+        this.lerpProgress = 0;
+        this.resizing = true;
     }
 
-    private static final LevelEventType WORLD_BORDER_PARTICLE = LevelEvent.PARTICLE_DENY_BLOCK;
+    private double calculateSize() {
+        double d0 = (this.lerpDuration - this.lerpProgress) / (double) this.lerpDuration;
+        return d0 < 1.0 ? (this.to + d0 * (this.from - this.to)) : this.to;
+    }
 
     /**
      * Draws a wall of particles where the world border resides
@@ -315,7 +328,7 @@ public class WorldBorder {
         for (int y = initialY; y < (initialY + 5); y++) {
             if (drawWallX) {
                 float x = position.getX();
-                for (int z = (int) position.getZ() - 3; z < ((int) position.getZ() + 3); z++) {
+                for (int z = (int) position.getZ() - 5; z < ((int) position.getZ() + 5); z++) {
                     if (z < minZ) {
                         continue;
                     }
@@ -327,7 +340,7 @@ public class WorldBorder {
                 }
             } else {
                 float z = position.getZ();
-                for (int x = (int) position.getX() - 3; x < ((int) position.getX() + 3); x++) {
+                for (int x = (int) position.getX() - 5; x < ((int) position.getX() + 5); x++) {
                     if (x < minX) {
                         continue;
                     }
@@ -344,7 +357,7 @@ public class WorldBorder {
     private void sendWorldBorderParticle(float x, float y, float z) {
         LevelEventPacket effectPacket = new LevelEventPacket();
         effectPacket.setPosition(Vector3f.from(x, y, z));
-        effectPacket.setType(WORLD_BORDER_PARTICLE);
+        effectPacket.setType(LevelEvent.PARTICLE_DENY_BLOCK);
         session.getUpstream().sendPacket(effectPacket);
     }
 }
