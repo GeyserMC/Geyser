@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import com.google.common.base.Charsets;
+import com.google.gson.JsonObject;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import org.cloudburstmc.protocol.bedrock.packet.TransferPacket;
@@ -43,6 +44,8 @@ import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.version.JavaVersion;
+import org.geysermc.geyser.util.JsonUtils;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundCustomPayloadPacket;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 
@@ -51,6 +54,7 @@ import java.nio.charset.StandardCharsets;
 @Translator(packet = ClientboundCustomPayloadPacket.class)
 public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCustomPayloadPacket> {
     private final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
+    private static final String VIA_SERVER_DETAILS_CHANNEL = "vv:server_details";
 
     @Override
     public void translate(GeyserSession session, ClientboundCustomPayloadPacket packet) {
@@ -60,6 +64,36 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             ByteBuf buf = Unpooled.wrappedBuffer(packet.getData());
             ErosionPacket<?> erosionPacket = Packets.decode(buf);
             ((GeyserboundPacket) erosionPacket).handle(session.getErosionHandler());
+            return;
+        }
+
+        if (channel.equals(VIA_SERVER_DETAILS_CHANNEL)) {
+            byte[] data = packet.getData();
+            String json = new String(data, StandardCharsets.UTF_8);
+            try {
+                JsonObject object = JsonUtils.parseJson(json);
+                int specVersion = object.get("specVersion").getAsInt();
+                if (specVersion == 1) {
+                    String versionType = object.get("versionType").getAsString();
+                    if (versionType.equals("RELEASE")) {
+                        int serverVersion = object.get("version").getAsInt();
+                        GeyserImpl.getInstance().getLogger().debug("Setting server version using viaversion server details payload: " + serverVersion);
+                        session.setJavaProtocolVersion(JavaVersion.lookup(serverVersion));
+                    } else {
+                        GeyserImpl.getInstance().getLogger().debug("Got unusual server version type payload: " + object);
+                    }
+                } else {
+                    logger.warning("Unknown spec version received on the vv:server_details channel! Version: " + specVersion);
+                    if (logger.isDebug()) {
+                        logger.debug(object);
+                    }
+                }
+            } catch (Exception e) {
+                logger.warning("Unable to parse vv:server_details payload! Reason: " + e.getMessage());
+                if (logger.isDebug()) {
+                    logger.debug(e);
+                }
+            }
             return;
         }
 

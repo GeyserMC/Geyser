@@ -153,6 +153,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
+import org.geysermc.geyser.level.gamerule.GameRuleHandler;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
@@ -196,6 +197,7 @@ import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.geyser.util.version.JavaVersion;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.network.BuiltinFlags;
 import org.geysermc.mcprotocollib.network.ClientSession;
@@ -293,6 +295,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final EntityCache entityCache;
     private final EntityEffectCache effectCache;
     private final FormCache formCache;
+    private final GameRuleHandler gameRuleHandler;
     private final InputCache inputCache;
     private final LodestoneCache lodestoneCache;
     private final PistonCache pistonCache;
@@ -555,6 +558,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private boolean oldSmithingTable = false;
+
+    @Getter @Setter
+    private JavaVersion javaProtocolVersion;
 
     /**
      * Whether to use the minecart_improvements experiment
@@ -840,9 +846,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.cameraData = new GeyserCameraData(this);
         this.entityData = new GeyserEntityData(this);
 
-        this.worldBorder = new WorldBorder(this);
         this.collisionManager = new CollisionManager(this);
+        this.gameRuleHandler = new GameRuleHandler(this);
         this.blockBreakHandler = new BlockBreakHandler(this);
+        this.worldBorder = new WorldBorder(this);
 
         this.playerEntity = new SessionPlayerEntity(this);
         collisionManager.updatePlayerBoundingBox(this.playerEntity.position());
@@ -858,6 +865,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.emotes = new HashSet<>();
         geyser.getSessionManager().getSessions().values().forEach(player -> this.emotes.addAll(player.getEmotes()));
+
+        // Attempt to set if possible - will be -1 if we're on a proxy that doesn't know about the backend
+        this.setJavaProtocolVersion(geyser.getBootstrap().getJavaProtocolVersion());
 
         this.remoteServer = geyser.defaultRemoteServer();
     }

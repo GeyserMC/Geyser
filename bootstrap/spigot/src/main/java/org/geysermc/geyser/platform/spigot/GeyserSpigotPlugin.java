@@ -66,6 +66,7 @@ import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotLegacyNativ
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotNativeWorldManager;
 import org.geysermc.geyser.platform.spigot.world.manager.GeyserSpigotWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.version.JavaVersion;
 import org.geysermc.geyser.util.metrics.MetricsPlatform;
 import org.incendo.cloud.bukkit.BukkitCommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
@@ -85,6 +86,7 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
             new GeyserPaperLogger(this, getLogger()) : new GeyserSpigotLogger(getLogger());
     private IGeyserPingPassthrough geyserSpigotPingPassthrough;
     private GeyserSpigotWorldManager geyserWorldManager;
+    private JavaVersion protocolVersion;
 
     private GeyserImpl geyser;
 
@@ -95,6 +97,14 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
 
     @Override
     public void onLoad() {
+        try {
+            this.protocolVersion = JavaVersion.lookup(Bukkit.getUnsafe().getProtocolVersion());
+        } catch (Throwable t) {
+            // ignored, likely running on spigot?
+        }
+
+        // TODO getting protocol version on spigot
+
         onGeyserInitialize();
     }
 
@@ -394,6 +404,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     @Override
     public Path getConfigFolder() {
         return getDataFolder().toPath();
+    }
+
+    @Override
+    public JavaVersion getJavaProtocolVersion() {
+        return protocolVersion;
     }
 
     @Override

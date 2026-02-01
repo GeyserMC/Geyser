@@ -35,6 +35,7 @@ import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.level.GeyserWorldManager;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
+import org.geysermc.geyser.util.version.JavaVersion;
 import org.geysermc.geyser.util.metrics.MetricsPlatform;
 import org.geysermc.geyser.util.metrics.ProvidedMetricsPlatform;
 
@@ -115,6 +116,15 @@ public interface GeyserBootstrap {
      */
     default WorldManager getWorldManager() {
         return DEFAULT_CHUNK_MANAGER;
+    }
+
+    /**
+     * Returns the Java protocol version, if known
+     *
+     * @return the Java protocol version
+     */
+    default JavaVersion getJavaProtocolVersion() {
+        return JavaVersion.UNKNOWN;
     }
 
     /**
