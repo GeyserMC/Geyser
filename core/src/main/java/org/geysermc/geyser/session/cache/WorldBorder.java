@@ -249,14 +249,12 @@ public class WorldBorder {
         }
 
         double absoluteMinSize = -this.absoluteMaxSize;
-        // Used in the Nether by default
-        double centerX = this.center.getX() / this.worldCoordinateScale;
-        double centerZ = this.center.getY() / this.worldCoordinateScale; // Mapping 2D vector to 3D coordinates >> Y becomes Z
 
-        this.minX = GenericMath.clamp(centerX - radius, absoluteMinSize, this.absoluteMaxSize);
-        this.minZ = GenericMath.clamp(centerZ - radius, absoluteMinSize, this.absoluteMaxSize);
-        this.maxX = GenericMath.clamp(centerX + radius, absoluteMinSize, this.absoluteMaxSize);
-        this.maxZ = GenericMath.clamp(centerZ + radius, absoluteMinSize, this.absoluteMaxSize);
+        // Mapping 2D vector to 3D coordinates >> Y becomes Z
+        this.minX = GenericMath.clamp(this.center.getX() - radius, absoluteMinSize, this.absoluteMaxSize);
+        this.minZ = GenericMath.clamp(this.center.getY() - radius, absoluteMinSize, this.absoluteMaxSize);
+        this.maxX = GenericMath.clamp(this.center.getX() + radius, absoluteMinSize, this.absoluteMaxSize);
+        this.maxZ = GenericMath.clamp(this.center.getY() + radius, absoluteMinSize, this.absoluteMaxSize);
 
         /*
          * Caching the warning boundaries.
