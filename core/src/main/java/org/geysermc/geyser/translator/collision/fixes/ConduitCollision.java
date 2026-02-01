@@ -23,30 +23,29 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.waypoint;
+package org.geysermc.geyser.translator.collision.fixes;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import lombok.EqualsAndHashCode;
+import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.ChunkWaypointData;
-import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
+import org.geysermc.geyser.translator.collision.BlockCollision;
+import org.geysermc.geyser.translator.collision.CollisionRemapper;
 
-import java.awt.Color;
-import java.util.Optional;
+@EqualsAndHashCode(callSuper = true)
+@CollisionRemapper(regex = "^conduit$", passDefaultBoxes = true)
+public class ConduitCollision extends BlockCollision {
+    private final static double MAX_PUSH_DISTANCE = 0.1875 + CollisionManager.COLLISION_TOLERANCE * 1.01;
 
-public class ChunkWaypoint extends GeyserWaypoint {
-
-    public ChunkWaypoint(GeyserSession session, Optional<PlayerEntity> player, Color color) {
-        super(session, player, color);
+    public ConduitCollision(BlockState state, BoundingBox[] boxes) {
+        super(boxes);
     }
 
     @Override
-    public void setData(WaypointData data) {
-        if (data instanceof ChunkWaypointData chunkData) {
-            // Set position in centre of chunk
-            position = Vector3f.from(chunkData.chunkX() * 16.0F + 8.0F, session.getPlayerEntity().position().getY(), chunkData.chunkZ() * 16.0F + 8.0F);
-        } else {
-            session.getGeyser().getLogger().warning("Received incorrect waypoint data " + data.getClass() + " for chunk waypoint");
-        }
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision, double ulpX, double ulpZ) {
+        // Check for conduit bug (conduit is lifted from the ground on Java unlike Bedrock where conduit is placed on the ground)
+        blockCollision.pushOutOfBoundingBox(playerCollision, Direction.UP, MAX_PUSH_DISTANCE);
     }
 }

@@ -87,6 +87,14 @@ public class CodeOfConductManager {
         }
     }
 
+    // Fixes https://github.com/GeyserMC/Geyser/issues/6139
+    public static void trySave() {
+        if (loaded == null) {
+            return;
+        }
+        getInstance().save();
+    }
+
     public void save() {
         if (dirty) {
             GeyserImpl.getInstance().getLogger().debug("Saving codeofconducts.json");

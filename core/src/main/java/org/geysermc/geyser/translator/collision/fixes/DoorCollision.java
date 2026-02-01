@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,13 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.collision;
+package org.geysermc.geyser.translator.collision.fixes;
 
 import lombok.EqualsAndHashCode;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.collision.BlockCollision;
+import org.geysermc.geyser.translator.collision.CollisionRemapper;
 
 @EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "_door$", usesParams = true, passDefaultBoxes = true)
@@ -40,45 +43,33 @@ public class DoorCollision extends BlockCollision {
      * 3 = south
      * 4 = west
      */
-    private int facing;
+    private final int facing;
 
     public DoorCollision(BlockState state, BoundingBox[] defaultBoxes) {
         super(defaultBoxes);
-        facing = switch (state.getValue(Properties.HORIZONTAL_FACING)) {
+
+        Direction direction = state.getValue(Properties.HORIZONTAL_FACING);
+        if (state.getValue(Properties.OPEN)) {
+            direction = state.getValue(Properties.DOOR_HINGE).equals("right") ? direction.counterClockWise() : direction.clockWise();
+        }
+
+        this.facing = switch (direction) {
             case NORTH -> 1;
             case EAST -> 2;
             case SOUTH -> 3;
             case WEST -> 4;
             default -> throw new IllegalStateException();
         };
-
-        // If the door is open it changes direction
-        if (state.getValue(Properties.OPEN)) {
-            facing = facing % 2 + 1;
-        }
     }
 
     @Override
-    public boolean correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
-        boolean result = super.correctPosition(session, x, y, z, playerCollision);
-        // Hack to prevent false positives
-        playerCollision.setSizeX(playerCollision.getSizeX() - 0.0001);
-        playerCollision.setSizeY(playerCollision.getSizeY() - 0.0001);
-        playerCollision.setSizeZ(playerCollision.getSizeZ() - 0.0001);
-
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision, double ulpX, double ulpZ) {
         // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
-        if (this.checkIntersection(x, y, z, playerCollision)) {
-            switch (facing) {
-                case 1 -> playerCollision.setMiddleZ(z + 0.5125); // North
-                case 2 -> playerCollision.setMiddleX(x + 0.5125); // East
-                case 3 -> playerCollision.setMiddleZ(z + 0.4875); // South
-                case 4 -> playerCollision.setMiddleX(x + 0.4875); // West
-            }
+        switch (this.facing) {
+            case 1 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.NORTH, 0.005 + ulpZ);
+            case 2 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.EAST, 0.005 + ulpX);
+            case 3 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.SOUTH, 0.005 + ulpZ);
+            case 4 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.WEST, 0.005 + ulpX);
         }
-
-        playerCollision.setSizeX(playerCollision.getSizeX() + 0.0001);
-        playerCollision.setSizeY(playerCollision.getSizeY() + 0.0001);
-        playerCollision.setSizeZ(playerCollision.getSizeZ() + 0.0001);
-        return result;
     }
 }
