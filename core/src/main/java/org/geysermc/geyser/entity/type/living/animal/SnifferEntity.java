@@ -44,13 +44,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Object
 public class SnifferEntity extends AnimalEntity implements Tickable {
     private static final int DIG_END = 120;
     private static final int DIG_START = DIG_END - 34;
-    private final float DIGGING_HEIGHT;
+    private final float diggingHeight;
     private Pose pose = Pose.STANDING; // Needed to call setDimensions for DIGGING state
     private int digTicks;
 
     public SnifferEntity(EntitySpawnContext context) {
         super(context);
-        DIGGING_HEIGHT = height - 0.4f;
+        diggingHeight = height - 0.4f;
     }
 
     @Override
@@ -62,7 +62,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
     @Override
     protected void setDimensionsFromPose(Pose pose) {
         if (getFlag(EntityFlag.DIGGING)) {
-            setBoundingBoxHeight(DIGGING_HEIGHT);
+            setBoundingBoxHeight(diggingHeight);
             setBoundingBoxWidth(width);
         } else {
             super.setDimensionsFromPose(pose);

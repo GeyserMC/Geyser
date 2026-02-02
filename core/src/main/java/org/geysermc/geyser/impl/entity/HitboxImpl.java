@@ -53,7 +53,7 @@ public record HitboxImpl(
             boxes.add(new HitboxImpl(
                Vector3f.from(hitbox.getFloat("MinX"), hitbox.getFloat("MinY"), hitbox.getFloat("MinZ")),
                Vector3f.from(hitbox.getFloat("MaxX"), hitbox.getFloat("MaxY"), hitbox.getFloat("MaxZ")),
-               Vector3f.from(hitbox.getFloat("PivotX"),hitbox.getFloat("PivotY"),hitbox.getFloat("PivotZ"))
+               Vector3f.from(hitbox.getFloat("PivotX"), hitbox.getFloat("PivotY"), hitbox.getFloat("PivotZ"))
             ));
         }
         return boxes;

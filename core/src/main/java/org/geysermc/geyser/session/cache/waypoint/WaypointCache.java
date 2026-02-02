@@ -35,7 +35,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.TrackedWaypo
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointOperation;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundTrackedWaypointPacket;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
