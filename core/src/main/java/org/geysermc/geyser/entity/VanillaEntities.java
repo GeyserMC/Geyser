@@ -1219,6 +1219,8 @@ public final class VanillaEntities {
 
             ZOMBIE_NAUTILUS = VanillaEntityType.inherited(ZombieNautilusEntity::new, abstractNautilusBase)
                 .type(BuiltinEntityType.ZOMBIE_NAUTILUS)
+                .property(ZombieNautilusEntity.VARIANT_ENUM_PROPERTY)
+                .addTranslator(MetadataTypes.ZOMBIE_NAUTILUS_VARIANT, ZombieNautilusEntity::setVariant)
                 .build();
         }
 
