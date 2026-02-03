@@ -110,13 +110,13 @@ public interface JavaItemDataComponents {
     ItemDataComponent<Integer> ENCHANTABLE = create("enchantable", i -> i >= 0);
 
     /**
-     * For vanilla-item overrides, this component is only used for the {@link JavaToolProperties#canDestroyBlocksInCreative()} option.
+     * For vanilla-item overrides, this component is only used for the {@link JavaTool#canDestroyBlocksInCreative()} option.
      * For non-vanilla custom items, this component also stores the tool's rules and default mining speed, to correctly calculate block breaking speed.
      *
-     * @see JavaToolProperties
+     * @see JavaTool
      * @since 2.9.3
      */
-    ItemDataComponent<JavaToolProperties> TOOL = create("tool");
+    ItemDataComponent<JavaTool> TOOL = create("tool");
 
     /**
      * Marks which items can be used to repair the item.

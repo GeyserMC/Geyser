@@ -43,7 +43,7 @@ import org.geysermc.geyser.registry.mappings.components.readers.IntComponentRead
 import org.geysermc.geyser.registry.mappings.components.readers.KineticWeaponReader;
 import org.geysermc.geyser.registry.mappings.components.readers.RepairableReader;
 import org.geysermc.geyser.registry.mappings.components.readers.SwingAnimationReader;
-import org.geysermc.geyser.registry.mappings.components.readers.ToolPropertiesReader;
+import org.geysermc.geyser.registry.mappings.components.readers.ToolReader;
 import org.geysermc.geyser.registry.mappings.components.readers.UnitReader;
 import org.geysermc.geyser.registry.mappings.components.readers.UseCooldownReader;
 import org.geysermc.geyser.registry.mappings.components.readers.UseEffectsReader;
@@ -85,7 +85,7 @@ public class DataComponentReaders {
         register(new IntComponentReader(JavaItemDataComponents.MAX_STACK_SIZE, 1, 99));
         register(new UseCooldownReader());
         register(new EnchantableReader());
-        register(new ToolPropertiesReader());
+        register(new ToolReader());
         register(new RepairableReader());
         register(new BooleanComponentReader(JavaItemDataComponents.ENCHANTMENT_GLINT_OVERRIDE));
         register(new AttackRangeReader());

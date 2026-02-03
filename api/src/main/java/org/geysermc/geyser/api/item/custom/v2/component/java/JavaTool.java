@@ -35,12 +35,13 @@ import org.geysermc.geyser.api.util.Holders;
 import java.util.List;
 
 /**
- * The tool properties component can be used to mark
- * if the item can destroy blocks when used in creative mode. For non-vanilla items, it is also important to set a default mining speed
- * and all the rules the tool has, to ensure proper block breaking. For vanilla-item overrides, Geyser is able to handle this automatically.
+ * The tool component can be used to mark if the item can destroy blocks when used in creative mode.
+ * For non-vanilla items, it is also important to set a default mining speed
+ * and all the rules the tool has to ensure proper block breaking.
+ * For vanilla-item overrides, Geyser is able to handle this automatically.
  * @since 2.9.3
  */
-public interface JavaToolProperties {
+public interface JavaTool {
 
     /**
      * A list of rules this tool has. A tool rule consists of a {@link Holders} of block identifiers, and the break speed for those blocks.
@@ -70,37 +71,37 @@ public interface JavaToolProperties {
     boolean canDestroyBlocksInCreative();
 
     /**
-     * Creates a builder for the tool properties component.
+     * Creates a builder for the tool component.
      *
      * @return a new builder
      * @since 2.9.3
      */
     static @NonNull Builder builder() {
-        return GeyserApi.api().provider(JavaToolProperties.Builder.class);
+        return GeyserApi.api().provider(JavaTool.Builder.class);
     }
 
     /**
-     * Creates a tool properties component, without any rules or a default mining speed. This should only be used for vanilla-item overrides.
+     * Creates a tool component, without any rules or a default mining speed. This should only be used for vanilla-item overrides.
      *
      * @param canDestroyBlocksInCreative determines if the item will break blocks in creative mode
-     * @return a tool properties component
+     * @return a tool  component
      * @since 2.9.3
      */
-    static @NonNull JavaToolProperties of(boolean canDestroyBlocksInCreative) {
+    static @NonNull JavaTool of(boolean canDestroyBlocksInCreative) {
         return builder().canDestroyBlocksInCreative(canDestroyBlocksInCreative).build();
     }
 
     /**
-     * Builder for the tool properties component.
+     * Builder for the tool component.
      * @since 2.9.3
      */
-    interface Builder extends GenericBuilder<JavaToolProperties> {
+    interface Builder extends GenericBuilder<JavaTool> {
 
         /**
          * Adds a rule to the tool. Vanilla-item overrides don't need any rules to be set.
          *
          * @param rule the rule to add
-         * @see JavaToolProperties#rules()
+         * @see JavaTool#rules()
          * @return this builder
          * @since 2.9.3
          */
@@ -111,7 +112,7 @@ public interface JavaToolProperties {
          * Sets the default mining speed of this tool. Vanilla-item overrides don't need a speed set.
          *
          * @param defaultMiningSpeed the default mining speed of this tool
-         * @see JavaToolProperties#defaultMiningSpeed()
+         * @see JavaTool#defaultMiningSpeed()
          * @return this builder
          * @since 2.9.3
          */
@@ -123,7 +124,7 @@ public interface JavaToolProperties {
          * creative mode.
          *
          * @param canDestroyBlocksInCreative determines if the item will break blocks in creative mode
-         * @see JavaToolProperties#canDestroyBlocksInCreative()
+         * @see JavaTool#canDestroyBlocksInCreative()
          * @return this builder
          * @since 2.9.3
          */
@@ -131,13 +132,13 @@ public interface JavaToolProperties {
         Builder canDestroyBlocksInCreative(boolean canDestroyBlocksInCreative);
 
         /**
-         * Creates the tool properties component.
+         * Creates the tool component.
          *
          * @return the new component
          * @since 2.9.3
          */
         @Override
-        JavaToolProperties build();
+        JavaTool build();
     }
 
     /**

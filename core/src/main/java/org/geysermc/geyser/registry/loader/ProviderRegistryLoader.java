@@ -54,7 +54,7 @@ import org.geysermc.geyser.api.item.custom.v2.component.java.JavaKineticWeapon;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaPiercingWeapon;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaRepairable;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaSwingAnimation;
-import org.geysermc.geyser.api.item.custom.v2.component.java.JavaToolProperties;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaTool;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaUseCooldown;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaUseEffects;
 import org.geysermc.geyser.api.pack.PathPackCodec;
@@ -98,7 +98,7 @@ import org.geysermc.geyser.item.custom.impl.ItemDataComponentImpl;
 import org.geysermc.geyser.item.custom.impl.JavaEquippableImpl;
 import org.geysermc.geyser.item.custom.impl.JavaFoodPropertiesImpl;
 import org.geysermc.geyser.item.custom.impl.JavaRepairableImpl;
-import org.geysermc.geyser.item.custom.impl.JavaToolPropertiesImpl;
+import org.geysermc.geyser.item.custom.impl.JavaToolImpl;
 import org.geysermc.geyser.item.custom.impl.JavaUseCooldownImpl;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserChargeTypePredicate;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserCustomModelDataPredicate;
@@ -176,8 +176,8 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(JavaPiercingWeapon.class, args -> JavaPiercingWeaponImpl.INSTANCE);
         providers.put(JavaRepairable.Builder.class, args -> new JavaRepairableImpl.Builder());
         providers.put(JavaSwingAnimation.Builder.class, args -> new JavaSwingAnimationImpl.Builder());
-        providers.put(JavaToolProperties.Builder.class, args -> new JavaToolPropertiesImpl.Builder());
-        providers.put(JavaToolProperties.Rule.Builder.class, args -> new JavaToolPropertiesImpl.RuleImpl.Builder());
+        providers.put(JavaTool.Builder.class, args -> new JavaToolImpl.Builder());
+        providers.put(JavaTool.Rule.Builder.class, args -> new JavaToolImpl.RuleImpl.Builder());
         providers.put(JavaUseCooldown.Builder.class, args -> new JavaUseCooldownImpl.Builder());
         providers.put(JavaUseEffects.Builder.class, args -> new JavaUseEffectsImpl.Builder());
 

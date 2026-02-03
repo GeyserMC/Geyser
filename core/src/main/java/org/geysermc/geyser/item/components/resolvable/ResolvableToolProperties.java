@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.item.components.resolvable;
 
-import org.geysermc.geyser.api.item.custom.v2.component.java.JavaToolProperties;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaTool;
 import org.geysermc.geyser.impl.HoldersImpl;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
@@ -35,7 +35,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 
 import java.util.List;
 
-public record ResolvableToolProperties(JavaToolProperties properties) implements ResolvableComponent<ToolData> {
+public record ResolvableToolProperties(JavaTool properties) implements ResolvableComponent<ToolData> {
 
     @Override
     public DataComponentType<ToolData> type() {

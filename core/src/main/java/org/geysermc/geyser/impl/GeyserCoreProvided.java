@@ -48,9 +48,11 @@ import java.lang.annotation.Target;
  *
  * <pre>
  *     {@code
- *     if (object instanceof GeyserProvided && !(object instanceof GeyserCoreProvided)) {
- *         throw new IllegalArgumentException("found custom implementation (%s) of Geyser-provided API interface!".formatted(object.getClass().getSimpleName()));
- *     }
+ *       boolean isApiProvided = AnnotationUtils.hasAnnotationRecursive(clazz, GeyserProvided.class);
+ *       boolean isCoreImpl = AnnotationUtils.hasAnnotationRecursive(clazz, GeyserCoreProvided.class);
+ *       if (isApiProvided && !isCoreImpl) {
+ *          throw new IllegalArgumentException("some message");
+ *       }
  *     }
  * </pre>
  *

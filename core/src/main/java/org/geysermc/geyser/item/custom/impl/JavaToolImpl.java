@@ -27,26 +27,26 @@ package org.geysermc.geyser.item.custom.impl;
 
 import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.item.custom.v2.component.java.JavaToolProperties;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaTool;
 import org.geysermc.geyser.api.util.Holders;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public record JavaToolPropertiesImpl(
+public record JavaToolImpl(
     List<@NonNull Rule> rules,
     float defaultMiningSpeed,
     boolean canDestroyBlocksInCreative
-) implements JavaToolProperties {
+) implements JavaTool {
 
-    public static class Builder implements JavaToolProperties.Builder {
+    public static class Builder implements JavaTool.Builder {
         private final List<Rule> rules = new ArrayList<>();
         private float defaultMiningSpeed;
         private boolean destroyBlocksInCreative = true;
 
         @Override
-        public JavaToolProperties.Builder rule(@NonNull Rule rule) {
+        public JavaTool.Builder rule(@NonNull Rule rule) {
             Objects.requireNonNull(rule, "rule cannot be null");
             if (this.rules.contains(rule)) {
                 throw new IllegalArgumentException("duplicate rule " + rule);
@@ -56,7 +56,7 @@ public record JavaToolPropertiesImpl(
         }
 
         @Override
-        public JavaToolProperties.Builder defaultMiningSpeed(float defaultMiningSpeed) {
+        public JavaTool.Builder defaultMiningSpeed(float defaultMiningSpeed) {
             if (defaultMiningSpeed <= 0.0F) {
                 throw new IllegalArgumentException("default mining speed must be above 0");
             }
@@ -65,14 +65,14 @@ public record JavaToolPropertiesImpl(
         }
 
         @Override
-        public JavaToolProperties.Builder canDestroyBlocksInCreative(boolean destroyBlocksInCreative) {
+        public JavaTool.Builder canDestroyBlocksInCreative(boolean destroyBlocksInCreative) {
             this.destroyBlocksInCreative = destroyBlocksInCreative;
             return this;
         }
 
         @Override
-        public JavaToolProperties build() {
-            return new JavaToolPropertiesImpl(rules, defaultMiningSpeed, destroyBlocksInCreative);
+        public JavaTool build() {
+            return new JavaToolImpl(rules, defaultMiningSpeed, destroyBlocksInCreative);
         }
     }
 
