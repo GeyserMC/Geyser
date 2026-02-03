@@ -117,7 +117,7 @@ open class DownloadFilesTask : DefaultTask() {
 }
 
 fun Project.branchName(): String =
-    (the<IndraGitExtension>().branchName().get() ?: System.getenv("BRANCH_NAME") ?: "local/dev")
+    the<IndraGitExtension>().branchName().orNull ?: System.getenv("BRANCH_NAME") ?: "local/dev"
 
 fun Project.shouldAddBranchName(): Boolean {
     return branchName() !in arrayOf("master", "local/dev")
@@ -134,7 +134,7 @@ fun Project.versionWithBranchName(): String {
     val branch = branchName()
     val parts = branch.split('/')
     val prefix = parts.getOrNull(0)?.replace(Regex("[^0-9A-Za-z-]"), "-") ?: branch
-    val versionNum = parts.getOrNull(1)?.replace(Regex("[^0-9A-Za-z-]"), "-") ?: version.toString()
+    val versionNum = parts.getOrNull(1)?.replace(Regex("[^0-9A-Za-z.-]"), "-") ?: version.toString()
     return "preview-$prefix-$versionNum-SNAPSHOT"
 }
 
