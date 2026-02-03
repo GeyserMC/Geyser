@@ -27,14 +27,20 @@ package org.geysermc.geyser.impl;
 
 import org.geysermc.geyser.api.util.GeyserProvided;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
- * A marker interface to make sure implementations of {@link GeyserProvided} are actually our implementations. Implement as follows:
+ * A marker annotation to make sure implementations of {@link GeyserProvided} are actually our implementations. Implement as follows:
  *
  * <pre>
  *     {@code
- *     public interface MyGeyserApi extends GeyserProvided {}
- *
- *     public class MyGeyserApiImpl implements MyGeyserApi, GeyserCoreProvided {}
+ *     @GeyserProvided
+ *     public interface MyGeyserApi {}
+ *     @GeyserCoreProvided
+ *     public class MyGeyserApiImpl implements MyGeyserApi {}
  *     }
  * </pre>
  *
@@ -50,5 +56,7 @@ import org.geysermc.geyser.api.util.GeyserProvided;
  *
  * <p>The error message given should contain clear details on what the developer should be doing instead.</p>
  */
-public interface GeyserCoreProvided {
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface GeyserCoreProvided {
 }

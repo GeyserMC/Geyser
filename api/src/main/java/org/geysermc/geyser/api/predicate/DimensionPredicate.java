@@ -36,7 +36,8 @@ import org.geysermc.geyser.api.util.Identifier;
  * @see MatchPredicate#dimension(Identifier)
  * @since 2.9.3
  */
-public interface DimensionPredicate extends MinecraftPredicate<MinecraftPredicateContext>, GeyserProvided {
+@GeyserProvided
+public interface DimensionPredicate extends MinecraftPredicate<MinecraftPredicateContext> {
 
     /**
      * The dimension to check for. This can be a vanilla Minecraft dimension, or a custom one.

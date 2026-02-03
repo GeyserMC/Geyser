@@ -44,8 +44,9 @@ import java.util.function.Predicate;
  * @see CustomItemDefinition#components()
  * @since 2.9.3
  */
+@GeyserProvided
 @ApiStatus.NonExtendable
-public interface ItemDataComponent<T> extends GeyserProvided {
+public interface ItemDataComponent<T> {
 
     /**
      * The identifier of the data component.

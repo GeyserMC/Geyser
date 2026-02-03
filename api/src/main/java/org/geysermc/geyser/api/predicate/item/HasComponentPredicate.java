@@ -36,8 +36,9 @@ import org.jetbrains.annotations.ApiStatus;
  * @see ItemConditionPredicate#hasComponent(Identifier)
  * @since 2.9.3
  */
+@GeyserProvided
 @ApiStatus.NonExtendable
-public interface HasComponentPredicate extends MinecraftPredicate<ItemPredicateContext>, GeyserProvided {
+public interface HasComponentPredicate extends MinecraftPredicate<ItemPredicateContext> {
 
     /**
      * @return the identifier of the item data component to check against

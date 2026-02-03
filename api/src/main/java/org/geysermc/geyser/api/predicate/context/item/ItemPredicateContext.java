@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.predicate.context.item;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
@@ -92,13 +93,13 @@ public interface ItemPredicateContext extends MinecraftPredicateContext {
      * @return all the charged projectiles in the {@code minecraft:charged_projectiles} component
      * @since 2.9.3
      */
-    List<ChargedProjectile> chargedProjectiles();
+    @NonNull List<@NonNull ChargedProjectile> chargedProjectiles();
 
     /**
      * @return a list of all the components present on the item, including default components
      * @since 2.9.3
      */
-    List<Identifier> components();
+    @NonNull List<@NonNull Identifier> components();
 
     /**
      * @param index the flag index

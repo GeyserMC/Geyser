@@ -31,11 +31,12 @@ import org.geysermc.geyser.impl.GeyserCoreProvided;
 
 import java.util.function.Predicate;
 
+@GeyserCoreProvided
 public record ItemDataComponentImpl<T>(
     Identifier identifier,
     Predicate<T> validator,
     boolean vanilla
-) implements ItemDataComponent<T>, GeyserCoreProvided {
+) implements ItemDataComponent<T> {
 
     public boolean validate(T value) {
         return this.validator.test(value);

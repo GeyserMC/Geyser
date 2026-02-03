@@ -34,7 +34,8 @@ import org.geysermc.geyser.impl.GeyserCoreProvided;
 
 import java.util.Objects;
 
-public record GeyserHasComponentPredicate(@NonNull Identifier component, boolean negated) implements HasComponentPredicate, GeyserCoreProvided {
+@GeyserCoreProvided
+public record GeyserHasComponentPredicate(@NonNull Identifier component, boolean negated) implements HasComponentPredicate {
 
     public GeyserHasComponentPredicate {
         Objects.requireNonNull(component, "component identifier cannot be null");

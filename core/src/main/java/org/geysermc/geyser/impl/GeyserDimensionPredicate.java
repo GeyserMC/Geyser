@@ -33,7 +33,8 @@ import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Objects;
 
-public record GeyserDimensionPredicate(@NonNull Identifier dimension, boolean negated) implements DimensionPredicate, GeyserCoreProvided {
+@GeyserCoreProvided
+public record GeyserDimensionPredicate(@NonNull Identifier dimension, boolean negated) implements DimensionPredicate {
 
     public GeyserDimensionPredicate {
         Objects.requireNonNull(dimension, "dimension cannot be null");

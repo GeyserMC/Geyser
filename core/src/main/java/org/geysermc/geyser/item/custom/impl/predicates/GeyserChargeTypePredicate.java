@@ -9,7 +9,8 @@ import org.geysermc.geyser.impl.GeyserCoreProvided;
 
 import java.util.Objects;
 
-public record GeyserChargeTypePredicate(ChargedProjectile.ChargeType type, boolean negated) implements ChargeTypePredicate, GeyserCoreProvided {
+@GeyserCoreProvided
+public record GeyserChargeTypePredicate(ChargedProjectile.ChargeType type, boolean negated) implements ChargeTypePredicate {
 
     public GeyserChargeTypePredicate {
         Objects.requireNonNull(type, "charge type cannot be null");

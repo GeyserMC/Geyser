@@ -36,8 +36,9 @@ import org.jetbrains.annotations.ApiStatus;
  * @see ItemMatchPredicate#chargeType(ChargedProjectile.ChargeType)
  * @since 2.9.3
  */
+@GeyserProvided
 @ApiStatus.NonExtendable
-public interface ChargeTypePredicate extends MinecraftPredicate<ItemPredicateContext>, GeyserProvided {
+public interface ChargeTypePredicate extends MinecraftPredicate<ItemPredicateContext> {
 
     /**
      * @return type of the projectile to check for

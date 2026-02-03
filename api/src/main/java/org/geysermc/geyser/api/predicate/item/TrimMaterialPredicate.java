@@ -36,8 +36,9 @@ import org.jetbrains.annotations.ApiStatus;
  * @see ItemMatchPredicate#trimMaterial(Identifier)
  * @since 2.9.3
  */
+@GeyserProvided
 @ApiStatus.NonExtendable
-public interface TrimMaterialPredicate extends MinecraftPredicate<ItemPredicateContext>, GeyserProvided {
+public interface TrimMaterialPredicate extends MinecraftPredicate<ItemPredicateContext> {
 
     /**
      * @return the identifier of the trim material to check for

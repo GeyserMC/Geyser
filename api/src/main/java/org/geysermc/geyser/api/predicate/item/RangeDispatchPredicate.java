@@ -39,8 +39,9 @@ import org.jetbrains.annotations.ApiStatus;
  * @see ItemRangeDispatchPredicate
  * @since 2.9.3
  */
+@GeyserProvided
 @ApiStatus.NonExtendable
-public interface RangeDispatchPredicate extends MinecraftPredicate<ItemPredicateContext>, GeyserProvided {
+public interface RangeDispatchPredicate extends MinecraftPredicate<ItemPredicateContext> {
 
     /**
      * @see Property

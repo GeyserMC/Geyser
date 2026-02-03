@@ -36,7 +36,8 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-public record GeyserRangeDispatchPredicate(@NonNull GeyserRangeDispatchProperty rangeProperty, double threshold, @NonNegative int index, boolean normalized, boolean negated) implements RangeDispatchPredicate, GeyserCoreProvided {
+@GeyserCoreProvided
+public record GeyserRangeDispatchPredicate(@NonNull GeyserRangeDispatchProperty rangeProperty, double threshold, @NonNegative int index, boolean normalized, boolean negated) implements RangeDispatchPredicate {
 
     @Override
     public @NonNull Property property() {

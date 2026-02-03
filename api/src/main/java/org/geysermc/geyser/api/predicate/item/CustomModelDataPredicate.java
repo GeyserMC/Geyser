@@ -45,8 +45,9 @@ public interface CustomModelDataPredicate {
      * @see ItemConditionPredicate#customModelData(int)
      * @since 2.9.3
      */
+    @GeyserProvided
     @ApiStatus.NonExtendable
-    interface FlagPredicate extends MinecraftPredicate<ItemPredicateContext>, GeyserProvided {
+    interface FlagPredicate extends MinecraftPredicate<ItemPredicateContext> {
 
         /**
          * @return the index to check the value of a flag on
@@ -65,8 +66,9 @@ public interface CustomModelDataPredicate {
      * @see ItemMatchPredicate#customModelData(int, String)
      * @since 2.9.3
      */
+    @GeyserProvided
     @ApiStatus.NonExtendable
-    interface StringPredicate extends MinecraftPredicate<ItemPredicateContext>, GeyserProvided {
+    interface StringPredicate extends MinecraftPredicate<ItemPredicateContext> {
 
         /**
          * @return the string to compare against. Can be null to check for a missing string

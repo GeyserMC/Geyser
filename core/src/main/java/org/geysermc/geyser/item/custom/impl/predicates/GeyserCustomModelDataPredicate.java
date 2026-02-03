@@ -37,7 +37,8 @@ import java.util.Objects;
 
 public final class GeyserCustomModelDataPredicate {
 
-    public record GeyserFlagPredicate(@NonNegative int index, boolean negated) implements CustomModelDataPredicate.FlagPredicate, GeyserCoreProvided {
+    @GeyserCoreProvided
+    public record GeyserFlagPredicate(@NonNegative int index, boolean negated) implements CustomModelDataPredicate.FlagPredicate {
 
         public GeyserFlagPredicate {
             //noinspection ConstantValue - must check API input
@@ -57,7 +58,8 @@ public final class GeyserCustomModelDataPredicate {
         }
     }
 
-    public record GeyserStringPredicate(@Nullable String string, @NonNegative int index, boolean negated) implements CustomModelDataPredicate.StringPredicate, GeyserCoreProvided {
+    @GeyserCoreProvided
+    public record GeyserStringPredicate(@Nullable String string, @NonNegative int index, boolean negated) implements CustomModelDataPredicate.StringPredicate {
 
         public GeyserStringPredicate {
             //noinspection ConstantValue - must check API input

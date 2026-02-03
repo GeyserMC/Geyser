@@ -25,14 +25,20 @@
 
 package org.geysermc.geyser.api.util;
 
-import org.jetbrains.annotations.ApiStatus;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Is used to mark interfaces and classes that should not be implemented / extended by developers,
- * and are instead provided by Geyser. Attempting to pass a custom implementation for classes extending
- * this interface will result in exceptions.
+ * Annotation used to mark interfaces and classes that should not be implemented / extended by developers
+ * and are instead provided by Geyser. Attempting to pass a custom implementation for classes marked
+ * with this annotation will result in exceptions.
  * @since 2.9.3
  */
-@ApiStatus.NonExtendable
-public interface GeyserProvided {
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface GeyserProvided {
 }
