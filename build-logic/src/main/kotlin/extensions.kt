@@ -117,14 +117,26 @@ open class DownloadFilesTask : DefaultTask() {
 }
 
 fun Project.branchName(): String =
-    (the<IndraGitExtension>().branchName() ?: System.getenv("BRANCH_NAME") ?: "local/dev").toString()
+    (the<IndraGitExtension>().branchName().get() ?: System.getenv("BRANCH_NAME") ?: "local/dev")
 
 fun Project.shouldAddBranchName(): Boolean {
     return branchName() !in arrayOf("master", "local/dev")
 }
 
-fun Project.versionWithBranchName(): String =
-    branchName().replace(Regex("[^0-9A-Za-z-_]"), "-") + '-' + version
+/**
+ * Helper to ensure we never override the latest releases
+ *
+ * Examples:
+ * - "api/2.9.3" -> "preview-api-2.9.3-SNAPSHOT"
+ * - "feature/custom-entities-api" -> "preview-feature-custom-entities-api-SNAPSHOT"
+ */
+fun Project.versionWithBranchName(): String {
+    val branch = branchName()
+    val parts = branch.split('/')
+    val prefix = parts.getOrNull(0)?.replace(Regex("[^0-9A-Za-z-]"), "-") ?: branch
+    val versionNum = parts.getOrNull(1)?.replace(Regex("[^0-9A-Za-z-]"), "-") ?: version.toString()
+    return "preview-$prefix-$versionNum-SNAPSHOT"
+}
 
 private fun calcExclusion(section: String, bit: Int, excludedOn: Int): String =
     if (excludedOn and bit > 0) section else ""

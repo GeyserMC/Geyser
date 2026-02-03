@@ -56,9 +56,9 @@ public class KineticWeaponReader extends DataComponentReader<JavaKineticWeapon> 
             return null;
         }
         return new JavaKineticWeaponImpl.ConditionImpl(
-            MappingsUtil.readOrThrow(element, "max_duration_ticks", NodeReader.NON_NEGATIVE_INT, context),
-            MappingsUtil.readOrDefault(element, "min_speed", NodeReader.FLOAT, 0.0F, context),
-            MappingsUtil.readOrDefault(element, "min_relative_speed", NodeReader.FLOAT, 0.0F, context)
+            MappingsUtil.readOrThrow(condition, "max_duration_ticks", NodeReader.NON_NEGATIVE_INT, context),
+            MappingsUtil.readOrDefault(condition, "min_speed", NodeReader.FLOAT, 0.0F, context),
+            MappingsUtil.readOrDefault(condition, "min_relative_speed", NodeReader.FLOAT, 0.0F, context)
         );
     }
 }
