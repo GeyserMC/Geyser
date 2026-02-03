@@ -77,6 +77,9 @@ public class CollisionManager {
     @Setter
     private boolean onScaffolding;
 
+    @Setter
+    private float scale = 1;
+
     /**
      * Additional space where blocks are checked, which is helpful for fixing NoCheatPlus's Passable check.
      * This check doesn't allow players right up against the block, so they must be pushed slightly away.
@@ -132,6 +135,11 @@ public class CollisionManager {
         double playerHeight = session.getPlayerEntity().getBoundingBoxHeight();
         playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2.0) + (playerHeight / 2.0));
         playerBoundingBox.setSizeY(playerHeight);
+        playerBoundingBox.setSizeX(session.getPlayerEntity().getBoundingBoxWidth());
+        playerBoundingBox.setSizeZ(session.getPlayerEntity().getBoundingBoxWidth());
+
+        // We also need to account for bounding box scaling.
+        playerBoundingBox.scale(scale, scale, scale);
     }
 
     /**

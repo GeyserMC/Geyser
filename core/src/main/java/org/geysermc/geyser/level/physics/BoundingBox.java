@@ -68,6 +68,12 @@ public class BoundingBox implements Cloneable {
         sizeZ += Math.abs(z);
     }
 
+    public void scale(double x, double y, double z) {
+        sizeX *= x;
+        sizeY *= y;
+        sizeZ *= z;
+    }
+
     public void expand(double x, double y, double z) {
         sizeX += x;
         sizeY += y;

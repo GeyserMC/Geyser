@@ -53,6 +53,6 @@ public abstract class TemperatureVariantAnimal extends AnimalEntity implements V
     public enum BuiltInVariant implements VariantHolder.BuiltIn {
         TEMPERATE,
         WARM,
-        COLD;
+        COLD
     }
 }

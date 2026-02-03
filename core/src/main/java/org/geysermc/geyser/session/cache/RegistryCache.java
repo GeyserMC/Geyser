@@ -36,6 +36,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
 import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
 import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
+import org.geysermc.geyser.entity.type.living.animal.nautilus.ZombieNautilusEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
@@ -102,7 +103,7 @@ public final class RegistryCache implements JavaRegistryProvider {
         register(JavaRegistries.PIG_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
         register(JavaRegistries.COW_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
         register(JavaRegistries.CHICKEN_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
-        register(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
+        register(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT, ZombieNautilusEntity.VARIANT_READER);
 
         // Load from MCProtocolLib's classloader
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();
