@@ -33,8 +33,8 @@ import org.jetbrains.annotations.ApiStatus;
 import java.util.List;
 
 /**
- * Similar to the {@code HolderSet}s in Minecraft, a Holders object can represent either a list of identifiers, or an identifier of a Minecraft registry tag. What these identifiers represent, depends on the context
- * in which to Holders object is used.
+ * Similar to the {@code HolderSet}s in Minecraft, a Holders object can represent either a list of identifiers, or an identifier of a Minecraft registry tag.
+ * What these identifiers represent depends on the context in which Holders are used.
  * @since 2.9.3
  */
 @ApiStatus.NonExtendable
@@ -47,7 +47,7 @@ public interface Holders {
      * @return a new Holders object
      * @since 2.9.3
      */
-    static Holders of(Identifier identifier) {
+    static @NonNull Holders of(Identifier identifier) {
         return builder().with(identifier).build();
     }
 
@@ -58,7 +58,7 @@ public interface Holders {
      * @return a new Holders object
      * @since 2.9.3
      */
-    static Holders of(List<Identifier> identifiers) {
+    static @NonNull Holders of(List<Identifier> identifiers) {
         Builder builder = builder();
         identifiers.forEach(builder::with);
         return builder.build();
@@ -71,7 +71,7 @@ public interface Holders {
      * @return a new Holders object
      * @since 2.9.3
      */
-    static Holders ofTag(Identifier tag) {
+    static @NonNull Holders ofTag(Identifier tag) {
         return builder().tag(tag).build();
     }
 
@@ -81,7 +81,7 @@ public interface Holders {
      * @return a new builder
      * @since 2.9.3
      */
-    static Builder builder() {
+    static @NonNull Builder builder() {
         return GeyserApi.api().provider(Holders.Builder.class);
     }
 
