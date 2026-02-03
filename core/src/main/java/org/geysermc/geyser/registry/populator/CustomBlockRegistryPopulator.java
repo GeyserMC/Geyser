@@ -453,11 +453,8 @@ public class CustomBlockRegistryPopulator {
                         .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion())
                         .putBoolean("isotropic", materialInstance.isotropic());
 
-                if (GameProtocol.is1_21_110orHigher(protocolVersion)) {
-                    materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
-                } else {
-                    materialBuilder.putBoolean("face_dimming", materialInstance.faceDimming());
-                }
+                // todo this is actually an bitset, we should add the other properties some day
+                materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
 
                 if (materialInstance.renderMethod() != null) {
                     materialBuilder.putString("render_method", materialInstance.renderMethod());
