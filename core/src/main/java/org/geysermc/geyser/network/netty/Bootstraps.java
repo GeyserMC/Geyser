@@ -80,7 +80,7 @@ public final class Bootstraps {
                 GeyserImpl.getInstance().getLogger().debug("so_reuseport is not available despite version being " + Native.KERNEL_VERSION);
                 success = false;
             }
-            if (channel.isOpen()) {
+            if (channel.isRegistered()) {
                 // Now yeet that channel
                 channel.close();
             }
