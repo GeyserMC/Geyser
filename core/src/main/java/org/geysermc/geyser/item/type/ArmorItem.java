@@ -30,6 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
@@ -53,18 +54,28 @@ public class ArmorItem extends Item {
             TrimMaterial material = session.getRegistryCache().registry(JavaRegistries.TRIM_MATERIAL).byId(trim.material().id());
             TrimPattern pattern = session.getRegistryCache().registry(JavaRegistries.TRIM_PATTERN).byId(trim.pattern().id());
 
-            // discard custom trim patterns/materials to prevent visual glitches on bedrock
-            if (!getNamespace(material.getMaterialId()).equals("minecraft")
-                    || !getNamespace(pattern.getPatternId()).equals("minecraft")) {
-                // TODO - how is this shown in tooltip? should we add a custom trim tooltip to the lore here
-                return;
+            if (material == null) {
+                GeyserImpl.getInstance().getLogger().debug("Unknown trim material id: ", trim.material().id());
             }
 
-            NbtMapBuilder trimBuilder = NbtMap.builder();
-            // bedrock has an uppercase first letter key, and the value is not namespaced
-            trimBuilder.put("Material", material.getMaterialId());
-            trimBuilder.put("Pattern", pattern.getPatternId());
-            builder.putCompound("Trim", trimBuilder.build());
+            if (pattern == null) {
+                GeyserImpl.getInstance().getLogger().debug("Unknown trim pattern id: ", trim.pattern().id());
+            }
+
+            if (material != null && pattern != null) {
+                // discard custom trim patterns/materials to prevent visual glitches on bedrock
+                if (!getNamespace(material.getMaterialId()).equals("minecraft")
+                    || !getNamespace(pattern.getPatternId()).equals("minecraft")) {
+                    // TODO - how is this shown in tooltip? should we add a custom trim tooltip to the lore here
+                    return;
+                }
+
+                NbtMapBuilder trimBuilder = NbtMap.builder();
+                // bedrock has an uppercase first letter key, and the value is not namespaced
+                trimBuilder.put("Material", material.getMaterialId());
+                trimBuilder.put("Pattern", pattern.getPatternId());
+                builder.putCompound("Trim", trimBuilder.build());
+            }
         }
     }
 
