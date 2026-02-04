@@ -30,7 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -38,9 +38,8 @@ import org.geysermc.geyser.entity.vehicle.BoostableVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
@@ -52,13 +51,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
-import java.util.UUID;
-
 public class PigEntity extends TemperatureVariantAnimal implements Tickable, ClientVehicle {
     private final BoostableVehicleComponent<PigEntity> vehicleComponent = new BoostableVehicleComponent<>(this, 1.0f);
 
-    public PigEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public PigEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override
@@ -106,6 +103,7 @@ public class PigEntity extends TemperatureVariantAnimal implements Tickable, Cli
 
     @Override
     public void tick() {
+        super.tick();
         PlayerEntity player = getPlayerPassenger();
         if (player == null) {
             return;

@@ -25,26 +25,22 @@
 
 package org.geysermc.geyser.entity.type.living.monster;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
-
-import java.util.UUID;
 
 public class GuardianEntity extends MonsterEntity {
 
-    public GuardianEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public GuardianEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     public void setGuardianTarget(IntEntityMetadata entityMetadata) {
         int entityId = entityMetadata.getPrimitiveValue();
         Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
         if (entity != null) {
-            dirtyMetadata.put(EntityDataTypes.TARGET_EID, entity.getGeyserId());
+            dirtyMetadata.put(EntityDataTypes.TARGET_EID, entity.geyserId());
         } else {
             dirtyMetadata.put(EntityDataTypes.TARGET_EID, (long) 0);
         }

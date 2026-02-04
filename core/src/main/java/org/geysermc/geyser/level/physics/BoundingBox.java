@@ -68,6 +68,12 @@ public class BoundingBox implements Cloneable {
         sizeZ += Math.abs(z);
     }
 
+    public void scale(double x, double y, double z) {
+        sizeX *= x;
+        sizeY *= y;
+        sizeZ *= z;
+    }
+
     public void expand(double x, double y, double z) {
         sizeX += x;
         sizeY += y;
@@ -140,6 +146,47 @@ public class BoundingBox implements Cloneable {
             case Y -> (sizeY + otherBox.getSizeY()) - Math.abs((middleY + yOffset) - otherBox.getMiddleY()) * 2 > EPSILON;
             case Z -> (sizeZ + otherBox.getSizeZ()) - Math.abs((middleZ + zOffset) - otherBox.getMiddleZ()) * 2 > EPSILON;
         };
+    }
+
+    public void pushOutOfBoundingBox(BoundingBox playerBox, Direction direction, double maxPushTolerance) {
+        switch (direction) {
+            case NORTH -> {
+                double distance = this.getMin(Axis.Z) - playerBox.getMax(Axis.Z);
+                if (Math.abs(distance) < maxPushTolerance) {
+                    playerBox.translate(0, 0, distance);
+                }
+            }
+            case SOUTH -> {
+                double distance = this.getMax(Axis.Z) - playerBox.getMin(Axis.Z);
+                if (Math.abs(distance) < maxPushTolerance) {
+                    playerBox.translate(0, 0, distance);
+                }
+            }
+            case EAST -> {
+                double distance = this.getMax(Axis.X) - playerBox.getMin(Axis.X);
+                if (Math.abs(distance) < maxPushTolerance) {
+                    playerBox.translate(distance, 0, 0);
+                }
+            }
+            case WEST -> {
+                double distance = this.getMin(Axis.X) - playerBox.getMax(Axis.X);
+                if (Math.abs(distance) < maxPushTolerance) {
+                    playerBox.translate(distance, 0, 0);
+                }
+            }
+            case UP -> {
+                double distance = this.getMax(Axis.Y) - playerBox.getMin(Axis.Y);
+                if (Math.abs(distance) < maxPushTolerance) {
+                    playerBox.translate(0, distance, 0);
+                }
+            }
+            case DOWN -> {
+                double distance = this.getMin(Axis.Y) - playerBox.getMax(Axis.Y);
+                if (Math.abs(distance) < maxPushTolerance) {
+                    playerBox.translate(0, distance, 0);
+                }
+            }
+        }
     }
 
     /**

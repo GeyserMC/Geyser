@@ -184,7 +184,7 @@ public class ConnectionTestCommand extends GeyserCommand {
                     JsonObject cache = output.getAsJsonObject("cache");
                     String when;
                     if (cache.get("fromCache").isJsonPrimitive()) {
-                        when = cache.get("secondsSince").getAsBoolean() + " seconds ago";
+                        when = cache.get("secondsSince").getAsInt() + " seconds ago";
                     } else {
                         when = "now";
                     }

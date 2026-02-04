@@ -25,29 +25,54 @@
 
 package org.geysermc.geyser.entity.type.living.animal.nautilus;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
+import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.entity.properties.type.EnumProperty;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.impl.IdentifierImpl;
+import org.geysermc.geyser.session.cache.RegistryCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.geyser.util.MinecraftKey;
 
-import java.util.UUID;
+public class ZombieNautilusEntity extends AbstractNautilusEntity implements VariantHolder<ZombieNautilusEntity.BuiltInVariant> {
 
-public class ZombieNautilusEntity extends AbstractNautilusEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
-    public ZombieNautilusEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw, 1.1f);
+    public static final EnumProperty<BuiltInVariant> VARIANT_ENUM_PROPERTY = new EnumProperty<>(
+        IdentifierImpl.of("variant"),
+        BuiltInVariant.class,
+        BuiltInVariant.DEFAULT
+    );
+
+    public static final RegistryCache.RegistryReader<BuiltInVariant> VARIANT_READER = VariantHolder.reader(BuiltInVariant.class, BuiltInVariant.DEFAULT);
+
+    public ZombieNautilusEntity(EntitySpawnContext context) {
+        super(context, 1.1f);
     }
 
     @Override
-    public void setBedrockVariant(TemperatureVariantAnimal.BuiltInVariant variant) {
-        TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, variant);
+    public void setBedrockVariant(BuiltInVariant variant) {
+        VARIANT_ENUM_PROPERTY.apply(propertyManager, variant);
         updateBedrockEntityProperties();
     }
 
     @Override
-    public JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> variantRegistry() {
+    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
         return JavaRegistries.ZOMBIE_NAUTILUS_VARIANT;
+    }
+
+    public enum BuiltInVariant implements VariantHolder.BuiltIn {
+        DEFAULT("temperate"),
+        CORAL("warm");
+
+        private final String javaId;
+
+        BuiltInVariant(String javaId) {
+            this.javaId = javaId;
+        }
+
+        @Override
+        public Key javaIdentifier() {
+            return MinecraftKey.key(javaId);
+        }
     }
 }

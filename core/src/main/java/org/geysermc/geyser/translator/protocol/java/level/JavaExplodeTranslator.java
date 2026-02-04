@@ -73,7 +73,7 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
             entity.setMotion(entity.getMotion().add(packet.getPlayerKnockback().toFloat()));
 
             SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
-            motionPacket.setRuntimeEntityId(entity.getGeyserId());
+            motionPacket.setRuntimeEntityId(entity.geyserId());
             motionPacket.setMotion(entity.getMotion());
             session.sendUpstreamPacket(motionPacket);
         }

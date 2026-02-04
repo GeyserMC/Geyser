@@ -189,7 +189,7 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
 
     @Override
     public void onConnect() {
-        sendPacket(new BackendboundInitializePacket(session.getPlayerEntity().getUuid(), GameProtocol.getJavaProtocolVersion()));
+        sendPacket(new BackendboundInitializePacket(session.getPlayerEntity().uuid(), GameProtocol.getJavaProtocolVersion()));
     }
 
     public void sendPacket(BackendboundPacket packet) {
