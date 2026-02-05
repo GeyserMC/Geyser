@@ -171,7 +171,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 for (int col = firstCol; col < width + firstCol; col++) {
                     GeyserItemStack geyserItemStack = holder.inventory().getItem(col + (row * gridDimensions) + 1);
                     ingredients[index] = geyserItemStack.getItemData(session);
-                    javaIngredients.add(geyserItemStack.asSlotDisplay());
+                    javaIngredients.add(geyserItemStack.asIngredient());
 
                     InventorySlotPacket slotPacket = new InventorySlotPacket();
                     slotPacket.setContainerId(ContainerId.UI);
@@ -254,9 +254,9 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             }
 
             session.getSmithingRecipes().add(new GeyserSmithingRecipe(
-                template.asSlotDisplay(),
-                input.asSlotDisplay(),
-                material.asSlotDisplay(),
+                template.asIngredient(),
+                input.asIngredient(),
+                material.asIngredient(),
                 new ItemStackSlotDisplay(output)
             ));
 
