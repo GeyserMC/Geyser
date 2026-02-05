@@ -31,10 +31,10 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
@@ -43,7 +43,7 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Collections;
-
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -142,13 +142,24 @@ public class FormCache {
     public void closeForms() {
         if (!forms.isEmpty()) {
             // Check if there are any forms that have not been sent to the client yet
-            for (Int2ObjectMap.Entry<Form> entry : forms.int2ObjectEntrySet()) {
-                if (!sentFormIds.contains(entry.getIntKey())) {
-                    // This will send the form, but close it instantly with the packet later
-                    // ...thereby clearing our list!
-                    sendForm(entry.getIntKey(), entry.getValue());
+            Iterator<Int2ObjectMap.Entry<Form>> iterator = forms.int2ObjectEntrySet().iterator();
+            while (iterator.hasNext()) {
+                Int2ObjectMap.Entry<Form> entry = iterator.next();
+                int key = entry.getIntKey();
+
+                if (!sentFormIds.contains(key)) {
+                    Form form = entry.getValue();
+                    iterator.remove();
+
+                    try {
+                        formDefinitions.definitionFor(form)
+                            .handleFormResponse(form, "");
+                    } catch (Exception e) {
+                        GeyserImpl.getInstance().getLogger().error("Error while processing form response!", e);
+                    }
                 }
             }
+
             session.sendUpstreamPacket(new ClientboundCloseFormPacket());
         }
     }
