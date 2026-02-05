@@ -34,7 +34,6 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import lombok.Getter;
 import lombok.Setter;
-import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.level.physics.Axis;
@@ -42,12 +41,14 @@ import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.awt.Color;
-import java.util.Optional;
 
 import static org.geysermc.geyser.level.physics.CollisionManager.COLLISION_TOLERANCE;
 
 public class WorldBorder {
     private static final double DEFAULT_WORLD_BORDER_SIZE = 5.9999968E7D;
+    private static final Color DEFAULT_WORLD_BORDER_COLOR = new Color(32, 160, 255);
+    private static final Color SHRINKING_WORLD_BORDER_COLOR = new Color(255, 48, 48);
+    private static final Color GROWING_WORLD_BORDER_COLOR = new Color(64, 255, 128);
 
     @Setter
     private @NonNull Vector2d center = Vector2d.ZERO;
@@ -91,11 +92,6 @@ public class WorldBorder {
     @Setter
     private int absoluteMaxSize = 29999984;
 
-    /**
-     * The world coordinate scale as sent in the dimension registry. Used to scale the center X and Z.
-     */
-    private double worldCoordinateScale = 1.0D;
-
     @Setter
     @Getter
     private boolean resizing;
@@ -117,6 +113,7 @@ public class WorldBorder {
     private double warningMinX = 0.0D;
     private double warningMinZ = 0.0D;
 
+    @SuppressWarnings("FieldCanBeLocal") // We will use this at some point down the line for Integrated Pack
     private Color currentWorldBorderColor = DEFAULT_WORLD_BORDER_COLOR;
 
     /**
@@ -349,7 +346,7 @@ public class WorldBorder {
                         break;
                     }
 
-                    sendWorldBorderParticle(x, y, z, true);
+                    sendWorldBorderParticle(x, y, z);
                 }
             } else {
                 float z = position.getZ();
@@ -361,41 +358,16 @@ public class WorldBorder {
                         break;
                     }
 
-                    sendWorldBorderParticle(x, y, z, false);
+                    sendWorldBorderParticle(x, y, z);
                 }
             }
         }
     }
 
-    private void sendWorldBorderParticle(float x, float y, float z, boolean drawWallX) {
-        final boolean isWorldBorderDebugging = Boolean.getBoolean("geyser.debug.world_border");
-        final boolean isIntegratedPackEnabled = session.getGeyser().config().gameplay().enableIntegratedPack();
-
-        if (isIntegratedPackEnabled) {
-            float r = currentWorldBorderColor.getRed() / 255f;
-            float g = currentWorldBorderColor.getGreen() / 255f;
-            float b = currentWorldBorderColor.getBlue() / 255f;
-
-            SpawnParticleEffectPacket particlePacket = new SpawnParticleEffectPacket();
-            particlePacket.setDimensionId(session.getBedrockDimension().bedrockId());
-            particlePacket.setPosition(Vector3f.from(x, y, z));
-            particlePacket.setIdentifier("geyseropt:world_border_" + (drawWallX ? "x" : "z"));
-            particlePacket.setMolangVariablesJson(Optional.of("[" +
-                    "{\"name\": \"variable.r\", \"value\": {\"type\": \"float\", \"value\": %f}},".formatted(r) +
-                    "{\"name\": \"variable.g\", \"value\": {\"type\": \"float\", \"value\": %f}},".formatted(g) +
-                    "{\"name\": \"variable.b\", \"value\": {\"type\": \"float\", \"value\": %f}}".formatted(b) +
-                    "]"));
-            session.getUpstream().sendPacket(particlePacket);
-        }
-
-        // Fallback in case the integrated pack isn't enabled
-        // The debug flag allows us to see both, as this method is always accurate with the positioning
-        // whereas the particles do not line up perfectly currently, this allows us to see what needs tweaking
-        if (isWorldBorderDebugging || !isIntegratedPackEnabled) {
-            LevelEventPacket effectPacket = new LevelEventPacket();
-            effectPacket.setPosition(Vector3f.from(x, y, z));
-            effectPacket.setType(LevelEvent.PARTICLE_DENY_BLOCK);
-            session.getUpstream().sendPacket(effectPacket);
-        }
+    private void sendWorldBorderParticle(float x, float y, float z) {
+        LevelEventPacket effectPacket = new LevelEventPacket();
+        effectPacket.setPosition(Vector3f.from(x, y, z));
+        effectPacket.setType(LevelEvent.PARTICLE_DENY_BLOCK);
+        session.getUpstream().sendPacket(effectPacket);
     }
 }

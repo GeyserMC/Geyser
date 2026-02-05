@@ -34,32 +34,7 @@ import org.geysermc.geyser.text.ChatColor;
  * Much of the work here is from the wonderful folks from <a href="https://github.com/ViaVersion/ViaRewind">ViaRewind</a>
  */
 public class CooldownUtils {
-    /**
-     * Sets the last hit time for use when ticking the attack cooldown
-     *
-     * @param session GeyserSession
-     */
-    public static void sendCooldown(GeyserSession session) {
-        if (session.getGeyser().config().gameplay().showCooldown() == CooldownType.DISABLED) return;
-        CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
-        if (sessionPreference == CooldownType.DISABLED) return;
-
-        if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) {
-            return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
-        }
-
-        session.setLastHitTime(System.currentTimeMillis());
-    }
-
-    public static String getTitle(GeyserSession session) {
-        long time = System.currentTimeMillis() - session.getLastHitTime();
-        double tickrateMultiplier = Math.max(session.getMillisecondsPerTick() / 50, 1.0);
-        double cooldown = MathUtils.restrain(((double) time) * session.getAttackSpeed() / (tickrateMultiplier * 1000.0), 1.0);
-
-        if (cooldown == 1.0 && session.getMouseoverEntity() != null) {
-            return ChatColor.GREEN + "˙".repeat(10);
-        }
-
+    public static String getTitle(double cooldown) {
         int darkGrey = (int) Math.floor(10d * cooldown);
         int grey = 10 - darkGrey;
         StringBuilder builder = new StringBuilder(ChatColor.DARK_GRAY);
@@ -73,30 +48,6 @@ public class CooldownUtils {
             grey--;
         }
         return builder.toString();
-    }
-
-    public static String getIntegratedPackTitle(GeyserSession session, CooldownType sessionPreference) {
-        long time = System.currentTimeMillis() - session.getLastHitTime();
-        double tickrateMultiplier = Math.max(session.getMillisecondsPerTick() / 50, 1.0);
-        double cooldown = MathUtils.restrain(((double) time) * session.getAttackSpeed() / (tickrateMultiplier * 1000.0), 1.0);
-
-        int size;
-        byte offset;
-        if (sessionPreference.equals(CooldownType.TITLE)) {
-            size = 17; // Crosshair cooldown has 17 different types
-            offset = 0;
-        } else {
-            size = 18; // Hotbar cooldown has 18 different types
-            offset = 18;
-        }
-        if (cooldown < 1.0) {
-            offset += (byte) ((cooldown * size) - 1);
-        } else if (session.getMouseoverEntity() != null) {
-            offset += (byte) 17; // 17 is the hover one
-        } else { // We shouldn't really get to here, but if we do, cooldown is over, just return a space string (thanks bedrock)
-            return " ";
-        }
-        return String.valueOf((char) (0xEF00 + offset));
     }
 
     @Getter

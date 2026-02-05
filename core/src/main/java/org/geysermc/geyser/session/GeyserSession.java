@@ -130,14 +130,10 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMappings;
-import org.geysermc.geyser.scoreboard.Objective;
-import org.geysermc.geyser.scoreboard.Scoreboard;
-import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.session.cache.AdvancementsCache;
@@ -166,7 +162,6 @@ import org.geysermc.geyser.session.dialog.BuiltInDialog;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.session.dialog.DialogManager;
 import org.geysermc.geyser.skin.SkinManager;
-import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -181,8 +176,6 @@ import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.ProtocolState;
 import org.geysermc.mcprotocollib.protocol.data.game.ServerLink;
-import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.BlankFormat;
-import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
@@ -190,8 +183,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.HandPreference;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreType;
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ChatVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ParticleStatus;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.SkinPart;
@@ -711,7 +702,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * A cache of IDs from ClientboundKeepAlivePackets that have been sent to the Bedrock client, but haven't been returned to the server.
      * Only used if {@link GeyserConfig.GameplayConfig#forwardPlayerPing()} is enabled.
      */
-    private final Queue<Long> keepAliveCache = new ConcurrentLinkedQueue<>();
+    private final Queue<Runnable> latencyPingCache = new ConcurrentLinkedQueue<>();
+
+    /**
+     * Queued packets to be sent immediately at the end of each tick.
+     */
+    private final List<BedrockPacket> queuedImmediatelyPackets = new ArrayList<>();
 
     /**
      * Stores the book that is currently being read. Used in {@link org.geysermc.geyser.translator.protocol.java.inventory.JavaOpenBookTranslator}
@@ -869,7 +865,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         upstream.sendPacket(setCommandsEnabledPacket);
 
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-        attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
+        attributesPacket.setRuntimeEntityId(getPlayerEntity().geyserId());
         // Default move speed
         // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
         attributesPacket.setAttributes(Collections.singletonList(
@@ -1310,6 +1306,21 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         worldTicks++;
     }
 
+    /**
+     * Sets the last hit time for use when ticking the attack cooldown
+     */
+    public void setCooldownHitTime() {
+        if (this.getGeyser().config().gameplay().showCooldown() == CooldownUtils.CooldownType.DISABLED) return;
+        CooldownUtils.CooldownType sessionPreference = this.getPreferencesCache().getCooldownPreference();
+        if (sessionPreference == CooldownUtils.CooldownType.DISABLED) return;
+
+        if (this.getAttackSpeed() == 0.0 || this.getAttackSpeed() > 20) {
+            return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
+        }
+
+        this.setLastHitTime(System.currentTimeMillis());
+    }
+
     private void tickCooldown() {
         if (getGeyser().config().gameplay().showCooldown() == CooldownUtils.CooldownType.DISABLED) return;
         CooldownUtils.CooldownType sessionPreference = getPreferencesCache().getCooldownPreference();
@@ -1318,6 +1329,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (getGameMode().equals(GameMode.SPECTATOR)) return; // No attack indicator in spectator
 
         if (getAttackSpeed() == 0.0 || getAttackSpeed() > 20) {
+            clearCooldown(); // Let's clear in the off chance there is something already displayed
             return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
         }
 
@@ -1325,93 +1337,92 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         double tickrateMultiplier = Math.max(getMillisecondsPerTick() / 50, 1.0);
         double cooldown = MathUtils.restrain(((double) time) * getAttackSpeed() / (tickrateMultiplier * 1000.0), 1.0);
 
-        boolean showCooldown = cooldown < 1.0 || getMouseoverEntity() != null;
-
-        if (getGeyser().config().gameplay().enableIntegratedPack()) {
-            if (showCooldown) {
-                sendJsonUIData(
-                        sessionPreference.equals(CooldownUtils.CooldownType.TITLE) ?
-                                "crosshair_cooldown" :
-                                "hotbar_cooldown",
-                        CooldownUtils.getIntegratedPackTitle(this, sessionPreference)
-                );
-
-                needCooldownTitleReset = true;
-            } else if (needCooldownTitleReset) {
-                // Clear both, users can change their preference on the fly
-                sendJsonUIData("crosshair_cooldown", " ");
-                sendJsonUIData("hotbar_cooldown", " ");
-
-                needCooldownTitleReset = false;
-            }
-        } else { // No integrated pack
-            if (showCooldown) {
-                // Set the times to stay a bit with no fade in nor out
-                SetTitlePacket titlePacket = new SetTitlePacket();
-                titlePacket.setType(SetTitlePacket.Type.TIMES);
-                titlePacket.setStayTime(1000);
-                titlePacket.setText("");
-                titlePacket.setXuid("");
-                titlePacket.setPlatformOnlineId("");
-                sendUpstreamPacket(titlePacket);
-
-                getWorldCache().markTitleTimesAsIncorrect();
-
-                // Actionbars don't need an empty title
-                if (sessionPreference == CooldownUtils.CooldownType.TITLE) {
-                    // Needs to be sent or no subtitle packet is recognized by the client
-                    titlePacket = new SetTitlePacket();
-                    titlePacket.setType(SetTitlePacket.Type.TITLE);
-                    titlePacket.setText(" ");
-                    titlePacket.setXuid("");
-                    titlePacket.setPlatformOnlineId("");
-                    sendUpstreamPacket(titlePacket);
-                }
-
-                titlePacket = new SetTitlePacket();
-                if (sessionPreference == CooldownUtils.CooldownType.ACTIONBAR) {
-                    titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-                } else {
-                    titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
-                }
-                titlePacket.setText(CooldownUtils.getTitle(this));
-                titlePacket.setXuid("");
-                titlePacket.setPlatformOnlineId("");
-                sendUpstreamPacket(titlePacket);
-
-                needCooldownTitleReset = true;
-            } else if (needCooldownTitleReset) {
-                SetTitlePacket removeTitlePacket = new SetTitlePacket();
-                removeTitlePacket.setType(SetTitlePacket.Type.CLEAR);
-                removeTitlePacket.setText(" ");
-                removeTitlePacket.setXuid("");
-                removeTitlePacket.setPlatformOnlineId("");
-                sendUpstreamPacket(removeTitlePacket);
-
-                needCooldownTitleReset = false;
-            }
+        if (cooldown < 1.0) {
+            sendCooldown(sessionPreference, cooldown);
+        } else if (needCooldownTitleReset) {
+            clearCooldown();
         }
     }
 
+    private void sendCooldown(CooldownUtils.CooldownType sessionPreference, double cooldown) {
+//        if (integratedPackActive) {
+//            sendJsonUIData(
+//                sessionPreference.equals(CooldownUtils.CooldownType.TITLE) ?
+//                    "crosshair_cooldown" :
+//                    "hotbar_cooldown",
+//                cooldown
+//            );
+//        } else {
+            // Set the times to stay a bit with no fade in nor out
+            SetTitlePacket titlePacket = new SetTitlePacket();
+            titlePacket.setType(SetTitlePacket.Type.TIMES);
+            titlePacket.setStayTime(1000);
+            titlePacket.setText("");
+            titlePacket.setXuid("");
+            titlePacket.setPlatformOnlineId("");
+            sendUpstreamPacket(titlePacket);
+
+            getWorldCache().markTitleTimesAsIncorrect();
+
+            // Actionbars don't need an empty title
+            if (sessionPreference == CooldownUtils.CooldownType.TITLE) {
+                // Needs to be sent or no subtitle packet is recognized by the client
+                titlePacket = new SetTitlePacket();
+                titlePacket.setType(SetTitlePacket.Type.TITLE);
+                titlePacket.setText(" ");
+                titlePacket.setXuid("");
+                titlePacket.setPlatformOnlineId("");
+                sendUpstreamPacket(titlePacket);
+            }
+
+            titlePacket = new SetTitlePacket();
+            if (sessionPreference == CooldownUtils.CooldownType.ACTIONBAR) {
+                titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
+            } else {
+                titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
+            }
+            titlePacket.setText(CooldownUtils.getTitle(cooldown));
+            titlePacket.setXuid("");
+            titlePacket.setPlatformOnlineId("");
+            sendUpstreamPacket(titlePacket);
+//        }
+
+        needCooldownTitleReset = true;
+    }
+
+    private void clearCooldown() {
+//        if (integratedPackActive) {
+//            // Clear both, users can change their preference on the fly
+//            sendJsonUIData("crosshair_cooldown", "hide");
+//            sendJsonUIData("hotbar_cooldown", "hide");
+//        } else {
+            SetTitlePacket removeTitlePacket = new SetTitlePacket();
+            removeTitlePacket.setType(SetTitlePacket.Type.CLEAR);
+            removeTitlePacket.setText(" ");
+            removeTitlePacket.setXuid("");
+            removeTitlePacket.setPlatformOnlineId("");
+            sendUpstreamPacket(removeTitlePacket);
+//        }
+
+        needCooldownTitleReset = false;
+    }
+
+    public void sendJsonUIData(String key, double value) {
+        sendJsonUIData(key, String.valueOf(value));
+    }
+
     public void sendJsonUIData(String key, String value) {
-        int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
+        String text = "geyseropt:%s:%s".formatted(key, value);
 
-        Component component = Component.text("geyseropt:%s:%s".formatted(key, value));
+        TextPacket textPacket = new TextPacket();
+        textPacket.setPlatformChatId("");
+        textPacket.setSourceName("");
+        textPacket.setXuid("");
+        textPacket.setType(TextPacket.Type.TIP);
+        textPacket.setNeedsTranslation(false);
+        textPacket.setMessage(text);
 
-        Scoreboard scoreboard = worldCache.getScoreboard();
-        if (scoreboard.getObjectiveSlots().containsKey(ScoreboardPosition.PLAYER_LIST)) {
-            Objective objective = scoreboard.getObjectiveSlots().get(ScoreboardPosition.PLAYER_LIST).objective();
-            objective.updateProperties(component, objective.getType(), objective.getNumberFormat());
-        } else {
-            Objective objective = scoreboard.registerNewObjective("GeyserOpt-JSONUI-Communication");
-            if (objective == null) objective = scoreboard.getObjective("GeyserOpt-JSONUI-Communication");
-            objective.updateProperties(component, ScoreType.INTEGER, BlankFormat.INSTANCE);
-            scoreboard.displayObjective("GeyserOpt-JSONUI-Communication", ScoreboardPosition.PLAYER_LIST);
-        }
-
-        if (pps < ScoreboardUpdater.FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
-            scoreboard.onUpdate();
-        }
+        this.sendUpstreamPacket(textPacket);
     }
 
     public void startSneaking(boolean updateMetaData) {
@@ -1830,8 +1841,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
 
         StartGamePacket startGamePacket = new StartGamePacket();
-        startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
-        startGamePacket.setRuntimeEntityId(playerEntity.getGeyserId());
+        startGamePacket.setUniqueEntityId(playerEntity.geyserId());
+        startGamePacket.setRuntimeEntityId(playerEntity.geyserId());
         startGamePacket.setPlayerGameType(EntityUtils.toBedrockGamemode(gameMode));
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
@@ -1955,7 +1966,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             if (unconfirmedTeleport.getTeleportType() == TeleportCache.TeleportType.KEEP_VELOCITY) {
                 SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
-                entityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+                entityMotionPacket.setRuntimeEntityId(playerEntity.geyserId());
                 entityMotionPacket.setMotion(unconfirmedTeleport.getVelocity());
                 this.sendUpstreamPacket(entityMotionPacket);
             }
@@ -2103,7 +2114,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send an AdventureSettingsPacket to the client with the latest flags
      */
     public void sendAdventureSettings() {
-        long bedrockId = playerEntity.getGeyserId();
+        long bedrockId = playerEntity.geyserId();
         // Set command permission if OP permission level is high enough
         // This allows mobile players access to a GUI for doing commands. The commands there do not change above OPERATOR
         // and all commands there are accessible with OP permission level 2
@@ -2254,7 +2265,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 player.getEmotes().add(piece);
             }
             EmoteListPacket emoteList = new EmoteListPacket();
-            emoteList.setRuntimeEntityId(player.getPlayerEntity().getGeyserId());
+            emoteList.setRuntimeEntityId(player.getPlayerEntity().geyserId());
             emoteList.getPieceIds().addAll(pieces);
             player.sendUpstreamPacket(emoteList);
         }
@@ -2361,7 +2372,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public UUID javaUuid() {
-        return playerEntity != null ? playerEntity.getUuid() : null;
+        return playerEntity != null ? playerEntity.uuid() : null;
     }
 
     @Override
@@ -2535,6 +2546,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         packet.setType(type);
         packet.setSoftEnum(new CommandEnumData(name, Collections.singletonMap(enums, Collections.emptySet()), true));
         sendUpstreamPacket(packet);
+    }
+
+    public void sendNetworkLatencyStackPacket(long timestamp, boolean ensureEventLoop, Runnable runnable) {
+        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
+        latencyPacket.setFromServer(true);
+        latencyPacket.setTimestamp(timestamp);
+        if (ensureEventLoop) {
+            latencyPingCache.add(() -> ensureInEventLoop(runnable));
+        } else {
+            latencyPingCache.add(runnable);
+        }
+        sendUpstreamPacket(latencyPacket);
     }
 
     public String getDebugInfo() {
