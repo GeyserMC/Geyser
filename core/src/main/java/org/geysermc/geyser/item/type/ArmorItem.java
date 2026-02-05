@@ -35,6 +35,7 @@ import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -51,21 +52,25 @@ public class ArmorItem extends Item {
 
         ArmorTrim trim = components.get(DataComponentTypes.TRIM);
         if (trim != null) {
-            TrimMaterial material = session.getRegistryCache().registry(JavaRegistries.TRIM_MATERIAL).byId(trim.material().id());
-            TrimPattern pattern = session.getRegistryCache().registry(JavaRegistries.TRIM_PATTERN).byId(trim.pattern().id());
-
-            if (material == null) {
-                GeyserImpl.getInstance().getLogger().debug("Unknown trim material id: ", trim.material().id());
+            TrimMaterial material;
+            if (trim.material().isId()) {
+                material = session.getRegistryCache().registry(JavaRegistries.TRIM_MATERIAL).byId(trim.material().id());
+            } else {
+                GeyserImpl.getInstance().getLogger().debug("Unable to translate non-id trim material: " + trim);
+                return;
             }
 
-            if (pattern == null) {
-                GeyserImpl.getInstance().getLogger().debug("Unknown trim pattern id: ", trim.pattern().id());
+            TrimPattern pattern;
+            if (trim.pattern().isId()) {
+                pattern = session.getRegistryCache().registry(JavaRegistries.TRIM_PATTERN).byId(trim.pattern().id());
+            } else {
+                GeyserImpl.getInstance().getLogger().debug("Unable to translate non-id trim pattern: " + trim);
+                return;
             }
 
             if (material != null && pattern != null) {
                 // discard custom trim patterns/materials to prevent visual glitches on bedrock
-                if (!getNamespace(material.getMaterialId()).equals("minecraft")
-                    || !getNamespace(pattern.getPatternId()).equals("minecraft")) {
+                if (!MinecraftKey.isVanilla(material.getMaterialId()) || !MinecraftKey.isVanilla(pattern.getPatternId())) {
                     // TODO - how is this shown in tooltip? should we add a custom trim tooltip to the lore here
                     return;
                 }
@@ -75,16 +80,9 @@ public class ArmorItem extends Item {
                 trimBuilder.put("Material", material.getMaterialId());
                 trimBuilder.put("Pattern", pattern.getPatternId());
                 builder.putCompound("Trim", trimBuilder.build());
+            } else {
+                GeyserImpl.getInstance().getLogger().debug("Unknown trim material/pattern: ", trim);
             }
         }
-    }
-
-    // TODO maybe some kind of namespace util?
-    private static String getNamespace(String identifier) {
-        int i = identifier.indexOf(':');
-        if (i >= 0) {
-            return identifier.substring(0, i);
-        }
-        return "minecraft";
     }
 }
