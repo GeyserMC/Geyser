@@ -27,8 +27,6 @@ package org.geysermc.geyser.session.cache;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
@@ -43,7 +41,6 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -58,7 +55,6 @@ public class FormCache {
     private final FormDefinitions formDefinitions = FormDefinitions.instance();
     private final AtomicInteger formIdCounter = new AtomicInteger(0);
     private final Int2ObjectMap<Form> forms = new Int2ObjectOpenHashMap<>();
-    private final IntList sentFormIds = new IntArrayList();
     private final GeyserSession session;
 
     public boolean hasFormOpen() {
@@ -66,7 +62,7 @@ public class FormCache {
         // so technically this returns "has forms to show" or "has open"
         // Forms are only queued in specific circumstances, such as waiting on
         // previous inventories to close
-        return !forms.isEmpty() && !sentFormIds.isEmpty();
+        return !forms.isEmpty();
     }
 
     public int addForm(Form form) {
@@ -85,9 +81,6 @@ public class FormCache {
 
     private void sendForm(int formId, Form form) {
         String jsonData = formDefinitions.codecFor(form).jsonData(form);
-
-        // Store that this form has been sent
-        sentFormIds.add(formId);
 
         ModalFormRequestPacket formRequestPacket = new ModalFormRequestPacket();
         formRequestPacket.setFormId(formId);
@@ -126,7 +119,6 @@ public class FormCache {
 
     public void handleResponse(ModalFormResponsePacket response) {
         Form form = forms.remove(response.getFormId());
-        this.sentFormIds.rem(response.getFormId());
         if (form == null) {
             return;
         }
@@ -141,25 +133,16 @@ public class FormCache {
 
     public void closeForms() {
         if (!forms.isEmpty()) {
-            // Check if there are any forms that have not been sent to the client yet
-            Iterator<Int2ObjectMap.Entry<Form>> iterator = forms.int2ObjectEntrySet().iterator();
-            while (iterator.hasNext()) {
-                Int2ObjectMap.Entry<Form> entry = iterator.next();
-                int key = entry.getIntKey();
-
-                if (!sentFormIds.contains(key)) {
-                    Form form = entry.getValue();
-                    iterator.remove();
-
-                    try {
-                        formDefinitions.definitionFor(form)
-                            .handleFormResponse(form, "");
-                    } catch (Exception e) {
-                        GeyserImpl.getInstance().getLogger().error("Error while processing form response!", e);
-                    }
+            for (Form form : forms.values()) {
+                try {
+                    formDefinitions.definitionFor(form).handleFormResponse(form, "");
+                } catch (Exception e) {
+                    GeyserImpl.getInstance().getLogger().error("Error while closing form!", e);
                 }
             }
+            forms.clear();
 
+            // Now close it
             session.sendUpstreamPacket(new ClientboundCloseFormPacket());
         }
     }
