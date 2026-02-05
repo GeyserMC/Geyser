@@ -71,17 +71,20 @@ public final class Bootstraps {
     public static boolean setupBootstrap(AbstractBootstrap bootstrap) {
         boolean success = true;
         if (REUSEPORT_AVAILABLE) {
-            // Guessing whether so_reuseport is available based on kernel version is cool, but unreliable.
-            Channel channel = bootstrap.register().channel();
-            if (channel.config().setOption(UnixChannelOption.SO_REUSEPORT, true)) {
-                bootstrap.option(UnixChannelOption.SO_REUSEPORT, true);
-            } else {
-                // If this occurs, we guessed wrong and reuseport is not available
-                GeyserImpl.getInstance().getLogger().debug("so_reuseport is not available despite version being " + Native.KERNEL_VERSION);
-                success = false;
+            Channel channel = bootstrap.register().awaitUninterruptibly().channel();
+            try {
+                // Guessing whether so_reuseport is available based on kernel version is cool, but unreliable.
+                if (channel.config().setOption(UnixChannelOption.SO_REUSEPORT, true)) {
+                    bootstrap.option(UnixChannelOption.SO_REUSEPORT, true);
+                } else {
+                    // If this occurs, we guessed wrong and reuseport is not available
+                    GeyserImpl.getInstance().getLogger().debug("so_reuseport is not available despite version being " + Native.KERNEL_VERSION);
+                    success = false;
+                }
+            } finally {
+                // Now yeet that channel
+                channel.close();
             }
-            // Now yeet that channel
-            channel.close();
         }
         return success;
     }
