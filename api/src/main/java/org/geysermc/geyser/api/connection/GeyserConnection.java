@@ -180,7 +180,6 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @param emoter the player entity emoting.
      * @param emoteId the emote ID to send to this client.
-     * @deprecated use {@link EntityData#showEmote(GeyserPlayerEntity, String)} instead
      */
     void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
 
