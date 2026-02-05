@@ -1491,6 +1491,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return false;
     }
 
+    @Override
     public void requestOffhandSwap() {
         ServerboundPlayerActionPacket swapHandsPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, Vector3i.ZERO,
             Direction.DOWN, 0);
@@ -2367,6 +2368,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId) {
         entities().showEmote(emoter, emoteId);
+    }
+
+    @Override
+    public @NonNull GeyserPlayerEntity playerEntity() {
+        return playerEntity;
     }
 
     public void setLockInput(InputLocksFlag flag, boolean value) {
