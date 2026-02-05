@@ -184,7 +184,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     }
 
                     // Java edition sends a cooldown when hitting air.
-                    session.setCooldownHitTime();
+                    CooldownUtils.setCooldownHitTime(session);
                 }
             }
         }

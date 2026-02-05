@@ -466,7 +466,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (session.getPlayerInventory().getItemInHand().getComponent(DataComponentTypes.PIERCING_WEAPON) != null && session.getGameMode() != GameMode.SPECTATOR) {
                             session.sendDownstreamPacket(new ServerboundPlayerActionPacket(PlayerAction.STAB, Vector3i.ZERO, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.DOWN, 0));
                             session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
-                            session.setCooldownHitTime();
+                            CooldownUtils.setCooldownHitTime(session);
                         }
                     }
                 }
@@ -515,7 +515,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
 
                         // Since 1.19.10, LevelSoundEventPackets are no longer sent by the client when attacking entities
-                        session.setCooldownHitTime();
+                        CooldownUtils.setCooldownHitTime(session);
                     }
                 }
                 break;

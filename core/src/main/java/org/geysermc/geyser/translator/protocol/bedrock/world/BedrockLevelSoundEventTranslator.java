@@ -51,7 +51,7 @@ public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoun
         if (packet.getSound() == SoundEvent.ATTACK_NODAMAGE || packet.getSound() == SoundEvent.ATTACK || packet.getSound() == SoundEvent.ATTACK_STRONG) {
             // Send a faux cooldown since Bedrock has no cooldown support
             // Sent here because Java still sends a cooldown if the player doesn't hit anything but Bedrock always sends a sound
-            session.setCooldownHitTime();
+            CooldownUtils.setCooldownHitTime(session);
         }
 
         // Used by client to get book from lecterns in survial mode since 1.20.70

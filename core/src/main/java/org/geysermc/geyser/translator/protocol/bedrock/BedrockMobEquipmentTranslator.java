@@ -71,7 +71,7 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
 
         if (!oldItem.isSameItem(newItem)) {
             // Java sends a cooldown indicator whenever you switch to a new item type
-            session.setCooldownHitTime();
+            CooldownUtils.setCooldownHitTime(session);
         }
 
         // Update the interactive tag, if an entity is present
