@@ -96,7 +96,6 @@ import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetCommandsEnabledPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import org.cloudburstmc.protocol.bedrock.packet.StartGamePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SyncEntityPropertyPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
