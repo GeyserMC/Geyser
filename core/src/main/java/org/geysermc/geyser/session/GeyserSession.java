@@ -368,6 +368,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * A check for whether or not a clear is required on the title for the cooldown we emulate.
      */
+    @Setter
     private boolean needCooldownTitleReset = false;
 
     /**
@@ -1330,114 +1331,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             this.upstream.getSession().getPeer().sendPacketsImmediately(0, 0, queuedImmediatelyPackets.toArray(new BedrockPacket[0]));
             queuedImmediatelyPackets.clear();
 
-            this.tickCooldown();
+            CooldownUtils.tickCooldown(this);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
 
         ticks++;
         worldTicks++;
-    }
-
-    /**
-     * Sets the last hit time for use when ticking the attack cooldown
-     */
-    public void setCooldownHitTime() {
-        if (this.getGeyser().config().gameplay().showCooldown() == CooldownUtils.CooldownType.DISABLED) return;
-        CooldownUtils.CooldownType sessionPreference = this.getPreferencesCache().getCooldownPreference();
-        if (sessionPreference == CooldownUtils.CooldownType.DISABLED) return;
-
-        if (this.getAttackSpeed() == 0.0 || this.getAttackSpeed() > 20) {
-            return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
-        }
-
-        this.setLastHitTime(System.currentTimeMillis());
-    }
-
-    private void tickCooldown() {
-        if (getGeyser().config().gameplay().showCooldown() == CooldownUtils.CooldownType.DISABLED) return;
-        CooldownUtils.CooldownType sessionPreference = getPreferencesCache().getCooldownPreference();
-        if (sessionPreference == CooldownUtils.CooldownType.DISABLED) return;
-
-        if (getGameMode().equals(GameMode.SPECTATOR)) return; // No attack indicator in spectator
-
-        if (getAttackSpeed() == 0.0 || getAttackSpeed() > 20) {
-            clearCooldown(); // Let's clear in the off chance there is something already displayed
-            return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
-        }
-
-        long time = System.currentTimeMillis() - getLastHitTime();
-        double tickrateMultiplier = Math.max(getMillisecondsPerTick() / 50, 1.0);
-        double cooldown = MathUtils.restrain(((double) time) * getAttackSpeed() / (tickrateMultiplier * 1000.0), 1.0);
-
-        if (cooldown < 1.0) {
-            sendCooldown(sessionPreference, cooldown);
-        } else if (needCooldownTitleReset) {
-            clearCooldown();
-        }
-    }
-
-    private void sendCooldown(CooldownUtils.CooldownType sessionPreference, double cooldown) {
-//        if (integratedPackActive) {
-//            sendJsonUIData(
-//                sessionPreference.equals(CooldownUtils.CooldownType.TITLE) ?
-//                    "crosshair_cooldown" :
-//                    "hotbar_cooldown",
-//                cooldown
-//            );
-//        } else {
-            // Set the times to stay a bit with no fade in nor out
-            SetTitlePacket titlePacket = new SetTitlePacket();
-            titlePacket.setType(SetTitlePacket.Type.TIMES);
-            titlePacket.setStayTime(1000);
-            titlePacket.setText("");
-            titlePacket.setXuid("");
-            titlePacket.setPlatformOnlineId("");
-            sendUpstreamPacket(titlePacket);
-
-            getWorldCache().markTitleTimesAsIncorrect();
-
-            // Actionbars don't need an empty title
-            if (sessionPreference == CooldownUtils.CooldownType.TITLE) {
-                // Needs to be sent or no subtitle packet is recognized by the client
-                titlePacket = new SetTitlePacket();
-                titlePacket.setType(SetTitlePacket.Type.TITLE);
-                titlePacket.setText(" ");
-                titlePacket.setXuid("");
-                titlePacket.setPlatformOnlineId("");
-                sendUpstreamPacket(titlePacket);
-            }
-
-            titlePacket = new SetTitlePacket();
-            if (sessionPreference == CooldownUtils.CooldownType.ACTIONBAR) {
-                titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-            } else {
-                titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
-            }
-            titlePacket.setText(CooldownUtils.getTitle(cooldown));
-            titlePacket.setXuid("");
-            titlePacket.setPlatformOnlineId("");
-            sendUpstreamPacket(titlePacket);
-//        }
-
-        needCooldownTitleReset = true;
-    }
-
-    private void clearCooldown() {
-//        if (integratedPackActive) {
-//            // Clear both, users can change their preference on the fly
-//            sendJsonUIData("crosshair_cooldown", "hide");
-//            sendJsonUIData("hotbar_cooldown", "hide");
-//        } else {
-            SetTitlePacket removeTitlePacket = new SetTitlePacket();
-            removeTitlePacket.setType(SetTitlePacket.Type.CLEAR);
-            removeTitlePacket.setText(" ");
-            removeTitlePacket.setXuid("");
-            removeTitlePacket.setPlatformOnlineId("");
-            sendUpstreamPacket(removeTitlePacket);
-//        }
-
-        needCooldownTitleReset = false;
     }
 
     public void sendJsonUIData(String key, double value) {
