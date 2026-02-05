@@ -50,21 +50,6 @@ public interface EntityData {
     @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
 
     /**
-     * Displays a player entity as emoting to this client.
-     *
-     * @param emoter the player entity emoting
-     * @param emoteId the emote ID to send to this client
-     */
-    void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
-
-    /**
-     * Gets the {@link GeyserPlayerEntity} of this connection.
-     *
-     * @return the {@link GeyserPlayerEntity} of this connection
-     */
-    @NonNull GeyserPlayerEntity playerEntity();
-
-    /**
      * (Un)locks the client's movement inputs, so that they cannot move.
      * To ensure that movement is only unlocked when all locks are released, you must supply
      * a UUID with this method, and use the same UUID to unlock the camera.
@@ -83,8 +68,23 @@ public interface EntityData {
     boolean isMovementLocked();
 
     /**
-     * Sends a request to the Java server to switch the items in the main and offhand.
-     * There is no guarantee of the server accepting the request.
+     * @deprecated use {@link GeyserConnection#requestOffhandSwap()} instead
+     * @since 2.9.3
      */
+    @Deprecated
     void switchHands();
+
+    /**
+     * @deprecated Use {@link GeyserConnection#showEmote(GeyserPlayerEntity, String)} instead.
+     * @since 2.9.3
+     */
+    @Deprecated
+    void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
+
+    /**
+     * @deprecated Use {@link GeyserConnection#playerEntity} instead.
+     * @since 2.9.3
+     */
+    @Deprecated
+    @NonNull GeyserPlayerEntity playerEntity();
 }
