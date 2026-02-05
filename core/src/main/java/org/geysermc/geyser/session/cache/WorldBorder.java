@@ -309,8 +309,8 @@ public class WorldBorder {
      * Draws a wall of particles where the world border resides
      */
     public void drawWall() {
-        if (currentWallTick++ != 10) {
-            // Only draw a wall once every 1/2 second
+        if (currentWallTick++ != 20) {
+            // Only draw a wall once every second
             return;
         }
         currentWallTick = 0;
@@ -338,7 +338,7 @@ public class WorldBorder {
         for (int y = initialY; y < (initialY + 5); y++) {
             if (drawWallX) {
                 float x = position.getX();
-                for (int z = (int) position.getZ() - 5; z < ((int) position.getZ() + 5); z++) {
+                for (int z = (int) position.getZ() - 3; z < ((int) position.getZ() + 3); z++) {
                     if (z < minZ) {
                         continue;
                     }
@@ -350,7 +350,7 @@ public class WorldBorder {
                 }
             } else {
                 float z = position.getZ();
-                for (int x = (int) position.getX() - 5; x < ((int) position.getX() + 5); x++) {
+                for (int x = (int) position.getX() - 3; x < ((int) position.getX() + 3); x++) {
                     if (x < minX) {
                         continue;
                     }
