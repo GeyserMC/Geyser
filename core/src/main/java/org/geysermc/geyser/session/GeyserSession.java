@@ -1260,7 +1260,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         try {
             pistonCache.tick();
 
-            worldBorder.tick();
+            if (worldBorder.isResizing()) {
+                worldBorder.resize();
+            }
 
             boolean shouldShowFog = !worldBorder.isWithinWarningBoundaries();
             if (shouldShowFog || worldBorder.isCloseToBorderBoundaries()) {
