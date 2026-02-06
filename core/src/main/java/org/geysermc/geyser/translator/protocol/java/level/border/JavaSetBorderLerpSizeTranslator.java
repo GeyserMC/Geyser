@@ -37,7 +37,10 @@ public class JavaSetBorderLerpSizeTranslator extends PacketTranslator<Clientboun
     @Override
     public void translate(GeyserSession session, ClientboundSetBorderLerpSizePacket packet) {
         WorldBorder worldBorder = session.getWorldBorder();
-        worldBorder.startResize(packet.getOldSize(), packet.getNewSize(), packet.getLerpTime());
+        worldBorder.setOldDiameter(packet.getOldSize());
+        worldBorder.setNewDiameter(packet.getNewSize());
+        worldBorder.setSpeed(packet.getLerpTime());
+        worldBorder.setResizing(true);
 
         worldBorder.update();
     }

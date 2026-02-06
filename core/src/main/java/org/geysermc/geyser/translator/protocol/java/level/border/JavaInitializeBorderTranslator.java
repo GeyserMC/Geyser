@@ -39,15 +39,13 @@ public class JavaInitializeBorderTranslator extends PacketTranslator<Clientbound
     public void translate(GeyserSession session, ClientboundInitializeBorderPacket packet) {
         WorldBorder worldBorder = session.getWorldBorder();
         worldBorder.setCenter(Vector2d.from(packet.getNewCenterX(), packet.getNewCenterZ()));
-        worldBorder.setAbsoluteMaxSize(packet.getNewAbsoluteMaxSize());
-        worldBorder.setWarningBlocks(packet.getWarningBlocks());
+        worldBorder.setOldDiameter(packet.getOldSize());
+        worldBorder.setNewDiameter(packet.getNewSize());
+        worldBorder.setSpeed(packet.getLerpTime());
         worldBorder.setWarningDelay(packet.getWarningTime());
-
-        if (packet.getLerpTime() > 0) {
-            worldBorder.startResize(packet.getOldSize(), packet.getNewSize(), packet.getLerpTime());
-        } else {
-            worldBorder.setSize(packet.getNewSize());
-        }
+        worldBorder.setWarningBlocks(packet.getWarningBlocks());
+        worldBorder.setResizing(packet.getLerpTime() > 0);
+        worldBorder.setAbsoluteMaxSize(packet.getNewAbsoluteMaxSize());
 
         worldBorder.update();
     }
