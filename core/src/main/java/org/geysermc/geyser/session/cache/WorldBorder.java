@@ -140,7 +140,7 @@ public class WorldBorder {
     public boolean isCloseToBorderBoundaries() {
         Vector3f position = session.getPlayerEntity().getPosition();
         return !(position.getX() > minX + CLOSE_TO_BORDER && position.getX() < maxX - CLOSE_TO_BORDER
-            && position.getZ() > minZ + CLOSE_TO_BORDER && position.getZ() < maxZ - CLOSE_TO_BORDER);
+                && position.getZ() > minZ + CLOSE_TO_BORDER && position.getZ() < maxZ - CLOSE_TO_BORDER);
     }
 
     /**
