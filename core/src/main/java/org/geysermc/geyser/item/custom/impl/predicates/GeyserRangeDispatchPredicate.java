@@ -68,7 +68,7 @@ public record GeyserRangeDispatchPredicate(@NonNull GeyserRangeDispatchProperty 
     public boolean test(ItemPredicateContext context) {
         Number value = rangeProperty.getter.apply(context, this);
         if (normalized) {
-            if (value == null || rangeProperty.maxGetter == null) {
+            if (rangeProperty.maxGetter == null) {
                 return false;
             }
             Number max = rangeProperty.maxGetter.apply(context);
