@@ -40,9 +40,9 @@ public class CooldownUtils {
      * Sets the last hit time for use when ticking the attack cooldown
      */
     public static void setCooldownHitTime(GeyserSession session) {
-        if (session.getGeyser().config().gameplay().showCooldown() == CooldownUtils.CooldownType.DISABLED) return;
-        CooldownUtils.CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
-        if (sessionPreference == CooldownUtils.CooldownType.DISABLED) return;
+        if (session.getGeyser().config().gameplay().showCooldown() == CooldownType.DISABLED) return;
+        CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
+        if (sessionPreference == CooldownType.DISABLED) return;
 
         if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) {
             return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
@@ -52,9 +52,9 @@ public class CooldownUtils {
     }
 
     public static void tickCooldown(GeyserSession session) {
-        if (session.getGeyser().config().gameplay().showCooldown() == CooldownUtils.CooldownType.DISABLED) return;
-        CooldownUtils.CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
-        if (sessionPreference == CooldownUtils.CooldownType.DISABLED) return;
+        if (session.getGeyser().config().gameplay().showCooldown() == CooldownType.DISABLED) return;
+        CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
+        if (sessionPreference == CooldownType.DISABLED) return;
 
         if (session.getGameMode().equals(GameMode.SPECTATOR)) return; // No attack indicator in spectator
 
@@ -74,65 +74,65 @@ public class CooldownUtils {
         }
     }
 
-    public static void sendCooldown(GeyserSession session, CooldownUtils.CooldownType sessionPreference, double cooldown) {
-//        if (integratedPackActive) {
-//            sendJsonUIData(
-//                sessionPreference.equals(CooldownUtils.CooldownType.TITLE) ?
-//                    "crosshair_cooldown" :
-//                    "hotbar_cooldown",
-//                cooldown
-//            );
-//        } else {
-        // Set the times to stay a bit with no fade in nor out
-        SetTitlePacket titlePacket = new SetTitlePacket();
-        titlePacket.setType(SetTitlePacket.Type.TIMES);
-        titlePacket.setStayTime(1000);
-        titlePacket.setText("");
-        titlePacket.setXuid("");
-        titlePacket.setPlatformOnlineId("");
-        session.sendUpstreamPacket(titlePacket);
+    public static void sendCooldown(GeyserSession session, CooldownType sessionPreference, double cooldown) {
+        if (session.integratedPackActive()) {
+            String value = "%s:%d".formatted(
+                sessionPreference.equals(CooldownType.TITLE) ?
+                    "crs" :
+                    "htb",
+                Math.round(cooldown * 16)
+            );
 
-        session.getWorldCache().markTitleTimesAsIncorrect();
+            session.sendJsonUIData("cooldown", value);
+        } else {
+            // Set the times to stay a bit with no fade in nor out
+            SetTitlePacket titlePacket = new SetTitlePacket();
+            titlePacket.setType(SetTitlePacket.Type.TIMES);
+            titlePacket.setStayTime(1000);
+            titlePacket.setText("");
+            titlePacket.setXuid("");
+            titlePacket.setPlatformOnlineId("");
+            session.sendUpstreamPacket(titlePacket);
 
-        // Actionbars don't need an empty title
-        if (sessionPreference == CooldownUtils.CooldownType.TITLE) {
-            // Needs to be sent or no subtitle packet is recognized by the client
+            session.getWorldCache().markTitleTimesAsIncorrect();
+
+            // Actionbars don't need an empty title
+            if (sessionPreference == CooldownType.TITLE) {
+                // Needs to be sent or no subtitle packet is recognized by the client
+                titlePacket = new SetTitlePacket();
+                titlePacket.setType(SetTitlePacket.Type.TITLE);
+                titlePacket.setText(" ");
+                titlePacket.setXuid("");
+                titlePacket.setPlatformOnlineId("");
+                session.sendUpstreamPacket(titlePacket);
+            }
+
             titlePacket = new SetTitlePacket();
-            titlePacket.setType(SetTitlePacket.Type.TITLE);
-            titlePacket.setText(" ");
+            if (sessionPreference == CooldownType.ACTIONBAR) {
+                titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
+            } else {
+                titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
+            }
+            titlePacket.setText(CooldownUtils.getTitle(cooldown));
             titlePacket.setXuid("");
             titlePacket.setPlatformOnlineId("");
             session.sendUpstreamPacket(titlePacket);
         }
 
-        titlePacket = new SetTitlePacket();
-        if (sessionPreference == CooldownUtils.CooldownType.ACTIONBAR) {
-            titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-        } else {
-            titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
-        }
-        titlePacket.setText(CooldownUtils.getTitle(cooldown));
-        titlePacket.setXuid("");
-        titlePacket.setPlatformOnlineId("");
-        session.sendUpstreamPacket(titlePacket);
-//        }
-
         session.setNeedCooldownTitleReset(true);
     }
 
     public static void clearCooldown(GeyserSession session) {
-//        if (integratedPackActive) {
-//            // Clear both, users can change their preference on the fly
-//            sendJsonUIData("crosshair_cooldown", "hide");
-//            sendJsonUIData("hotbar_cooldown", "hide");
-//        } else {
-        SetTitlePacket removeTitlePacket = new SetTitlePacket();
-        removeTitlePacket.setType(SetTitlePacket.Type.CLEAR);
-        removeTitlePacket.setText(" ");
-        removeTitlePacket.setXuid("");
-        removeTitlePacket.setPlatformOnlineId("");
-        session.sendUpstreamPacket(removeTitlePacket);
-//        }
+        if (session.integratedPackActive()) {
+            session.sendJsonUIData("cooldown", "non");
+        } else {
+            SetTitlePacket removeTitlePacket = new SetTitlePacket();
+            removeTitlePacket.setType(SetTitlePacket.Type.CLEAR);
+            removeTitlePacket.setText(" ");
+            removeTitlePacket.setXuid("");
+            removeTitlePacket.setPlatformOnlineId("");
+            session.sendUpstreamPacket(removeTitlePacket);
+        }
 
         session.setNeedCooldownTitleReset(false);
     }
