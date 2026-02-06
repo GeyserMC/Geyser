@@ -156,7 +156,7 @@ public class WorldBorder {
             // Move the player back, but allow gravity to take place
             // Teleported = true makes going back better, but disconnects the player from their mounted entity
             playerEntity.moveAbsoluteRaw(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.offset()), playerEntity.getPosition().getZ()),
-                playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
+                    playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
         }
         return isInWorldBorder;
     }
@@ -167,9 +167,9 @@ public class WorldBorder {
         Vector3f currentEntityPosition = session.getPlayerEntity().getPosition();
         // Make sure we can't move out of the world border, but if we're out of the world border, we can move in
         return (entityX == (int) minX && currentEntityPosition.getX() > newEntityPosition.getX()) ||
-            (entityX == (int) maxX && currentEntityPosition.getX() < newEntityPosition.getX()) ||
-            (entityZ == (int) minZ && currentEntityPosition.getZ() > newEntityPosition.getZ()) ||
-            (entityZ == (int) maxZ && currentEntityPosition.getZ() < newEntityPosition.getZ());
+                (entityX == (int) maxX && currentEntityPosition.getX() < newEntityPosition.getX()) ||
+                (entityZ == (int) minZ && currentEntityPosition.getZ() > newEntityPosition.getZ()) ||
+                (entityZ == (int) maxZ && currentEntityPosition.getZ() < newEntityPosition.getZ());
     }
 
     /**
