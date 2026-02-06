@@ -365,10 +365,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private int pendingOrCurrentBedrockInventoryId = -1;
 
     /**
-     * A check for whether or not a clear is required on the title for the cooldown we emulate.
+     * A check for whether or not we need to clear the attack cooldown we emulate.
      */
     @Setter
-    private boolean needCooldownTitleReset = false;
+    private boolean needAttackCooldownClear = false;
 
     /**
      * Use {@link #getNextItemNetId()} instead for consistency

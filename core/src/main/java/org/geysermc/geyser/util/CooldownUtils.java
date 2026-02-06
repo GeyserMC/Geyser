@@ -69,7 +69,7 @@ public class CooldownUtils {
 
         if (cooldown < 1.0) {
             sendCooldown(session, sessionPreference, cooldown);
-        } else if (session.isNeedCooldownTitleReset()) {
+        } else if (session.isNeedAttackCooldownClear()) {
             clearCooldown(session);
         }
     }
@@ -119,7 +119,7 @@ public class CooldownUtils {
             session.sendUpstreamPacket(titlePacket);
         }
 
-        session.setNeedCooldownTitleReset(true);
+        session.setNeedAttackCooldownClear(true);
     }
 
     public static void clearCooldown(GeyserSession session) {
@@ -134,7 +134,7 @@ public class CooldownUtils {
             session.sendUpstreamPacket(removeTitlePacket);
         }
 
-        session.setNeedCooldownTitleReset(false);
+        session.setNeedAttackCooldownClear(false);
     }
 
     public static String getTitle(double cooldown) {
