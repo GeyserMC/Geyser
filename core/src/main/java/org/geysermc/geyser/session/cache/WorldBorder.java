@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.session.cache;
 
-import lombok.Getter;
-import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2d;
@@ -34,16 +32,23 @@ import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import lombok.Getter;
+import lombok.Setter;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.awt.Color;
+
 import static org.geysermc.geyser.level.physics.CollisionManager.COLLISION_TOLERANCE;
 
 public class WorldBorder {
     private static final double DEFAULT_WORLD_BORDER_SIZE = 5.9999968E7D;
+    private static final Color DEFAULT_WORLD_BORDER_COLOR = new Color(32, 160, 255);
+    private static final Color SHRINKING_WORLD_BORDER_COLOR = new Color(255, 48, 48);
+    private static final Color GROWING_WORLD_BORDER_COLOR = new Color(64, 255, 128);
 
     @Setter
     private @NonNull Vector2d center = Vector2d.ZERO;
@@ -107,6 +112,9 @@ public class WorldBorder {
     private double warningMaxZ = 0.0D;
     private double warningMinX = 0.0D;
     private double warningMinZ = 0.0D;
+
+    @SuppressWarnings("FieldCanBeLocal") // We will use this at some point down the line for Integrated Pack
+    private Color currentWorldBorderColor = DEFAULT_WORLD_BORDER_COLOR;
 
     /**
      * To track when to send wall particle packets.
@@ -241,8 +249,14 @@ public class WorldBorder {
         double radius;
         if (resizing) {
             radius = this.size / 2.0D;
+            if (this.size > this.to) {
+                currentWorldBorderColor = SHRINKING_WORLD_BORDER_COLOR;
+            } else {
+                currentWorldBorderColor = GROWING_WORLD_BORDER_COLOR;
+            }
         } else {
             radius = this.size / 2.0D;
+            currentWorldBorderColor = DEFAULT_WORLD_BORDER_COLOR;
         }
 
         double absoluteMinSize = -this.absoluteMaxSize;
@@ -323,7 +337,7 @@ public class WorldBorder {
         for (int y = initialY; y < (initialY + 5); y++) {
             if (drawWallX) {
                 float x = position.getX();
-                for (int z = (int) position.getZ() - 5; z < ((int) position.getZ() + 5); z++) {
+                for (int z = (int) position.getZ() - 3; z < ((int) position.getZ() + 3); z++) {
                     if (z < minZ) {
                         continue;
                     }
@@ -335,7 +349,7 @@ public class WorldBorder {
                 }
             } else {
                 float z = position.getZ();
-                for (int x = (int) position.getX() - 5; x < ((int) position.getX() + 5); x++) {
+                for (int x = (int) position.getX() - 3; x < ((int) position.getX() + 3); x++) {
                     if (x < minX) {
                         continue;
                     }
