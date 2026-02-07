@@ -385,7 +385,7 @@ public class CustomBlockRegistryPopulator {
                 // in the future, this can be used to replace items in the creative inventory
                 // this would require us to map https://wiki.bedrock.dev/documentation/creative-categories.html#for-blocks programatically
                 .putCompound("menu_category", NbtMap.builder()
-                    .putString("category", creativeCategory.internalName())
+                    .putString("category", creativeCategory.bedrockName())
                     .putString("group", creativeGroup)
                     .putBoolean("is_hidden_in_commands", false)
                 .build())
@@ -453,11 +453,8 @@ public class CustomBlockRegistryPopulator {
                         .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion())
                         .putBoolean("isotropic", materialInstance.isotropic());
 
-                if (GameProtocol.is1_21_110orHigher(protocolVersion)) {
-                    materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
-                } else {
-                    materialBuilder.putBoolean("face_dimming", materialInstance.faceDimming());
-                }
+                // todo this is actually an bitset, we should add the other properties some day
+                materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
 
                 if (materialInstance.renderMethod() != null) {
                     materialBuilder.putString("render_method", materialInstance.renderMethod());

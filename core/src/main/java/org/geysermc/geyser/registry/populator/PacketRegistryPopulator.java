@@ -30,14 +30,14 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.AnnotationUtils;
 import org.geysermc.mcprotocollib.network.packet.Packet;
 
 public class PacketRegistryPopulator {
 
     @SuppressWarnings("unchecked")
     public static void populate() {
-        for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(Translator.class)) {
+        for (Class<?> clazz : AnnotationUtils.getGeneratedClassesForAnnotation(Translator.class)) {
             Class<?> packet = clazz.getAnnotation(Translator.class).packet();
 
             GeyserImpl.getInstance().getLogger().debug("Found annotated translator: " + clazz.getCanonicalName() + " : " + packet.getSimpleName());

@@ -39,7 +39,6 @@ import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.ChestBlock;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.Direction;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class SingleChestInventoryTranslator extends ChestInventoryTranslator<Generic9X3Container> {
@@ -61,7 +60,7 @@ public class SingleChestInventoryTranslator extends ChestInventoryTranslator<Gen
                 } else if (blockState.getValue(Properties.CHEST_TYPE) != ChestType.SINGLE) {
                     // Add provision to ensure this isn't a double chest
                     return false;
-                } else if (GameProtocol.is1_21_110orHigher(session)) {
+                } else {
                     // On 1.21.110 and above the client likes to merge single chests next to each other, even when we
                     // tell the client not to
                     // So, check for chests left and right of this chest. If there is a chest facing the same way,
@@ -76,8 +75,6 @@ public class SingleChestInventoryTranslator extends ChestInventoryTranslator<Gen
                     return (!leftState.is(blockState.block()) || leftState.getValue(Properties.HORIZONTAL_FACING) != facing)
                         && (!rightState.is(blockState.block()) || rightState.getValue(Properties.HORIZONTAL_FACING) != facing);
                 }
-
-                return true;
             }
         };
     }
