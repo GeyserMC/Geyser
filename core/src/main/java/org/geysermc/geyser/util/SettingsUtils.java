@@ -91,9 +91,9 @@ public class SettingsUtils {
             for (GameRule gamerule : GameRule.VALUES) {
                 // Add the relevant form item based on the gamerule type
                 if (Boolean.class.equals(gamerule.getType())) {
-                    builder.toggle("gamerule." + gamerule.getJavaID(), worldManager.getGameRuleBool(session, gamerule));
+                    builder.toggle(gamerule.getTranslation(), worldManager.getGameRuleBool(session, gamerule));
                 } else if (Integer.class.equals(gamerule.getType())) {
-                    builder.input("gamerule." + gamerule.getJavaID(), "", String.valueOf(worldManager.getGameRuleInt(session, gamerule)));
+                    builder.input(gamerule.getTranslation(), "", String.valueOf(worldManager.getGameRuleInt(session, gamerule)));
                 }
             }
         }
