@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,40 +23,30 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session;
+package org.geysermc.geyser.api.network;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.network.MessageDirection;
-import org.geysermc.mcprotocollib.network.packet.Packet;
-import org.geysermc.mcprotocollib.network.session.ClientNetworkSession;
-import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
 
-@Getter
-@RequiredArgsConstructor
-public class DownstreamSession {
-    private final GeyserSession geyserSession;
-    private final ClientNetworkSession session;
+/**
+ * Represents the state of a Java connection.
+ *
+ * @since 2.9.2
+ */
+public interface JavaState {
 
-    public void sendPacket(@NonNull Packet packet) {
-        if (!this.geyserSession.getNetwork().handleJavaPacket((MinecraftPacket) packet, MessageDirection.SERVERBOUND)) {
-            return;
-        }
+    /**
+     * Gets the inbound protocol state.
+     *
+     * @return the inbound protocol state
+     */
+    @NonNull
+    ProtocolState inbound();
 
-        this.session.send(packet);
-    }
-
-    public void disconnect(Component reason) {
-        this.session.disconnect(reason);
-    }
-
-    public void disconnect(Component reason, Throwable throwable) {
-        this.session.disconnect(reason, throwable);
-    }
-
-    public boolean isClosed() {
-        return !this.session.isConnected();
-    }
+    /**
+     * Gets the outbound protocol state.
+     *
+     * @return the outbound protocol state
+     */
+    @NonNull
+    ProtocolState outbound();
 }

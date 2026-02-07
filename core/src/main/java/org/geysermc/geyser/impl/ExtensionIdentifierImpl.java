@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,58 +23,23 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.scoreboard.network.util;
+package org.geysermc.geyser.impl;
 
-import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.util.Identifier;
 
-public class EmptyGeyserLogger implements GeyserLogger {
-    @Override
-    public void severe(String message) {
-
-    }
-
-    @Override
-    public void severe(String message, Throwable error) {
-
-    }
-
-    @Override
-    public void error(String message) {
-
-    }
+/**
+ * An identifier which redirects back to an extension.
+ * <p>
+ * This primarily serves to back an {@link Extension} interface
+ * without an explicit call to the extension ID right away.
+ * Useful in instances where the extension is still in an early
+ * loading phase, but an identifier is required.
+ */
+public record ExtensionIdentifierImpl(Extension extension, String path) implements Identifier {
 
     @Override
-    public void error(String message, Throwable error) {
-
-    }
-
-    @Override
-    public void warning(String message) {
-
-    }
-
-    @Override
-    public void info(String message) {
-
-    }
-
-    @Override
-    public void debug(String message) {
-
-    }
-
-    @Override
-    public void debug(String message, Object... arguments) {
-
-    }
-
-    @Override
-    public void setDebug(boolean debug) {
-
-    }
-
-    @Override
-    public boolean isDebug() {
-        return false;
+    public String namespace() {
+        return this.extension.description().id();
     }
 }

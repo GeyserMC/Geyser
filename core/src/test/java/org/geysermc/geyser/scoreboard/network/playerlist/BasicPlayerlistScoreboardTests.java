@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.scoreboard.network.playerlist;
 
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacket;
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
+import static org.geysermc.geyser.util.AssertUtils.assertNextPacket;
+import static org.geysermc.geyser.util.AssertUtils.assertNoNextPacket;
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
 
 import java.util.List;

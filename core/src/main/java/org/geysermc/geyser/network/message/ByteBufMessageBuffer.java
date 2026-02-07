@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,40 +23,41 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session;
+package org.geysermc.geyser.network.message;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import net.kyori.adventure.text.Component;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.network.MessageDirection;
-import org.geysermc.mcprotocollib.network.packet.Packet;
-import org.geysermc.mcprotocollib.network.session.ClientNetworkSession;
-import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
+import org.geysermc.geyser.api.network.message.DataType;
+import org.geysermc.geyser.api.network.message.MessageBuffer;
+import org.geysermc.geyser.api.network.message.MessageCodec;
 
-@Getter
-@RequiredArgsConstructor
-public class DownstreamSession {
-    private final GeyserSession geyserSession;
-    private final ClientNetworkSession session;
+public record ByteBufMessageBuffer(MessageCodec<ByteBufMessageBuffer> codec, ByteBuf buffer) implements MessageBuffer.Wrapped<ByteBuf> {
 
-    public void sendPacket(@NonNull Packet packet) {
-        if (!this.geyserSession.getNetwork().handleJavaPacket((MinecraftPacket) packet, MessageDirection.SERVERBOUND)) {
-            return;
-        }
-
-        this.session.send(packet);
+    public ByteBufMessageBuffer(MessageCodec<ByteBufMessageBuffer> codec) {
+        this(codec, Unpooled.buffer());
     }
 
-    public void disconnect(Component reason) {
-        this.session.disconnect(reason);
+    @Override
+    public <T> @NonNull T read(@NonNull DataType<T> type) {
+        return type.read(this.codec, this);
     }
 
-    public void disconnect(Component reason, Throwable throwable) {
-        this.session.disconnect(reason, throwable);
+    @Override
+    public <T> void write(@NonNull DataType<T> type, @NonNull T value) {
+        type.write(this.codec, this, value);
     }
 
-    public boolean isClosed() {
-        return !this.session.isConnected();
+    @Override
+    public byte @NonNull [] serialize() {
+        byte[] bytes = new byte[this.buffer.readableBytes()];
+        this.buffer.readBytes(bytes);
+        this.buffer.clear(); // Clear the buffer after serialization
+        return bytes;
+    }
+
+    @Override
+    public int length() {
+        return this.buffer.readableBytes();
     }
 }
