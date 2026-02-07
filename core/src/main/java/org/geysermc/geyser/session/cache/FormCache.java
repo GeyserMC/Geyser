@@ -136,6 +136,8 @@ public class FormCache {
             // Copy them to ensure any response handler's sent form isn't instantly cleared
             Int2ObjectMap<Form> copy = new Int2ObjectOpenHashMap<>(this.forms);
             this.forms.clear();
+            // Now close it
+            session.sendUpstreamPacket(new ClientboundCloseFormPacket());
 
             for (Form form : copy.values()) {
                 try {
@@ -144,8 +146,6 @@ public class FormCache {
                     GeyserImpl.getInstance().getLogger().error("Error while closing form!", e);
                 }
             }
-            // Now close it
-            session.sendUpstreamPacket(new ClientboundCloseFormPacket());
         }
     }
 }
