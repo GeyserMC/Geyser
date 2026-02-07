@@ -41,7 +41,6 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -133,20 +132,18 @@ public class FormCache {
     }
 
     public void closeForms() {
-        // Copy them to ensure any response handler's sent form isn't instantly cleared
-        Int2ObjectMap<Form> forms = this.forms;
-        if (!forms.isEmpty()) {
-            Iterator<Form> iterator = forms.values().iterator();
-            while (iterator.hasNext()) {
-                Form form = iterator.next();
+        if (!this.forms.isEmpty()) {
+            // Copy them to ensure any response handler's sent form isn't instantly cleared
+            Int2ObjectMap<Form> copy = new Int2ObjectOpenHashMap<>(this.forms);
+            this.forms.clear();
+
+            for (Form form : copy.values()) {
                 try {
                     formDefinitions.definitionFor(form).handleFormResponse(form, "");
                 } catch (Exception e) {
                     GeyserImpl.getInstance().getLogger().error("Error while closing form!", e);
                 }
-                iterator.remove();
             }
-
             // Now close it
             session.sendUpstreamPacket(new ClientboundCloseFormPacket());
         }
