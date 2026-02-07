@@ -2437,16 +2437,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
-    public @NonNull GeyserPlayerEntity playerEntity() {
-        return playerEntity;
-    }
-
-    @Override
-    public void switchHands() {
-        requestOffhandSwap();
-    }
-
-    @Override
     public int ping() {
         // Can otherwise cause issues if the player isn't logged in yet / already left
         if (!getUpstream().isInitialized() || getUpstream().isClosed()) {
