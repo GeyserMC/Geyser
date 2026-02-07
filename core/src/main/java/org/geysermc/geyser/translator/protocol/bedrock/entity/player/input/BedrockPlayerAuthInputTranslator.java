@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTransaction;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
@@ -326,7 +327,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 return; // If the client just got in or out of a vehicle for example.
             }
 
-            if (session.getWorldBorder().isPassingIntoBorderBoundaries(vehiclePosition, false)) {
+            if (session.getWorldBorder().isPassingIntoBorderBoundaries(vehiclePosition.down(EntityDefinitions.PLAYER.offset()), false)) {
                 if (vehicle instanceof BoatEntity boat) {
                     // Undo the changes usually applied to the boat
                     boat.moveAbsoluteWithoutAdjustments(position, vehicle.getYaw(), vehicle.isOnGround(), true);

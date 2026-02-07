@@ -184,7 +184,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 default -> false;
                             };
                             if (isGodBridging) {
-                                BlockUtils.restoreCorrectBlock(session, blockPos);
+                                BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
                                 return;
                             }
                         }
@@ -204,7 +204,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 int belowBlock = session.getGeyser().getWorldManager().getBlockAt(session, belowBlockPos);
                                 BlockDefinition extendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(belowBlock);
                                 if (extendedCollisionDefinition != null && (System.currentTimeMillis() - session.getLastInteractionTime()) < 200) {
-                                    BlockUtils.restoreCorrectBlock(session, blockPos);
+                                    BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
                                     return;
                                 }
                             }
@@ -217,6 +217,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.setLastInteractionBlockPosition(packetBlockPosition);
                         session.setLastInteractionPlayerPosition(session.getPlayerEntity().getPosition());
                         if (hasAlreadyClicked) {
+                            session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
                             break;
                         } else {
                             // Only update the interaction time if it's valid - that way holding down still works.
@@ -224,7 +225,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         if (isIncorrectHeldItem(session, packet)) {
-                            BlockUtils.restoreCorrectBlock(session, blockPos);
+                            BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
                             return;
                         }
 
@@ -244,7 +245,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                          */
                         // Blocks cannot be placed or destroyed outside of the world border
                         if (!session.getWorldBorder().isInsideBorderBoundaries()) {
-                            BlockUtils.restoreCorrectBlock(session, blockPos);
+                            BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
                             return;
                         }
 
@@ -253,7 +254,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
 
                         if (!canInteractWithBlock(session, playerPosition, packetBlockPosition)) {
-                            BlockUtils.restoreCorrectBlock(session, blockPos);
+                            BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
                             return;
                         }
 
@@ -267,7 +268,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         double clickDistanceY = clickPositionFullY - blockCenter.getY();
                         double clickDistanceZ = clickPositionFullZ - blockCenter.getZ();
                         if (!(Math.abs(clickDistanceX) < 1.0000001D && Math.abs(clickDistanceY) < 1.0000001D && Math.abs(clickDistanceZ) < 1.0000001D)) {
-                            BlockUtils.restoreCorrectBlock(session, blockPos);
+                            BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
                             return;
                         }
 
