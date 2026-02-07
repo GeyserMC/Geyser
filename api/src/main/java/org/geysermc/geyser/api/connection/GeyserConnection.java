@@ -225,15 +225,18 @@ public interface GeyserConnection extends Connection, CommandSource {
     Set<String> fogEffects();
 
     /**
-     * Gets the {@link GeyserPlayerEntity} of this connection.
+     * Returns the associated player entity for this connection.
      *
-     * @return the {@link GeyserPlayerEntity} of this connection
+     * @return the {@link GeyserPlayerEntity} for this connection
+     * @since 2.9.3
      */
     @NonNull GeyserPlayerEntity playerEntity();
 
     /**
-     * Sends a request to the Java server to switch the items in the main and offhand.
+     * Requests an offhand swap from the Java server.
      * There is no guarantee of the server accepting the request.
+     *
+     * @since 2.9.3
      */
-    void switchHands();
+    void requestOffhandSwap();
 }

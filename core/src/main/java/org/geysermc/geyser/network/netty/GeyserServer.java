@@ -130,7 +130,7 @@ public final class GeyserServer {
         this.bootstrap = this.createBootstrap();
         // setup SO_REUSEPORT if exists - or, if the option does not actually exist, reset listen count
         // otherwise, we try to bind multiple times which wont work if so_reuseport is not valid
-        if (!Bootstraps.setupBootstrap(this.bootstrap)) {
+        if (listenCount > 1 && !Bootstraps.setupBootstrap(this.bootstrap, TRANSPORT)) {
             this.listenCount = 1;
         }
 

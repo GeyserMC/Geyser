@@ -66,18 +66,6 @@ public interface EntityData {
     @Nullable GeyserEntity byGeyserId(@NonNegative long geyserId);
 
     /**
-     * @deprecated use {@link GeyserConnection#showEmote(GeyserPlayerEntity, String)} instead
-     */
-    @Deprecated
-    void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
-
-    /**
-     * @deprecated use {@link GeyserConnection#playerEntity()}
-     */
-    @Deprecated
-    @NonNull GeyserPlayerEntity playerEntity();
-
-    /**
      * (Un)locks the client's movement inputs, so that they cannot move.
      * To ensure that movement is only unlocked when all locks are released, you must supply
      * a UUID with this method, and use the same UUID to unlock the camera.
@@ -96,8 +84,23 @@ public interface EntityData {
     boolean isMovementLocked();
 
     /**
-     * @deprecated use {@link GeyserConnection#switchHands()}
+     * @deprecated use {@link GeyserConnection#requestOffhandSwap()} instead
+     * @since 2.9.3
      */
     @Deprecated
     void switchHands();
+
+    /**
+     * @deprecated Use {@link GeyserConnection#showEmote(GeyserPlayerEntity, String)} instead.
+     * @since 2.9.3
+     */
+    @Deprecated
+    void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
+
+    /**
+     * @deprecated Use {@link GeyserConnection#playerEntity} instead.
+     * @since 2.9.3
+     */
+    @Deprecated
+    @NonNull GeyserPlayerEntity playerEntity();
 }
