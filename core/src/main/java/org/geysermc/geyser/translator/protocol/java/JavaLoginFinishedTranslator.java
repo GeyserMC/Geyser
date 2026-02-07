@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.api.event.bedrock.SessionDefineNetworkChannelsEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -55,6 +56,7 @@ public class JavaLoginFinishedTranslator extends PacketTranslator<ClientboundLog
         playerEntity.uuid(profile.getId());
 
         session.getGeyser().getSessionManager().addSession(playerEntity.uuid(), session);
+        session.getNetwork().defineNetworkChannels(SessionDefineNetworkChannelsEvent.State.LOGGED_IN);
 
         // Check if they are not using a linked account
         if (remoteAuthType == AuthType.OFFLINE || playerEntity.uuid().getMostSignificantBits() == 0) {

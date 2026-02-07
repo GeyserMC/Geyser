@@ -41,13 +41,43 @@ import java.util.function.Consumer;
 
 /**
  * Called whenever Geyser is registering network channels.
+ * <p>
+ * It is important to note that this event may be called multiple times during a
+ * session's lifecycle, as channels can be registered at different stages of the connection.
+ * It is always important to check the {@link State} of the connection through {@link #state()}
+ * before registering channels to avoid creating multiple listeners that are only intended
+ * to be registered once.
+ * <p>
+ * It is typically advised to register channels at the {@link State#LOGGED_IN} state unless
+ * creating a developer tool, such as a packet logger. This is the latest point at which channels
+ * can be registered, and is when clients will be fully established. Registering earlier means
+ * certain client information is unavailable or potentially unverified (i.e., Bedrock usernames).
+ * <p>
+ * Registering at earlier points also increases the intensity of an L7 attack as the client is in a
+ * far earlier stage of the connection and there more vulnerable to invalid clients early in the
+ * connection stage. However, for debug tools that will never be used in a production environment,
+ * registering at earlier stages can be useful to capture more information about the connection and
+ * the client's behavior during earlier stages of the connection.
  *
  * @since 2.9.2
  */
 public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent {
+    private final State state;
 
-    public SessionDefineNetworkChannelsEvent(@NonNull GeyserConnection connection) {
+    public SessionDefineNetworkChannelsEvent(@NonNull GeyserConnection connection, @NonNull State state) {
         super(connection);
+
+        this.state = state;
+    }
+
+    /**
+     * Gets the state of the connection at the time of channel registration.
+     *
+     * @return the registration state
+     */
+    @NonNull
+    public State state() {
+        return this.state;
     }
 
     /**
@@ -218,5 +248,37 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
     }
 
     public interface Registration<M extends Message<? extends MessageBuffer>> {
+    }
+
+    /**
+     * The state of the connection at the time of channel registration.
+     * <p>
+     * This allows for checking what state the client is in before
+     * registering channels, which offers greater flexibility and control
+     * for extensions that need to register channels.
+     */
+    public enum State {
+        /**
+         * Called when a session is FIRST initialized. The session
+         * may lack certain information at this point, such as the Java
+         * session information, or verifiable Bedrock client info. However,
+         * this is the earliest point at which channels can be registered,
+         * and when it is guaranteed a session will have a protocol version.
+         */
+        INITIALIZED,
+        /**
+         * Called when a Bedrock session is fully authenticated and has
+         * completed the Bedrock login process. At this point, the session
+         * will not have yet logged into the Java server, so Java client
+         * information will still be unavailable.
+         */
+        AUTHENTICATED,
+        /**
+         * Called once a session has logged into the Java server. At this point,
+         * the session can be considered fully established, and all information
+         * about the client and connection will be available. This is the latest
+         * point at which channels can be registered.
+         */
+        LOGGED_IN
     }
 }

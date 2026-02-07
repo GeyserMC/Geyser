@@ -119,6 +119,7 @@ import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.event.bedrock.SessionDefineNetworkChannelsEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
 import org.geysermc.geyser.api.network.MessageDirection;
@@ -1078,6 +1079,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             disconnect(disconnectReason);
             return;
         }
+
+        this.network.defineNetworkChannels(SessionDefineNetworkChannelsEvent.State.AUTHENTICATED);
 
         this.cookies = loginEvent.cookies();
         // Don't allow changing the remote server when it's not up to us

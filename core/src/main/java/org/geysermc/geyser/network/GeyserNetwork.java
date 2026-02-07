@@ -59,6 +59,7 @@ import org.geysermc.mcprotocollib.network.packet.Packet;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import javax.annotation.Nonnull;
@@ -80,8 +81,10 @@ public class GeyserNetwork implements Network {
     public GeyserNetwork(GeyserSession session) {
         this.session = session;
         this.javaState = new GeyserJavaState(session);
+    }
 
-        SessionDefineNetworkChannelsEvent event = new SessionDefineNetworkChannelsEvent(session) {
+    public void defineNetworkChannels(SessionDefineNetworkChannelsEvent.@NonNull State state) {
+        SessionDefineNetworkChannelsEvent event = new SessionDefineNetworkChannelsEvent(session, state) {
 
             @Override
             public <M extends Message<MessageBuffer>> Builder.@NonNull Initial<M> define(@NonNull NetworkChannel channel, @NonNull MessageFactory<MessageBuffer, M> messageFactory) {
@@ -247,18 +250,18 @@ public class GeyserNetwork implements Network {
     }
 
     @NonNull
-    public <T extends MessageBuffer> List<Message<T>> createMessages(@NonNull NetworkChannel channel, byte @NonNull[] data) {
-        return this.createMessages0(channel, definition -> definition.createBuffer(data));
+    public <T extends MessageBuffer> List<Message<T>> createMessages(@NonNull NetworkChannel channel, byte @NonNull[] data, @NotNull MessageDirection direction) {
+        return this.createMessages0(channel, definition -> definition.createBuffer(data), direction);
     }
 
     @NonNull
-    public <T extends MessageBuffer> List<Message<T>> createMessages(@NonNull NetworkChannel channel, @NonNull T buffer) {
-        return this.createMessages0(channel, def -> buffer);
+    public <T extends MessageBuffer> List<Message<T>> createMessages(@NonNull NetworkChannel channel, @NonNull T buffer, @NotNull MessageDirection direction) {
+        return this.createMessages0(channel, def -> buffer, direction);
     }
 
     @SuppressWarnings("unchecked")
     @NonNull
-    private <T extends MessageBuffer, M extends Message<T>> List<M> createMessages0(@NonNull NetworkChannel channel, @NonNull Function<MessageDefinition<T, M>, T> creator) {
+    private <T extends MessageBuffer, M extends Message<T>> List<M> createMessages0(@NonNull NetworkChannel channel, @NonNull Function<MessageDefinition<T, M>, T> creator, @NotNull MessageDirection direction) {
         List<MessageDefinition<?, ?>> definitions = this.definitions.get(channel);
         if (definitions == null || definitions.isEmpty()) {
             throw new IllegalArgumentException("No message definition registered for channel: " + channel);
@@ -266,6 +269,24 @@ public class GeyserNetwork implements Network {
 
         List<M> messages = new ArrayList<>();
         for (MessageDefinition<?, ?> def : definitions) {
+            // Ensure the packet states match
+            ProtocolState state = def.state;
+            if (direction == MessageDirection.CLIENTBOUND && state != null && state != this.javaState.inbound()) {
+                continue;
+            } else if (direction == MessageDirection.SERVERBOUND && state != null && state != this.javaState.outbound()) {
+                continue;
+            }
+
+            // Skip if there's no appropriate handler for this direction
+            if (def.handler == null) {
+                if (direction == MessageDirection.CLIENTBOUND && def.clientboundHandler == null) {
+                    continue;
+                }
+                if (direction == MessageDirection.SERVERBOUND && def.serverboundHandler == null) {
+                    continue;
+                }
+            }
+
             MessageDefinition<T, M> definition = (MessageDefinition<T, M>) def;
             T buffer = creator.apply(definition);
             M message = definition.createMessage(buffer);
@@ -304,7 +325,7 @@ public class GeyserNetwork implements Network {
             } else {
                 ByteBuf buffer = Unpooled.buffer();
                 definition.getSerializer().serialize(buffer, this.session.getUpstream().getCodecHelper(), packet);
-                messages.addAll(this.createMessages(channel, new ByteBufMessageBuffer(ByteBufCodec.INSTANCE_LE, buffer)));
+                messages.addAll(this.createMessages(channel, new ByteBufMessageBuffer(ByteBufCodec.INSTANCE_LE, buffer), direction));
             }
         }
 
@@ -343,7 +364,7 @@ public class GeyserNetwork implements Network {
             } else {
                 ByteBuf buffer = Unpooled.buffer();
                 packet.serialize(buffer);
-                messages.addAll(this.createMessages(channel, new ByteBufMessageBuffer(ByteBufCodec.INSTANCE, buffer)));
+                messages.addAll(this.createMessages(channel, new ByteBufMessageBuffer(ByteBufCodec.INSTANCE, buffer), direction));
             }
         }
 

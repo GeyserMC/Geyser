@@ -54,6 +54,7 @@ import org.cloudburstmc.protocol.common.util.Zlib;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.bedrock.SessionDefineNetworkChannelsEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.MessageDirection;
@@ -229,6 +230,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         // Fire SessionInitializeEvent here as we now know the client data
         geyser.eventBus().fire(new SessionInitializeEvent(session));
+        session.getNetwork().defineNetworkChannels(SessionDefineNetworkChannelsEvent.State.INITIALIZED);
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
         playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
