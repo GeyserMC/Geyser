@@ -120,6 +120,7 @@ import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.api.event.bedrock.SessionLoginEvent;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.api.util.PlatformType;
@@ -192,6 +193,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
@@ -258,6 +260,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final GeyserImpl geyser;
     private final UpstreamSession upstream;
     private DownstreamSession downstream;
+    @Setter
+    private GeyserSession parentSession;
     /**
      * The loop where all packets and ticking is processed to prevent concurrency issues.
      * If this is manually called, ensure that any exceptions are properly handled.
@@ -1167,8 +1171,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, MessageTranslator.convertMessage(reason)));
             }
 
-            // Disconnect upstream if necessary
-            if (!upstream.isClosed()) {
+            // Disconnect upstream if necessary - but NOT if this is a sub-client (Xbox split-screen)
+            // Sub-clients share the upstream connection with their parent session
+            if (!isSubClient() && !upstream.isClosed()) {
                 upstream.disconnect(disconnectEvent.disconnectReason());
             }
 
@@ -1258,6 +1263,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Called every Minecraft tick.
      */
     protected void tick() {
+        if (isSubClient()) {
+            if (parentSession != null && parentSession.isClosed()) {
+                disconnect("Parent session closed");
+                return;
+            }
+            if (upstream != null && upstream.isClosed()) {
+                disconnect("Sub-client connection closed");
+                return;
+            }
+        }
+
         try {
             pistonCache.tick();
 
@@ -1533,7 +1549,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public String locale() {
-        return clientData != null ? clientData.getLanguageCode() : GeyserLocale.getDefaultLocale();
+        if (clientData == null) {
+            return GeyserLocale.getDefaultLocale();
+        }
+        String languageCode = clientData.getLanguageCode();
+        return languageCode != null ? languageCode : GeyserLocale.getDefaultLocale();
     }
 
     @Override
@@ -2343,6 +2363,47 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public boolean isLinked() {
         return false; //todo
+    }
+
+    public boolean isSubClient() {
+        return parentSession != null;
+    }
+
+    /**
+     * Reconnect to Java server for sub-client rejoin.
+     * Used when sub-client leaves split-screen and rejoins - the Bedrock client
+     * needs LOGIN_SUCCESS to acknowledge the new SubClientLoginPacket.
+     */
+    public void reconnectToJavaServer() {
+        if (downstream != null && !downstream.isClosed()) {
+            downstream.disconnect(Component.text("Rejoining split-screen"));
+        }
+        downstream = null;
+
+        loggedIn = false;
+        loggingIn = false;
+
+        sentSpawnPacket = false;
+        spawned = false;
+
+        chunkCache.clear();
+        entityCache.removeAllEntities();
+        itemFrameCache.clear();
+        lodestoneCache.clear();
+        pistonCache.clear();
+        skullCache.clear();
+        getBlockBreakHandler().reset();
+
+        int currentDimension = bedrockDimension.bedrockId();
+        int fakeDimension = DimensionUtils.getTemporaryDimension(currentDimension, currentDimension);
+        DimensionUtils.fastSwitchDimension(this, fakeDimension);
+        DimensionUtils.fastSwitchDimension(this, currentDimension);
+
+        PlayStatusPacket playStatus = new PlayStatusPacket();
+        playStatus.setStatus(PlayStatusPacket.Status.LOGIN_SUCCESS);
+        sendUpstreamPacket(playStatus);
+
+        authenticate(authData.name());
     }
 
     @SuppressWarnings("ConstantConditions") // Need to enforce the parameter annotations
