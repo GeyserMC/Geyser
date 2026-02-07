@@ -260,11 +260,15 @@ public class GeyserItemStack {
         return session.getItemMappings().getMapping(this.javaId);
     }
 
-    public SlotDisplay asSlotDisplay() {
-        if (isEmpty()) {
+    public SlotDisplay asIngredient() {
+        ItemStack itemStack = getItemStack(1);
+        if (itemStack == null) {
             return EmptySlotDisplay.INSTANCE;
         }
-        return new ItemStackSlotDisplay(this.getItemStack());
+        if (itemStack.getDataComponentsPatch() == null) {
+            return new ItemSlotDisplay(itemStack.getId());
+        }
+        return new ItemStackSlotDisplay(itemStack);
     }
 
     public int getMaxStackSize() {
