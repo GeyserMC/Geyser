@@ -133,6 +133,8 @@ public class FormCache {
     }
 
     public void closeForms() {
+        // Copy them to ensure any response handler's sent form isn't instantly cleared
+        Int2ObjectMap<Form> forms = this.forms;
         if (!forms.isEmpty()) {
             Iterator<Form> iterator = forms.values().iterator();
             while (iterator.hasNext()) {
