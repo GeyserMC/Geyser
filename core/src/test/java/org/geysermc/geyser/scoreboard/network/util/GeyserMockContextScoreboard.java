@@ -28,7 +28,7 @@ package org.geysermc.geyser.scoreboard.network.util;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
@@ -98,7 +98,7 @@ public class GeyserMockContextScoreboard {
     }
 
     public static PlayerEntity spawnPlayer(GeyserMockContext context, String username, long geyserId) {
-        EntitySpawnContext entitySpawnContext = EntitySpawnContext.DUMMY_CONTEXT.apply(context.session(), UUID.randomUUID(), EntityDefinitions.PLAYER);
+        EntitySpawnContext entitySpawnContext = EntitySpawnContext.DUMMY_CONTEXT.apply(context.session(), UUID.randomUUID(), VanillaEntities.PLAYER);
         entitySpawnContext.geyserId(geyserId);
         entitySpawnContext.javaId((int) geyserId);
         var playerEntity = spy(new PlayerEntity(entitySpawnContext, username, null));

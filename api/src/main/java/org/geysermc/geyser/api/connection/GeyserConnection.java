@@ -25,23 +25,19 @@
 
 package org.geysermc.geyser.api.connection;
 
-import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.connection.Connection;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.EntityData;
-import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.skin.SkinData;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Represents a player connection used in Geyser.
@@ -58,7 +54,7 @@ public interface GeyserConnection extends Connection, CommandSource {
 
     /**
      * Exposes the {@link EntityData} for this connection.
-     * It allows you to get entities by their Java entity ID, show emotes, and get the player entity.
+     * It allows you to look up other entities through various methods.
      *
      * @return the EntityData for this connection.
      */
@@ -167,22 +163,11 @@ public interface GeyserConnection extends Connection, CommandSource {
     void sendSkin(@NonNull UUID player, @NonNull SkinData skinData);
 
     /**
-     * @param javaId the Java entity ID to look up.
-     * @return a {@link GeyserEntity} if present in this connection's entity tracker.
-     * @deprecated Use {@link EntityData#entityByJavaId(int)} instead
-     */
-    @Deprecated
-    @NonNull
-    CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
-
-    /**
      * Displays a player entity as emoting to this client.
      *
      * @param emoter the player entity emoting.
      * @param emoteId the emote ID to send to this client.
-     * @deprecated use {@link EntityData#showEmote(GeyserPlayerEntity, String)} instead
      */
-    @Deprecated
     void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
 
     /**
@@ -238,4 +223,17 @@ public interface GeyserConnection extends Connection, CommandSource {
     @Deprecated
     @NonNull
     Set<String> fogEffects();
+
+    /**
+     * Gets the {@link GeyserPlayerEntity} of this connection.
+     *
+     * @return the {@link GeyserPlayerEntity} of this connection
+     */
+    @NonNull GeyserPlayerEntity playerEntity();
+
+    /**
+     * Sends a request to the Java server to switch the items in the main and offhand.
+     * There is no guarantee of the server accepting the request.
+     */
+    void switchHands();
 }
