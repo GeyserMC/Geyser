@@ -55,13 +55,19 @@ import java.util.Objects;
 
 public class DoubleChestInventoryTranslator extends ChestInventoryTranslator<Container> {
     private final int defaultJavaBlockState;
+    private final String integratedPackPrefix;
 
     public DoubleChestInventoryTranslator(int size) {
+        this(size, "");
+    }
+
+    public DoubleChestInventoryTranslator(int size, String integratedPackPrefix) {
         super(size, 54);
         this.defaultJavaBlockState = Blocks.CHEST.defaultBlockState()
                 .withValue(Properties.HORIZONTAL_FACING, Direction.NORTH)
                 .withValue(Properties.CHEST_TYPE, ChestType.SINGLE)
                 .javaId();
+        this.integratedPackPrefix = integratedPackPrefix;
     }
 
     /**
@@ -109,6 +115,12 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator<Con
             return false;
         }
 
+        String containerName = container.getTitle();
+
+        if (session.getGeyser().config().gameplay().enableIntegratedPack()) {
+            containerName = integratedPackPrefix + containerName;
+        }
+
         Vector3i pairPosition = position.add(Vector3i.UNIT_X);
         BlockDefinition definition = session.getBlockMappings().getVanillaBedrockBlock(defaultJavaBlockState);
 
@@ -122,7 +134,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator<Con
         NbtMapBuilder tag = BlockEntityTranslator.getConstantBedrockTag("Chest", position)
                 .putInt("pairx", pairPosition.getX())
                 .putInt("pairz", pairPosition.getZ())
-                .putString("CustomName", container.getTitle())
+                .putString("CustomName", containerName)
                 .putBoolean("pairlead", false);
 
         BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
@@ -144,7 +156,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator<Con
                 .putInt("z", pairPosition.getZ())
                 .putInt("pairx", position.getX())
                 .putInt("pairz", position.getZ())
-                .putString("CustomName", container.getTitle())
+                .putString("CustomName", containerName)
                 .putBoolean("pairlead", true);
 
         dataPacket = new BlockEntityDataPacket();

@@ -28,10 +28,8 @@ package org.geysermc.geyser.util;
 import lombok.Getter;
 import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.PreferencesCache;
 import org.geysermc.geyser.text.ChatColor;
-
-import java.util.concurrent.TimeUnit;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
 /**
  * Manages the sending of a cooldown indicator to the Bedrock player as there is no cooldown indicator in Bedrock.
@@ -39,11 +37,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class CooldownUtils {
     /**
-     * Starts sending the fake cooldown to the Bedrock client. If the cooldown is not disabled, the sent type is the cooldownPreference in {@link PreferencesCache}
-     *
-     * @param session GeyserSession
+     * Sets the last hit time for use when ticking the attack cooldown
      */
-    public static void sendCooldown(GeyserSession session) {
+    public static void setCooldownHitTime(GeyserSession session) {
         if (session.getGeyser().config().gameplay().showCooldown() == CooldownType.DISABLED) return;
         CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
         if (sessionPreference == CooldownType.DISABLED) return;
@@ -51,55 +47,84 @@ public class CooldownUtils {
         if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) {
             return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
         }
-        // Set the times to stay a bit with no fade in nor out
-        SetTitlePacket titlePacket = new SetTitlePacket();
-        titlePacket.setType(SetTitlePacket.Type.TIMES);
-        titlePacket.setStayTime(1000);
-        titlePacket.setText("");
-        titlePacket.setXuid("");
-        titlePacket.setPlatformOnlineId("");
-        session.sendUpstreamPacket(titlePacket);
 
-        session.getWorldCache().markTitleTimesAsIncorrect();
+        session.setLastHitTime(System.currentTimeMillis());
+    }
 
-        // Actionbars don't need an empty title
-        if (sessionPreference == CooldownType.TITLE) {
-            // Needs to be sent or no subtitle packet is recognized by the client
+    public static void tickCooldown(GeyserSession session) {
+        if (session.getGeyser().config().gameplay().showCooldown() == CooldownType.DISABLED) return;
+        CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
+        if (sessionPreference == CooldownType.DISABLED) return;
+
+        if (session.getGameMode().equals(GameMode.SPECTATOR)) return; // No attack indicator in spectator
+
+        if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) {
+            clearCooldown(session); // Let's clear in the off chance there is something already displayed
+            return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
+        }
+
+        long time = System.currentTimeMillis() - session.getLastHitTime();
+        double tickrateMultiplier = Math.max(session.getMillisecondsPerTick() / 50, 1.0);
+        double cooldown = MathUtils.restrain(((double) time) * session.getAttackSpeed() / (tickrateMultiplier * 1000.0), 1.0);
+
+        if (cooldown < 1.0) {
+            sendCooldown(session, sessionPreference, cooldown);
+        } else if (session.isNeedAttackCooldownClear()) {
+            clearCooldown(session);
+        }
+    }
+
+    public static void sendCooldown(GeyserSession session, CooldownType sessionPreference, double cooldown) {
+        if (session.integratedPackActive()) {
+            String value = "%s:%d".formatted(
+                sessionPreference.equals(CooldownType.TITLE) ?
+                    "crs" :
+                    "htb",
+                Math.round(cooldown * 16)
+            );
+
+            session.sendJsonUIData("cooldown", value);
+        } else {
+            // Set the times to stay a bit with no fade in nor out
+            SetTitlePacket titlePacket = new SetTitlePacket();
+            titlePacket.setType(SetTitlePacket.Type.TIMES);
+            titlePacket.setStayTime(1000);
+            titlePacket.setText("");
+            titlePacket.setXuid("");
+            titlePacket.setPlatformOnlineId("");
+            session.sendUpstreamPacket(titlePacket);
+
+            session.getWorldCache().markTitleTimesAsIncorrect();
+
+            // Actionbars don't need an empty title
+            if (sessionPreference == CooldownType.TITLE) {
+                // Needs to be sent or no subtitle packet is recognized by the client
+                titlePacket = new SetTitlePacket();
+                titlePacket.setType(SetTitlePacket.Type.TITLE);
+                titlePacket.setText(" ");
+                titlePacket.setXuid("");
+                titlePacket.setPlatformOnlineId("");
+                session.sendUpstreamPacket(titlePacket);
+            }
+
             titlePacket = new SetTitlePacket();
-            titlePacket.setType(SetTitlePacket.Type.TITLE);
-            titlePacket.setText(" ");
+            if (sessionPreference == CooldownType.ACTIONBAR) {
+                titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
+            } else {
+                titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
+            }
+            titlePacket.setText(CooldownUtils.getTitle(cooldown));
             titlePacket.setXuid("");
             titlePacket.setPlatformOnlineId("");
             session.sendUpstreamPacket(titlePacket);
         }
-        session.setLastHitTime(System.currentTimeMillis());
-        long lastHitTime = session.getLastHitTime(); // Used later to prevent multiple scheduled cooldown threads
-        computeCooldown(session, sessionPreference, lastHitTime);
+
+        session.setNeedAttackCooldownClear(true);
     }
 
-    /**
-     * Keeps updating the cooldown until the bar is complete.
-     *
-     * @param session GeyserSession
-     * @param sessionPreference The type of cooldown the client prefers
-     * @param lastHitTime The time of the last hit. Used to gauge how long the cooldown is taking.
-     */
-    private static void computeCooldown(GeyserSession session, CooldownType sessionPreference, long lastHitTime) {
-        if (session.isClosed()) return; // Don't run scheduled tasks if the client left
-        if (lastHitTime != session.getLastHitTime()) return; // Means another cooldown has started so there's no need to continue this one
-        SetTitlePacket titlePacket = new SetTitlePacket();
-        if (sessionPreference == CooldownType.ACTIONBAR) {
-            titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
-        } else {
-            titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
-        }
-        titlePacket.setText(getTitle(session));
-        titlePacket.setXuid("");
-        titlePacket.setPlatformOnlineId("");
-        session.sendUpstreamPacket(titlePacket);
-        if (hasCooldown(session)) {
-            session.scheduleInEventLoop(() ->
-                    computeCooldown(session, sessionPreference, lastHitTime), (long) restrain(session.getMillisecondsPerTick(), 50), TimeUnit.MILLISECONDS); // Updated per tick. 1000 divided by 20 ticks equals 50
+    public static void clearCooldown(GeyserSession session) {
+        if (session.integratedPackActive()) {
+            session.sendJsonUIData("cooldown", "non");
         } else {
             SetTitlePacket removeTitlePacket = new SetTitlePacket();
             removeTitlePacket.setType(SetTitlePacket.Type.CLEAR);
@@ -108,27 +133,11 @@ public class CooldownUtils {
             removeTitlePacket.setPlatformOnlineId("");
             session.sendUpstreamPacket(removeTitlePacket);
         }
+
+        session.setNeedAttackCooldownClear(false);
     }
 
-    private static boolean hasCooldown(GeyserSession session) {
-        long time = System.currentTimeMillis() - session.getLastHitTime();
-        double tickrateMultiplier = Math.max(session.getMillisecondsPerTick() / 50, 1.0);
-        double cooldown = restrain(((double) time) * session.getAttackSpeed() / (tickrateMultiplier * 1000.0), 1.0);
-        return cooldown < 1.0;
-    }
-
-
-    private static double restrain(double x, double max) {
-        if (x < 0d)
-            return 0d;
-        return Math.min(x, max);
-    }
-
-    private static String getTitle(GeyserSession session) {
-        long time = System.currentTimeMillis() - session.getLastHitTime();
-        double tickrateMultiplier = Math.max(session.getMillisecondsPerTick() / 50, 1.0);
-        double cooldown = restrain(((double) time) * session.getAttackSpeed() / (tickrateMultiplier * 1000.0), 1.0);
-
+    public static String getTitle(double cooldown) {
         int darkGrey = (int) Math.floor(10d * cooldown);
         int grey = 10 - darkGrey;
         StringBuilder builder = new StringBuilder(ChatColor.DARK_GRAY);

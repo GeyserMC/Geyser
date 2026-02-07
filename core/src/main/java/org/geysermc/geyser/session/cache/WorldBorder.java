@@ -242,7 +242,7 @@ public class WorldBorder {
         } else {
             radius = this.newDiameter / 2.0D;
         }
-        
+
         double absoluteMinSize = -this.absoluteMaxSize;
         double centerX = this.center.getX();
         double centerZ = this.center.getY(); // Mapping 2D vector to 3D coordinates >> Y becomes Z
