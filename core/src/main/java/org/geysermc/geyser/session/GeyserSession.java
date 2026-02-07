@@ -92,6 +92,7 @@ import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetCommandsEnabledPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
@@ -157,7 +158,6 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.GeyserNetwork;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
@@ -727,10 +727,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private ScheduledFuture<?> mountVehicleScheduledFuture = null;
 
     /**
-     * A cache of IDs from ClientboundKeepAlivePackets that have been sent to the Bedrock client, but haven't been returned to the server.
+     * A cache of IDs from ClientboundKeepAlivePackets or ClientboundPingPacket that have been sent to the Bedrock client, but haven't been returned to the server.
      * Only used if {@link GeyserConfig.GameplayConfig#forwardPlayerPing()} is enabled.
      */
-    private final Queue<Long> keepAliveCache = new ConcurrentLinkedQueue<>();
+    private final Queue<Runnable> latencyPingCache = new ConcurrentLinkedQueue<>();
+
+    /**
+     * Queued packets to be sent immediately at the end of each tick.
+     */
+    private final List<BedrockPacket> queuedImmediatelyPackets = new ArrayList<>();
 
     /**
      * Stores the book that is currently being read. Used in {@link org.geysermc.geyser.translator.protocol.java.inventory.JavaOpenBookTranslator}
@@ -891,7 +896,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         upstream.sendPacket(setCommandsEnabledPacket);
 
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
-        attributesPacket.setRuntimeEntityId(getPlayerEntity().getGeyserId());
+        attributesPacket.setRuntimeEntityId(getPlayerEntity().geyserId());
         // Default move speed
         // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
         attributesPacket.setAttributes(Collections.singletonList(
@@ -1149,7 +1154,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         protocol.setUseDefaultListeners(false);
 
         // MCPL listener comes first to handle protocol state switching before Geyser translates packets
-        downstream.addListener(new ClientListener(HandshakeIntent.LOGIN));
+        downstream.addListener(new ClientListener(HandshakeIntent.LOGIN, Boolean.getBoolean("Geyser.ValidateDecompression")));
         // Geyser adapter second to ensure translating packets in the correct states
         downstream.addListener(new GeyserSessionAdapter(this));
 
@@ -1206,6 +1211,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (tickThread != null) {
             tickThread.cancel(false);
         }
+
+        queuedImmediatelyPackets.clear();
 
         // Mark session as closed before cancelling erosion futures
         closed = true;
@@ -1348,6 +1355,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             this.bundleCache.tick();
             this.dialogManager.tick();
             this.waypointCache.tick();
+
+            this.upstream.getSession().getPeer().sendPacketsImmediately(0, 0, queuedImmediatelyPackets.toArray(new BedrockPacket[0]));
+            queuedImmediatelyPackets.clear();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -1772,8 +1782,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
 
         StartGamePacket startGamePacket = new StartGamePacket();
-        startGamePacket.setUniqueEntityId(playerEntity.getGeyserId());
-        startGamePacket.setRuntimeEntityId(playerEntity.getGeyserId());
+        startGamePacket.setUniqueEntityId(playerEntity.geyserId());
+        startGamePacket.setRuntimeEntityId(playerEntity.geyserId());
         startGamePacket.setPlayerGameType(EntityUtils.toBedrockGamemode(gameMode));
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
@@ -1897,7 +1907,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             if (unconfirmedTeleport.getTeleportType() == TeleportCache.TeleportType.KEEP_VELOCITY) {
                 SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
-                entityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+                entityMotionPacket.setRuntimeEntityId(playerEntity.geyserId());
                 entityMotionPacket.setMotion(unconfirmedTeleport.getVelocity());
                 this.sendUpstreamPacket(entityMotionPacket);
             }
@@ -2045,7 +2055,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send an AdventureSettingsPacket to the client with the latest flags
      */
     public void sendAdventureSettings() {
-        long bedrockId = playerEntity.getGeyserId();
+        long bedrockId = playerEntity.geyserId();
         // Set command permission if OP permission level is high enough
         // This allows mobile players access to a GUI for doing commands. The commands there do not change above OPERATOR
         // and all commands there are accessible with OP permission level 2
@@ -2196,7 +2206,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 player.getEmotes().add(piece);
             }
             EmoteListPacket emoteList = new EmoteListPacket();
-            emoteList.setRuntimeEntityId(player.getPlayerEntity().getGeyserId());
+            emoteList.setRuntimeEntityId(player.getPlayerEntity().geyserId());
             emoteList.getPieceIds().addAll(pieces);
             player.sendUpstreamPacket(emoteList);
         }
@@ -2303,7 +2313,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public UUID javaUuid() {
-        return playerEntity != null ? playerEntity.getUuid() : null;
+        return playerEntity != null ? playerEntity.uuid() : null;
     }
 
     @Override
@@ -2483,6 +2493,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         packet.setType(type);
         packet.setSoftEnum(new CommandEnumData(name, Collections.singletonMap(enums, Collections.emptySet()), true));
         sendUpstreamPacket(packet);
+    }
+
+    public void sendNetworkLatencyStackPacket(long timestamp, boolean ensureEventLoop, Runnable runnable) {
+        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
+        latencyPacket.setFromServer(true);
+        latencyPacket.setTimestamp(timestamp);
+        if (ensureEventLoop) {
+            latencyPingCache.add(() -> ensureInEventLoop(runnable));
+        } else {
+            latencyPingCache.add(runnable);
+        }
+        sendUpstreamPacket(latencyPacket);
     }
 
     public String getDebugInfo() {

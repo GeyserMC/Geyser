@@ -25,12 +25,20 @@
 
 package org.geysermc.geyser.util;
 
+import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
+import org.geysermc.api.util.BedrockPlatform;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.awt.*;
 import java.util.List;
+import java.util.UUID;
 
 public class PlayerListUtils {
+    private static final boolean HIDE_PLAYER_LIST_PS = Boolean.getBoolean("Geyser.NoPlayerListPS");
+
     static final int MAX_PLAYER_LIST_PACKET_ENTRIES = 1000;
 
     /**
@@ -59,5 +67,73 @@ public class PlayerListUtils {
             packet.getEntries().addAll(entries);
             session.sendUpstreamPacket(packet);
         }
+    }
+
+    public static PlayerListPacket.Entry forSkullPlayerEntity(AvatarEntity entity, SerializedSkin skin) {
+        PlayerListPacket.Entry entry = new PlayerListPacket.Entry(entity.uuid());
+        entry.setName(entity.getUsername());
+        entry.setEntityId(entity.geyserId());
+        entry.setSkin(skin);
+        entry.setXuid("");
+        entry.setPlatformChatId("");
+        entry.setTeacher(false);
+        entry.setTrustedSkin(true);
+        entry.setColor(Color.LIGHT_GRAY);
+        return entry;
+    }
+
+    public static PlayerListPacket.Entry buildEntryManually(GeyserSession session, UUID uuid, String username, long geyserId, SerializedSkin skin, Color color) {
+        // This attempts to find the XUID of the player so profile images show up for Xbox accounts
+        String xuid = "";
+        GeyserSession playerSession = GeyserImpl.getInstance().connectionByUuid(uuid);
+
+        // Prefer looking up xuid using the session to catch linked players
+        if (playerSession != null) {
+            xuid = playerSession.getAuthData().xuid();
+        } else if (uuid.version() == 0) {
+            xuid = Long.toString(uuid.getLeastSignificantBits());
+        }
+
+        PlayerListPacket.Entry entry;
+
+        // If we are building a PlayerListEntry for our own session we use our AuthData UUID instead of the Java UUID
+        // as Bedrock expects to get back its own provided UUID
+        if (session.getPlayerEntity().uuid().equals(uuid)) {
+            entry = new PlayerListPacket.Entry(session.getAuthData().uuid());
+        } else {
+            entry = new PlayerListPacket.Entry(uuid);
+        }
+
+        entry.setName(username);
+        entry.setEntityId(geyserId);
+        entry.setSkin(skin);
+        entry.setXuid(xuid);
+        entry.setPlatformChatId("");
+        entry.setTeacher(false);
+        entry.setTrustedSkin(true);
+        entry.setColor(color);
+        return entry;
+    }
+
+    public static void sendSkinUsingPlayerList(GeyserSession session, PlayerListPacket.Entry entry, AvatarEntity entity, boolean persistent) {
+        PlayerListPacket listPacket = new PlayerListPacket();
+        listPacket.setAction(PlayerListPacket.Action.ADD);
+        listPacket.getEntries().add(entry);
+        session.sendUpstreamPacket(listPacket);
+
+        if (!persistent) {
+            PlayerListPacket unlistPacket = new PlayerListPacket();
+            unlistPacket.setAction(PlayerListPacket.Action.REMOVE);
+            unlistPacket.getEntries().add(new PlayerListPacket.Entry(entity.uuid()));
+            session.sendUpstreamPacket(unlistPacket);
+        }
+    }
+
+    /**
+     * Whether Geyser should limit the player list entries shown to the amount of players actually displayed / near the player
+     * Avoids client crashes when opening the chat on playstation consoles
+     */
+    public static boolean shouldLimitPlayerListEntries(GeyserSession session) {
+        return HIDE_PLAYER_LIST_PS && session.platform() == BedrockPlatform.PS4;
     }
 }

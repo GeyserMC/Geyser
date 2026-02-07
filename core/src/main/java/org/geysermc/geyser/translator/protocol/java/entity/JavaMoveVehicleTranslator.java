@@ -45,5 +45,6 @@ public class JavaMoveVehicleTranslator extends PacketTranslator<ClientboundMoveV
         }
 
         entity.moveAbsolute(packet.getPosition().toFloat(), packet.getYRot(), packet.getXRot(), false, true);
+        // TODO send serverbound move vehicle packet
     }
 }

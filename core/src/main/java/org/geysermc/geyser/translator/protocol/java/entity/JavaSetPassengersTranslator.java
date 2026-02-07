@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.protocol.java.entity;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
@@ -74,7 +73,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             boolean rider = packet.getPassengerIds()[0] == passengerId;
             EntityLinkData.Type type = rider ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-            linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), type, false, false, 0f));
+            linkPacket.setEntityLink(new EntityLinkData(entity.geyserId(), passenger.geyserId(), type, false, false, 0f));
             session.sendUpstreamPacket(linkPacket);
             newPassengers.add(passenger);
 
@@ -94,7 +93,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             }
             if (!newPassengers.contains(passenger)) {
                 SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-                linkPacket.setEntityLink(new EntityLinkData(entity.getGeyserId(), passenger.getGeyserId(), EntityLinkData.Type.REMOVE, false, false, 0f));
+                linkPacket.setEntityLink(new EntityLinkData(entity.geyserId(), passenger.geyserId(), EntityLinkData.Type.REMOVE, false, false, 0f));
                 session.sendUpstreamPacket(linkPacket);
 
                 passenger.setVehicle(null);

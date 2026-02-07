@@ -76,6 +76,7 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
     private IGeyserPingPassthrough geyserPingPassthrough;
     private CommandRegistry commandRegistry;
     private GeyserImpl geyser;
+    private boolean started = false;
 
     @Getter
     private final Path configFolder = Paths.get("plugins/" + GeyserImpl.NAME + "-Velocity/");
@@ -212,7 +213,9 @@ public class GeyserVelocityPlugin implements GeyserBootstrap {
 
     @Subscribe
     public void onProxyBound(ListenerBoundEvent event) {
-        if (event.getListenerType() == ListenerType.MINECRAFT) {
+        if (event.getListenerType() == ListenerType.MINECRAFT && !started) {
+            // Avoid enabling multiple times
+            started = true;
             // Once listener is bound, do our startup process
             this.onGeyserEnable();
 

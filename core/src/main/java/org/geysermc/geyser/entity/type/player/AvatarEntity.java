@@ -40,8 +40,9 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
@@ -60,9 +61,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 
-public class AvatarEntity extends LivingEntity {
+public abstract class AvatarEntity extends LivingEntity {
     public static final float SNEAKING_POSE_HEIGHT = 1.5f;
     protected static final List<AbilityLayer> BASE_ABILITY_LAYER;
 
@@ -93,9 +93,8 @@ public class AvatarEntity extends LivingEntity {
         BASE_ABILITY_LAYER = Collections.singletonList(abilityLayer);
     }
 
-    public AvatarEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition,
-                        Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw, String username) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public AvatarEntity(EntitySpawnContext context, String username) {
+        super(context);
         this.username = username;
         this.nametag = username;
     }
@@ -133,8 +132,14 @@ public class AvatarEntity extends LivingEntity {
         session.sendUpstreamPacket(addPlayerPacket);
     }
 
+    // The player entity already lerps client-sided on bedrock
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public boolean shouldLerp() {
+        return false;
+    }
+
+    @Override
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         setPosition(position);
         setYaw(yaw);
         setPitch(pitch);
@@ -161,7 +166,7 @@ public class AvatarEntity extends LivingEntity {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
@@ -228,11 +233,11 @@ public class AvatarEntity extends LivingEntity {
         return bedPosition;
     }
 
-    public void setSkin(ResolvableProfile profile, boolean cape, Runnable after) {
-        SkinManager.resolveProfile(profile).thenAccept(resolved -> setSkin(resolved, cape, after));
+    public void setSkin(ResolvableProfile profile, boolean cape) {
+        SkinManager.resolveProfile(profile).thenAccept(resolved -> setSkin(resolved, cape, null));
     }
 
-    public void setSkin(GameProfile profile, boolean cape, Runnable after) {
+    public void setSkin(GameProfile profile, boolean cape, @Nullable Runnable after) {
         GameProfile.Property textures = profile.getProperty("textures");
         if (textures != null) {
             setSkin(textures.getValue(), cape, after);
@@ -241,16 +246,16 @@ public class AvatarEntity extends LivingEntity {
         }
     }
 
-    public void setSkin(String texturesProperty, boolean cape, Runnable after) {
+    public void setSkin(String texturesProperty, boolean cape, @Nullable Runnable after) {
         if (Objects.equals(texturesProperty, this.texturesProperty)) {
             return;
         }
 
         this.texturesProperty = texturesProperty;
         if (cape) {
-            SkinManager.requestAndHandleSkinAndCape(this, session, skin -> after.run());
+            SkinManager.requestAndHandleSkinAndCape(this, session, after == null ? null : skin -> after.run());
         } else {
-            SkullSkinManager.requestAndHandleSkin(this, session, skin -> after.run());
+            SkullSkinManager.requestAndHandleSkin(this, session, after == null ? null :skin -> after.run());
         }
     }
 
@@ -294,6 +299,15 @@ public class AvatarEntity extends LivingEntity {
             dirtyMetadata.put(EntityDataTypes.SCORE, text);
         }
     }
+
+    /**
+     * Whether this entity is listed on the player list.
+     * Since player entities are used for e.g. custom skulls too, we need to hack around
+     * limitations introduced in 1.21.130 to ensure skins are correctly applied. 
+     * @see SkinManager#sendSkinPacket(GeyserSession, AvatarEntity, SkinData)
+     * @return whether this player entity is listed
+     */
+    public abstract boolean isListed();
 
     @Override
     protected void scoreVisibility(boolean show) {
