@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,25 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.item.components;
+package org.geysermc.geyser.registry.mappings.components.readers;
 
-import org.cloudburstmc.nbt.NbtMap;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
+import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
+import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 
-import java.util.Locale;
+public abstract class PrimitiveComponentReader<V> extends DataComponentReader<V> {
 
-public enum WearableSlot {
-    HEAD,
-    CHEST,
-    LEGS,
-    FEET;
-
-    private final NbtMap slotNbt;
-
-    WearableSlot() {
-        this.slotNbt = NbtMap.builder().putString("slot", "slot.armor." + this.name().toLowerCase(Locale.ROOT)).build();
+    protected PrimitiveComponentReader(ItemDataComponent<V> type) {
+        super(type);
     }
 
-    public NbtMap getSlotNbt() {
-        return slotNbt;
+    protected abstract V readValue(@NonNull JsonPrimitive primitive, String... context) throws InvalidCustomMappingsFileException;
+
+    @Override
+    protected V readDataComponent(@NonNull JsonElement element, String... context) throws InvalidCustomMappingsFileException {
+        if (!element.isJsonPrimitive()) {
+            throw new InvalidCustomMappingsFileException("reading component", "value must be a primitive", context);
+        }
+        return readValue((JsonPrimitive) element, context);
     }
 }

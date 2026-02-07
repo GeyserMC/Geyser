@@ -25,19 +25,18 @@
 
 package org.geysermc.geyser.session.cache.waypoint;
 
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.Vec3iWaypointData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
 
 import java.awt.Color;
 import java.util.Optional;
-import java.util.OptionalLong;
-import java.util.UUID;
 
 public class CoordinatesWaypoint extends GeyserWaypoint {
 
-    public CoordinatesWaypoint(GeyserSession session, Optional<UUID> uuid, OptionalLong entityId, Color color) {
-        super(session, uuid, entityId, color);
+    public CoordinatesWaypoint(GeyserSession session, Optional<PlayerEntity> player, Color color) {
+        super(session, player, color);
     }
 
     @Override

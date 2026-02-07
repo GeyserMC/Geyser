@@ -460,7 +460,6 @@ public final class EntityDefinitions {
             TEXT_DISPLAY = EntityDefinition.inherited(TextDisplayEntity::new, displayBase)
                     .type(EntityType.TEXT_DISPLAY)
                     .identifier("minecraft:armor_stand")
-                    .offset(-0.5f)
                     .addTranslator(MetadataTypes.COMPONENT, TextDisplayEntity::setText)
                     .addTranslator(null) // Line width
                     .addTranslator(null) // Background color
@@ -1230,6 +1229,8 @@ public final class EntityDefinitions {
             ZOMBIE_NAUTILUS = EntityDefinition.inherited(ZombieNautilusEntity::new, abstractNautilusBase)
                 .type(EntityType.ZOMBIE_NAUTILUS)
                 .identifier("minecraft:zombie_nautilus")
+                .property(ZombieNautilusEntity.VARIANT_ENUM_PROPERTY)
+                .addTranslator(MetadataTypes.ZOMBIE_NAUTILUS_VARIANT, ZombieNautilusEntity::setVariant)
                 .build();
         }
 

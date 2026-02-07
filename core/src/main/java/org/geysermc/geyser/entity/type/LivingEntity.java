@@ -105,7 +105,7 @@ public class LivingEntity extends Entity implements Tickable {
      */
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
-    private float attributeScale;
+    protected float attributeScale;
 
     private Vector3f lerpPosition;
     private int lerpSteps;
@@ -345,7 +345,7 @@ public class LivingEntity extends Entity implements Tickable {
         applyScale();
     }
 
-    private void setAttributeScale(float scale) {
+    protected void setAttributeScale(float scale) {
         this.attributeScale = MathUtils.clamp(scale, GeyserAttributeType.SCALE.getMinimum(), GeyserAttributeType.SCALE.getMaximum());
         applyScale();
     }
@@ -398,7 +398,7 @@ public class LivingEntity extends Entity implements Tickable {
             clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
         }
 
-        if (shouldLerp() && (relX != 0 || relY != 0 || relZ != 0) && this.position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+        if (shouldLerp() && (relX != 0 || relY != 0 || relZ != 0) && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
             this.dirtyPitch = pitch != this.pitch;
             this.dirtyYaw = yaw != this.yaw;
             this.dirtyHeadYaw = headYaw != this.headYaw;
@@ -408,7 +408,8 @@ public class LivingEntity extends Entity implements Tickable {
             setHeadYaw(headYaw);
             setOnGround(isOnGround);
 
-            this.lerpPosition = this.position.add(relX, relY, relZ);
+            // Lerp position should be used as base if we have lerp steps left to ensure we don't de-sync with the position provided by the server
+            this.lerpPosition = lerpSteps == 0 ? this.position.add(relX, relY, relZ) : this.lerpPosition.add(relX, relY, relZ);
             this.lerpSteps = 3;
         } else {
             super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
@@ -435,6 +436,10 @@ public class LivingEntity extends Entity implements Tickable {
     }
 
     public boolean shouldLerp() {
+        // We'll already send movement of these on our end every tick
+        if (this instanceof ClientVehicle clientVehicle) {
+            return !clientVehicle.isClientControlled();
+        }
         return true;
     }
 

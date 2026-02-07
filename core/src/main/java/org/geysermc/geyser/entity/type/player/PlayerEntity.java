@@ -32,6 +32,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
@@ -40,6 +41,7 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
+import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
@@ -83,6 +85,20 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     @Override
     public void despawnEntity() {
         super.despawnEntity();
+
+        // Remove the entries if limited entries are desired
+        // While we do not explicitly list players, the skin loading code would
+        // send the player list entry after fetching the skin sent by the Java server.
+        if (PlayerListUtils.shouldLimitPlayerListEntries(session)) {
+            PlayerListPacket packet = new PlayerListPacket();
+            packet.getEntries().add(new PlayerListPacket.Entry(getTabListUuid()));
+            packet.setAction(PlayerListPacket.Action.REMOVE);
+            session.sendUpstreamPacket(packet);
+
+            // To ensure waypoints still remain, if any were added while the
+            // player had a valid player list entry
+            session.getWaypointCache().unlistPlayer(this);
+        }
 
         // Since we re-use player entities: Clear flags, held item, etc
         this.resetMetadata();

@@ -88,7 +88,7 @@ public class MinecartEntity extends Entity implements Tickable {
 
         // It's vanilla behaviour to lerp if the position is within 64 blocks, however we also check if the position is close enough to the player
         // position to see if it can actually affect anything to save network.
-        if (position.distanceSquared(this.position()) < 4096 && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+        if (position.distanceSquared(this.position) < 4096 && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
             this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = true;
 
             setYaw(yaw);
@@ -110,7 +110,7 @@ public class MinecartEntity extends Entity implements Tickable {
             return;
         }
 
-        if ((relX != 0 || relY != 0 || relZ != 0) && this.position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+        if ((relX != 0 || relY != 0 || relZ != 0) && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
             this.dirtyPitch = pitch != this.pitch;
             this.dirtyYaw = yaw != this.yaw;
             this.dirtyHeadYaw = headYaw != this.headYaw;
@@ -297,7 +297,7 @@ public class MinecartEntity extends Entity implements Tickable {
     }
 
     private void updateCompletedStep() {
-        lastCompletedStep = new MinecartStep(this.position.toDouble(), motion.toDouble(), yaw, pitch, 0.0F);
+        lastCompletedStep = new MinecartStep(position.toDouble(), motion.toDouble(), yaw, pitch, 0.0F);
     }
 
     @Override

@@ -29,17 +29,28 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
+import org.geysermc.geyser.api.predicate.item.ItemRangeDispatchPredicate;
+import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.util.TriState;
+import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @EqualsAndHashCode
 @ToString
+@Deprecated
 public class GeyserCustomItemData implements CustomItemData {
     private final String name;
     private final CustomItemOptions customItemOptions;
@@ -130,6 +141,45 @@ public class GeyserCustomItemData implements CustomItemData {
     @Override
     public @NonNull Set<String> tags() {
         return tags;
+    }
+
+    public CustomItemDefinition.Builder toDefinition(Identifier javaItem) {
+        GeyserCustomItemDefinition.Builder definition = (GeyserCustomItemDefinition.Builder) CustomItemDefinition.builder(Identifier.of("geyser_custom", name()), javaItem)
+            .displayName(displayName())
+            .bedrockOptions(CustomItemBedrockOptions.builder()
+                .icon(icon())
+                .allowOffhand(allowOffhand())
+                .displayHandheld(displayHandheld())
+                .creativeCategory(creativeCategory().isEmpty() ? CreativeCategory.NONE : CreativeCategory.values()[creativeCategory().getAsInt()])
+                .creativeGroup(creativeGroup())
+                .tags(tags().stream().map(Identifier::of).collect(Collectors.toSet()))
+            );
+
+        CustomItemOptions options = customItemOptions();
+        if (options.customModelData().isPresent()) {
+            definition.predicate(ItemRangeDispatchPredicate.legacyCustomModelData(options.customModelData().getAsInt()));
+        }
+        if (options.damagePredicate().isPresent()) {
+            definition.predicate(ItemRangeDispatchPredicate.normalizedDamage(options.damagePredicate().getAsInt()));
+        }
+        if (options.unbreakable() != TriState.NOT_SET) {
+            if (options.unbreakable() == TriState.TRUE) {
+                definition.predicate(ItemConditionPredicate.UNBREAKABLE);
+            } else {
+                definition.predicate(ItemConditionPredicate.UNBREAKABLE.negate());
+            }
+        }
+
+        if (renderOffsets() != null) {
+            definition.renderOffsets(renderOffsets());
+        }
+
+        if (textureSize() != 16) {
+            definition.textureSize(textureSize());
+        }
+
+        definition.isOldConvertedItem();
+        return definition;
     }
 
     public static class Builder implements CustomItemData.Builder {
@@ -223,6 +273,17 @@ public class GeyserCustomItemData implements CustomItemData {
             if (this.icon == null) {
                 this.icon = this.name;
             }
+
+            if (textureSize != 16) {
+                GeyserImpl.getInstance().getLogger().warning("The custom item %s is using a non-standard texture size! ".formatted(name) +
+                    "This feature is deprecated and will be removed in a future version! Please migrate to attachables for texture resizing.");
+            }
+
+            if (renderOffsets != null) {
+                GeyserImpl.getInstance().getLogger().warning("The custom item %s is using render offsets! ".formatted(name) +
+                    "These are deprecated and will be removed in a future version! Please migrate to attachables.");
+            }
+
             return new GeyserCustomItemData(this.name, this.customItemOptions, this.displayName, this.icon, this.allowOffhand,
                     this.displayHandheld, this.creativeCategory, this.creativeGroup, this.textureSize, this.renderOffsets, this.tags);
         }

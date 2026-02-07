@@ -38,6 +38,12 @@ public class JavaSetPlayerInventoryTranslator extends PacketTranslator<Clientbou
     @Override
     public void translate(GeyserSession session, ClientboundSetPlayerInventoryPacket packet) {
         int slot = packet.getSlot();
+        if (slot == 41 || slot == 42) {
+            // ugly temp hack https://github.com/GeyserMC/Geyser/issues/6118
+            // the player's "body" / "saddle" slot is not free real estate
+            return;
+        }
+
         if (slot >= 0 && slot <= 8) {
             // As of 1.21.3 - can be replicated in vanilla server survival by picking an item in-world in your inventory not in your hotbar.
             slot = session.getPlayerInventory().getOffsetForHotbar(slot);
@@ -54,7 +60,7 @@ public class JavaSetPlayerInventoryTranslator extends PacketTranslator<Clientbou
             return;
         }
 
-        GeyserItemStack newItem = GeyserItemStack.from(packet.getContents());
+        GeyserItemStack newItem = GeyserItemStack.from(session, packet.getContents());
         session.getBundleCache().initialize(newItem);
         session.getPlayerInventory().setItem(slot, newItem, session);
         session.getPlayerInventoryHolder().updateSlot(slot);
