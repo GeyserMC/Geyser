@@ -138,8 +138,6 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
 
     @Override
     protected void moveVehicle(Vector3d javaPos, Vector3f lastRotation) {
-        Vector3f bedrockPos = javaPos.toFloat();
-
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(vehicle.geyserId());
 
@@ -147,19 +145,22 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
         }
 
-        if (vehicle.getPosition().getX() != bedrockPos.getX()) {
+        Vector3f oldBedrockPos = vehicle.getBedrockPosition();
+        vehicle.setPosition(javaPos.toFloat());
+        Vector3f newBedrockPos = vehicle.getBedrockPosition();
+
+        if (oldBedrockPos.getX() != newBedrockPos.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-            moveEntityDeltaPacket.setX(bedrockPos.getX());
+            moveEntityDeltaPacket.setX(newBedrockPos.getX());
         }
-        if (vehicle.getPosition().getY() != bedrockPos.getY()) {
+        if (oldBedrockPos.getY() != newBedrockPos.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-            moveEntityDeltaPacket.setY(bedrockPos.getY() + vehicle.getDefinition().offset());
+            moveEntityDeltaPacket.setY(newBedrockPos.getY() + vehicle.getDefinition().offset());
         }
-        if (vehicle.getPosition().getZ() != bedrockPos.getZ()) {
+        if (oldBedrockPos.getZ() != newBedrockPos.getZ()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-            moveEntityDeltaPacket.setZ(bedrockPos.getZ());
+            moveEntityDeltaPacket.setZ(newBedrockPos.getZ());
         }
-        vehicle.setPosition(bedrockPos);
 
         if (vehicle.getPitch() != lastRotation.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);

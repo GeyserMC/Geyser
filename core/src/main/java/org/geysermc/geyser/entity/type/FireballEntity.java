@@ -72,6 +72,6 @@ public class FireballEntity extends ThrowableEntity {
         if (removedInVoid()) {
             return;
         }
-        moveAbsoluteImmediate(tickMovement(position), getYaw(), getPitch(), getHeadYaw(), false, false);
+        moveAbsoluteImmediate(tickMovement(this.position), getYaw(), getPitch(), getHeadYaw(), false, false);
     }
 }

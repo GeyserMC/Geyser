@@ -31,7 +31,6 @@ import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -60,12 +59,12 @@ final class BedrockMovePlayer {
 
         // Ignore movement packets until Bedrock's position matches the teleported position
         if (session.getUnconfirmedTeleport() != null) {
-            session.confirmTeleport(packet.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0));
+            session.confirmTeleport(packet.getPosition().down(EntityDefinitions.PLAYER.offset()));
             return;
         }
 
         // This is vanilla behaviour, LocalPlayer#sendPosition 1.21.8.
-        boolean actualPositionChanged = entity.getPosition().distanceSquared(packet.getPosition()) > 4e-8;
+        boolean actualPositionChanged = entity.getBedrockPosition().distanceSquared(packet.getPosition()) > 4e-8;
 
         if (actualPositionChanged) {
             // Send book update before the player moves
@@ -145,10 +144,7 @@ final class BedrockMovePlayer {
                     continue;
                 }
 
-                final BoundingBox entityBoundingBox = new BoundingBox(0, 0, 0, other.getBoundingBoxWidth(), other.getBoundingBoxHeight(), other.getBoundingBoxWidth());
-
-                // Also offset the position down for boat as their position is offset.
-                entityBoundingBox.translate(other.getPosition().down(other instanceof BoatEntity ? other.getDefinition().offset() : 0).toDouble());
+                final BoundingBox entityBoundingBox = new BoundingBox(other.position().toDouble(), other.getBoundingBoxWidth(), other.getBoundingBoxHeight(), other.getBoundingBoxWidth());
 
                 if (entityBoundingBox.checkIntersection(boundingBox)) {
                     possibleOnGround = true;
@@ -179,11 +175,11 @@ final class BedrockMovePlayer {
 
             // Player position MUST be updated on our end, otherwise e.g. chunk loading breaks
             if (hasVehicle) {
-                entity.setPositionManual(packet.getPosition());
+                entity.setPositionFromBedrockPos(packet.getPosition());
                 session.getSkullCache().updateVisibleSkulls();
             }
         } else if (positionChangedAndShouldUpdate) {
-            if (isValidMove(session, entity.getPosition(), packet.getPosition())) {
+            if (isValidMove(session, entity.getBedrockPosition(), packet.getPosition())) {
                 CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), isOnGround, packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
                 if (result != null) { // A null return value cancels the packet
                     Vector3d position = result.correctedMovement();
@@ -207,7 +203,7 @@ final class BedrockMovePlayer {
                             movePacket = new ServerboundMovePlayerPosPacket(isOnGround, horizontalCollision, position.getX(), position.getY(), position.getZ());
                         }
 
-                        entity.setPositionManual(packet.getPosition());
+                        entity.setPositionFromBedrockPos(packet.getPosition());
 
                         // Send final movement changes
                         session.sendDownstreamGamePacket(movePacket);
@@ -235,10 +231,10 @@ final class BedrockMovePlayer {
 
         // Move parrots to match if applicable
         if (entity.getLeftParrot() != null) {
-            entity.getLeftParrot().moveAbsoluteRaw(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
+            entity.getLeftParrot().moveAbsoluteRaw(entity.position(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
         }
         if (entity.getRightParrot() != null) {
-            entity.getRightParrot().moveAbsoluteRaw(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
+            entity.getRightParrot().moveAbsoluteRaw(entity.position(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
         }
     }
 

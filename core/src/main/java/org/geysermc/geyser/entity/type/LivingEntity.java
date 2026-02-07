@@ -113,7 +113,7 @@ public class LivingEntity extends Entity implements Tickable {
 
     public LivingEntity(EntitySpawnContext context) {
         super(context);
-        this.lerpPosition = position;
+        this.lerpPosition = this.position;
     }
 
     public GeyserItemStack getItemInSlot(EquipmentSlot slot) {
@@ -452,6 +452,8 @@ public class LivingEntity extends Entity implements Tickable {
             float lerpZTotal = GenericMath.lerp(this.position.getZ(), this.lerpPosition.getZ(), time);
 
             MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
+            moveEntityPacket.setRuntimeEntityId(geyserId);
             if (onGround) {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
             }
@@ -473,11 +475,11 @@ public class LivingEntity extends Entity implements Tickable {
             if (this.dirtyPitch) {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
             }
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
-            moveEntityPacket.setRuntimeEntityId(geyserId);
-            moveEntityPacket.setX(lerpXTotal);
-            moveEntityPacket.setY(lerpYTotal);
-            moveEntityPacket.setZ(lerpZTotal);
+            this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
+            Vector3f bedrockPosition = getBedrockPosition();
+            moveEntityPacket.setX(bedrockPosition.getX());
+            moveEntityPacket.setY(bedrockPosition.getY());
+            moveEntityPacket.setZ(bedrockPosition.getZ());
             moveEntityPacket.setYaw(getYaw());
             moveEntityPacket.setPitch(getPitch());
             moveEntityPacket.setHeadYaw(getHeadYaw());
@@ -487,7 +489,6 @@ public class LivingEntity extends Entity implements Tickable {
             // Queue this and send it immediately later with the rest.
             session.getQueuedImmediatelyPackets().add(moveEntityPacket);
 
-            this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
             this.lerpSteps--;
         }
     }

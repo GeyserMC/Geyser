@@ -168,10 +168,10 @@ public class SkullCache {
     public void updateVisibleSkulls() {
         if (cullingEnabled) {
             // No need to recheck skull visibility for small movements
-            if (lastPlayerPosition != null && session.getPlayerEntity().getPosition().distanceSquared(lastPlayerPosition) < 4) {
+            if (lastPlayerPosition != null && session.getPlayerEntity().position().distanceSquared(lastPlayerPosition) < 4) {
                 return;
             }
-            lastPlayerPosition = session.getPlayerEntity().getPosition();
+            lastPlayerPosition = session.getPlayerEntity().position();
 
             inRangeSkulls.clear();
             for (Skull skull : skulls.values()) {

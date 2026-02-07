@@ -28,7 +28,6 @@ package org.geysermc.geyser.entity.type;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
@@ -72,11 +71,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     @Override
-    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsoluteRaw(position.up(calculateLineOffset()), yaw, pitch, headYaw, isOnGround, teleported);
-    }
-
-    @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Remove armor stand body / hitbox
@@ -91,9 +85,9 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         // If the line count changed, update the position to account for the new offset
         if (this.lineCount != newLineCount) {
-            Vector3f positionWithoutOffset = position.down(calculateLineOffset());
             this.lineCount = newLineCount;
-            moveAbsoluteRaw(positionWithoutOffset, yaw, pitch, headYaw, onGround, false);
+            setOffset(calculateLineOffset());
+            moveAbsoluteRaw(position, yaw, pitch, headYaw, onGround, false);
         }
     }
 

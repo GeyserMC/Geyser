@@ -494,7 +494,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private Vector3i lastInteractionBlockPosition = Vector3i.ZERO;
 
     /**
-     * Stores the position of the player the last time they interacted.
+     * Stores the Java position of the player the last time they interacted.
      * Used to verify that the player did not move since their last interaction. <br>
      * Initialized as (0, 0, 0) so it is always not-null.
      */
@@ -815,7 +815,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.blockBreakHandler = new BlockBreakHandler(this);
 
         this.playerEntity = new SessionPlayerEntity(this);
-        collisionManager.updatePlayerBoundingBox(this.playerEntity.getPosition());
+        collisionManager.updatePlayerBoundingBox(this.playerEntity.position());
 
         this.playerInventoryHolder = new InventoryHolder<>(this, new PlayerInventory(this), InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         this.inventoryHolder = null;
@@ -869,7 +869,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values());
         upstream.sendPacket(componentPacket);
 
-        ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
+        ChunkUtils.sendEmptyChunks(this, playerEntity.position().toInt(), 0, false);
 
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
         biomeDefinitionListPacket.setBiomes(Registries.BIOMES.get());
@@ -2393,7 +2393,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         packet.setLockComponentData(result);
-        packet.setServerPosition(this.playerEntity.getPosition());
+        packet.setServerPosition(this.playerEntity.getBedrockPosition());
 
         sendUpstreamPacket(packet);
     }

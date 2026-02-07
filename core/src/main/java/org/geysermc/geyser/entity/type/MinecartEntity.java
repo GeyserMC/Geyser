@@ -110,10 +110,7 @@ public class MinecartEntity extends Entity implements Tickable {
             return;
         }
 
-        // temp fix till we separate java entity position from bedrock pos
-        Vector3f javaPosition = position.down(definition.offset());
-
-        if ((relX != 0 || relY != 0 || relZ != 0) && javaPosition.distanceSquared(session.getPlayerEntity().position()) < 4096) {
+        if ((relX != 0 || relY != 0 || relZ != 0) && position.distanceSquared(session.getPlayerEntity().position()) < 4096) {
             this.dirtyPitch = pitch != this.pitch;
             this.dirtyYaw = yaw != this.yaw;
             this.dirtyHeadYaw = headYaw != this.headYaw;
@@ -123,7 +120,7 @@ public class MinecartEntity extends Entity implements Tickable {
             setHeadYaw(headYaw);
             setOnGround(isOnGround);
 
-            this.lerpPosition = Vector3f.from(javaPosition.getX() + relX, javaPosition.getY() + relY, javaPosition.getZ() + relZ);
+            this.lerpPosition = this.position.add(relX, relY, relZ);
             this.steps = 3;
         } else {
             super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
@@ -140,10 +137,12 @@ public class MinecartEntity extends Entity implements Tickable {
 
             float time = 1.0f / this.steps;
             float lerpXTotal = GenericMath.lerp(this.position.getX(), this.lerpPosition.getX(), time);
-            float lerpYTotal = GenericMath.lerp(this.position.getY() - definition.offset(), this.lerpPosition.getY(), time) + definition.offset();
+            float lerpYTotal = GenericMath.lerp(this.position.getY(), this.lerpPosition.getY(), time);
             float lerpZTotal = GenericMath.lerp(this.position.getZ(), this.lerpPosition.getZ(), time);
 
             MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
+            moveEntityPacket.setRuntimeEntityId(geyserId);
             if (onGround) {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
             }
@@ -165,11 +164,11 @@ public class MinecartEntity extends Entity implements Tickable {
             if (this.dirtyPitch) {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
             }
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
-            moveEntityPacket.setRuntimeEntityId(geyserId);
-            moveEntityPacket.setX(lerpXTotal);
-            moveEntityPacket.setY(lerpYTotal);
-            moveEntityPacket.setZ(lerpZTotal);
+            this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
+            Vector3f bedrockPosition = getBedrockPosition();
+            moveEntityPacket.setX(bedrockPosition.getX());
+            moveEntityPacket.setY(bedrockPosition.getY());
+            moveEntityPacket.setZ(bedrockPosition.getZ());
             moveEntityPacket.setYaw(getYaw());
             moveEntityPacket.setPitch(getPitch());
             moveEntityPacket.setHeadYaw(getHeadYaw());
@@ -177,7 +176,6 @@ public class MinecartEntity extends Entity implements Tickable {
             this.dirtyPitch = this.dirtyYaw = this.dirtyHeadYaw = false;
 
             session.getQueuedImmediatelyPackets().add(moveEntityPacket);
-            this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
             this.steps--;
             return;
         }
@@ -214,9 +212,10 @@ public class MinecartEntity extends Entity implements Tickable {
             MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
             moveEntityPacket.setRuntimeEntityId(geyserId);
 
-            moveEntityPacket.setX(position.getX());
-            moveEntityPacket.setY(position.getY() + definition.offset());
-            moveEntityPacket.setZ(position.getZ());
+            Vector3f bedrockPosition = getBedrockPosition();
+            moveEntityPacket.setX(bedrockPosition.getX());
+            moveEntityPacket.setY(bedrockPosition.getY());
+            moveEntityPacket.setZ(bedrockPosition.getZ());
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
