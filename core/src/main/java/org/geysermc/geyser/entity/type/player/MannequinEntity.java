@@ -44,7 +44,7 @@ public class MannequinEntity extends AvatarEntity {
 
     @Override
     public String getDisplayName() {
-        return displayName;
+        return customName != null ? customName : standardDisplayName();
     }
 
     @Override
