@@ -57,6 +57,7 @@ import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.impl.HoldersImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
@@ -275,7 +276,12 @@ public class CustomItemRegistryPopulator {
         Equippable equippable = context.components().get(DataComponentTypes.EQUIPPABLE);
         if (equippable != null) {
             boolean renderOffsets = context.definition() instanceof GeyserCustomItemDefinition definition && definition.isOldConvertedItem();
-            computeArmorProperties(equippable, context.definition().bedrockOptions().protectionValue(), componentBuilder, renderOffsets);
+            int protectionValue = context.definition().bedrockOptions().protectionValue();
+            if (context.definition().bedrockOptions() instanceof GeyserCustomItemBedrockOptions options) {
+                // Fallback to vanilla item's protection value if no protection value is set
+                protectionValue = options.protectionValue(context);
+            }
+            computeArmorProperties(equippable, protectionValue, componentBuilder, renderOffsets);
         }
 
         Integer enchantmentValue = context.components().get(DataComponentTypes.ENCHANTABLE);
