@@ -209,10 +209,8 @@ public abstract class Inventory {
      * A prefix to add to the title if the integrated pack is active.
      * Can be good for adding changes within JSON UI.
      * <p>
-     * <b>This prefix should always consist of color codes only.</b> As this
-     * prefix is applied on all clients regardless of whether the pack
-     * is enabled, and color codes prevent the client from cropping the
-     * title text for being too long.
+     * <b>This prefix should always consist of color codes only.</b>
+     * Color codes prevent the client from cropping the title text for being too long.
      * @return a prefix for the title
      */
     public String getIntegratedPackTitlePrefix() {
