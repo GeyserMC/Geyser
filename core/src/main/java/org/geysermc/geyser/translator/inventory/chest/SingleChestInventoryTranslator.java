@@ -45,12 +45,8 @@ public class SingleChestInventoryTranslator extends ChestInventoryTranslator<Gen
     private final InventoryHolder holder;
 
     public SingleChestInventoryTranslator(int size) {
-        this(size, "");
-    }
-
-    public SingleChestInventoryTranslator(int size, String integratedPackPrefix) {
         super(size, 27);
-        this.holder = new BlockInventoryHolder(integratedPackPrefix, Blocks.CHEST.defaultBlockState().withValue(Properties.CHEST_TYPE, ChestType.SINGLE),
+        this.holder = new BlockInventoryHolder(Blocks.CHEST.defaultBlockState().withValue(Properties.CHEST_TYPE, ChestType.SINGLE),
             ChestBlock.class, ContainerType.CONTAINER, Blocks.ENDER_CHEST, Blocks.BARREL) {
             @Override
             protected boolean isValidBlock(GeyserSession session, Vector3i position, BlockState blockState) {

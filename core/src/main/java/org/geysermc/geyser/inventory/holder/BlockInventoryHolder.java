@@ -60,18 +60,16 @@ public class BlockInventoryHolder extends InventoryHolder {
     private final ContainerType containerType;
     private final Set<Block> validBlocks;
     private final @Nullable Class<? extends Block> validBlockClass;
-    private final String integratedPackPrefix;
 
     public BlockInventoryHolder(Block defaultJavaBlock, ContainerType containerType, Block... validBlocks) {
-        this("", defaultJavaBlock.defaultBlockState(), null, containerType, validBlocks);
+        this(defaultJavaBlock.defaultBlockState(), null, containerType, validBlocks);
     }
 
     public BlockInventoryHolder(BlockState defaultJavaBlockState, ContainerType containerType, Block... validBlocks) {
-        this("", defaultJavaBlockState, null, containerType, validBlocks);
+        this(defaultJavaBlockState, null, containerType, validBlocks);
     }
 
-    public BlockInventoryHolder(String integratedPackPrefix, BlockState defaultJavaBlockState, @Nullable Class<? extends Block> validBlockClass, ContainerType containerType, Block... validBlocks) {
-        this.integratedPackPrefix = integratedPackPrefix;
+    public BlockInventoryHolder(BlockState defaultJavaBlockState, @Nullable Class<? extends Block> validBlockClass, ContainerType containerType, Block... validBlocks) {
         this.defaultJavaBlockState = defaultJavaBlockState;
         this.validBlockClass = validBlockClass;
         this.containerType = containerType;
@@ -182,7 +180,7 @@ public class BlockInventoryHolder extends InventoryHolder {
                 .putInt("x", position.getX())
                 .putInt("y", position.getY())
                 .putInt("z", position.getZ())
-                .putString("CustomName", integratedPackPrefix + inventory.getTitle()).build();
+                .putString("CustomName", inventory.getTitle()).build();
         BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();
         dataPacket.setData(tag);
         dataPacket.setBlockPosition(position);
