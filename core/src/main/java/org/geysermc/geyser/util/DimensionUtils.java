@@ -34,13 +34,15 @@ import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.level.EffectType;
 import org.geysermc.geyser.level.BedrockDimension;
+import org.geysermc.geyser.level.EffectType;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 
+import java.util.Collections;
 import java.util.Set;
 
 public class DimensionUtils {
@@ -75,6 +77,14 @@ public class DimensionUtils {
             mobEffectPacket.setRuntimeEntityId(player.geyserId());
             mobEffectPacket.setEffectId(EffectType.fromJavaEffect(effect).getBedrockId());
             session.sendUpstreamPacket(mobEffectPacket);
+
+            if (effect == Effect.DOLPHINS_GRACE) {
+                UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+                attributesPacket.setRuntimeEntityId(player.geyserId());
+                attributesPacket.setAttributes(Collections.singletonList(
+                    session.getPlayerEntity().updateDolphinsGrace(false)));
+                session.sendUpstreamPacket(attributesPacket);
+            }
         }
         // Effects are re-sent from server
         entityEffects.clear();
