@@ -39,6 +39,7 @@ import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.api.util.PlatformType;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -47,6 +48,7 @@ import java.util.UUID;
 /**
  * Represents the API used in Geyser.
  */
+@ApiStatus.NonExtendable
 public interface GeyserApi extends GeyserApiBase {
     /**
      * {@inheritDoc}

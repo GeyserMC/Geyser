@@ -180,9 +180,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @param emoter the player entity emoting.
      * @param emoteId the emote ID to send to this client.
-     * @deprecated use {@link EntityData#showEmote(GeyserPlayerEntity, String)} instead
      */
-    @Deprecated
     void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
 
     /**
@@ -238,4 +236,20 @@ public interface GeyserConnection extends Connection, CommandSource {
     @Deprecated
     @NonNull
     Set<String> fogEffects();
+
+    /**
+     * Returns the associated player entity for this connection.
+     *
+     * @return the {@link GeyserPlayerEntity} for this connection
+     * @since 2.9.3
+     */
+    @NonNull GeyserPlayerEntity playerEntity();
+
+    /**
+     * Requests an offhand swap from the Java server.
+     * There is no guarantee of the server accepting the request.
+     *
+     * @since 2.9.3
+     */
+    void requestOffhandSwap();
 }
