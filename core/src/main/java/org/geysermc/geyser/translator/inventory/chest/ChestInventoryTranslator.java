@@ -74,8 +74,6 @@ public abstract class ChestInventoryTranslator<Type extends Container> extends B
         return super.javaSlotToBedrockContainer(javaSlot, inventory);
     }
 
-
-
     /**
      * Overridden by the SingleChestInventoryTranslator in case barrels are used.
      * Bedrock uses the ContainerSlotType.BARREL for those.
