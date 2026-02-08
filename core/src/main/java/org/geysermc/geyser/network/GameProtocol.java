@@ -33,10 +33,10 @@ import org.cloudburstmc.protocol.bedrock.codec.v844.Bedrock_v844;
 import org.cloudburstmc.protocol.bedrock.codec.v859.Bedrock_v859;
 import org.cloudburstmc.protocol.bedrock.codec.v860.Bedrock_v860;
 import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
+import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodec;
 import org.geysermc.mcprotocollib.protocol.codec.PacketCodec;
 
@@ -87,6 +87,7 @@ public final class GameProtocol {
         register(Bedrock_v859.CODEC, "1.21.120", "1.21.121", "1.21.122", "1.21.123");
         register(Bedrock_v860.CODEC);
         register(Bedrock_v898.CODEC, "1.21.130", "1.21.131", "1.21.132");
+        register(Bedrock_v924.CODEC, "26.0");
 
         MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.get(SUPPORTED_BEDROCK_VERSIONS.size() - 1);
         DEFAULT_BEDROCK_VERSION = latestBedrock.versionString();
@@ -137,14 +138,6 @@ public final class GameProtocol {
     }
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
-
-    public static boolean is1_21_110orHigher(GeyserSession session) {
-        return is1_21_110orHigher(session.protocolVersion());
-    }
-
-    public static boolean is1_21_110orHigher(int protocolVersion) {
-        return protocolVersion >= Bedrock_v844.CODEC.getProtocolVersion();
-    }
 
     public static boolean is1_21_130orHigher(int protocolVersion) {
         return protocolVersion >= Bedrock_v898.CODEC.getProtocolVersion();

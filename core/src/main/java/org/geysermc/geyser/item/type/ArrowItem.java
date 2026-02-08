@@ -46,7 +46,7 @@ public class ArrowItem extends Item {
         Potion potion = Potion.getByTippedArrowDamage(itemData.getDamage());
         GeyserItemStack itemStack = super.translateToJava(session, itemData, mapping, mappings);
         if (potion != null) {
-            itemStack = Items.TIPPED_ARROW.newItemStack(itemStack.getAmount(), itemStack.getComponents());
+            itemStack = Items.TIPPED_ARROW.newItemStack(session, itemStack.getAmount(), itemStack.getComponents());
             PotionContents contents = potion.toComponent();
             itemStack.getOrCreateComponents().put(DataComponentTypes.POTION_CONTENTS, contents);
         }

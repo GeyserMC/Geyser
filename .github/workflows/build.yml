@@ -28,7 +28,8 @@ jobs:
         id: release-info
         uses: GeyserMC/actions/previous-release@master
         with:
-          data: ${{ vars.RELEASEACTION_PREVRELEASE }}
+          appID: ${{ secrets.RELEASE_APP_ID }}
+          appPrivateKey: ${{ secrets.RELEASE_APP_PK }}
 
       - name: Setup Gradle
         uses: GeyserMC/actions/setup-gradle-composite@master
@@ -54,7 +55,7 @@ jobs:
             bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
 
       - name: Publish to Maven Repository
-        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && github.ref_name == 'master' }}
+        if: ${{ success() && github.repository == 'GeyserMC/Geyser' && (github.ref_name == 'master' || startsWith(github.ref_name, 'api/') || startsWith(github.ref_name, 'feature/')) }}
         run: ./gradlew publish
         env:
           BUILD_NUMBER: ${{ steps.release-info.outputs.curentRelease }}
