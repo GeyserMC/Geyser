@@ -90,11 +90,6 @@ public class InteractionEntity extends Entity {
     }
 
     @Override
-    protected void setNameEntityData(String nametag) {
-        // no-op
-    }
-
-    @Override
     public InteractionResult interact(Hand hand) {
         // these InteractionResults do mirror the java client
         // but the bedrock client won't arm swing itself because of our armor stand workaround
