@@ -75,7 +75,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
             RespawnPacket respawnPacket = new RespawnPacket();
             respawnPacket.setRuntimeEntityId(0); // Bedrock server behavior
-            respawnPacket.setPosition(entity.getBedrockPosition());
+            respawnPacket.setPosition(entity.bedrockPosition());
             respawnPacket.setState(RespawnPacket.State.SERVER_READY);
             session.sendUpstreamPacket(respawnPacket);
 
@@ -83,8 +83,8 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.geyserId());
-            movePlayerPacket.setPosition(entity.getBedrockPosition());
-            movePlayerPacket.setRotation(entity.getBedrockRotation());
+            movePlayerPacket.setPosition(entity.bedrockPosition());
+            movePlayerPacket.setRotation(entity.bedrockRotation());
             movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
             session.sendUpstreamPacket(movePlayerPacket);
 

@@ -55,7 +55,7 @@ public class JavaTakeItemEntityTranslator extends PacketTranslator<ClientboundTa
             // Player just picked up an experience orb
             LevelEventPacket xpPacket = new LevelEventPacket();
             xpPacket.setType(LevelEvent.SOUND_EXPERIENCE_ORB_PICKUP);
-            xpPacket.setPosition(collectedEntity.getBedrockPosition());
+            xpPacket.setPosition(collectedEntity.bedrockPosition());
             xpPacket.setData(0);
             session.sendUpstreamPacket(xpPacket);
         } else {

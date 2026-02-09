@@ -630,7 +630,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
                 Math.abs(motion.getZ()) < MIN_VELOCITY ? 0 : motion.getZ()
         );
 
-        Vector3f lastRotation = vehicle.getBedrockRotation();
+        Vector3f lastRotation = vehicle.bedrockRotation();
         updateRotation();
 
         Vector2f playerInput = vehicle.getSession().getPlayerEntity().getVehicleInput();
@@ -767,9 +767,9 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
         }
 
-        Vector3f oldBedrockPos = vehicle.getBedrockPosition();
+        Vector3f oldBedrockPos = vehicle.bedrockPosition();
         vehicle.setPosition(javaPos.toFloat());
-        Vector3f newBedrockPos = vehicle.getBedrockPosition();
+        Vector3f newBedrockPos = vehicle.bedrockPosition();
 
         if (oldBedrockPos.getX() != newBedrockPos.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);

@@ -73,7 +73,7 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
 
         floatBoat(context);
 
-        final Vector3f lastRotation = vehicle.getBedrockRotation();
+        final Vector3f lastRotation = vehicle.bedrockRotation();
         controlBoat();
 
         Vector3f motion = vehicle.getMotion();
@@ -145,9 +145,9 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
         }
 
-        Vector3f oldBedrockPos = vehicle.getBedrockPosition();
+        Vector3f oldBedrockPos = vehicle.bedrockPosition();
         vehicle.setPosition(javaPos.toFloat());
-        Vector3f newBedrockPos = vehicle.getBedrockPosition();
+        Vector3f newBedrockPos = vehicle.bedrockPosition();
 
         if (oldBedrockPos.getX() != newBedrockPos.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);

@@ -76,7 +76,7 @@ public class ThrowableEntity extends Entity implements Tickable {
 
         Vector3f oldJavaPosition = this.position;
         setPosition(position);
-        Vector3f bedrockPosition = getBedrockPosition();
+        Vector3f bedrockPosition = bedrockPosition();
 
         if (oldJavaPosition.getX() != position.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
@@ -177,7 +177,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         if (definition.entityType() == EntityType.ENDER_PEARL) {
             LevelEventPacket particlePacket = new LevelEventPacket();
             particlePacket.setType(LevelEvent.PARTICLE_TELEPORT);
-            particlePacket.setPosition(getBedrockPosition());
+            particlePacket.setPosition(bedrockPosition());
             session.sendUpstreamPacket(particlePacket);
         }
         super.despawnEntity();

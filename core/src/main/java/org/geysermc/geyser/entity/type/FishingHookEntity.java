@@ -138,7 +138,7 @@ public class FishingHookEntity extends ThrowableEntity {
             }
             PlaySoundPacket playSoundPacket = new PlaySoundPacket();
             playSoundPacket.setSound("random.splash");
-            playSoundPacket.setPosition(getBedrockPosition());
+            playSoundPacket.setPosition(bedrockPosition());
             playSoundPacket.setVolume(volume);
             playSoundPacket.setPitch(1f + ThreadLocalRandom.current().nextFloat() * 0.3f);
             session.sendUpstreamPacket(playSoundPacket);

@@ -226,8 +226,8 @@ public class CollisionManager {
         PlayerEntity entity = session.getPlayerEntity();
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(entity.geyserId());
-        movePlayerPacket.setPosition(entity.getBedrockPosition());
-        movePlayerPacket.setRotation(entity.getBedrockRotation());
+        movePlayerPacket.setPosition(entity.bedrockPosition());
+        movePlayerPacket.setRotation(entity.bedrockRotation());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
         session.sendUpstreamPacket(movePlayerPacket);
     }

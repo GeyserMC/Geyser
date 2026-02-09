@@ -165,7 +165,7 @@ public class MinecartEntity extends Entity implements Tickable {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
             }
             this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
-            Vector3f bedrockPosition = getBedrockPosition();
+            Vector3f bedrockPosition = bedrockPosition();
             moveEntityPacket.setX(bedrockPosition.getX());
             moveEntityPacket.setY(bedrockPosition.getY());
             moveEntityPacket.setZ(bedrockPosition.getZ());
@@ -212,7 +212,7 @@ public class MinecartEntity extends Entity implements Tickable {
             MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
             moveEntityPacket.setRuntimeEntityId(geyserId);
 
-            Vector3f bedrockPosition = getBedrockPosition();
+            Vector3f bedrockPosition = bedrockPosition();
             moveEntityPacket.setX(bedrockPosition.getX());
             moveEntityPacket.setY(bedrockPosition.getY());
             moveEntityPacket.setZ(bedrockPosition.getZ());
@@ -306,7 +306,7 @@ public class MinecartEntity extends Entity implements Tickable {
     }
 
     @Override
-    public Vector3f getBedrockRotation() {
+    public Vector3f bedrockRotation() {
         // Note: minecart rotation on rails does not care about the actual rotation value
         return Vector3f.from(0, getYaw(), 0);
     }

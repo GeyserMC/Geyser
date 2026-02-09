@@ -225,7 +225,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
             if (Math.cos(wingPosition * 2f * Math.PI) <= -0.3f && Math.cos(lastWingPosition * 2f * Math.PI) >= -0.3f) {
                 PlaySoundPacket playSoundPacket = new PlaySoundPacket();
                 playSoundPacket.setSound("mob.enderdragon.flap");
-                playSoundPacket.setPosition(getBedrockPosition());
+                playSoundPacket.setPosition(bedrockPosition());
                 playSoundPacket.setVolume(5f);
                 playSoundPacket.setPitch(0.8f + random.nextFloat() * 0.3f);
                 session.sendUpstreamPacket(playSoundPacket);
@@ -269,7 +269,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
                     for (int i = 0; i < 8; i++) {
                         SpawnParticleEffectPacket spawnParticleEffectPacket = new SpawnParticleEffectPacket();
                         spawnParticleEffectPacket.setDimensionId(DimensionUtils.javaToBedrock(session));
-                        spawnParticleEffectPacket.setPosition(head.getBedrockPosition().add(random.nextGaussian() / 2f, random.nextGaussian() / 2f, random.nextGaussian() / 2f));
+                        spawnParticleEffectPacket.setPosition(head.bedrockPosition().add(random.nextGaussian() / 2f, random.nextGaussian() / 2f, random.nextGaussian() / 2f));
                         spawnParticleEffectPacket.setIdentifier("minecraft:dragon_breath_fire");
                         spawnParticleEffectPacket.setMolangVariablesJson(Optional.empty());
                         session.sendUpstreamPacket(spawnParticleEffectPacket);
@@ -283,7 +283,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
                     float xOffset = 8f * (random.nextFloat() - 0.5f);
                     float yOffset = 4f * (random.nextFloat() - 0.5f) + 2f;
                     float zOffset = 8f * (random.nextFloat() - 0.5f);
-                    Vector3f particlePos = getBedrockPosition().add(xOffset, yOffset, zOffset);
+                    Vector3f particlePos = bedrockPosition().add(xOffset, yOffset, zOffset);
                     LevelEventPacket particlePacket = new LevelEventPacket();
                     particlePacket.setType(ParticleType.EXPLODE);
                     particlePacket.setPosition(particlePos);
@@ -297,7 +297,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
         Random random = ThreadLocalRandom.current();
         PlaySoundPacket playSoundPacket = new PlaySoundPacket();
         playSoundPacket.setSound("mob.enderdragon.growl");
-        playSoundPacket.setPosition(getBedrockPosition());
+        playSoundPacket.setPosition(bedrockPosition());
         playSoundPacket.setVolume(2.5f);
         playSoundPacket.setPitch(0.8f + random.nextFloat() * 0.3f);
         session.sendUpstreamPacket(playSoundPacket);

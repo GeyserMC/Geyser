@@ -56,8 +56,8 @@ public class EnderDragonPartEntity extends Entity {
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(getBedrockPosition());
-        moveEntityPacket.setRotation(getBedrockRotation());
+        moveEntityPacket.setPosition(bedrockPosition());
+        moveEntityPacket.setRotation(bedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(teleported);
 

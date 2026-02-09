@@ -207,7 +207,7 @@ public class Entity implements GeyserEntity {
         addEntityPacket.setIdentifier(definition.identifier());
         addEntityPacket.setRuntimeEntityId(geyserId);
         addEntityPacket.setUniqueEntityId(geyserId);
-        addEntityPacket.setPosition(getBedrockPosition());
+        addEntityPacket.setPosition(bedrockPosition());
         addEntityPacket.setMotion(motion);
         addEntityPacket.setRotation(Vector2f.from(pitch, yaw));
         addEntityPacket.setHeadRotation(headYaw);
@@ -276,15 +276,15 @@ public class Entity implements GeyserEntity {
         MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
         if (relX != 0.0) {
-            moveEntityPacket.setX(getBedrockPosition().getX());
+            moveEntityPacket.setX(bedrockPosition().getX());
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
         }
         if (relY != 0.0) {
-            moveEntityPacket.setY(getBedrockPosition().getY());
+            moveEntityPacket.setY(bedrockPosition().getY());
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
         }
         if (relZ != 0.0) {
-            moveEntityPacket.setZ(getBedrockPosition().getZ());
+            moveEntityPacket.setZ(bedrockPosition().getZ());
             moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
         }
         if (pitch != this.pitch) {
@@ -327,8 +327,8 @@ public class Entity implements GeyserEntity {
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(getBedrockPosition());
-        moveEntityPacket.setRotation(getBedrockRotation());
+        moveEntityPacket.setPosition(bedrockPosition());
+        moveEntityPacket.setRotation(bedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(teleported);
 
@@ -654,14 +654,14 @@ public class Entity implements GeyserEntity {
      *
      * @return the bedrock rotation
      */
-    public Vector3f getBedrockRotation() {
+    public Vector3f bedrockRotation() {
         return Vector3f.from(getPitch(), getYaw(), getHeadYaw());
     }
 
     /**
      * Gets the Bedrock edition position with the offset applied
      */
-    public Vector3f getBedrockPosition() {
+    public Vector3f bedrockPosition() {
         if (offset == 0f) {
             return position;
         }

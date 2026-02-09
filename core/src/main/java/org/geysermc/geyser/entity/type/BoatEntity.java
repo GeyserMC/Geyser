@@ -110,9 +110,9 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
             // TODO offsets
             moveEntityPacket.setPosition(this.position.up(EntityDefinitions.PLAYER.offset() - this.definition.offset()));
         } else {
-            moveEntityPacket.setPosition(getBedrockPosition());
+            moveEntityPacket.setPosition(bedrockPosition());
         }
-        moveEntityPacket.setRotation(getBedrockRotation());
+        moveEntityPacket.setRotation(bedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(teleported);
 

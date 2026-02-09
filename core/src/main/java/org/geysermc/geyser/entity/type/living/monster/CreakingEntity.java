@@ -102,7 +102,7 @@ public class CreakingEntity extends MonsterEntity {
         if (this.homePosition != null) {
             LevelEventGenericPacket levelEventGenericPacket = new LevelEventGenericPacket();
             levelEventGenericPacket.setType(LevelEvent.PARTICLE_CREAKING_HEART_TRIAL);
-            Vector3f bedrockPosition = getBedrockPosition();
+            Vector3f bedrockPosition = bedrockPosition();
             levelEventGenericPacket.setTag(
                 NbtMap.builder()
                     .putInt("CreakingAmount", 20)

@@ -52,7 +52,7 @@ public class OcelotEntity extends AnimalEntity {
     @NonNull
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (!getFlag(EntityFlag.TRUSTING) && canEat(itemInHand) && session.getPlayerEntity().position().distanceSquared(this.position) < 9f) {
+        if (!getFlag(EntityFlag.TRUSTING) && canEat(itemInHand) && session.getPlayerEntity().position().distanceSquared(position) < 9f) {
             // Attempt to feed
             return InteractiveTag.FEED;
         } else {
@@ -63,7 +63,7 @@ public class OcelotEntity extends AnimalEntity {
     @NonNull
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
-        if (!getFlag(EntityFlag.TRUSTING) && canEat(itemInHand) && session.getPlayerEntity().position().distanceSquared(this.position) < 9f) {
+        if (!getFlag(EntityFlag.TRUSTING) && canEat(itemInHand) && session.getPlayerEntity().position().distanceSquared(position) < 9f) {
             // Attempt to feed
             return InteractionResult.SUCCESS;
         } else {

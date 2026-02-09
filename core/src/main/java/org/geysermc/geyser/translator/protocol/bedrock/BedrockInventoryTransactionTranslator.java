@@ -250,7 +250,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         // TODO testme
                         // As of 1.21, Paper does not have any additional range checks that would inconvenience normal players.
-                        Vector3f playerPosition = session.getPlayerEntity().getBedrockPosition();
+                        Vector3f playerPosition = session.getPlayerEntity().bedrockPosition();
                         playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
 
                         if (!canInteractWithBlock(session, playerPosition, packetBlockPosition)) {
@@ -417,7 +417,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                             // BDS uses a LevelSoundEvent2Packet, but that doesn't work here... (as of 1.21.20)
                                             LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
                                             soundPacket.setSound(SoundEvent.valueOf("GOAT_CALL_" + instrument.bedrockInstrument().ordinal()));
-                                            soundPacket.setPosition(session.getPlayerEntity().getBedrockPosition());
+                                            soundPacket.setPosition(session.getPlayerEntity().bedrockPosition());
                                             soundPacket.setIdentifier("minecraft:player");
                                             soundPacket.setExtraData(-1);
                                             session.sendUpstreamPacket(soundPacket);
@@ -530,7 +530,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
             return;
         }
 
-        Vector3f clickPosition = packet.getClickPosition().sub(entity.getBedrockPosition());
+        Vector3f clickPosition = packet.getClickPosition().sub(entity.bedrockPosition());
         boolean isSpectator = session.getGameMode() == GameMode.SPECTATOR;
         for (Hand hand : EntityUtils.HANDS) {
             session.sendDownstreamGamePacket(new ServerboundInteractPacket(entity.getEntityId(),
