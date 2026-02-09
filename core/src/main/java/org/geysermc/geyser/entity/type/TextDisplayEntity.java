@@ -148,6 +148,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     @Override
     public void updateBedrockMetadata() {
+        // Bundle metadata updates to ensure they aren't ignored
         if (secondEntity != null) {
             if (!secondEntity.valid) { // Spawn the entity once
                 secondEntity.spawnEntity();
@@ -159,7 +160,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     public void updateNameTag() {
-        // Text displays are special: isNameTagVisible must be set for the custom name to ever show
+        // Text displays are special: customNameVisible must be set for the custom name to ever show
         if (this.nametag.isBlank() || isInvisible || !customNameVisible) {
             if (secondEntity != null) {
                 secondEntity.despawnEntity();

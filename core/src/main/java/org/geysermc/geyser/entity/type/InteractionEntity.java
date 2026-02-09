@@ -148,7 +148,7 @@ public class InteractionEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata() {
-        // We should bundle metadata updates to ensure these look proper
+        // Bundle metadata updates to ensure they aren't ignored
         if (secondEntity != null) {
             if (!secondEntity.valid) { // Spawn the entity once
                 secondEntity.spawnEntity();
@@ -171,7 +171,7 @@ public class InteractionEntity extends Entity {
         if (this.secondEntity == null) {
             secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, position.up(getBoundingBoxHeight())));
         }
-        secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, this.nametag);
+        secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, customNameVisible ? (byte) 1 : (byte) 0);
         // Scale to 0 to show nametag
         secondEntity.setScale(0f);
