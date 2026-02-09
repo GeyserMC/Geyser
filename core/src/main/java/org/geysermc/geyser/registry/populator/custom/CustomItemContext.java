@@ -101,10 +101,8 @@ public record CustomItemContext(CustomItemDefinition definition, DataComponents 
         int maxDamage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
 
         if (components.get(DataComponentTypes.EQUIPPABLE) != null && stackSize > 1) {
-            // V1 compat: forcibly set max stack size to one
-            if (definition instanceof GeyserCustomItemDefinition geyserCustomItemDefinition && geyserCustomItemDefinition.isOldConvertedItem()) {
-                components.put(DataComponentTypes.MAX_STACK_SIZE, 1);
-            } else {
+            // V1 compat: Allow old items to function; we'll patch in stack size to one later
+            if (!(definition instanceof GeyserCustomItemDefinition)) {
                 throw new InvalidItemComponentsException("Bedrock doesn't support equippable items with a stack size above 1");
             }
         } else if (stackSize > 1 && maxDamage > 0) {

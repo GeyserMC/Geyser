@@ -464,6 +464,14 @@ public class CustomItemRegistryPopulator {
         // This can be missing if a non-vanilla item didn't specify a max stack size, or if a component patch removed the component. In that case vanilla Minecraft defaults to 1
         int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 1);
 
+        // Hack for v1 compat: Allow e.g. carved pumpkins to continue working as a base
+        if (stackSize > 1 && definition instanceof GeyserCustomItemDefinition customItemDefinition && customItemDefinition.isOldConvertedItem()) {
+            Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
+            if (equippable != null) {
+                stackSize = 1;
+            }
+        }
+
         itemProperties.putInt("max_stack_size", stackSize);
 
         // Ignore durability if the item's predicates requires that it be unbreakable
