@@ -43,6 +43,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
@@ -97,7 +98,7 @@ public class EntityCache {
             entityIdTranslations.put(entity.getEntityId(), entity.geyserId());
             entities.put(entity.geyserId(), entity);
             if (entity.uuid() != null) {
-                entityUuidTranslations.put(entity.uuid(), entity.getEntityId());
+                entityUuidTranslations.put(entity.uuid(), entity.geyserId());
             }
             return true;
         }
@@ -155,7 +156,7 @@ public class EntityCache {
     }
 
     public Entity getEntityByUuid(UUID uuid) {
-        if (uuid == session.getPlayerEntity().uuid()) {
+        if (Objects.equals(uuid, session.getPlayerEntity().uuid())) {
             return session.getPlayerEntity();
         }
         return entities.get(entityUuidTranslations.getLong(uuid));
