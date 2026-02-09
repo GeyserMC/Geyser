@@ -60,4 +60,16 @@ public final class MinecraftKey {
         }
         return new IdentifierImpl(key);
     }
+
+    public static String getNamespace(String identifier) {
+        int i = identifier.indexOf(':');
+        if (i >= 0) {
+            return identifier.substring(0, i);
+        }
+        return "minecraft";
+    }
+
+    public static boolean isVanilla(String identifier) {
+        return getNamespace(identifier).equals("minecraft");
+    }
 }

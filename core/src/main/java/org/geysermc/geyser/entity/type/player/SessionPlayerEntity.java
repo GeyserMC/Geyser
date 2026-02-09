@@ -252,6 +252,13 @@ public class SessionPlayerEntity extends PlayerEntity {
         }
     }
 
+    @Override
+    protected void setAttributeScale(float scale) {
+        super.setAttributeScale(scale);
+        session.getCollisionManager().setScale(this.attributeScale);
+        session.getCollisionManager().updatePlayerBoundingBox();
+    }
+
     /**
      * Since 1.19.40, the client must be re-informed of its bounding box on respawn
      * See <a href="https://github.com/GeyserMC/Geyser/issues/3370">issue 3370</a>
@@ -430,9 +437,9 @@ public class SessionPlayerEntity extends PlayerEntity {
                 GeyserAttributeType.ABSORPTION.getAttribute(0f)));
         session.sendUpstreamPacket(attributesPacket);
 
-        dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, 0);
         dirtyMetadata.put(EntityDataTypes.EFFECT_AMBIENCE, (byte) 0);
         dirtyMetadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, 0f);
+        dirtyMetadata.put(EntityDataTypes.VISIBLE_MOB_EFFECTS, 0L);
 
         silent = false;
     }

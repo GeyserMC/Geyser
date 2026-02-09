@@ -105,7 +105,7 @@ public class LivingEntity extends Entity implements Tickable {
      */
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
-    private float attributeScale;
+    protected float attributeScale;
 
     private Vector3f lerpPosition;
     private int lerpSteps;
@@ -345,7 +345,7 @@ public class LivingEntity extends Entity implements Tickable {
         applyScale();
     }
 
-    private void setAttributeScale(float scale) {
+    protected void setAttributeScale(float scale) {
         this.attributeScale = MathUtils.clamp(scale, GeyserAttributeType.SCALE.getMinimum(), GeyserAttributeType.SCALE.getMaximum());
         applyScale();
     }

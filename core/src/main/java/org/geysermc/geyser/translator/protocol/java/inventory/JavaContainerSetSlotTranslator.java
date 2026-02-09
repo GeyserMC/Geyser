@@ -88,7 +88,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             updateCraftingGrid(slot, packet.getItem(), holder);
         }
 
-        GeyserItemStack newItem = GeyserItemStack.from(packet.getItem());
+        GeyserItemStack newItem = GeyserItemStack.from(session, packet.getItem());
         session.getBundleCache().initialize(newItem);
 
         holder.inventory().setItem(slot, newItem, session);
@@ -171,7 +171,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 for (int col = firstCol; col < width + firstCol; col++) {
                     GeyserItemStack geyserItemStack = holder.inventory().getItem(col + (row * gridDimensions) + 1);
                     ingredients[index] = geyserItemStack.getItemData(session);
-                    javaIngredients.add(geyserItemStack.asSlotDisplay());
+                    javaIngredients.add(geyserItemStack.asIngredient());
 
                     InventorySlotPacket slotPacket = new InventorySlotPacket();
                     slotPacket.setContainerId(ContainerId.UI);
@@ -241,7 +241,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
             GeyserItemStack input = inventory.getItem(SmithingInventoryTranslator.INPUT);
             GeyserItemStack material = inventory.getItem(SmithingInventoryTranslator.MATERIAL);
-            GeyserItemStack geyserOutput = GeyserItemStack.from(output);
+            GeyserItemStack geyserOutput = GeyserItemStack.from(session, output);
 
             for (GeyserSmithingRecipe recipe : session.getSmithingRecipes()) {
                 if (InventoryUtils.acceptsAsInput(session, recipe.result(), geyserOutput)
@@ -254,9 +254,9 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             }
 
             session.getSmithingRecipes().add(new GeyserSmithingRecipe(
-                template.asSlotDisplay(),
-                input.asSlotDisplay(),
-                material.asSlotDisplay(),
+                template.asIngredient(),
+                input.asIngredient(),
+                material.asIngredient(),
                 new ItemStackSlotDisplay(output)
             ));
 

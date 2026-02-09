@@ -29,11 +29,15 @@ import io.netty.bootstrap.AbstractBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.epoll.Native;
+import io.netty.channel.socket.nio.NioChannelOption;
 import io.netty.channel.unix.UnixChannelOption;
 import lombok.experimental.UtilityClass;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.mcprotocollib.network.helper.TransportHelper;
 
+import java.net.StandardSocketOptions;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,20 +72,46 @@ public final class Bootstraps {
     }
 
     @SuppressWarnings({"rawtypes, unchecked"})
-    public static boolean setupBootstrap(AbstractBootstrap bootstrap) {
+    public static boolean setupBootstrap(AbstractBootstrap bootstrap, TransportHelper.TransportType transport) {
         boolean success = true;
-        if (REUSEPORT_AVAILABLE) {
-            // Guessing whether so_reuseport is available based on kernel version is cool, but unreliable.
-            Channel channel = bootstrap.register().channel();
-            if (channel.config().setOption(UnixChannelOption.SO_REUSEPORT, true)) {
-                bootstrap.option(UnixChannelOption.SO_REUSEPORT, true);
-            } else {
-                // If this occurs, we guessed wrong and reuseport is not available
-                GeyserImpl.getInstance().getLogger().debug("so_reuseport is not available despite version being " + Native.KERNEL_VERSION);
-                success = false;
+        try {
+            ChannelFuture future = bootstrap.register();
+            if (!future.awaitUninterruptibly(3, TimeUnit.SECONDS)) {
+                GeyserImpl.getInstance().getLogger().debug("Not able to test so_reuseport availability within 3 seconds.");
+                future.cancel(true);
+                return false;
             }
-            // Now yeet that channel
-            channel.close();
+
+            if (!future.isSuccess()) {
+                GeyserImpl.getInstance().getLogger().warning("Could not register bootstrap channel for so_reuseport test: " + future.cause());
+                return false;
+            }
+
+            Channel channel = future.channel();
+            try {
+                if (transport.method() == TransportHelper.TransportMethod.NIO) {
+                    if (channel.config().setOption(NioChannelOption.of(StandardSocketOptions.SO_REUSEPORT), true)) {
+                        bootstrap.option(NioChannelOption.of(StandardSocketOptions.SO_REUSEPORT), true);
+                    } else {
+                        GeyserImpl.getInstance().getLogger().debug("NIO SO_REUSEPORT not supported");
+                        success = false;
+                    }
+                } else {
+                    if (channel.config().setOption(UnixChannelOption.SO_REUSEPORT, true)) {
+                        bootstrap.option(UnixChannelOption.SO_REUSEPORT, true);
+                    } else {
+                        // If this occurs, we guessed wrong and reuseport is not available
+                        GeyserImpl.getInstance().getLogger().debug("so_reuseport is not available despite version being " + Native.KERNEL_VERSION);
+                        success = false;
+                    }
+                }
+            } finally {
+                // Now yeet that channel
+                channel.close().awaitUninterruptibly(3, TimeUnit.SECONDS);
+            }
+        } catch (Throwable e) {
+            GeyserImpl.getInstance().getLogger().debug("Could not set up reuseport check ", e);
+            return false;
         }
         return success;
     }

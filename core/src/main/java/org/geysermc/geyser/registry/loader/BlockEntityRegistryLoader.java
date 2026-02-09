@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.registry.loader;
 
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntity;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.translator.level.block.entity.EmptyBlockEntityTranslator;
-import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.AnnotationUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
@@ -46,7 +46,7 @@ public class BlockEntityRegistryLoader implements RegistryLoader<String, Map<Blo
         // Overridden so one translator can be applied to multiple block entity types
         Object2ObjectMap<BlockEntityType, BlockEntityTranslator> entries = new Object2ObjectOpenHashMap<>();
         entries.defaultReturnValue(new EmptyBlockEntityTranslator());
-        for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(input)) {
+        for (Class<?> clazz : AnnotationUtils.getGeneratedClassesForAnnotation(input)) {
             try {
                 BlockEntity annotation = clazz.getAnnotation(BlockEntity.class);
                 BlockEntityTranslator translator = (BlockEntityTranslator) clazz.getConstructor().newInstance();

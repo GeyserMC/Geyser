@@ -1229,6 +1229,8 @@ public final class EntityDefinitions {
             ZOMBIE_NAUTILUS = EntityDefinition.inherited(ZombieNautilusEntity::new, abstractNautilusBase)
                 .type(EntityType.ZOMBIE_NAUTILUS)
                 .identifier("minecraft:zombie_nautilus")
+                .property(ZombieNautilusEntity.VARIANT_ENUM_PROPERTY)
+                .addTranslator(MetadataTypes.ZOMBIE_NAUTILUS_VARIANT, ZombieNautilusEntity::setVariant)
                 .build();
         }
 

@@ -44,7 +44,7 @@ public class ConduitCollision extends BlockCollision {
     }
 
     @Override
-    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision) {
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision, double ulpX, double ulpZ) {
         // Check for conduit bug (conduit is lifted from the ground on Java unlike Bedrock where conduit is placed on the ground)
         blockCollision.pushOutOfBoundingBox(playerCollision, Direction.UP, MAX_PUSH_DISTANCE);
     }

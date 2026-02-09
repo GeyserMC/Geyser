@@ -44,6 +44,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.ComponentCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.text.ChatColor;
@@ -119,7 +120,7 @@ public class Item {
      */
     @NonNull
     @UnmodifiableView
-    public DataComponents gatherComponents(@Nullable DataComponents others) {
+    public DataComponents gatherComponents(@Nullable ComponentCache componentCache, @Nullable DataComponents others) {
         if (others == null) {
             return baseComponents;
         }
@@ -140,7 +141,7 @@ public class Item {
      * to also query additional components that would override the default ones.
      */
     @Nullable
-    public <T> T getComponent(@NonNull DataComponentType<T> type) {
+    public <T> T getComponent(@Nullable ComponentCache componentCache, @NonNull DataComponentType<T> type) {
         return baseComponents.get(type);
     }
 
@@ -163,7 +164,7 @@ public class Item {
     }
 
     public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
-        return GeyserItemStack.of(javaId, itemData.getCount());
+        return GeyserItemStack.of(session, javaId, itemData.getCount());
     }
 
     public ItemMapping toBedrockDefinition(DataComponents components, ItemMappings mappings) {
@@ -299,8 +300,8 @@ public class Item {
 
     /* Translation methods end */
 
-    public GeyserItemStack newItemStack(int count, DataComponents components) {
-        return GeyserItemStack.of(this.javaId, count, components);
+    public GeyserItemStack newItemStack(GeyserSession session, int count, DataComponents components) {
+        return GeyserItemStack.of(session, this.javaId, count, components);
     }
 
     public void setJavaId(int javaId) { // TODO like this?

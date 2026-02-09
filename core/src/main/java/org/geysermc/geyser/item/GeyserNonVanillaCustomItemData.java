@@ -32,11 +32,24 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
+import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserBlockPlacer;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserChargeable;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponents;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaConsumable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaEquippable;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaFoodProperties;
+import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
+import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @EqualsAndHashCode(callSuper = true)
 @ToString
+@Deprecated
 public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData implements NonVanillaCustomItemData {
     private final String identifier;
     private final int javaId;
@@ -167,6 +180,56 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
     @Override
     public String block() {
         return block;
+    }
+
+    public NonVanillaCustomItemDefinition.Builder toDefinition() {
+        NonVanillaCustomItemDefinition.Builder definition = NonVanillaCustomItemDefinition.builder(Identifier.of(identifier()), javaId())
+            .displayName(displayName())
+            .bedrockOptions(CustomItemBedrockOptions.builder()
+                .icon(icon())
+                .allowOffhand(allowOffhand())
+                .displayHandheld(displayHandheld())
+                .creativeCategory(creativeCategory().isEmpty() ? CreativeCategory.NONE : CreativeCategory.values()[creativeCategory().getAsInt()])
+                .creativeGroup(creativeGroup())
+                .tags(tags().stream().map(Identifier::of).collect(Collectors.toSet()))
+                .protectionValue(protectionValue())
+            )
+            .component(JavaItemDataComponents.MAX_STACK_SIZE, stackSize())
+            .component(JavaItemDataComponents.MAX_DAMAGE, maxDamage())
+            .component(GeyserItemDataComponents.ATTACK_DAMAGE, attackDamage())
+            .translationString(translationString());
+
+        if (isHat()) {
+            definition.component(JavaItemDataComponents.EQUIPPABLE, JavaEquippable.builder().slot(JavaEquippable.EquipmentSlot.HEAD).build());
+        } else if (armorType() != null) {
+            switch (armorType()) {
+                case "helmet" -> definition.component(JavaItemDataComponents.EQUIPPABLE, JavaEquippable.builder().slot(JavaEquippable.EquipmentSlot.HEAD));
+                case "chestplate" -> definition.component(JavaItemDataComponents.EQUIPPABLE, JavaEquippable.builder().slot(JavaEquippable.EquipmentSlot.CHEST));
+                case "leggings" -> definition.component(JavaItemDataComponents.EQUIPPABLE, JavaEquippable.builder().slot(JavaEquippable.EquipmentSlot.LEGS));
+                case "boots" -> definition.component(JavaItemDataComponents.EQUIPPABLE, JavaEquippable.of(JavaEquippable.EquipmentSlot.FEET));
+            }
+        }
+
+        if (isEdible()) {
+            definition.component(JavaItemDataComponents.CONSUMABLE, JavaConsumable.builder().consumeSeconds(1.6F).animation(JavaConsumable.Animation.EAT)); // Default values
+            if (canAlwaysEat()) {
+                definition.component(JavaItemDataComponents.FOOD, JavaFoodProperties.builder().canAlwaysEat(true));
+            }
+        }
+
+        if (isChargeable() && toolType() != null) {
+            if (toolType().equals("bow")) {
+                definition.component(GeyserItemDataComponents.CHARGEABLE, GeyserChargeable.builder().maxDrawDuration(1.0F).chargeOnDraw(true).ammunition(Identifier.of("arrow")));
+            } else {
+                definition.component(GeyserItemDataComponents.CHARGEABLE, GeyserChargeable.builder().ammunition(Identifier.of("arrow")));
+            }
+        }
+
+        if (block() != null) {
+            definition.component(GeyserItemDataComponents.BLOCK_PLACER, GeyserBlockPlacer.builder().block(Identifier.of(block())));
+        }
+
+        return definition;
     }
 
     public static class Builder extends GeyserCustomItemData.Builder implements NonVanillaCustomItemData.Builder {

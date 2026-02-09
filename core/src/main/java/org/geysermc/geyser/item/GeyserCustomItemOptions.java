@@ -31,6 +31,7 @@ import org.geysermc.geyser.api.util.TriState;
 import java.util.OptionalInt;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+@Deprecated
 public record GeyserCustomItemOptions(TriState unbreakable,
                                       OptionalInt customModelData,
                                       OptionalInt damagePredicate,

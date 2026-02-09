@@ -36,7 +36,7 @@ import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.collision.CollisionRemapper;
 
 @EqualsAndHashCode(callSuper = true)
-@CollisionRemapper(regex = "^lantern$|^soul_lantern$", usesParams = true, passDefaultBoxes = true)
+@CollisionRemapper(regex = "^lantern$|^soul_lantern$|^.*copper_lantern$", usesParams = true, passDefaultBoxes = true)
 public class LanternCollision extends BlockCollision {
     private final static double MAX_PUSH_DISTANCE = 0.0625 + CollisionManager.COLLISION_TOLERANCE * 1.01;
 
@@ -49,7 +49,7 @@ public class LanternCollision extends BlockCollision {
     }
 
     @Override
-    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision) {
+    protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision, double ulpX, double ulpZ) {
         // Check for lantern collision (lantern is 0.0625 block higher on Java)
         if (this.hanging) {
             blockCollision.pushOutOfBoundingBox(playerCollision, Direction.DOWN, MAX_PUSH_DISTANCE);

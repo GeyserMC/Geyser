@@ -220,6 +220,14 @@ public final class BlockUtils {
     }
 
     public static void restoreCorrectBlock(GeyserSession session, Vector3i vector, BlockState blockState) {
+        restoreCorrectBlockAndItem(session, vector, blockState, session.getPlayerInventory().getHeldItemSlot());
+    }
+
+    public static void restoreCorrectBlock(GeyserSession session, Vector3i blockPos, int slot) {
+        restoreCorrectBlockAndItem(session, blockPos, session.getGeyser().getWorldManager().blockAt(session, blockPos), slot);
+    }
+
+    public static void restoreCorrectBlockAndItem(GeyserSession session, Vector3i vector, BlockState blockState, int slot) {
         BlockDefinition bedrockBlock = session.getBlockMappings().getBedrockBlock(blockState);
 
         if (blockState.block() instanceof SkullBlock skullBlock && skullBlock.skullType() == SkullBlock.Type.PLAYER) {
@@ -245,11 +253,7 @@ public final class BlockUtils {
         session.sendUpstreamPacket(updateWaterPacket);
 
         // Reset the item in hand to prevent "missing" blocks
-        session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getHeldItemSlot()); // TODO test
-    }
-
-    public static void restoreCorrectBlock(GeyserSession session, Vector3i blockPos) {
-        restoreCorrectBlock(session, blockPos, session.getGeyser().getWorldManager().blockAt(session, blockPos));
+        session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getOffsetForHotbar(slot));
     }
 
     public static void stopBreakAndRestoreBlock(GeyserSession session, Vector3i vector, BlockState blockState) {

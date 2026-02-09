@@ -36,14 +36,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.annotation.Annotation;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
-import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class FileUtils {
@@ -204,46 +201,6 @@ public final class FileUtils {
             return new BufferedReader(new InputStreamReader(Files.newInputStream(path))).lines();
         } catch (IOException e) {
             throw new RuntimeException("Error while trying to read file!", e);
-        }
-    }
-
-    /**
-     * Returns a set of all the classes that are annotated by a given annotation.
-     * Keep in mind that these are from a set of generated annotations generated
-     * at compile time by the annotation processor, meaning that arbitrary annotations
-     * cannot be passed into this method and expected to have a set of classes
-     * returned back.
-     *
-     * @param annotationClass the annotation class
-     * @return a set of all the classes annotated by the given annotation
-     */
-    public static Set<Class<?>> getGeneratedClassesForAnnotation(Class<? extends Annotation> annotationClass) {
-        return getGeneratedClassesForAnnotation(annotationClass.getName());
-    }
-
-    /**
-     * Returns a set of all the classes that are annotated by a given annotation.
-     * Keep in mind that these are from a set of generated annotations generated
-     * at compile time by the annotation processor, meaning that arbitrary annotations
-     * cannot be passed into this method and expected to have a set of classes
-     * returned back.
-     *
-     * @param input the fully qualified name of the annotation
-     * @return a set of all the classes annotated by the given annotation
-     */
-    public static Set<Class<?>> getGeneratedClassesForAnnotation(String input) {
-        try (InputStream annotatedClass = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(input);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(annotatedClass))) {
-            return reader.lines().map(className -> {
-                try {
-                    return Class.forName(className);
-                } catch (ClassNotFoundException ex) {
-                    GeyserImpl.getInstance().getLogger().error("Failed to find class " + className, ex);
-                    throw new RuntimeException(ex);
-                }
-            }).collect(Collectors.toSet());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 
