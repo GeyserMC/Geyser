@@ -39,6 +39,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetad
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 // Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
 @Getter
 public class TextDisplayEntity extends DisplayBaseEntity {
@@ -55,7 +57,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      * the text in the display. They are rendered separately, and can cross each other...
      */
     private @Nullable ArmorStandEntity secondEntity = null;
-    private boolean isNameTagVisible = false;
     private boolean isInvisible = false;
     private int lineCount;
 
@@ -82,23 +83,24 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     @Override
     public void setCustomNameVisible(BooleanEntityMetadata entityMetadata) {
-        this.isNameTagVisible = entityMetadata.getPrimitiveValue();
-        if (entityMetadata.getPrimitiveValue()) {
-            // Java client behavior, must show a nametag
-            // If no custom name is set, it'll be the entity type name
-            if (this.nametag.isBlank()) {
-                setNametag(getDisplayName(), true);
-                return;
-            }
-        } else {
-            // If we have no custom name override, we have to reset the nametag
-            if (customName == null) {
-                setNametag(null, true);
-                return;
-            }
-        }
-        // setNametag would already call updateNameTag; but we gotta update visibility
+        super.setCustomNameVisible(entityMetadata);
         this.updateNameTag();
+    }
+
+    @Override
+    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        super.setCustomName(entityMetadata);
+        this.updateNameTag();
+    }
+
+    @Override
+    public void setNametagAlwaysShow(boolean value) {
+        // no-op
+    }
+
+    @Override
+    protected void setNameEntityData(String nametag) {
+        // no-op
     }
 
     @Override
@@ -145,11 +147,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     @Override
-    protected void setNameEntityData(String nametag) {
-        updateNameTag();
-    }
-
-    @Override
     public void updateBedrockMetadata() {
         if (secondEntity != null) {
             if (!secondEntity.valid) { // Spawn the entity once
@@ -163,7 +160,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     public void updateNameTag() {
         // Text displays are special: isNameTagVisible must be set for the custom name to ever show
-        if (this.nametag.isBlank() || isInvisible || !isNameTagVisible) {
+        if (this.nametag.isBlank() || isInvisible || !customNameVisible) {
             if (secondEntity != null) {
                 secondEntity.despawnEntity();
                 secondEntity = null;

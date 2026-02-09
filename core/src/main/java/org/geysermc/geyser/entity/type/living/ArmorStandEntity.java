@@ -57,8 +57,6 @@ public class ArmorStandEntity extends LivingEntity {
     @Getter
     private boolean isSmall = false;
 
-    private boolean isNameTagVisible = false;
-
     /**
      * On Java Edition, armor stands always show their name. Invisibility hides the name on Bedrock.
      * By having a second entity, we can allow an invisible entity with the name tag.
@@ -302,7 +300,6 @@ public class ArmorStandEntity extends LivingEntity {
     @Override
     public void setCustomNameVisible(BooleanEntityMetadata entityMetadata) {
         super.setCustomNameVisible(entityMetadata);
-        isNameTagVisible = entityMetadata.getPrimitiveValue();
         updateSecondEntityStatus(false);
     }
 
@@ -349,7 +346,7 @@ public class ArmorStandEntity extends LivingEntity {
             secondEntity.isMarker = isMarker;
             secondEntity.positionRequiresOffset = true; // Offset should always be applied
             secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, isNameTagVisible ? (byte) 1 : (byte) 0);
+            secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, customNameVisible ? (byte) 1 : (byte) 0);
             secondEntity.flags.putAll(this.flags);
             // Guarantee this copy is NOT invisible
             secondEntity.setFlag(EntityFlag.INVISIBLE, false);

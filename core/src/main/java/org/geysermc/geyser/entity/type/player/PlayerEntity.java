@@ -70,6 +70,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
 
     public PlayerEntity(EntitySpawnContext context, String username, @Nullable String texturesProperty) {
         super(context, username);
+        this.customNameVisible = true;
         this.texturesProperty = texturesProperty;
     }
 
