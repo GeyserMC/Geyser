@@ -518,7 +518,7 @@ public class Entity implements GeyserEntity {
             return;
         }
         this.customName = null;
-        setNametag(null, true);
+        setNametag(getDisplayName(customNameVisible), true);
     }
 
     protected String standardDisplayName() {
@@ -584,14 +584,14 @@ public class Entity implements GeyserEntity {
      * Either the custom name, or default type name fallback
      * Mirrors Mojmap Entity#getName
      */
-    public String getDisplayName(boolean includeStandardName) {
+    public @Nullable String getDisplayName(boolean includeStandardName) {
         if (this.customName != null) {
             return this.customName;
         }
         if (includeStandardName) {
             return standardDisplayName();
         }
-        return "";
+        return null;
     }
 
     public void setCustomNameVisible(BooleanEntityMetadata entityMetadata) {

@@ -268,11 +268,11 @@ public abstract class AvatarEntity extends LivingEntity {
     }
 
     @Override
-    public String getDisplayName(boolean ignored) {
+    public String getDisplayName(boolean includeStandardName) {
         if (this instanceof PlayerEntity) {
             return username;
         }
-        return super.getDisplayName(ignored);
+        return super.getDisplayName(includeStandardName);
     }
 
     @Override
