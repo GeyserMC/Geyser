@@ -256,7 +256,7 @@ public class BlockBreakHandler {
                     // Not using abortDueToBlockRestoring method here as we're fully restoring the block,
                     // to counteract Bedrock's own client-side prediction
                     if (!restoredBlocks.isEmpty()) {
-                        BlockUtils.restoreCorrectBlock(session, position);
+                        BlockUtils.restoreCorrectBlock(session, position, session.getPlayerInventory().getHeldItemSlot());
                         continue;
                     }
 

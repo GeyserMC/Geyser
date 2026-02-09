@@ -57,6 +57,7 @@ import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
 import org.geysermc.geyser.impl.HoldersImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
@@ -275,7 +276,12 @@ public class CustomItemRegistryPopulator {
         Equippable equippable = context.components().get(DataComponentTypes.EQUIPPABLE);
         if (equippable != null) {
             boolean renderOffsets = context.definition() instanceof GeyserCustomItemDefinition definition && definition.isOldConvertedItem();
-            computeArmorProperties(equippable, context.definition().bedrockOptions().protectionValue(), componentBuilder, renderOffsets);
+            int protectionValue = context.definition().bedrockOptions().protectionValue();
+            if (context.definition().bedrockOptions() instanceof GeyserCustomItemBedrockOptions options) {
+                // Fallback to vanilla item's protection value if no protection value is set
+                protectionValue = options.protectionValue(context);
+            }
+            computeArmorProperties(equippable, protectionValue, componentBuilder, renderOffsets);
         }
 
         Integer enchantmentValue = context.components().get(DataComponentTypes.ENCHANTABLE);
@@ -457,6 +463,14 @@ public class CustomItemRegistryPopulator {
         // We already checked and threw for these cases in CustomItemContext#checkComponents though
         // This can be missing if a non-vanilla item didn't specify a max stack size, or if a component patch removed the component. In that case vanilla Minecraft defaults to 1
         int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 1);
+
+        // Hack for v1 compat: Allow e.g. carved pumpkins to continue working as a base
+        if (stackSize > 1 && definition instanceof GeyserCustomItemDefinition customItemDefinition && customItemDefinition.isOldConvertedItem()) {
+            Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
+            if (equippable != null) {
+                stackSize = 1;
+            }
+        }
 
         itemProperties.putInt("max_stack_size", stackSize);
 
