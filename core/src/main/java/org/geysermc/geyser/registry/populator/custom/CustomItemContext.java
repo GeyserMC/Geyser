@@ -30,6 +30,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
 import org.geysermc.geyser.item.custom.ComponentConverters;
+import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
@@ -100,7 +101,12 @@ public record CustomItemContext(CustomItemDefinition definition, DataComponents 
         int maxDamage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
 
         if (components.get(DataComponentTypes.EQUIPPABLE) != null && stackSize > 1) {
-            throw new InvalidItemComponentsException("Bedrock doesn't support equippable items with a stack size above 1");
+            // V1 compat: forcibly set max stack size to one
+            if (definition instanceof GeyserCustomItemDefinition geyserCustomItemDefinition && geyserCustomItemDefinition.isOldConvertedItem()) {
+                components.put(DataComponentTypes.MAX_STACK_SIZE, 1);
+            } else {
+                throw new InvalidItemComponentsException("Bedrock doesn't support equippable items with a stack size above 1");
+            }
         } else if (stackSize > 1 && maxDamage > 0) {
             throw new InvalidItemComponentsException("Stack size must be 1 when max damage is above 0");
         }
