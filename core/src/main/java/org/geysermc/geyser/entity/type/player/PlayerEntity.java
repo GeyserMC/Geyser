@@ -71,6 +71,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
 
     public PlayerEntity(EntitySpawnContext context, String username, @Nullable String texturesProperty) {
         super(context, username);
+        this.customNameVisible = true;
         this.texturesProperty = texturesProperty;
     }
 
@@ -222,16 +223,15 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         return username;
     }
 
-    // TODO test mannequins
     @Override
-    protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
-        // when fromDisplayName, LivingEntity will call scoreboard code. After that
-        // setNametag is called again with fromDisplayName on false
-        if (nametag == null && !fromDisplayName) {
+    protected void setNametag(@Nullable String nametag, boolean applyTeamStyling) {
+        // when applyTeamStyling, LivingEntity will call scoreboard code. After that
+        // setNametag is called again with applyTeamStyling on false
+        if (nametag == null && !applyTeamStyling) {
             // nametag = null means reset, so reset it back to username
             nametag = username;
         }
-        super.setNametag(nametag, fromDisplayName);
+        super.setNametag(nametag, applyTeamStyling);
     }
 
     public void setUsername(String username) {

@@ -109,6 +109,7 @@ public class Entity implements GeyserEntity {
      */
     @Setter(AccessLevel.NONE)
     protected String nametag = "";
+    protected boolean customNameVisible;
 
     /**
      * The entity position as it is known to the Java server
@@ -141,7 +142,8 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.NONE)
     private float boundingBoxWidth;
     @Setter(AccessLevel.NONE)
-    protected String displayName;
+    @Getter(AccessLevel.NONE)
+    protected @Nullable String customName = null;
     @Setter(AccessLevel.NONE)
     protected boolean silent = false;
     /* Metadata end */
@@ -184,7 +186,6 @@ public class Entity implements GeyserEntity {
         this.session = context.session();
         this.javaTypeDefinition = context.entityTypeDefinition();
         this.bedrockDefinition = context.bedrockEntityDefinition();
-        this.displayName = standardDisplayName();
 
         this.entityId = context.javaId();
         this.geyserId = context.geyserId();
@@ -193,11 +194,9 @@ public class Entity implements GeyserEntity {
         this.yaw = context.yaw();
         this.pitch = context.pitch();
         this.headYaw = context.headYaw();
-
         this.width = context.width();
         this.height = context.height();
         this.offset = context.offset();
-
         this.valid = false;
         this.propertyManager = bedrockDefinition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(bedrockDefinition.registeredProperties());
 
@@ -298,41 +297,56 @@ public class Entity implements GeyserEntity {
         }
 
         setPosition(position.add(relX, relY, relZ));
+        setOnGround(isOnGround);
 
-        MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
-        moveEntityPacket.setRuntimeEntityId(geyserId);
-        if (relX != 0.0) {
-            moveEntityPacket.setX(bedrockPosition().getX());
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-        }
-        if (relY != 0.0) {
-            moveEntityPacket.setY(bedrockPosition().getY());
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-        }
-        if (relZ != 0.0) {
-            moveEntityPacket.setZ(bedrockPosition().getZ());
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-        }
+        boolean dirtyPitch = false, dirtyYaw = false, dirtyHeadYaw = false;
         if (pitch != this.pitch) {
             this.pitch = pitch;
-            moveEntityPacket.setPitch(pitch);
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+            dirtyPitch = true;
         }
+
         if (yaw != this.yaw) {
             this.yaw = yaw;
-            moveEntityPacket.setYaw(yaw);
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+            dirtyYaw = true;
         }
+
         if (headYaw != this.headYaw) {
             this.headYaw = headYaw;
-            moveEntityPacket.setHeadYaw(headYaw);
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+            dirtyHeadYaw = true;
         }
-        setOnGround(isOnGround);
-        if (isOnGround) {
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+
+        if (isValid()) {
+            MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
+            moveEntityPacket.setRuntimeEntityId(geyserId);
+            if (relX != 0.0) {
+                moveEntityPacket.setX(bedrockPosition().getX());
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+            }
+            if (relY != 0.0) {
+                moveEntityPacket.setY(bedrockPosition().getY());
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+            }
+            if (relZ != 0.0) {
+                moveEntityPacket.setZ(bedrockPosition().getZ());
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+            }
+            if (dirtyPitch) {
+                moveEntityPacket.setPitch(pitch);
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+            }
+            if (dirtyYaw) {
+                moveEntityPacket.setYaw(yaw);
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+            }
+            if (dirtyHeadYaw) {
+                moveEntityPacket.setHeadYaw(headYaw);
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+            }
+            if (isOnGround) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+            }
+            session.sendUpstreamPacket(moveEntityPacket);
         }
-        session.sendUpstreamPacket(moveEntityPacket);
     }
 
     public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, boolean isOnGround, boolean teleported) {
@@ -351,14 +365,16 @@ public class Entity implements GeyserEntity {
         setHeadYaw(headYaw);
         setOnGround(isOnGround);
 
-        MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
-        moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(bedrockPosition());
-        moveEntityPacket.setRotation(getBedrockRotation());
-        moveEntityPacket.setOnGround(isOnGround);
-        moveEntityPacket.setTeleported(teleported);
+        if (isValid()) {
+            MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+            moveEntityPacket.setRuntimeEntityId(geyserId);
+            moveEntityPacket.setPosition(bedrockPosition());
+            moveEntityPacket.setRotation(getBedrockRotation());
+            moveEntityPacket.setOnGround(isOnGround);
+            moveEntityPacket.setTeleported(teleported);
 
-        session.sendUpstreamPacket(moveEntityPacket);
+            session.sendUpstreamPacket(moveEntityPacket);
+        }
     }
 
     /**
@@ -517,31 +533,27 @@ public class Entity implements GeyserEntity {
         return uuid != null ? uuid.toString() : null;
     }
 
-    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // displayName is shown when always display name is enabled. Either with or without team.
-        // That's why there are both a displayName and a nametag variable.
-        // Displayname is ignored for players, and is always their username.
+    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        // customName is shown when always custom name is enabled. Either with or without team.
+        // That's why there are both a customName and a nametag variable.
+        // CustomName is ignored for players, and is always their username.
         Optional<Component> name = entityMetadata.getValue();
         if (name.isPresent()) {
-            String displayName = MessageTranslator.convertMessage(name.get(), session.locale());
-            this.displayName = displayName;
-            setNametag(displayName, true);
+            this.customName = MessageTranslator.convertMessage(name.get(), session.locale());
+            setNametag(customName, true);
             return;
         }
-
-        // if no displayName is set, use entity name (ENDER_DRAGON -> Ender Dragon)
-        // maybe we can/should use a translatable here instead?
-        this.displayName = standardDisplayName();
-        setNametag(null, true);
+        this.customName = null;
+        setNametag(getDisplayName(customNameVisible), true);
     }
 
     protected String standardDisplayName() {
         return EntityUtils.translatedEntityName(javaTypeDefinition.type(), session);
     }
 
-    protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
+    protected void setNametag(@Nullable String nametag, boolean applyTeamStyling) {
         // ensure that the team format is used when nametag changes
-        if (nametag != null && fromDisplayName) {
+        if (nametag != null && applyTeamStyling) {
             var team = session.getWorldCache().getScoreboard().getTeamFor(teamIdentifier());
             if (team != null) {
                 updateNametag(team);
@@ -559,9 +571,14 @@ public class Entity implements GeyserEntity {
             return;
         }
 
-        dirtyMetadata.put(EntityDataTypes.NAME, nametag);
+        setNameEntityData(nametag);
         // if nametag (player with team) is hidden for player, so should the score (belowname)
         scoreVisibility(!nametag.isEmpty());
+    }
+
+    // See TextDisplayEntity for context
+    protected void setNameEntityData(String nametag) {
+        dirtyMetadata.put(EntityDataTypes.NAME, nametag);
     }
 
     public void updateNametag(@Nullable Team team) {
@@ -574,7 +591,7 @@ public class Entity implements GeyserEntity {
             String newNametag;
             // (team) visibility is LivingEntity+, team displayName is Entity+
             if (visible) {
-                newNametag = team.displayName(getDisplayName());
+                newNametag = team.displayName(getDisplayName(true));
             } else {
                 // The name is not visible to the session player; clear name
                 newNametag = "";
@@ -582,14 +599,37 @@ public class Entity implements GeyserEntity {
             setNametag(newNametag, false);
             return;
         }
-        // The name has reset, if it was previously something else
-        setNametag(null, false);
+        // The name might need to be reset: no more team!
+        setNametag(getDisplayName(customNameVisible), false);
     }
 
     protected void scoreVisibility(boolean show) {}
 
-    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
-        dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
+    /*
+     * Returns the appropriate name to use for nametags:
+     * Either the custom name, or default type name fallback
+     * Mirrors Mojmap Entity#getName
+     */
+    public @Nullable String getDisplayName(boolean includeStandardName) {
+        if (this.customName != null) {
+            return this.customName;
+        }
+        if (includeStandardName) {
+            return standardDisplayName();
+        }
+        return null;
+    }
+
+    public void setCustomNameVisible(BooleanEntityMetadata entityMetadata) {
+        this.customNameVisible = entityMetadata.getPrimitiveValue();
+        // We must show a nametag (either custom name, or entity type fallback).
+        // But we also have to apply team styling if present.
+        setNametag(getDisplayName(customNameVisible), true);
+        setNametagAlwaysShow(customNameVisible);
+    }
+
+    public void setNametagAlwaysShow(boolean value) {
+        dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) (value ? 1 : 0));
     }
 
     public final void setSilent(BooleanEntityMetadata entityMetadata) {

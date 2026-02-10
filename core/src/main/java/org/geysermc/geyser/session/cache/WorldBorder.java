@@ -65,7 +65,6 @@ public class WorldBorder {
     /**
      * The diameter in blocks of the new world border.
      */
-    @Setter
     private double size = DEFAULT_WORLD_BORDER_SIZE;
     /**
      * The target diameter
@@ -288,6 +287,11 @@ public class WorldBorder {
             this.resizing = true;
         }
         update();
+    }
+
+    public void setSize(double size) {
+        this.size = size;
+        this.update();
     }
 
     public void startResize(double from, double to, long lerpDuration) {

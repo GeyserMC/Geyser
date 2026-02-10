@@ -43,11 +43,6 @@ public class MannequinEntity extends AvatarEntity {
     }
 
     @Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    @Override
     public boolean isListed() {
         return false;
     }
