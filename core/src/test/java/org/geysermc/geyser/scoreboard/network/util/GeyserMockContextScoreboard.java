@@ -100,7 +100,7 @@ public class GeyserMockContextScoreboard {
     }
 
     public static ArmorStandEntity spawnArmorStand(GeyserMockContext context, long geyserId) {
-        var entitySpawnContext = EntitySpawnContext.DUMMY_CONTEXT.apply(context.session(), UUID.randomUUID(), EntityDefinitions.ARMOR_STAND);
+        var entitySpawnContext = EntitySpawnContext.DUMMY_CONTEXT.apply(context.session(), UUID.randomUUID(), VanillaEntities.ARMOR_STAND);
         entitySpawnContext.geyserId(geyserId);
         entitySpawnContext.javaId((int) geyserId);
         var armorStand = spy(new ArmorStandEntity(entitySpawnContext));
