@@ -28,17 +28,17 @@ package org.geysermc.geyser.platform.spigot;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.Permissions;
 import org.geysermc.geyser.platform.spigot.command.SpigotCommandSource;
 import org.geysermc.geyser.util.VersionCheckUtils;
-import org.spigotmc.event.player.PlayerSpawnLocationEvent;
 
 public final class GeyserSpigotUpdateListener implements Listener {
 
     @EventHandler
-    public void onPlayerSpawnLocation(final PlayerSpawnLocationEvent event) {
-        if (GeyserImpl.getInstance().getConfig().isNotifyOnNewBedrockUpdate()) {
+    public void onPlayerJoin(final PlayerJoinEvent event) {
+        if (GeyserImpl.getInstance().config().notifyOnNewBedrockUpdate()) {
             final Player player = event.getPlayer();
             if (player.hasPermission(Permissions.CHECK_UPDATE)) {
                 VersionCheckUtils.checkForGeyserUpdate(() -> new SpigotCommandSource(player));

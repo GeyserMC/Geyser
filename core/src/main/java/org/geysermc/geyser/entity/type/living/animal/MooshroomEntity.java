@@ -26,27 +26,23 @@
 package org.geysermc.geyser.entity.type.living.animal;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
-import java.util.UUID;
-
 public class MooshroomEntity extends CowEntity {
     private boolean isBrown = false;
 
-    public MooshroomEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public MooshroomEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     public void setMooshroomVariant(IntEntityMetadata metadata) {
@@ -63,10 +59,10 @@ public class MooshroomEntity extends CowEntity {
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!isBaby()) {
-            if (itemInHand.asItem() == Items.BOWL) {
+            if (itemInHand.is(Items.BOWL)) {
                 // Stew
                 return InteractiveTag.MOOSHROOM_MILK_STEW;
-            } else if (isAlive() && itemInHand.asItem() == Items.SHEARS) {
+            } else if (isAlive() && itemInHand.is(Items.SHEARS)) {
                 // Shear items
                 return InteractiveTag.MOOSHROOM_SHEAR;
             }
@@ -78,13 +74,13 @@ public class MooshroomEntity extends CowEntity {
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         boolean isBaby = isBaby();
-        if (!isBaby && itemInHand.asItem() == Items.BOWL) {
+        if (!isBaby && itemInHand.is(Items.BOWL)) {
             // Stew
             return InteractionResult.SUCCESS;
-        } else if (!isBaby && isAlive() && itemInHand.asItem() == Items.SHEARS) {
+        } else if (!isBaby && isAlive() && itemInHand.is(Items.SHEARS)) {
             // Shear items
             return InteractionResult.SUCCESS;
-        } else if (isBrown && session.getTagCache().is(ItemTag.SMALL_FLOWERS, itemInHand)) {
+        } else if (isBrown && itemInHand.is(session, ItemTag.SMALL_FLOWERS)) {
             // ?
             return InteractionResult.SUCCESS;
         }

@@ -25,8 +25,38 @@
 
 package org.geysermc.geyser.util;
 
+import org.cloudburstmc.math.GenericMath;
+import org.cloudburstmc.math.TrigMath;
+import org.cloudburstmc.math.vector.Vector3f;
+
 public class MathUtils {
     public static final double SQRT_OF_TWO = Math.sqrt(2);
+
+    public static Vector3f xYRot(Vector3f velocity, float pitch, float yaw) {
+        float pitchCos = TrigMath.cos(pitch);
+        float pitchSin = TrigMath.sin(pitch);
+        float yawCos = TrigMath.cos(yaw);
+        float yawSin = TrigMath.sin(yaw);
+
+        float e = velocity.getY() * pitchCos + velocity.getZ() * pitchSin;
+        float i = velocity.getZ() * pitchCos - velocity.getY() * pitchSin;
+        velocity = Vector3f.from(velocity.getX(), e, i);
+
+        float d1 = velocity.getX() * yawCos + velocity.getZ() * yawSin;
+        float i1 = velocity.getZ() * yawCos - velocity.getX() * yawSin;
+
+        return Vector3f.from(d1, e, i1);
+    }
+
+    public static Vector3f calculateViewVector(float pitch, float yaw) {
+        float var3 = pitch * 0.017453292F;
+        float var4 = -yaw * 0.017453292F;
+        float var5 = TrigMath.cos(var4);
+        float var6 = TrigMath.sin(var4);
+        float var7 = TrigMath.cos(var3);
+        float var8 = TrigMath.sin(var3);
+        return Vector3f.from(var6 * var7, -var8, var5 * var7);
+    }
 
     /**
      * Wrap the given float degrees to be between -180.0 and 180.0.

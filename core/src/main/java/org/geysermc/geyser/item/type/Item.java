@@ -44,7 +44,9 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.ComponentCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
@@ -53,6 +55,7 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.jetbrains.annotations.UnmodifiableView;
 
@@ -101,6 +104,14 @@ public class Item {
         return baseComponents.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 1);
     }
 
+    public boolean is(GeyserSession session, Tag<Item> tag) {
+        return session.getTagCache().is(tag, javaId);
+    }
+
+    public boolean is(GeyserSession session, HolderSet set) {
+        return session.getTagCache().is(set, JavaRegistries.ITEM, javaId);
+    }
+
     /**
      * Returns an unmodifiable {@link DataComponents} view containing known data components.
      * Optionally, additional components can be provided to replace (or add to)
@@ -109,7 +120,7 @@ public class Item {
      */
     @NonNull
     @UnmodifiableView
-    public DataComponents gatherComponents(@Nullable DataComponents others) {
+    public DataComponents gatherComponents(@Nullable ComponentCache componentCache, @Nullable DataComponents others) {
         if (others == null) {
             return baseComponents;
         }
@@ -130,7 +141,7 @@ public class Item {
      * to also query additional components that would override the default ones.
      */
     @Nullable
-    public <T> T getComponent(@NonNull DataComponentType<T> type) {
+    public <T> T getComponent(@Nullable ComponentCache componentCache, @NonNull DataComponentType<T> type) {
         return baseComponents.get(type);
     }
 
@@ -153,7 +164,7 @@ public class Item {
     }
 
     public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
-        return GeyserItemStack.of(javaId, itemData.getCount());
+        return GeyserItemStack.of(session, javaId, itemData.getCount());
     }
 
     public ItemMapping toBedrockDefinition(DataComponents components, ItemMappings mappings) {
@@ -256,6 +267,7 @@ public class Item {
         if (bedrockEnchantment == null) {
             String enchantmentTranslation = MinecraftLocale.getLocaleString(enchantment.description(), session.locale());
             addJavaOnlyEnchantment(session, builder, enchantmentTranslation, level);
+            builder.addEnchantmentGlint();
             return null;
         }
 
@@ -288,8 +300,8 @@ public class Item {
 
     /* Translation methods end */
 
-    public GeyserItemStack newItemStack(int count, DataComponents components) {
-        return GeyserItemStack.of(this.javaId, count, components);
+    public GeyserItemStack newItemStack(GeyserSession session, int count, DataComponents components) {
+        return GeyserItemStack.of(session, this.javaId, count, components);
     }
 
     public void setJavaId(int javaId) { // TODO like this?

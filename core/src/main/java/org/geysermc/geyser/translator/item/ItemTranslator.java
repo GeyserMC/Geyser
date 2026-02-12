@@ -38,7 +38,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -54,17 +53,17 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.auth.GameProfile;
-import org.geysermc.mcprotocollib.auth.GameProfile.Texture;
-import org.geysermc.mcprotocollib.auth.GameProfile.TextureType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -189,7 +188,7 @@ public final class ItemTranslator {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
         // Populates default components that aren't sent over the network
-        DataComponents components = javaItem.gatherComponents(customComponents);
+        DataComponents components = javaItem.gatherComponents(session.getComponentCache(), customComponents);
         TooltipOptions tooltip = TooltipOptions.fromComponents(components);
 
         // Translate item-specific components
@@ -240,7 +239,7 @@ public final class ItemTranslator {
             translatePlayerHead(session, components.get(DataComponentTypes.PROFILE), builder);
         }
 
-        translateCustomItem(components, builder, bedrockItem);
+        translateCustomItem(session, count, components, builder, bedrockItem);
 
         // Translate the canDestroy and canPlaceOn Java components
         AdventureModePredicate canDestroy = components.get(DataComponentTypes.CAN_BREAK);
@@ -330,7 +329,7 @@ public final class ItemTranslator {
                     amount += session.getPlayerEntity().attributeOrDefault(GeyserAttributeType.ATTACK_DAMAGE);
                     baseModifier = true;
                 } else if (modifier.getId().equals(BASE_ATTACK_SPEED_ID)) {
-                    amount += session.getPlayerEntity().attributeOrDefault(GeyserAttributeType.ATTACK_SPEED);
+                    amount += session.getAttackSpeed();
                     baseModifier = true;
                 }
 
@@ -537,7 +536,7 @@ public final class ItemTranslator {
             }
         }
 
-        ItemDefinition definition = CustomItemTranslator.getCustomItem(itemStack.getComponents(), mapping);
+        ItemDefinition definition = CustomItemTranslator.getCustomItem(session, itemStack.getAmount(), itemStack.getAllComponents(), mapping);
         if (definition == null) {
             // No custom item
             return itemDefinition;
@@ -605,8 +604,8 @@ public final class ItemTranslator {
     /**
      * Translates the custom model data of an item
      */
-    public static void translateCustomItem(DataComponents components, ItemData.Builder builder, ItemMapping mapping) {
-        ItemDefinition definition = CustomItemTranslator.getCustomItem(components, mapping);
+    public static void translateCustomItem(GeyserSession session, int stackSize, DataComponents components, ItemData.Builder builder, ItemMapping mapping) {
+        ItemDefinition definition = CustomItemTranslator.getCustomItem(session, stackSize, components, mapping);
         if (definition != null) {
             builder.definition(definition);
             builder.blockDefinition(null);
@@ -623,35 +622,26 @@ public final class ItemTranslator {
         builder.blockDefinition(blockDefinition);
     }
 
-    private static @Nullable CustomSkull getCustomSkull(@Nullable GameProfile profile) {
+    private static @Nullable CustomSkull getCustomSkull(@Nullable ResolvableProfile profile) {
         if (profile == null) {
             return null;
         }
 
-        Map<TextureType, Texture> textures;
-        try {
-            textures = profile.getTextures(false);
-        } catch (IllegalStateException e) {
-            GeyserImpl.getInstance().getLogger().debug("Could not decode player head from profile %s, got: %s".formatted(profile, e.getMessage()));
+        // Ideally we'd update the item once the profile has been resolved, but this isn't really possible,
+        // also see comments in PlayerHeadItem for full explanation
+        GameProfile resolved = SkinManager.resolveProfile(profile).getNow(null);
+        if (resolved == null) {
             return null;
         }
 
-        if (textures == null || textures.isEmpty()) {
-            // TODO the java client looks up the texture properties here and updates the item
-            return null;
-        }
-
-        Texture skinTexture = textures.get(TextureType.SKIN);
-
+        GameProfile.Texture skinTexture = SkinManager.getTextureDataFromProfile(resolved, GameProfile.TextureType.SKIN);
         if (skinTexture == null) {
             return null;
         }
-
-        String skinHash = skinTexture.getURL().substring(skinTexture.getURL().lastIndexOf('/') + 1);
-        return BlockRegistries.CUSTOM_SKULLS.get(skinHash);
+        return BlockRegistries.CUSTOM_SKULLS.get(skinTexture.getHash());
     }
 
-    private static void translatePlayerHead(GeyserSession session, GameProfile profile, ItemData.Builder builder) {
+    private static void translatePlayerHead(GeyserSession session, ResolvableProfile profile, ItemData.Builder builder) {
         CustomSkull customSkull = getCustomSkull(profile);
         if (customSkull != null) {
             CustomBlockData customBlockData = customSkull.getCustomBlockData();

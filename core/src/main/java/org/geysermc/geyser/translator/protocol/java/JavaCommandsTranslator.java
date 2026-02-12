@@ -43,7 +43,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
-import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -124,7 +123,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     @Override
     public void translate(GeyserSession session, ClientboundCommandsPacket packet) {
         // Don't send command suggestions if they are disabled
-        if (!session.getGeyser().getConfig().isCommandSuggestions()) {
+        if (!session.getGeyser().config().gameplay().commandSuggestions()) {
             session.getGeyser().getLogger().debug("Not sending translated command suggestions as they are disabled.");
 
             // Send a mostly empty packet so Bedrock doesn't override /help with its own, built-in help command.
@@ -212,8 +211,24 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             // Create a basic alias
             CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", values, false);
 
+            // Fetch command description
+            String description = entry.getKey().description();
+
+            // Command suggestion list is illegible if a command description contains line breaks
+            int lineBreak = description.indexOf('\n');
+            if (lineBreak >= 0) {
+                description = description.substring(0, lineBreak);
+            }
+
+            // Since 1.21.130, the maximum description length is 1000 characters
+            // https://www.minecraft.net/en-us/article/minecraft-1-21-130-bedrock-changelog
+            // As issues are still experienced at that length, truncate descriptions at 950 characters
+            if (description.length() > 950) {
+                description = description.substring(0, 947) + "...";
+            }
+
             // Build the completed command and add it to the final list
-            CommandData data = new CommandData(commandName, entry.getKey().description(), flags, CommandPermission.ANY, aliases, Collections.emptyList(), entry.getKey().paramData());
+            CommandData data = new CommandData(commandName, description, flags, CommandPermission.ANY, aliases, Collections.emptyList(), entry.getKey().paramData());
             commandData.add(data);
 
             if (commandName.equals("help")) {
@@ -369,8 +384,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             if (enchantments != null) {
                 return enchantments;
             }
-            return (enchantments = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).values().stream()
-                    .map(Enchantment::identifier).toArray(String[]::new));
+            return (enchantments = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).keys().stream().map(Key::asString).toArray(String[]::new));
         }
 
         private String[] getEntityTypes() {

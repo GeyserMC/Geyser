@@ -26,11 +26,9 @@
 package org.geysermc.geyser.platform.bungeecord;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.IoEventLoop;
 import io.netty.channel.IoEventLoopGroup;
@@ -159,7 +157,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                 listenerInfo.isPingPassthrough(),
                 listenerInfo.getQueryPort(),
                 listenerInfo.isQueryEnabled(),
-                bootstrap.getGeyserConfig().getRemote().isUseProxyProtocol() // If Geyser is expecting HAProxy, so should the Bungee end
+                bootstrap.config().advanced().java().useHaproxyProtocol() // If Geyser is expecting HAProxy, so should the Bungee end
         );
 
         // The field that stores all listeners in BungeeCord
@@ -193,7 +191,7 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
                         }
                         initChannel.invoke(channelInitializer, ch);
 
-                        if (bootstrap.getGeyserConfig().isDisableCompression()) {
+                        if (bootstrap.config().advanced().java().disableCompression()) {
                             ch.pipeline().addAfter(PipelineUtils.PACKET_ENCODER, "geyser-compression-disabler",
                                     new GeyserBungeeCompressionDisabler());
                         }

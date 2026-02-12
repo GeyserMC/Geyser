@@ -26,8 +26,8 @@
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
 import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.ClientEmoteEvent;
-import org.geysermc.geyser.configuration.EmoteOffhandWorkaroundOption;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -39,17 +39,12 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
 
     @Override
     public void translate(GeyserSession session, EmotePacket packet) {
-        if (session.getGeyser().getConfig().getEmoteOffhandWorkaround() != EmoteOffhandWorkaroundOption.DISABLED) {
-            // Activate the workaround - we should trigger the offhand now
-            session.requestOffhandSwap();
-
-            if (session.getGeyser().getConfig().getEmoteOffhandWorkaround() == EmoteOffhandWorkaroundOption.NO_EMOTES) {
-                return;
-            }
-        }
-
         // For the future: could have a method that exposes which players will see the emote
         ClientEmoteEvent event = new ClientEmoteEvent(session, packet.getEmoteId());
+        if (!GeyserImpl.getInstance().config().gameplay().emotesEnabled()) {
+            event.setCancelled(true);
+        }
+
         session.getGeyser().eventBus().fire(event);
         if (event.isCancelled()) {
             return;
@@ -80,7 +75,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
         Entity emoter = session.getEntityCache().getEntityByJavaId(emoterJavaId); // Must be ran on same thread
         if (emoter instanceof PlayerEntity) {
             EmotePacket packet = new EmotePacket();
-            packet.setRuntimeEntityId(emoter.getGeyserId());
+            packet.setRuntimeEntityId(emoter.geyserId());
             packet.setXuid(emoterXuid);
             packet.setPlatformId(""); // BDS sends empty
             packet.setEmoteId(emoteId);

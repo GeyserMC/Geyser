@@ -34,7 +34,10 @@ import java.util.Set;
 
 /**
  * Represents a completely custom item that is not based on an existing vanilla Minecraft item.
+ *
+ * @deprecated use the new {@link org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition}
  */
+@Deprecated
 public interface NonVanillaCustomItemData extends CustomItemData {
     /**
      * Gets the java identifier for this item.
@@ -237,9 +240,11 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         @Override
         Builder displayHandheld(boolean displayHandheld);
 
+        @Deprecated
         @Override
         Builder textureSize(int textureSize);
 
+        @Deprecated
         @Override
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 

@@ -25,23 +25,19 @@
 
 package org.geysermc.geyser.entity.type.living.monster.raid;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-
-import java.util.UUID;
 
 public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
     private static final int SUMMON_VEX_PARTICLE_COLOR = (179 << 16) | (179 << 8) | 204;
     private static final int ATTACK_PARTICLE_COLOR = (102 << 16) | (77 << 8) | 89;
     private static final int WOLOLO_PARTICLE_COLOR = (179 << 16) | (128 << 8) | 51;
 
-    public SpellcasterIllagerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public SpellcasterIllagerEntity(EntitySpawnContext context) {
+        super(context);
         // OptionalPack usage
         setFlag(EntityFlag.BRIBED, this.definition == EntityDefinitions.ILLUSIONER);
     }

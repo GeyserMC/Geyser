@@ -62,6 +62,18 @@ public final class SessionManager {
     private final Map<InetAddress, AtomicInteger> connectedClients = new ConcurrentHashMap<>();
 
     /**
+     * Specifies the maximum amount of connections per address
+     */
+    private final static int MAX_CONNECTIONS_PER_ADDRESS = Integer.getInteger("Geyser.MaxConnectionsPerAddress", 10);
+
+    /**
+     * Whether we should accept more connection requests from this address
+     */
+    public boolean reachedMaxConnectionsPerAddress(GeyserSession session) {
+        return getAddressMultiplier(session.getSocketAddress().getAddress()) > MAX_CONNECTIONS_PER_ADDRESS;
+    }
+
+    /**
      * Called once the player has successfully authenticated to the Geyser server.
      */
     public void addPendingSession(GeyserSession session) {
@@ -85,7 +97,7 @@ public final class SessionManager {
     }
 
     public void removeSession(GeyserSession session) {
-        UUID uuid = session.getPlayerEntity().getUuid();
+        UUID uuid = session.getPlayerEntity().uuid();
         if (uuid == null || sessions.remove(uuid) == null) {
             // Connection was likely pending
             pendingSessions.remove(session);
@@ -101,6 +113,15 @@ public final class SessionManager {
     public int getAddressMultiplier(InetAddress ip) {
         AtomicInteger atomicInteger = connectedClients.get(ip);
         return atomicInteger == null ? 1 : atomicInteger.get();
+    }
+
+    public boolean isXuidAlreadyPending(String xuid) {
+        for (GeyserSession session : pendingSessions) {
+            if (session.xuid().equals(xuid)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public @Nullable GeyserSession sessionByXuid(@NonNull String xuid) {

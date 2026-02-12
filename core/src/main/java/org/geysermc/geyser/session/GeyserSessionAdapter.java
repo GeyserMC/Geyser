@@ -110,8 +110,8 @@ public class GeyserSessionAdapter extends SessionAdapter {
             }
 
             String address;
-            if (geyser.getConfig().getRemote().isForwardHost()) {
-                address = clientData.getServerAddress().split(":")[0];
+            if (geyser.config().java().forwardHostname()) {
+                address = session.joinAddress();
             } else {
                 address = intentionPacket.getHostname();
             }
@@ -144,7 +144,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
                 uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + session.getProtocol().getProfile().getName()).getBytes(StandardCharsets.UTF_8));
             }
         }
-        session.getPlayerEntity().setUuid(uuid);
+        session.getPlayerEntity().uuid(uuid);
         session.getPlayerEntity().setUsername(session.getProtocol().getProfile().getName());
 
         String locale = session.getClientData().getLanguageCode();
@@ -172,7 +172,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
                 customDisconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.authentication_type_mismatch", locale);
                 // Explain that they may be looking for Floodgate.
                 geyser.getLogger().warning(GeyserLocale.getLocaleStringLog(
-                    geyser.getPlatformType() == PlatformType.STANDALONE ?
+                    geyser.platformType() == PlatformType.STANDALONE ?
                         "geyser.network.remote.floodgate_explanation_standalone"
                         : "geyser.network.remote.floodgate_explanation_plugin",
                     Constants.FLOODGATE_DOWNLOAD_LOCATION
@@ -180,7 +180,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
             } else {
                 // Likely that Floodgate is not configured correctly.
                 customDisconnectMessage = GeyserLocale.getPlayerLocaleString("geyser.network.remote.floodgate_login_error", locale);
-                if (geyser.getPlatformType() == PlatformType.STANDALONE) {
+                if (geyser.platformType() == PlatformType.STANDALONE) {
                     geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.remote.floodgate_login_error_standalone"));
                 }
             }
@@ -203,7 +203,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
             } else {
                 GeyserImpl.getInstance().getLogger().error("An exception occurred: ", cause);
             }
-            if (geyser.getConfig().isDebugMode()) {
+            if (geyser.config().debugMode()) {
                 cause.printStackTrace();
             }
         }
@@ -233,7 +233,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
             (event.getPacketClass() != null ? "(" + event.getPacketClass().getSimpleName() + ") " : "") +
                 event.getCause().getMessage())
         );
-        if (geyser.getConfig().isDebugMode())
+        if (geyser.config().debugMode())
             event.getCause().printStackTrace();
         event.setSuppress(true);
     }

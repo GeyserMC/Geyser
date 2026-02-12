@@ -108,9 +108,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
         for (int i = 5; i < 9; i++) {
             GeyserItemStack item = inventory.getItem(i);
             contents[i - 5] = item.getItemData(session);
-            if (i == 5 &&
-                    item.asItem() == Items.PLAYER_HEAD &&
-                    item.hasNonBaseComponents()) {
+            if (i == 5 && item.is(Items.PLAYER_HEAD) && item.hasNonBaseComponents()) {
                 FakeHeadProvider.setHead(session, session.getPlayerEntity(), item.getComponent(DataComponentTypes.PROFILE));
             }
         }
@@ -153,8 +151,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
 
         if (slot == 5) {
             // Check for custom skull
-            if (javaItem.asItem() == Items.PLAYER_HEAD
-                    && javaItem.hasNonBaseComponents()) {
+            if (javaItem.is(Items.PLAYER_HEAD) && javaItem.hasNonBaseComponents()) {
                 FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
             } else {
                 FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
@@ -285,8 +282,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                     if (destSlot == 5) {
                         // only set the head if the destination is the head slot
                         GeyserItemStack javaItem = inventory.getItem(sourceSlot);
-                        if (javaItem.asItem() == Items.PLAYER_HEAD
-                            && javaItem.hasNonBaseComponents()) {
+                        if (javaItem.is(Items.PLAYER_HEAD) && javaItem.hasNonBaseComponents()) {
                             FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
                         }
                     } else if (sourceSlot == 5) {
@@ -494,7 +490,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
 
                     if (isCursor(transferAction.getDestination())) {
                         if (session.getPlayerInventory().getCursor().isEmpty()) {
-                            GeyserItemStack newItemStack = GeyserItemStack.from(javaCreativeItem);
+                            GeyserItemStack newItemStack = GeyserItemStack.from(session, javaCreativeItem);
                             session.getBundleCache().initialize(newItemStack);
                             newItemStack.setAmount(transferAction.getCount());
                             session.getPlayerInventory().setCursor(newItemStack, session);
@@ -506,7 +502,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                     } else {
                         int destSlot = bedrockSlotToJava(transferAction.getDestination());
                         if (inventory.getItem(destSlot).isEmpty()) {
-                            GeyserItemStack newItemStack = GeyserItemStack.from(javaCreativeItem);
+                            GeyserItemStack newItemStack = GeyserItemStack.from(session, javaCreativeItem);
                             session.getBundleCache().initialize(newItemStack);
                             newItemStack.setAmount(transferAction.getCount());
                             inventory.setItem(destSlot, newItemStack, session);

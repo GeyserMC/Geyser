@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerActionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.level.EffectType;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.session.GeyserSession;
@@ -61,6 +62,7 @@ public class DimensionUtils {
         session.getLodestoneCache().clear();
         session.getPistonCache().clear();
         session.getSkullCache().clear();
+        session.getBlockBreakHandler().reset();
 
         changeDimension(session, bedrockDimension);
 
@@ -70,8 +72,8 @@ public class DimensionUtils {
         for (Effect effect : entityEffects) {
             MobEffectPacket mobEffectPacket = new MobEffectPacket();
             mobEffectPacket.setEvent(MobEffectPacket.Event.REMOVE);
-            mobEffectPacket.setRuntimeEntityId(player.getGeyserId());
-            mobEffectPacket.setEffectId(EntityUtils.toBedrockEffectId(effect));
+            mobEffectPacket.setRuntimeEntityId(player.geyserId());
+            mobEffectPacket.setEffectId(EffectType.fromJavaEffect(effect).getBedrockId());
             session.sendUpstreamPacket(mobEffectPacket);
         }
         // Effects are re-sent from server
@@ -130,6 +132,8 @@ public class DimensionUtils {
         setBedrockDimension(session, bedrockDimension);
 
         session.getPlayerEntity().setPosition(pos);
+        session.getPlayerEntity().setMotion(Vector3f.ZERO);
+        session.getPlayerEntity().setLastTickEndVelocity(Vector3f.ZERO);
         session.setSpawned(false);
         session.setLastChunkPosition(null);
     }
@@ -145,7 +149,7 @@ public class DimensionUtils {
         // initial chunks are sent, prior to the client acknowledgement
         // Note: send this before chunks are sent. Fixed https://github.com/GeyserMC/Geyser/issues/3421
         PlayerActionPacket ackPacket = new PlayerActionPacket();
-        ackPacket.setRuntimeEntityId(player.getGeyserId());
+        ackPacket.setRuntimeEntityId(player.geyserId());
         ackPacket.setAction(PlayerActionType.DIMENSION_CHANGE_SUCCESS);
         ackPacket.setBlockPosition(Vector3i.ZERO);
         ackPacket.setResultPosition(Vector3i.ZERO);
@@ -170,7 +174,7 @@ public class DimensionUtils {
      *
      * @param javaDimension Dimension ID to convert
      * @return Converted Bedrock edition dimension ID
-     */
+     */ // TODO take a key
     public static int javaToBedrock(String javaDimension) {
         return switch (javaDimension) {
             case BedrockDimension.NETHER_IDENTIFIER -> BedrockDimension.BEDROCK_NETHER_ID;

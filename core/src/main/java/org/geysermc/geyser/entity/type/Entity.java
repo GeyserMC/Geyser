@@ -28,25 +28,34 @@ package org.geysermc.geyser.entity.type;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.kyori.adventure.text.Component;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityProperty;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
+import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
+import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
+import org.geysermc.geyser.entity.properties.type.PropertyType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -66,11 +75,12 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.Collections;
-import java.util.EnumSet;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @Getter
 @Setter
@@ -80,7 +90,10 @@ public class Entity implements GeyserEntity {
     protected final GeyserSession session;
 
     protected int entityId;
+
+    @Accessors(fluent = true)
     protected final long geyserId;
+    @Accessors(fluent = true)
     protected UUID uuid;
     /**
      * Do not call this setter directly!
@@ -88,6 +101,7 @@ public class Entity implements GeyserEntity {
      */
     @Setter(AccessLevel.NONE)
     protected String nametag = "";
+    protected boolean customNameVisible;
 
     protected Vector3f position;
     protected Vector3f motion;
@@ -118,7 +132,8 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.NONE)
     private float boundingBoxWidth;
     @Setter(AccessLevel.NONE)
-    private String displayName;
+    @Getter(AccessLevel.NONE)
+    protected @Nullable String customName = null;
     @Setter(AccessLevel.NONE)
     protected boolean silent = false;
     /* Metadata end */
@@ -135,7 +150,7 @@ public class Entity implements GeyserEntity {
      * think they are set to false.
      */
     @Getter(AccessLevel.NONE)
-    protected final EnumSet<EntityFlag> flags = EnumSet.noneOf(EntityFlag.class);
+    protected final EnumMap<EntityFlag, Boolean> flags = new EnumMap<>(EntityFlag.class);
     /**
      * Indicates if flags have been updated and need to be sent to the client.
      */
@@ -145,24 +160,21 @@ public class Entity implements GeyserEntity {
 
     protected final GeyserEntityPropertyManager propertyManager;
 
-    public Entity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        this.session = session;
-        this.definition = definition;
-        this.displayName = standardDisplayName();
+    public Entity(EntitySpawnContext context) {
+        this.session = context.session();
+        this.definition = context.entityTypeDefinition();
 
-        this.entityId = entityId;
-        this.geyserId = geyserId;
-        this.uuid = uuid;
-        this.motion = motion;
-        this.yaw = yaw;
-        this.pitch = pitch;
-        this.headYaw = headYaw;
-
+        this.entityId = context.javaId();
+        this.geyserId = context.geyserId();
+        this.uuid = context.uuid();
+        this.motion = context.motion();
+        this.yaw = context.yaw();
+        this.pitch = context.pitch();
+        this.headYaw = context.headYaw();
         this.valid = false;
+        this.propertyManager = definition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(definition.registeredProperties());
 
-        this.propertyManager = definition.registeredProperties() == null ? null : new GeyserEntityPropertyManager(definition.registeredProperties());
-
-        setPosition(position);
+        setPosition(context.position());
         setAirSupply(getMaxAir());
 
         initializeMetadata();
@@ -201,6 +213,10 @@ public class Entity implements GeyserEntity {
         addEntityPacket.setBodyRotation(yaw); // TODO: This should be bodyYaw
         addEntityPacket.getMetadata().putFlags(flags);
         dirtyMetadata.apply(addEntityPacket.getMetadata());
+        if (propertyManager != null) {
+            propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
+            propertyManager.applyFloatProperties(addEntityPacket.getProperties().getFloatProperties());
+        }
         addAdditionalSpawnData(addEntityPacket);
 
         valid = true;
@@ -209,7 +225,7 @@ public class Entity implements GeyserEntity {
 
         flagsDirty = false;
 
-        if (session.getGeyser().getConfig().isDebugMode() && PRINT_ENTITY_SPAWN_DEBUG) {
+        if (session.getGeyser().config().debugMode() && PRINT_ENTITY_SPAWN_DEBUG) {
             EntityType type = definition.entityType();
             String name = type != null ? type.name() : getClass().getSimpleName();
             session.getGeyser().getLogger().debug("Spawned entity " + name + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
@@ -242,47 +258,69 @@ public class Entity implements GeyserEntity {
         valid = false;
     }
 
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(relX, relY, relZ, yaw, pitch, getHeadYaw(), isOnGround);
+    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
     }
 
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        if (this instanceof ClientVehicle clientVehicle) {
+            if (clientVehicle.isClientControlled()) {
+                return;
+            }
+            clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
+        }
 
-        MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
-        moveEntityPacket.setRuntimeEntityId(geyserId);
-        if (relX != 0.0) {
-            moveEntityPacket.setX(position.getX());
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-        }
-        if (relY != 0.0) {
-            moveEntityPacket.setY(position.getY());
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-        }
-        if (relZ != 0.0) {
-            moveEntityPacket.setZ(position.getZ());
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-        }
+        position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+        setOnGround(isOnGround);
+
+        boolean dirtyPitch = false, dirtyYaw = false, dirtyHeadYaw = false;
         if (pitch != this.pitch) {
             this.pitch = pitch;
-            moveEntityPacket.setPitch(pitch);
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+            dirtyPitch = true;
         }
+
         if (yaw != this.yaw) {
             this.yaw = yaw;
-            moveEntityPacket.setYaw(yaw);
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+            dirtyYaw = true;
         }
+
         if (headYaw != this.headYaw) {
             this.headYaw = headYaw;
-            moveEntityPacket.setHeadYaw(headYaw);
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+            dirtyHeadYaw = true;
         }
-        setOnGround(isOnGround);
-        if (isOnGround) {
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+
+        if (isValid()) {
+            MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
+            moveEntityPacket.setRuntimeEntityId(geyserId);
+            if (relX != 0.0) {
+                moveEntityPacket.setX(position.getX());
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
+            }
+            if (relY != 0.0) {
+                moveEntityPacket.setY(position.getY());
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
+            }
+            if (relZ != 0.0) {
+                moveEntityPacket.setZ(position.getZ());
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
+            }
+            if (dirtyPitch) {
+                moveEntityPacket.setPitch(pitch);
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+            }
+            if (dirtyYaw) {
+                moveEntityPacket.setYaw(yaw);
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+            }
+            if (dirtyHeadYaw) {
+                moveEntityPacket.setHeadYaw(headYaw);
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
+            }
+            if (isOnGround) {
+                moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
+            }
+            session.sendUpstreamPacket(moveEntityPacket);
         }
-        session.sendUpstreamPacket(moveEntityPacket);
     }
 
     public void moveAbsolute(Vector3f position, float yaw, float pitch, boolean isOnGround, boolean teleported) {
@@ -290,6 +328,10 @@ public class Entity implements GeyserEntity {
     }
 
     public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
+    }
+
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         setPosition(position);
         // Setters are intentional so it can be overridden in places like AbstractArrowEntity
         setYaw(yaw);
@@ -297,14 +339,16 @@ public class Entity implements GeyserEntity {
         setHeadYaw(headYaw);
         setOnGround(isOnGround);
 
-        MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
-        moveEntityPacket.setRuntimeEntityId(geyserId);
-        moveEntityPacket.setPosition(position);
-        moveEntityPacket.setRotation(getBedrockRotation());
-        moveEntityPacket.setOnGround(isOnGround);
-        moveEntityPacket.setTeleported(teleported);
+        if (isValid()) {
+            MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
+            moveEntityPacket.setRuntimeEntityId(geyserId);
+            moveEntityPacket.setPosition(position);
+            moveEntityPacket.setRotation(getBedrockRotation());
+            moveEntityPacket.setOnGround(isOnGround);
+            moveEntityPacket.setTeleported(teleported);
 
-        session.sendUpstreamPacket(moveEntityPacket);
+            session.sendUpstreamPacket(moveEntityPacket);
+        }
     }
 
     /**
@@ -324,7 +368,7 @@ public class Entity implements GeyserEntity {
      * @param headYaw The new head rotation of the entity.
      */
     public void updateHeadLookRotation(float headYaw) {
-        moveRelative(0, 0, 0, getYaw(), getPitch(), headYaw, isOnGround());
+        moveRelativeRaw(0, 0, 0, getYaw(), getPitch(), headYaw, isOnGround());
     }
 
     /**
@@ -351,14 +395,19 @@ public class Entity implements GeyserEntity {
     }
 
     public final boolean getFlag(EntityFlag flag) {
-        return this.flags.contains(flag);
+        Boolean value = this.flags.get(flag);
+        return value != null && value;
     }
 
     /**
      * Updates a flag value and determines if the flags would need synced with the Bedrock client.
      */
     public final void setFlag(EntityFlag flag, boolean value) {
-        flagsDirty |= value ? this.flags.add(flag) : this.flags.remove(flag);
+        Boolean previous = this.flags.get(flag);
+        if (previous == null || value != previous) {
+            flagsDirty = true;
+        }
+        this.flags.put(flag, value);
     }
 
     /**
@@ -458,31 +507,27 @@ public class Entity implements GeyserEntity {
         return uuid != null ? uuid.toString() : null;
     }
 
-    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // displayName is shown when always display name is enabled. Either with or without team.
-        // That's why there are both a displayName and a nametag variable.
-        // Displayname is ignored for players, and is always their username.
+    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        // customName is shown when always custom name is enabled. Either with or without team.
+        // That's why there are both a customName and a nametag variable.
+        // CustomName is ignored for players, and is always their username.
         Optional<Component> name = entityMetadata.getValue();
         if (name.isPresent()) {
-            String displayName = MessageTranslator.convertMessage(name.get(), session.locale());
-            this.displayName = displayName;
-            setNametag(displayName, true);
+            this.customName = MessageTranslator.convertMessage(name.get(), session.locale());
+            setNametag(customName, true);
             return;
         }
-
-        // if no displayName is set, use entity name (ENDER_DRAGON -> Ender Dragon)
-        // maybe we can/should use a translatable here instead?
-        this.displayName = standardDisplayName();
-        setNametag(null, true);
+        this.customName = null;
+        setNametag(getDisplayName(customNameVisible), true);
     }
 
     protected String standardDisplayName() {
         return EntityUtils.translatedEntityName(definition.entityType(), session);
     }
 
-    protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
+    protected void setNametag(@Nullable String nametag, boolean applyTeamStyling) {
         // ensure that the team format is used when nametag changes
-        if (nametag != null && fromDisplayName) {
+        if (nametag != null && applyTeamStyling) {
             var team = session.getWorldCache().getScoreboard().getTeamFor(teamIdentifier());
             if (team != null) {
                 updateNametag(team);
@@ -500,9 +545,14 @@ public class Entity implements GeyserEntity {
             return;
         }
 
-        dirtyMetadata.put(EntityDataTypes.NAME, nametag);
+        setNameEntityData(nametag);
         // if nametag (player with team) is hidden for player, so should the score (belowname)
         scoreVisibility(!nametag.isEmpty());
+    }
+
+    // See TextDisplayEntity for context
+    protected void setNameEntityData(String nametag) {
+        dirtyMetadata.put(EntityDataTypes.NAME, nametag);
     }
 
     public void updateNametag(@Nullable Team team) {
@@ -515,7 +565,7 @@ public class Entity implements GeyserEntity {
             String newNametag;
             // (team) visibility is LivingEntity+, team displayName is Entity+
             if (visible) {
-                newNametag = team.displayName(getDisplayName());
+                newNametag = team.displayName(getDisplayName(true));
             } else {
                 // The name is not visible to the session player; clear name
                 newNametag = "";
@@ -523,14 +573,37 @@ public class Entity implements GeyserEntity {
             setNametag(newNametag, false);
             return;
         }
-        // The name has reset, if it was previously something else
-        setNametag(null, false);
+        // The name might need to be reset: no more team!
+        setNametag(getDisplayName(customNameVisible), false);
     }
 
     protected void scoreVisibility(boolean show) {}
 
-    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
-        dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
+    /*
+     * Returns the appropriate name to use for nametags:
+     * Either the custom name, or default type name fallback
+     * Mirrors Mojmap Entity#getName
+     */
+    public @Nullable String getDisplayName(boolean includeStandardName) {
+        if (this.customName != null) {
+            return this.customName;
+        }
+        if (includeStandardName) {
+            return standardDisplayName();
+        }
+        return null;
+    }
+
+    public void setCustomNameVisible(BooleanEntityMetadata entityMetadata) {
+        this.customNameVisible = entityMetadata.getPrimitiveValue();
+        // We must show a nametag (either custom name, or entity type fallback).
+        // But we also have to apply team styling if present.
+        setNametag(getDisplayName(customNameVisible), true);
+        setNametagAlwaysShow(customNameVisible);
+    }
+
+    public void setNametagAlwaysShow(boolean value) {
+        dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) (value ? 1 : 0));
     }
 
     public final void setSilent(BooleanEntityMetadata entityMetadata) {
@@ -603,6 +676,14 @@ public class Entity implements GeyserEntity {
     protected boolean isShaking() {
         return false;
     }
+    /**
+     * If true, the entity can be dismounted by pressing jump.
+     *
+     * @return whether the entity can be dismounted when pressing jump.
+     */
+    public boolean doesJumpDismount() {
+        return true;
+    }
 
     /**
      * x = Pitch, y = Yaw, z = HeadYaw
@@ -668,11 +749,11 @@ public class Entity implements GeyserEntity {
      */
     protected InteractiveTag testInteraction(Hand hand) {
         if (isAlive() && this instanceof Leashable leashable) {
-            if (leashable.leashHolderBedrockId() == session.getPlayerEntity().getGeyserId()) {
+            if (leashable.leashHolderBedrockId() == session.getPlayerEntity().geyserId()) {
                 // Note this might be client side. Has yet to be an issue though, as of Java 1.21.
                 return InteractiveTag.REMOVE_LEASH;
             }
-            if (session.getPlayerInventory().getItemInHand(hand).asItem() == Items.LEAD && leashable.canBeLeashed()) {
+            if (session.getPlayerInventory().getItemInHand(hand).is(Items.LEAD) && leashable.canBeLeashed()) {
                 // We shall leash
                 return InteractiveTag.LEASH;
             }
@@ -696,12 +777,12 @@ public class Entity implements GeyserEntity {
                 return InteractionResult.SUCCESS;
             }
         } else if (isAlive() && this instanceof Leashable leashable) {
-            if (leashable.leashHolderBedrockId() == session.getPlayerEntity().getGeyserId()) {
+            if (leashable.leashHolderBedrockId() == session.getPlayerEntity().geyserId()) {
                 // Note this might also update client side (a theoretical Geyser/client desync and Java parity issue).
                 // Has yet to be an issue though, as of Java 1.21.
                 return InteractionResult.SUCCESS;
             }
-            if (session.getPlayerInventory().getItemInHand(hand).asItem() == Items.LEAD
+            if (session.getPlayerInventory().getItemInHand(hand).is(Items.LEAD)
                 && !(session.getEntityCache().getEntityByGeyserId(leashable.leashHolderBedrockId()) instanceof PlayerEntity)) {
                 // We shall leash
                 return InteractionResult.SUCCESS;
@@ -714,7 +795,7 @@ public class Entity implements GeyserEntity {
     public boolean hasLeashesToDrop() {
         BoundingBox searchBB = new BoundingBox(position.getX(), position.getY(), position.getZ(), 32, 32, 32);
         List<Leashable> leashedInRange = session.getEntityCache().getEntities().values().stream()
-            .filter(entity -> entity instanceof Leashable leashablex && leashablex.leashHolderBedrockId() == this.getGeyserId())
+            .filter(entity -> entity instanceof Leashable leashablex && leashablex.leashHolderBedrockId() == this.geyserId())
             .filter(entity -> {
                 BoundingBox leashedBB = new BoundingBox(entity.position.toDouble(), entity.boundingBoxWidth, entity.boundingBoxHeight, entity.boundingBoxWidth);
                 return searchBB.checkIntersection(leashedBB);
@@ -751,5 +832,48 @@ public class Entity implements GeyserEntity {
         packet.setType(type);
         packet.setData(data);
         session.sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer, boolean immediate) {
+        if (this.propertyManager == null) {
+            throw new IllegalArgumentException("Given entity has no registered properties!");
+        }
+
+        Objects.requireNonNull(consumer);
+        GeyserEntityProperties propertyDefinitions = definition.registeredProperties();
+        consumer.accept(new BatchPropertyUpdater() {
+            @Override
+            public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
+                Objects.requireNonNull(property, "property must not be null!");
+                if (!(property instanceof PropertyType)) {
+                    throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
+                }
+                PropertyType<T, ? extends EntityProperty> propertyType = (PropertyType<T, ?>) property;
+                int index = propertyDefinitions.getPropertyIndex(property.identifier().toString());
+                if (index < 0) {
+                    throw new IllegalArgumentException("No property with the name " + property.identifier() + " has been registered.");
+                }
+
+                var expectedProperty = propertyDefinitions.getProperties().get(index);
+                if (!expectedProperty.equals(propertyType)) {
+                    throw new IllegalArgumentException("The supplied property was not registered with this entity type!");
+                }
+
+                propertyType.apply(propertyManager, value);
+            }
+        });
+
+        if (propertyManager.hasProperties()) {
+            SetEntityDataPacket packet = new SetEntityDataPacket();
+            packet.setRuntimeEntityId(geyserId());
+            propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
+            propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
+            if (immediate) {
+                session.sendUpstreamPacketImmediately(packet);
+            } else {
+                session.sendUpstreamPacket(packet);
+            }
+        }
     }
 }

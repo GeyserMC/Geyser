@@ -51,6 +51,8 @@ import org.geysermc.geyser.text.GeyserLocale;
 @UtilityClass
 public class ChunkUtils {
 
+    private static final boolean SHOW_CHUNK_HEIGHT_WARNING_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowChunkHeightWarningLogs", "true"));
+
     public static final byte[] EMPTY_BIOME_DATA;
 
     public static final BlockStorage[] EMPTY_BLOCK_STORAGE;
@@ -220,7 +222,7 @@ public class ChunkUtils {
         // Yell in the console if the world height is too height in the current scenario
         // The constraints change depending on if the player is in the overworld or not, and if experimental height is enabled
         // (Ignore this for the Nether. We can't change that at the moment without the workaround. :/ )
-        if (minY < bedrockDimension.minY() || (bedrockDimension.doUpperHeightWarn() && maxY > bedrockDimension.maxY())) {
+        if (SHOW_CHUNK_HEIGHT_WARNING_LOGS && (minY < bedrockDimension.minY() || (bedrockDimension.doUpperHeightWarn() && maxY > bedrockDimension.maxY()))) {
             session.getGeyser().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds",
                     String.valueOf(bedrockDimension.minY()),
                     String.valueOf(bedrockDimension.maxY()),
@@ -229,7 +231,5 @@ public class ChunkUtils {
 
         session.getChunkCache().setMinY(minY);
         session.getChunkCache().setHeightY(height);
-
-        session.getWorldBorder().setWorldCoordinateScale(dimension.worldCoordinateScale());
     }
 }

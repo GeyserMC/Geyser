@@ -30,14 +30,10 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
-import io.netty.channel.epoll.EpollDatagramChannel;
-import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.kqueue.KQueue;
-import io.netty.channel.kqueue.KQueueDatagramChannel;
-import io.netty.channel.kqueue.KQueueEventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.channel.uring.IoUring;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
 import net.jodah.expiringmap.ExpirationPolicy;
@@ -50,7 +46,7 @@ import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.connection.ConnectionRequestEvent;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
-import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.event.type.GeyserBedrockPingEventImpl;
 import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.network.GameProtocol;
@@ -64,13 +60,16 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.WebUtils;
+import org.geysermc.mcprotocollib.network.helper.TransportHelper;
 
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
 import static org.cloudburstmc.netty.channel.raknet.RakConstants.DEFAULT_GLOBAL_PACKET_LIMIT;
@@ -82,7 +81,7 @@ public final class GeyserServer {
     /*
     The following constants are all used to ensure the ping does not reach a length where it is unparsable by the Bedrock client
      */
-    private static final String PING_VERSION = pingVersion();
+    private static final String PING_VERSION = GameProtocol.DEFAULT_BEDROCK_VERSION;
     private static final int PING_VERSION_BYTES_LENGTH = PING_VERSION.getBytes(StandardCharsets.UTF_8).length;
     private static final int BRAND_BYTES_LENGTH = GeyserImpl.NAME.getBytes(StandardCharsets.UTF_8).length;
     /**
@@ -90,7 +89,8 @@ public final class GeyserServer {
      */
     private static final int MAGIC_RAKNET_LENGTH = 338;
 
-    private static final Transport TRANSPORT = compatibleTransport();
+    // Let MCPL determine the transport type -> less code duplication and risk of ending up with 2 different types
+    private static final TransportHelper.TransportType TRANSPORT = TransportHelper.TRANSPORT_TYPE;
 
     /**
      * See {@link EventLoopGroup#shutdownGracefully(long, long, TimeUnit)}
@@ -122,19 +122,19 @@ public final class GeyserServer {
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
-        this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 2) : 1;
+        this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 1) : 1;
         GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
-        this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount);
-        this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount);
+        this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount, new DefaultThreadFactory("GeyserServer", true));
+        this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount, new DefaultThreadFactory("GeyserServerChild", true));
 
         this.bootstrap = this.createBootstrap();
         // setup SO_REUSEPORT if exists - or, if the option does not actually exist, reset listen count
         // otherwise, we try to bind multiple times which wont work if so_reuseport is not valid
-        if (!Bootstraps.setupBootstrap(this.bootstrap)) {
+        if (listenCount > 1 && !Bootstraps.setupBootstrap(this.bootstrap, TRANSPORT)) {
             this.listenCount = 1;
         }
 
-        if (this.geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
+        if (this.geyser.config().advanced().bedrock().useHaproxyProtocol()) {
             this.proxiedAddresses = ExpiringMap.builder()
                     .expiration(30 + 1, TimeUnit.MINUTES)
                     .expirationPolicy(ExpirationPolicy.ACCESSED).build();
@@ -142,7 +142,7 @@ public final class GeyserServer {
             this.proxiedAddresses = null;
         }
 
-        this.broadcastPort = geyser.getConfig().getBedrock().broadcastPort();
+        this.broadcastPort = geyser.config().advanced().bedrock().broadcastPort();
     }
 
     public CompletableFuture<Void> bind(InetSocketAddress address) {
@@ -164,12 +164,12 @@ public final class GeyserServer {
                 .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
 
         // Add proxy handler
-        boolean isProxyProtocol = this.geyser.getConfig().getBedrock().isEnableProxyProtocol();
+        boolean isProxyProtocol = this.geyser.config().advanced().bedrock().useHaproxyProtocol();
         if (isProxyProtocol) {
             channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
         }
 
-        boolean isWhitelistedProxyProtocol = isProxyProtocol && !this.geyser.getConfig().getBedrock().getProxyProtocolWhitelistedIPs().isEmpty();
+        boolean isWhitelistedProxyProtocol = isProxyProtocol && !this.geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps().isEmpty();
         if (Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false")) || isWhitelistedProxyProtocol) {
             // We would already block any non-whitelisted IP addresses in onConnectionRequest so we can remove the rate limiter
             channel.pipeline().remove(RakServerRateLimiter.NAME);
@@ -201,23 +201,25 @@ public final class GeyserServer {
         }
     }
 
+    @SuppressWarnings("Convert2MethodRef")
     private ServerBootstrap createBootstrap() {
-        if (this.geyser.getConfig().isDebugMode()) {
-            this.geyser.getLogger().debug("EventLoop type: " + TRANSPORT.datagramChannel());
-            if (TRANSPORT.datagramChannel() == NioDatagramChannel.class) {
+        if (this.geyser.config().debugMode()) {
+            this.geyser.getLogger().debug("Transport type: " + TRANSPORT.method().name());
+            if (TRANSPORT.datagramChannelClass() == NioDatagramChannel.class) {
                 if (System.getProperties().contains("disableNativeEventLoop")) {
                     this.geyser.getLogger().debug("EventLoop type is NIO because native event loops are disabled.");
                 } else {
                     // Use lambda here, not method reference, or else NoClassDefFoundError for Epoll/KQueue will not be caught
                     this.geyser.getLogger().debug("Reason for no Epoll: " + throwableOrCaught(() -> Epoll.unavailabilityCause()));
                     this.geyser.getLogger().debug("Reason for no KQueue: " + throwableOrCaught(() -> KQueue.unavailabilityCause()));
+                    this.geyser.getLogger().debug("Reason for no IoUring: " + throwableOrCaught(() -> IoUring.unavailabilityCause()));
                 }
             }
         }
 
         GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser);
         playerGroup = serverInitializer.getEventLoopGroup();
-        this.geyser.getLogger().debug("Setting MTU to " + this.geyser.getConfig().getMtu());
+        this.geyser.getLogger().debug("Setting MTU to " + this.geyser.config().advanced().bedrock().mtu());
 
         int rakPacketLimit = positivePropOrDefault("Geyser.RakPacketLimit", DEFAULT_PACKET_LIMIT);
         this.geyser.getLogger().debug("Setting RakNet packet limit to " + rakPacketLimit);
@@ -229,10 +231,10 @@ public final class GeyserServer {
         this.geyser.getLogger().debug("Setting RakNet send cookie to " + rakSendCookie);
 
         return new ServerBootstrap()
-                .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannel()))
+                .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannelClass()))
                 .group(group, childGroup)
                 .option(RakChannelOption.RAK_HANDLE_PING, true)
-                .option(RakChannelOption.RAK_MAX_MTU, this.geyser.getConfig().getMtu())
+                .option(RakChannelOption.RAK_MAX_MTU, this.geyser.config().advanced().bedrock().mtu())
                 .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
                 .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
                 .option(RakChannelOption.RAK_SEND_COOKIE, rakSendCookie)
@@ -240,10 +242,10 @@ public final class GeyserServer {
     }
 
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
-        List<String> allowedProxyIPs = geyser.getConfig().getBedrock().getProxyProtocolWhitelistedIPs();
-        if (geyser.getConfig().getBedrock().isEnableProxyProtocol() && !allowedProxyIPs.isEmpty()) {
+        List<String> allowedProxyIPs = geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps();
+        if (geyser.config().advanced().bedrock().useHaproxyProtocol() && !allowedProxyIPs.isEmpty()) {
             boolean isWhitelistedIP = false;
-            for (CIDRMatcher matcher : geyser.getConfig().getBedrock().getWhitelistedIPsMatchers()) {
+            for (CIDRMatcher matcher : getWhitelistedIPsMatchers()) {
                 if (matcher.matches(inetSocketAddress.getAddress())) {
                     isWhitelistedIP = true;
                     break;
@@ -257,8 +259,8 @@ public final class GeyserServer {
         }
 
         String ip;
-        if (geyser.getConfig().isLogPlayerIpAddresses()) {
-            if (geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
+        if (geyser.config().logPlayerIpAddresses()) {
+            if (geyser.config().advanced().bedrock().useHaproxyProtocol()) {
                 ip = this.proxiedAddresses.getOrDefault(inetSocketAddress, inetSocketAddress).toString();
             } else {
                 ip = inetSocketAddress.toString();
@@ -284,10 +286,10 @@ public final class GeyserServer {
     }
 
     public BedrockPong onQuery(Channel channel, InetSocketAddress inetSocketAddress) {
-        if (geyser.getConfig().isDebugMode() && PRINT_DEBUG_PINGS) {
+        if (geyser.config().debugMode() && PRINT_DEBUG_PINGS) {
             String ip;
-            if (geyser.getConfig().isLogPlayerIpAddresses()) {
-                if (geyser.getConfig().getBedrock().isEnableProxyProtocol()) {
+            if (geyser.config().logPlayerIpAddresses()) {
+                if (geyser.config().advanced().bedrock().useHaproxyProtocol()) {
                     ip = this.proxiedAddresses.getOrDefault(inetSocketAddress, inetSocketAddress).toString();
                 } else {
                     ip = inetSocketAddress.toString();
@@ -298,10 +300,10 @@ public final class GeyserServer {
             geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", ip));
         }
 
-        GeyserConfiguration config = geyser.getConfig();
+        GeyserConfig config = geyser.config();
 
         GeyserPingInfo pingInfo = null;
-        if (config.isPassthroughMotd() || config.isPassthroughPlayerCounts()) {
+        if (config.motd().passthroughMotd() || config.motd().passthroughPlayerCounts()) {
             IGeyserPingPassthrough pingPassthrough = geyser.getBootstrap().getGeyserPingPassthrough();
             if (pingPassthrough != null) {
                 pingInfo = pingPassthrough.getPingInformation(inetSocketAddress);
@@ -312,31 +314,31 @@ public final class GeyserServer {
                 .edition("MCPE")
                 .gameType("Survival") // Can only be Survival or Creative as of 1.16.210.59
                 .nintendoLimited(false)
-                .protocolVersion(GameProtocol.DEFAULT_BEDROCK_CODEC.getProtocolVersion())
+                .protocolVersion(GameProtocol.DEFAULT_BEDROCK_PROTOCOL)
                 .version(PING_VERSION)
                 .ipv4Port(this.broadcastPort)
                 .ipv6Port(this.broadcastPort)
                 .serverId(channel.config().getOption(RakChannelOption.RAK_GUID));
 
-        if (config.isPassthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
+        if (config.motd().passthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
             String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
-            String mainMotd = (motd.length > 0) ? motd[0] : config.getBedrock().primaryMotd(); // First line of the motd.
-            String subMotd = (motd.length > 1) ? motd[1] : config.getBedrock().secondaryMotd(); // Second line of the motd if present, otherwise default.
+            String mainMotd = (motd.length > 0) ? motd[0] : config.motd().primaryMotd(); // First line of the motd.
+            String subMotd = (motd.length > 1) ? motd[1] : config.motd().secondaryMotd(); // Second line of the motd if present, otherwise default.
 
             pong.motd(mainMotd.trim());
             pong.subMotd(subMotd.trim()); // Trimmed to shift it to the left, prevents the universe from collapsing on us just because we went 2 characters over the text box's limit.
         } else {
-            pong.motd(config.getBedrock().primaryMotd());
-            pong.subMotd(config.getBedrock().secondaryMotd());
+            pong.motd(config.motd().primaryMotd());
+            pong.subMotd(config.motd().secondaryMotd());
         }
 
         // Placed here to prevent overriding values set in the ping event.
-        if (config.isPassthroughPlayerCounts() && pingInfo != null) {
+        if (config.motd().passthroughPlayerCounts() && pingInfo != null) {
             pong.playerCount(pingInfo.getPlayers().getOnline());
             pong.maximumPlayerCount(pingInfo.getPlayers().getMax());
         } else {
             pong.playerCount(geyser.getSessionManager().getSessions().size());
-            pong.maximumPlayerCount(config.getMaxPlayers());
+            pong.maximumPlayerCount(config.motd().maxPlayers());
         }
 
         this.geyser.eventBus().fire(new GeyserBedrockPingEventImpl(pong, inetSocketAddress));
@@ -387,15 +389,33 @@ public final class GeyserServer {
         return pong;
     }
 
-    private static String pingVersion() {
-        // BedrockPong version is required to not be empty as of 1.16.210.59.
-        // Can only contain . and numbers, so use the latest version instead of sending all
-        var version = GameProtocol.DEFAULT_BEDROCK_CODEC.getMinecraftVersion();
-        var versionSplit = version.split("/");
-        if (versionSplit.length > 1) {
-            version = versionSplit[versionSplit.length - 1];
+    private List<CIDRMatcher> whitelistedIPsMatchers = null;
+
+    /**
+     * @return Unmodifiable list of {@link CIDRMatcher}s from {@link GeyserConfig.AdvancedBedrockConfig#haproxyProtocolWhitelistedIps()}
+     */
+    public List<CIDRMatcher> getWhitelistedIPsMatchers() {
+        // Effective Java, Third Edition; Item 83: Use lazy initialization judiciously
+        List<CIDRMatcher> matchers = this.whitelistedIPsMatchers;
+        if (matchers == null) {
+            synchronized (this) {
+                // Check if proxyProtocolWhitelistedIPs contains URLs we need to fetch and parse by line
+                List<String> whitelistedCIDRs = new ArrayList<>();
+                for (String ip: geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()) {
+                    if (!ip.startsWith("http")) {
+                        whitelistedCIDRs.add(ip);
+                        continue;
+                    }
+
+                    WebUtils.getLineStream(ip).forEach(whitelistedCIDRs::add);
+                }
+
+                this.whitelistedIPsMatchers = matchers = whitelistedCIDRs.stream()
+                    .map(CIDRMatcher::new)
+                    .toList();
+            }
         }
-        return version;
+        return Collections.unmodifiableList(matchers);
     }
 
     /**
@@ -427,40 +447,6 @@ public final class GeyserServer {
                 "Invalid integer value for " + property + ": " + value + ". Using default value: " + defaultValue
             );
             return defaultValue;
-        }
-    }
-
-    private static Transport compatibleTransport() {
-        // FIXME supporting io_uring post 4.2 requires more changes
-//        if (isClassAvailable("io.netty.incubator.channel.uring.IOUring")
-//                && IOUring.isAvailable()
-//                && Boolean.parseBoolean(System.getProperty("Geyser.io_uring"))) {
-//            return new Transport(IOUringDatagramChannel.class, IOUringEventLoopGroup::new);
-//        }
-
-        if (isClassAvailable("io.netty.channel.epoll.Epoll") && Epoll.isAvailable()) {
-            return new Transport(EpollDatagramChannel.class, EpollEventLoopGroup::new);
-        }
-
-        if (isClassAvailable("io.netty.channel.kqueue.KQueue") && KQueue.isAvailable()) {
-            return new Transport(KQueueDatagramChannel.class, KQueueEventLoopGroup::new);
-        }
-
-        return new Transport(NioDatagramChannel.class, NioEventLoopGroup::new);
-    }
-
-    private record Transport(Class<? extends DatagramChannel> datagramChannel, IntFunction<EventLoopGroup> eventLoopGroupFactory) {
-    }
-
-    /**
-     * Used so implementations can opt to remove these dependencies if so desired
-     */
-    private static boolean isClassAvailable(String className) {
-        try {
-            Class.forName(className);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
         }
     }
 }

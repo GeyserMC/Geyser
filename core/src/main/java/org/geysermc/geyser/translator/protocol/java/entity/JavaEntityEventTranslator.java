@@ -70,7 +70,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             return;
 
         EntityEventPacket entityEventPacket = new EntityEventPacket();
-        entityEventPacket.setRuntimeEntityId(entity.getGeyserId());
+        entityEventPacket.setRuntimeEntityId(entity.geyserId());
         switch (packet.getEvent()) {
             case PLAYER_ENABLE_REDUCED_DEBUG:
                 session.setReducedDebugInfo(true);
@@ -132,12 +132,12 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 // Player is pulled from a fishing rod
                 // The physics of this are clientside on Java
                 FishingHookEntity fishingHook = (FishingHookEntity) entity;
-                if (fishingHook.getBedrockTargetId() == session.getPlayerEntity().getGeyserId()) {
+                if (fishingHook.getBedrockTargetId() == session.getPlayerEntity().geyserId()) {
                     Entity hookOwner = session.getEntityCache().getEntityByGeyserId(fishingHook.getBedrockOwnerId());
                     if (hookOwner != null) {
                         // https://minecraft.wiki/w/Fishing_Rod#Hooking_mobs_and_other_entities
                         SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
-                        motionPacket.setRuntimeEntityId(session.getPlayerEntity().getGeyserId());
+                        motionPacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
                         motionPacket.setMotion(hookOwner.getPosition().sub(session.getPlayerEntity().getPosition()).mul(0.1f));
                         session.sendUpstreamPacket(motionPacket);
                     }
@@ -171,7 +171,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case TOTEM_OF_UNDYING_MAKE_SOUND:
                 // Bedrock will not play the spinning animation without the item in the hand o.o
                 // Fixes https://github.com/GeyserMC/Geyser/issues/2446
-                boolean totemItemWorkaround = !session.getPlayerInventory().eitherHandMatchesItem(Items.TOTEM_OF_UNDYING);
+                boolean totemItemWorkaround = !session.getPlayerInventory().isHolding(Items.TOTEM_OF_UNDYING);
                 if (totemItemWorkaround) {
                     InventoryContentPacket offhandPacket = new InventoryContentPacket();
                     offhandPacket.setContainerId(ContainerId.OFFHAND);
@@ -237,7 +237,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                     // I assume part of the problem is that Bedrock uses a duration and Java just says the rabbit is jumping
                     SetEntityDataPacket dataPacket = new SetEntityDataPacket();
                     dataPacket.getMetadata().put(EntityDataTypes.JUMP_DURATION, (byte) 3);
-                    dataPacket.setRuntimeEntityId(entity.getGeyserId());
+                    dataPacket.setRuntimeEntityId(entity.geyserId());
                     session.sendUpstreamPacket(dataPacket);
                     return;
                 }
@@ -259,8 +259,8 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 if (entity instanceof LivingEntity livingEntity) {
                     livingEntity.switchHands();
 
-                    livingEntity.updateMainHand(session);
-                    livingEntity.updateOffHand(session);
+                    livingEntity.updateMainHand();
+                    livingEntity.updateOffHand();
                 } else {
                     session.getGeyser().getLogger().debug("Got status message to swap hands for a non-living entity.");
                 }

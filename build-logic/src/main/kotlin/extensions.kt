@@ -24,6 +24,7 @@
  */
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import net.kyori.indra.git.IndraGitExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
@@ -33,6 +34,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.the
 import java.io.File
 import java.net.URL
 
@@ -42,9 +44,12 @@ fun Project.relocate(pattern: String) {
     }
 }
 
-fun Project.exclude(group: String) {
+// Excludes all dependencies from a module - except one
+fun Project.exclude(group: String, lib: Provider<MinimalExternalModuleDependency>) {
     tasks.named<ShadowJar>("shadowJar") {
-        exclude(group)
+        dependencies {
+            exclude { it.moduleGroup == group && it.moduleName != lib.get().module.name }
+        }
     }
 }
 
@@ -57,10 +62,6 @@ fun Project.platformRelocate(pattern: String, exclusion: String = "") {
 }
 
 val providedDependencies = mutableMapOf<String, MutableSet<String>>()
-
-fun getProvidedDependenciesForProject(projectName: String): MutableSet<String> {
-    return providedDependencies.getOrDefault(projectName, emptySet()).toMutableSet()
-}
 
 fun Project.provided(pattern: String, name: String, excludedOn: Int = 0b110) {
     providedDependencies.getOrPut(project.name) { mutableSetOf() }
@@ -113,6 +114,28 @@ open class DownloadFilesTask : DefaultTask() {
             println("Downloaded: $suffixedFileName")
         }
     }
+}
+
+fun Project.branchName(): String =
+    the<IndraGitExtension>().branchName().orNull ?: System.getenv("BRANCH_NAME") ?: "local/dev"
+
+fun Project.shouldAddBranchName(): Boolean {
+    return branchName() !in arrayOf("master", "local/dev")
+}
+
+/**
+ * Helper to ensure we never override the latest releases
+ *
+ * Examples:
+ * - "api/2.9.3" -> "preview-api-2.9.3-SNAPSHOT"
+ * - "feature/custom-entities-api" -> "preview-feature-custom-entities-api-SNAPSHOT"
+ */
+fun Project.versionWithBranchName(): String {
+    val branch = branchName()
+    val parts = branch.split('/')
+    val prefix = parts.getOrNull(0)?.replace(Regex("[^0-9A-Za-z-]"), "-") ?: branch
+    val versionNum = parts.getOrNull(1)?.replace(Regex("[^0-9A-Za-z.-]"), "-") ?: version.toString()
+    return "preview-$prefix-$versionNum-SNAPSHOT"
 }
 
 private fun calcExclusion(section: String, bit: Int, excludedOn: Int): String =

@@ -45,6 +45,7 @@ import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.pack.option.OptionHolder;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.GeyserIntegratedPackUtil;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent {
+public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent implements GeyserIntegratedPackUtil {
 
     /**
      * The packs for this Session. A {@link ResourcePackHolder} may contain resource pack options registered
@@ -102,6 +103,8 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         if (!(resourcePack instanceof GeyserResourcePack pack)) {
             throw new ResourcePackException(ResourcePackException.Cause.UNKNOWN_IMPLEMENTATION);
         }
+
+        preProcessPack(pack);
 
         UUID uuid = resourcePack.uuid();
         if (packs.containsKey(uuid)) {
@@ -178,6 +181,16 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         holder.validateAndAdd(pack, options);
     }
 
+    @Override
+    public void unregisterIntegratedPack() {
+        unregister(INTEGRATED_PACK_UUID);
+    }
+
+    @Override
+    public boolean integratedPackRegistered() {
+        return packs.containsKey(INTEGRATED_PACK_UUID);
+    }
+
     // Methods used internally for e.g. ordered packs, or resource pack entries
 
     public List<ResourcePackStackPacket.Entry> orderedPacks() {
@@ -201,7 +214,14 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
     public List<ResourcePacksInfoPacket.Entry> infoPacketEntries() {
         List<ResourcePacksInfoPacket.Entry> entries = new ArrayList<>();
 
+        boolean anyCdn = packs.values().stream().anyMatch(holder -> holder.codec() instanceof UrlPackCodec);
+        boolean warned = false;
+
         for (ResourcePackHolder holder : packs.values()) {
+            if (!warned && anyCdn && !(holder.codec() instanceof UrlPackCodec)) {
+                GeyserImpl.getInstance().getLogger().warning("Mixing pack codecs will result in all UrlPackCodec delivered packs to fall back to non-cdn delivery!");
+                warned = true;
+            }
             GeyserResourcePack pack = holder.pack();
             ResourcePackManifest.Header header = pack.manifest().header();
             entries.add(new ResourcePacksInfoPacket.Entry(
