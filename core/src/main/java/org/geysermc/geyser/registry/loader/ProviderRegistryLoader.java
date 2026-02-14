@@ -220,7 +220,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
                 if (length == 2) {
                     return new GeyserRangeDispatchPredicate(GeyserRangeDispatchPredicate.GeyserRangeDispatchProperty.DAMAGE, (int) args[1]);
                 } else if (length == 3) {
-                    return new GeyserRangeDispatchPredicate(GeyserRangeDispatchPredicate.GeyserRangeDispatchProperty.DAMAGE, (int) args[1], (boolean) args[2]);
+                    return new GeyserRangeDispatchPredicate(GeyserRangeDispatchPredicate.GeyserRangeDispatchProperty.DAMAGE, (double) args[1], (boolean) args[2]);
                 }
             }
             case COUNT -> {
@@ -228,7 +228,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
                 if (length == 2) {
                     return new GeyserRangeDispatchPredicate(GeyserRangeDispatchPredicate.GeyserRangeDispatchProperty.COUNT, (int) args[1]);
                 } else if (length == 3) {
-                    return new GeyserRangeDispatchPredicate(GeyserRangeDispatchPredicate.GeyserRangeDispatchProperty.COUNT, (int) args[1], (boolean) args[2]);
+                    return new GeyserRangeDispatchPredicate(GeyserRangeDispatchPredicate.GeyserRangeDispatchProperty.COUNT, (double) args[1], (boolean) args[2]);
                 }
             }
             case CUSTOM_MODEL_DATA -> {
