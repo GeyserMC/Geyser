@@ -40,6 +40,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.network.packet.Packet;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerRotPacket;
@@ -159,6 +160,8 @@ final class BedrockMovePlayer {
             session.setNoClip(!possibleOnGround);
         }
 
+        boolean forceJavaOnGround = session.isFlying() && session.getGameMode() != GameMode.SPECTATOR && !hasVehicle && !session.isNoClip();
+
         // This takes into account no movement sent from the client, but the player is trying to move anyway.
         // (Press into a wall in a corner - you're trying to move but nothing actually happens)
         // This isn't sent when a player is riding a vehicle (as of 1.21.62)
@@ -168,7 +171,7 @@ final class BedrockMovePlayer {
         // This isn't needed, but it makes the packets closer to vanilla
         // It also means you can't "lag back" while only looking, in theory
         if (!positionChangedAndShouldUpdate && rotationChanged) {
-            ServerboundMovePlayerRotPacket playerRotationPacket = new ServerboundMovePlayerRotPacket(isOnGround, horizontalCollision, javaYaw, pitch);
+            ServerboundMovePlayerRotPacket playerRotationPacket = new ServerboundMovePlayerRotPacket(isOnGround || forceJavaOnGround, horizontalCollision, javaYaw, pitch);
 
             entity.setYaw(yaw);
             entity.setJavaYaw(javaYaw);
@@ -193,7 +196,7 @@ final class BedrockMovePlayer {
                         if (rotationChanged) {
                             // Send rotation updates as well
                             movePacket = new ServerboundMovePlayerPosRotPacket(
-                                isOnGround,
+                                isOnGround || forceJavaOnGround,
                                 horizontalCollision,
                                 position.getX(), position.getY(), position.getZ(),
                                 javaYaw, pitch
@@ -204,7 +207,7 @@ final class BedrockMovePlayer {
                             entity.setHeadYaw(headYaw);
                         } else {
                             // Rotation did not change; don't send an update with rotation
-                            movePacket = new ServerboundMovePlayerPosPacket(isOnGround, horizontalCollision, position.getX(), position.getY(), position.getZ());
+                            movePacket = new ServerboundMovePlayerPosPacket(isOnGround || forceJavaOnGround, horizontalCollision, position.getX(), position.getY(), position.getZ());
                         }
 
                         entity.setPositionManual(packet.getPosition());
@@ -224,7 +227,7 @@ final class BedrockMovePlayer {
                 session.getCollisionManager().recalculatePosition();
             }
         } else if (horizontalCollision != session.getInputCache().lastHorizontalCollision() || isOnGround != entity.isOnGround()) {
-            session.sendDownstreamGamePacket(new ServerboundMovePlayerStatusOnlyPacket(isOnGround, horizontalCollision));
+            session.sendDownstreamGamePacket(new ServerboundMovePlayerStatusOnlyPacket(isOnGround || forceJavaOnGround, horizontalCollision));
         }
 
         session.getInputCache().setLastHorizontalCollision(horizontalCollision);
