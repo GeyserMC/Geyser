@@ -200,7 +200,7 @@ public class CustomItemRegistryPopulator {
         if (bedrockIdentifier.vanilla()) {
             throw new CustomItemDefinitionRegisterException("custom item bedrock identifier namespace can't be minecraft");
         } else if (item.model().equals(vanillaIdentifier) && item.predicates().isEmpty()) {
-            throw new CustomItemDefinitionRegisterException("custom item definition model can't equal vanilla item identifier without a predicate");
+            GeyserImpl.getInstance().getLogger().warning("Custom item " + bedrockIdentifier + " overrides the vanilla item model " + vanillaIdentifier + " without additional predicates!");
         }
 
         for (Map.Entry<Identifier, CustomItemDefinition> entry : registered.entries()) {
