@@ -252,4 +252,11 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @since 2.9.3
      */
     void requestOffhandSwap();
+
+    /**
+     * The playfab id of this player.
+     *
+     * @since 2.9.4
+     */
+    @NonNull String playFabId();
 }
