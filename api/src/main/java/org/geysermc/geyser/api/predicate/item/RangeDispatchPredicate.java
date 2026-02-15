@@ -87,8 +87,8 @@ public interface RangeDispatchPredicate extends MinecraftPredicate<ItemPredicate
      */
     enum Property {
         /**
-         * Checks the amount of items in a bundle
-         * @since 2.9.3
+         * Checks the bundle's fullness
+         * @since 2.9.4
          */
         BUNDLE_FULLNESS,
 
