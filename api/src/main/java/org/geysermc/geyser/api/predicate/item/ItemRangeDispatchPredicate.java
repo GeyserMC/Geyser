@@ -44,10 +44,10 @@ import org.jetbrains.annotations.ApiStatus;
 public interface ItemRangeDispatchPredicate {
 
     /**
-     * {@deprecated Use {@link #bundleFullness(double)} instead}
-     * @since 2.9.4
+     * @deprecated Use {@link #bundleFullness(double)} instead
+     * @since 2.9.3
      */
-    @Deprecated
+    @Deprecated(since = "2.9.4")
     static MinecraftPredicate<ItemPredicateContext> bundleFullness(int threshold) {
         return bundleFullness((double) threshold);
     }

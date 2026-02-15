@@ -254,7 +254,7 @@ public interface GeyserConnection extends Connection, CommandSource {
     void requestOffhandSwap();
 
     /**
-     * The playfab id of this player.
+     * The PlayFab ID of this player.
      *
      * @since 2.9.4
      */
