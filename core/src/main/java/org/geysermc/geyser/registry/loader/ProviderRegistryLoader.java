@@ -213,7 +213,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         int length = args.length;
         switch (property) {
             case BUNDLE_FULLNESS -> {
-                return new GeyserRangeDispatchPredicate(GeyserRangeDispatchPredicate.GeyserRangeDispatchProperty.BUNDLE_FULLNESS, (int) args[1]);
+                return new GeyserRangeDispatchPredicate(GeyserRangeDispatchPredicate.GeyserRangeDispatchProperty.BUNDLE_FULLNESS, (double) args[1]);
             }
             case DAMAGE -> {
                 // One with, one without normalization
