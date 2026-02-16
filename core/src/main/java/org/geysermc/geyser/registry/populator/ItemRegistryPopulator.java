@@ -73,6 +73,7 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserRangeDispatchPredicate;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.BlockItem;
@@ -506,6 +507,7 @@ public class ItemRegistryPopulator {
                 }
 
                 // Add the custom item properties, if applicable
+                boolean containsOldMappings = false;
                 SortedSetMultimap<Key, GeyserCustomMappingData> customItemDefinitions;
                 Collection<CustomItemDefinition> customItemsToLoad = customItems.get(Identifier.of(javaItem.javaIdentifier()));
                 if (customItemsAllowed && !customItemsToLoad.isEmpty()) {
@@ -541,6 +543,12 @@ public class ItemRegistryPopulator {
                                 creativeItems.add(creativeItemData);
                             }
 
+                            // See CustomItemTranslator for a full reason; but essentially, some servers have v1 mappings AND send item_models
+                            // Converted v1 mappings assume a vanilla model is used... tadaa
+                            if (customItem instanceof GeyserCustomItemDefinition customItemDefinition && customItemDefinition.isOldConvertedItem()) {
+                                containsOldMappings = true;
+                            }
+
                             // ComponentItemData - used to register some custom properties
                             customItemDefinitions.put(MinecraftKey.identifierToKey(customItem.model()), customMapping);
                             registry.put(customMapping.integerId(), customMapping.itemDefinition());
@@ -556,6 +564,7 @@ public class ItemRegistryPopulator {
                     customItemDefinitions = null;
                 }
                 mappingBuilder.customItemDefinitions(customItemDefinitions);
+                mappingBuilder.containsV1Mappings(containsOldMappings);
 
                 ItemMapping mapping = mappingBuilder.build();
 

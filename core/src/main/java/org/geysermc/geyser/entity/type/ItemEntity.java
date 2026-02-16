@@ -73,7 +73,7 @@ public class ItemEntity extends ThrowableEntity {
 
     @Override
     public void tick() {
-        if (removedInVoid() || isInWater()) {
+        if (removedInVoid() || vehicle != null || isInWater()) {
             return;
         }
         if (!isOnGround() || (motion.getX() * motion.getX() + motion.getZ() * motion.getZ()) > 0.00001) {

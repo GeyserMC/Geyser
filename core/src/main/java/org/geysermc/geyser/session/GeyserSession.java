@@ -2314,6 +2314,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     @Override
+    public @NonNull String playFabId() {
+        return authData.playFabId();
+    }
+
+    @Override
     public @NonNull String version() {
         if (clientData == null) {
             return "unknown";

@@ -72,6 +72,12 @@ public final class CustomItemTranslator {
             return null;
         }
         Collection<GeyserCustomMappingData> customItems = allCustomItems.get(itemModel);
+
+        if (mapping.isContainsV1Mappings() && customItems.isEmpty()) {
+            // Try looking up vanilla model mappings too, as that's what v1 mappings target
+            customItems = allCustomItems.get(mapping.getJavaItem().getComponent(session.getComponentCache(), DataComponentTypes.ITEM_MODEL));
+        }
+
         if (customItems.isEmpty()) {
             return null;
         }
