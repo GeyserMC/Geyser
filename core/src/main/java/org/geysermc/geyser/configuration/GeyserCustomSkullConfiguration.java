@@ -35,7 +35,7 @@ import java.util.Objects;
 public class GeyserCustomSkullConfiguration {
     private List<String> playerUsernames;
 
-    private List<String> playerUUIDs;
+    private List<String> playerUuids;
 
     private List<String> playerProfiles;
 
@@ -46,7 +46,7 @@ public class GeyserCustomSkullConfiguration {
     }
 
     public List<String> getPlayerUUIDs() {
-        return Objects.requireNonNullElse(playerUUIDs, Collections.emptyList());
+        return Objects.requireNonNullElse(playerUuids, Collections.emptyList());
     }
 
     public List<String> getPlayerProfiles() {
@@ -61,7 +61,7 @@ public class GeyserCustomSkullConfiguration {
     public String toString() {
         return "GeyserCustomSkullConfiguration{" +
             "playerUsernames=" + playerUsernames +
-            ", playerUUIDs=" + playerUUIDs +
+            ", playerUuids=" + playerUuids +
             ", playerProfiles=" + playerProfiles +
             ", skinHashes=" + skinHashes +
             '}';
