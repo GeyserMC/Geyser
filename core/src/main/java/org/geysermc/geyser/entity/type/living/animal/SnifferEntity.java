@@ -32,7 +32,6 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.item.type.Item;
@@ -43,15 +42,15 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.SnifferStat
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 
 public class SnifferEntity extends AnimalEntity implements Tickable {
-    private static final float DIGGING_HEIGHT = EntityDefinitions.SNIFFER.height() - 0.4f;
     private static final int DIG_END = 120;
     private static final int DIG_START = DIG_END - 34;
-
+    private final float diggingHeight;
     private Pose pose = Pose.STANDING; // Needed to call setDimensions for DIGGING state
     private int digTicks;
 
     public SnifferEntity(EntitySpawnContext context) {
         super(context);
+        diggingHeight = height - 0.4f;
     }
 
     @Override
@@ -63,8 +62,8 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
     @Override
     protected void setDimensionsFromPose(Pose pose) {
         if (getFlag(EntityFlag.DIGGING)) {
-            setBoundingBoxHeight(DIGGING_HEIGHT);
-            setBoundingBoxWidth(definition.width());
+            setBoundingBoxHeight(diggingHeight);
+            setBoundingBoxWidth(width);
         } else {
             super.setDimensionsFromPose(pose);
         }
@@ -104,7 +103,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
         // The java client renders digging particles on its own, but bedrock does not
         if (digTicks > 0 && --digTicks < DIG_START && digTicks % 5 == 0) {
             Vector3f rot = Vector3f.createDirectionDeg(0, -getYaw()).mul(2.25f);
-            Vector3f pos = getPosition().add(rot).up(0.2f).floor(); // Handle non-full blocks
+            Vector3f pos = position().add(rot).up(0.2f).floor(); // Handle non-full blocks
             int blockId = session.getBlockMappings().getBedrockBlockId(session.getGeyser().getWorldManager().getBlockAt(session, pos.toInt().down()));
 
             LevelEventPacket levelEventPacket = new LevelEventPacket();

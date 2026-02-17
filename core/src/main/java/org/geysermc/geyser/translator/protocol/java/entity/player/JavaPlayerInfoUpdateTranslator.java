@@ -28,7 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.entity.player;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -77,7 +77,12 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                     playerEntity = session.getPlayerEntity();
                 } else {
                     // It's a new player
-                    playerEntity = new PlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, id, EntityDefinitions.PLAYER), name, texturesProperty);
+                    playerEntity = new PlayerEntity(
+                        EntitySpawnContext.DUMMY_CONTEXT.apply(session, id, VanillaEntities.PLAYER),
+                        name,
+                        texturesProperty
+                    );
+
                     session.getEntityCache().addPlayerEntity(playerEntity);
                 }
                 playerEntity.setUsername(name);

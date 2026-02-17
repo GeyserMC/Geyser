@@ -43,7 +43,6 @@ import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -82,6 +81,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
@@ -215,7 +215,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
                                 packetBlockPosition.distanceSquared(session.getLastInteractionBlockPosition()) < 0.00001;
                         session.setLastInteractionBlockPosition(packetBlockPosition);
-                        session.setLastInteractionPlayerPosition(session.getPlayerEntity().getPosition());
+                        session.setLastInteractionPlayerPosition(session.getPlayerEntity().bedrockPosition());
                         if (hasAlreadyClicked) {
                             session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
                             break;
@@ -250,10 +250,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // As of 1.21, Paper does not have any additional range checks that would inconvenience normal players.
-                        Vector3f playerPosition = session.getPlayerEntity().getPosition();
-                        playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
-
-                        if (!canInteractWithBlock(session, playerPosition, packetBlockPosition)) {
+                        Vector3f playerEyeHeight = session.getPlayerEntity().position().up(session.getEyeHeight());
+                        if (!canInteractWithBlock(session, playerEyeHeight, packetBlockPosition)) {
                             BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
                             return;
                         }
@@ -417,13 +415,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                             // BDS uses a LevelSoundEvent2Packet, but that doesn't work here... (as of 1.21.20)
                                             LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
                                             soundPacket.setSound(SoundEvent.valueOf("GOAT_CALL_" + instrument.bedrockInstrument().ordinal()));
-                                            soundPacket.setPosition(session.getPlayerEntity().getPosition());
+                                            soundPacket.setPosition(session.getPlayerEntity().bedrockPosition());
                                             soundPacket.setIdentifier("minecraft:player");
                                             soundPacket.setExtraData(-1);
                                             session.sendUpstreamPacket(soundPacket);
                                         } else {
                                             PlaySoundPacket playSoundPacket = new PlaySoundPacket();
-                                            playSoundPacket.setPosition(session.getPlayerEntity().position());
+                                            playSoundPacket.setPosition(session.getPlayerEntity().bedrockPosition());
                                             playSoundPacket.setSound(SoundUtils.translatePlaySound(instrument.soundEvent()));
                                             playSoundPacket.setPitch(1.0F);
                                             playSoundPacket.setVolume(instrument.range() / 16.0F);
@@ -499,7 +497,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         int entityId;
-                        if (entity.getDefinition() == EntityDefinitions.ENDER_DRAGON) {
+                        if (entity.getJavaTypeDefinition().is(BuiltinEntityType.ENDER_DRAGON)) {
                             // Redirects the attack to its body entity, this only happens when
                             // attacking the underbelly of the ender dragon
                             entityId = entity.getEntityId() + 3;
@@ -524,7 +522,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     }
 
     private void processEntityInteraction(GeyserSession session, InventoryTransactionPacket packet, Entity entity) {
-        Vector3f entityPosition = entity.getPosition();
+        Vector3f entityPosition = entity.position();
         if (!session.getWorldBorder().isInsideBorderBoundaries(entityPosition)) {
             // No transaction is able to go through (as of Java Edition 1.18.1)
             return;
@@ -571,17 +569,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         double additionalRangeCheck = blockInteractionRange + 1.0d;
 
         // AABB.<init>(BlockPos)
-        float minX = packetBlockPosition.getX();
-        float minY = packetBlockPosition.getY();
-        float minZ = packetBlockPosition.getZ();
-        float maxX = packetBlockPosition.getX() + 1;
-        float maxY = packetBlockPosition.getY() + 1;
-        float maxZ = packetBlockPosition.getZ() + 1;
+        double minX = packetBlockPosition.getX();
+        double minY = packetBlockPosition.getY();
+        double minZ = packetBlockPosition.getZ();
+        double maxX = packetBlockPosition.getX() + 1;
+        double maxY = packetBlockPosition.getY() + 1;
+        double maxZ = packetBlockPosition.getZ() + 1;
 
         // AABB#distanceToSqr
-        float diffX = Math.max(Math.max(minX - playerPosition.getX(), playerPosition.getX() - maxX), 0);
-        float diffY = Math.max(Math.max(minY - playerPosition.getY(), playerPosition.getY() - maxY), 0);
-        float diffZ = Math.max(Math.max(minZ - playerPosition.getZ(), playerPosition.getZ() - maxZ), 0);
+        double diffX = Math.max(Math.max(minX - playerPosition.getX(), playerPosition.getX() - maxX), 0);
+        double diffY = Math.max(Math.max(minY - playerPosition.getY(), playerPosition.getY() - maxY), 0);
+        double diffZ = Math.max(Math.max(minZ - playerPosition.getZ(), playerPosition.getZ() - maxZ), 0);
         return ((diffX * diffX) + (diffY * diffY) + (diffZ * diffZ)) < (additionalRangeCheck * additionalRangeCheck);
     }
 

@@ -138,7 +138,8 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
 
     @Override
     protected void moveVehicle(Vector3d javaPos, Vector3f lastRotation) {
-        Vector3f bedrockPos = javaPos.toFloat();
+        Vector3f oldPosition = vehicle.position();
+        vehicle.setPosition(javaPos.toFloat());
 
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(vehicle.geyserId());
@@ -147,19 +148,18 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
         }
 
-        if (vehicle.getPosition().getX() != bedrockPos.getX()) {
+        if (vehicle.position().getX() != oldPosition.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-            moveEntityDeltaPacket.setX(bedrockPos.getX());
+            moveEntityDeltaPacket.setX(vehicle.bedrockPosition().getX());
         }
-        if (vehicle.getPosition().getY() != bedrockPos.getY()) {
+        if (vehicle.position().getY() != oldPosition.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-            moveEntityDeltaPacket.setY(bedrockPos.getY() + vehicle.getDefinition().offset());
+            moveEntityDeltaPacket.setY(vehicle.bedrockPosition().getY());
         }
-        if (vehicle.getPosition().getZ() != bedrockPos.getZ()) {
+        if (vehicle.position().getZ() != oldPosition.getZ()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-            moveEntityDeltaPacket.setZ(bedrockPos.getZ());
+            moveEntityDeltaPacket.setZ(vehicle.bedrockPosition().getZ());
         }
-        vehicle.setPosition(bedrockPos);
 
         if (vehicle.getPitch() != lastRotation.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
@@ -175,7 +175,7 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
         }
 
         if (!moveEntityDeltaPacket.getFlags().isEmpty()) {
-            vehicle.getSession().sendUpstreamPacket(moveEntityDeltaPacket);
+            vehicle.getSession().sendUpstreamPacketImmediately(moveEntityDeltaPacket);
         }
 
         ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos, vehicle.getYaw() - 90, vehicle.getPitch(), vehicle.isOnGround());
