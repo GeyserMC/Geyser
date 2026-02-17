@@ -56,7 +56,10 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                 GameProfile profile = entry.getProfile();
 
                 if (profile == null) {
-                    throw new IllegalStateException("Profile cannot be null!");
+                    // Should never be null for the ADD_PLAYER case
+                    // 1.21.11 client NPEs here
+                    GeyserImpl.getInstance().getLogger().debug("Received a null profile in a player info update packet!");
+                    continue;
                 }
 
                 UUID id = entry.getProfileId();
