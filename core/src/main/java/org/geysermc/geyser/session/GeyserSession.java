@@ -1678,7 +1678,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         dialogManager.close();
         // Also close all currently open forms.
         if (formCache.hasFormOpen()) {
-            return false;
+            closeForm();
         }
 
         // Cache this form, let's see whether we can open it immediately
