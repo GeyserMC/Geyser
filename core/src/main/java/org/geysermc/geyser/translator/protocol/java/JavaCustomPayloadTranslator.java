@@ -100,7 +100,9 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
 
                     session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(packet.getChannel(), finalData));
                 });
-                session.sendForm(form);
+                if (!session.sendForm(form)) {
+                    session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(packet.getChannel(), new byte[]{data[1], data[2]}));
+                }
             });
         } else if (channel.equals(PluginMessageChannels.TRANSFER)) {
             session.ensureInEventLoop(() -> {

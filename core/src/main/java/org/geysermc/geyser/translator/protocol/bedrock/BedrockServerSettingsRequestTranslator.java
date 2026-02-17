@@ -57,6 +57,10 @@ public class BedrockServerSettingsRequestTranslator extends PacketTranslator<Ser
             session.sendUpstreamPacket(setDifficultyPacket);
         }
 
+        if (session.getFormCache().hasFormOpen()) {
+            return;
+        }
+
         CustomForm form = SettingsUtils.buildForm(session);
         int formId = session.getFormCache().addForm(form);
 
