@@ -222,6 +222,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.statistic.Statistic;
 import org.geysermc.mcprotocollib.protocol.data.handshake.HandshakeIntent;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundClientInformationPacket;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.serverbound.ServerboundAcceptCodeOfConductPacket;
+import org.geysermc.mcprotocollib.protocol.packet.cookie.serverbound.ServerboundCookieResponsePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatCommandSignedPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
@@ -1268,9 +1269,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         try {
             pistonCache.tick();
 
-            if (worldBorder.isResizing()) {
-                worldBorder.resize();
-            }
+            worldBorder.tick();
 
             boolean shouldShowFog = !worldBorder.isWithinWarningBoundaries();
             if (shouldShowFog || worldBorder.isCloseToBorderBoundaries()) {
@@ -2021,7 +2020,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private void sendDownstreamPacket0(Packet packet) {
         ProtocolState state = protocol.getOutboundState();
-        if (state == ProtocolState.GAME || state == ProtocolState.CONFIGURATION || packet.getClass() == ServerboundCustomQueryAnswerPacket.class) {
+        if (state == ProtocolState.GAME || state == ProtocolState.CONFIGURATION || packet.getClass() == ServerboundCustomQueryAnswerPacket.class
+            || packet.getClass() == ServerboundCookieResponsePacket.class) {
             downstream.sendPacket(packet);
         } else {
             geyser.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
@@ -2334,6 +2334,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public @NonNull String xuid() {
         return authData.xuid();
+    }
+
+    @Override
+    public @NonNull String playFabId() {
+        return authData.playFabId();
     }
 
     @Override

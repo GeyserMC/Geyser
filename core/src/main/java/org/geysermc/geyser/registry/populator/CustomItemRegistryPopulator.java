@@ -200,7 +200,7 @@ public class CustomItemRegistryPopulator {
         if (bedrockIdentifier.vanilla()) {
             throw new CustomItemDefinitionRegisterException("custom item bedrock identifier namespace can't be minecraft");
         } else if (item.model().equals(vanillaIdentifier) && item.predicates().isEmpty()) {
-            throw new CustomItemDefinitionRegisterException("custom item definition model can't equal vanilla item identifier without a predicate");
+            GeyserImpl.getInstance().getLogger().warning("Custom item " + bedrockIdentifier + " overrides the vanilla item model " + vanillaIdentifier + " without additional predicates!");
         }
 
         for (Map.Entry<Identifier, CustomItemDefinition> entry : registered.entries()) {
@@ -463,6 +463,14 @@ public class CustomItemRegistryPopulator {
         // We already checked and threw for these cases in CustomItemContext#checkComponents though
         // This can be missing if a non-vanilla item didn't specify a max stack size, or if a component patch removed the component. In that case vanilla Minecraft defaults to 1
         int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 1);
+
+        // Hack for v1 compat: Allow e.g. carved pumpkins to continue working as a base
+        if (stackSize > 1 && definition instanceof GeyserCustomItemDefinition customItemDefinition && customItemDefinition.isOldConvertedItem()) {
+            Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
+            if (equippable != null) {
+                stackSize = 1;
+            }
+        }
 
         itemProperties.putInt("max_stack_size", stackSize);
 

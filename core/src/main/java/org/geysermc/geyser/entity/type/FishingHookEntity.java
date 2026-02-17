@@ -147,7 +147,7 @@ public class FishingHookEntity extends ThrowableEntity {
 
     @Override
     public void tick() {
-        if (removedInVoid()) {
+        if (removedInVoid() || vehicle != null) {
             return;
         }
         if (hooked || !isInAir() && !isInWater() || isOnGround()) {
