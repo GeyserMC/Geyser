@@ -44,6 +44,7 @@ import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.PlayerListUtils;
+import org.geysermc.geyser.util.WebUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 
@@ -275,11 +276,11 @@ public class SkinManager {
             }
 
             GameProfile.Texture skin = textures.get(GameProfile.TextureType.SKIN);
-            String skinUrl = skin.getURL();
-            if (skinUrl.startsWith("http://")) {
-                skinUrl = skinUrl.replaceFirst("http://", "https://");
+            if (skin == null) {
+                return null;
             }
 
+            String skinUrl = WebUtils.toHttps(skin.getURL());
             if (Objects.equals(DEFAULT_FLOODGATE_STEVE, skinUrl)) {
                 // https://github.com/GeyserMC/Floodgate/commit/00b8b1b6364116ff4bc9b00e2015ce35bae8abb1 ensures that
                 // Bedrock players on online-mode servers will always have a textures property. However, this skin is
@@ -290,11 +291,7 @@ public class SkinManager {
             }
 
             GameProfile.Texture cape = textures.get(GameProfile.TextureType.CAPE);
-            String capeUrl = cape == null ? null : cape.getURL();
-            if (capeUrl != null && capeUrl.startsWith("http://")) {
-                capeUrl = capeUrl.replaceFirst("http://", "https://");
-            }
-
+            String capeUrl = cape == null ? null : WebUtils.toHttps(cape.getURL());
             return new GameProfileData(skinUrl, capeUrl, skin.getModel() == GameProfile.TextureModel.SLIM);
         }
 

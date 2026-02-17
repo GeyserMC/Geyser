@@ -226,7 +226,13 @@ public class CustomSkullRegistryPopulator {
                 return null;
             }
 
-            return result.textures.get(GameProfile.TextureType.SKIN).getHash();
+            GameProfile.Texture skin = result.textures.get(GameProfile.TextureType.SKIN);
+            if (skin == null) {
+                GeyserImpl.getInstance().getLogger().warning("Textures payload contains no skin!");
+                return null;
+            }
+
+            return skin.getHash();
         }
         return null;
     }

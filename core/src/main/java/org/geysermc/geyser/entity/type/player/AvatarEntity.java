@@ -369,13 +369,13 @@ public abstract class AvatarEntity extends LivingEntity {
         setBoundingBoxHeight(height);
     }
 
-    public @Nullable String getSkinUrl() {
+    public @Nullable String getSkinId() {
         if (textures == null) {
-            var fallback = SkinProvider.determineFallbackSkinData(this.uuid);
+            SkinData fallback = SkinProvider.determineFallbackSkinData(this.uuid);
             return fallback.skin().textureUrl();
         }
 
         GameProfile.Texture texture = textures.get(GameProfile.TextureType.SKIN);
-        return texture.getURL();
+        return texture.getHash();
     }
 }

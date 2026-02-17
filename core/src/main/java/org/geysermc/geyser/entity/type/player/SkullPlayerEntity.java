@@ -55,7 +55,7 @@ public class SkullPlayerEntity extends AvatarEntity {
     private Vector3i skullPosition;
 
     @Getter
-    private String textureUrl;
+    private String skinUrl;
 
     public SkullPlayerEntity(EntitySpawnContext context) {
         super(context, "");
@@ -75,12 +75,12 @@ public class SkullPlayerEntity extends AvatarEntity {
     public void updateSkull(SkullCache.Skull skull) {
         skullPosition = skull.getPosition();
 
-        if (!Objects.equals(skull.getSkinUrl(), textureUrl) || !Objects.equals(skullUUID, skull.getUuid())) {
+        if (!Objects.equals(skull.getSkinUrl(), skinUrl) || !Objects.equals(skullUUID, skull.getUuid())) {
             // Make skull invisible as we change skins
             setFlag(EntityFlag.INVISIBLE, true);
             updateBedrockMetadata();
 
-            textureUrl = skull.getSkinUrl();
+            skinUrl = skull.getSkinUrl();
             skullUUID = skull.getUuid();
             SkullSkinManager.requestAndHandleSkin(this, session, (skin) -> session.scheduleInEventLoop(() -> {
                 // Delay to minimize split-second "player" pop-in

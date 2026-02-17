@@ -74,27 +74,8 @@ public class SkullSkinManager extends SkinManager {
             }
         };
 
-        if (entity.getTextureUrl() != null) {
-            SkinProvider.requestSkin(entity.uuid(), entity.getTextureUrl(), true)
-                .whenCompleteAsync(applySkin);
-        }
-
-        // TODO handling invalid skins here needed, at all?
-
-//        GameProfileData data = GameProfileData.from(entity);
-//
-//        if (data == null) {
-//            if (entity instanceof SkullPlayerEntity skullEntity) {
-//                GeyserImpl.getInstance().getLogger().debug("Using fallback skin for skull at " + skullEntity.getSkullPosition() +
-//                    " with texture value: " + entity.getTexturesProperty() + " and UUID: " + skullEntity.getSkullUUID());
-//                // No texture available, fallback using the UUID
-//                SkinData fallback = SkinProvider.determineFallbackSkinData(skullEntity.getSkullUUID());
-//                applySkin.accept(fallback.skin(), null);
-//            }
-//        } else {
-//            SkinProvider.requestSkin(entity.uuid(), data.skinUrl(), true)
-//                    .whenCompleteAsync(applySkin);
-//        }
+        SkinProvider.requestSkin(entity.uuid(), entity.getSkinUrl(), true)
+            .whenCompleteAsync(applySkin);
     }
 
 }

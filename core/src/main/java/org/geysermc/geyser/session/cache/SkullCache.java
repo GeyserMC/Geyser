@@ -93,10 +93,10 @@ public class SkullCache {
         return null;
     }
 
-    public Skull putSkull(Vector3i position, UUID uuid, String texturesUrl, String skinHash, BlockState blockState) {
+    public Skull putSkull(Vector3i position, UUID uuid, String skinUrl, String skinHash, BlockState blockState) {
         Skull skull = skulls.computeIfAbsent(position, Skull::new);
         skull.uuid = uuid;
-        skull.skinUrl = texturesUrl;
+        skull.skinUrl = skinUrl;
         skull.skinHash = skinHash;
         skull.blockState = blockState;
         skull.blockDefinition = translateCustomSkull(skull.skinHash, blockState);
