@@ -151,17 +151,12 @@ public class CustomSkullRegistryPopulator {
      * @return the skin hash or null if the profile is invalid
      */
     private static @Nullable String getSkinHash(String profile) {
-        try {
-            String hash = loadHashFromJson(profile);
-            if (hash == null) {
-                GeyserImpl.getInstance().getLogger().warning("Skull texture " + profile + " contained no valid skins and will not be added as a custom block.");
-                return null;
-            }
-            return hash;
-        } catch (IOException e) {
-            GeyserImpl.getInstance().getLogger().error("Skull texture " + profile + " is invalid and will not be added as a custom block.", e);
+        String hash = loadHashFromJson(profile);
+        if (hash == null) {
+            GeyserImpl.getInstance().getLogger().warning("Skull texture " + profile + " contained no valid skins and will not be added as a custom block.");
             return null;
         }
+        return hash;
     }
 
     /**
@@ -199,7 +194,7 @@ public class CustomSkullRegistryPopulator {
     /**
      * Gets the skin hash from a profile
      */
-    public static String loadHashFromJson(String encodedJson) throws IOException, IllegalArgumentException {
+    public static @Nullable String loadHashFromJson(String encodedJson) {
         JsonObject skinObject;
         try {
             skinObject = JsonUtils.parseJson(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));

@@ -40,6 +40,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
@@ -236,7 +237,14 @@ public abstract class AvatarEntity extends LivingEntity {
     }
 
     public void setSkin(GameProfile profile, @Nullable Runnable after) {
-        setSkin(profile.getTextures(false), after);
+        Map<GameProfile.TextureType, GameProfile.Texture> textures;
+        try {
+            textures = profile.getTextures(true);
+        } catch (IllegalStateException e) {
+            GeyserImpl.getInstance().getLogger().debug("Error loading textures! " + profile, e);
+            textures = null;
+        }
+        setSkin(textures, after);
     }
 
     public void setSkin(@Nullable Map<GameProfile.TextureType, GameProfile.Texture> textures, @Nullable Runnable after) {
@@ -370,12 +378,14 @@ public abstract class AvatarEntity extends LivingEntity {
     }
 
     public @Nullable String getSkinId() {
-        if (textures == null) {
-            SkinData fallback = SkinProvider.determineFallbackSkinData(this.uuid);
-            return fallback.skin().textureUrl();
+        if (textures != null) {
+            GameProfile.Texture texture = textures.get(GameProfile.TextureType.SKIN);
+            if (texture != null) {
+                return texture.getHash();
+            }
         }
 
-        GameProfile.Texture texture = textures.get(GameProfile.TextureType.SKIN);
-        return texture.getHash();
+        SkinData fallback = SkinProvider.determineFallbackSkinData(this.uuid);
+        return fallback.skin().textureUrl();
     }
 }

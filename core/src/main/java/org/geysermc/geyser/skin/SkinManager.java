@@ -204,9 +204,9 @@ public class SkinManager {
     public static GameProfile.@Nullable Texture getTextureDataFromProfile(GameProfile profile, GameProfile.TextureType type) {
         Map<GameProfile.TextureType, GameProfile.Texture> textures;
         try {
-            textures = profile.getTextures(false);
+            textures = profile.getTextures(true);
         } catch (IllegalStateException e) {
-            GeyserImpl.getInstance().getLogger().debug("Could not decode textures from game profile %s, got: %s".formatted(profile, e.getMessage()));
+            GeyserImpl.getInstance().getLogger().debug("Could not decode textures from game profile!", profile, e);
             return null;
         }
 
@@ -271,7 +271,8 @@ public class SkinManager {
         public static @Nullable GameProfileData from(AvatarEntity entity) {
             Map<GameProfile.TextureType, GameProfile.Texture> textures = entity.getTextures();
             if (textures == null) {
-                // Likely offline mode
+                // Likely offline mode or failed to load
+                // We'll fall back to default skins
                 return null;
             }
 

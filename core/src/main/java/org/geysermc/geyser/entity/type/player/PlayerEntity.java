@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
@@ -73,7 +74,12 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     public PlayerEntity(EntitySpawnContext context, GameProfile profile) {
         super(context, profile.getName());
         this.customNameVisible = true;
-        this.textures = profile.getTextures(false);
+        try {
+            this.textures = profile.getTextures(true);
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().debug("Error loading textures for player!" + profile, e);
+            this.textures = null;
+        }
     }
 
     public PlayerEntity(EntitySpawnContext context, String username, @Nullable Map<GameProfile.TextureType, GameProfile.Texture> textureMap) {
