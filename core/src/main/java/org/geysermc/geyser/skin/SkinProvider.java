@@ -196,7 +196,7 @@ public class SkinProvider {
     /**
      * If skin data fails to apply, or there is no skin data to apply, determine what skin we should give as a fallback.
      */
-    static SkinData determineFallbackSkinData(UUID uuid) {
+    public static SkinData determineFallbackSkinData(UUID uuid) {
         Skin skin = null;
         Cape cape = null;
         SkinGeometry geometry = SkinGeometry.WIDE;

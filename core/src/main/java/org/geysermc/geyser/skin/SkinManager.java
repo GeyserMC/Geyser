@@ -27,7 +27,6 @@ package org.geysermc.geyser.skin;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.gson.JsonObject;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
@@ -39,22 +38,17 @@ import org.geysermc.geyser.api.skin.Skin;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.api.skin.SkinGeometry;
 import org.geysermc.geyser.entity.type.player.AvatarEntity;
-import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.util.JsonUtils;
 import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
-import org.geysermc.mcprotocollib.auth.util.TextureUrlChecker;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 
 import java.awt.*;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -274,88 +268,36 @@ public class SkinManager {
          * @return The built GameProfileData
          */
         public static @Nullable GameProfileData from(AvatarEntity entity) {
-            String texturesProperty = entity.getTexturesProperty();
-            if (texturesProperty == null) {
+            Map<GameProfile.TextureType, GameProfile.Texture> textures = entity.getTextures();
+            if (textures == null) {
                 // Likely offline mode
                 return null;
             }
 
-            try {
-                return loadFromJson(texturesProperty);
-            } catch (Exception exception) {
-                if (entity instanceof SkullPlayerEntity skullEntity) {
-                    GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for skull at " + skullEntity.getSkullPosition() + " with Value: " + texturesProperty);
-                } else {
-                    GeyserImpl.getInstance().getLogger().debug("Something went wrong while processing skin for " + entity.getUsername() + " with Value: " + texturesProperty);
-                }
-                if (GeyserImpl.getInstance().config().debugMode()) {
-                    exception.printStackTrace();
-                }
+            GameProfile.Texture skin = textures.get(GameProfile.TextureType.SKIN);
+            String skinUrl = skin.getURL();
+            if (skinUrl.startsWith("http://")) {
+                skinUrl = skinUrl.replaceFirst("http://", "https://");
             }
-            return null;
-        }
 
-        public static @Nullable GameProfileData loadFromJson(String encodedJson) throws IOException, IllegalArgumentException {
-            JsonObject skinObject;
-            try {
-                skinObject = JsonUtils.parseJson(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
-            } catch (IllegalArgumentException e) {
-                if (GeyserImpl.getInstance().getLogger().isDebug()) {
-                    GeyserImpl.getInstance().getLogger().debug("Invalid base64 encoded skin entry: " + encodedJson);
-                }
+            if (Objects.equals(DEFAULT_FLOODGATE_STEVE, skinUrl)) {
+                // https://github.com/GeyserMC/Floodgate/commit/00b8b1b6364116ff4bc9b00e2015ce35bae8abb1 ensures that
+                // Bedrock players on online-mode servers will always have a textures property. However, this skin is
+                // also sent our way, and isn't overwritten. It's very likely that this skin is *only* a placeholder,
+                // and no one should ever be using it outside of Floodgate, and therefore no one wants to see this
+                // specific Steve skin.
                 return null;
             }
 
-            MinimalTexturesPayload result;
-            try {
-                result = GeyserImpl.GSON.fromJson(skinObject, MinimalTexturesPayload.class);
-            } catch (Exception e) {
-                if (GeyserImpl.getInstance().getLogger().isDebug()) {
-                    GeyserImpl.getInstance().getLogger().debug("Could not decode texture payload! " + skinObject, e);
-                }
-                return null;
+            GameProfile.Texture cape = textures.get(GameProfile.TextureType.CAPE);
+            String capeUrl = cape == null ? null : cape.getURL();
+            if (capeUrl != null && capeUrl.startsWith("http://")) {
+                capeUrl = capeUrl.replaceFirst("http://", "https://");
             }
 
-            if (result != null && result.textures != null) {
-                for (GameProfile.Texture texture : result.textures.values()) {
-                    if (TextureUrlChecker.isAllowedTextureDomain(texture.getURL())) {
-                        continue;
-                    }
-
-                    if (GeyserImpl.getInstance().getLogger().isDebug()) {
-                        GeyserImpl.getInstance().getLogger().debug("Textures payload has been tampered with! (non-whitelisted domain) " + skinObject);
-                    }
-                    return null;
-                }
-
-                GameProfile.Texture skin = result.textures.get(GameProfile.TextureType.SKIN);
-                if (Objects.equals(DEFAULT_FLOODGATE_STEVE, skin.getURL())) {
-                    // https://github.com/GeyserMC/Floodgate/commit/00b8b1b6364116ff4bc9b00e2015ce35bae8abb1 ensures that
-                    // Bedrock players on online-mode servers will always have a textures property. However, this skin is
-                    // also sent our way, and isn't overwritten. It's very likely that this skin is *only* a placeholder,
-                    // and no one should ever be using it outside of Floodgate, and therefore no one wants to see this
-                    // specific Steve skin.
-                    return null;
-                }
-
-                GameProfile.Texture cape = result.textures.get(GameProfile.TextureType.CAPE);
-                return new GameProfileData(skin.getURL(), cape != null ? cape.getURL() : "", skin.getModel() == GameProfile.TextureModel.SLIM);
-            }
-
-            if (GeyserImpl.getInstance().getLogger().isDebug()) {
-                GeyserImpl.getInstance().getLogger().debug("Could not decode texture payload! " + skinObject);
-            }
-            return null;
+            return new GameProfileData(skinUrl, capeUrl, skin.getModel() == GameProfile.TextureModel.SLIM);
         }
 
         private static final String DEFAULT_FLOODGATE_STEVE = "https://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb";
-
-        /*
-         * see mcpl GameProfile's MinecraftTexturesPayload for the full impl
-         * We only need the textures, and e.g. profileId throws due to missing uuid conversion
-         */
-        private static class MinimalTexturesPayload {
-            public Map<GameProfile.TextureType, GameProfile.Texture> textures;
-        }
     }
 }
