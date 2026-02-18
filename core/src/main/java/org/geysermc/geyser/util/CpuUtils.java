@@ -47,7 +47,7 @@ public final class CpuUtils {
             } else if (osName.contains("mac")) {
                 return getMacProcessorName();
             } else {
-                GeyserImpl.getInstance().getLogger().warning("Couldn't determine OS to get processor name!");
+                GeyserImpl.getInstance().getLogger().warning("Couldn't determine OS to get processor name! The OS name is " + osName);
                 return "unknown";
             }
         } catch (Exception e) {
