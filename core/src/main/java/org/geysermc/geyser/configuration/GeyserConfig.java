@@ -420,6 +420,7 @@ public interface GeyserConfig {
             This config option must only be set when there are more than one listeners configured in the BungeeCord config.
             Example: "0.0.0.0:25577"
             """)
+        @DefaultString() // without annotation, default value is null
         @IncludePlatform(platforms = {"BungeeCord"})
         String bungeeListener();
 
