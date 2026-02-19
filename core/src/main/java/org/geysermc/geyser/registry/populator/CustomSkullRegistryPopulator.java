@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.registry.populator;
 
+import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -36,16 +37,21 @@ import org.geysermc.geyser.configuration.GeyserCustomSkullConfiguration;
 import org.geysermc.geyser.pack.SkullResourcePackManager;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
-import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.JsonUtils;
+import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.util.TextureUrlChecker;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
@@ -145,18 +151,12 @@ public class CustomSkullRegistryPopulator {
      * @return the skin hash or null if the profile is invalid
      */
     private static @Nullable String getSkinHash(String profile) {
-        try {
-            SkinManager.GameProfileData profileData = SkinManager.GameProfileData.loadFromJson(profile);
-            if (profileData == null) {
-                GeyserImpl.getInstance().getLogger().warning("Skull texture " + profile + " contained no skins and will not be added as a custom block.");
-                return null;
-            }
-            String skinUrl = profileData.skinUrl();
-            return skinUrl.substring(skinUrl.lastIndexOf("/") + 1);
-        } catch (IOException e) {
-            GeyserImpl.getInstance().getLogger().error("Skull texture " + profile + " is invalid and will not be added as a custom block.", e);
+        String hash = loadHashFromJson(profile);
+        if (hash == null) {
+            GeyserImpl.getInstance().getLogger().warning("Skull texture " + profile + " contained no valid skins and will not be added as a custom block.");
             return null;
         }
+        return hash;
     }
 
     /**
@@ -189,5 +189,54 @@ public class CustomSkullRegistryPopulator {
             GeyserImpl.getInstance().getLogger().error("Invalid skull uuid " + uuid + " This skull will not be added as a custom block.");
             return null;
         }
+    }
+
+    /**
+     * Gets the skin hash from a profile
+     */
+    public static @Nullable String loadHashFromJson(String encodedJson) {
+        JsonObject skinObject;
+        try {
+            skinObject = JsonUtils.parseJson(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
+        } catch (IllegalArgumentException e) {
+            GeyserImpl.getInstance().getLogger().warning("Invalid base64 encoded profile!");
+            return null;
+        }
+
+        MinimalTexturesPayload result;
+        try {
+            result = GeyserImpl.GSON.fromJson(skinObject, MinimalTexturesPayload.class);
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().error("Could not decode texture payload!", e);
+            return null;
+        }
+
+        if (result != null && result.textures != null) {
+            for (GameProfile.Texture texture : result.textures.values()) {
+                if (TextureUrlChecker.isAllowedTextureDomain(texture.getURL())) {
+                    continue;
+                }
+
+                GeyserImpl.getInstance().getLogger().warning("Textures payload has been tampered with! (non-whitelisted domain)!");
+                return null;
+            }
+
+            GameProfile.Texture skin = result.textures.get(GameProfile.TextureType.SKIN);
+            if (skin == null) {
+                GeyserImpl.getInstance().getLogger().warning("Textures payload contains no skin!");
+                return null;
+            }
+
+            return skin.getHash();
+        }
+        return null;
+    }
+
+    /*
+     * see mcpl GameProfile's MinecraftTexturesPayload for the full impl
+     * We only need the textures, and e.g. profileId throws due to missing uuid conversion
+     */
+    private static class MinimalTexturesPayload {
+        public Map<GameProfile.TextureType, GameProfile.Texture> textures;
     }
 }

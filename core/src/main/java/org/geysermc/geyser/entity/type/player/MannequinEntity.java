@@ -39,7 +39,7 @@ public class MannequinEntity extends AvatarEntity {
     }
 
     public void setProfile(EntityMetadata<ResolvableProfile, ?> entityMetadata) {
-        setSkin(entityMetadata.getValue(), true);
+        setSkin(entityMetadata.getValue());
     }
 
     @Override
