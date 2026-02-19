@@ -258,12 +258,13 @@ public interface GeyserConfig {
 
         @Comment("""
             Allow a fake cooldown indicator to be sent. Bedrock players otherwise do not see a cooldown as they still use 1.8 combat.
-            Please note: if the cooldown is enabled, some users may see a black box during the cooldown sequence, like below:
+            If the integrated pack is disabled, the cooldown will be shown as "title" or "disabled".
+            Please note: with the "title" cooldown and disabled integrated pack, some users may see a black box during the cooldown sequence, like below:
             https://geysermc.org/img/external/cooldown_indicator.png
-            This can be disabled by going into Bedrock settings under the accessibility tab and setting "Text Background Opacity" to 0
-            This setting can be set to "title", "actionbar" or "disabled\"""")
+            Alternatively, this can be disabled by going into Bedrock settings under the accessibility tab and setting "Text Background Opacity" to 0
+            This setting can be set to "crosshair", "hotbar", "title" or "disabled\"""")
         default CooldownUtils.CooldownType showCooldown() {
-            return CooldownUtils.CooldownType.TITLE;
+            return CooldownUtils.CooldownType.CROSSHAIR;
         }
 
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")

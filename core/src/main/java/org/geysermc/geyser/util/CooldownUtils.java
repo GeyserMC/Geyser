@@ -146,6 +146,8 @@ public class CooldownUtils {
 
     @Getter
     public enum CooldownType {
+        CROSSHAIR,
+        HOTBAR,
         TITLE,
         ACTIONBAR,
         DISABLED;

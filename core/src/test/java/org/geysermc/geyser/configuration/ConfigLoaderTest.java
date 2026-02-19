@@ -26,7 +26,10 @@
 package org.geysermc.geyser.configuration;
 
 import lombok.SneakyThrows;
+import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.util.PlatformType;
+import org.geysermc.geyser.util.CooldownUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.spongepowered.configurate.CommentedConfigurationNode;
@@ -42,9 +45,12 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -62,13 +68,13 @@ public class ConfigLoaderTest {
         File file = tempDirectory.resolve("config.yml").toFile();
 
         forAllConfigs(type -> {
-            CommentedConfigurationNode config1 = new ConfigLoader(file).loadConfigurationNode(type, PlatformType.STANDALONE);
+            CommentedConfigurationNode config1 = new ConfigLoader(file, PlatformType.STANDALONE).loadConfigurationNode(type);
 
             long initialModification = file.lastModified();
             assertTrue(file.exists()); // should have been created
             List<String> firstContents = Files.readAllLines(file.toPath());
 
-            CommentedConfigurationNode config2 = new ConfigLoader(file).loadConfigurationNode(type, PlatformType.STANDALONE);
+            CommentedConfigurationNode config2 = new ConfigLoader(file, PlatformType.STANDALONE).loadConfigurationNode(type);
             List<String> secondContents = Files.readAllLines(file.toPath());
 
             assertEquals(initialModification, file.lastModified()); // should not have been touched
@@ -83,32 +89,131 @@ public class ConfigLoaderTest {
 
     @Test
     void testDefaultConfigMigration() throws Exception {
-        testConfiguration("default");
+        // Test that a migrated default v4 config migrates correctly to the latest default config
+        forAllConfigs(type -> {
+            CommentedConfigurationNode migratedV4 = new ConfigLoader(copyResourceToTempFile("tests", "v4default.yml"), getPlatformType(type))
+                .loadConfigurationNode(type);
+
+            CommentedConfigurationNode defaultV6 = new ConfigLoader(tempDirectory.resolve("new-config.yml").toFile(), getPlatformType(type))
+                .loadConfigurationNode(type);
+
+            // Compare the two configs - they should be identical
+            migratedV4.node("java").comment(null);
+            defaultV6.node("java").comment(null);
+
+            // Metric uuids won't equal, ofc
+            migratedV4.node("metrics-uuid").set(new UUID(0, 0));
+            defaultV6.node("metrics-uuid").set(new UUID(0, 0));
+
+            assertEquals(migratedV4, defaultV6);
+        });
     }
 
     @Test
     void testAllChangedConfigMigration() throws Exception {
-        testConfiguration("all-changed");
+        forAllConfigs(type -> {
+            GeyserConfig config = new ConfigLoader(copyResourceToTempFile("tests", "all-changed.yml"), getPlatformType(type)).load0(type);
+
+            assertNotNull(config);
+
+            // Verify bedrock section changes
+            assertEquals("127.0.0.1", config.bedrock().address());
+            assertEquals(19122, config.bedrock().port());
+            assertTrue(config.bedrock().cloneRemotePort());
+
+            // Verify Java section (was remote)
+            assertEquals(type == GeyserRemoteConfig.class ? "test.geysermc.org" : null, config.java().address());
+            assertEquals(type == GeyserRemoteConfig.class ? 25564 : 0, config.java().port());
+            assertEquals(AuthType.FLOODGATE, config.java().authType());
+            assertTrue(config.java().forwardHostname());
+
+            // Verify motd section
+            assertEquals("Gayser", config.motd().primaryMotd());
+            assertEquals("Another Gayser server.", config.motd().secondaryMotd());
+            assertFalse(config.motd().passthroughMotd());
+            assertFalse(config.motd().passthroughPlayerCounts());
+            assertEquals(type == GeyserRemoteConfig.class, config.motd().integratedPingPassthrough());
+            assertEquals(2, config.motd().pingPassthroughInterval());
+            assertEquals(99, config.motd().maxPlayers());
+
+            // Verify gameplay section
+            assertFalse(config.gameplay().commandSuggestions());
+            assertTrue(config.gameplay().forwardPlayerPing());
+            assertEquals(CooldownUtils.CooldownType.CROSSHAIR, config.gameplay().showCooldown());
+            assertEquals("Gayser", config.gameplay().serverName());
+            assertFalse(config.gameplay().showCoordinates());
+            assertTrue(config.gameplay().disableBedrockScaffolding());
+            assertEquals(19, config.gameplay().customSkullRenderDistance());
+            assertEquals(111, config.gameplay().maxVisibleCustomSkulls());
+            assertFalse(config.gameplay().enableCustomContent());
+            assertTrue(config.gameplay().netherRoofWorkaround());
+            assertFalse(config.gameplay().forceResourcePacks());
+            assertTrue(config.gameplay().xboxAchievementsEnabled());
+            assertEquals("minecraft:apple", config.gameplay().unusableSpaceBlock());
+            assertTrue(config.gameplay().emotesEnabled());
+
+            // Verify advanced section
+            assertEquals(10, config.advanced().cacheImages());
+            assertEquals(10, config.advanced().scoreboardPacketThreshold());
+            assertEquals("keyyy.pem", config.advanced().floodgateKeyFile());
+
+            // Verify advanced bedrock subsection
+            assertEquals(19133, config.advanced().bedrock().broadcastPort());
+            assertEquals(5, config.advanced().bedrock().compressionLevel());
+            assertTrue(config.advanced().bedrock().useHaproxyProtocol());
+            assertEquals(List.of("127.0.0.1", "172.18.0.0/13"), config.advanced().bedrock().haproxyProtocolWhitelistedIps());
+            assertTrue(config.advanced().bedrock().validateBedrockLogin());
+            assertEquals(1399, config.advanced().bedrock().mtu());
+
+            // Verify advanced java subsection
+            assertTrue(config.advanced().java().useHaproxyProtocol());
+            assertFalse(config.advanced().java().useDirectConnection());
+            assertFalse(config.advanced().java().disableCompression());
+
+            // Verify other root-level settings
+            assertEquals("en_uk", config.defaultLocale());
+            assertFalse(config.logPlayerIpAddresses());
+            assertFalse(config.notifyOnNewBedrockUpdate());
+            assertEquals(111, config.pendingAuthenticationTimeout());
+            assertEquals(List.of("ThisExampleUsername", "ThisOther"), config.savedUserLogins());
+            assertTrue(config.debugMode());
+
+            // Verify metrics
+            assertFalse(config.enableMetrics());
+            assertEquals(new UUID(0, 0), config.metricsUuid());
+
+            // Verify config version
+            assertEquals(Constants.CONFIG_VERSION, config.configVersion());
+        });
     }
 
     @Test
     void testLegacyConfigMigration() throws Exception {
-        testConfiguration("legacy");
+        forAllConfigs(type -> {
+            GeyserConfig config = new ConfigLoader(copyResourceToTempFile("tests", "legacy.yml"), getPlatformType(type)).load0(type);
+
+            assertNotNull(config);
+            // Verify floodgate key migration from legacy public-key.pem
+            assertEquals("key.pem", config.advanced().floodgateKeyFile());
+            // Show cooldown "true" should be now migrated to the default with integrated pack
+            assertEquals(CooldownUtils.CooldownType.CROSSHAIR, config.gameplay().showCooldown());
+            assertEquals(Constants.CONFIG_VERSION, config.configVersion());
+        });
     }
 
     @Test
-    void allowCustomSkullsMigration() throws Exception {
-        testConfiguration("allow-custom-skulls");
-    }
+    void testNoEmotesNoSkullsMigration() throws Exception {
+        forAllConfigs(type -> {
+            GeyserConfig config = new ConfigLoader(copyResourceToTempFile("tests", "no-emotes-no-skulls.yml"), getPlatformType(type))
+                .load0(type);
 
-    @Test
-    void testNoEmotesMigration() throws Exception {
-        testConfiguration("migrate-no-emotes");
-    }
-
-    @Test
-    void testChewsOldConfig() throws Exception {
-        testConfiguration("chew");
+            assertNotNull(config);
+            // When allow-custom-skulls is false, max-visible-custom-skulls should be set to 0
+            assertEquals(0, config.gameplay().maxVisibleCustomSkulls());
+            // When emote-offhand-workaround was "no-emotes", it should become emotes-enabled: false
+            assertFalse(config.gameplay().emotesEnabled());
+            assertEquals(Constants.CONFIG_VERSION, config.configVersion());
+        });
     }
 
     @Test
@@ -117,25 +222,12 @@ public class ConfigLoaderTest {
             try {
                 forAllConfigs(type -> {
                     assertThrows(ConfigurateException.class,
-                        () -> new ConfigLoader(resource).loadConfigurationNode(type, getPlatformType(type)),
+                        () -> new ConfigLoader(resource, getPlatformType(type)).load0(type),
                         "Did not get exception while loading %s (file: %s)".formatted(type.getSimpleName(), resource.getName()));
                 });
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        });
-    }
-
-    public void testConfiguration(String folder) throws Exception {
-        forAllConfigs(type -> {
-            CommentedConfigurationNode oldTransformed = new ConfigLoader(copyResourceToTempFile(folder, "before.yml"))
-                .loadConfigurationNode(type, getPlatformType(type));
-
-            String configName = type == GeyserRemoteConfig.class ? "remote" : "plugin";
-            CommentedConfigurationNode newTransformed = new ConfigLoader(copyResourceToTempFile(folder, configName + ".yml"))
-                .loadConfigurationNode(type, getPlatformType(type));
-
-            assertEquals(oldTransformed, newTransformed);
         });
     }
 

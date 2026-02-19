@@ -81,8 +81,9 @@ public final class ConfigLoader {
     }
 
     @VisibleForTesting
-    ConfigLoader(File file) {
+    ConfigLoader(File file, PlatformType type) {
         this.bootstrap = null;
+        this.platformType = type;
         configFile = file;
     }
 
@@ -125,7 +126,8 @@ public final class ConfigLoader {
         }
     }
 
-    private <T extends GeyserConfig> T load0(Class<T> configClass) throws ConfigurateException {
+
+    <T extends GeyserConfig> T load0(Class<T> configClass) throws ConfigurateException {
         var loader = createLoader(configFile);
 
         CommentedConfigurationNode node = loader.load();
@@ -173,8 +175,7 @@ public final class ConfigLoader {
     }
 
     @VisibleForTesting
-    CommentedConfigurationNode loadConfigurationNode(Class<? extends GeyserConfig> configClass, PlatformType platformType) throws ConfigurateException {
-        this.platformType = platformType;
+    CommentedConfigurationNode loadConfigurationNode(Class<? extends GeyserConfig> configClass) throws ConfigurateException {
         load0(configClass);
         return configurationNode.copy();
     }
