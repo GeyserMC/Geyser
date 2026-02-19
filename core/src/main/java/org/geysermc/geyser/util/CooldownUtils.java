@@ -40,10 +40,9 @@ public class CooldownUtils {
      * Sets the last hit time for use when ticking the attack cooldown
      */
     public static void setCooldownHitTime(GeyserSession session) {
-        if (session.getGeyser().config().gameplay().showCooldown() == CooldownType.DISABLED) return;
-        CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
-        if (sessionPreference == CooldownType.DISABLED) return;
-
+        if (session.getPreferencesCache().getCooldownPreference() == CooldownType.DISABLED) {
+            return;
+        }
         if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) {
             return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
         }
@@ -52,11 +51,10 @@ public class CooldownUtils {
     }
 
     public static void tickCooldown(GeyserSession session) {
-        if (session.getGeyser().config().gameplay().showCooldown() == CooldownType.DISABLED) return;
+        if (session.getGameMode().equals(GameMode.SPECTATOR)) return; // No attack indicator in spectator
+
         CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
         if (sessionPreference == CooldownType.DISABLED) return;
-
-        if (session.getGameMode().equals(GameMode.SPECTATOR)) return; // No attack indicator in spectator
 
         if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) {
             clearCooldown(session); // Let's clear in the off chance there is something already displayed
@@ -76,13 +74,7 @@ public class CooldownUtils {
 
     public static void sendCooldown(GeyserSession session, CooldownType sessionPreference, double cooldown) {
         if (session.integratedPackActive()) {
-            String value = "%s:%d".formatted(
-                sessionPreference.equals(CooldownType.TITLE) ?
-                    "crs" :
-                    "htb",
-                Math.round(cooldown * 16)
-            );
-
+            String value = (sessionPreference == CooldownType.CROSSHAIR ? "crs" : "htb") + ":" + Math.round(cooldown * 16);
             session.sendJsonUIData("cooldown", value);
         } else {
             // Set the times to stay a bit with no fade in nor out
@@ -97,7 +89,7 @@ public class CooldownUtils {
             session.getWorldCache().markTitleTimesAsIncorrect();
 
             // Actionbars don't need an empty title
-            if (sessionPreference == CooldownType.TITLE) {
+            if (sessionPreference == CooldownType.CROSSHAIR) {
                 // Needs to be sent or no subtitle packet is recognized by the client
                 titlePacket = new SetTitlePacket();
                 titlePacket.setType(SetTitlePacket.Type.TITLE);
@@ -108,7 +100,7 @@ public class CooldownUtils {
             }
 
             titlePacket = new SetTitlePacket();
-            if (sessionPreference == CooldownType.ACTIONBAR) {
+            if (sessionPreference == CooldownType.HOTBAR) {
                 titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
             } else {
                 titlePacket.setType(SetTitlePacket.Type.SUBTITLE);
@@ -157,26 +149,8 @@ public class CooldownUtils {
     public enum CooldownType {
         CROSSHAIR,
         HOTBAR,
-        TITLE,
-        ACTIONBAR,
         DISABLED;
 
         public static final CooldownType[] VALUES = values();
-
-        /**
-         * Convert the CooldownType string (from config) to the enum, DISABLED on fail
-         *
-         * @param name CooldownType string
-         *
-         * @return The converted CooldownType
-         */
-        public static CooldownType getByName(String name) {
-            for (CooldownType type : VALUES) {
-                if (type.name().equalsIgnoreCase(name)) {
-                    return type;
-                }
-            }
-            return DISABLED;
-        }
     }
 }

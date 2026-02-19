@@ -153,7 +153,7 @@ public final class ConfigLoader {
 
                 // Second case: Version 4 is pre-configurate where there were commented out nodes.
                 // These get treated as comments on lower nodes, which produces very undesirable results.
-                ConfigurationCommentMover.moveComments(node, newRoot);
+                ConfigurationCommentMover.moveComments(node, newRoot, ConfigMigrations.forceMovePaths(newVersion));
             }
 
             loader.save(newRoot);

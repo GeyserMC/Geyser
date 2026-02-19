@@ -1348,12 +1348,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         worldTicks++;
     }
 
-    public void sendJsonUIData(String key, double value) {
-        sendJsonUIData(key, String.valueOf(value));
-    }
-
     public void sendJsonUIData(String key, String value) {
-        String text = "geyseropt:%s:%s".formatted(key, value);
+        String text = "geyseropt:" + key + ":" + value;
 
         TextPacket textPacket = new TextPacket();
         textPacket.setPlatformChatId("");

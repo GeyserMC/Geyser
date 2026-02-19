@@ -358,7 +358,7 @@ public class MessageTranslator {
      * @param message Message to convert
      * @return The plain text of the message
      */
-    public static String convertToPlainText(String message) {
+    public static String convertIncomingToPlainText(String message) {
         GeyserImpl instance = GeyserImpl.getInstance();
         if (instance == null || instance.config().gameplay().blockLegacyCodes()) {
             char[] input = message.toCharArray();
