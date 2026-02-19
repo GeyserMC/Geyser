@@ -74,7 +74,6 @@ public abstract class Inventory {
     @Getter
     protected final ContainerType containerType;
 
-    @Getter
     protected final String title;
 
     protected final GeyserItemStack[] items;
@@ -101,6 +100,8 @@ public abstract class Inventory {
     @Setter
     private boolean displayed;
 
+    private final boolean applyIntegratedPackTitlePrefix;
+
     protected Inventory(GeyserSession session, int id, int size, ContainerType containerType) {
         this(session, "Inventory", id, size, containerType);
     }
@@ -126,6 +127,8 @@ public abstract class Inventory {
         if ((session.getInventoryHolder() != null && session.getInventoryHolder().bedrockId() == bedrockId) || session.isClosingInventory()) {
             this.bedrockId += 1;
         }
+
+        this.applyIntegratedPackTitlePrefix = session.integratedPackActive();
     }
 
     public GeyserItemStack getItem(int slot) {
@@ -192,5 +195,35 @@ public abstract class Inventory {
      */
     public boolean shouldConfirmContainerClose() {
         return true;
+    }
+
+    /**
+     * Gets the title for this inventory
+     * @return the title to display
+     */
+    public String getTitle() {
+        return getIntegratedPackTitlePrefix() + this.title;
+    }
+
+    /**
+     * A prefix to add to the title if the integrated pack is active.
+     * Can be good for adding changes within JSON UI.
+     * <p>
+     * <b>This prefix should always consist of color codes only.</b>
+     * Color codes prevent the client from cropping the title text for being too long.
+     * @return a prefix for the title
+     */
+    public String getIntegratedPackTitlePrefix() {
+        if (!applyIntegratedPackTitlePrefix) return "";
+
+        return switch (this.containerType) {
+            case GENERIC_9X1 -> "§z§1§r";
+            case GENERIC_9X2 -> "§z§2§r";
+            case GENERIC_9X3 -> "§z§3§r";
+            case GENERIC_9X4 -> "§z§4§r";
+            case GENERIC_9X5 -> "§z§5§r";
+            case GENERIC_9X6 -> "§z§6§r";
+            default -> "";
+        };
     }
 }

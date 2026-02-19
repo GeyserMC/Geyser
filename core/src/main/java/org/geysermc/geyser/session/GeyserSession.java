@@ -192,6 +192,7 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
+import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
@@ -365,6 +366,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     @Setter
     private int pendingOrCurrentBedrockInventoryId = -1;
+
+    /**
+     * A check for whether or not we need to clear the attack cooldown we emulate.
+     */
+    @Setter
+    private boolean needAttackCooldownClear = false;
 
     /**
      * Use {@link #getNextItemNetId()} instead for consistency
@@ -1331,12 +1338,32 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             this.upstream.getSession().getPeer().sendPacketsImmediately(0, 0, queuedImmediatelyPackets.toArray(new BedrockPacket[0]));
             queuedImmediatelyPackets.clear();
+
+            CooldownUtils.tickCooldown(this);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
 
         ticks++;
         worldTicks++;
+    }
+
+    public void sendJsonUIData(String key, double value) {
+        sendJsonUIData(key, String.valueOf(value));
+    }
+
+    public void sendJsonUIData(String key, String value) {
+        String text = "geyseropt:%s:%s".formatted(key, value);
+
+        TextPacket textPacket = new TextPacket();
+        textPacket.setPlatformChatId("");
+        textPacket.setSourceName("");
+        textPacket.setXuid("");
+        textPacket.setType(TextPacket.Type.TIP);
+        textPacket.setNeedsTranslation(false);
+        textPacket.setMessage(text);
+
+        this.sendUpstreamPacket(textPacket);
     }
 
     public void startSneaking(boolean updateMetaData) {
@@ -2498,7 +2525,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         sendUpstreamPacket(latencyPacket);
     }
-  
+
     public String getDebugInfo() {
         return "Username: %s, DeviceOs: %s, Version: %s".formatted(bedrockUsername(), platform(), version());
     }
