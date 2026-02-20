@@ -102,7 +102,7 @@ public class Container extends Inventory {
      * The prefix to add to the title if the integrated pack is active.
      * It is used within the GeyserIntegratedPack to apply specific changes.
      * <p>
-     * <b>This prefix should always consist of color codes only.</b>
+     * <b>This prefix should always consist of (invalid) color codes only.</b>
      * Color codes prevent the client from cropping the title text for being too long.
      * @return a prefix for the title
      */
