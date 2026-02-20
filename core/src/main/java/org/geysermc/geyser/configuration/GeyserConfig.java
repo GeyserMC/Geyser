@@ -261,7 +261,7 @@ public interface GeyserConfig {
             Please note: with the integrated pack disabled, some users may see a black box during the cooldown sequence, like below:
             https://geysermc.org/img/external/cooldown_indicator.png
             This can be resolved by enabling the integrated pack, or by going into Bedrock settings under the accessibility tab and setting "Text Background Opacity" to 0
-            This setting can be set to "crosshair", "hotbar", "disabled\"""")
+            This setting can be set to "crosshair", "hotbar", or "disabled\"""")
         default CooldownUtils.CooldownType showCooldown() {
             return CooldownUtils.CooldownType.CROSSHAIR;
         }
@@ -419,7 +419,7 @@ public interface GeyserConfig {
             This config option must only be set when there are more than one listeners configured in the BungeeCord config.
             Example: "0.0.0.0:25577"
             """)
-        @DefaultString() // without annotation, default value is null
+        @DefaultString() // without annotation, the node is virtual and not written
         @IncludePlatform(platforms = {"BungeeCord"})
         String bungeeListener();
 

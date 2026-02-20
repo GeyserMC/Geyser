@@ -52,6 +52,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -229,49 +230,24 @@ public class ConfigLoaderTest {
         File file = tempDirectory.resolve("platform-test-" + platformType + ".yml").toFile();
         CommentedConfigurationNode config = new ConfigLoader(file, platformType).loadConfigurationNode(configClass);
 
-        // Test @ExcludePlatform - metrics should not be present on plugin platforms
-        if (platformType != PlatformType.BUNGEECORD && platformType != PlatformType.SPIGOT && platformType != PlatformType.VELOCITY) {
-            assertFalse(config.node("enable-metrics").virtual(),
-                "Remote config should have enable-metrics field");
-            assertFalse(config.node("metrics-uuid").virtual(),
-                "Remote config should have metrics-uuid field");
-        } else {
-            assertTrue(config.node("enable-metrics").virtual(),
-                platformType + " config should not have enable-metrics field (excluded via @ExcludePlatform)");
-            assertTrue(config.node("metrics-uuid").virtual(),
-                platformType + " config should not have metrics-uuid field (excluded via @ExcludePlatform)");
-        }
+        boolean integratedMetricsPlatform = platformType == PlatformType.BUNGEECORD || platformType == PlatformType.SPIGOT || platformType == PlatformType.VELOCITY;
+
+        // Test @ExcludePlatform - metrics should only be present if we handle them
+        assertEquals(integratedMetricsPlatform, config.node("enable-metrics").virtual());
+        assertEquals(integratedMetricsPlatform, config.node("metrics-uuid").virtual());
+
+        boolean standalone = platformType == PlatformType.STANDALONE;
 
         // Test @PluginSpecific - plugin-only fields should only be present on plugin platforms
-        if (platformType != PlatformType.STANDALONE) {
-            // Plugin platforms should have these fields
-            assertFalse(config.node("bedrock", "clone-remote-port").virtual(),
-                platformType + " config should have bedrock.clone-remote-port field (@PluginSpecific)");
-            assertFalse(config.node("motd", "integrated-ping-passthrough").virtual(),
-                platformType + " config should have motd.integrated-ping-passthrough field (@PluginSpecific)");
-            assertFalse(config.node("advanced", "java", "use-direct-connection").virtual(),
-                platformType + " config should have advanced.java.use-direct-connection field (@PluginSpecific)");
-            assertFalse(config.node("advanced", "java", "disable-compression").virtual(),
-                platformType + " config should have advanced.java.disable-compression field (@PluginSpecific)");
-        } else {
-            assertTrue(config.node("bedrock", "clone-remote-port").virtual(),
-                "Remote config should have bedrock.clone-remote-port field (but defaults to false)");
-            assertTrue(config.node("motd", "integrated-ping-passthrough").virtual(),
-                "Remote config should NOT have motd.integrated-ping-passthrough field (@PluginSpecific)");
-            assertTrue(config.node("advanced", "java", "use-direct-connection").virtual(),
-                "Remote config should NOT have advanced.java.use-direct-connection field (@PluginSpecific)");
-            assertTrue(config.node("advanced", "java", "disable-compression").virtual(),
-                "Remote config should NOT have advanced.java.disable-compression field (@PluginSpecific)");
-        }
+        assertEquals(standalone, config.node("bedrock", "clone-remote-port").virtual());
+        assertEquals(standalone, config.node("motd", "integrated-ping-passthrough").virtual());
+        assertEquals(standalone, config.node("advanced", "java", "use-direct-connection").virtual());
+        assertEquals(standalone, config.node("advanced", "java", "disable-compression").virtual());
+
+        boolean bungee = platformType == PlatformType.BUNGEECORD;
 
         // Test @IncludePlatform - bungee-listener should ONLY be present on BungeeCord platform
-        if (platformType == PlatformType.BUNGEECORD) {
-            assertFalse(config.node("advanced", "java", "bungee-listener").virtual(),
-                "BungeeCord config SHOULD have advanced.java.bungee-listener field (@IncludePlatform)");
-        } else {
-            assertTrue(config.node("advanced", "java", "bungee-listener").virtual(),
-                platformType + " config should NOT have advanced.java.bungee-listener field (only for BungeeCord via @IncludePlatform)");
-        }
+        assertEquals(!bungee, config.node("advanced", "java", "bungee-listener").virtual());
     }
 
     @Test
@@ -294,6 +270,26 @@ public class ConfigLoaderTest {
                 throw new RuntimeException(e);
             }
         });
+    }
+
+    @Test
+    public void testForceCommentMover() throws Exception {
+        // V5 -> V6 changed the comment for the show-cooldown option; let's ensure it is migrated correctly
+        CommentedConfigurationNode node = new ConfigLoader(copyResourceToTempFile("tests", "helpful-smp.yml"), PlatformType.FABRIC)
+            .loadConfigurationNode(GeyserPluginConfig.class);
+        assertNotNull(node);
+
+        // This comment should be migrated
+        String comment = node.node("gameplay", "show-cooldown").comment();
+        // But not this one!
+        String otherComment = node.node("advanced", "bedrock", "haproxy-protocol-whitelisted-ips").comment();
+
+        // Create a new config to cross-compare
+        CommentedConfigurationNode defaultV6 = new ConfigLoader(tempDirectory.resolve("new-config.yml").toFile(), PlatformType.FABRIC)
+            .loadConfigurationNode(GeyserPluginConfig.class);
+
+        assertEquals(comment, defaultV6.node("gameplay", "show-cooldown").comment());
+        assertNotEquals(otherComment, defaultV6.node("advanced", "bedrock", "haproxy-protocol-whitelisted-ips").comment());
     }
 
     File copyResourceToTempFile(String... path) throws Exception {
