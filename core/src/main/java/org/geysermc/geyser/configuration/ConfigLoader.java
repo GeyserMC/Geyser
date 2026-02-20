@@ -210,12 +210,17 @@ public final class ConfigLoader {
 
     private static Processor.Factory<IncludePlatform, Object> includePlatform(String thisPlatform) {
         return (data, fieldType) -> (value, destination) -> {
+            boolean matches = false;
             for (String platform : data.platforms()) {
-                if (!thisPlatform.equals(platform)) {
-                    //noinspection DataFlowIssue
-                    destination.parent().removeChild(destination.key());
+                if (thisPlatform.equals(platform)) {
+                    matches = true;
                     break;
                 }
+            }
+
+            if (!matches) {
+                //noinspection DataFlowIssue
+                destination.parent().removeChild(destination.key());
             }
         };
     }
