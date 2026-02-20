@@ -106,18 +106,25 @@ public class ConfigLoaderTest {
         CommentedConfigurationNode migratedV4 = new ConfigLoader(copyResourceToTempFile("tests", "v4default.yml"), platformType)
             .loadConfigurationNode(configClass);
 
-        CommentedConfigurationNode defaultV6 = new ConfigLoader(tempDirectory.resolve("new-config-" + platformType + ".yml").toFile(), platformType)
+        CommentedConfigurationNode defaultConfig = new ConfigLoader(tempDirectory.resolve("new-config-" + platformType + ".yml").toFile(), platformType)
             .loadConfigurationNode(configClass);
 
         // Compare the two configs - they should be identical
         migratedV4.node("java").comment(null);
-        defaultV6.node("java").comment(null);
+        defaultConfig.node("java").comment(null);
 
-        // Metric uuids won't equal, ofc
-        migratedV4.node("metrics-uuid").set(new UUID(0, 0));
-        defaultV6.node("metrics-uuid").set(new UUID(0, 0));
+        // Metric uuids, if present, won't be equal, ofc
+        var migratedUuid = migratedV4.node("metrics-uuid");
+        if (!migratedUuid.virtual()) {
+            migratedUuid.set(new UUID(0, 0));
+        }
 
-        assertEquals(migratedV4, defaultV6);
+        var defaultUuid = defaultConfig.node("metrics-uuid");
+        if (!defaultUuid.virtual()) {
+            defaultConfig.node("metrics-uuid").set(new UUID(0, 0));
+        }
+
+        assertEquals(migratedV4, defaultConfig);
     }
 
     @ParameterizedTest
@@ -230,11 +237,11 @@ public class ConfigLoaderTest {
         File file = tempDirectory.resolve("platform-test-" + platformType + ".yml").toFile();
         CommentedConfigurationNode config = new ConfigLoader(file, platformType).loadConfigurationNode(configClass);
 
-        boolean integratedMetricsPlatform = platformType == PlatformType.BUNGEECORD || platformType == PlatformType.SPIGOT || platformType == PlatformType.VELOCITY;
+        boolean excludeMetricsOptions = platformType == PlatformType.BUNGEECORD || platformType == PlatformType.SPIGOT || platformType == PlatformType.VELOCITY;
 
         // Test @ExcludePlatform - metrics should only be present if we handle them
-        assertEquals(integratedMetricsPlatform, config.node("enable-metrics").virtual());
-        assertEquals(integratedMetricsPlatform, config.node("metrics-uuid").virtual());
+        assertEquals(excludeMetricsOptions, config.node("enable-metrics").virtual());
+        assertEquals(excludeMetricsOptions, config.node("metrics-uuid").virtual());
 
         boolean standalone = platformType == PlatformType.STANDALONE;
 
