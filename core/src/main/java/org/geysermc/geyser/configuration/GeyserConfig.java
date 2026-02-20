@@ -258,12 +258,12 @@ public interface GeyserConfig {
 
         @Comment("""
             Allow a fake cooldown indicator to be sent. Bedrock players otherwise do not see a cooldown as they still use 1.8 combat.
-            Please note: if the cooldown is enabled, some users may see a black box during the cooldown sequence, like below:
+            Please note: with the integrated pack disabled, some users may see a black box during the cooldown sequence, like below:
             https://geysermc.org/img/external/cooldown_indicator.png
-            This can be disabled by going into Bedrock settings under the accessibility tab and setting "Text Background Opacity" to 0
-            This setting can be set to "title", "actionbar" or "disabled\"""")
+            This can be resolved by enabling the integrated pack, or by going into Bedrock settings under the accessibility tab and setting "Text Background Opacity" to 0.
+            This setting can be set to "crosshair", "hotbar", or "disabled\"""")
         default CooldownUtils.CooldownType showCooldown() {
-            return CooldownUtils.CooldownType.TITLE;
+            return CooldownUtils.CooldownType.CROSSHAIR;
         }
 
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")
@@ -291,6 +291,14 @@ public interface GeyserConfig {
             """)
         @DefaultBoolean(true)
         boolean emotesEnabled();
+
+        @Comment("""
+            Whether to remove legacy text formatting codes sent by Bedrock players.
+            Unlike on Java Edition, typing section signs for legacy color codes is possible on Bedrock Edition.
+            See https://minecraft.wiki/w/Formatting_codes for further information.
+            """)
+        @DefaultBoolean(true)
+        boolean blockLegacyCodes();
 
         @Comment("""
             Which item to use to mark unavailable slots in a Bedrock player inventory. Examples of this are the 2x2 crafting grid while in creative,
@@ -407,6 +415,15 @@ public interface GeyserConfig {
                 2) You run Velocity or BungeeCord with the option enabled in the proxy's main config.
                 IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!""")
         boolean useHaproxyProtocol();
+
+        @Comment("""
+            Selects which BungeeCord listener Geyser should connect to, based on the listener's bind address and port.
+            This config option must only be set when there are more than one listeners configured in the BungeeCord config.
+            Example: "0.0.0.0:25577"
+            """)
+        @DefaultString() // without annotation, the node is virtual and not written
+        @IncludePlatform(platforms = {"BungeeCord"})
+        String bungeeListener();
 
         @Comment("""
         Whether to connect directly into the Java server without creating a TCP connection.

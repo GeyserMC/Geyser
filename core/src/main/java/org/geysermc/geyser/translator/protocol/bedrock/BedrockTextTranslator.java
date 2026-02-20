@@ -37,7 +37,7 @@ public class BedrockTextTranslator extends PacketTranslator<TextPacket> {
     @Override
     public void translate(GeyserSession session, TextPacket packet) {
         // Java trims all messages, and then checks for the leading slash
-        String message = MessageTranslator.convertToPlainText(
+        String message = MessageTranslator.convertIncomingToPlainText(
                 MessageTranslator.normalizeSpace(packet.getMessage())
         );
 

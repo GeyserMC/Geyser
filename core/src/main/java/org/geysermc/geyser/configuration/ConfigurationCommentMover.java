@@ -29,6 +29,9 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.ConfigurationVisitor;
+import org.spongepowered.configurate.NodePath;
+
+import java.util.function.Predicate;
 
 /**
  * Moves comments from a different node and puts them on this node
@@ -36,9 +39,11 @@ import org.spongepowered.configurate.ConfigurationVisitor;
 public final class ConfigurationCommentMover implements ConfigurationVisitor.Stateless<RuntimeException> {
 
     private final CommentedConfigurationNode otherRoot;
+    private final Predicate<NodePath> exemptions;
 
-    private ConfigurationCommentMover(@NonNull CommentedConfigurationNode otherNode) {
+    private ConfigurationCommentMover(@NonNull CommentedConfigurationNode otherNode, Predicate<NodePath> exemptions) {
         this.otherRoot = otherNode;
+        this.exemptions = exemptions;
     }
 
     @Override
@@ -48,6 +53,11 @@ public final class ConfigurationCommentMover implements ConfigurationVisitor.Sta
             // and our static method below ensures this visitor is only used on CommentedConfigurationNodes
             throw new IllegalStateException(node.path() + " is not a CommentedConfigurationNode");
         }
+
+        if (exemptions.test(node.path())) {
+            return;
+        }
+
         // Node with the same path
         CommentedConfigurationNode source = otherRoot.node(node.path());
 
@@ -69,8 +79,9 @@ public final class ConfigurationCommentMover implements ConfigurationVisitor.Sta
      *
      * @param source the source of the comments, which must be the topmost parent of a tree
      * @param destination the destination of the comments, any node in a different tree
+     * @param exemptions the node paths which should be skipped, e.g. due to new options
      */
-    public static void moveComments(@NonNull CommentedConfigurationNode source, @NonNull CommentedConfigurationNode destination) {
+    public static void moveComments(@NonNull CommentedConfigurationNode source, @NonNull CommentedConfigurationNode destination, Predicate<NodePath> exemptions) {
         if (source.parent() != null) {
             throw new IllegalArgumentException("source is not the base of the tree it is within: " + source.path());
         }
@@ -79,7 +90,7 @@ public final class ConfigurationCommentMover implements ConfigurationVisitor.Sta
             // It has no value(s), but may still have a comment on it. Don't both traversing the whole destination tree.
             moveSingle(source, destination);
         } else {
-            destination.visit(new ConfigurationCommentMover(source));
+            destination.visit(new ConfigurationCommentMover(source, exemptions));
         }
     }
 }

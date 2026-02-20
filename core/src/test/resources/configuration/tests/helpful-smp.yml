@@ -21,28 +21,22 @@ bedrock:
   # Since Minecraft: Bedrock Edition uses UDP, this port must allow UDP traffic.
   port: 19132
 
+  # Some hosting services change your Java port everytime you start the server and require the same port to be used for Bedrock.
+  # This option makes the Bedrock port the same as the Java port every time you start the server.
+  clone-remote-port: false
+
 # Network settings for the Java server connection
 java:
-  # The IP address of the Java Edition server.
-  address: 127.0.0.1
-
-  # The port of the Java Edition server.
-  port: 25565
-
   # What type of authentication Bedrock players will be checked against when logging into the Java server.
   # Can be "floodgate" (see https://wiki.geysermc.org/floodgate/), "online", or "offline".
-  auth-type: floodgate
-
-  # Whether to forward the hostname that the Bedrock client used to connect over to the Java server.
-  # This is designed to be used for forced hosts on proxies.
-  forward-hostname: false
+  auth-type: online
 
 # MOTD settings
 motd:
   # The MOTD that will be broadcasted to Minecraft: Bedrock Edition clients. This is irrelevant if "passthrough-motd" is set to true.
   # If either of these are empty, the respective string will default to "Geyser"
-  primary-motd: gsauta
-  secondary-motd: owo
+  primary-motd: Very Helpful
+  secondary-motd: I see you.
 
   # Whether Geyser should relay the MOTD from the Java server to Bedrock players.
   passthrough-motd: false
@@ -52,21 +46,26 @@ motd:
   max-players: 100
 
   # Whether to relay the player count and max players from the Java server to Bedrock players.
-  passthrough-player-counts: false
+  passthrough-player-counts: true
+
+  # Whether to use server API methods to determine the Java server's MOTD and ping passthrough.
+  # There is no need to disable this unless your MOTD or player count does not appear properly.
+  integrated-ping-passthrough: true
 
   # How often to ping the Java server to refresh MOTD and player count, in seconds.
+  # Only relevant if integrated-ping-passthrough is disabled.
   ping-passthrough-interval: 3
 
 # Gameplay options that affect Bedrock players
 gameplay:
   # The server name that will be sent to Minecraft: Bedrock Edition clients. This is visible in both the pause menu and the settings menu.
-  server-name: GSA
+  server-name: Very Helpful
 
   # Allow a fake cooldown indicator to be sent. Bedrock players otherwise do not see a cooldown as they still use 1.8 combat.
   # Please note: if the cooldown is enabled, some users may see a black box during the cooldown sequence, like below:
   # https://geysermc.org/img/external/cooldown_indicator.png
   # This can be disabled by going into Bedrock settings under the accessibility tab and setting "Text Background Opacity" to 0
-  # This setting can be set to "title", "actionbar" or "false"
+  # This setting can be set to "title", "actionbar" or "disabled"
   show-cooldown: title
 
   # Bedrock clients can freeze when opening up the command prompt for the first time if given a lot of commands.
@@ -82,10 +81,10 @@ gameplay:
   # Bedrock prevents building and displaying blocks above Y127 in the Nether.
   # This config option works around that by changing the Nether dimension ID to the End ID.
   # The main downside to this is that the entire Nether will have the same red fog rather than having different fog for each biome.
-  nether-roof-workaround: false
+  nether-roof-workaround: true
 
   # Whether to show Bedrock Edition emotes to other Bedrock Edition players.
-  show-emotes: true
+  emotes-enabled: true
 
   # Which item to use to mark unavailable slots in a Bedrock player inventory. Examples of this are the 2x2 crafting grid while in creative,
   # or custom inventory menus with sizes different from the usual 3x9. A barrier block is the default item.
@@ -186,6 +185,17 @@ advanced:
     # IF YOU DON'T KNOW WHAT THIS IS, DON'T TOUCH IT!
     use-haproxy-protocol: false
 
+    # Whether to connect directly into the Java server without creating a TCP connection.
+    # This should only be disabled if a plugin that interfaces with packets or the network does not work correctly with Geyser.
+    # If enabled, the remote address and port sections are ignored.
+    # If disabled, expect performance decrease and latency increase.
+    use-direct-connection: true
+
+    # Whether Geyser should attempt to disable packet compression (from the Java Server to Geyser) for Bedrock players.
+    # This should be a benefit as there is no need to compress data when Java packets aren't being handled over the network.
+    # This requires use-direct-connection to be true.
+    disable-compression: true
+
   # Advanced networking options for Geyser's Bedrock listener
   bedrock:
     # The port to broadcast to Bedrock clients with the MOTD that they should use to connect to the server.
@@ -206,6 +216,7 @@ advanced:
     # should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
     # Keeping this list empty means there is no IP address whitelist.
     # IP addresses, subnets, and links to plain text files are supported.
+    # Modified comment here! Not sure why we move them. But hey, we do!
     haproxy-protocol-whitelisted-ips: []
 
     # The internet supports a maximum MTU of 1492 but could cause issues with packet fragmentation.
@@ -227,7 +238,7 @@ advanced:
 enable-metrics: true
 
 # The bstats metrics uuid. Do not touch!
-metrics-uuid: ff99f931-ff7f-4dfc-a027-4bd15edc5980
+metrics-uuid: 27bf9460-2b4b-4357-9dbf-443219d4c269
 
 # If debug messages should be sent through console
 debug-mode: false

@@ -28,6 +28,7 @@ package org.geysermc.geyser.configuration;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.NodePath;
 import org.spongepowered.configurate.transformation.ConfigurationTransformation;
 import org.spongepowered.configurate.transformation.TransformAction;
 
@@ -35,12 +36,15 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
 import static org.spongepowered.configurate.NodePath.path;
 import static org.spongepowered.configurate.transformation.TransformAction.remove;
 import static org.spongepowered.configurate.transformation.TransformAction.rename;
 
 public class ConfigMigrations {
+
+    public static final NodePath SHOW_COOLDOWN = NodePath.path("gameplay", "show-cooldown");
 
     public static final BiFunction<Class<? extends GeyserConfig>, GeyserBootstrap, ConfigurationTransformation.Versioned> TRANSFORMER = (configClass, bootstrap) ->
         ConfigurationTransformation.versionedBuilder()
@@ -112,7 +116,7 @@ public class ConfigMigrations {
                 }
                 if (Objects.equals(previous, "no-emotes")) {
                     value.set(false);
-                    return new Object[]{ "gameplay", "show-emotes" };
+                    return new Object[]{ "gameplay", "emotes-enabled" };
                 }
                 return null;
             })
@@ -175,6 +179,15 @@ public class ConfigMigrations {
             })
 
             .build())
+            .addVersion(6, ConfigurationTransformation.builder()
+                .addAction(path("gameplay", "show-cooldown"), (path, value) -> {
+                    String s = value.getString();
+                    if (s != null && !"disabled".equals(s)) {
+                        value.set("crosshair");
+                    }
+                    return new Object[]{ "gameplay", "show-cooldown" };
+                })
+                .build())
         .build();
 
     static TransformAction renameAndMove(String... newPath) {
@@ -194,5 +207,15 @@ public class ConfigMigrations {
                 return result;
             }
         };
+    }
+
+    public static Predicate<NodePath> forceMovePaths(int newVersion) {
+        if (newVersion == 6) {
+            // We introduced new cooldown options, which require an update to the config option comment
+            // Otherwise new values are not documented :(
+            return Predicate.isEqual(SHOW_COOLDOWN);
+        }
+        // Got nothing to exclude
+        return path -> false;
     }
 }

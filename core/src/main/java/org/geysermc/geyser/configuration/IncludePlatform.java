@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,20 +23,15 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.bedrock;
+package org.geysermc.geyser.configuration;
 
-import org.cloudburstmc.protocol.bedrock.packet.CommandRequestPacket;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.text.MessageTranslator;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-@Translator(packet = CommandRequestPacket.class)
-public class BedrockCommandRequestTranslator extends PacketTranslator<CommandRequestPacket> {
-
-    @Override
-    public void translate(GeyserSession session, CommandRequestPacket packet) {
-        String command = MessageTranslator.convertIncomingToPlainText(packet.getCommand());
-        session.sendCommand(MessageTranslator.normalizeSpace(command).substring(1));
-    }
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface IncludePlatform {
+    String[] platforms();
 }
