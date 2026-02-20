@@ -160,10 +160,11 @@ public final class GeyserServer {
     private void modifyHandlers(ChannelFuture future) {
         future.addListener((ChannelFutureListener) f -> {
             if (!f.isSuccess()) {
+                GeyserImpl.getInstance().getLogger().warning("Not modifying handlers due to exception: " + f.cause());
                 return;
             }
 
-            Channel channel = future.channel();
+            Channel channel = f.channel();
             // Add our ping handler
             channel.pipeline()
                 .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
