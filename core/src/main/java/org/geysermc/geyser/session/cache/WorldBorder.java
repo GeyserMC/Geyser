@@ -288,7 +288,7 @@ public class WorldBorder {
     }
 
     public void createStatic(double size) {
-        stopResize(DEFAULT_WORLD_BORDER_SIZE);
+        stopResize(size);
         this.size = size;
         this.update();
     }
@@ -302,6 +302,7 @@ public class WorldBorder {
     }
 
     public void createMoving(double from, double to, long lerpDuration) {
+        this.size = from;
         this.from = from;
         this.to = to;
         this.lerpDuration = lerpDuration;
