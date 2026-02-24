@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
+import org.geysermc.geyser.entity.type.living.animal.nautilus.AbstractNautilusEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -51,7 +52,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
     @Override
     public void translate(GeyserSession session, InteractPacket packet) {
         Entity entity;
-        if (packet.getRuntimeEntityId() == session.getPlayerEntity().getGeyserId()) {
+        if (packet.getRuntimeEntityId() == session.getPlayerEntity().geyserId()) {
             //Player is not in entity cache
             entity = session.getPlayerEntity();
         } else {
@@ -88,13 +89,13 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                             return;
                         }
 
-                        long vehicleBedrockId = currentVehicle.getGeyserId();
-                        if (session.getPlayerEntity().getVehicle().getGeyserId() == vehicleBedrockId) {
+                        long vehicleBedrockId = currentVehicle.geyserId();
+                        if (session.getPlayerEntity().getVehicle().geyserId() == vehicleBedrockId) {
                             // The Bedrock client, as of 1.19.51, dismounts on its end. The server may not agree with this.
                             // If the server doesn't agree with our dismount (sends a packet saying we dismounted),
                             // then remount the player.
                             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-                            linkPacket.setEntityLink(new EntityLinkData(vehicleBedrockId, session.getPlayerEntity().getGeyserId(), EntityLinkData.Type.PASSENGER, true, false, 0f));
+                            linkPacket.setEntityLink(new EntityLinkData(vehicleBedrockId, session.getPlayerEntity().geyserId(), EntityLinkData.Type.PASSENGER, true, false, 0f));
                             session.sendUpstreamPacket(linkPacket);
                         }
                     }, 1, TimeUnit.SECONDS));
@@ -122,7 +123,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
             case OPEN_INVENTORY:
                 if (session.getInventoryHolder() == null) {
                     Entity ridingEntity = session.getPlayerEntity().getVehicle();
-                    if (ridingEntity instanceof AbstractHorseEntity || ridingEntity instanceof ChestBoatEntity) {
+                    if (ridingEntity instanceof AbstractHorseEntity || ridingEntity instanceof AbstractNautilusEntity || ridingEntity instanceof ChestBoatEntity) {
                         // This mob has an inventory of its own that we should open instead.
                         ServerboundPlayerCommandPacket openVehicleWindowPacket = new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(), PlayerState.OPEN_VEHICLE_INVENTORY);
                         session.sendDownstreamGamePacket(openVehicleWindowPacket);

@@ -72,7 +72,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
 
         if (translator.acceptedType() != metadata.getType()) {
             GeyserImpl.getInstance().getLogger().warning("Metadata ID " + metadata.getId() + " was received with type " + metadata.getType() + " but we expected " + translator.acceptedType() + " for " + entity.getDefinition().entityType());
-            if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
+            if (GeyserImpl.getInstance().config().debugMode()) {
                 GeyserImpl.getInstance().getLogger().debug(metadata.toString());
             }
             return;
@@ -161,7 +161,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             if (identifier == null && type != null) {
                 identifier = "minecraft:" + type.name().toLowerCase(Locale.ROOT);
             }
-            GeyserEntityProperties registeredProperties = propertiesBuilder == null ? null : propertiesBuilder.build();
+            GeyserEntityProperties registeredProperties = propertiesBuilder == null ? new GeyserEntityProperties() : propertiesBuilder.build();
             EntityDefinition<T> definition = new EntityDefinition<>(factory, type, identifier, width, height, offset, registeredProperties, translators);
             if (register && definition.entityType() != null) {
                 Registries.ENTITY_DEFINITIONS.get().putIfAbsent(definition.entityType(), definition);

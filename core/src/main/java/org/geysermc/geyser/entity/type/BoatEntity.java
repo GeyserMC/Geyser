@@ -26,23 +26,23 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
-import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.entity.vehicle.BoatVehicleComponent;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.vehicle.VehicleComponent;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundPaddleBoatPacket;
 
-import java.util.UUID;
-
-public class BoatEntity extends Entity implements Leashable, Tickable {
+public class BoatEntity extends Entity implements Tickable, Leashable, ClientVehicle {
 
     /**
      * Required when IS_BUOYANT is sent in order for boats to work in the water. <br>
@@ -53,6 +53,8 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     private static final String BUOYANCY_DATA = "{\"apply_gravity\":true,\"base_buoyancy\":1.0,\"big_wave_probability\":0.02999999932944775," +
             "\"big_wave_speed\":10.0,\"drag_down_on_buoyancy_removed\":0.0,\"liquid_blocks\":[\"minecraft:water\"," +
             "\"minecraft:flowing_water\"],\"simulate_waves\":false}";
+
+    private final BoatVehicleComponent vehicleComponent = new BoatVehicleComponent(this, 0);
 
     private boolean isPaddlingLeft;
     private float paddleTimeLeft;
@@ -68,12 +70,15 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
 
     private long leashHolderBedrockId = -1;
 
-    // Looks too fast and too choppy with 0.1f, which is how I believe the Microsoftian client handles it
-    private final float ROWING_SPEED = 0.1f;
+    // This is the best value, I can't really found any value that doesn't look choppy and laggy or that is not too slow, blame bedrock.
+    private final float ROWING_SPEED = 0.04f;
 
-    public BoatEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, BoatVariant variant) {
+    public BoatEntity(EntitySpawnContext context, BoatVariant variant) {
+        super(context);
         // Initial rotation is incorrect
-        super(session, entityId, geyserId, uuid, definition, position.add(0d, definition.offset(), 0d), motion, yaw + 90, 0, yaw + 90);
+        setYaw(yaw + 90);
+        setPitch(0);
+        setHeadYaw(headYaw + 90);
         this.variant = variant;
 
         dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
@@ -91,7 +96,7 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // We don't include the rotation (y) as it causes the boat to appear sideways
         setPosition(position.add(0d, this.definition.offset(), 0d));
         setYaw(yaw + 90);
@@ -117,22 +122,22 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
      * Move the boat without making the adjustments needed to translate from Java
      */
     public void moveAbsoluteWithoutAdjustments(Vector3f position, float yaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position, yaw, 0, yaw, isOnGround, teleported);
+        super.moveAbsoluteRaw(position, yaw, 0, yaw, isOnGround, teleported);
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        super.moveRelative(relX, relY, relZ, yaw, 0, yaw, isOnGround);
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelativeRaw(relX, relY, relZ, yaw, 0, yaw, isOnGround);
     }
 
     @Override
     public void updatePositionAndRotation(double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
-        moveRelative(moveX, moveY, moveZ, yaw + 90, pitch, isOnGround);
+        moveRelative(moveX, moveY, moveZ, yaw + 90, 0, 0, isOnGround);
     }
 
     @Override
     public void updateRotation(float yaw, float pitch, boolean isOnGround) {
-        moveRelative(0, 0, 0, yaw + 90, 0, 0, isOnGround);
+        moveRelativeRaw(0, 0, 0, yaw + 90, 0, 0, isOnGround);
     }
 
     public void setPaddlingLeft(BooleanEntityMetadata entityMetadata) {
@@ -193,8 +198,13 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
             // For packet timing accuracy, we'll send the packets here, as that's what Java Edition 1.21.3 does.
             ServerboundPaddleBoatPacket steerPacket = new ServerboundPaddleBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
             session.sendDownstreamGamePacket(steerPacket);
-            return;
+
+            // If the vehicle is not controlled by the client, then we will have to send the client the rowing time else the animation won't play!
+            if (session.isInClientPredictedVehicle()) {
+                return;
+            }
         }
+
         doTick = !doTick; // Run every other tick
         if (!doTick || passengers.isEmpty()) {
             return;
@@ -213,19 +223,35 @@ public class BoatEntity extends Entity implements Leashable, Tickable {
             paddleTimeRight += ROWING_SPEED;
             dirtyMetadata.put(EntityDataTypes.ROW_TIME_RIGHT, paddleTimeRight);
         }
+
+        if (isPaddlingLeft || isPaddlingRight) {
+            updateBedrockMetadata();
+        }
     }
 
     @Override
     public long leashHolderBedrockId() {
-        return leashHolderBedrockId;
+        return this.leashHolderBedrockId;
     }
 
-    private void sendAnimationPacket(GeyserSession session, Entity rower, AnimatePacket.Action action, float rowTime) {
-        AnimatePacket packet = new AnimatePacket();
-        packet.setRuntimeEntityId(rower.getGeyserId());
-        packet.setAction(action);
-        packet.setRowingTime(rowTime);
-        session.sendUpstreamPacket(packet);
+    @Override
+    public VehicleComponent<?> getVehicleComponent() {
+        return this.vehicleComponent;
+    }
+
+    @Override
+    public Vector3f getRiddenInput(Vector2f input) {
+        return Vector3f.ZERO;
+    }
+
+    @Override
+    public float getVehicleSpeed() {
+        return 0;
+    }
+
+    @Override
+    public boolean isClientControlled() {
+        return !session.isInClientPredictedVehicle() && !passengers.isEmpty() && this.session.getPlayerEntity() == passengers.get(0);
     }
 
     /**

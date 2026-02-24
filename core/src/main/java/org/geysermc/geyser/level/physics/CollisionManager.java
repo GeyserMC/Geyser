@@ -166,7 +166,7 @@ public class CollisionManager {
         }
         // We need to parse the float as a string since casting a float to a double causes us to
         // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = Double.parseDouble(Float.toString(bedrockPosition.getY() - EntityDefinitions.PLAYER.offset()));
+        double javaY = Double.parseDouble(Float.toString(bedrockPosition.getY())) - EntityDefinitions.PLAYER.offset();
 
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY,
                 Double.parseDouble(Float.toString(bedrockPosition.getZ())));
@@ -221,7 +221,7 @@ public class CollisionManager {
     public void recalculatePosition() {
         PlayerEntity entity = session.getPlayerEntity();
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-        movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+        movePlayerPacket.setRuntimeEntityId(entity.geyserId());
         movePlayerPacket.setPosition(entity.getPosition());
         movePlayerPacket.setRotation(entity.getBedrockRotation());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
@@ -352,7 +352,7 @@ public class CollisionManager {
         return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
     }
 
-    private Vector3d correctMovementForCollisions(Vector3d movement, BoundingBox boundingBox, boolean checkWorld, boolean walkOnLava) {
+    public Vector3d correctMovementForCollisions(Vector3d movement, BoundingBox boundingBox, boolean checkWorld, boolean walkOnLava) {
         double movementX = movement.getX();
         double movementY = movement.getY();
         double movementZ = movement.getZ();

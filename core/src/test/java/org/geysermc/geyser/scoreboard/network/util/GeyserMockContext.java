@@ -25,20 +25,20 @@
 
 package org.geysermc.geyser.scoreboard.network.util;
 
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
-import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.configuration.GeyserConfiguration;
-import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.protocol.PacketTranslator;
-import org.mockito.Mockito;
+
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 public class GeyserMockContext {
     private final List<Object> mocksAndSpies = new ArrayList<>();
@@ -49,11 +49,11 @@ public class GeyserMockContext {
         var context = new GeyserMockContext();
 
         var geyserImpl = context.mock(GeyserImpl.class);
-        var config = context.mock(GeyserConfiguration.class);
-
-        when(config.getScoreboardPacketThreshold()).thenReturn(1_000);
-
-        when(geyserImpl.getConfig()).thenReturn(config);
+        var config = context.mock(GeyserConfig.class);
+        when(geyserImpl.config()).thenReturn(config);
+        var advancedConfig = context.mock(GeyserConfig.AdvancedConfig.class);
+        when(config.advanced()).thenReturn(advancedConfig);
+        when(advancedConfig.scoreboardPacketThreshold()).thenReturn(1_000);
 
         var logger = context.storeObject(new EmptyGeyserLogger());
         when(geyserImpl.getLogger()).thenReturn(logger);

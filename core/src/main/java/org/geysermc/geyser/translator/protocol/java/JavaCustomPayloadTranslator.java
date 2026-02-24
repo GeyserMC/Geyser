@@ -37,7 +37,6 @@ import org.geysermc.erosion.Constants;
 import org.geysermc.erosion.packet.ErosionPacket;
 import org.geysermc.erosion.packet.Packets;
 import org.geysermc.erosion.packet.geyserbound.GeyserboundPacket;
-import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
@@ -63,7 +62,8 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             return;
         }
 
-        if (channel.equals(PluginMessageChannels.FORM)) {
+        // TODO: PluginMessageChannels cannot be found?
+        if (channel.equals("floodgate:form")) {
             session.ensureInEventLoop(() -> {
                 byte[] data = packet.getData();
 
@@ -102,7 +102,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 });
                 session.sendForm(form);
             });
-        } else if (channel.equals(PluginMessageChannels.TRANSFER)) {
+        } else if (channel.equals("floodgate:transfer")) {
             session.ensureInEventLoop(() -> {
                 byte[] data = packet.getData();
 
@@ -124,7 +124,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 session.sendUpstreamPacket(transferPacket);
             });
 
-        } else if (channel.equals(PluginMessageChannels.PACKET)) {
+        } else if (channel.equals("floodgate:packet")) {
             session.ensureInEventLoop(() -> {
                 logger.debug("A packet has been sent using the Floodgate api");
                 byte[] data = packet.getData();

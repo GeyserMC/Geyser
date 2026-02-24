@@ -38,6 +38,7 @@ import io.netty.channel.unix.PreferredDirectByteBufAllocator;
 import io.netty.util.Attribute;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.connection.Connection;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.floodgate.IntegratedFloodgateProvider;

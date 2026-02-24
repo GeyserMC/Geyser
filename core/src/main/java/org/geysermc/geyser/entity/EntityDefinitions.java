@@ -115,15 +115,19 @@ import org.geysermc.geyser.entity.type.living.animal.TurtleEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.ChickenEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.PigEntity;
-import org.geysermc.geyser.entity.type.living.animal.farm.TemperatureVariantAnimal;
+import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
+import org.geysermc.geyser.entity.type.living.animal.horse.CamelHuskEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.ChestedHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.HorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.LlamaEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.SkeletonHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.TraderLlamaEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.ZombieHorseEntity;
+import org.geysermc.geyser.entity.type.living.animal.nautilus.AbstractNautilusEntity;
+import org.geysermc.geyser.entity.type.living.animal.nautilus.NautilusEntity;
+import org.geysermc.geyser.entity.type.living.animal.nautilus.ZombieNautilusEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.TameableEntity;
@@ -196,6 +200,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<BreezeEntity> BREEZE;
     public static final EntityDefinition<AbstractWindChargeEntity> BREEZE_WIND_CHARGE;
     public static final EntityDefinition<CamelEntity> CAMEL;
+    public static final EntityDefinition<CamelHuskEntity> CAMEL_HUSK;
     public static final EntityDefinition<CatEntity> CAT;
     public static final EntityDefinition<SpiderEntity> CAVE_SPIDER;
     public static final EntityDefinition<BoatEntity> CHERRY_BOAT;
@@ -262,6 +267,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<MinecartEntity> MINECART;
     public static final EntityDefinition<MooshroomEntity> MOOSHROOM;
     public static final EntityDefinition<ChestedHorseEntity> MULE;
+    public static final EntityDefinition<NautilusEntity> NAUTILUS;
     public static final EntityDefinition<BoatEntity> OAK_BOAT;
     public static final EntityDefinition<ChestBoatEntity> OAK_CHEST_BOAT;
     public static final EntityDefinition<OcelotEntity> OCELOT;
@@ -269,6 +275,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<BoatEntity> PALE_OAK_BOAT;
     public static final EntityDefinition<ChestBoatEntity> PALE_OAK_CHEST_BOAT;
     public static final EntityDefinition<PandaEntity> PANDA;
+    public static final EntityDefinition<AbstractSkeletonEntity> PARCHED;
     public static final EntityDefinition<ParrotEntity> PARROT;
     public static final EntityDefinition<PhantomEntity> PHANTOM;
     public static final EntityDefinition<PigEntity> PIG;
@@ -324,6 +331,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<ZoglinEntity> ZOGLIN;
     public static final EntityDefinition<ZombieEntity> ZOMBIE;
     public static final EntityDefinition<ZombieHorseEntity> ZOMBIE_HORSE;
+    public static final EntityDefinition<ZombieNautilusEntity> ZOMBIE_NAUTILUS;
     public static final EntityDefinition<ZombieVillagerEntity> ZOMBIE_VILLAGER;
     public static final EntityDefinition<ZombifiedPiglinEntity> ZOMBIFIED_PIGLIN;
 
@@ -452,7 +460,6 @@ public final class EntityDefinitions {
             TEXT_DISPLAY = EntityDefinition.inherited(TextDisplayEntity::new, displayBase)
                     .type(EntityType.TEXT_DISPLAY)
                     .identifier("minecraft:armor_stand")
-                    .offset(-0.5f)
                     .addTranslator(MetadataTypes.COMPONENT, TextDisplayEntity::setText)
                     .addTranslator(null) // Line width
                     .addTranslator(null) // Background color
@@ -750,7 +757,6 @@ public final class EntityDefinitions {
             CREEPER = EntityDefinition.inherited(CreeperEntity::new, mobEntityBase)
                     .type(EntityType.CREEPER)
                     .height(1.7f).width(0.6f)
-                    .offset(1.62f)
                     .addTranslator(MetadataTypes.INT, CreeperEntity::setSwelling)
                     .addTranslator(MetadataTypes.BOOLEAN, (entity, entityMetadata) -> entity.setFlag(EntityFlag.POWERED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                     .addTranslator(MetadataTypes.BOOLEAN, CreeperEntity::setIgnited)
@@ -778,7 +784,6 @@ public final class EntityDefinitions {
             GIANT = EntityDefinition.inherited(GiantEntity::new, mobEntityBase)
                     .type(EntityType.GIANT)
                     .height(1.8f).width(1.6f)
-                    .offset(1.62f)
                     .identifier("minecraft:zombie")
                     .build();
             IRON_GOLEM = EntityDefinition.inherited(IronGolemEntity::new, mobEntityBase)
@@ -789,7 +794,6 @@ public final class EntityDefinitions {
             PHANTOM = EntityDefinition.inherited(PhantomEntity::new, mobEntityBase)
                     .type(EntityType.PHANTOM)
                     .height(0.5f).width(0.9f)
-                    .offset(0.6f)
                     .addTranslator(MetadataTypes.INT, PhantomEntity::setPhantomScale)
                     .build();
             SILVERFISH = EntityDefinition.inherited(MonsterEntity::new, mobEntityBase)
@@ -806,7 +810,6 @@ public final class EntityDefinitions {
             SKELETON = EntityDefinition.inherited(SkeletonEntity::new, mobEntityBase)
                     .type(EntityType.SKELETON)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .addTranslator(MetadataTypes.BOOLEAN, SkeletonEntity::setConvertingToStray)
                     .build();
             SNOW_GOLEM = EntityDefinition.inherited(SnowGolemEntity::new, mobEntityBase)
@@ -817,7 +820,6 @@ public final class EntityDefinitions {
             SPIDER = EntityDefinition.inherited(SpiderEntity::new, mobEntityBase)
                     .type(EntityType.SPIDER)
                     .height(0.9f).width(1.4f)
-                    .offset(1f)
                     .addTranslator(MetadataTypes.BYTE, SpiderEntity::setSpiderFlags)
                     .build();
             CAVE_SPIDER = EntityDefinition.inherited(SpiderEntity::new, SPIDER)
@@ -827,7 +829,10 @@ public final class EntityDefinitions {
             STRAY = EntityDefinition.inherited(AbstractSkeletonEntity::new, mobEntityBase)
                     .type(EntityType.STRAY)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
+                    .build();
+            PARCHED = EntityDefinition.inherited(AbstractSkeletonEntity::new, mobEntityBase)
+                    .type(EntityType.PARCHED)
+                    .height(1.8f).width(0.6f)
                     .build();
             VEX = EntityDefinition.inherited(VexEntity::new, mobEntityBase)
                     .type(EntityType.VEX)
@@ -859,7 +864,6 @@ public final class EntityDefinitions {
             ZOMBIE = EntityDefinition.inherited(ZombieEntity::new, mobEntityBase)
                     .type(EntityType.ZOMBIE)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .addTranslator(MetadataTypes.BOOLEAN, ZombieEntity::setZombieBaby)
                     .addTranslator(null) // "set special type", doesn't do anything
                     .addTranslator(MetadataTypes.BOOLEAN, ZombieEntity::setConvertingToDrowned)
@@ -867,7 +871,6 @@ public final class EntityDefinitions {
             ZOMBIE_VILLAGER = EntityDefinition.inherited(ZombieVillagerEntity::new, ZOMBIE)
                     .type(EntityType.ZOMBIE_VILLAGER)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .identifier("minecraft:zombie_villager_v2")
                     .addTranslator(MetadataTypes.BOOLEAN, ZombieVillagerEntity::setTransforming)
                     .addTranslator(MetadataTypes.VILLAGER_DATA, ZombieVillagerEntity::setZombieVillagerData)
@@ -875,7 +878,6 @@ public final class EntityDefinitions {
             ZOMBIFIED_PIGLIN = EntityDefinition.inherited(ZombifiedPiglinEntity::new, ZOMBIE) //TODO test how zombie entity metadata is handled?
                     .type(EntityType.ZOMBIFIED_PIGLIN)
                     .height(1.95f).width(0.6f)
-                    .offset(1.62f)
                     .identifier("minecraft:zombie_pigman")
                     .build();
 
@@ -969,7 +971,6 @@ public final class EntityDefinitions {
             PILLAGER = EntityDefinition.inherited(PillagerEntity::new, raidParticipantEntityBase)
                     .type(EntityType.PILLAGER)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .addTranslator(MetadataTypes.BOOLEAN, PillagerEntity::setChargingCrossbow)
                     .build();
             RAVAGER = EntityDefinition.inherited(RavagerEntity::new, raidParticipantEntityBase)
@@ -979,12 +980,10 @@ public final class EntityDefinitions {
             VINDICATOR = EntityDefinition.inherited(VindicatorEntity::new, raidParticipantEntityBase)
                     .type(EntityType.VINDICATOR)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .build();
             WITCH = EntityDefinition.inherited(raidParticipantEntityBase.factory(), raidParticipantEntityBase)
                     .type(EntityType.WITCH)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .addTranslator(null) // Using item
                     .build();
         }
@@ -1013,7 +1012,7 @@ public final class EntityDefinitions {
                     .heightAndWidth(0.6f)
                     .property(BeeEntity.NECTAR_PROPERTY)
                     .addTranslator(MetadataTypes.BYTE, BeeEntity::setBeeFlags)
-                    .addTranslator(MetadataTypes.INT, BeeEntity::setAngerTime)
+                    .addTranslator(MetadataTypes.LONG, BeeEntity::setAngerTime)
                     .build();
             CHICKEN = EntityDefinition.inherited(ChickenEntity::new, ageableEntityBase)
                     .type(EntityType.CHICKEN)
@@ -1131,14 +1130,12 @@ public final class EntityDefinitions {
             VILLAGER = EntityDefinition.inherited(VillagerEntity::new, abstractVillagerEntityBase)
                     .type(EntityType.VILLAGER)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .identifier("minecraft:villager_v2")
                     .addTranslator(MetadataTypes.VILLAGER_DATA, VillagerEntity::setVillagerData)
                     .build();
             WANDERING_TRADER = EntityDefinition.inherited(abstractVillagerEntityBase.factory(), abstractVillagerEntityBase)
                     .type(EntityType.WANDERING_TRADER)
                     .height(1.8f).width(0.6f)
-                    .offset(1.62f)
                     .build();
         }
 
@@ -1172,6 +1169,9 @@ public final class EntityDefinitions {
                     .height(2.375f).width(1.7f)
                     .addTranslator(MetadataTypes.BOOLEAN, CamelEntity::setDashing)
                     .addTranslator(MetadataTypes.LONG, CamelEntity::setLastPoseTick)
+                    .build();
+            CAMEL_HUSK = EntityDefinition.inherited(CamelHuskEntity::new, CAMEL)
+                    .type(EntityType.CAMEL_HUSK)
                     .build();
             HORSE = EntityDefinition.inherited(HorseEntity::new, abstractHorseEntityBase)
                     .type(EntityType.HORSE)
@@ -1213,6 +1213,25 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataTypes.BYTE, TameableEntity::setTameableFlags)
                 .addTranslator(MetadataTypes.OPTIONAL_LIVING_ENTITY_REFERENCE, TameableEntity::setOwner)
                 .build();
+
+        // Nautilus
+        {
+            EntityDefinition<AbstractNautilusEntity> abstractNautilusBase = EntityDefinition.<AbstractNautilusEntity>inherited(null, tameableEntityBase) // No factory, is abstract
+                .width(0.95f).height(0.875f)
+                .addTranslator(MetadataTypes.BOOLEAN, AbstractNautilusEntity::setDashing)
+                .build();
+
+            NAUTILUS = EntityDefinition.inherited(NautilusEntity::new, abstractNautilusBase)
+                .type(EntityType.NAUTILUS)
+                .identifier("minecraft:nautilus")
+                .build();
+
+            ZOMBIE_NAUTILUS = EntityDefinition.inherited(ZombieNautilusEntity::new, abstractNautilusBase)
+                .type(EntityType.ZOMBIE_NAUTILUS)
+                .identifier("minecraft:zombie_nautilus")
+                .build();
+        }
+
         CAT = EntityDefinition.inherited(CatEntity::new, tameableEntityBase)
                 .type(EntityType.CAT)
                 .height(0.35f).width(0.3f)
@@ -1233,7 +1252,7 @@ public final class EntityDefinitions {
                 // "Begging" on wiki.vg, "Interested" in Nukkit - the tilt of the head
                 .addTranslator(MetadataTypes.BOOLEAN, (wolfEntity, entityMetadata) -> wolfEntity.setFlag(EntityFlag.INTERESTED, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue()))
                 .addTranslator(MetadataTypes.INT, WolfEntity::setCollarColor)
-                .addTranslator(MetadataTypes.INT, WolfEntity::setWolfAngerTime)
+                .addTranslator(MetadataTypes.LONG, WolfEntity::setWolfAngerTime)
                 .addTranslator(MetadataTypes.WOLF_VARIANT, WolfEntity::setVariant)
                 .addTranslator(null) // sound variant; these aren't clientsided anyways... right??
                 .build();
@@ -1247,16 +1266,14 @@ public final class EntityDefinitions {
     }
 
     private static EntityDefinition<BoatEntity> buildBoat(EntityDefinition<BoatEntity> base, EntityType entityType, BoatEntity.BoatVariant variant) {
-        return EntityDefinition.inherited((session, javaId, bedrockId, uuid, definition, position, motion, yaw, pitch, headYaw) ->
-            new BoatEntity(session, javaId, bedrockId, uuid, definition, position, motion, yaw, variant), base)
+        return EntityDefinition.inherited((context) -> new BoatEntity(context, variant), base)
             .type(entityType)
             .identifier("minecraft:boat")
             .build();
     }
 
     private static EntityDefinition<ChestBoatEntity> buildChestBoat(EntityDefinition<ChestBoatEntity> base, EntityType entityType, BoatEntity.BoatVariant variant) {
-        return EntityDefinition.inherited((session, javaId, bedrockId, uuid, definition, position, motion, yaw, pitch, headYaw) ->
-                new ChestBoatEntity(session, javaId, bedrockId, uuid, definition, position, motion, yaw, variant), base)
+        return EntityDefinition.inherited((context) -> new ChestBoatEntity(context, variant), base)
             .type(entityType)
             .identifier("minecraft:chest_boat")
             .build();
@@ -1272,7 +1289,7 @@ public final class EntityDefinitions {
                 if (propertyId.vanilla()) {
                     throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
                 }
-                FloatProperty property = new FloatProperty(propertyId, min, max, defaultValue);
+                FloatProperty property = new FloatProperty(propertyId, max, min, defaultValue);
                 registerProperty(identifier, property);
                 return property;
             }
@@ -1284,7 +1301,7 @@ public final class EntityDefinitions {
                 if (propertyId.vanilla()) {
                     throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
                 }
-                IntProperty property = new IntProperty(propertyId, min, max, defaultValue);
+                IntProperty property = new IntProperty(propertyId, max, min, defaultValue);
                 registerProperty(identifier, property);
                 return property;
             }
@@ -1339,7 +1356,7 @@ public final class EntityDefinitions {
         });
 
         for (var definition : Registries.ENTITY_DEFINITIONS.get().values()) {
-            if (definition.registeredProperties() != null) {
+            if (!definition.registeredProperties().isEmpty()) {
                 Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(definition.identifier()));
             }
         }

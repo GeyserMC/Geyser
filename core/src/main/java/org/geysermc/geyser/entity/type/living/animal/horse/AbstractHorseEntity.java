@@ -27,35 +27,41 @@ package org.geysermc.geyser.entity.type.living.animal.horse;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.animal.AnimalEntity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.entity.vehicle.HorseVehicleComponent;
+import org.geysermc.geyser.entity.vehicle.VehicleComponent;
 import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
-import java.util.UUID;
+public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
 
-public class AbstractHorseEntity extends AnimalEntity {
+    private final HorseVehicleComponent vehicleComponent = new HorseVehicleComponent(this);
 
-    public AbstractHorseEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public AbstractHorseEntity(EntitySpawnContext context) {
+        super(context);
 
         // Specifies the size of the entity's inventory. Required to place slots in the entity.
         dirtyMetadata.put(EntityDataTypes.CONTAINER_SIZE, getContainerBaseSize());
@@ -92,6 +98,15 @@ public class AbstractHorseEntity extends AnimalEntity {
             this.session.setLockInput(InputLocksFlag.JUMP, this.doesJumpDismount());
             this.session.updateInputLocks();
         }
+    }
+
+    @Override
+    protected AttributeData calculateAttribute(Attribute javaAttribute, GeyserAttributeType type) {
+        AttributeData attributeData = super.calculateAttribute(javaAttribute, type);
+        if (javaAttribute.getType() == AttributeType.Builtin.JUMP_STRENGTH) {
+            vehicleComponent.setHorseJumpStrength(attributeData.getValue());
+        }
+        return attributeData;
     }
 
     @Override
@@ -308,5 +323,26 @@ public class AbstractHorseEntity extends AnimalEntity {
         } else {
             return isAlive() && !isBaby() && getFlag(EntityFlag.TAMED);
         }
+    }
+
+    @Override
+    public VehicleComponent<?> getVehicleComponent() {
+        return this.vehicleComponent;
+    }
+
+    @Override
+    public Vector3f getRiddenInput(Vector2f input) {
+        input = input.mul(0.5f, input.getY() < 0 ? 0.25f : 1.0f);
+        return Vector3f.from(input.getX(), 0.0, input.getY());
+    }
+
+    @Override
+    public float getVehicleSpeed() {
+        return vehicleComponent.getMoveSpeed();
+    }
+
+    @Override
+    public boolean isClientControlled() {
+        return getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.get(0) == session.getPlayerEntity() && !session.isInClientPredictedVehicle();
     }
 }

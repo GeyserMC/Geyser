@@ -34,7 +34,6 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
-import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
@@ -153,12 +152,7 @@ public class InventoryUtils {
             holder.session().setPendingOrCurrentBedrockInventoryId(holder.bedrockId());
             if (holder.requiresOpeningDelay()) {
                 holder.pending(true);
-
-                NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-                latencyPacket.setFromServer(true);
-                latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
-                holder.session().sendUpstreamPacket(latencyPacket);
-
+                scheduleInventoryOpen(holder.session());
                 GeyserImpl.getInstance().getLogger().debug(holder.session(), "Queuing virtual inventory (%s)", debugInventory(holder));
             } else {
                 openAndUpdateInventory(holder);
@@ -268,7 +262,7 @@ public class InventoryUtils {
     }
 
     public static boolean canStack(GeyserItemStack item1, GeyserItemStack item2) {
-        if (GeyserImpl.getInstance().getConfig().isDebugMode())
+        if (GeyserImpl.getInstance().config().debugMode())
             canStackDebug(item1, item2);
         if (item1.isEmpty() || item2.isEmpty())
             return false;
@@ -320,7 +314,7 @@ public class InventoryUtils {
 
     private static ItemDefinition getUnusableSpaceBlockDefinition(int protocolVersion) {
         ItemMappings mappings = Registries.ITEMS.forVersion(protocolVersion);
-        String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
+        String unusableSpaceBlock = GeyserImpl.getInstance().config().gameplay().unusableSpaceBlock();
         ItemDefinition itemDefinition = mappings.getDefinition(unusableSpaceBlock);
 
         if (itemDefinition == null) {
@@ -498,5 +492,13 @@ public class InventoryUtils {
             ", bedrockId=" + inventory.getBedrockId() + ", size=" + inventory.getSize() +
             ", type=" + inventoryType + ", pending=" + holder.pending() +
             ", displayed=" + inventory.isDisplayed();
+    }
+
+    public static void scheduleInventoryOpen(GeyserSession session) {
+        session.sendNetworkLatencyStackPacket(MAGIC_VIRTUAL_INVENTORY_HACK, true, () -> {
+            if (session.getPendingOrCurrentBedrockInventoryId() != -1) {
+                InventoryUtils.openPendingInventory(session);
+            }
+        });
     }
 }

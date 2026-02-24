@@ -57,12 +57,12 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
         }
 
         AnimatePacket animatePacket = new AnimatePacket();
-        animatePacket.setRuntimeEntityId(entity.getGeyserId());
+        animatePacket.setRuntimeEntityId(entity.geyserId());
         switch (animation) {
             case SWING_ARM -> {
                 if (entity instanceof LivingEntity livingEntity && livingEntity.useArmSwingAttack()) {
                     EntityEventPacket entityEventPacket = new EntityEventPacket();
-                    entityEventPacket.setRuntimeEntityId(entity.getGeyserId());
+                    entityEventPacket.setRuntimeEntityId(entity.geyserId());
                     entityEventPacket.setType(EntityEventType.ATTACK_START);
                     session.sendUpstreamPacket(entityEventPacket);
                     return;
@@ -81,12 +81,16 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
                 offHandPacket.setBlendOutTime(0.0f);
                 offHandPacket.setStopExpression("query.any_animation_finished");
                 offHandPacket.setController("__runtime_controller");
-                offHandPacket.getRuntimeEntityIds().add(entity.getGeyserId());
+                offHandPacket.getRuntimeEntityIds().add(entity.geyserId());
                 session.sendUpstreamPacket(offHandPacket);
                 return;
             }
-            case CRITICAL_HIT -> animatePacket.setAction(AnimatePacket.Action.CRITICAL_HIT);
+            case CRITICAL_HIT -> {
+                animatePacket.setData(55);
+                animatePacket.setAction(AnimatePacket.Action.CRITICAL_HIT);
+            }
             case ENCHANTMENT_CRITICAL_HIT -> {
+                animatePacket.setData(15);
                 animatePacket.setAction(AnimatePacket.Action.MAGIC_CRITICAL_HIT); // Unsure if this does anything
 
                 // Spawn custom particle
@@ -94,7 +98,7 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
                 stringPacket.setIdentifier("geyseropt:enchanted_hit_multiple");
                 stringPacket.setDimensionId(DimensionUtils.javaToBedrock(session));
                 stringPacket.setPosition(Vector3f.ZERO);
-                stringPacket.setUniqueEntityId(entity.getGeyserId());
+                stringPacket.setUniqueEntityId(entity.geyserId());
                 stringPacket.setMolangVariablesJson(Optional.empty());
                 session.sendUpstreamPacket(stringPacket);
             }

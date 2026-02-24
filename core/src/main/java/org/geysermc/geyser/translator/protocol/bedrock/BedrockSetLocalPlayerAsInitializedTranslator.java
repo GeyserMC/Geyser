@@ -40,13 +40,13 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.Serverbound
 public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslator<SetLocalPlayerAsInitializedPacket> {
     @Override
     public void translate(GeyserSession session, SetLocalPlayerAsInitializedPacket packet) {
-        if (session.getPlayerEntity().getGeyserId() == packet.getRuntimeEntityId()) {
+        if (session.getPlayerEntity().geyserId() == packet.getRuntimeEntityId()) {
             if (!session.getUpstream().isInitialized()) {
                 session.getUpstream().setInitialized(true);
 
                 if (session.remoteServer().authType() == AuthType.ONLINE) {
                     if (!session.isLoggedIn()) {
-                        if (session.getGeyser().getConfig().getSavedUserLogins().contains(session.bedrockUsername())) {
+                        if (session.getGeyser().config().savedUserLogins().contains(session.bedrockUsername())) {
                             if (session.getGeyser().authChainFor(session.bedrockUsername()) == null) {
                                 LoginEncryptionUtils.buildAndShowConsentWindow(session);
                             } else {
