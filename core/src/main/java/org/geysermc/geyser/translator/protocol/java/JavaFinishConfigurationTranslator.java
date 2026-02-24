@@ -31,6 +31,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundFinishConfigurationPacket;
 
@@ -65,7 +66,7 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
             // TODO proper fix to check if we've been online - in online mode (with auth screen),
             //  recipes are not yet known
             if (session.getStonecutterRecipes() != null) {
-                session.getLastRecipeNetId().set(0);
+                session.getLastRecipeNetId().set(InventoryUtils.LAST_RECIPE_NET_ID + 1);
                 session.getCraftingRecipes().clear();
                 session.getJavaToBedrockRecipeIds().clear();
                 session.getSmithingRecipes().clear();
