@@ -40,6 +40,7 @@ import org.geysermc.cumulus.response.SimpleFormResponse;
 import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.network.GeyserBedrockPeer;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -47,6 +48,7 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import javax.crypto.SecretKey;
+import java.net.InetSocketAddress;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.function.BiConsumer;
@@ -95,6 +97,18 @@ public class LoginEncryptionUtils {
             BedrockClientData data = JsonUtils.fromJson(clientDataPayload, BedrockClientData.class);
             data.setOriginalString(jwt);
             session.setClientData(data);
+
+            if(geyser.config().advanced().bedrock().useWaterdogExtras()) {
+                String waterdogIp = data.getWaterdogIp();
+                if (waterdogIp != null && !waterdogIp.isBlank()) {
+                    InetSocketAddress originalAddress = session.getUpstream().getAddress();
+                    InetSocketAddress proxiedAddress = new InetSocketAddress(waterdogIp, originalAddress.getPort());
+                    if (session.getGeyser().getGeyserServer().getProxiedAddresses() != null) {
+                        session.getGeyser().getGeyserServer().getProxiedAddresses().put(originalAddress, proxiedAddress);
+                        ((GeyserBedrockPeer) session.getUpstream().getSession().getPeer()).setProxiedAddress(proxiedAddress);
+                    }
+                }
+            }
 
             try {
                 startEncryptionHandshake(session, identityPublicKey);

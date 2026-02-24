@@ -127,6 +127,9 @@ public final class BedrockClientData {
     @SerializedName(value = "ThirdPartyNameOnly")
     private boolean thirdPartyNameOnly;
 
+    @SerializedName(value = "Waterdog_IP")
+    private String waterdogIp;
+
     @Setter
     private transient String originalString = null;
 

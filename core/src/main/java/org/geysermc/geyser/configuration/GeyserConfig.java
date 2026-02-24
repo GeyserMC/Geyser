@@ -373,6 +373,11 @@ public interface GeyserConfig {
         boolean useHaproxyProtocol();
 
         @Comment("""
+               Whether this geyser instance is behind a waterdog proxy""")
+        @DefaultBoolean(false)
+        boolean useWaterdogExtras();
+
+        @Comment("""
                 A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-proxy-protocol" is enabled, and
                 should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
                 Keeping this list empty means there is no IP address whitelist.
