@@ -177,7 +177,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
             GeyserRecipe geyserRecipe = new GeyserShapedRecipe(ThreadLocalRandom.current().nextInt(), newRecipeId,
                     width, height, javaIngredients, new ItemStackSlotDisplay(item));
-            session.getCraftingRecipes().put(session.getLastRecipeNetId().get(), geyserRecipe);
+            session.getCraftingRecipes().put(newRecipeId, geyserRecipe);
 
             CraftingDataPacket craftPacket = new CraftingDataPacket();
             craftPacket.getCraftingData().add(geyserRecipe.asRecipeData(session).get(0));
