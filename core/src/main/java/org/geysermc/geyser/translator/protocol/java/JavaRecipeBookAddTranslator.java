@@ -41,6 +41,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.RecipeDispla
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.ShapedCraftingRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.ShapelessCraftingRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.SmithingRecipeDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SmithingTrimDemoSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRecipeBookAddPacket;
 
 import java.util.ArrayList;
@@ -95,6 +96,11 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 }
                 javaToBedrockRecipeIds.put(contents.id(), List.copyOf(bedrockRecipeIds));
             } else if (display instanceof SmithingRecipeDisplay smithingRecipe) {
+                if (display.result() instanceof SmithingTrimDemoSlotDisplay) {
+                    // Skip these - Bedrock already knows about them from the TrimDataPacket
+                    continue;
+                }
+
                 GeyserSmithingRecipe geyserRecipe = new GeyserSmithingRecipe(contents.id(), netId, smithingRecipe);
                 session.getSmithingRecipes().add(geyserRecipe);
 
