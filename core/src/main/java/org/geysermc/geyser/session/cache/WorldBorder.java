@@ -245,16 +245,14 @@ public class WorldBorder {
         /*
          * Setting the correct boundary of our world border's square.
          */
-        double radius;
+        double radius = this.size / 2.0D;
         if (resizing) {
-            radius = this.size / 2.0D;
             if (this.size > this.to) {
                 currentWorldBorderColor = SHRINKING_WORLD_BORDER_COLOR;
             } else {
                 currentWorldBorderColor = GROWING_WORLD_BORDER_COLOR;
             }
         } else {
-            radius = this.size / 2.0D;
             currentWorldBorderColor = DEFAULT_WORLD_BORDER_COLOR;
         }
 
@@ -276,31 +274,41 @@ public class WorldBorder {
     }
 
     public void tick() {
-        if (!resizing) return;
+        if (!resizing) {
+            return;
+        }
         this.lerpProgress++;
         this.size = this.calculateSize();
         if (this.lerpProgress >= this.lerpDuration) {
-            this.resizing = false;
-            this.lerpProgress = 0;
-            this.lerpDuration = 0;
-            this.from = this.to;
+            stopResize(to);
         } else {
             this.resizing = true;
         }
         update();
     }
 
-    public void setSize(double size) {
+    public void createStatic(double size) {
+        stopResize(size);
         this.size = size;
         this.update();
     }
 
-    public void startResize(double from, double to, long lerpDuration) {
+    public void stopResize(double newSize) {
+        this.resizing = false;
+        this.lerpProgress = 0;
+        this.lerpDuration = 0;
+        this.from = newSize;
+        this.to = newSize;
+    }
+
+    public void createMoving(double from, double to, long lerpDuration) {
+        this.size = from;
         this.from = from;
         this.to = to;
         this.lerpDuration = lerpDuration;
         this.lerpProgress = 0;
         this.resizing = true;
+        this.update();
     }
 
     private double calculateSize() {

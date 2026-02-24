@@ -43,12 +43,11 @@ public class JavaInitializeBorderTranslator extends PacketTranslator<Clientbound
         worldBorder.setWarningBlocks(packet.getWarningBlocks());
         worldBorder.setWarningDelay(packet.getWarningTime());
 
-        if (packet.getLerpTime() > 0) {
-            worldBorder.startResize(packet.getOldSize(), packet.getNewSize(), packet.getLerpTime());
+        // See WorldBorder#lerpSizeBetween mojmap
+        if (packet.getLerpTime() > 0 && packet.getOldSize() != packet.getNewSize()) {
+            worldBorder.createMoving(packet.getOldSize(), packet.getNewSize(), packet.getLerpTime());
         } else {
-            worldBorder.setSize(packet.getNewSize());
+            worldBorder.createStatic(packet.getNewSize());
         }
-
-        worldBorder.update();
     }
 }
