@@ -37,8 +37,7 @@ public class JavaSetBorderSizeTranslator extends PacketTranslator<ClientboundSet
     @Override
     public void translate(GeyserSession session, ClientboundSetBorderSizePacket packet) {
         WorldBorder worldBorder = session.getWorldBorder();
-        worldBorder.setOldDiameter(packet.getSize());
-        worldBorder.setNewDiameter(packet.getSize());
+        worldBorder.setSize(packet.getSize());
         worldBorder.setResizing(false);
 
         worldBorder.update();

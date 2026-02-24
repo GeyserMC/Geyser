@@ -52,7 +52,7 @@ public class ThrowableEntity extends Entity implements Tickable {
      */
     @Override
     public void tick() {
-        if (removedInVoid()) {
+        if (removedInVoid() || vehicle != null) {
             return;
         }
         moveAbsoluteImmediate(position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);

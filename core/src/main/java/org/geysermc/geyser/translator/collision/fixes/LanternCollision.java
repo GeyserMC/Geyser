@@ -36,7 +36,7 @@ import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.collision.CollisionRemapper;
 
 @EqualsAndHashCode(callSuper = true)
-@CollisionRemapper(regex = "^lantern$|^soul_lantern$", usesParams = true, passDefaultBoxes = true)
+@CollisionRemapper(regex = "^lantern$|^soul_lantern$|^.*copper_lantern$", usesParams = true, passDefaultBoxes = true)
 public class LanternCollision extends BlockCollision {
     private final static double MAX_PUSH_DISTANCE = 0.0625 + CollisionManager.COLLISION_TOLERANCE * 1.01;
 

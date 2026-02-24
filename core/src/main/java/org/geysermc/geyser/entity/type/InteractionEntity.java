@@ -60,10 +60,7 @@ public class InteractionEntity extends Entity {
      * By having a second entity, we can still show the nametag while keeping the interaction entity invisible.
      */
     private ArmorStandEntity secondEntity = null;
-
-    private boolean isNameTagVisible = false;
-
-    private boolean isVisible = true;
+    private boolean isInvisible = false;
 
     @Override
     protected void initializeMetadata() {
@@ -76,13 +73,19 @@ public class InteractionEntity extends Entity {
     @Override
     protected void setInvisible(boolean value) {
         // Always invisible; would reveal the armor stand otherwise
-        isVisible = value;
+        isInvisible = value;
         this.updateNameTag();
     }
 
     @Override
-    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
-        isNameTagVisible = entityMetadata.getPrimitiveValue();
+    public void setCustomNameVisible(BooleanEntityMetadata entityMetadata) {
+        super.setCustomNameVisible(entityMetadata);
+        this.updateNameTag();
+    }
+
+    @Override
+    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        super.setCustomName(entityMetadata);
         this.updateNameTag();
     }
 
@@ -109,12 +112,6 @@ public class InteractionEntity extends Entity {
             secondEntity.despawnEntity();
         }
         super.despawnEntity();
-    }
-
-    @Override
-    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        super.setDisplayName(entityMetadata);
-        this.updateNameTag();
     }
 
     @Override
@@ -149,8 +146,21 @@ public class InteractionEntity extends Entity {
         this.response = response.getPrimitiveValue();
     }
 
+    @Override
+    public void updateBedrockMetadata() {
+        // Bundle metadata updates to ensure they aren't ignored
+        if (secondEntity != null) {
+            if (!secondEntity.valid) { // Spawn the entity once
+                secondEntity.spawnEntity();
+            } else {
+                secondEntity.updateBedrockMetadata();
+            }
+        }
+        super.updateBedrockMetadata();
+    }
+
     public void updateNameTag() {
-        if (this.nametag.isBlank() || !isVisible) {
+        if (this.nametag.isBlank() || isInvisible) {
             if (secondEntity != null) {
                 secondEntity.despawnEntity();
                 secondEntity = null;
@@ -162,15 +172,12 @@ public class InteractionEntity extends Entity {
             secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, position.up(getBoundingBoxHeight())));
         }
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
-        secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, isNameTagVisible ? (byte) 1 : (byte) 0);
+        secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, customNameVisible ? (byte) 1 : (byte) 0);
         // Scale to 0 to show nametag
         secondEntity.setScale(0f);
         // No bounding box as we don't want to interact with this entity
         secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
-        if (!secondEntity.valid) { // Spawn the entity once
-            secondEntity.spawnEntity();
-        }
     }
 }

@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
@@ -42,11 +43,13 @@ import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
 import org.geysermc.geyser.util.PlayerListUtils;
+import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -68,9 +71,21 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
      */
     private boolean listed = false;
 
-    public PlayerEntity(EntitySpawnContext context, String username, @Nullable String texturesProperty) {
+    public PlayerEntity(EntitySpawnContext context, GameProfile profile) {
+        super(context, profile.getName());
+        this.customNameVisible = true;
+        try {
+            this.textures = profile.getTextures(true);
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().debug("Error loading textures for player!" + profile, e);
+            this.textures = null;
+        }
+    }
+
+    public PlayerEntity(EntitySpawnContext context, String username, @Nullable Map<GameProfile.TextureType, GameProfile.Texture> textureMap) {
         super(context, username);
-        this.texturesProperty = texturesProperty;
+        this.customNameVisible = true;
+        this.textures = textureMap;
     }
 
     @Override
@@ -214,16 +229,15 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         return username;
     }
 
-    // TODO test mannequins
     @Override
-    protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
-        // when fromDisplayName, LivingEntity will call scoreboard code. After that
-        // setNametag is called again with fromDisplayName on false
-        if (nametag == null && !fromDisplayName) {
+    protected void setNametag(@Nullable String nametag, boolean applyTeamStyling) {
+        // when applyTeamStyling, LivingEntity will call scoreboard code. After that
+        // setNametag is called again with applyTeamStyling on false
+        if (nametag == null && !applyTeamStyling) {
             // nametag = null means reset, so reset it back to username
             nametag = username;
         }
-        super.setNametag(nametag, fromDisplayName);
+        super.setNametag(nametag, applyTeamStyling);
     }
 
     public void setUsername(String username) {

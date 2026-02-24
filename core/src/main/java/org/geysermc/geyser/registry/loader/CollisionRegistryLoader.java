@@ -42,11 +42,15 @@ import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.collision.CollisionRemapper;
 import org.geysermc.geyser.translator.collision.OtherCollision;
 import org.geysermc.geyser.translator.collision.SolidCollision;
-import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.AnnotationUtils;
 
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.IdentityHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -57,7 +61,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
     @Override
     public List<BlockCollision> load(Pair<String, String> input) {
         Map<Class<?>, CollisionInfo> annotationMap = new IdentityHashMap<>();
-        for (Class<?> clazz : FileUtils.getGeneratedClassesForAnnotation(CollisionRemapper.class.getName())) {
+        for (Class<?> clazz : AnnotationUtils.getGeneratedClassesForAnnotation(CollisionRemapper.class.getName())) {
             GeyserImpl.getInstance().getLogger().debug("Found annotated collision translator: " + clazz.getCanonicalName());
 
             CollisionRemapper collisionRemapper = clazz.getAnnotation(CollisionRemapper.class);
