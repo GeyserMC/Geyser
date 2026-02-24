@@ -48,16 +48,17 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.GeyserLocale;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 @UtilityClass
 public class ChunkUtils {
 
     private static final boolean SHOW_CHUNK_HEIGHT_WARNING_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowChunkHeightWarningLogs", "true"));
 
     public static final byte[] EMPTY_BIOME_DATA;
-
     public static final BlockStorage[] EMPTY_BLOCK_STORAGE;
-
     public static final int EMPTY_CHUNK_SECTION_SIZE;
+    private static final ConcurrentHashMap<Integer, byte[]> EMPTY_CHUNK_PAYLOAD_CACHE = new ConcurrentHashMap<>(3);
 
     static {
         EMPTY_BLOCK_STORAGE = new BlockStorage[0];
@@ -162,31 +163,33 @@ public class ChunkUtils {
         BedrockDimension bedrockDimension = session.getBedrockDimension();
         int bedrockSubChunkCount = bedrockDimension.height() >> 4;
 
-        byte[] payload;
-        // Allocate output buffer
-        ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(ChunkUtils.EMPTY_BIOME_DATA.length * bedrockSubChunkCount + 1); // Consists only of biome data and border blocks
-        try {
-            byteBuf.writeBytes(EMPTY_BIOME_DATA);
-            for (int i = 1; i < bedrockSubChunkCount; i++) {
-                byteBuf.writeByte((127 << 1) | 1);
+        byte[] payload = EMPTY_CHUNK_PAYLOAD_CACHE.computeIfAbsent(bedrockSubChunkCount, subChunkCount -> {
+            // Allocate output buffer
+            ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(EMPTY_BIOME_DATA.length * subChunkCount + 1);
+            try {
+                byteBuf.writeBytes(EMPTY_BIOME_DATA);
+                for (int i = 1; i < subChunkCount; i++) {
+                    byteBuf.writeByte((127 << 1) | 1);
+                }
+
+                byteBuf.writeByte(0); // Border blocks - Edu edition only
+
+                byte[] data = new byte[byteBuf.readableBytes()];
+                byteBuf.readBytes(data);
+                return data;
+            } finally {
+                byteBuf.release();
             }
+        });
 
-            byteBuf.writeByte(0); // Border blocks - Edu edition only
-
-            payload = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(payload);
-
-            LevelChunkPacket data = new LevelChunkPacket();
-            data.setDimension(session.getBedrockDimension().bedrockId());
-            data.setChunkX(chunkX);
-            data.setChunkZ(chunkZ);
-            data.setSubChunksLength(0);
-            data.setData(Unpooled.wrappedBuffer(payload));
-            data.setCachingEnabled(false);
-            session.sendUpstreamPacket(data);
-        } finally {
-            byteBuf.release();
-        }
+        LevelChunkPacket data = new LevelChunkPacket();
+        data.setDimension(bedrockDimension.bedrockId());
+        data.setChunkX(chunkX);
+        data.setChunkZ(chunkZ);
+        data.setSubChunksLength(0);
+        data.setData(Unpooled.wrappedBuffer(payload));
+        data.setCachingEnabled(false);
+        session.sendUpstreamPacket(data);
 
         if (forceUpdate) {
             Vector3i pos = Vector3i.from(chunkX << 4, 80, chunkZ << 4);
