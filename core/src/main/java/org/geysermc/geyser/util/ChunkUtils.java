@@ -26,7 +26,6 @@
 package org.geysermc.geyser.util;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import lombok.experimental.UtilityClass;
@@ -164,22 +163,20 @@ public class ChunkUtils {
         int bedrockSubChunkCount = bedrockDimension.height() >> 4;
 
         byte[] payload = EMPTY_CHUNK_PAYLOAD_CACHE.computeIfAbsent(bedrockSubChunkCount, subChunkCount -> {
-            // Allocate output buffer
-            ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(EMPTY_BIOME_DATA.length * subChunkCount + 1);
-            try {
-                byteBuf.writeBytes(EMPTY_BIOME_DATA);
-                for (int i = 1; i < subChunkCount; i++) {
-                    byteBuf.writeByte((127 << 1) | 1);
-                }
-
-                byteBuf.writeByte(0); // Border blocks - Edu edition only
-
-                byte[] data = new byte[byteBuf.readableBytes()];
-                byteBuf.readBytes(data);
-                return data;
-            } finally {
-                byteBuf.release();
+            int biomeLength = EMPTY_BIOME_DATA.length;
+            int totalLength = biomeLength + subChunkCount;
+            byte[] data = new byte[totalLength];
+            // Copy biome data
+            System.arraycopy(EMPTY_BIOME_DATA, 0, data, 0, biomeLength);
+            // Marker byte (carry previous biome forward)
+            // The byte written here is a header that says to carry on the biome data from the previous chunk
+            byte marker = (byte) ((127 << 1) | 1);
+            // Fill marker bytes
+            for (int i = 0; i < subChunkCount - 1; i++) {
+                data[biomeLength + i] = marker;
             }
+            data[totalLength - 1] = 0; // Border blocks - Edu edition only
+            return data;
         });
 
         LevelChunkPacket data = new LevelChunkPacket();
