@@ -262,7 +262,7 @@ public interface GeyserConfig {
             https://geysermc.org/img/external/cooldown_indicator.png
             This can be resolved by enabling the integrated pack, or by going into Bedrock settings under the accessibility tab and setting "Text Background Opacity" to 0.
             This setting can be set to "crosshair", "hotbar", or "disabled\"""")
-        default CooldownUtils.CooldownType showCooldown() {
+        default CooldownUtils.CooldownType cooldownType() {
             return CooldownUtils.CooldownType.CROSSHAIR;
         }
 

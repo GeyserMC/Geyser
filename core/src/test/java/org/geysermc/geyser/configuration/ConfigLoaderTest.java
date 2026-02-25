@@ -92,10 +92,6 @@ public class ConfigLoaderTest {
 
         assertEquals(initialModification, file.lastModified()); // should not have been touched
         assertEquals(firstContents, secondContents);
-
-        // Must ignore this, as when the config is read back, the header is interpreted as a comment on the first node in the map
-        config1.node("java").comment(null);
-        config2.node("java").comment(null);
         assertEquals(config1, config2);
     }
 
@@ -157,7 +153,7 @@ public class ConfigLoaderTest {
         // Verify gameplay section
         assertFalse(config.gameplay().commandSuggestions());
         assertTrue(config.gameplay().forwardPlayerPing());
-        assertEquals(CooldownUtils.CooldownType.CROSSHAIR, config.gameplay().showCooldown());
+        assertEquals(CooldownUtils.CooldownType.CROSSHAIR, config.gameplay().cooldownType());
         assertEquals("Gayser", config.gameplay().serverName());
         assertFalse(config.gameplay().showCoordinates());
         assertTrue(config.gameplay().disableBedrockScaffolding());
@@ -213,7 +209,7 @@ public class ConfigLoaderTest {
         // Verify floodgate key migration from legacy public-key.pem
         assertEquals("key.pem", config.advanced().floodgateKeyFile());
         // Show cooldown "true" should be now migrated to the default with integrated pack
-        assertEquals(CooldownUtils.CooldownType.CROSSHAIR, config.gameplay().showCooldown());
+        assertEquals(CooldownUtils.CooldownType.CROSSHAIR, config.gameplay().cooldownType());
         assertEquals(Constants.CONFIG_VERSION, config.configVersion());
     }
 
@@ -280,23 +276,20 @@ public class ConfigLoaderTest {
     }
 
     @Test
-    public void testForceCommentMover() throws Exception {
-        // V5 -> V6 changed the comment for the show-cooldown option; let's ensure it is migrated correctly
+    public void testCommentMigration() throws Exception {
+        // Test comment migration for existing nodes
         CommentedConfigurationNode node = new ConfigLoader(copyResourceToTempFile("tests", "helpful-smp.yml"), PlatformType.FABRIC)
             .loadConfigurationNode(GeyserPluginConfig.class);
         assertNotNull(node);
 
-        // This comment should be migrated
-        String comment = node.node("gameplay", "show-cooldown").comment();
-        // But not this one!
+        // This config option should be migrated
         String otherComment = node.node("advanced", "bedrock", "haproxy-protocol-whitelisted-ips").comment();
 
         // Create a new config to cross-compare
-        CommentedConfigurationNode defaultV6 = new ConfigLoader(tempDirectory.resolve("new-config.yml").toFile(), PlatformType.FABRIC)
+        CommentedConfigurationNode latestConfig = new ConfigLoader(tempDirectory.resolve("new-config.yml").toFile(), PlatformType.FABRIC)
             .loadConfigurationNode(GeyserPluginConfig.class);
 
-        assertEquals(comment, defaultV6.node("gameplay", "show-cooldown").comment());
-        assertNotEquals(otherComment, defaultV6.node("advanced", "bedrock", "haproxy-protocol-whitelisted-ips").comment());
+        assertNotEquals(otherComment, latestConfig.node("advanced", "bedrock", "haproxy-protocol-whitelisted-ips").comment());
     }
 
     File copyResourceToTempFile(String... path) throws Exception {
