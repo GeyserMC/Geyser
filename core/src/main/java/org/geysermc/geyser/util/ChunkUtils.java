@@ -51,7 +51,8 @@ import org.geysermc.geyser.text.GeyserLocale;
 @UtilityClass
 public class ChunkUtils {
 
-    private static final boolean SHOW_CHUNK_HEIGHT_WARNING_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowChunkHeightWarningLogs", "true"));
+    private static final boolean SHOW_CHUNK_HEIGHT_WARNING_LOGS = Boolean
+            .parseBoolean(System.getProperty("Geyser.ShowChunkHeightWarningLogs", "true"));
 
     public static final byte[] EMPTY_BIOME_DATA;
 
@@ -59,8 +60,20 @@ public class ChunkUtils {
 
     public static final int EMPTY_CHUNK_SECTION_SIZE;
 
+    /**
+     * Pre-computed lookup table for YZX to XZY coordinate transformations.
+     * This eliminates millions of bit operations during chunk translation.
+     * Size: 4096 ints × 4 bytes = 16KB of static memory.
+     */
+    private static final int[] YZX_TO_XZY_LOOKUP = new int[4096];
+
     static {
         EMPTY_BLOCK_STORAGE = new BlockStorage[0];
+
+        // Pre-compute all coordinate transformations
+        for (int yzx = 0; yzx < 4096; yzx++) {
+            YZX_TO_XZY_LOOKUP[yzx] = (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
+        }
 
         ByteBuf byteBuf = Unpooled.buffer();
         try {
@@ -89,8 +102,15 @@ public class ChunkUtils {
         }
     }
 
+    /**
+     * Converts YZX coordinate index to XZY coordinate index.
+     * Uses pre-computed lookup table for maximum performance.
+     * 
+     * @param yzx the YZX coordinate index (0-4095)
+     * @return the XZY coordinate index
+     */
     public static int indexYZXtoXZY(int yzx) {
-        return (yzx >> 8) | (yzx & 0x0F0) | ((yzx & 0x00F) << 8);
+        return YZX_TO_XZY_LOOKUP[yzx];
     }
 
     public static void updateChunkPosition(GeyserSession session, Vector3i position) {
@@ -100,7 +120,8 @@ public class ChunkUtils {
         if (chunkPos == null || !chunkPos.equals(newChunkPos)) {
             NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
             chunkPublisherUpdatePacket.setPosition(position);
-            // Mitigates chunks not loading on 1.17.1 Paper and 1.19.3 Fabric. As of Bedrock 1.19.60.
+            // Mitigates chunks not loading on 1.17.1 Paper and 1.19.3 Fabric. As of Bedrock
+            // 1.19.60.
             // https://github.com/GeyserMC/Geyser/issues/3490
             chunkPublisherUpdatePacket.setRadius(squareToCircle(session.getServerRenderDistance()) << 4);
             session.sendUpstreamPacket(chunkPublisherUpdatePacket);
@@ -117,11 +138,13 @@ public class ChunkUtils {
     }
 
     /**
-     * Sends a block update to the Bedrock client. If the platform is not Spigot, this also
+     * Sends a block update to the Bedrock client. If the platform is not Spigot,
+     * this also
      * adds that block to the cache.
-     * @param session the Bedrock session to send/register the block to
+     * 
+     * @param session    the Bedrock session to send/register the block to
      * @param blockState the Java block state of the block
-     * @param position the position of the block
+     * @param position   the position of the block
      */
     public static void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         updateBlockClientSide(session, BlockState.of(blockState), position);
@@ -129,11 +152,13 @@ public class ChunkUtils {
     }
 
     /**
-     * Sends a block update to the Bedrock client. If the platform does not have an integrated world manager, this also
+     * Sends a block update to the Bedrock client. If the platform does not have an
+     * integrated world manager, this also
      * adds that block to the cache.
-     * @param session the Bedrock session to send/register the block to
+     * 
+     * @param session    the Bedrock session to send/register the block to
      * @param blockState the Java block state of the block
-     * @param position the position of the block
+     * @param position   the position of the block
      */
     public static void updateBlock(GeyserSession session, BlockState blockState, Vector3i position) {
         updateBlockClientSide(session, blockState, position);
@@ -152,7 +177,8 @@ public class ChunkUtils {
                 // Still update the chunk cache with the new block if updateBlock is called
                 return;
             }
-            // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
+            // Otherwise, let's still store our reference to the item frame, but let the new
+            // block take precedence for now
         }
 
         blockState.block().updateBlock(session, blockState, position);
@@ -164,7 +190,9 @@ public class ChunkUtils {
 
         byte[] payload;
         // Allocate output buffer
-        ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(ChunkUtils.EMPTY_BIOME_DATA.length * bedrockSubChunkCount + 1); // Consists only of biome data and border blocks
+        ByteBuf byteBuf = ByteBufAllocator.DEFAULT
+                .buffer(ChunkUtils.EMPTY_BIOME_DATA.length * bedrockSubChunkCount + 1); // Consists only of biome data
+                                                                                        // and border blocks
         try {
             byteBuf.writeBytes(EMPTY_BIOME_DATA);
             for (int i = 1; i < bedrockSubChunkCount; i++) {
@@ -209,8 +237,10 @@ public class ChunkUtils {
     }
 
     /**
-     * Process the minimum and maximum heights for this dimension, and processes the world coordinate scale.
-     * This must be done after the player has switched dimensions so we know what their dimension is
+     * Process the minimum and maximum heights for this dimension, and processes the
+     * world coordinate scale.
+     * This must be done after the player has switched dimensions so we know what
+     * their dimension is
      */
     public static void loadDimension(GeyserSession session) {
         JavaDimension dimension = session.getDimensionType();
@@ -220,13 +250,18 @@ public class ChunkUtils {
 
         BedrockDimension bedrockDimension = session.getBedrockDimension();
         // Yell in the console if the world height is too height in the current scenario
-        // The constraints change depending on if the player is in the overworld or not, and if experimental height is enabled
-        // (Ignore this for the Nether. We can't change that at the moment without the workaround. :/ )
-        if (SHOW_CHUNK_HEIGHT_WARNING_LOGS && (minY < bedrockDimension.minY() || (bedrockDimension.doUpperHeightWarn() && maxY > bedrockDimension.maxY()))) {
-            session.getGeyser().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds",
-                    String.valueOf(bedrockDimension.minY()),
-                    String.valueOf(bedrockDimension.maxY()),
-                    session.getRegistryCache().registry(JavaRegistries.DIMENSION_TYPE).byValue(session.getDimensionType())));
+        // The constraints change depending on if the player is in the overworld or not,
+        // and if experimental height is enabled
+        // (Ignore this for the Nether. We can't change that at the moment without the
+        // workaround. :/ )
+        if (SHOW_CHUNK_HEIGHT_WARNING_LOGS && (minY < bedrockDimension.minY()
+                || (bedrockDimension.doUpperHeightWarn() && maxY > bedrockDimension.maxY()))) {
+            session.getGeyser().getLogger()
+                    .warning(GeyserLocale.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds",
+                            String.valueOf(bedrockDimension.minY()),
+                            String.valueOf(bedrockDimension.maxY()),
+                            session.getRegistryCache().registry(JavaRegistries.DIMENSION_TYPE)
+                                    .byValue(session.getDimensionType())));
         }
 
         session.getChunkCache().setMinY(minY);
