@@ -135,7 +135,7 @@ public final class GeyserServer {
             this.listenCount = 1;
         }
 
-        if (this.geyser.config().advanced().bedrock().useHaproxyProtocol() || this.geyser.config().advanced().bedrock().useWaterdogExtras()) {
+        if (this.geyser.config().advanced().bedrock().useHaproxyProtocol() || this.geyser.config().advanced().bedrock().useWaterdogpeForwarding()) {
             this.proxiedAddresses = ExpiringMap.builder()
                     .expiration(30 + 1, TimeUnit.MINUTES)
                     .expirationPolicy(ExpirationPolicy.ACCESSED).build();

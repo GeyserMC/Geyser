@@ -40,7 +40,6 @@ import org.geysermc.cumulus.response.SimpleFormResponse;
 import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.GeyserBedrockPeer;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -77,8 +76,6 @@ public class LoginEncryptionUtils {
             Long rawIssuedAt = (Long) result.rawIdentityClaims().get("iat");
             long issuedAt = rawIssuedAt != null ? rawIssuedAt : -1;
 
-            IdentityData extraData = result.identityClaims().extraData;
-            session.setAuthData(new AuthData(extraData.displayName, extraData.identity, extraData.xuid, issuedAt, extraData.minecraftId));
             if (authPayload instanceof TokenPayload tokenPayload) {
                 session.setToken(tokenPayload.getToken());
             } else if (authPayload instanceof CertificateChainPayload certificateChainPayload) {
@@ -98,17 +95,23 @@ public class LoginEncryptionUtils {
             data.setOriginalString(jwt);
             session.setClientData(data);
 
-            if(geyser.config().advanced().bedrock().useWaterdogExtras()) {
+            IdentityData extraData = result.identityClaims().extraData;
+            String xuid = extraData.xuid;
+            if (geyser.config().advanced().bedrock().useWaterdogpeForwarding()) {
                 String waterdogIp = data.getWaterdogIp();
-                if (waterdogIp != null && !waterdogIp.isBlank()) {
+                String waterdogXuid = data.getWaterdogXuid();
+                if (waterdogXuid != null && !waterdogXuid.isBlank() && waterdogIp != null && !waterdogIp.isBlank()) {
+                    xuid = waterdogXuid;
                     InetSocketAddress originalAddress = session.getUpstream().getAddress();
                     InetSocketAddress proxiedAddress = new InetSocketAddress(waterdogIp, originalAddress.getPort());
-                    if (session.getGeyser().getGeyserServer().getProxiedAddresses() != null) {
-                        session.getGeyser().getGeyserServer().getProxiedAddresses().put(originalAddress, proxiedAddress);
-                        ((GeyserBedrockPeer) session.getUpstream().getSession().getPeer()).setProxiedAddress(proxiedAddress);
-                    }
+                    session.getGeyser().getGeyserServer().getProxiedAddresses().put(originalAddress, proxiedAddress);
+                    session.getUpstream().setInetAddress(proxiedAddress);
+                } else {
+                    session.disconnect("Did not receive IP and xuid forwarded from the proxy!");
+                    return;
                 }
             }
+            session.setAuthData(new AuthData(extraData.displayName, extraData.identity, xuid, issuedAt, extraData.minecraftId));
 
             try {
                 startEncryptionHandshake(session, identityPublicKey);

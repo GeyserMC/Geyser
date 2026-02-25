@@ -373,11 +373,6 @@ public interface GeyserConfig {
         boolean useHaproxyProtocol();
 
         @Comment("""
-               Whether this geyser instance is behind a waterdog proxy""")
-        @DefaultBoolean(false)
-        boolean useWaterdogExtras();
-
-        @Comment("""
                 A list of allowed HAPROXY protocol speaking proxy IP addresses/subnets. Only effective when "use-proxy-protocol" is enabled, and
                 should really only be used when you are not able to use a proper firewall (usually true with shared hosting providers etc.).
                 Keeping this list empty means there is no IP address whitelist.
@@ -385,6 +380,13 @@ public interface GeyserConfig {
         default List<String> haproxyProtocolWhitelistedIps() {
             return Collections.emptyList();
         }
+
+        @Comment("""
+               Should be enabled if this Geyser instance is behind a Waterdog proxy. If enabled, Geyser will
+               use the xuid / address sent from WaterdogPE and reject clients that do not send it.
+               """)
+        @DefaultBoolean()
+        boolean useWaterdogpeForwarding();
 
         @Comment("""
             The internet supports a maximum MTU of 1492 but could cause issues with packet fragmentation.
