@@ -440,7 +440,7 @@ public class LivingEntity extends Entity implements Tickable {
         if (this instanceof ClientVehicle clientVehicle) {
             return !clientVehicle.isClientControlled();
         }
-        return true;
+        return session.getEntityCache().tickableEntityCount() < 100;
     }
 
     @Override
