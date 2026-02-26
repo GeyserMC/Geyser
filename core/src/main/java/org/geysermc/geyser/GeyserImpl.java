@@ -83,6 +83,7 @@ import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.GeyserServer;
+import org.geysermc.geyser.pack.SkullResourcePackManager;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -305,6 +306,10 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         if (isReloading) {
             // If we're reloading, the default locale in the config might have changed.
             GeyserLocale.finalizeDefaultLocale(this);
+
+            Registries.load();
+            BlockRegistries.populate();
+            Registries.populate();
         } else {
             CodeOfConductManager.load();
         }
@@ -777,6 +782,11 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         this.eventBus.fire(new GeyserPreReloadEvent(this.extensionManager, this.eventBus));
 
         bootstrap.onGeyserDisable();
+
+        BlockRegistries.reset();
+        Registries.reset();
+        SkullResourcePackManager.SKULL_SKINS.clear();
+
         bootstrap.onGeyserEnable();
 
         isReloading = false;

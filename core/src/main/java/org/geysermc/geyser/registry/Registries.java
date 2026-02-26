@@ -239,6 +239,14 @@ public final class Registries {
         DANGEROUS_ENTITIES.load();
     }
 
+    public static void reset() {
+        loaded = false;
+
+        ITEMS.clear();
+        TAGS.clear();
+        POTION_MIXES.clear();
+    }
+
     public static void populate() {
         PacketRegistryPopulator.populate();
         DataComponentRegistryPopulator.populate();
