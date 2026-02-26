@@ -28,7 +28,9 @@ package org.geysermc.geyser.scoreboard;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.api.event.EventRegistrar;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPostReloadEvent;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -36,28 +38,39 @@ import org.geysermc.geyser.text.GeyserLocale;
 import java.util.Collection;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public final class ScoreboardUpdater extends Thread {
-    public static final int FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
-    public static final int SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD = 250;
+public final class ScoreboardUpdater extends Thread implements EventRegistrar {
 
     private static final int FIRST_MILLIS_BETWEEN_UPDATES = 250; // 4 updates per second
     private static final int SECOND_MILLIS_BETWEEN_UPDATES = 1000; // 1 update per second
+    public static final int SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD = 250;
+    public static int firstScorePacketsPerSecondThreshold;
+    private final boolean debugEnabled;
 
-    private static final boolean DEBUG_ENABLED;
-
-    static {
-        GeyserConfig config = GeyserImpl.getInstance().config();
-        FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD = Math.min(config.advanced().scoreboardPacketThreshold(), SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD);
-        DEBUG_ENABLED = config.debugMode();
-    }
-
-    private final GeyserImpl geyser = GeyserImpl.getInstance();
-
+    private final GeyserImpl geyser;
     private long lastUpdate = System.currentTimeMillis();
     private long lastPacketsPerSecondUpdate = System.currentTimeMillis();
 
-    public static void init() {
-        new ScoreboardUpdater().start();
+    public ScoreboardUpdater(GeyserImpl geyser) {
+        this.geyser = geyser;
+        firstScorePacketsPerSecondThreshold = Math.min(geyser.config().advanced().scoreboardPacketThreshold(), SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD);
+        this.debugEnabled = geyser.config().debugMode();
+    }
+
+    public static void init(GeyserImpl geyser) {
+        ScoreboardUpdater updater = new ScoreboardUpdater(geyser);
+        updater.setName("Geyser Scoreboard Updater Thread");
+        updater.setDaemon(true);
+        if (geyser.isReloading()) {
+            geyser.eventBus().subscribe(updater, GeyserPostReloadEvent.class, (ignored) -> updater.start());
+        } else {
+            geyser.eventBus().subscribe(updater, GeyserPostInitializeEvent.class, (ignored) -> updater.start());
+        }
+    }
+
+    @Override
+    public void start() {
+        geyser.eventBus().unregisterAll(this);
+        super.start();
     }
 
     @Override
@@ -86,8 +99,8 @@ public final class ScoreboardUpdater extends Thread {
                         scoreboardSession.pendingPacketsPerSecond.set(0);
 
                         // just making sure that all updates are pushed before giving up control
-                        if (oldPps >= FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD &&
-                                newPps < FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
+                        if (oldPps >= firstScorePacketsPerSecondThreshold &&
+                                newPps < firstScorePacketsPerSecondThreshold) {
                             session.getWorldCache().getScoreboard().onUpdate();
                         }
                     }
@@ -101,7 +114,7 @@ public final class ScoreboardUpdater extends Thread {
                         ScoreboardSession scoreboardSession = worldCache.getScoreboardSession();
 
                         int pps = scoreboardSession.getPacketsPerSecond();
-                        if (pps >= FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
+                        if (pps >= firstScorePacketsPerSecondThreshold) {
                             boolean reachedSecondThreshold = pps >= SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD;
 
                             int millisBetweenUpdates = reachedSecondThreshold ?
@@ -112,10 +125,10 @@ public final class ScoreboardUpdater extends Thread {
                                 worldCache.getScoreboard().onUpdate();
                                 scoreboardSession.lastUpdate = currentTime;
 
-                                if (DEBUG_ENABLED && (currentTime - scoreboardSession.lastLog >= 60000)) { // one minute
+                                if (debugEnabled && (currentTime - scoreboardSession.lastLog >= 60000)) { // one minute
                                     int threshold = reachedSecondThreshold ?
                                             SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD :
-                                            FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
+                                        firstScorePacketsPerSecondThreshold;
 
                                     geyser.getLogger().info(
                                             GeyserLocale.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached.log", session.bedrockUsername(), threshold, pps) +
@@ -129,7 +142,7 @@ public final class ScoreboardUpdater extends Thread {
                     }
                 }
 
-                if (DEBUG_ENABLED) {
+                if (debugEnabled) {
                     long timeSpent = System.currentTimeMillis() - currentTime;
                     if (timeSpent > 0) {
                         geyser.getLogger().info(String.format(
