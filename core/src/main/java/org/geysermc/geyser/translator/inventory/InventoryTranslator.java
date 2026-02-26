@@ -47,6 +47,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftResultsDeprecatedAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.DropAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.PlaceAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.SwapAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.TransferItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
@@ -88,6 +89,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import static org.geysermc.geyser.translator.inventory.BundleInventoryTranslator.isBundle;
 
@@ -237,7 +239,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
     }
 
     /**
-     * Should be overrided if this request matches a certain criteria and shouldn't be treated normally.
+     * Should be overridden if this request matches a certain criteria and shouldn't be treated normally.
      * E.G. anvil renaming or enchanting
      */
     protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, Type inventory) {
@@ -252,7 +254,55 @@ public abstract class InventoryTranslator<Type extends Inventory> {
     }
 
     public final void translateRequests(GeyserSession session, Type inventory, List<ItemStackRequest> requests) {
+        this.translateRequests(session, inventory, requests, true);
+    }
+
+    private void translateRequests(GeyserSession session, Type inventory, List<ItemStackRequest> requests, boolean firstTime) {
         boolean refresh = false;
+
+        // If we get another request, we're not closing the inventory and should run the queued request asap
+        // to "not fall behind" on transactions
+        session.getInventoryTransactionFuture().runCurrentIfPresent();
+
+        // Fixes https://github.com/GeyserMC/Geyser/issues/5258
+        // Bedrock edition has the quirk where it'll remove all items from the crafting inventory
+        // before closing it, which breaks some Java plugins...
+        boolean mustDelay = firstTime && requests.stream().allMatch(request -> {
+            if (request.getActions().length > 0) {
+                if (request.getActions()[0] instanceof PlaceAction action) {
+                    return action.getSource().getContainerName().getContainer() == ContainerSlotType.CRAFTING_INPUT &&
+                        action.getDestination().getContainerName().getContainer() == ContainerSlotType.HOTBAR_AND_INVENTORY;
+                }
+            }
+            return false;
+        });
+
+        if (mustDelay) {
+            // We cannot clearly differentiate shift-clicking a single stack...
+            // So we try to guess and delay the processing (at least 10 ticks) until we either get a new inventory transaction,
+            // or until we know the inventory wasn't closed
+            session.getInventoryTransactionFuture().schedule(() -> {
+                    if (session.getPendingOrCurrentBedrockInventoryId() == inventory.getBedrockId()) {
+                        translateRequests(session, inventory, requests, false);
+                    } else {
+                        ItemStackResponsePacket responsePacket = new ItemStackResponsePacket();
+                        requests.forEach(request -> responsePacket.getEntries().add(rejectRequest(request, false)));
+                        session.sendUpstreamPacket(responsePacket);
+
+                        // Now update current inventory
+                        if (session.getInventoryHolder() != null) {
+                            session.getInventoryHolder().updateInventory();
+                        } else {
+                            session.getPlayerInventoryHolder().updateInventory();
+                        }
+                    }
+                },
+                750,
+                TimeUnit.MILLISECONDS
+            );
+            return;
+        }
+
         ItemStackResponsePacket responsePacket = new ItemStackResponsePacket();
         for (ItemStackRequest request : requests) {
             ItemStackResponse response;
