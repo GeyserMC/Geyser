@@ -30,8 +30,8 @@ import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.level.EffectType;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
+import org.geysermc.geyser.level.EffectType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.EntityEffectCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -81,6 +81,7 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
                 case ABSORPTION -> session.getPlayerEntity().getAttributes().get(GeyserAttributeType.ABSORPTION);
                 // Fixes https://github.com/GeyserMC/Geyser/issues/5388
                 case SPEED -> session.getPlayerEntity().getAttributes().get(GeyserAttributeType.MOVEMENT_SPEED);
+                case DOLPHINS_GRACE -> session.getPlayerEntity().updateDolphinsGrace(true);
                 default -> null;
             };
 
