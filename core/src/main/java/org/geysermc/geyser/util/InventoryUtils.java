@@ -238,7 +238,7 @@ public class InventoryUtils {
             return null;
         }
         if (position.getY() >= maxY || !canUseWorldSpace(session, position)) {
-            position = flatPlayerPosition.sub(0, 4, 0);
+            position = flatPlayerPosition.down(3);
             if (position.getY() >= maxY || !canUseWorldSpace(session, position)) {
                 return null;
             }

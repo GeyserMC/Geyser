@@ -119,7 +119,7 @@ public class InteractionEntity extends Entity {
 
     @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveAbsoluteRaw(this.position.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
+        moveAbsoluteRaw(position.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
     }
 
     @Override
@@ -141,7 +141,7 @@ public class InteractionEntity extends Entity {
         setBoundingBoxHeight(Math.min(height.getPrimitiveValue(), 64f));
 
         if (secondEntity != null) {
-            secondEntity.moveAbsoluteRaw(this.position.up(getBoundingBoxHeight()), yaw, pitch, headYaw, onGround, true);
+            secondEntity.moveAbsoluteRaw(position.up(getBoundingBoxHeight()), yaw, pitch, headYaw, onGround, true);
         }
     }
 
