@@ -28,6 +28,7 @@ package org.geysermc.geyser.network.netty;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.Epoll;
 import io.netty.channel.kqueue.KQueue;
@@ -157,26 +158,33 @@ public final class GeyserServer {
     }
 
     private void modifyHandlers(ChannelFuture future) {
-        Channel channel = future.channel();
-        // Add our ping handler
-        channel.pipeline()
+        future.addListener((ChannelFutureListener) f -> {
+            if (!f.isSuccess()) {
+                GeyserImpl.getInstance().getLogger().warning("Not modifying handlers due to exception: " + f.cause());
+                return;
+            }
+
+            Channel channel = f.channel();
+            // Add our ping handler
+            channel.pipeline()
                 .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
                 .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
 
-        // Add proxy handler
-        boolean isProxyProtocol = this.geyser.config().advanced().bedrock().useHaproxyProtocol();
-        if (isProxyProtocol) {
-            channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
-        }
+            // Add proxy handler
+            boolean isProxyProtocol = this.geyser.config().advanced().bedrock().useHaproxyProtocol();
+            if (isProxyProtocol) {
+                channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
+            }
 
-        boolean isWhitelistedProxyProtocol = isProxyProtocol && !this.geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps().isEmpty();
-        if (Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false")) || isWhitelistedProxyProtocol) {
-            // We would already block any non-whitelisted IP addresses in onConnectionRequest so we can remove the rate limiter
-            channel.pipeline().remove(RakServerRateLimiter.NAME);
-        } else {
-            // Use our own rate limiter to allow multiple players from the same IP
-            channel.pipeline().replace(RakServerRateLimiter.NAME, RakGeyserRateLimiter.NAME, new RakGeyserRateLimiter(channel));
-        }
+            boolean isWhitelistedProxyProtocol = isProxyProtocol && !this.geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps().isEmpty();
+            if (Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false")) || isWhitelistedProxyProtocol) {
+                // We would already block any non-whitelisted IP addresses in onConnectionRequest so we can remove the rate limiter
+                channel.pipeline().remove(RakServerRateLimiter.NAME);
+            } else {
+                // Use our own rate limiter to allow multiple players from the same IP
+                channel.pipeline().replace(RakServerRateLimiter.NAME, RakGeyserRateLimiter.NAME, new RakGeyserRateLimiter(channel));
+            }
+        });
     }
 
     public void shutdown() {

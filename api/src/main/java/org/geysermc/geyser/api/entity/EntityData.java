@@ -69,22 +69,19 @@ public interface EntityData {
 
     /**
      * @deprecated use {@link GeyserConnection#requestOffhandSwap()} instead
-     * @since 2.9.3
      */
-    @Deprecated
+    @Deprecated(since = "2.9.3")
     void switchHands();
 
     /**
      * @deprecated Use {@link GeyserConnection#showEmote(GeyserPlayerEntity, String)} instead.
-     * @since 2.9.3
      */
-    @Deprecated
+    @Deprecated(since = "2.9.3")
     void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
 
     /**
      * @deprecated Use {@link GeyserConnection#playerEntity} instead.
-     * @since 2.9.3
      */
-    @Deprecated
+    @Deprecated(since = "2.9.3")
     @NonNull GeyserPlayerEntity playerEntity();
 }

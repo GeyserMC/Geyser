@@ -411,4 +411,11 @@ public class WebUtils {
     public static String getUserAgent() {
         return "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION;
     }
+
+    public static String toHttps(String url) {
+        if (url != null && url.startsWith("http://")) {
+            return "https://" + url.substring(7);
+        }
+        return url;
+    }
 }
