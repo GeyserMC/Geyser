@@ -176,7 +176,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
                 return;
             }
             // The parrot is a separate entity in Bedrock, but part of the player entity in Java
-            EntitySpawnContext context = EntitySpawnContext.inherited(session, EntityDefinitions.PARROT, this, this.position);
+            EntitySpawnContext context = EntitySpawnContext.inherited(session, EntityDefinitions.PARROT, this, position);
             ParrotEntity parrot = new ParrotEntity(context);
             parrot.spawnEntity();
             parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, variant.getAsInt());

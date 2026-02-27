@@ -36,20 +36,23 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.play
 public class JavaPlayerLookAtTranslator extends PacketTranslator<ClientboundPlayerLookAtPacket> {
     @Override
     public void translate(GeyserSession session, ClientboundPlayerLookAtPacket packet) {
-        var targetPosition = targetPosition(session, packet);
-        var selfPosition = session.getPlayerEntity().bedrockPosition();
+        Vector3f targetPosition = targetPosition(session, packet);
+        Vector3f originPosition = switch (packet.getOrigin()) {
+            case FEET -> session.getPlayerEntity().position();
+            // FIXME should be entity#eyeHeight, not bounding box height
+            case EYES -> session.getPlayerEntity().position().add(0, session.getPlayerEntity().getBoundingBoxHeight(), 0);
+        };
 
-        var xDelta = targetPosition.getX() - selfPosition.getX();
-        var yDelta = targetPosition.getY() - selfPosition.getY();
-        var zDelta = targetPosition.getZ() - selfPosition.getZ();
-        var sqrt = Math.sqrt(xDelta * xDelta + zDelta * zDelta);
+        float xDelta = targetPosition.getX() - originPosition.getX();
+        float yDelta = targetPosition.getY() - originPosition.getY();
+        float zDelta = targetPosition.getZ() - originPosition.getZ();
+        double sqrt = Math.sqrt(xDelta * xDelta + zDelta * zDelta);
 
-        var pitch = MathUtils.wrapDegrees(-Math.toDegrees(Math.atan2(yDelta, sqrt)));
-        var yaw = MathUtils.wrapDegrees(Math.toDegrees(Math.atan2(zDelta, xDelta)) - 90.0);
+        float pitch = MathUtils.wrapDegrees(-Math.toDegrees(Math.atan2(yDelta, sqrt)));
+        float yaw = MathUtils.wrapDegrees(Math.toDegrees(Math.atan2(zDelta, xDelta)) - 90.0);
 
-        var self = session.getPlayerEntity();
         // headYaw is also set to yaw in this packet
-        self.updateOwnRotation(yaw, pitch, yaw);
+        session.getPlayerEntity().updateOwnRotation(yaw, pitch, yaw);
     }
 
     public Vector3f targetPosition(GeyserSession session, ClientboundPlayerLookAtPacket packet) {
@@ -59,6 +62,7 @@ public class JavaPlayerLookAtTranslator extends PacketTranslator<ClientboundPlay
             if (target != null) {
                 return switch (packet.getTargetEntityOrigin()) {
                     case FEET -> target.position();
+                    // FIXME should be entity#eyeHeight, not bounding box height
                     case EYES -> target.position().add(0, target.getBoundingBoxHeight(), 0);
                 };
             }
