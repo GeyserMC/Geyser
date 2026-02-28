@@ -77,16 +77,19 @@ public class CooldownUtils {
             String value = (sessionPreference == CooldownType.CROSSHAIR ? "crs" : "htb") + ":" + Math.round(cooldown * 16);
             session.sendJsonUIData("cooldown", value);
         } else {
-            // Set the times to stay a bit with no fade in nor out
-            SetTitlePacket titlePacket = new SetTitlePacket();
-            titlePacket.setType(SetTitlePacket.Type.TIMES);
-            titlePacket.setStayTime(1000);
-            titlePacket.setText("");
-            titlePacket.setXuid("");
-            titlePacket.setPlatformOnlineId("");
-            session.sendUpstreamPacket(titlePacket);
+            // They must be incorrect here for cooldown sake
+            if (!session.getWorldCache().isTitleTimesIncorrect()) {
+                // Set the times to stay a bit with no fade in nor out
+                SetTitlePacket titlePacket = new SetTitlePacket();
+                titlePacket.setType(SetTitlePacket.Type.TIMES);
+                titlePacket.setStayTime(1000);
+                titlePacket.setText("");
+                titlePacket.setXuid("");
+                titlePacket.setPlatformOnlineId("");
+                session.sendUpstreamPacket(titlePacket);
 
-            session.getWorldCache().markTitleTimesAsIncorrect();
+                session.getWorldCache().markTitleTimesAsIncorrect();
+            }
 
             // Actionbars don't need an empty title
             if (sessionPreference == CooldownType.CROSSHAIR) {
