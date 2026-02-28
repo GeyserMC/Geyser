@@ -276,14 +276,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     " (" + session.protocolVersion() + ")"));
             }
             case SEND_PACKS -> {
-                if (packet.getPackIds().isEmpty()) {
-                    GeyserImpl.getInstance().getLogger().warning("Received empty pack ids in resource pack response packet!");
-                    session.disconnect("Invalid resource pack response packet received!");
-                    chunkRequestQueue.clear();
+                // Bedrock clients can send empty "send_packs" responses, in which case we shouldn't send anything back
+                if (!packet.getPackIds().isEmpty()) {
+                    packsToSend.addAll(packet.getPackIds());
+                    sendPackDataInfo(packsToSend.pop());
                     return PacketSignal.HANDLED;
                 }
-                packsToSend.addAll(packet.getPackIds());
-                sendPackDataInfo(packsToSend.pop());
             }
             case HAVE_ALL_PACKS -> {
                 ResourcePackStackPacket stackPacket = new ResourcePackStackPacket();
