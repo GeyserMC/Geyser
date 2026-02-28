@@ -204,9 +204,9 @@ public class SkinManager {
     public static GameProfile.@Nullable Texture getTextureDataFromProfile(GameProfile profile, GameProfile.TextureType type) {
         Map<GameProfile.TextureType, GameProfile.Texture> textures;
         try {
-            textures = profile.getTextures(true);
+            textures = profile.getTextures(false);
         } catch (IllegalStateException e) {
-            GeyserImpl.getInstance().getLogger().debug("Could not decode textures from game profile!", profile, e);
+            GeyserImpl.getInstance().getLogger().debug("Could not decode textures from game profile (%s)! Got: %s", profile, e);
             return null;
         }
 

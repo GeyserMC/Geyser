@@ -239,9 +239,9 @@ public abstract class AvatarEntity extends LivingEntity {
     public void setSkin(GameProfile profile, @Nullable Runnable after) {
         Map<GameProfile.TextureType, GameProfile.Texture> textures;
         try {
-            textures = profile.getTextures(true);
+            textures = profile.getTextures(false);
         } catch (IllegalStateException e) {
-            GeyserImpl.getInstance().getLogger().debug("Error loading textures! " + profile, e);
+            GeyserImpl.getInstance().getLogger().debug("Error loading textures for profile (%s)! Got: %s", profile, e);
             textures = null;
         }
         setSkin(textures, after);

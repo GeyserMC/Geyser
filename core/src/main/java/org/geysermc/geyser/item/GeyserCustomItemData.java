@@ -43,6 +43,7 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Set;
@@ -144,7 +145,7 @@ public class GeyserCustomItemData implements CustomItemData {
     }
 
     public CustomItemDefinition.Builder toDefinition(Identifier javaItem) {
-        GeyserCustomItemDefinition.Builder definition = (GeyserCustomItemDefinition.Builder) CustomItemDefinition.builder(Identifier.of("geyser_custom", name()), javaItem)
+        GeyserCustomItemDefinition.Builder definition = (GeyserCustomItemDefinition.Builder) CustomItemDefinition.builder(Identifier.of("geyser_custom", name().toLowerCase(Locale.ROOT)), javaItem)
             .displayName(displayName())
             .bedrockOptions(CustomItemBedrockOptions.builder()
                 .icon(icon())

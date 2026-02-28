@@ -95,8 +95,8 @@ public class GeyserSessionAdapter extends SessionAdapter {
                         clientData.getUiProfile().ordinal(),
                         clientData.getCurrentInputMode().ordinal(),
                         bedrockAddress,
-                        skinUploader.getId(),
-                        skinUploader.getVerifyCode()
+                        skinUploader == null ? 0 : skinUploader.getId(),
+                        skinUploader == null ? null : skinUploader.getVerifyCode()
                     ).toString());
                 } catch (Exception e) {
                     geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);

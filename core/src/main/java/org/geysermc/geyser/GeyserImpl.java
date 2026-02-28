@@ -158,7 +158,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     private final SessionManager sessionManager = new SessionManager();
 
     private FloodgateCipher cipher;
-    private FloodgateSkinUploader skinUploader;
+    private @Nullable FloodgateSkinUploader skinUploader;
     private NewsHandler newsHandler;
 
     private UnixSocketClientListener erosionUnixListener;
@@ -495,9 +495,11 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 cipher = new AesCipher(new Base64Topping());
                 cipher.init(key);
                 logger.debug("Loaded Floodgate key!");
-                // Note: this is positioned after the bind so the skin uploader doesn't try to run if Geyser fails
-                // to load successfully. Spigot complains about class loader if the plugin is disabled.
-                skinUploader = new FloodgateSkinUploader(this).start();
+                if (config.advanced().bedrock().validateBedrockLogin()) {
+                    // Note: this is positioned after the bind so the skin uploader doesn't try to run if Geyser fails
+                    // to load successfully. Spigot complains about class loader if the plugin is disabled.
+                    skinUploader = new FloodgateSkinUploader(this).start();
+                }
             } catch (Exception exception) {
                 logger.severe(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
             }
