@@ -18,7 +18,7 @@ Special thanks to the DragonProxy project for being a trailblazer in protocol tr
 
 | Edition | Supported Versions                                                                                   |
 |---------|------------------------------------------------------------------------------------------------------|
-| Bedrock | 1.21.111 - 1.21.114, 1.21.120 - 1.21.124 , 1.21.130 - 1.21.132, 26.0                                 |
+| Bedrock | 1.21.111 - 1.21.114, 1.21.120 - 1.21.124 , 1.21.130 - 1.21.132, 26.0, 26.1, 26.2                     |
 | Java    | 1.21.11 (For older versions, [see this guide](https://geysermc.org/wiki/geyser/supported-versions/)) |
 
 ## Setting Up

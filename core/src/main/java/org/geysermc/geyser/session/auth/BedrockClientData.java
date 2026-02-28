@@ -126,8 +126,6 @@ public final class BedrockClientData {
     private String skinColor;
     @SerializedName(value = "ThirdPartyNameOnly")
     private boolean thirdPartyNameOnly;
-    @SerializedName(value = "PlayFabId")
-    private String playFabId;
 
     @Setter
     private transient String originalString = null;

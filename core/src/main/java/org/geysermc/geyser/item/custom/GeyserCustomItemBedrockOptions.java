@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.registry.populator.custom.CustomItemContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -39,11 +40,23 @@ import java.util.Set;
 public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allowOffhand, boolean displayHandheld, int protectionValue,
                                              @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup, @NonNull Set<Identifier> tags) implements CustomItemBedrockOptions {
 
+    @Override
+    public int protectionValue() {
+        return protectionValue == -1 ? 0 : protectionValue;
+    }
+
+    public int protectionValue(CustomItemContext context) {
+        if (protectionValue == -1 && context.vanillaMapping().isPresent()) {
+            return context.vanillaMapping().get().getProtectionValue();
+        }
+        return protectionValue();
+    }
+
     public static class Builder implements CustomItemBedrockOptions.Builder {
         private String icon = null;
         private boolean allowOffhand = true;
         private boolean displayHandheld = false;
-        private int protectionValue = 0;
+        private int protectionValue = -1;
         private CreativeCategory creativeCategory = CreativeCategory.NONE;
         private String creativeGroup = null;
         private Set<Identifier> tags = new HashSet<>();

@@ -52,6 +52,7 @@ public class ItemMapping {
             null,
             null,
             null,
+            false,
             Items.AIR
     );
 
@@ -74,6 +75,9 @@ public class ItemMapping {
      */
     @Nullable
     SortedSetMultimap<Key, GeyserCustomMappingData> customItemDefinitions;
+
+    @Builder.Default
+    boolean containsV1Mappings = false;
 
     @NonNull
     Item javaItem;

@@ -90,7 +90,8 @@ public interface JavaUseCooldown {
         /**
          * Sets the cooldown group that this cooldown belongs to.
          * When any item in this group is used, all items in the group
-         * are not usable for the amount of time specified in {@link Builder#seconds()}
+         * are not usable for the amount of time specified in {@link #seconds()}.
+         * <br>
          * {@code null} results in the item identifier being specified instead.
          *
          * @param cooldownGroup the cooldown group identifier

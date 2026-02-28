@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.protocol.java.entity;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
@@ -82,6 +83,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             EntityUtils.updateMountOffset(passenger, entity, rider, true, i, packet.getPassengerIds().length);
             // Force an update to the passenger metadata
             passenger.updateBedrockMetadata();
+            passenger.setMotion(Vector3f.ZERO);
         }
 
         // Handle passengers that were removed

@@ -25,11 +25,13 @@
 
 package org.geysermc.geyser.scoreboard.network.util;
 
+import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -95,6 +97,19 @@ public class GeyserMockContextScoreboard {
         var player = spawnPlayer(context, username, geyserId);
         assertNextPacketType(context, AddPlayerPacket.class);
         return player;
+    }
+
+    public static ArmorStandEntity spawnArmorStand(GeyserMockContext context, long geyserId) {
+        var entitySpawnContext = EntitySpawnContext.DUMMY_CONTEXT.apply(context.session(), UUID.randomUUID(), EntityDefinitions.ARMOR_STAND);
+        entitySpawnContext.geyserId(geyserId);
+        entitySpawnContext.javaId((int) geyserId);
+        var armorStand = spy(new ArmorStandEntity(entitySpawnContext));
+
+        var entityCache = context.mockOrSpy(EntityCache.class);
+        entityCache.spawnEntity(armorStand);
+
+        assertNextPacketType(context, AddEntityPacket.class);
+        return armorStand;
     }
 
     public static PlayerEntity spawnPlayer(GeyserMockContext context, String username, long geyserId) {

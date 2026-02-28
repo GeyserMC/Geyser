@@ -196,7 +196,7 @@ public class SkinProvider {
     /**
      * If skin data fails to apply, or there is no skin data to apply, determine what skin we should give as a fallback.
      */
-    static SkinData determineFallbackSkinData(UUID uuid) {
+    public static SkinData determineFallbackSkinData(UUID uuid) {
         Skin skin = null;
         Cape cape = null;
         SkinGeometry geometry = SkinGeometry.WIDE;
@@ -263,7 +263,7 @@ public class SkinProvider {
                     try {
                         Skin skin = skinAndCape.skin();
                         Cape cape = skinAndCape.cape();
-                        SkinGeometry geometry = data.isAlex() ? SkinGeometry.SLIM : SkinGeometry.WIDE;
+                        SkinGeometry geometry = data.isSlim() ? SkinGeometry.SLIM : SkinGeometry.WIDE;
 
                         // Whether we should see if this player has a Bedrock skin we should check for on failure of
                         // any skin property
@@ -277,9 +277,9 @@ public class SkinProvider {
                         boolean isBedrock = GeyserImpl.getInstance().connectionByUuid(entity.uuid()) != null;
                         SkinData skinData = new SkinData(skin, cape, geometry);
                         final EventSkinData eventSkinData = new EventSkinData(skinData);
-                        GeyserImpl.getInstance().eventBus().fire(new SessionSkinApplyEvent(session, entity.getUsername(), entity.uuid(), data.isAlex(), isBedrock, skinData) {
+                        GeyserImpl.getInstance().eventBus().fire(new SessionSkinApplyEvent(session, entity.getUsername(), entity.uuid(), data.isSlim(), isBedrock, skinData) {
                             @Override
-                            public SkinData skinData() {
+                            public @NonNull SkinData skinData() {
                                 return eventSkinData.skinData();
                             }
 

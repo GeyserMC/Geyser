@@ -29,18 +29,17 @@ import com.google.common.collect.Multimap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanMap;
 import it.unimi.dsi.fastutil.objects.Object2BooleanOpenHashMap;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.PredicateStrategy;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.custom.GeyserItemPredicateContext;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
-import org.geysermc.geyser.registry.type.ItemMapping;
 
 import java.util.Collection;
 
@@ -73,6 +72,12 @@ public final class CustomItemTranslator {
             return null;
         }
         Collection<GeyserCustomMappingData> customItems = allCustomItems.get(itemModel);
+
+        if (mapping.isContainsV1Mappings() && customItems.isEmpty()) {
+            // Try looking up vanilla model mappings too, as that's what v1 mappings target
+            customItems = allCustomItems.get(mapping.getJavaItem().getComponent(session.getComponentCache(), DataComponentTypes.ITEM_MODEL));
+        }
+
         if (customItems.isEmpty()) {
             return null;
         }

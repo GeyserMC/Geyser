@@ -348,8 +348,8 @@ public final class EntityDefinitions {
         EntityDefinition<Entity> entityBase = EntityDefinition.builder(Entity::new)
                 .addTranslator(MetadataTypes.BYTE, Entity::setFlags)
                 .addTranslator(MetadataTypes.INT, Entity::setAir) // Air/bubbles
-                .addTranslator(MetadataTypes.OPTIONAL_COMPONENT, Entity::setDisplayName)
-                .addTranslator(MetadataTypes.BOOLEAN, Entity::setDisplayNameVisible)
+                .addTranslator(MetadataTypes.OPTIONAL_COMPONENT, Entity::setCustomName)
+                .addTranslator(MetadataTypes.BOOLEAN, Entity::setCustomNameVisible)
                 .addTranslator(MetadataTypes.BOOLEAN, Entity::setSilent)
                 .addTranslator(MetadataTypes.BOOLEAN, Entity::setGravity)
                 .addTranslator(MetadataTypes.POSE, (entity, entityMetadata) -> entity.setPose(entityMetadata.getValue()))

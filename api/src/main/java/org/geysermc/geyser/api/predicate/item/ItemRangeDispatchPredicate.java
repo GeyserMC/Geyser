@@ -44,14 +44,23 @@ import org.jetbrains.annotations.ApiStatus;
 public interface ItemRangeDispatchPredicate {
 
     /**
-     * Creates a predicate checking the item's bundle fullness (the summed stack count of all the items in a bundle).
+     * @deprecated Use {@link #bundleFullness(double)} instead
+     * @since 2.9.3
+     */
+    @Deprecated(since = "2.9.4")
+    static MinecraftPredicate<ItemPredicateContext> bundleFullness(int threshold) {
+        return bundleFullness((double) threshold);
+    }
+
+    /**
+     * Creates a predicate checking the item's bundle fullness (the relative weight of all items in a bundle).
      *
      * <p>Usually used with bundles, but works for any item with the {@code minecraft:bundle_contents} component.</p>
      *
      * @see ItemPredicateContext#bundleFullness()
-     * @since 2.9.3
+     * @since 2.9.4
      */
-    static MinecraftPredicate<ItemPredicateContext> bundleFullness(int threshold) {
+    static MinecraftPredicate<ItemPredicateContext> bundleFullness(double threshold) {
         return GeyserApi.api().provider(RangeDispatchPredicate.class, RangeDispatchPredicate.Property.BUNDLE_FULLNESS, threshold);
     }
 

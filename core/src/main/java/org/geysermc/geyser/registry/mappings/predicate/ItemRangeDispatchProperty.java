@@ -48,8 +48,8 @@ public enum ItemRangeDispatchProperty implements PredicateReader<ItemPredicateCo
         this.reader = reader;
     }
 
-    ItemRangeDispatchProperty(PredicateCreator<ItemPredicateContext, Integer> creator) {
-        this((element, context) -> creator.create((int) readThreshold(element, context)));
+    ItemRangeDispatchProperty(PredicateCreator<ItemPredicateContext, Double> creator) {
+        this((element, context) -> creator.create(readThreshold(element, context)));
     }
 
     ItemRangeDispatchProperty(PredicateCreator<ItemPredicateContext, Integer> creator, PredicateCreator<ItemPredicateContext, Double> normalized) {
