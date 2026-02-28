@@ -77,10 +77,12 @@ public class CooldownUtils {
             String value = (sessionPreference == CooldownType.CROSSHAIR ? "crs" : "htb") + ":" + Math.round(cooldown * 16);
             session.sendJsonUIData("cooldown", value);
         } else {
+            SetTitlePacket titlePacket;
+
             // They must be incorrect here for cooldown sake
             if (!session.getWorldCache().isTitleTimesIncorrect()) {
                 // Set the times to stay a bit with no fade in nor out
-                SetTitlePacket titlePacket = new SetTitlePacket();
+                titlePacket = new SetTitlePacket();
                 titlePacket.setType(SetTitlePacket.Type.TIMES);
                 titlePacket.setStayTime(1000);
                 titlePacket.setText("");
