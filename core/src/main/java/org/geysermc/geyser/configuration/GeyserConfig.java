@@ -390,7 +390,7 @@ public interface GeyserConfig {
         }
 
         @Comment("""
-               Should be enabled if this Geyser instance is behind a Waterdog proxy. If enabled, Geyser will
+               Should be enabled if this Geyser instance is behind a WaterdogPE proxy. If enabled, Geyser will
                use the xuid / address sent from WaterdogPE and reject clients that do not send it.
                """)
         @DefaultBoolean()
