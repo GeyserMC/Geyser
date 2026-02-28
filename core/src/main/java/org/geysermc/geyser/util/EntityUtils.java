@@ -427,7 +427,7 @@ public final class EntityUtils {
 
             @Override
             public void registerEntityType(Consumer<CustomJavaEntityType.Builder> consumer) {
-                var builder = new GeyserEntityType.Builder();
+                var builder = new GeyserEntityType.GeyserJavaEntityTypeBuild();
                 consumer.accept(builder);
 
                 var type = GeyserEntityType.createCustomAndRegister(builder);

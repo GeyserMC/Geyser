@@ -42,7 +42,7 @@ import java.util.concurrent.CompletableFuture;
 public interface EntityData {
 
     /**
-     * @deprecated use {@link #byGeyserId(long)}
+     * @deprecated use {@link #byJavaId(int)}
      */
     @Deprecated
     @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);

@@ -78,6 +78,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.OptionalInt;
 import java.util.Queue;
@@ -439,7 +440,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         if (packID.length < 2) {
             GeyserImpl.getInstance().getLogger().debug("Client %s tried to request invalid pack id %s!",
-                session.bedrockUsername(), packID);
+                session.bedrockUsername(), Arrays.toString(packID));
             session.disconnect("disconnectionScreen.resourcePack");
             return;
         }

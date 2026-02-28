@@ -38,7 +38,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityTy
 @ToString(callSuper = true)
 public class NonVanillaEntityTypeDefinition extends EntityTypeDefinition<Entity> {
 
-    public NonVanillaEntityTypeDefinition(GeyserEntityType.Builder builder, GeyserEntityType entityType) {
+    public NonVanillaEntityTypeDefinition(GeyserEntityType.GeyserJavaEntityTypeBuild builder, GeyserEntityType entityType) {
         super(Entity::new, entityType, builder.getWidth(), builder.getHeight(), 0f, builder.getDefaultBedrockDefinition(), VanillaEntityBases.ENTITY.translators);
     }
 

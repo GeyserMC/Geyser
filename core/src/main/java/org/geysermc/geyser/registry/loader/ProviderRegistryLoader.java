@@ -34,6 +34,7 @@ import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
 import org.geysermc.geyser.api.entity.data.GeyserListEntityDataType;
 import org.geysermc.geyser.api.entity.data.types.Hitbox;
@@ -212,6 +213,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
 
         // entities
         providers.put(GeyserEntityDefinition.class, args -> BedrockEntityDefinition.getOrCreate((Identifier) args[0]));
+        providers.put(CustomEntityDefinition.class, args -> BedrockEntityDefinition.getOrCreate((Identifier) args[0]));
         providers.put(JavaEntityType.class, args -> GeyserEntityType.ofVanilla((Identifier) args[0]));
         providers.put(GeyserEntityDataType.class, args -> GeyserEntityDataImpl.lookup((Class<?>) args[0], (String) args[1]));
         providers.put(GeyserListEntityDataType.class, args -> GeyserListEntityDataImpl.lookup((Class<?>) args[0], (Class<?>) args[1], (String) args[2]));

@@ -141,7 +141,7 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Jav
         return type instanceof BuiltinEntityType builtin ? ofVanilla(builtin) : of(type.id());
     }
 
-    public static GeyserEntityType createCustomAndRegister(Builder builder) {
+    public static GeyserEntityType createCustomAndRegister(GeyserJavaEntityTypeBuild builder) {
         Identifier javaIdentifier = Objects.requireNonNull(builder.identifier, "javaIdentifier may not be null");
         int javaId = builder.javaId;
 
@@ -161,7 +161,7 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Jav
     }
 
     @Getter
-    public static class Builder implements CustomJavaEntityType.Builder {
+    public static class GeyserJavaEntityTypeBuild implements CustomJavaEntityType.Builder {
         private Identifier identifier;
         private int javaId;
         private float width;
@@ -169,7 +169,7 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Jav
         private BedrockEntityDefinition defaultBedrockDefinition;
 
         @Override
-        public Builder type(@NonNull Identifier entityType) {
+        public GeyserJavaEntityTypeBuild type(@NonNull Identifier entityType) {
             Objects.requireNonNull(entityType, "entityType may not be null");
             if (entityType.vanilla()) {
                 throw new IllegalArgumentException("Cannot register custom entity type in vanilla namespace!" + entityType);
@@ -182,7 +182,7 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Jav
         }
 
         @Override
-        public Builder javaId(int javaId) {
+        public GeyserJavaEntityTypeBuild javaId(int javaId) {
             if (javaId < 0) {
                 throw new IllegalArgumentException("Invalid custom entity type id (may not be negative): " + javaId);
             }
@@ -197,7 +197,7 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Jav
         }
 
         @Override
-        public Builder width(@NonNegative float width) {
+        public GeyserJavaEntityTypeBuild width(@NonNegative float width) {
             if (width < 0) {
                 throw new IllegalArgumentException("Invalid custom entity type width (may not be negative): " + width);
             }
@@ -206,7 +206,7 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Jav
         }
 
         @Override
-        public Builder height(@NonNegative float height) {
+        public GeyserJavaEntityTypeBuild height(@NonNegative float height) {
             if (height < 0) {
                 throw new IllegalArgumentException("Invalid custom entity type height (may not be negative): " + height);
             }
@@ -215,7 +215,7 @@ public record GeyserEntityType(Identifier identifier, int javaId) implements Jav
         }
 
         @Override
-        public Builder definition(@Nullable GeyserEntityDefinition defaultBedrockDefinition) {
+        public GeyserJavaEntityTypeBuild definition(@Nullable GeyserEntityDefinition defaultBedrockDefinition) {
             if (defaultBedrockDefinition == null) {
                 this.defaultBedrockDefinition = null;
             } else if (defaultBedrockDefinition instanceof BedrockEntityDefinition bedrockEntityDefinition) {

@@ -324,7 +324,7 @@ public class WorldBorder {
             return;
         }
         currentWallTick = 0;
-        Vector3f entityPosition = session.getPlayerEntity().bedrockPosition();
+        Vector3f entityPosition = session.getPlayerEntity().position();
         float particlePosX = entityPosition.getX();
         float particlePosY = entityPosition.getY();
         float particlePosZ = entityPosition.getZ();

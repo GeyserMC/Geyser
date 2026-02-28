@@ -47,7 +47,10 @@ public interface CustomEntityDefinition extends GeyserEntityDefinition {
      * @return the CustomEntityDefinition
      */
     static @NonNull CustomEntityDefinition of(@NonNull Identifier identifier) {
-        return GeyserApi.api().provider(GeyserEntityDefinition.class, identifier);
+        if (identifier.vanilla()) {
+            throw new IllegalArgumentException("Use GeyserEntityDefinition#of for vanilla entity lookups!");
+        }
+        return GeyserApi.api().provider(CustomEntityDefinition.class, identifier);
     }
 
     /**
