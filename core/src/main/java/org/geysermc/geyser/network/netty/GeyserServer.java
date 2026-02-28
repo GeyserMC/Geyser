@@ -135,7 +135,7 @@ public final class GeyserServer {
             this.listenCount = 1;
         }
 
-        if (this.geyser.config().advanced().bedrock().useHaproxyProtocol()) {
+        if (this.geyser.config().advanced().bedrock().useHaproxyProtocol() || this.geyser.config().advanced().bedrock().useWaterdogpeForwarding()) {
             this.proxiedAddresses = ExpiringMap.builder()
                     .expiration(30 + 1, TimeUnit.MINUTES)
                     .expirationPolicy(ExpirationPolicy.ACCESSED).build();
@@ -268,7 +268,7 @@ public final class GeyserServer {
 
         String ip;
         if (geyser.config().logPlayerIpAddresses()) {
-            if (geyser.config().advanced().bedrock().useHaproxyProtocol()) {
+            if (this.proxiedAddresses != null) {
                 ip = this.proxiedAddresses.getOrDefault(inetSocketAddress, inetSocketAddress).toString();
             } else {
                 ip = inetSocketAddress.toString();
@@ -297,7 +297,7 @@ public final class GeyserServer {
         if (geyser.config().debugMode() && PRINT_DEBUG_PINGS) {
             String ip;
             if (geyser.config().logPlayerIpAddresses()) {
-                if (geyser.config().advanced().bedrock().useHaproxyProtocol()) {
+                if (this.proxiedAddresses != null) {
                     ip = this.proxiedAddresses.getOrDefault(inetSocketAddress, inetSocketAddress).toString();
                 } else {
                     ip = inetSocketAddress.toString();

@@ -54,7 +54,7 @@ public class SettingsUtils {
 
         // Let's store these to avoid issues
         boolean showCoordinates = session.getPreferencesCache().isAllowShowCoordinates();
-        boolean cooldownShown = session.getGeyser().config().gameplay().showCooldown() != CooldownUtils.CooldownType.DISABLED;
+        boolean cooldownShown = session.getGeyser().config().gameplay().cooldownType() != CooldownUtils.CooldownType.DISABLED;
         boolean customSkulls = session.getGeyser().config().gameplay().maxVisibleCustomSkulls() != 0;
 
         // Only show the client title if any of the client settings are available
@@ -71,8 +71,8 @@ public class SettingsUtils {
             if (cooldownShown) {
                 DropdownComponent.Builder cooldownDropdown = DropdownComponent.builder("options.attackIndicator");
                 CooldownUtils.CooldownType currentCooldownType = session.getPreferencesCache().getCooldownPreference();
-                cooldownDropdown.option("options.attack.crosshair", currentCooldownType == CooldownUtils.CooldownType.TITLE);
-                cooldownDropdown.option("options.attack.hotbar", currentCooldownType == CooldownUtils.CooldownType.ACTIONBAR);
+                cooldownDropdown.option("options.attack.crosshair", currentCooldownType == CooldownUtils.CooldownType.CROSSHAIR);
+                cooldownDropdown.option("options.attack.hotbar", currentCooldownType == CooldownUtils.CooldownType.HOTBAR);
                 cooldownDropdown.option("options.off", currentCooldownType == CooldownUtils.CooldownType.DISABLED);
                 builder.dropdown(cooldownDropdown);
             }
@@ -98,7 +98,7 @@ public class SettingsUtils {
             }
         }
 
-        builder.validResultHandler((response) -> {
+        builder.validResultHandler(response -> {
             applyDifficultyFix(session);
             if (showClientSettings) {
                 // Client can only see its coordinates if reducedDebugInfo is disabled and coordinates are enabled in geyser config.

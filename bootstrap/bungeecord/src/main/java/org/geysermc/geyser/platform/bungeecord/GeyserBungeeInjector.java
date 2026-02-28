@@ -46,6 +46,7 @@ import io.netty.channel.uring.IoUringIoHandler;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.ThreadAwareExecutor;
+import net.md_5.bungee.Util;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.event.ProxyReloadEvent;
@@ -63,6 +64,7 @@ import org.geysermc.geyser.network.netty.LocalSession;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.SocketAddress;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
@@ -85,10 +87,10 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
     @Override
     @SuppressWarnings("unchecked")
     protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
-        // TODO - allow Geyser to specify its own listener info properties
-        if (proxy.getConfig().getListeners().size() != 1) {
-            throw new UnsupportedOperationException("Geyser does not currently support multiple listeners with injection! " +
-                    "Please reach out to us on our Discord at https://discord.gg/GeyserMC so we can hear feedback on your setup.");
+        String listenerBindAddress = bootstrap.config().advanced().java().bungeeListener();
+        if (proxy.getConfig().getListeners().size() != 1 && listenerBindAddress.isBlank()) {
+            throw new UnsupportedOperationException("You have multiple listeners defined in your proxy config! " +
+                "Please define a listener for Geyser to listen to in your Geyser config (advanced.java.bungee-listener)");
         }
 
         try {
@@ -98,14 +100,12 @@ public class GeyserBungeeInjector extends GeyserInjector implements Listener {
             return;
         }
 
-        // TODO remove
-        try {
-            ProxyServer.class.getMethod("unsafe");
-        } catch (NoSuchMethodException e) {
-            throw new UnsupportedOperationException("You're using an outdated version of BungeeCord - please update. Thank you!");
+        SocketAddress bungeeAddress = listenerBindAddress.isBlank() ? null : Util.getAddr(listenerBindAddress);
+        var stream = proxy.getConfig().getListeners().stream();
+        if (bungeeAddress != null) {
+            stream = stream.filter(info -> info.getSocketAddress().equals(bungeeAddress));
         }
-
-        ListenerInfo listenerInfo = proxy.getConfig().getListeners().stream().findFirst().orElseThrow(IllegalStateException::new);
+        ListenerInfo listenerInfo = stream.findFirst().orElseThrow(IllegalStateException::new);
 
         Class<? extends ProxyServer> proxyClass = proxy.getClass();
         // Using the specified EventLoop is required, or else an error will be thrown
