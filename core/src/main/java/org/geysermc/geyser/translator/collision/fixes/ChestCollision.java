@@ -67,9 +67,9 @@ public class ChestCollision extends BlockCollision {
         playerCollision.setSizeY(playerCollision.getSizeY() - collisionExpansion);
 
         BoundingBox previous = playerCollision.clone();
-        previous.setMiddleX(player.getPosition().getX());
+        previous.setMiddleX(player.position().getX());
         previous.setMiddleY(player.position().getY() + (playerCollision.getSizeY() / 2));
-        previous.setMiddleZ(player.getPosition().getZ());
+        previous.setMiddleZ(player.position().getZ());
 
         // Check for chest bug (chest are 0.875 blocks thick on Java but 0.95 blocks thick on Bedrock)
         // We grab the player velocity from last tick then apply collision on it, if the player can still fall then we correct

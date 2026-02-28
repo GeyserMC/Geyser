@@ -104,9 +104,9 @@ public class CreakingEntity extends MonsterEntity {
             levelEventGenericPacket.setTag(
                 NbtMap.builder()
                     .putInt("CreakingAmount", 20)
-                    .putFloat("CreakingX", position.getX())
-                    .putFloat("CreakingY", position.getY())
-                    .putFloat("CreakingZ", position.getZ())
+                    .putFloat("CreakingX", bedrockPosition().getX())
+                    .putFloat("CreakingY", bedrockPosition().getY())
+                    .putFloat("CreakingZ", bedrockPosition().getZ())
                     .putInt("HeartAmount", 20)
                     .putFloat("HeartX", homePosition.getX())
                     .putFloat("HeartY", homePosition.getY())

@@ -38,7 +38,8 @@ public interface PropertyType<Type, NetworkRepresentation extends EntityProperty
 
     NetworkRepresentation createValue(int index, @Nullable Type value);
 
-    default void apply(GeyserEntityPropertyManager manager, Type value) {
+    default void apply(@Nullable GeyserEntityPropertyManager manager, Type value) {
+        if (manager == null) return;
         manager.addProperty(this, value);
     }
 }

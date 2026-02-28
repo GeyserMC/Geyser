@@ -42,9 +42,9 @@ public class MagmaCubeEntity extends SlimeEntity {
     }
 
     @Override
-    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         updateJump(isOnGround);
-        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
+        super.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     public void updateJump(boolean newOnGround) {

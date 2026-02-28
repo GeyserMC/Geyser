@@ -44,7 +44,7 @@ public class SquidEntity extends AgeableWaterEntity implements Tickable {
 
     public SquidEntity(EntitySpawnContext context) {
         super(context);
-        this.lastPosition = position.toInt();
+        this.lastPosition = position().toInt();
     }
 
     @Override
@@ -91,8 +91,8 @@ public class SquidEntity extends AgeableWaterEntity implements Tickable {
     }
 
     @Override
-    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
         checkInWater();
     }
 
@@ -132,7 +132,7 @@ public class SquidEntity extends AgeableWaterEntity implements Tickable {
     }
 
     private void checkInWater() {
-        Vector3i newPosition = position.toInt();
+        Vector3i newPosition = position().toInt();
         if (newPosition.equals(lastPosition)) {
             return;
         } else {

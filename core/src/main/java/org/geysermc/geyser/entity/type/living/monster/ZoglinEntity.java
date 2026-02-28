@@ -50,7 +50,7 @@ public class ZoglinEntity extends MonsterEntity {
     @Override
     public float getBoundingBoxHeight() {
         float scale = getFlag(EntityFlag.BABY) ? 0.55f : 1f;
-        return scale * definition.height();
+        return scale * height;
     }
 
     @Override

@@ -110,7 +110,7 @@ public final class Bootstraps {
                 channel.close().awaitUninterruptibly(3, TimeUnit.SECONDS);
             }
         } catch (Throwable e) {
-            GeyserImpl.getInstance().getLogger().debug("Could not set up reuseport check ", e);
+            GeyserImpl.getInstance().getLogger().debug("Could not set up reuseport check! %s", e);
             return false;
         }
         return success;

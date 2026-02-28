@@ -55,7 +55,7 @@ public class EndermanEntity extends MonsterEntity {
         if (entityMetadata.getPrimitiveValue()) {
             LevelSoundEventPacket packet = new LevelSoundEventPacket();
             packet.setSound(SoundEvent.STARE);
-            packet.setPosition(this.position);
+            packet.setPosition(this.bedrockPosition());
             packet.setExtraData(-1);
             packet.setIdentifier("minecraft:enderman");
             session.sendUpstreamPacket(packet);

@@ -32,7 +32,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -90,11 +90,9 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void spawnEntity() {
-        Vector3f javaPosition = position;
         // Apply the offset if we're the second entity
-        position = position.up(getYOffset());
+        offset(getYOffset(), false);
         super.spawnEntity();
-        position = javaPosition;
     }
 
     @Override
@@ -107,18 +105,17 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveAbsoluteRaw(position.add(relX, relY, relZ), yaw, pitch, headYaw, onGround, false);
+        moveAbsoluteRaw(position().add(relX, relY, relZ), yaw, pitch, headYaw, onGround, false);
     }
 
     @Override
-    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         if (secondEntity != null) {
-            secondEntity.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
+            secondEntity.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
         }
         // Fake the height to be above where it is so the nametag appears in the right location
-        float yOffset = getYOffset();
-        super.moveAbsoluteRaw(yOffset != 0 ? position.up(yOffset) : position , yaw, yaw, yaw, isOnGround, teleported);
-        this.position = position;
+        offset(getYOffset(), false);
+        super.moveAbsoluteRaw(javaPosition, yaw, yaw, yaw, isOnGround, teleported);
     }
 
     @Override
@@ -153,8 +150,8 @@ public class ArmorStandEntity extends LivingEntity {
                 setBoundingBoxWidth(0.0f);
                 setBoundingBoxHeight(0.0f);
             } else {
-                setBoundingBoxWidth(definition.width());
-                setBoundingBoxHeight(definition.height());
+                setBoundingBoxWidth(width);
+                setBoundingBoxHeight(height);
             }
 
             updateMountOffset();
@@ -238,7 +235,7 @@ public class ArmorStandEntity extends LivingEntity {
         super.updateBedrockMetadata();
         if (positionUpdateRequired) {
             positionUpdateRequired = false;
-            moveAbsoluteRaw(position, yaw, pitch, headYaw, onGround, true);
+            moveAbsoluteRaw(position(), yaw, pitch, headYaw, onGround, true);
         }
     }
 
@@ -338,7 +335,7 @@ public class ArmorStandEntity extends LivingEntity {
             if (secondEntity == null) {
                 // Create the second entity. It doesn't need to worry about the items, but it does need to worry about
                 // the metadata as it will hold the name tag.
-                secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, position));
+                secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, VanillaEntities.ARMOR_STAND, this, position()));
                 secondEntity.primaryEntity = false;
             }
             // Copy metadata
@@ -415,7 +412,7 @@ public class ArmorStandEntity extends LivingEntity {
         if (!positionRequiresOffset || isMarker || secondEntity != null) {
             return 0;
         }
-        return definition.height() * getScale();
+        return height * getScale();
     }
 
     /**

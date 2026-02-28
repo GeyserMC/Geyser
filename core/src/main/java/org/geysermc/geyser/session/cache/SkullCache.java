@@ -34,7 +34,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.level.block.property.Properties;
@@ -155,10 +155,10 @@ public class SkullCache {
     public void updateVisibleSkulls() {
         if (cullingEnabled) {
             // No need to recheck skull visibility for small movements
-            if (lastPlayerPosition != null && session.getPlayerEntity().getPosition().distanceSquared(lastPlayerPosition) < 4) {
+            if (lastPlayerPosition != null && session.getPlayerEntity().position().distanceSquared(lastPlayerPosition) < 4) {
                 return;
             }
-            lastPlayerPosition = session.getPlayerEntity().getPosition();
+            lastPlayerPosition = session.getPlayerEntity().position();
 
             inRangeSkulls.clear();
             for (Skull skull : skulls.values()) {
@@ -191,7 +191,7 @@ public class SkullCache {
         }
         if (!cullingEnabled || totalSkullEntities < maxVisibleSkulls) {
             // Create a new entity
-            skull.entity = new SkullPlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, UUID.randomUUID(), EntityDefinitions.PLAYER));
+            skull.entity = new SkullPlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, UUID.randomUUID(), VanillaEntities.PLAYER));
             skull.entity.spawnEntity();
             skull.entity.updateSkull(skull);
             totalSkullEntities++;

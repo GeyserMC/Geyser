@@ -31,7 +31,6 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
@@ -106,7 +105,7 @@ public class GeyserEntityProperties {
     }
 
     public static class Builder {
-        private GeyserEntityProperties properties;
+        private GeyserEntityProperties properties = new GeyserEntityProperties();
         private final String identifier;
 
         public Builder(String identifier) {
@@ -122,7 +121,7 @@ public class GeyserEntityProperties {
             return this;
         }
 
-        public @Nullable GeyserEntityProperties build() {
+        public @NonNull GeyserEntityProperties build() {
             return properties;
         }
     }

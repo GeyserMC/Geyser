@@ -27,7 +27,7 @@ package org.geysermc.geyser.entity.type.living.merchant;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.AgeableEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -51,7 +51,7 @@ public class AbstractMerchantEntity extends AgeableEntity {
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!itemInHand.is(Items.VILLAGER_SPAWN_EGG)
-                && (definition != EntityDefinitions.VILLAGER || !getFlag(EntityFlag.SLEEPING) && ((VillagerEntity) this).isCanTradeWith())) {
+                && (javaTypeDefinition != VanillaEntities.VILLAGER || !getFlag(EntityFlag.SLEEPING) && ((VillagerEntity) this).isCanTradeWith())) {
             // An additional check we know cannot work
             if (!isBaby()) {
                 return InteractiveTag.TRADE;
@@ -64,8 +64,8 @@ public class AbstractMerchantEntity extends AgeableEntity {
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!itemInHand.is(Items.VILLAGER_SPAWN_EGG)
-                && (definition != EntityDefinitions.VILLAGER || !getFlag(EntityFlag.SLEEPING))
-                && (definition != EntityDefinitions.WANDERING_TRADER || !getFlag(EntityFlag.BABY))) {
+                && (javaTypeDefinition != VanillaEntities.VILLAGER || !getFlag(EntityFlag.SLEEPING))
+                && (javaTypeDefinition != VanillaEntities.WANDERING_TRADER || !getFlag(EntityFlag.BABY))) {
             // Trading time
             return InteractionResult.SUCCESS;
         } else {

@@ -30,13 +30,13 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetPassengersPacket;
 
 import java.util.ArrayList;
@@ -59,7 +59,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             if (passenger == session.getPlayerEntity()) {
                 session.getPlayerEntity().setVehicle(entity);
                 // We need to confirm teleports before entering a vehicle, or else we will likely exit right out
-                session.confirmTeleport(passenger.getPosition().down(EntityDefinitions.PLAYER.offset()));
+                session.confirmTeleport(passenger.position());
 
                 if (entity instanceof ClientVehicle clientVehicle) {
                     clientVehicle.getVehicleComponent().onMount();
@@ -126,11 +126,10 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
 
         entity.setPassengers(newPassengers);
 
-        switch (entity.getDefinition().entityType()) {
-            case HORSE, SKELETON_HORSE, DONKEY, MULE, RAVAGER -> {
-                entity.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 181.0f);
-                entity.updateBedrockMetadata();
-            }
+        if (entity.getJavaTypeDefinition().is(BuiltinEntityType.HORSE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.SKELETON_HORSE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.DONKEY)
+            || entity.getJavaTypeDefinition().is(BuiltinEntityType.MULE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.RAVAGER)) {
+            entity.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 181.0f);
+            entity.updateBedrockMetadata();
         }
     }
 }

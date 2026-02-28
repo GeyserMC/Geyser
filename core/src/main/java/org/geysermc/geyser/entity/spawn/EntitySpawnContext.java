@@ -28,67 +28,225 @@ package org.geysermc.geyser.entity.spawn;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.common.util.TriFunction;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.definition.JavaEntityType;
+import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.event.java.ServerAttachParrotsEvent;
+import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
+import org.geysermc.geyser.entity.BedrockEntityDefinition;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.util.EnvironmentUtils;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 @Getter
 @Setter
 @Accessors(fluent = true)
 public class EntitySpawnContext {
     private final GeyserSession session;
-    private final EntityDefinition<?> entityTypeDefinition;
+    private final EntityTypeDefinition<?> entityTypeDefinition;
     private int javaId;
     private final UUID uuid;
+    private BedrockEntityDefinition bedrockEntityDefinition;
     private Vector3f position;
     private Vector3f motion;
     private float yaw;
     private float pitch;
     private float headYaw;
+    private float height;
+    private float width;
+    private float offset;
     private @Nullable Long geyserId;
+    private @Nullable Collection<Consumer<GeyserEntity>> consumers;
 
-    public static final TriFunction<GeyserSession, UUID, EntityDefinition<?>, EntitySpawnContext> DUMMY_CONTEXT = ((session, uuid, definition) -> {
-        return new EntitySpawnContext(session, definition, -1, uuid);
+    public static final TriFunction<GeyserSession, UUID, EntityTypeDefinition<?>, EntitySpawnContext> DUMMY_CONTEXT = ((session, uuid, definition) -> {
+        return new EntitySpawnContext(session, definition, 0, uuid);
     });
 
-    public EntitySpawnContext(GeyserSession session, EntityDefinition<?> definition, int javaId, UUID uuid) {
-        this(session, definition, javaId, uuid, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null);
+    public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> type, int javaId, UUID uuid) {
+        this(session, type, javaId, uuid, type.defaultBedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0,
+            type.height(), type.width(), type.offset(), null);
     }
 
-    public EntitySpawnContext(GeyserSession session, EntityDefinition<?> definition, int entityId, long geyserId) {
-        this(session, definition, entityId, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, geyserId);
+    public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> type, int entityId, float height, float width, long geyserId) {
+        this(session, type, entityId, null, type.defaultBedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, height, width, 0, geyserId);
     }
 
-    public static EntitySpawnContext fromPacket(GeyserSession session, EntityDefinition<?> definition, ClientboundAddEntityPacket packet) {
+    public static EntitySpawnContext fromPacket(GeyserSession session, EntityTypeDefinition<?> definition, ClientboundAddEntityPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = packet.getMovement().toFloat();
-        return new EntitySpawnContext(session, definition, packet.getEntityId(), packet.getUuid(), position,
-            motion, packet.getYaw(), packet.getPitch(), packet.getHeadYaw(), null);
+        return new EntitySpawnContext(session, definition, packet.getEntityId(), packet.getUuid(), definition.defaultBedrockDefinition(),
+            position, motion, packet.getYaw(), packet.getPitch(), packet.getHeadYaw(), definition.height(), definition.width(), definition.offset(), null);
     }
 
-    public static EntitySpawnContext inherited(GeyserSession session, EntityDefinition<?> definition, Entity parent, Vector3f position) {
-        return new EntitySpawnContext(session, definition, 0, null, position, parent.getMotion(), parent.getYaw(),
-            parent.getPitch(), parent.getHeadYaw(), null);
+    public static EntitySpawnContext inherited(GeyserSession session, EntityTypeDefinition<?> definition, Entity base, Vector3f position) {
+        return new EntitySpawnContext(session, definition, 0, null, definition.defaultBedrockDefinition(), position, base.getMotion(), base.getYaw(),
+            base.getPitch(), base.getHeadYaw(), definition.height(), definition.width(), definition.offset(), null);
     }
 
-    public EntitySpawnContext(GeyserSession session, EntityDefinition<?> definition, int javaId, UUID uuid, Vector3f position,
-                              Vector3f motion, float yaw, float pitch, float headYaw, @Nullable Long geyserId) {
+    public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> definition, int javaId, UUID uuid, BedrockEntityDefinition bedrockEntityDefinition, Vector3f position,
+                              Vector3f motion, float yaw, float pitch, float headYaw, float height, float width, float offset, @Nullable Long geyserId) {
         this.session = session;
         this.entityTypeDefinition = definition;
         this.javaId = javaId;
         this.uuid = uuid;
-        this.position = position.up(definition.offset());
+        this.bedrockEntityDefinition = bedrockEntityDefinition;
+        this.position = position;
         this.motion = motion;
         this.yaw = yaw;
         this.pitch = pitch;
         this.headYaw = headYaw;
+        this.height = height;
+        this.width = width;
+        this.offset = offset;
         this.geyserId = geyserId;
+        this.consumers = null;
+    }
+
+    /**
+     * @return true if an entity should be spawned
+     */
+    public boolean callServerSpawnEvent() {
+        // TODO add tests
+        if (EnvironmentUtils.IS_UNIT_TESTING) {
+            return true;
+        }
+
+        GeyserImpl.getInstance().getEventBus().fire(new ServerSpawnEntityEvent(session) {
+
+            @Override
+            public boolean isCancelled() {
+                return bedrockEntityDefinition == null;
+            }
+
+            @Override
+            public void setCancelled(boolean cancelled) {
+                bedrockEntityDefinition = null;
+            }
+
+            @Override
+            public int entityId() {
+                return javaId;
+            }
+
+            @Override
+            public @NonNull UUID uuid() {
+                return uuid;
+            }
+
+            @Override
+            public @NonNull JavaEntityType entityType() {
+                return entityTypeDefinition.type();
+            }
+
+            @Override
+            public @Nullable GeyserEntityDefinition definition() {
+                return bedrockEntityDefinition;
+            }
+
+            @Override
+            public void definition(@Nullable GeyserEntityDefinition entityDefinition) {
+                if (entityDefinition == null) {
+                    bedrockEntityDefinition = null;
+                    return;
+                }
+
+                if (!(entityDefinition instanceof BedrockEntityDefinition definition)) {
+                    throw new IllegalStateException("Unknown implementation of GeyserEntityDefinition! Got: " + entityDefinition.getClass().getSimpleName());
+                }
+
+                if (!entityDefinition.registered()) {
+                    throw new IllegalStateException("%s is not registered!".formatted(entityDefinition.identifier()));
+                }
+
+                bedrockEntityDefinition = definition;
+            }
+
+            @Override
+            public void preSpawnConsumer(Consumer<@NonNull GeyserEntity> consumer) {
+                if (consumers == null) {
+                    consumers = new HashSet<>();
+                }
+                consumers.add(consumer);
+            }
+        });
+
+        return bedrockEntityDefinition != null;
+    }
+
+    public boolean callParrotEvent(PlayerEntity player, int variant, boolean right) {
+        GeyserImpl.getInstance().eventBus().fire(new ServerAttachParrotsEvent(session) {
+            @Override
+            public GeyserPlayerEntity player() {
+                return player;
+            }
+
+            @Override
+            public int variant() {
+                return variant;
+            }
+
+            @Override
+            public boolean right() {
+                return right;
+            }
+
+            @Override
+            public @Nullable GeyserEntityDefinition definition() {
+                return bedrockEntityDefinition;
+            }
+
+            @Override
+            public void definition(@Nullable GeyserEntityDefinition entityDefinition) {
+                if (entityDefinition == null) {
+                    bedrockEntityDefinition = null;
+                    return;
+                }
+
+                if (!(entityDefinition instanceof BedrockEntityDefinition definition)) {
+                    throw new IllegalStateException("Unknown implementation of GeyserEntityDefinition! Got: " + entityDefinition.getClass().getSimpleName());
+                }
+
+                if (!entityDefinition.registered()) {
+                    throw new IllegalStateException("%s is not registered!".formatted(entityDefinition.identifier()));
+                }
+
+                bedrockEntityDefinition = definition;
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return bedrockEntityDefinition == null;
+            }
+
+            @Override
+            public void setCancelled(boolean cancelled) {
+                bedrockEntityDefinition = null;
+            }
+
+            @Override
+            public void preSpawnConsumer(Consumer<@NonNull GeyserEntity> consumer) {
+                if (consumers == null) {
+                    consumers = new HashSet<>();
+                }
+                consumers.add(consumer);
+            }
+        });
+
+        return bedrockEntityDefinition == null;
     }
 
     // Not assigned by default - preparation for cancellable entity spawning

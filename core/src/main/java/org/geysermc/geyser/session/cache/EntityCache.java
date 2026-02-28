@@ -29,19 +29,25 @@ import it.unimi.dsi.fastutil.ints.Int2LongMap;
 import it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
+import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 /**
  * Each session has its own EntityCache in the occasion that an entity packet is sent specifically
@@ -57,8 +63,11 @@ public class EntityCache {
      */
     private final List<Tickable> tickableEntities = new ObjectArrayList<>();
     private final Int2LongMap entityIdTranslations = new Int2LongOpenHashMap();
+    private final Object2LongMap<UUID> entityUuidTranslations = new Object2LongOpenHashMap<>();
     private final Map<UUID, PlayerEntity> playerEntities = new Object2ObjectOpenHashMap<>();
     private final Map<UUID, BossBar> bossBars = new Object2ObjectOpenHashMap<>();
+    @Getter
+    private final Set<Entity> dirtyEntities = new ObjectOpenHashSet<>();
 
     @Getter
     private final AtomicLong nextEntityId = new AtomicLong(2L);
@@ -88,6 +97,9 @@ public class EntityCache {
         if (!entityIdTranslations.containsKey(entity.getEntityId())) {
             entityIdTranslations.put(entity.getEntityId(), entity.geyserId());
             entities.put(entity.geyserId(), entity);
+            if (entity.uuid() != null) {
+                entityUuidTranslations.put(entity.uuid(), entity.geyserId());
+            }
             return true;
         }
         return false;
@@ -106,6 +118,9 @@ public class EntityCache {
             entity.despawnEntity();
         }
         entities.remove(entityIdTranslations.remove(entity.getEntityId()));
+        if (entity.uuid() != null) {
+            entityUuidTranslations.removeLong(entity.uuid());
+        }
 
         // don't track the entity anymore, now that it's removed
         session.getWorldCache().getScoreboard().entityRemoved(entity);
@@ -113,6 +128,11 @@ public class EntityCache {
         if (entity instanceof Tickable) {
             tickableEntities.remove(entity);
         }
+        dirtyEntities.remove(entity);
+    }
+
+    public void markDirty(Entity entity) {
+        dirtyEntities.add(entity);
     }
 
     public void removeAllEntities() {
@@ -133,6 +153,13 @@ public class EntityCache {
             return session.getPlayerEntity();
         }
         return entities.get(entityIdTranslations.get(javaId));
+    }
+
+    public Entity getEntityByUuid(UUID uuid) {
+        if (Objects.equals(uuid, session.getPlayerEntity().uuid())) {
+            return session.getPlayerEntity();
+        }
+        return entities.get(entityUuidTranslations.getLong(uuid));
     }
 
     public void addPlayerEntity(PlayerEntity entity) {

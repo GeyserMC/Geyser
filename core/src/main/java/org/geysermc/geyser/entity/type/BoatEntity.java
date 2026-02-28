@@ -31,7 +31,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.vehicle.BoatVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
@@ -96,9 +96,9 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
     }
 
     @Override
-    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // We don't include the rotation (y) as it causes the boat to appear sideways
-        setPosition(position.add(0d, this.definition.offset(), 0d));
+        setPosition(javaPosition);
         setYaw(yaw + 90);
         setHeadYaw(yaw + 90);
         setOnGround(isOnGround);
@@ -107,9 +107,10 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         moveEntityPacket.setRuntimeEntityId(geyserId);
         if (session.getPlayerEntity().getVehicle() == this && session.getPlayerEntity().isRidingInFront()) {
             // Minimal glitching when ClientboundMoveVehiclePacket is sent
-            moveEntityPacket.setPosition(position.up(EntityDefinitions.PLAYER.offset() - this.definition.offset()));
+            // TODO OFFSET
+            moveEntityPacket.setPosition(javaPosition.up(VanillaEntities.PLAYER_ENTITY_OFFSET - offset));
         } else {
-            moveEntityPacket.setPosition(this.position);
+            moveEntityPacket.setPosition(bedrockPosition());
         }
         moveEntityPacket.setRotation(getBedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
@@ -121,8 +122,9 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
     /**
      * Move the boat without making the adjustments needed to translate from Java
      */
+    // TODO offset
     public void moveAbsoluteWithoutAdjustments(Vector3f position, float yaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsoluteRaw(position, yaw, 0, yaw, isOnGround, teleported);
+        moveAbsoluteRaw(position, yaw, 0, yaw, isOnGround, teleported);
     }
 
     @Override

@@ -43,7 +43,6 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -490,9 +489,8 @@ public class BlockBreakHandler {
             }
         }
 
-        Vector3f playerPosition = session.getPlayerEntity().getPosition();
-        playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
-        return BedrockInventoryTransactionTranslator.canInteractWithBlock(session, playerPosition, vector);
+        Vector3f playerEyeHeight = session.getPlayerEntity().position().up(session.getEyeHeight());
+        return BedrockInventoryTransactionTranslator.canInteractWithBlock(session, playerEyeHeight, vector);
     }
 
     protected boolean canDestroyBlock(BlockState state) {
