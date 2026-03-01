@@ -105,7 +105,7 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveAbsoluteRaw(this.position.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
+        moveAbsoluteRaw(position.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
     }
 
     @Override
@@ -335,7 +335,7 @@ public class ArmorStandEntity extends LivingEntity {
             if (secondEntity == null) {
                 // Create the second entity. It doesn't need to worry about the items, but it does need to worry about
                 // the metadata as it will hold the name tag.
-                secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, this.position));
+                secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, position));
                 secondEntity.primaryEntity = false;
             }
             // Copy metadata
