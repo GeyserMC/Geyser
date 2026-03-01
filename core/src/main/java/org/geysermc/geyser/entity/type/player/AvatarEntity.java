@@ -111,7 +111,7 @@ public abstract class AvatarEntity extends LivingEntity {
         addPlayerPacket.setUsername(username);
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
-        addPlayerPacket.setPosition(bedrockPosition());
+        addPlayerPacket.setPosition(position()); // No offset sent here, apparently?
         addPlayerPacket.setRotation(bedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(ItemTranslator.translateToBedrock(session, getMainHandItem()));

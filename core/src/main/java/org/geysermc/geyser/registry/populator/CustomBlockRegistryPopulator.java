@@ -554,12 +554,12 @@ public class CustomBlockRegistryPopulator {
             return NbtMap.builder()
                 .putBoolean("enabled", !boxComponent.isEmpty())
                 .putList("boxes", NbtType.COMPOUND, NbtMap.builder()
-                .putFloat("minX", minX)
-                .putFloat("minY", minY)
-                .putFloat("minZ", minZ)
-                .putFloat("maxX", minX + boxComponent.sizeX())
-                .putFloat("maxY", minY + boxComponent.sizeY())
-                .putFloat("maxZ", minZ + boxComponent.sizeZ())
+                    .putFloat("minX", minX)
+                    .putFloat("minY", minY)
+                    .putFloat("minZ", minZ)
+                    .putFloat("maxX", minX + boxComponent.sizeX())
+                    .putFloat("maxY", minY + boxComponent.sizeY())
+                    .putFloat("maxZ", minZ + boxComponent.sizeZ())
                 .build()).build();
         } else {
             return convertBox(boxComponent);
