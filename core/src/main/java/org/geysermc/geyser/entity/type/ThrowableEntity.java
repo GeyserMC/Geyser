@@ -43,7 +43,7 @@ public class ThrowableEntity extends Entity implements Tickable {
 
     public ThrowableEntity(EntitySpawnContext context) {
         super(context);
-        this.lastJavaPosition = this.position;
+        this.lastJavaPosition = position;
     }
 
     /**
@@ -55,7 +55,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         if (removedInVoid() || vehicle != null) {
             return;
         }
-        moveAbsoluteImmediate(this.position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
+        moveAbsoluteImmediate(position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
         float drag = getDrag();
         float gravity = getGravity();
         motion = motion.mul(drag).down(gravity);
@@ -168,7 +168,7 @@ public class ThrowableEntity extends Entity implements Tickable {
      * @return true if this entity is currently in water.
      */
     protected boolean isInWater() {
-        int block = session.getGeyser().getWorldManager().getBlockAt(session, this.position.toInt());
+        int block = session.getGeyser().getWorldManager().getBlockAt(session, position.toInt());
         return BlockStateValues.getWaterLevel(block) != -1;
     }
 
@@ -201,7 +201,7 @@ public class ThrowableEntity extends Entity implements Tickable {
      * @return true if the entity was removed
      */
     public boolean removedInVoid() {
-        if (this.position.getY() < session.getDimensionType().minY() - 64) {
+        if (position.getY() < session.getDimensionType().minY() - 64) {
             session.getEntityCache().removeEntity(this);
             return true;
         }

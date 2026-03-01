@@ -126,7 +126,7 @@ public class FishingHookEntity extends ThrowableEntity {
         if (!collided) {
             super.moveAbsoluteImmediate(position, yaw, pitch, headYaw, isOnGround, teleported);
         } else {
-            super.moveAbsoluteImmediate(position, yaw, pitch, headYaw, true, true);
+            super.moveAbsoluteImmediate(this.position, yaw, pitch, headYaw, true, true);
         }
     }
 

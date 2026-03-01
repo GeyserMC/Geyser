@@ -113,7 +113,7 @@ public class LivingEntity extends Entity implements Tickable {
 
     public LivingEntity(EntitySpawnContext context) {
         super(context);
-        this.lerpPosition = this.position;
+        this.lerpPosition = position;
     }
 
     public GeyserItemStack getItemInSlot(EquipmentSlot slot) {

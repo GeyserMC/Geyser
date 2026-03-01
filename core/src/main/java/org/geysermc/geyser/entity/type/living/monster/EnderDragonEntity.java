@@ -134,7 +134,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
         for (int i = 0; i < segmentHistory.length; i++) {
             segmentHistory[i] = new Segment();
             segmentHistory[i].yaw = getHeadYaw();
-            segmentHistory[i].y = this.position.getY();
+            segmentHistory[i].y = position.getY();
         }
     }
 
@@ -317,7 +317,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
     private void pushSegment() {
         latestSegment = (latestSegment + 1) % segmentHistory.length;
         segmentHistory[latestSegment].yaw = getHeadYaw();
-        segmentHistory[latestSegment].y = this.position.getY();
+        segmentHistory[latestSegment].y = position.getY();
     }
 
     /**
