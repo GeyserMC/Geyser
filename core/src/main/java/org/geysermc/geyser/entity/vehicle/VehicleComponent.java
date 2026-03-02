@@ -801,6 +801,10 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
             vehicle.getSession().sendUpstreamPacket(moveEntityDeltaPacket);
         }
 
+        sendServerboundMoveVehiclePacket(javaPos);
+    }
+
+    protected void sendServerboundMoveVehiclePacket(Vector3d javaPos) {
         ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos, vehicle.getYaw(), vehicle.getPitch(), vehicle.isOnGround());
         vehicle.getSession().sendDownstreamPacket(moveVehiclePacket);
     }

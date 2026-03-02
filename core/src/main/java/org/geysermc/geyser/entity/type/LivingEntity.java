@@ -303,6 +303,9 @@ public class LivingEntity extends Entity implements Tickable {
         if (optionalPos.isPresent()) {
             Vector3i bedPosition = optionalPos.get();
             dirtyMetadata.put(EntityDataTypes.BED_POSITION, bedPosition);
+            // Required to sync position of entity to bed
+            // 1.21.11 MojMap see LivingEntity#setPosToBed
+            this.setPosition(bedPosition.toFloat().add(0.5, 0.6875, 0.5));
             return bedPosition;
         } else {
             return null;

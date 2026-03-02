@@ -49,7 +49,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.translator.item.ItemTranslator;
-import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
@@ -181,7 +180,7 @@ public abstract class AvatarEntity extends LivingEntity {
         // If the player is moved while sleeping, we have to adjust their y, so it appears
         // correctly on Bedrock. This fixes GSit's lay.
         if (getFlag(EntityFlag.SLEEPING)) {
-            if (bedPosition != null && (bedPosition.getY() == 0 || bedPosition.distanceSquared(this.position.toInt()) > 4)) {
+            if (bedPosition != null && (bedPosition.getY() == 0 || bedPosition.distanceSquared(position.toInt()) > 4)) {
                 // Force the player movement by using a teleport
                 movePlayerPacket.setPosition(this.position().up(0.2f));
                 movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
@@ -196,29 +195,9 @@ public abstract class AvatarEntity extends LivingEntity {
     }
 
     @Override
-    public void setPosition(Vector3f position) {
-        if (this.bedPosition != null) {
-            // As of Bedrock 1.21.22 and Fabric 1.21.1
-            // Messes with Bedrock if we send this to the client itself, though.
-            super.setPosition(position.up(0.2f));
-        } else {
-            super.setPosition(position);
-        }
-    }
-
-    @Override
     public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         bedPosition = super.setBedPosition(entityMetadata);
         if (bedPosition != null) {
-            // Required to sync position of entity to bed
-            // Fixes https://github.com/GeyserMC/Geyser/issues/3595 on vanilla 1.19.3 servers - did not happen on Paper
-            this.setPosition(bedPosition.toFloat());
-
-            // TODO evaluate if needed
-            int bed = session.getGeyser().getWorldManager().getBlockAt(session, bedPosition);
-            // Bed has to be updated, or else player is floating in the air
-            ChunkUtils.updateBlock(session, bed, bedPosition);
-
             // Indicate that the player should enter the sleep cycle
             // Has to be a byte or it does not work
             // (Bed position is what actually triggers sleep - "pose" is only optional)
@@ -374,6 +353,15 @@ public abstract class AvatarEntity extends LivingEntity {
         }
         setBoundingBoxWidth(width);
         setBoundingBoxHeight(height);
+    }
+
+    @Override
+    public Vector3f bedrockPosition() {
+        // Don't apply the full bedrock y offset when le player is sleeping
+        if (bedPosition != null && getFlag(EntityFlag.SLEEPING)) {
+            return position; // TODO fixme for session player...
+        }
+        return super.bedrockPosition();
     }
 
     public @Nullable String getSkinId() {

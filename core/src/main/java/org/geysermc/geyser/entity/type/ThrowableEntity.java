@@ -74,34 +74,34 @@ public class ThrowableEntity extends Entity implements Tickable {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
         }
 
-        Vector3f oldJavaPosition = this.position;
+        Vector3f oldBedrockPos = bedrockPosition();
         setPosition(position);
         Vector3f bedrockPosition = bedrockPosition();
 
-        if (oldJavaPosition.getX() != position.getX()) {
+        if (oldBedrockPos.getX() != position.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
             moveEntityDeltaPacket.setX(bedrockPosition.getX());
         }
-        if (oldJavaPosition.getY() != position.getY()) {
+        if (oldBedrockPos.getY() != position.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
             moveEntityDeltaPacket.setY(bedrockPosition.getY());
         }
-        if (oldJavaPosition.getZ() != position.getZ()) {
+        if (oldBedrockPos.getZ() != position.getZ()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
             moveEntityDeltaPacket.setZ(bedrockPosition.getZ());
         }
 
-        if (getYaw() != yaw) {
+        if (this.yaw != yaw) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
             setYaw(yaw);
             moveEntityDeltaPacket.setYaw(getYaw());
         }
-        if (getPitch() != pitch) {
+        if (this.pitch != pitch) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
             setPitch(pitch);
             moveEntityDeltaPacket.setPitch(getPitch());
         }
-        if (getHeadYaw() != headYaw) {
+        if (this.headYaw != headYaw) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
             setHeadYaw(headYaw);
             moveEntityDeltaPacket.setHeadYaw(getHeadYaw());
