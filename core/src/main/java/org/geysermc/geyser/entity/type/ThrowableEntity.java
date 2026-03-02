@@ -78,15 +78,15 @@ public class ThrowableEntity extends Entity implements Tickable {
         setPosition(position);
         Vector3f bedrockPosition = bedrockPosition();
 
-        if (oldBedrockPos.getX() != position.getX()) {
+        if (oldBedrockPos.getX() != bedrockPosition.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
             moveEntityDeltaPacket.setX(bedrockPosition.getX());
         }
-        if (oldBedrockPos.getY() != position.getY()) {
+        if (oldBedrockPos.getY() != bedrockPosition.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
             moveEntityDeltaPacket.setY(bedrockPosition.getY());
         }
-        if (oldBedrockPos.getZ() != position.getZ()) {
+        if (oldBedrockPos.getZ() != bedrockPosition.getZ()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
             moveEntityDeltaPacket.setZ(bedrockPosition.getZ());
         }
