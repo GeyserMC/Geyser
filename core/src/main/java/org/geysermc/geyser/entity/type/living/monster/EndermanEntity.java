@@ -25,23 +25,19 @@
 
 package org.geysermc.geyser.entity.type.living.monster;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEvent2Packet;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
+import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
-import java.util.UUID;
-
 public class EndermanEntity extends MonsterEntity {
 
-    public EndermanEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public EndermanEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     public void setCarriedBlock(IntEntityMetadata entityMetadata) {
@@ -57,7 +53,7 @@ public class EndermanEntity extends MonsterEntity {
         //TODO see if Bedrock controls this differently
         // Java Edition this controls which ambient sound is used
         if (entityMetadata.getPrimitiveValue()) {
-            LevelSoundEvent2Packet packet = new LevelSoundEvent2Packet();
+            LevelSoundEventPacket packet = new LevelSoundEventPacket();
             packet.setSound(SoundEvent.STARE);
             packet.setPosition(this.position);
             packet.setExtraData(-1);

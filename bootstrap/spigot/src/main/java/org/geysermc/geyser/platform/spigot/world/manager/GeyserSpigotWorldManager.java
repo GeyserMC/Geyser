@@ -25,18 +25,14 @@
 
 package org.geysermc.geyser.platform.spigot.world.manager;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.DecoratedPot;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.bukkit.BukkitUtils;
-import org.geysermc.erosion.bukkit.PickBlockUtils;
 import org.geysermc.erosion.bukkit.SchedulerUtils;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.GameRule;
@@ -44,7 +40,6 @@ import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.List;
 import java.util.Objects;
@@ -81,9 +76,9 @@ public class GeyserSpigotWorldManager extends WorldManager {
             // Terrible behavior, but this is basically what's always been happening behind the scenes anyway.
             CompletableFuture<String> blockData = new CompletableFuture<>();
             Bukkit.getRegionScheduler().execute(this.plugin, block.getLocation(), () -> blockData.complete(block.getBlockData().getAsString()));
-            return BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(blockData.join(), org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID);
+            return BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(blockData.join(), org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID);
         }
-        return BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(block.getBlockData().getAsString(), org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID); // TODO could just make this a BlockState lookup?
+        return BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(block.getBlockData().getAsString(), org.geysermc.geyser.level.block.type.Block.JAVA_AIR_ID); // TODO could just make this a BlockState lookup?
     }
 
     @Override
@@ -98,7 +93,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
             return gameRule.getDefaultBooleanValue();
         }
 
-        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUuid()));
+        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().uuid()));
         Object value = bukkitPlayer.getWorld().getGameRuleValue(bukkitGameRule);
         if (value instanceof Boolean booleanValue) {
             return booleanValue;
@@ -114,7 +109,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
             GeyserImpl.getInstance().getLogger().debug("Unknown game rule " + gameRule.getJavaID());
             return gameRule.getDefaultIntValue();
         }
-        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUuid()));
+        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().uuid()));
         Object value = bukkitPlayer.getWorld().getGameRuleValue(bukkitGameRule);
         if (value instanceof Integer intValue) {
             return intValue;
@@ -128,23 +123,9 @@ public class GeyserSpigotWorldManager extends WorldManager {
         return GameMode.byId(Bukkit.getDefaultGameMode().ordinal());
     }
 
-    @Override
-    public @NonNull CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {
-        Player bukkitPlayer;
-        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUuid())) == null) {
-            return CompletableFuture.completedFuture(null);
-        }
-        CompletableFuture<Int2ObjectMap<byte[]>> future = new CompletableFuture<>();
-        Block block = bukkitPlayer.getWorld().getBlockAt(x, y, z);
-        // Paper 1.19.3 complains about async access otherwise.
-        // java.lang.IllegalStateException: Tile is null, asynchronous access?
-        SchedulerUtils.runTask(this.plugin, () -> future.complete(PickBlockUtils.pickBlock(block)), block);
-        return future.thenApply(RAW_TRANSFORMER);
-    }
-
     public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
         Player bukkitPlayer;
-        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUuid())) == null) {
+        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().uuid())) == null) {
             return;
         }
         Block block = bukkitPlayer.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ());

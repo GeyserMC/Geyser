@@ -25,11 +25,13 @@
 
 package org.geysermc.geyser.text;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.JsonUtils;
 import org.geysermc.geyser.util.WebUtils;
 
 import java.io.FileNotFoundException;
@@ -39,7 +41,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 
@@ -47,15 +48,20 @@ public class MinecraftLocale {
 
     public static final Map<String, Map<String, String>> LOCALE_MAPPINGS = new HashMap<>();
 
-    private static final Path LOCALE_FOLDER = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("locales");
+    // Check instance availability to avoid exception during testing
+    private static final boolean IN_INSTANCE = GeyserImpl.getInstance() != null;
+
+    private static final Path LOCALE_FOLDER = (IN_INSTANCE) ? GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("locales") : null;
 
     static {
-        try {
-            // Create the locales folder
-            Files.createDirectories(LOCALE_FOLDER);
-            Files.createDirectories(LOCALE_FOLDER.resolve("overrides"));
-        } catch (IOException exception) {
-            throw new RuntimeException("Unable to create locale folders! " + exception.getMessage());
+        if (IN_INSTANCE) {
+            try {
+                // Create the locales folder
+                Files.createDirectories(LOCALE_FOLDER);
+                Files.createDirectories(LOCALE_FOLDER.resolve("overrides"));
+            } catch (IOException exception) {
+                throw new RuntimeException("Unable to create locale folders! " + exception.getMessage());
+            }
         }
     }
 
@@ -189,14 +195,12 @@ public class MinecraftLocale {
         // Read the localefile
         try (InputStream localeStream = Files.newInputStream(localeFile, StandardOpenOption.READ)) {
             // Parse the file as json
-            JsonNode localeObj = GeyserImpl.JSON_MAPPER.readTree(localeStream);
+            JsonObject localeObj = JsonUtils.fromJson(localeStream);
 
             // Parse all the locale fields
-            Iterator<Map.Entry<String, JsonNode>> localeIterator = localeObj.fields();
             Map<String, String> langMap = new HashMap<>();
-            while (localeIterator.hasNext()) {
-                Map.Entry<String, JsonNode> entry = localeIterator.next();
-                langMap.put(entry.getKey(), entry.getValue().asText());
+            for (Map.Entry<String, JsonElement> entry : localeObj.entrySet()) {
+                langMap.put(entry.getKey(), entry.getValue().getAsString());
             }
             return langMap;
         } catch (FileNotFoundException e){

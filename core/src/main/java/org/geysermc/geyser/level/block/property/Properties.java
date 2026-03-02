@@ -30,7 +30,10 @@ import org.geysermc.geyser.level.physics.Direction;
 
 public final class Properties {
     public static final BooleanProperty ATTACHED = BooleanProperty.create("attached");
+    public static final BooleanProperty BERRIES = BooleanProperty.create("berries");
+    public static final BooleanProperty BLOOM = BooleanProperty.create("bloom");
     public static final BooleanProperty BOTTOM = BooleanProperty.create("bottom");
+    public static final BooleanProperty CAN_SUMMON = BooleanProperty.create("can_summon");
     public static final BooleanProperty CONDITIONAL = BooleanProperty.create("conditional");
     public static final BooleanProperty DISARMED = BooleanProperty.create("disarmed");
     public static final BooleanProperty DRAG = BooleanProperty.create("drag");
@@ -48,20 +51,19 @@ public final class Properties {
     public static final BooleanProperty IN_WALL = BooleanProperty.create("in_wall");
     public static final BooleanProperty LIT = BooleanProperty.create("lit");
     public static final BooleanProperty LOCKED = BooleanProperty.create("locked");
+    public static final BooleanProperty NATURAL = BooleanProperty.create("natural");
     public static final BooleanProperty OCCUPIED = BooleanProperty.create("occupied");
     public static final BooleanProperty OPEN = BooleanProperty.create("open");
     public static final BooleanProperty PERSISTENT = BooleanProperty.create("persistent");
     public static final BooleanProperty POWERED = BooleanProperty.create("powered");
     public static final BooleanProperty SHORT = BooleanProperty.create("short");
+    public static final BooleanProperty SHRIEKING = BooleanProperty.create("shrieking");
     public static final BooleanProperty SIGNAL_FIRE = BooleanProperty.create("signal_fire");
     public static final BooleanProperty SNOWY = BooleanProperty.create("snowy");
+    public static final BooleanProperty TIP = BooleanProperty.create("tip");
     public static final BooleanProperty TRIGGERED = BooleanProperty.create("triggered");
     public static final BooleanProperty UNSTABLE = BooleanProperty.create("unstable");
     public static final BooleanProperty WATERLOGGED = BooleanProperty.create("waterlogged");
-    public static final BooleanProperty BERRIES = BooleanProperty.create("berries");
-    public static final BooleanProperty BLOOM = BooleanProperty.create("bloom");
-    public static final BooleanProperty SHRIEKING = BooleanProperty.create("shrieking");
-    public static final BooleanProperty CAN_SUMMON = BooleanProperty.create("can_summon");
     public static final EnumProperty<Axis> HORIZONTAL_AXIS = EnumProperty.create("axis", Axis.X, Axis.Z);
     public static final EnumProperty<Axis> AXIS = EnumProperty.create("axis", Axis.VALUES);
     public static final BooleanProperty UP = BooleanProperty.create("up");
@@ -74,6 +76,7 @@ public final class Properties {
     public static final EnumProperty<Direction> FACING_HOPPER = EnumProperty.create("facing", Direction.DOWN, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
     public static final EnumProperty<Direction> HORIZONTAL_FACING = EnumProperty.create("facing", Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
     public static final IntegerProperty FLOWER_AMOUNT = IntegerProperty.create("flower_amount", 1, 4);
+    public static final IntegerProperty SEGMENT_AMOUNT = IntegerProperty.create("segment_amount", 1, 4);
     public static final EnumProperty<FrontAndTop> ORIENTATION = EnumProperty.create("orientation", FrontAndTop.VALUES);
     public static final BasicEnumProperty ATTACH_FACE = BasicEnumProperty.create("face", "floor", "wall", "ceiling");
     public static final BasicEnumProperty BELL_ATTACHMENT = BasicEnumProperty.create("attachment", "floor", "ceiling", "single_wall", "double_wall");
@@ -87,6 +90,7 @@ public final class Properties {
     public static final BasicEnumProperty WEST_REDSTONE = BasicEnumProperty.create("west", "up", "side", "none");
     public static final BasicEnumProperty DOUBLE_BLOCK_HALF = BasicEnumProperty.create("half", "upper", "lower");
     public static final BasicEnumProperty HALF = BasicEnumProperty.create("half", "top", "bottom");
+    public static final BasicEnumProperty SIDE_CHAIN_PART = BasicEnumProperty.create("side_chain", "unconnected", "right", "center", "left");
     public static final BasicEnumProperty RAIL_SHAPE = BasicEnumProperty.create("shape", "north_south", "east_west", "ascending_east", "ascending_west", "ascending_north", "ascending_south", "south_east", "south_west", "north_west", "north_east");
     public static final BasicEnumProperty RAIL_SHAPE_STRAIGHT = BasicEnumProperty.create("shape", "north_south", "east_west", "ascending_east", "ascending_west", "ascending_north", "ascending_south");
     public static final IntegerProperty AGE_1 = IntegerProperty.create("age", 0, 1);
@@ -116,6 +120,7 @@ public final class Properties {
     public static final IntegerProperty STAGE = IntegerProperty.create("stage", 0, 1);
     public static final IntegerProperty STABILITY_DISTANCE = IntegerProperty.create("distance", 0, 7);
     public static final IntegerProperty RESPAWN_ANCHOR_CHARGES = IntegerProperty.create("charges", 0, 4);
+    public static final IntegerProperty DRIED_GHAST_HYDRATION_LEVELS = IntegerProperty.create("hydration", 0, 3);
     public static final IntegerProperty ROTATION_16 = IntegerProperty.create("rotation", 0, 15);
     public static final BasicEnumProperty BED_PART = BasicEnumProperty.create("part", "head", "foot");
     public static final EnumProperty<ChestType> CHEST_TYPE = EnumProperty.create("type", ChestType.VALUES);
@@ -131,16 +136,20 @@ public final class Properties {
     public static final EnumProperty<Direction> VERTICAL_DIRECTION = EnumProperty.create("vertical_direction", Direction.UP, Direction.DOWN);
     public static final BasicEnumProperty DRIPSTONE_THICKNESS = BasicEnumProperty.create("thickness", "tip_merge", "tip", "frustum", "middle", "base");
     public static final BasicEnumProperty SCULK_SENSOR_PHASE = BasicEnumProperty.create("sculk_sensor_phase", "inactive", "active", "cooldown");
-    public static final BooleanProperty CHISELED_BOOKSHELF_SLOT_0_OCCUPIED = BooleanProperty.create("slot_0_occupied");
-    public static final BooleanProperty CHISELED_BOOKSHELF_SLOT_1_OCCUPIED = BooleanProperty.create("slot_1_occupied");
-    public static final BooleanProperty CHISELED_BOOKSHELF_SLOT_2_OCCUPIED = BooleanProperty.create("slot_2_occupied");
-    public static final BooleanProperty CHISELED_BOOKSHELF_SLOT_3_OCCUPIED = BooleanProperty.create("slot_3_occupied");
-    public static final BooleanProperty CHISELED_BOOKSHELF_SLOT_4_OCCUPIED = BooleanProperty.create("slot_4_occupied");
-    public static final BooleanProperty CHISELED_BOOKSHELF_SLOT_5_OCCUPIED = BooleanProperty.create("slot_5_occupied");
+    public static final BooleanProperty SLOT_0_OCCUPIED = BooleanProperty.create("slot_0_occupied");
+    public static final BooleanProperty SLOT_1_OCCUPIED = BooleanProperty.create("slot_1_occupied");
+    public static final BooleanProperty SLOT_2_OCCUPIED = BooleanProperty.create("slot_2_occupied");
+    public static final BooleanProperty SLOT_3_OCCUPIED = BooleanProperty.create("slot_3_occupied");
+    public static final BooleanProperty SLOT_4_OCCUPIED = BooleanProperty.create("slot_4_occupied");
+    public static final BooleanProperty SLOT_5_OCCUPIED = BooleanProperty.create("slot_5_occupied");
     public static final IntegerProperty DUSTED = IntegerProperty.create("dusted", 0, 3);
     public static final BooleanProperty CRACKED = BooleanProperty.create("cracked");
     public static final BooleanProperty CRAFTING = BooleanProperty.create("crafting");
     public static final BasicEnumProperty TRIAL_SPAWNER_STATE = BasicEnumProperty.create("trial_spawner_state", "inactive", "waiting_for_players", "active", "waiting_for_reward_ejection", "ejecting_reward", "cooldown");
     public static final BasicEnumProperty VAULT_STATE = BasicEnumProperty.create("vault_state", "inactive", "active", "unlocking", "ejecting");
+    public static final BasicEnumProperty CREAKING_HEART_STATE = BasicEnumProperty.create("creaking_heart_state", "uprooted", "dormant", "awake");
     public static final BooleanProperty OMINOUS = BooleanProperty.create("ominous");
+    public static final BasicEnumProperty TEST_BLOCK_MODE = BasicEnumProperty.create("mode", "start", "log", "fail", "accept");
+    public static final BooleanProperty MAP = BooleanProperty.create("map");
+    public static final BasicEnumProperty COPPER_GOLEM_POSE = BasicEnumProperty.create("copper_golem_pose", "standing", "sitting", "running", "star");
 }

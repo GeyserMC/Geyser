@@ -25,15 +25,15 @@
 
 package org.geysermc.geyser.inventory;
 
-import net.kyori.adventure.text.Component;
-import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.ItemUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundRenameItemPacket;
 
 /**
  * Used to determine if rename packets should be sent and stores
@@ -62,8 +62,8 @@ public class AnvilContainer extends Container {
 
     private int lastTargetSlot = -1;
 
-    public AnvilContainer(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
-        super(title, id, size, containerType, playerInventory);
+    public AnvilContainer(GeyserSession session, String title, int id, int size, ContainerType containerType) {
+        super(session, title, id, size, containerType);
     }
 
     /**
@@ -73,7 +73,7 @@ public class AnvilContainer extends Container {
         String correctRename;
         newName = rename;
 
-        Component originalName = ItemUtils.getCustomName(getInput().getComponents());
+        Component originalName = getInput().getComponent(DataComponentTypes.CUSTOM_NAME);
 
         String plainOriginalName = MessageTranslator.convertToPlainText(originalName, session.locale());
         String plainNewName = MessageTranslator.convertToPlainText(rename);

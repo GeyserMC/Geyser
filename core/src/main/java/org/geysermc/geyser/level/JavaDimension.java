@@ -40,20 +40,18 @@ import org.geysermc.geyser.util.DimensionUtils;
  * As a Java dimension can be null in some login cases (e.g. GeyserConnect), make sure the player
  * is logged in before utilizing this field.
  */
-public record JavaDimension(int minY, int maxY, boolean piglinSafe, boolean ultrawarm, double worldCoordinateScale, int bedrockId, boolean isNetherLike) {
+public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ultrawarm, int bedrockId, boolean isNetherLike) {
 
     public static JavaDimension read(RegistryEntryContext entry) {
         NbtMap dimension = entry.data();
         int minY = dimension.getInt("min_y");
-        int maxY = dimension.getInt("height");
+        int height = dimension.getInt("height");
         // Logical height can be ignored probably - seems to be for artificial limits like the Nether.
 
         // Set if piglins/hoglins should shake
         boolean piglinSafe = dimension.getBoolean("piglin_safe");
         // Entities in lava move faster in ultrawarm dimensions
         boolean ultrawarm = dimension.getBoolean("ultrawarm");
-        // Load world coordinate scale for the world border
-        double coordinateScale = dimension.getNumber("coordinate_scale").doubleValue(); // FIXME see if we can change this in the NBT library itself.
 
         boolean isNetherLike;
         // Cache the Bedrock version of this dimension, and base it off the ID - THE ID CAN CHANGE!!!
@@ -63,14 +61,21 @@ public record JavaDimension(int minY, int maxY, boolean piglinSafe, boolean ultr
         if ("minecraft".equals(id.namespace())) {
             String identifier = id.asString();
             bedrockId = DimensionUtils.javaToBedrock(identifier);
-            isNetherLike = DimensionUtils.NETHER_IDENTIFIER.equals(identifier);
+            isNetherLike = BedrockDimension.NETHER_IDENTIFIER.equals(identifier);
         } else {
             // Effects should give is a clue on how this (custom) dimension is supposed to look like
             String effects = dimension.getString("effects");
             bedrockId = DimensionUtils.javaToBedrock(effects);
-            isNetherLike = DimensionUtils.NETHER_IDENTIFIER.equals(effects);
+            isNetherLike = BedrockDimension.NETHER_IDENTIFIER.equals(effects);
         }
 
-        return new JavaDimension(minY, maxY, piglinSafe, ultrawarm, coordinateScale, bedrockId, isNetherLike);
+        if (minY % 16 != 0) {
+            throw new RuntimeException("Minimum Y must be a multiple of 16!");
+        }
+        if (height % 16 != 0) {
+            throw new RuntimeException("Height must be a multiple of 16!");
+        }
+
+        return new JavaDimension(minY, height, piglinSafe, ultrawarm, bedrockId, isNetherLike);
     }
 }

@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -32,6 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.holder.BlockInventoryHolder;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
@@ -44,14 +46,14 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
-public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator {
+public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator<Container> {
     public ShulkerInventoryTranslator() {
         // Ensure that the shulker box default state won't be trying to open in a state facing the player
         super(27, new BlockInventoryHolder(Blocks.SHULKER_BOX.defaultBlockState().withValue(Properties.FACING, Direction.NORTH), ContainerType.CONTAINER) {
             private final BlockEntityTranslator shulkerBoxTranslator = Registries.BLOCK_ENTITIES.get(BlockEntityType.SHULKER_BOX);
 
             @Override
-            protected boolean isValidBlock(BlockState blockState) {
+            protected boolean isValidBlock(GeyserSession session, Vector3i position, BlockState blockState) {
                 return blockState.block().javaIdentifier().value().contains("shulker_box"); // TODO ew
             }
 
@@ -74,10 +76,15 @@ public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot, Container container) {
         if (javaSlot < this.size) {
             return new BedrockContainerSlot(ContainerSlotType.SHULKER_BOX, javaSlot);
         }
-        return super.javaSlotToBedrockContainer(javaSlot);
+        return super.javaSlotToBedrockContainer(javaSlot, container);
+    }
+
+    @Override
+    public @Nullable ContainerType closeContainerType(Container container) {
+        return ContainerType.CONTAINER;
     }
 }

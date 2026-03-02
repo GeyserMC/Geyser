@@ -28,7 +28,6 @@ package org.geysermc.geyser.session.cache;
 import org.geysermc.mcprotocollib.protocol.data.game.advancement.Advancement;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundSeenAdvancementsPacket;
 import lombok.Getter;
-import lombok.Setter;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.geyser.level.GeyserAdvancement;
 import org.geysermc.geyser.session.GeyserSession;
@@ -41,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class AdvancementsCache {
     /**
@@ -58,13 +58,37 @@ public class AdvancementsCache {
     /**
      * Stores player's chosen advancement's ID and title for use in form creators.
      */
-    @Setter
     private String currentAdvancementCategoryId = null;
+
+    /**
+     * Stores if the player is currently viewing advancements.
+     */
+    private boolean formOpen = false;
 
     private final GeyserSession session;
 
     public AdvancementsCache(GeyserSession session) {
         this.session = session;
+    }
+
+    public void setCurrentAdvancementCategoryId(String categoryId) {
+        if (!Objects.equals(currentAdvancementCategoryId, categoryId)) {
+            // Only open and show list form if we're going to a different category
+            currentAdvancementCategoryId = categoryId;
+            if (formOpen) {
+                session.closeForm();
+                buildAndShowForm();
+                formOpen = true;
+            }
+        }
+    }
+
+    public void buildAndShowForm() {
+        if (currentAdvancementCategoryId == null) {
+            buildAndShowMenuForm();
+        } else {
+            buildAndShowListForm();
+        }
     }
 
     /**
@@ -88,9 +112,11 @@ public class AdvancementsCache {
             builder.content("advancements.empty");
         }
 
-        builder.validResultHandler((response) -> {
+        builder.closedResultHandler(() -> {
+            formOpen = false;
+        }).validResultHandler((response) -> {
             String id = rootAdvancementIds.get(response.clickedButtonId());
-            if (!id.equals("")) {
+            if (!id.isEmpty()) {
                 // Send a packet indicating that we are opening this particular advancement window
                 ServerboundSeenAdvancementsPacket packet = new ServerboundSeenAdvancementsPacket(id);
                 session.sendDownstreamGamePacket(packet);
@@ -99,6 +125,7 @@ public class AdvancementsCache {
             }
         });
 
+        formOpen = true;
         session.sendForm(builder);
     }
 
@@ -133,6 +160,9 @@ public class AdvancementsCache {
 
         builder.closedResultHandler(() -> {
             // Indicate that we have closed the current advancement tab
+            // Don't set currentAdvancementCategoryId to null here, so that when the advancements form is shown again (buildAndShowForm),
+            // the tab that was last open is opened again, which matches Java behaviour
+            formOpen = false;
             session.sendDownstreamGamePacket(new ServerboundSeenAdvancementsPacket());
 
         }).validResultHandler((response) -> {
@@ -142,6 +172,7 @@ public class AdvancementsCache {
             } else {
                 buildAndShowMenuForm();
                 // Indicate that we have closed the current advancement tab
+                currentAdvancementCategoryId = null;
                 session.sendDownstreamGamePacket(new ServerboundSeenAdvancementsPacket());
             }
         });
@@ -206,6 +237,7 @@ public class AdvancementsCache {
                         .validResultHandler((response) -> buildAndShowListForm())
                         .closedResultHandler(() -> {
                             // Indicate that we have closed the current advancement tab
+                            formOpen = false;
                             session.sendDownstreamGamePacket(new ServerboundSeenAdvancementsPacket());
                         })
         );

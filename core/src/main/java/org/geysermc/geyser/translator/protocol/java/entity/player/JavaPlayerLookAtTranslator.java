@@ -44,12 +44,12 @@ public class JavaPlayerLookAtTranslator extends PacketTranslator<ClientboundPlay
         var zDelta = targetPosition.getZ() - selfPosition.getZ();
         var sqrt = Math.sqrt(xDelta * xDelta + zDelta * zDelta);
 
-        var yaw = MathUtils.wrapDegrees(-Math.toDegrees(Math.atan2(yDelta, sqrt)));
-        var pitch = MathUtils.wrapDegrees(Math.toDegrees(Math.atan2(zDelta, xDelta)) - 90.0);
+        var pitch = MathUtils.wrapDegrees(-Math.toDegrees(Math.atan2(yDelta, sqrt)));
+        var yaw = MathUtils.wrapDegrees(Math.toDegrees(Math.atan2(zDelta, xDelta)) - 90.0);
 
         var self = session.getPlayerEntity();
         // headYaw is also set to yaw in this packet
-        self.updateRotation(yaw, pitch, yaw, self.isOnGround());
+        self.updateOwnRotation(yaw, pitch, yaw);
     }
 
     public Vector3f targetPosition(GeyserSession session, ClientboundPlayerLookAtPacket packet) {

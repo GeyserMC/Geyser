@@ -106,4 +106,8 @@ public class UpstreamSession {
     public BedrockCodecHelper getCodecHelper() {
         return this.session.getPeer().getCodecHelper();
     }
+
+    public void forciblyClose() {
+        this.session.getPeer().getChannel().close();
+    }
 }

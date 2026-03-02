@@ -25,11 +25,10 @@
 
 package org.geysermc.geyser.registry.type;
 
-import org.cloudburstmc.protocol.bedrock.data.inventory.ComponentItemData;
 import org.geysermc.geyser.item.type.Item;
 
 /**
  * The return data of a successful registration of a custom item.
  */
-public record NonVanillaItemRegistration(ComponentItemData componentItemData, Item javaItem, ItemMapping mapping) {
+public record NonVanillaItemRegistration(Item javaItem, ItemMapping mapping) {
 }

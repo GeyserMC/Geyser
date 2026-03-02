@@ -25,24 +25,27 @@
 
 package org.geysermc.geyser.session.cache;
 
-import org.cloudburstmc.protocol.bedrock.packet.ModalFormRequestPacket;
-import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
-import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.RequiredArgsConstructor;
+import org.cloudburstmc.protocol.bedrock.data.AttributeData;
+import org.cloudburstmc.protocol.bedrock.packet.ClientboundCloseFormPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ModalFormRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.ModalFormResponsePacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @RequiredArgsConstructor
 public class FormCache {
-
     /**
      * The magnitude of this doesn't actually matter, but it must be negative so that
      * BedrockNetworkStackLatencyTranslator can detect the hack.
@@ -53,6 +56,14 @@ public class FormCache {
     private final AtomicInteger formIdCounter = new AtomicInteger(0);
     private final Int2ObjectMap<Form> forms = new Int2ObjectOpenHashMap<>();
     private final GeyserSession session;
+
+    public boolean hasFormOpen() {
+        // If forms is empty it implies that there are no forms to show
+        // so technically this returns "has forms to show" or "has open"
+        // Forms are only queued in specific circumstances, such as waiting on
+        // previous inventories to close
+        return !forms.isEmpty();
+    }
 
     public int addForm(Form form) {
         int formId = formIdCounter.getAndIncrement();
@@ -78,13 +89,25 @@ public class FormCache {
 
         // Hack to fix the (url) image loading bug
         if (form instanceof SimpleForm) {
-            NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-            latencyPacket.setFromServer(true);
-            latencyPacket.setTimestamp(MAGIC_FORM_IMAGE_HACK_TIMESTAMP);
-            session.scheduleInEventLoop(
-                    () -> session.sendUpstreamPacket(latencyPacket),
-                    500, TimeUnit.MILLISECONDS
-            );
+            // Two delays:
+            // First, 500ms, before we send the network stack latency packet
+            session.scheduleInEventLoop(() -> session.sendNetworkLatencyStackPacket(MAGIC_FORM_IMAGE_HACK_TIMESTAMP, false, () -> {
+                    // Then, wait 500ms after we receive the response, then update attributes to get the image to show
+                    session.scheduleInEventLoop(() -> {
+                        // Hack to fix the url image loading bug
+                        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+                        attributesPacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
+
+                        AttributeData attribute = session.getPlayerEntity().getAttributes().get(GeyserAttributeType.EXPERIENCE_LEVEL);
+                        if (attribute != null) {
+                            attributesPacket.setAttributes(Collections.singletonList(attribute));
+                        } else {
+                            attributesPacket.setAttributes(Collections.singletonList(GeyserAttributeType.EXPERIENCE_LEVEL.getAttribute(0)));
+                        }
+
+                        session.sendUpstreamPacket(attributesPacket);
+                    }, 500, TimeUnit.MILLISECONDS);
+                }), 500, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -105,6 +128,24 @@ public class FormCache {
                     .handleFormResponse(form, response.getFormData());
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().error("Error while processing form response!", e);
+        }
+    }
+
+    public void closeForms() {
+        if (!this.forms.isEmpty()) {
+            // Copy them to ensure any response handler's sent form isn't instantly cleared
+            Int2ObjectMap<Form> copy = new Int2ObjectOpenHashMap<>(this.forms);
+            this.forms.clear();
+            // Now close it
+            session.sendUpstreamPacket(new ClientboundCloseFormPacket());
+
+            for (Form form : copy.values()) {
+                try {
+                    formDefinitions.definitionFor(form).handleFormResponse(form, "");
+                } catch (Exception e) {
+                    GeyserImpl.getInstance().getLogger().error("Error while closing form!", e);
+                }
+            }
         }
     }
 }

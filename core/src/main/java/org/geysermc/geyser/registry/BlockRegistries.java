@@ -69,7 +69,7 @@ public class BlockRegistries {
     /**
      * A mapped registry containing which holds block IDs to its {@link BlockCollision}.
      */
-    public static final ListRegistry<BlockCollision> COLLISIONS;
+    public static final ListDeferredRegistry<BlockCollision> COLLISIONS = ListDeferredRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collisions.nbt"), CollisionRegistryLoader::new);
 
     /**
      * A registry which stores Java IDs to {@link Block}, containing miscellaneous information about
@@ -78,9 +78,14 @@ public class BlockRegistries {
     public static final ListRegistry<Block> JAVA_BLOCKS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
     /**
-     * A mapped registry containing the Java identifiers to IDs.
+     * A mapped registry containing the Java block state identifiers to IDs.
      */
-    public static final MappedRegistry<String, Integer, Object2IntMap<String>> JAVA_IDENTIFIER_TO_ID = MappedRegistry.create(RegistryLoaders.empty(Object2IntOpenHashMap::new));
+    public static final MappedRegistry<String, Integer, Object2IntMap<String>> JAVA_BLOCK_STATE_IDENTIFIER_TO_ID = MappedRegistry.create(RegistryLoaders.empty(Object2IntOpenHashMap::new));
+
+    /**
+     * A registry containing non-vanilla block IDS.
+     */
+    public static final SimpleRegistry<BitSet> NON_VANILLA_BLOCK_IDS = SimpleRegistry.create(RegistryLoaders.empty(BitSet::new));
 
     /**
      * A registry containing all the waterlogged blockstates.
@@ -130,22 +135,17 @@ public class BlockRegistries {
      */
     public static final SimpleMappedRegistry<String, CustomSkull> CUSTOM_SKULLS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
-    static {
+    public static void populate() {
         Blocks.VAULT.javaId(); // FIXME
         CustomSkullRegistryPopulator.populate();
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.PRE_INIT);
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.DEFINITION);
-        CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.NON_VANILLA_REGISTRATION);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_JAVA);
-        COLLISIONS = ListRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collisions.nbt"), CollisionRegistryLoader::new);
+        COLLISIONS.load();
+        CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.NON_VANILLA_REGISTRATION);
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.VANILLA_REGISTRATION);
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.CUSTOM_REGISTRATION);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_BEDROCK);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.POST_INIT);
     }
-
-    public static void init() {
-        // no-op
-    }
-
 }

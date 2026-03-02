@@ -29,9 +29,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -40,24 +39,24 @@ import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-
-import java.util.UUID;
 
 public class StriderEntity extends AnimalEntity implements Tickable, ClientVehicle {
 
     private final BoostableVehicleComponent<StriderEntity> vehicleComponent = new BoostableVehicleComponent<>(this, 1.0f);
     private boolean isCold = false;
 
-    public StriderEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public StriderEntity(EntitySpawnContext context) {
+        super(context);
 
         setFlag(EntityFlag.FIRE_IMMUNE, true);
         setFlag(EntityFlag.BREATHING, true);
@@ -65,10 +64,6 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
 
     public void setCold(BooleanEntityMetadata entityMetadata) {
         isCold = entityMetadata.getPrimitiveValue();
-    }
-
-    public void setSaddled(BooleanEntityMetadata entityMetadata) {
-        setFlag(EntityFlag.SADDLED, entityMetadata.getPrimitiveValue());
     }
 
     @Override
@@ -105,7 +100,7 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
 
     @Override
     @Nullable
-    protected ItemTag getFoodTag() {
+    protected Tag<Item> getFoodTag() {
         return ItemTag.STRIDER_FOOD;
     }
 
@@ -148,6 +143,7 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
 
     @Override
     public void tick() {
+        super.tick();
         PlayerEntity player = getPlayerPassenger();
         if (player == null) {
             return;
@@ -158,8 +154,7 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
                 vehicleComponent.tickBoost();
             }
         } else { // getHand() for session player seems to always return air
-            ItemDefinition itemDefinition = session.getItemMappings().getStoredItems().warpedFungusOnAStick().getBedrockDefinition();
-            if (player.getHand().getDefinition() == itemDefinition || player.getOffhand().getDefinition() == itemDefinition) {
+            if (player.isHolding(Items.WARPED_FUNGUS_ON_A_STICK)) {
                 vehicleComponent.tickBoost();
             }
         }
@@ -171,8 +166,8 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
     }
 
     @Override
-    public Vector2f getAdjustedInput(Vector2f input) {
-        return Vector2f.UNIT_Y;
+    public Vector3f getRiddenInput(Vector2f input) {
+        return Vector3f.UNIT_Z;
     }
 
     @Override
@@ -196,5 +191,10 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
     @Override
     public boolean canWalkOnLava() {
         return true;
+    }
+
+    @Override
+    protected boolean canUseSlot(EquipmentSlot slot) {
+        return slot != EquipmentSlot.SADDLE ? super.canUseSlot(slot) : this.isAlive() && !this.isBaby();
     }
 }

@@ -25,23 +25,15 @@
 
 package org.geysermc.geyser.registry.type;
 
-import lombok.Value;
-
-@Value
-public class SoundMapping {
-    String java;
-    String bedrock;
-    String playsound;
-    int extraData;
-    String identifier;
-    boolean levelEvent;
-
-    public SoundMapping(String java, String bedrock, String playsound, int extraData, String identifier, boolean levelEvent) {
+public record SoundMapping(String java, String bedrock, String playsound, int extraData, String identifier,
+                           boolean levelEvent, float pitchAdjust) {
+    public SoundMapping(String java, String bedrock, String playsound, int extraData, String identifier, boolean levelEvent, float pitchAdjust) {
         this.java = java;
         this.bedrock = bedrock == null || bedrock.isEmpty() ? null : bedrock;
         this.playsound = playsound == null || playsound.isEmpty() ? null : playsound;
         this.extraData = extraData;
         this.identifier = identifier == null || identifier.isEmpty() ? ":" : identifier;
         this.levelEvent = levelEvent;
+        this.pitchAdjust = pitchAdjust;
     }
 }

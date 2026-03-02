@@ -37,7 +37,7 @@ import java.util.Set;
  * <br>
  * This event is mapped to the existence of Brigadier on the server.
  */
-public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancellable {
+public final class ServerDefineCommandsEvent extends ConnectionEvent implements Cancellable {
     private final Set<? extends CommandInfo> commands;
     private boolean cancelled;
 

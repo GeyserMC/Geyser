@@ -29,7 +29,6 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
@@ -50,13 +49,9 @@ public class LecternBlock extends Block implements BedrockChunkWantsBlockEntityT
 
     @Override
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
-        WorldManager worldManager = session.getGeyser().getWorldManager();
-        boolean currentHasBook = state.getValue(Properties.HAS_BOOK);
-        Boolean previousHasBook = worldManager.blockAt(session, position).getValueNullable(Properties.HAS_BOOK); // Can be null if not a lectern, watch out
-        if (previousHasBook == null || currentHasBook != previousHasBook) {
-            BlockEntityUtils.updateBlockEntity(session, getBaseLecternTag(position, currentHasBook), position);
-        }
         super.updateBlock(session, state, position);
+        boolean hasBook = state.getValue(Properties.HAS_BOOK);
+        BlockEntityUtils.updateBlockEntity(session, getBaseLecternTag(position, hasBook), position);
     }
 
     public static NbtMap getBaseLecternTag(Vector3i position, boolean hasBook) {

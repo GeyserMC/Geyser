@@ -25,23 +25,24 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.InteractPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
+import org.geysermc.geyser.entity.type.living.animal.nautilus.AbstractNautilusEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 
 import java.util.concurrent.TimeUnit;
 
@@ -51,7 +52,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
     @Override
     public void translate(GeyserSession session, InteractPacket packet) {
         Entity entity;
-        if (packet.getRuntimeEntityId() == session.getPlayerEntity().getGeyserId()) {
+        if (packet.getRuntimeEntityId() == session.getPlayerEntity().geyserId()) {
             //Player is not in entity cache
             entity = session.getPlayerEntity();
         } else {
@@ -62,7 +63,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
 
         switch (packet.getAction()) {
             case INTERACT:
-                if (session.getPlayerInventory().getItemInHand().asItem() == Items.SHIELD) {
+                if (session.getPlayerInventory().getItemInHand().is(Items.SHIELD)) {
                     break;
                 }
                 ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
@@ -75,23 +76,26 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 session.sendDownstreamGamePacket(attackPacket);
                 break;
             case LEAVE_VEHICLE:
-                ServerboundPlayerCommandPacket sneakPacket = new ServerboundPlayerCommandPacket(entity.getEntityId(), PlayerState.START_SNEAKING);
-                session.sendDownstreamGamePacket(sneakPacket);
+                // Reset steering to avoid these accidentally triggering session#isHandsBusy
+                session.setSteeringLeft(false);
+                session.setSteeringRight(false);
 
                 Entity currentVehicle = session.getPlayerEntity().getVehicle();
                 if (currentVehicle != null) {
+                    session.setShouldSendSneak(true);
+
                     session.setMountVehicleScheduledFuture(session.scheduleInEventLoop(() -> {
                         if (session.getPlayerEntity().getVehicle() == null) {
                             return;
                         }
 
-                        long vehicleBedrockId = currentVehicle.getGeyserId();
-                        if (session.getPlayerEntity().getVehicle().getGeyserId() == vehicleBedrockId) {
+                        long vehicleBedrockId = currentVehicle.geyserId();
+                        if (session.getPlayerEntity().getVehicle().geyserId() == vehicleBedrockId) {
                             // The Bedrock client, as of 1.19.51, dismounts on its end. The server may not agree with this.
                             // If the server doesn't agree with our dismount (sends a packet saying we dismounted),
                             // then remount the player.
                             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
-                            linkPacket.setEntityLink(new EntityLinkData(vehicleBedrockId, session.getPlayerEntity().getGeyserId(), EntityLinkData.Type.PASSENGER, true, false));
+                            linkPacket.setEntityLink(new EntityLinkData(vehicleBedrockId, session.getPlayerEntity().geyserId(), EntityLinkData.Type.PASSENGER, true, false, 0f));
                             session.sendUpstreamPacket(linkPacket);
                         }
                     }, 1, TimeUnit.SECONDS));
@@ -117,14 +121,14 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 }
                 break;
             case OPEN_INVENTORY:
-                if (session.getOpenInventory() == null) {
+                if (session.getInventoryHolder() == null) {
                     Entity ridingEntity = session.getPlayerEntity().getVehicle();
-                    if (ridingEntity instanceof AbstractHorseEntity || (ridingEntity != null && ridingEntity.getDefinition().entityType() == EntityType.CHEST_BOAT)) {
+                    if (ridingEntity instanceof AbstractHorseEntity || ridingEntity instanceof AbstractNautilusEntity || ridingEntity instanceof ChestBoatEntity) {
                         // This mob has an inventory of its own that we should open instead.
                         ServerboundPlayerCommandPacket openVehicleWindowPacket = new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(), PlayerState.OPEN_VEHICLE_INVENTORY);
                         session.sendDownstreamGamePacket(openVehicleWindowPacket);
                     } else {
-                        InventoryUtils.openInventory(session, session.getPlayerInventory());
+                        InventoryUtils.openInventory(session.getPlayerInventoryHolder());
                     }
                 }
         }

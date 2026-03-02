@@ -33,24 +33,25 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.FloodgateKeyLoader;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.configuration.GeyserConfiguration;
+import org.geysermc.geyser.configuration.GeyserPluginConfig;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.bungeecord.command.BungeeCommandSource;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.metrics.MetricsPlatform;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.bungee.BungeeCommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
@@ -58,14 +59,14 @@ import java.net.SocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     private CommandRegistry commandRegistry;
-    private GeyserBungeeConfiguration geyserConfig;
+    private GeyserPluginConfig geyserConfig;
     private GeyserBungeeInjector geyserInjector;
     private final GeyserBungeeLogger geyserLogger = new GeyserBungeeLogger(getLogger());
     private IGeyserPingPassthrough geyserBungeePingPassthrough;
@@ -80,26 +81,31 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     public void onGeyserInitialize() {
         GeyserLocale.init(this);
 
-        // Copied from ViaVersion.
-        // https://github.com/ViaVersion/ViaVersion/blob/b8072aad86695cc8ec6f5e4103e43baf3abf6cc5/bungee/src/main/java/us/myles/ViaVersion/BungeePlugin.java#L43
         try {
-            ProtocolConstants.class.getField("MINECRAFT_1_21");
-        } catch (NoSuchFieldException e) {
-            geyserLogger.error("      / \\");
-            geyserLogger.error("     /   \\");
-            geyserLogger.error("    /  |  \\");
-            geyserLogger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", getProxy().getName()));
-            geyserLogger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
-            geyserLogger.error(" /     o     \\");
-            geyserLogger.error("/_____________\\");
+            List<Integer> supportedProtocols = ProtocolConstants.SUPPORTED_VERSION_IDS;
+            if (!supportedProtocols.contains(GameProtocol.getJavaProtocolVersion())) {
+                geyserLogger.error("      / \\");
+                geyserLogger.error("     /   \\");
+                geyserLogger.error("    /  |  \\");
+                geyserLogger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", getProxy().getName()));
+                geyserLogger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
+                geyserLogger.error(" /     o     \\");
+                geyserLogger.error("/_____________\\");
+            }
+        } catch (Throwable e) {
+            geyserLogger.warning("Unable to check the versions supported by this proxy! " + e.getMessage());
         }
 
-        if (!this.loadConfig()) {
+        // See https://github.com/SpigotMC/BungeeCord/blob/e62fc6c2916a991e00177c580986d8b1a22fdb41/proxy/src/main/java/net/md_5/bungee/netty/PipelineUtils.java#L138
+        if (Boolean.getBoolean("bungee.io_uring")) {
+            System.setProperty("Mcpl.io_uring", "true");
+        }
+
+        geyserConfig = loadConfig(GeyserPluginConfig.class);
+        if (geyserConfig == null) {
             return;
         }
-        this.geyserLogger.setDebug(geyserConfig.isDebugMode());
-        GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-        this.geyser = GeyserImpl.load(PlatformType.BUNGEECORD, this);
+        this.geyser = GeyserImpl.load(this);
         this.geyserInjector = new GeyserBungeeInjector(this);
 
         // Registration of listeners occurs only once
@@ -111,6 +117,21 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (geyser == null) {
             return; // Config did not load properly!
         }
+
+        // After Geyser initialize for parity with other platforms.
+        var sourceConverter = new CommandSourceConverter<>(
+            CommandSender.class,
+            id -> getProxy().getPlayer(id),
+            () -> getProxy().getConsole(),
+            BungeeCommandSource::new
+        );
+        CommandManager<GeyserCommandSource> cloud = new BungeeCommandManager<>(
+            this,
+            ExecutionCoordinator.simpleCoordinator(),
+            sourceConverter
+        );
+        this.commandRegistry = new CommandRegistry(geyser, cloud, false); // applying root permission would be a breaking change because we can't register permission defaults
+
         // Big hack - Bungee does not provide us an event to listen to, so schedule a repeating
         // task that waits for a field to be filled which is set after the plugin enable
         // process is complete
@@ -145,29 +166,15 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     public void onGeyserEnable() {
         if (GeyserImpl.getInstance().isReloading()) {
-            if (!loadConfig()) {
+            geyserConfig = loadConfig(GeyserPluginConfig.class);
+            if (geyserConfig == null) {
                 return;
             }
-            this.geyserLogger.setDebug(geyserConfig.isDebugMode());
-            GeyserConfiguration.checkGeyserConfiguration(geyserConfig, geyserLogger);
-        } else {
-            var sourceConverter = new CommandSourceConverter<>(
-                    CommandSender.class,
-                    id -> getProxy().getPlayer(id),
-                    () -> getProxy().getConsole(),
-                    BungeeCommandSource::new
-            );
-            CommandManager<GeyserCommandSource> cloud = new BungeeCommandManager<>(
-                    this,
-                    ExecutionCoordinator.simpleCoordinator(),
-                    sourceConverter
-            );
-            this.commandRegistry = new CommandRegistry(geyser, cloud, false); // applying root permission would be a breaking change because we can't register permission defaults
         }
 
         // Force-disable query if enabled, or else Geyser won't enable
         for (ListenerInfo info : getProxy().getConfig().getListeners()) {
-            if (info.isQueryEnabled() && info.getQueryPort() == geyserConfig.getBedrock().port()) {
+            if (info.isQueryEnabled() && info.getQueryPort() == geyserConfig.bedrock().port()) {
                 try {
                     Field queryField = ListenerInfo.class.getDeclaredField("queryEnabled");
                     queryField.setAccessible(true);
@@ -185,7 +192,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
         GeyserImpl.start();
 
-        if (geyserConfig.isLegacyPingPassthrough()) {
+        if (!geyserConfig.motd().integratedPingPassthrough()) {
             this.geyserBungeePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
             this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
@@ -222,8 +229,13 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     @Override
-    public GeyserBungeeConfiguration getGeyserConfig() {
-        return geyserConfig;
+    public @NonNull PlatformType platformType() {
+        return PlatformType.BUNGEECORD;
+    }
+
+    @Override
+    public GeyserPluginConfig config() {
+        return this.geyserConfig;
     }
 
     @Override
@@ -256,6 +268,11 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         return Paths.get(getProxy().getName().equals("BungeeCord") ? "proxy.log.0" : "logs/latest.log");
     }
 
+    @Override
+    public @NonNull String getServerPlatform() {
+        return getProxy().getName();
+    }
+
     @Nullable
     @Override
     public SocketAddress getSocketAddress() {
@@ -275,11 +292,29 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public boolean testFloodgatePluginPresent() {
-        if (getProxy().getPluginManager().getPlugin("floodgate") != null) {
-            geyserConfig.loadFloodgate(this);
-            return true;
+        return getProxy().getPluginManager().getPlugin("floodgate") != null;
+    }
+
+    @Override
+    public Path getFloodgateKeyPath() {
+        Plugin floodgate = getProxy().getPluginManager().getPlugin("floodgate");
+        Path geyserDataFolder = getDataFolder().toPath();
+        Path floodgateDataFolder = floodgate != null ? floodgate.getDataFolder().toPath() : null;
+
+        return FloodgateKeyLoader.getKeyPath(geyserConfig, floodgateDataFolder, geyserDataFolder, geyserLogger);
+    }
+
+    @Override
+    public MetricsPlatform createMetricsPlatform() {
+        try {
+            return new BungeeMetrics(this);
+        } catch (IOException e) {
+            this.geyserLogger.debug("Integrated bStats support failed to load.");
+            if (this.config().debugMode()) {
+                e.printStackTrace();
+            }
+            return null;
         }
-        return false;
     }
 
     private Optional<InetSocketAddress> findCompatibleListener() {
@@ -287,21 +322,5 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                 .filter(info -> info.getSocketAddress() instanceof InetSocketAddress)
                 .map(info -> (InetSocketAddress) info.getSocketAddress())
                 .findFirst();
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    private boolean loadConfig() {
-        try {
-            if (!getDataFolder().exists()) //noinspection ResultOfMethodCallIgnored
-                getDataFolder().mkdir();
-            File configFile = FileUtils.fileOrCopiedFromResource(new File(getDataFolder(), "config.yml"),
-                    "config.yml", (x) -> x.replaceAll("generateduuid", UUID.randomUUID().toString()), this);
-            this.geyserConfig = FileUtils.loadConfig(configFile, GeyserBungeeConfiguration.class);
-        } catch (IOException ex) {
-            geyserLogger.error(GeyserLocale.getLocaleStringLog("geyser.config.failed"), ex);
-            ex.printStackTrace();
-            return false;
-        }
-        return true;
     }
 }

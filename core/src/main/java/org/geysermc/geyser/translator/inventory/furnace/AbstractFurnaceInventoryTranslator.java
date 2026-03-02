@@ -29,7 +29,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerSetDataPacket;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.geyser.level.block.property.Properties;
@@ -37,15 +37,15 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.AbstractBlockInventoryTranslator;
 
-public abstract class AbstractFurnaceInventoryTranslator extends AbstractBlockInventoryTranslator {
+public abstract class AbstractFurnaceInventoryTranslator extends AbstractBlockInventoryTranslator<Container> {
     AbstractFurnaceInventoryTranslator(Block javaBlock, ContainerType containerType) {
         super(3, javaBlock.defaultBlockState().withValue(Properties.LIT, false), containerType, ContainerInventoryUpdater.INSTANCE);
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSession session, Container container, int key, int value) {
         ContainerSetDataPacket dataPacket = new ContainerSetDataPacket();
-        dataPacket.setWindowId((byte) inventory.getBedrockId());
+        dataPacket.setWindowId((byte) container.getBedrockId());
         switch (key) {
             case 0:
                 dataPacket.setProperty(ContainerSetDataPacket.FURNACE_LIT_TIME);
@@ -71,13 +71,13 @@ public abstract class AbstractFurnaceInventoryTranslator extends AbstractBlockIn
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int slot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
         if (slot == 1) {
             return new BedrockContainerSlot(ContainerSlotType.FURNACE_FUEL, javaSlotToBedrock(slot));
         }
         if (slot == 2) {
             return new BedrockContainerSlot(ContainerSlotType.FURNACE_RESULT, javaSlotToBedrock(slot));
         }
-        return super.javaSlotToBedrockContainer(slot);
+        return super.javaSlotToBedrockContainer(slot, container);
     }
 }

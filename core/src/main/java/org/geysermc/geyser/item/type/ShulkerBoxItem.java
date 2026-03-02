@@ -30,21 +30,25 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.item.CustomItemTranslator;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ShulkerBoxItem extends BlockItem {
     public ShulkerBoxItem(Builder builder, Block block, Block... otherBlocks) {
@@ -52,10 +56,10 @@ public class ShulkerBoxItem extends BlockItem {
     }
 
     @Override
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull BedrockItemBuilder builder) {
-        super.translateComponentsToBedrock(session, components, builder);
+    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        super.translateComponentsToBedrock(session, components, tooltip, builder);
 
-        List<ItemStack> contents = components.get(DataComponentType.CONTAINER);
+        List<ItemStack> contents = components.get(DataComponentTypes.CONTAINER);
         if (contents == null || contents.isEmpty()) {
             // Empty shulker box
             return;
@@ -70,18 +74,19 @@ public class ShulkerBoxItem extends BlockItem {
 
             int bedrockData = boxMapping.getBedrockData();
             String bedrockIdentifier = boxMapping.getBedrockIdentifier();
-            DataComponents boxComponents = item.getDataComponents();
+            DataComponents boxComponents = item.getDataComponentsPatch();
 
             if (boxComponents != null) {
-                // Check for custom items
-                ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(boxComponents, boxMapping);
+                // Check for custom items - components should never be null as we've checked for air already
+                boxComponents = Objects.requireNonNull(GeyserItemStack.from(session, item).getAllComponents());
+                ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(session, item.getAmount(), boxComponents, boxMapping);
                 if (customItemDefinition != null) {
                     bedrockIdentifier = customItemDefinition.getIdentifier();
                     bedrockData = 0;
                 } else {
                     // Manual checks for potions/tipped arrows
                     if (boxMapping.getJavaItem() instanceof PotionItem || boxMapping.getJavaItem() instanceof ArrowItem) {
-                        PotionContents potionContents = boxComponents.get(DataComponentType.POTION_CONTENTS);
+                        PotionContents potionContents = boxComponents.get(DataComponentTypes.POTION_CONTENTS);
                         if (potionContents != null) {
                             Potion potion = Potion.getByJavaId(potionContents.getPotionId());
                             if (potion != null) {
@@ -98,8 +103,12 @@ public class ShulkerBoxItem extends BlockItem {
 
             // Only the display name is what we have interest in, so just translate that if relevant
             if (boxComponents != null) {
-                String customName = ItemTranslator.getCustomName(session, boxComponents, boxMapping, '7');
+                String customName = ItemTranslator.getCustomName(session, boxComponents, boxMapping, '7', false, true);
                 if (customName != null) {
+                    // Fix count display (e.g., x16) with incorrect color due to some items with colored names
+                    if (customName.contains("" + ChatColor.ESCAPE)) {
+                        customName += ChatColor.RESET + ChatColor.GRAY;
+                    }
                     boxItemNbt.putCompound("tag", NbtMap.builder()
                             .putCompound("display", NbtMap.builder()
                                     .putString("Name", customName)

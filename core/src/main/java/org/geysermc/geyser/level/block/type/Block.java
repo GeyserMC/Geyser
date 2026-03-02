@@ -41,12 +41,17 @@ import org.geysermc.geyser.level.block.property.Property;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.Tag;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.intellij.lang.annotations.Subst;
 
-import java.util.*;
-import java.util.function.Supplier;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public class Block {
@@ -60,11 +65,6 @@ public class Block {
     private final @Nullable BlockEntityType blockEntityType;
     private final float destroyTime;
     private final @NonNull PistonBehavior pushReaction;
-    /**
-     * Used for classes we don't have implemented yet that override Mojmap getCloneItemStack with their own item.
-     * A supplier prevents any issues arising where the Items class finishes before the Blocks class.
-     */
-    private final Supplier<Item> pickItem;
     protected Item item = null;
     private int javaId = -1;
 
@@ -80,7 +80,6 @@ public class Block {
         this.blockEntityType = builder.blockEntityType;
         this.destroyTime = builder.destroyTime;
         this.pushReaction = builder.pushReaction;
-        this.pickItem = builder.pickItem;
 
         BlockState firstState = builder.build(this).get(0);
         this.propertyKeys = builder.propertyKeys; // Ensure this is not null before iterating over states
@@ -158,13 +157,6 @@ public class Block {
         return this.item;
     }
 
-    public ItemStack pickItem(BlockState state) {
-        if (this.pickItem != null) {
-            return new ItemStack(this.pickItem.get().javaId());
-        }
-        return new ItemStack(this.asItem().javaId());
-    }
-
     /**
      * Should only be ran on block creation. Can be overridden.
      * @param firstState the first state created from this block
@@ -215,6 +207,14 @@ public class Block {
         this.javaId = javaId;
     }
 
+    public boolean is(GeyserSession session, Tag<Block> tag) {
+        return session.getTagCache().is(tag, javaId);
+    }
+
+    public boolean is(GeyserSession session, HolderSet set) {
+        return session.getTagCache().is(set, JavaRegistries.BLOCK, javaId);
+    }
+
     @Override
     public String toString() {
         return "Block{" +
@@ -223,7 +223,7 @@ public class Block {
                 '}';
     }
 
-    Property<?>[] propertyKeys() {
+    public Property<?>[] propertyKeys() {
         return propertyKeys;
     }
 
@@ -237,10 +237,10 @@ public class Block {
         private BlockEntityType blockEntityType = null;
         private PistonBehavior pushReaction = PistonBehavior.NORMAL;
         private float destroyTime;
-        private Supplier<Item> pickItem;
 
         // We'll use this field after building
-        private Property<?>[] propertyKeys;
+        private Property<?>[] propertyKeys = null;
+        private @Nullable Integer javaId = null;
 
         /**
          * For states that we're just tracking for mirroring Java states.
@@ -293,16 +293,22 @@ public class Block {
             return this;
         }
 
-        public Builder pickItem(Supplier<Item> pickItem) {
-            this.pickItem = pickItem;
+        public Builder javaId(int javaId) {
+            this.javaId = javaId;
             return this;
         }
 
         private List<BlockState> build(Block block) {
             if (states.isEmpty()) {
-                BlockState state = new BlockState(block, BlockRegistries.BLOCK_STATES.get().size());
-                BlockRegistries.BLOCK_STATES.get().add(state);
-                propertyKeys = null;
+                BlockState state;
+                if (javaId == null) {
+                    state = new BlockState(block, BlockRegistries.BLOCK_STATES.get().size());
+                    BlockRegistries.BLOCK_STATES.get().add(state);
+                } else {
+                    state = new BlockState(block, javaId);
+                    BlockRegistries.BLOCK_STATES.registerWithAnyIndex(javaId, state, Blocks.AIR.defaultBlockState());
+                }
+
                 return List.of(state);
             } else if (states.size() == 1) {
                 // We can optimize because we don't need to worry about combinations

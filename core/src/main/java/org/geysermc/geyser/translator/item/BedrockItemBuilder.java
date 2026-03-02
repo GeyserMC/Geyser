@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.registry.type.ItemMapping;
 
 import java.util.ArrayList;
@@ -79,6 +80,11 @@ public final class BedrockItemBuilder {
         return this;
     }
 
+    public BedrockItemBuilder addEnchantmentGlint() {
+        putList("ench", NbtType.COMPOUND, List.of());
+        return this;
+    }
+
     @NonNull
     public NbtMapBuilder getOrCreateNbt() {
         if (builder == null) {
@@ -122,12 +128,13 @@ public final class BedrockItemBuilder {
      */
     @Nullable
     public NbtMap build() {
-        if (customName != null || lore != null) {
+        boolean validLore = lore != null && !lore.isEmpty();
+        if (customName != null || validLore) {
             NbtMapBuilder display = NbtMap.builder();
             if (customName != null) {
                 display.putString("Name", customName);
             }
-            if (lore != null) {
+            if (validLore) {
                 display.putList("Lore", NbtType.STRING, lore);
             }
             getOrCreateNbt().put("display", display.build());
@@ -139,6 +146,17 @@ public final class BedrockItemBuilder {
             return null;
         }
         return builder.build();
+    }
+
+    /**
+     * Creates item NBT to nest within NBT with name, count, damage, and tag set.
+     */
+    public static NbtMapBuilder createItemNbt(ItemData data) {
+        NbtMapBuilder builder = BedrockItemBuilder.createItemNbt(data.getDefinition().getIdentifier(), data.getCount(), data.getDamage());
+        if (data.getTag() != null) {
+            builder.putCompound("tag", data.getTag());
+        }
+        return builder;
     }
 
     /**

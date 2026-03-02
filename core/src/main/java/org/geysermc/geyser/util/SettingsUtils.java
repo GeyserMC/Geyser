@@ -54,8 +54,8 @@ public class SettingsUtils {
 
         // Let's store these to avoid issues
         boolean showCoordinates = session.getPreferencesCache().isAllowShowCoordinates();
-        boolean cooldownShown = CooldownUtils.getDefaultShowCooldown() != CooldownUtils.CooldownType.DISABLED;
-        boolean customSkulls = session.getGeyser().getConfig().isAllowCustomSkulls();
+        boolean cooldownShown = session.getGeyser().config().gameplay().showCooldown() != CooldownUtils.CooldownType.DISABLED;
+        boolean customSkulls = session.getGeyser().config().gameplay().maxVisibleCustomSkulls() != 0;
 
         // Only show the client title if any of the client settings are available
         boolean showClientSettings = showCoordinates || cooldownShown || customSkulls;
@@ -91,9 +91,9 @@ public class SettingsUtils {
             for (GameRule gamerule : GameRule.VALUES) {
                 // Add the relevant form item based on the gamerule type
                 if (Boolean.class.equals(gamerule.getType())) {
-                    builder.toggle("gamerule." + gamerule.getJavaID(), worldManager.getGameRuleBool(session, gamerule));
+                    builder.toggle(gamerule.getTranslation(), worldManager.getGameRuleBool(session, gamerule));
                 } else if (Integer.class.equals(gamerule.getType())) {
-                    builder.input("gamerule." + gamerule.getJavaID(), "", String.valueOf(worldManager.getGameRuleInt(session, gamerule)));
+                    builder.input(gamerule.getTranslation(), "", String.valueOf(worldManager.getGameRuleInt(session, gamerule)));
                 }
             }
         }

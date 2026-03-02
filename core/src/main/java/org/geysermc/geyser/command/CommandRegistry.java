@@ -27,6 +27,13 @@ package org.geysermc.geyser.command;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandData;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandOverloadData;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParam;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandParamData;
+import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.event.EventRegistrar;
@@ -38,12 +45,14 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.defaults.AdvancedTooltipsCommand;
 import org.geysermc.geyser.command.defaults.AdvancementsCommand;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
+import org.geysermc.geyser.command.defaults.CustomOptionsCommand;
 import org.geysermc.geyser.command.defaults.DumpCommand;
 import org.geysermc.geyser.command.defaults.ExtensionsCommand;
 import org.geysermc.geyser.command.defaults.HelpCommand;
 import org.geysermc.geyser.command.defaults.ListCommand;
 import org.geysermc.geyser.command.defaults.OffhandCommand;
 import org.geysermc.geyser.command.defaults.PingCommand;
+import org.geysermc.geyser.command.defaults.QuickActionsCommand;
 import org.geysermc.geyser.command.defaults.ReloadCommand;
 import org.geysermc.geyser.command.defaults.SettingsCommand;
 import org.geysermc.geyser.command.defaults.StatisticsCommand;
@@ -51,14 +60,29 @@ import org.geysermc.geyser.command.defaults.StopCommand;
 import org.geysermc.geyser.command.defaults.VersionCommand;
 import org.geysermc.geyser.event.type.GeyserDefineCommandsEventImpl;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.incendo.cloud.Command.Builder;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
+import org.incendo.cloud.internal.CommandNode;
+import org.incendo.cloud.parser.standard.EnumParser;
+import org.incendo.cloud.parser.standard.IntegerParser;
+import org.incendo.cloud.parser.standard.LiteralParser;
+import org.incendo.cloud.parser.standard.StringArrayParser;
+import org.incendo.cloud.suggestion.Suggestion;
+import org.incendo.cloud.suggestion.Suggestions;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import static org.geysermc.geyser.command.GeyserCommand.DEFAULT_ROOT_COMMAND;
 
@@ -74,6 +98,9 @@ import static org.geysermc.geyser.command.GeyserCommand.DEFAULT_ROOT_COMMAND;
 public class CommandRegistry implements EventRegistrar {
 
     private static final String GEYSER_ROOT_PERMISSION = "geyser.command";
+
+    public final static boolean STANDALONE_COMMAND_MANAGER = GeyserImpl.getInstance().platformType() == PlatformType.STANDALONE ||
+        GeyserImpl.getInstance().platformType() == PlatformType.VIAPROXY;
 
     protected final GeyserImpl geyser;
     private final CommandManager<GeyserCommandSource> cloud;
@@ -141,7 +168,10 @@ public class CommandRegistry implements EventRegistrar {
         registerBuiltInCommand(new AdvancedTooltipsCommand("tooltips", "geyser.commands.advancedtooltips.desc", "geyser.command.tooltips"));
         registerBuiltInCommand(new ConnectionTestCommand(geyser, "connectiontest", "geyser.commands.connectiontest.desc", "geyser.command.connectiontest"));
         registerBuiltInCommand(new PingCommand("ping", "geyser.commands.ping.desc", "geyser.command.ping"));
-        if (this.geyser.getPlatformType() == PlatformType.STANDALONE) {
+        registerBuiltInCommand(new CustomOptionsCommand("options", "geyser.commands.options.desc", "geyser.command.options"));
+        registerBuiltInCommand(new QuickActionsCommand("quickactions", "geyser.commands.quickactions.desc", "geyser.command.quickactions"));
+
+        if (this.geyser.platformType() == PlatformType.STANDALONE) {
             registerBuiltInCommand(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
         }
 
@@ -252,12 +282,15 @@ public class CommandRegistry implements EventRegistrar {
 
         cloud.command(builder.handler(context -> {
             GeyserCommandSource source = context.sender();
-            if (!source.hasPermission(help.permission())) {
-                // delegate if possible - otherwise we have nothing else to offer the user.
+            if (source.hasPermission(help.permission())) {
+                // Delegate to help if possible
+                help.execute(source);
+            } else if (STANDALONE_COMMAND_MANAGER && source instanceof GeyserSession session) {
+                // If we are on an appropriate platform, forward the command to the backend
+                session.sendCommandPacket(context.rawInput().input());
+            } else {
                 source.sendLocaleString(ExceptionHandlers.PERMISSION_FAIL_LANG_KEY);
-                return;
             }
-            help.execute(source);
         }));
     }
 
@@ -298,5 +331,91 @@ public class CommandRegistry implements EventRegistrar {
      */
     public void runCommand(@NonNull GeyserCommandSource source, @NonNull String command) {
         cloud.commandExecutor().executeCommand(source, command);
+    }
+
+    public Suggestions<GeyserCommandSource, ? extends Suggestion> suggestionsFor(GeyserCommandSource source, String input) {
+        return cloud.suggestionFactory().suggestImmediately(source, input);
+    }
+
+    public void export(GeyserSession session, List<CommandData> bedrockCommands, Set<String> knownAliases) {
+        cloud.commandTree().rootNodes().forEach(commandTree -> {
+            var command = commandTree.command();
+            // Command null happens if you register an extension command with custom Cloud parameters...
+            if (command == null || session.hasPermission(command.commandPermission().permissionString())) {
+                var rootComponent = commandTree.component();
+                String name = rootComponent.name();
+                if (!knownAliases.add(name)) {
+                    // If the server already defined the command, let's not crash.
+                    return;
+                }
+
+                LinkedHashMap<String, Set<CommandEnumConstraint>> values = new LinkedHashMap<>();
+                for (String s : rootComponent.aliases()) {
+                    values.put(s, EnumSet.of(CommandEnumConstraint.ALLOW_ALIASES));
+                }
+                CommandEnumData aliases = new CommandEnumData(name + "Aliases", values, false);
+
+                List<CommandOverloadData> data = new ArrayList<>();
+                for (var node : commandTree.children()) {
+                    List<List<CommandParamData>> params = createParamData(session, node);
+                    params.forEach(param -> data.add(new CommandOverloadData(false, param.toArray(CommandParamData[]::new))));
+                }
+
+                CommandData bedrockCommand = new CommandData(name, rootComponent.description().textDescription(),
+                    Set.of(CommandData.Flag.NOT_CHEAT), CommandPermission.ANY, aliases,
+                    Collections.emptyList(), data.toArray(new CommandOverloadData[0]));
+                bedrockCommands.add(bedrockCommand);
+            }
+        });
+    }
+
+    private List<List<CommandParamData>> createParamData(GeyserSession session, CommandNode<GeyserCommandSource> node) {
+        var command = node.command();
+        if (command != null && !session.hasPermission(command.commandPermission().permissionString())) {
+            // Triggers with subcommands like Geyser dump, stop, etc.
+            return Collections.emptyList();
+        }
+
+        CommandParamData data = new CommandParamData();
+        var component = node.component();
+        data.setName(component.name());
+        data.setOptional(component.optional());
+        var suggestionProvider = component.suggestionProvider();
+        if (suggestionProvider instanceof LiteralParser<GeyserCommandSource> parser) {
+            Map<String, Set<CommandEnumConstraint>> values = new LinkedHashMap<>();
+            for (String alias : parser.aliases()) {
+                values.put(alias, Set.of());
+            }
+
+            data.setEnumData(new CommandEnumData(component.name(), values, false));
+        } else if (suggestionProvider instanceof IntegerParser<GeyserCommandSource>) {
+            data.setType(CommandParam.INT);
+        } else if (suggestionProvider instanceof EnumParser<?,?> parser) {
+            LinkedHashMap<String, Set<CommandEnumConstraint>> map = new LinkedHashMap<>();
+            for (Enum<?> e : parser.acceptedValues()) {
+                map.put(e.name().toLowerCase(Locale.ROOT), Set.of());
+            }
+
+            data.setEnumData(new CommandEnumData(component.name().toLowerCase(Locale.ROOT), map, false));
+        } else if (component.parser() instanceof StringArrayParser<?>) {
+            data.setType(CommandParam.TEXT);
+        } else {
+            data.setType(CommandParam.STRING);
+        }
+
+        var children = node.children();
+        if (children.isEmpty()) {
+            List<CommandParamData> list = new ArrayList<>(); // Must be mutable; parents will be added to list.
+            list.add(data);
+            return Collections.singletonList(list); // Safe to do; will be consumed in an addAll call.
+        }
+        List<List<CommandParamData>> collectiveData = new ArrayList<>();
+        // If a node has multiple children, this will need to be represented
+        // by creating a new list/branch for each and cloning this node down each line.
+        for (var child : children) {
+            collectiveData.addAll(createParamData(session, child));
+        }
+        collectiveData.forEach(list -> list.add(0, data));
+        return collectiveData;
     }
 }

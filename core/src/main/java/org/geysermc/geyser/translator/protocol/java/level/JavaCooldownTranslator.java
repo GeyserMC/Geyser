@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import net.kyori.adventure.key.Key;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundCooldownPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerStartItemCooldownPacket;
 import org.geysermc.geyser.item.Items;
@@ -39,23 +40,26 @@ public class JavaCooldownTranslator extends PacketTranslator<ClientboundCooldown
 
     @Override
     public void translate(GeyserSession session, ClientboundCooldownPacket packet) {
-        Item item = Registries.JAVA_ITEMS.get().get(packet.getItemId());
-        // Not every item, as of 1.19, appears to be server-driven. Just these two.
+        // If the cooldown group is a modded item, an item that Bedrock doesn't support custom cooldowns for, or a custom cooldown group,
+        // then the cooldown won't be translated correctly. The cooldown won't show up on Bedrock, but they are still unable to use the item.
+        Key cooldownGroup = packet.getCooldownGroup();
+        Item item = Registries.JAVA_ITEM_IDENTIFIERS.get(cooldownGroup.asString());
+
+        // Custom items can define an item cooldown using a custom cooldown group, which will be sent to the client if there's not a vanilla cooldown group
+        String cooldownCategory = cooldownGroup.asString();
+        // Not every vanilla item, as of 1.19, appears to be server-driven. Just these two.
         // Use a map here if it gets too big.
-        String cooldownCategory;
         if (item == Items.GOAT_HORN) {
             cooldownCategory = "goat_horn";
         } else if (item == Items.SHIELD) {
             cooldownCategory = "shield";
-        } else {
-            cooldownCategory = null;
         }
 
-        if (cooldownCategory != null) {
-            PlayerStartItemCooldownPacket bedrockPacket = new PlayerStartItemCooldownPacket();
-            bedrockPacket.setItemCategory(cooldownCategory);
-            bedrockPacket.setCooldownDuration(packet.getCooldownTicks());
-            session.sendUpstreamPacket(bedrockPacket);
-        }
+        PlayerStartItemCooldownPacket bedrockPacket = new PlayerStartItemCooldownPacket();
+        bedrockPacket.setItemCategory(cooldownCategory);
+        bedrockPacket.setCooldownDuration(Math.round(packet.getCooldownTicks() * (session.getMillisecondsPerTick() / 50)));
+        session.sendUpstreamPacket(bedrockPacket);
+
+        session.getWorldCache().setCooldown(cooldownGroup, packet.getCooldownTicks());
     }
 }

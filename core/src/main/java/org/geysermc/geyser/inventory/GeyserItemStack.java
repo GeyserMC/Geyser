@@ -25,56 +25,93 @@
 
 package org.geysermc.geyser.inventory;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.BundleCache;
+import org.geysermc.geyser.session.cache.ComponentCache;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
 import java.util.HashMap;
+import java.util.function.Supplier;
 
 @Data
 public class GeyserItemStack {
-    public static final GeyserItemStack EMPTY = new GeyserItemStack(Items.AIR_ID, 0, null);
+    public static final GeyserItemStack EMPTY = new GeyserItemStack(null, Items.AIR_ID, 0, null); // session can be null because air is a vanilla item
 
+    @Nullable
+    private final ComponentCache componentCache;
     private final int javaId;
     private int amount;
     private DataComponents components;
     private int netId;
 
+    @EqualsAndHashCode.Exclude
+    private BundleCache.BundleData bundleData;
+
     @Getter(AccessLevel.NONE) @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     private Item item;
 
-    private GeyserItemStack(int javaId, int amount, DataComponents components) {
-        this(javaId, amount, components, 1);
+    private GeyserItemStack(@Nullable GeyserSession session, int javaId, int amount, DataComponents components) {
+        this(session == null ? null : session.getComponentCache(), javaId, amount, components, 1, null);
     }
 
-    private GeyserItemStack(int javaId, int amount, DataComponents components, int netId) {
+    private GeyserItemStack(@Nullable ComponentCache componentCache, int javaId, int amount, DataComponents components, int netId, BundleCache.BundleData bundleData) {
+        this.componentCache = componentCache;
         this.javaId = javaId;
         this.amount = amount;
         this.components = components;
         this.netId = netId;
+        this.bundleData = bundleData;
     }
 
-    public static @NonNull GeyserItemStack of(int javaId, int amount) {
-        return of(javaId, amount, null);
+    public static @NonNull GeyserItemStack of(@Nullable GeyserSession session, int javaId, int amount) {
+        return of(session, javaId, amount, null);
     }
 
-    public static @NonNull GeyserItemStack of(int javaId, int amount, @Nullable DataComponents components) {
-        return new GeyserItemStack(javaId, amount, components);
+    public static @NonNull GeyserItemStack of(@Nullable GeyserSession session, int javaId, int amount, @Nullable DataComponents components) {
+        return new GeyserItemStack(session, javaId, amount, components);
     }
 
-    public static @NonNull GeyserItemStack from(@Nullable ItemStack itemStack) {
-        return itemStack == null ? EMPTY : new GeyserItemStack(itemStack.getId(), itemStack.getAmount(), itemStack.getDataComponents());
+    public static @NonNull GeyserItemStack from(@Nullable GeyserSession session, @Nullable ItemStack itemStack) {
+        return itemStack == null ? EMPTY : new GeyserItemStack(session, itemStack.getId(), itemStack.getAmount(), itemStack.getDataComponentsPatch());
+    }
+
+    public static @NonNull GeyserItemStack from(@Nullable GeyserSession session, @NonNull SlotDisplay slotDisplay) {
+        if (slotDisplay instanceof EmptySlotDisplay) {
+            return GeyserItemStack.EMPTY;
+        }
+        if (slotDisplay instanceof ItemSlotDisplay itemSlotDisplay) {
+            return GeyserItemStack.of(session, itemSlotDisplay.item(), 1);
+        }
+        if (slotDisplay instanceof ItemStackSlotDisplay itemStackSlotDisplay) {
+            return GeyserItemStack.from(session, itemStackSlotDisplay.itemStack());
+        }
+        GeyserImpl.getInstance().getLogger().warning("Unsure how to convert to ItemStack: " + slotDisplay);
+        return GeyserItemStack.EMPTY;
     }
 
     public int getJavaId() {
@@ -86,11 +123,48 @@ public class GeyserItemStack {
     }
 
     public int maxStackSize() {
-        return getComponent(DataComponentType.MAX_STACK_SIZE, asItem().maxStackSize());
+        return getComponentElseGet(DataComponentTypes.MAX_STACK_SIZE, asItem()::defaultMaxStackSize);
     }
 
+    public boolean is(Item item) {
+        return javaId == item.javaId();
+    }
+
+    public boolean is(GeyserSession session, Tag<Item> tag) {
+        return session.getTagCache().is(tag, javaId);
+    }
+
+    public boolean is(GeyserSession session, HolderSet set) {
+        return session.getTagCache().is(set, JavaRegistries.ITEM, javaId);
+    }
+
+    public boolean isSameItem(GeyserItemStack other) {
+        return javaId == other.javaId;
+    }
+
+    /**
+     * Returns all components of this item - base and additional components sent over the network.
+     * These are NOT modifiable! To add components, use {@link #getOrCreateComponents()}.
+     *
+     * @return the item's base data components and the "additional" ones that may exist.
+     */
+    public @Nullable DataComponents getAllComponents() {
+        return isEmpty() ? null : asItem().gatherComponents(componentCache, components);
+    }
+
+    /**
+     * @return the {@link DataComponents} patch that's sent over the network.
+     */
     public @Nullable DataComponents getComponents() {
         return isEmpty() ? null : components;
+    }
+
+    /**
+     * @return whether this GeyserItemStack has any component modifications additional to
+     * the base item components.
+     */
+    public boolean hasNonBaseComponents() {
+        return components != null;
     }
 
     @NonNull
@@ -101,40 +175,51 @@ public class GeyserItemStack {
         return components;
     }
 
+    /**
+     * Returns the stored data component for a given {@link DataComponentType}, or null.
+     * <p>
+     * This method will first check the additional components that may exist,
+     * and fallback to the item's default (or, "base") components if need be.
+     * @param type the {@link DataComponentType} to query
+     * @return the value for said type, or null.
+     * @param <T> the value's type
+     */
     @Nullable
     public <T> T getComponent(@NonNull DataComponentType<T> type) {
-        if (components == null) {
-            return null;
+        // A data component patch may contain null values to remove base components
+        // e.g. an elytra without the glider component
+        if (components != null && components.contains(type)) {
+            return components.get(type);
         }
-        return components.get(type);
+
+        return asItem().getComponent(componentCache, type);
     }
 
-    public <T extends Boolean> boolean getComponent(@NonNull DataComponentType<T> type, boolean def) {
-        if (components == null) {
-            return def;
-        }
-
-        Boolean result = components.get(type);
-        if (result != null) {
-            return result;
-        }
-        return def;
-    }
-
-    public <T extends Integer> int getComponent(@NonNull DataComponentType<T> type, int def) {
-        if (components == null) {
-            return def;
-        }
-
-        Integer result = components.get(type);
-        if (result != null) {
-            return result;
-        }
-        return def;
+    public <T> T getComponentElseGet(@NonNull DataComponentType<T> type, Supplier<T> supplier) {
+        T value = getComponent(type);
+        return value == null ? supplier.get() : value;
     }
 
     public int getNetId() {
         return isEmpty() ? 0 : netId;
+    }
+
+    public int getBundleId() {
+        if (isEmpty()) {
+            return -1;
+        }
+
+        return bundleData == null ? -1 : bundleData.bundleId();
+    }
+
+    public void mergeBundleData(GeyserSession session, BundleCache.BundleData oldBundleData) {
+        if (oldBundleData != null && this.bundleData != null) {
+            // Old bundle; re-use old IDs
+            this.bundleData.updateNetIds(session, oldBundleData);
+        } else if (this.bundleData != null) {
+            // New bundle; allocate new ID
+            session.getBundleCache().markNewBundle(this.bundleData);
+        }
     }
 
     public int capacity() {
@@ -158,6 +243,21 @@ public class GeyserItemStack {
     }
 
     public @Nullable ItemStack getItemStack(int newAmount) {
+        if (isEmpty()) {
+            return null;
+        }
+        // Sync our updated bundle data to server, if applicable
+        // Not fresh from server? Then we have changes to apply!~
+        if (bundleData != null && !bundleData.freshFromServer()) {
+            if (!bundleData.contents().isEmpty()) {
+                getOrCreateComponents().put(DataComponentTypes.BUNDLE_CONTENTS, bundleData.toComponent());
+            } else {
+                if (components != null) {
+                    // Empty list = no component = should delete
+                    components.getDataComponents().remove(DataComponentTypes.BUNDLE_CONTENTS);
+                }
+            }
+        }
         return isEmpty() ? null : new ItemStack(javaId, newAmount, components);
     }
 
@@ -168,14 +268,55 @@ public class GeyserItemStack {
         ItemData.Builder itemData = ItemTranslator.translateToBedrock(session, javaId, amount, components);
         itemData.netId(getNetId());
         itemData.usingNetId(true);
-        return itemData.build();
+
+        return session.getBundleCache().checkForBundle(this, itemData);
     }
 
     public ItemMapping getMapping(GeyserSession session) {
         return session.getItemMappings().getMapping(this.javaId);
     }
 
+    public SlotDisplay asIngredient() {
+        ItemStack itemStack = getItemStack(1);
+        if (itemStack == null) {
+            return EmptySlotDisplay.INSTANCE;
+        }
+        if (itemStack.getDataComponentsPatch() == null) {
+            return new ItemSlotDisplay(itemStack.getId());
+        }
+        return new ItemStackSlotDisplay(itemStack);
+    }
+
+    public int getMaxStackSize() {
+        return getComponentElseGet(DataComponentTypes.MAX_STACK_SIZE, () -> 1);
+    }
+
+    public int getMaxDamage() {
+        return getComponentElseGet(DataComponentTypes.MAX_DAMAGE, () -> 0);
+    }
+
+    public int getDamage() {
+        // Damage can't be negative
+        int damage = Math.max(this.getComponentElseGet(DataComponentTypes.DAMAGE, () -> 0), 0);
+        return Math.min(damage, this.getMaxDamage());
+    }
+
+    public boolean nextDamageWillBreak() {
+        return this.isDamageable() && this.getDamage() >= this.getMaxDamage() - 1;
+    }
+
+    public boolean isDamageable() {
+        return getComponent(DataComponentTypes.MAX_DAMAGE) != null && getComponent(DataComponentTypes.UNBREAKABLE) == null && getComponent(DataComponentTypes.DAMAGE) != null;
+    }
+
+    public boolean isDamaged() {
+        return isDamageable() && getDamage() > 0;
+    }
+
     public Item asItem() {
+        if (isEmpty()) {
+            return Items.AIR;
+        }
         if (item == null) {
             return (item = Registries.JAVA_ITEMS.get().get(javaId));
         }
@@ -191,6 +332,6 @@ public class GeyserItemStack {
     }
 
     public GeyserItemStack copy(int newAmount) {
-        return isEmpty() ? EMPTY : new GeyserItemStack(javaId, newAmount, components == null ? null : components.clone(), netId);
+        return isEmpty() ? EMPTY : new GeyserItemStack(componentCache, javaId, newAmount, components == null ? null : components.clone(), netId, bundleData == null ? null : bundleData.copy());
     }
 }

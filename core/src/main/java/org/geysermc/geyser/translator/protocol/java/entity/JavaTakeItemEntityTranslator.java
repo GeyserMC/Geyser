@@ -61,8 +61,8 @@ public class JavaTakeItemEntityTranslator extends PacketTranslator<ClientboundTa
         } else {
             // Item is being picked up (visual only)
             TakeItemEntityPacket takeItemEntityPacket = new TakeItemEntityPacket();
-            takeItemEntityPacket.setRuntimeEntityId(collectorEntity.getGeyserId());
-            takeItemEntityPacket.setItemRuntimeEntityId(collectedEntity.getGeyserId());
+            takeItemEntityPacket.setRuntimeEntityId(collectorEntity.geyserId());
+            takeItemEntityPacket.setItemRuntimeEntityId(collectedEntity.geyserId());
             session.sendUpstreamPacket(takeItemEntityPacket);
         }
     }

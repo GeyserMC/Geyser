@@ -36,6 +36,6 @@ public class JavaDisguisedChatTranslator extends PacketTranslator<ClientboundDis
 
     @Override
     public void translate(GeyserSession session, ClientboundDisguisedChatPacket packet) {
-        MessageTranslator.handleChatPacket(session, packet.getMessage(), packet.getChatType(), packet.getTargetName(), packet.getName());
+        MessageTranslator.handleChatPacket(session, packet.getMessage(), packet.getChatType(), packet.getTargetName(), packet.getName(), null);
     }
 }

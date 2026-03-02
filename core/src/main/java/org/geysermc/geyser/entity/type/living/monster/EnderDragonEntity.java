@@ -35,17 +35,15 @@ import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.living.MobEntity;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
 import java.util.Optional;
 import java.util.Random;
-import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -84,8 +82,8 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
     private float wingPosition;
     private float lastWingPosition;
 
-    public EnderDragonEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public EnderDragonEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override
@@ -162,11 +160,17 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
 
     @Override
     public void tick() {
+        super.tick();
         effectTick();
         if (!getFlag(EntityFlag.NO_AI) && isAlive()) {
             pushSegment();
             updateBoundingBoxes();
         }
+    }
+
+    @Override
+    public boolean shouldLerp() {
+        return false;
     }
 
     /**
@@ -208,7 +212,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
         }
         // Send updated positions
         for (EnderDragonPartEntity part : allParts) {
-             part.moveAbsolute(part.getPosition().add(position), 0, 0, 0, false, false);
+             part.moveAbsoluteRaw(part.getPosition().add(position), 0, 0, 0, false, false);
         }
     }
 

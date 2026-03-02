@@ -25,19 +25,15 @@
 
 package org.geysermc.geyser.level;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.packet.backendbound.BackendboundBatchBlockRequestPacket;
 import org.geysermc.erosion.packet.backendbound.BackendboundBlockRequestPacket;
-import org.geysermc.erosion.packet.backendbound.BackendboundPickBlockPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
+import org.geysermc.geyser.erosion.ErosionCancellationException;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -49,6 +45,8 @@ public class GeyserWorldManager extends WorldManager {
         var erosionHandler = session.getErosionHandler().getAsActive();
         if (erosionHandler == null) {
             return session.getChunkCache().getBlockAt(x, y, z);
+        } else if (session.isClosed()) {
+            throw new ErosionCancellationException();
         }
         CompletableFuture<Integer> future = new CompletableFuture<>(); // Boxes
         erosionHandler.setPendingLookup(future);
@@ -61,6 +59,8 @@ public class GeyserWorldManager extends WorldManager {
         var erosionHandler = session.getErosionHandler().getAsActive();
         if (erosionHandler == null) {
             return super.getBlockAtAsync(session, x, y, z);
+        } else if (session.isClosed()) {
+            return CompletableFuture.failedFuture(new ErosionCancellationException());
         }
         CompletableFuture<Integer> future = new CompletableFuture<>(); // Boxes
         int transactionId = erosionHandler.getNextTransactionId();
@@ -74,6 +74,8 @@ public class GeyserWorldManager extends WorldManager {
         var erosionHandler = session.getErosionHandler().getAsActive();
         if (erosionHandler == null) {
             return super.getBlocksAt(session, iter);
+        } else if (session.isClosed()) {
+            throw new ErosionCancellationException();
         }
         CompletableFuture<int[]> future = new CompletableFuture<>();
         erosionHandler.setPendingBatchLookup(future);
@@ -116,18 +118,5 @@ public class GeyserWorldManager extends WorldManager {
     @Override
     public GameMode getDefaultGameMode(GeyserSession session) {
         return GameMode.SURVIVAL;
-    }
-
-    @NonNull
-    @Override
-    public CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addNbtData) {
-        var erosionHandler = session.getErosionHandler().getAsActive();
-        if (erosionHandler == null) {
-            return super.getPickItemComponents(session, x, y, z, addNbtData);
-        }
-        CompletableFuture<Int2ObjectMap<byte[]>> future = new CompletableFuture<>();
-        erosionHandler.setPickBlockLookup(future);
-        erosionHandler.sendPacket(new BackendboundPickBlockPacket(Vector3i.from(x, y, z)));
-        return future.thenApply(RAW_TRANSFORMER);
     }
 }

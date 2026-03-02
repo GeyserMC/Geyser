@@ -25,185 +25,100 @@
 
 package org.geysermc.geyser.scoreboard;
 
-import lombok.Getter;
-import lombok.Setter;
-import net.kyori.adventure.text.Component;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
-
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import org.geysermc.geyser.scoreboard.display.slot.DisplaySlot;
+import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreType;
 
 @Getter
 public final class Objective {
     private final Scoreboard scoreboard;
-    private final long id;
-    private boolean active = true;
+    private final List<DisplaySlot> activeSlots = new ArrayList<>();
 
-    @Setter
-    private UpdateType updateType = UpdateType.ADD;
+    private final String objectiveName;
+    private final Map<String, ScoreReference> scores = new ConcurrentHashMap<>();
 
-    private String objectiveName;
-    private ScoreboardPosition displaySlot;
-    private String displaySlotName;
-    private String displayName = "unknown";
+    private String displayName;
     private NumberFormat numberFormat;
-    private int type = 0; // 0 = integer, 1 = heart
+    private ScoreType type;
 
-    private Map<String, Score> scores = new ConcurrentHashMap<>();
-
-    private Objective(Scoreboard scoreboard) {
-        this.id = scoreboard.getNextId().getAndIncrement();
-        this.scoreboard = scoreboard;
-    }
-
-    /**
-     * /!\ This method is made for temporary objectives until the real objective is received
-     *
-     * @param scoreboard    the scoreboard
-     * @param objectiveName the name of the objective
-     */
     public Objective(Scoreboard scoreboard, String objectiveName) {
-        this(scoreboard);
+        this.scoreboard = scoreboard;
         this.objectiveName = objectiveName;
-        this.active = false;
-    }
-
-    public Objective(Scoreboard scoreboard, String objectiveName, ScoreboardPosition displaySlot, String displayName, int type) {
-        this(scoreboard);
-        this.objectiveName = objectiveName;
-        this.displaySlot = displaySlot;
-        this.displaySlotName = translateDisplaySlot(displaySlot);
-        this.displayName = displayName;
-        this.type = type;
-    }
-
-    private static String translateDisplaySlot(ScoreboardPosition displaySlot) {
-        return switch (displaySlot) {
-            case BELOW_NAME -> "belowname";
-            case PLAYER_LIST -> "list";
-            default -> "sidebar";
-        };
     }
 
     public void registerScore(String id, int score, Component displayName, NumberFormat numberFormat) {
-        if (!scores.containsKey(id)) {
-            long scoreId = scoreboard.getNextId().getAndIncrement();
-            Score scoreObject = new Score(scoreId, id)
-                    .setScore(score)
-                    .setTeam(scoreboard.getTeamFor(id))
-                    .setDisplayName(displayName)
-                    .setNumberFormat(numberFormat)
-                    .setUpdateType(UpdateType.ADD);
-            scores.put(id, scoreObject);
+        if (scores.containsKey(id)) {
+            return;
+        }
+        var reference = new ScoreReference(scoreboard, id, score, displayName, numberFormat);
+        scores.put(id, reference);
+
+        for (var slot : activeSlots) {
+            slot.addScore(reference);
         }
     }
 
     public void setScore(String id, int score, Component displayName, NumberFormat numberFormat) {
-        Score stored = scores.get(id);
+        ScoreReference stored = scores.get(id);
         if (stored != null) {
-            stored.setScore(score)
-                    .setDisplayName(displayName)
-                    .setNumberFormat(numberFormat)
-                    .setUpdateType(UpdateType.UPDATE);
+            stored.updateProperties(scoreboard, score, displayName, numberFormat);
             return;
         }
         registerScore(id, score, displayName, numberFormat);
     }
 
     public void removeScore(String id) {
-        Score stored = scores.get(id);
+        ScoreReference stored = scores.remove(id);
         if (stored != null) {
-            stored.setUpdateType(UpdateType.REMOVE);
+            stored.markDeleted();
         }
     }
 
-    /**
-     * Used internally to remove a score from the score map
-     */
-    public void removeScore0(String id) {
-        scores.remove(id);
-    }
+    public void updateProperties(Component displayNameComponent, ScoreType type, NumberFormat format) {
+        String displayName = MessageTranslator.convertMessageRaw(displayNameComponent, scoreboard.session().locale());
+        boolean changed = !Objects.equals(this.displayName, displayName) || this.type != type;
 
-    public Objective setDisplayName(String displayName) {
         this.displayName = displayName;
-        if (updateType == UpdateType.NOTHING) {
-            updateType = UpdateType.UPDATE;
-        }
-        return this;
-    }
+        this.type = type;
 
-    public Objective setNumberFormat(NumberFormat numberFormat) {
-        if (Objects.equals(this.numberFormat, numberFormat)) {
-            return this;
-        }
-
-        this.numberFormat = numberFormat;
-        if (updateType == UpdateType.NOTHING) {
-            updateType = UpdateType.UPDATE;
-        }
-
-        // Update the number format for scores that are following this objective's number format
-        for (Score score : scores.values()) {
-            if (score.getNumberFormat() == null) {
-                score.setUpdateType(UpdateType.UPDATE);
+        if (!Objects.equals(this.numberFormat, format)) {
+            this.numberFormat = format;
+            // update the number format for scores that are following this objective's number format,
+            // but only if the objective itself doesn't need to be updated.
+            // When the objective itself has to update all scores are updated anyway
+            if (!changed) {
+                for (ScoreReference score : scores.values()) {
+                    if (score.numberFormat() == null) {
+                        score.markChanged();
+                    }
+                }
             }
         }
 
-        return this;
-    }
-
-    public Objective setType(int type) {
-        this.type = type;
-        if (updateType == UpdateType.NOTHING) {
-            updateType = UpdateType.UPDATE;
-        }
-        return this;
-    }
-
-    public void setActive(ScoreboardPosition displaySlot) {
-        if (!active) {
-            active = true;
-            this.displaySlot = displaySlot;
-            displaySlotName = translateDisplaySlot(displaySlot);
+        if (changed) {
+            for (DisplaySlot slot : activeSlots) {
+                slot.markNeedsUpdate();
+            }
         }
     }
 
-    /**
-     * The objective will be removed on the next update
-     */
-    public void pendingRemove() {
-        updateType = UpdateType.REMOVE;
+    public boolean hasDisplaySlot() {
+        return !activeSlots.isEmpty();
     }
 
-    public @Nullable TeamColor getTeamColor() {
-        return switch (displaySlot) {
-            case SIDEBAR_TEAM_RED -> TeamColor.RED;
-            case SIDEBAR_TEAM_AQUA -> TeamColor.AQUA;
-            case SIDEBAR_TEAM_BLUE -> TeamColor.BLUE;
-            case SIDEBAR_TEAM_GOLD -> TeamColor.GOLD;
-            case SIDEBAR_TEAM_GRAY -> TeamColor.GRAY;
-            case SIDEBAR_TEAM_BLACK -> TeamColor.BLACK;
-            case SIDEBAR_TEAM_GREEN -> TeamColor.GREEN;
-            case SIDEBAR_TEAM_WHITE -> TeamColor.WHITE;
-            case SIDEBAR_TEAM_YELLOW -> TeamColor.YELLOW;
-            case SIDEBAR_TEAM_DARK_RED -> TeamColor.DARK_RED;
-            case SIDEBAR_TEAM_DARK_AQUA -> TeamColor.DARK_AQUA;
-            case SIDEBAR_TEAM_DARK_BLUE -> TeamColor.DARK_BLUE;
-            case SIDEBAR_TEAM_DARK_GRAY -> TeamColor.DARK_GRAY;
-            case SIDEBAR_TEAM_DARK_GREEN -> TeamColor.DARK_GREEN;
-            case SIDEBAR_TEAM_DARK_PURPLE -> TeamColor.DARK_PURPLE;
-            case SIDEBAR_TEAM_LIGHT_PURPLE -> TeamColor.LIGHT_PURPLE;
-            default -> null;
-        };
+    public void addDisplaySlot(DisplaySlot slot) {
+        activeSlots.add(slot);
     }
 
-    public void removed() {
-        active = false;
-        updateType = UpdateType.REMOVE;
-        scores = null;
+    public void removeDisplaySlot(DisplaySlot slot) {
+        activeSlots.remove(slot);
     }
 }

@@ -37,7 +37,7 @@ import java.util.Map;
  * Fired when the Java server sends a transfer request to a different Java server.
  * Geyser Extensions can listen to this event and set a target server ip/port for Bedrock players to be transferred to.
  */
-public class ServerTransferEvent extends ConnectionEvent {
+public final class ServerTransferEvent extends ConnectionEvent {
 
     private final String host;
     private final int port;

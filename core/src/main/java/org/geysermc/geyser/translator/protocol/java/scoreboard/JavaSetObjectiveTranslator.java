@@ -25,72 +25,45 @@
 
 package org.geysermc.geyser.translator.protocol.java.scoreboard;
 
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ObjectiveAction;
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetObjectivePacket;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.scoreboard.Objective;
 import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
-import org.geysermc.geyser.scoreboard.UpdateType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ObjectiveAction;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetObjectivePacket;
 
 @Translator(packet = ClientboundSetObjectivePacket.class)
 public class JavaSetObjectiveTranslator extends PacketTranslator<ClientboundSetObjectivePacket> {
-    private final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
-
     @Override
     public void translate(GeyserSession session, ClientboundSetObjectivePacket packet) {
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
 
-        Objective objective = scoreboard.getObjective(packet.getName());
-        if (objective != null && objective.getUpdateType() != UpdateType.REMOVE && packet.getAction() == ObjectiveAction.ADD) {
-            // matches vanilla behaviour
-            logger.warning("An objective with the same name '" + packet.getName() + "' already exists! Ignoring packet");
+        Objective objective;
+        if (packet.getAction() == ObjectiveAction.ADD) {
+            objective = scoreboard.registerNewObjective(packet.getName());
+        } else {
+            objective = scoreboard.getObjective(packet.getName());
+        }
+
+        // matches vanilla
+        if (objective == null) {
             return;
         }
 
-        if ((objective == null || objective.getUpdateType() == UpdateType.REMOVE) && packet.getAction() != ObjectiveAction.REMOVE) {
-            objective = scoreboard.registerNewObjective(packet.getName());
-        }
-
         switch (packet.getAction()) {
-            case ADD, UPDATE -> {
-                objective.setDisplayName(MessageTranslator.convertMessage(packet.getDisplayName()))
-                        .setNumberFormat(packet.getNumberFormat())
-                        .setType(packet.getType().ordinal());
-                if (objective == scoreboard.getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME)) {
-                    // Update the score tag of all players
-                    for (PlayerEntity entity : session.getEntityCache().getAllPlayerEntities()) {
-                        if (entity.isValid()) {
-                            entity.setBelowNameText(objective);
-                        }
-                    }
-                }
-            }
-            case REMOVE -> {
-                scoreboard.unregisterObjective(packet.getName());
-                if (objective != null && objective == scoreboard.getObjectiveSlots().get(ScoreboardPosition.BELOW_NAME)) {
-                    // Clear the score tag from all players
-                    for (PlayerEntity entity : session.getEntityCache().getAllPlayerEntities()) {
-                        // Other places we check for the entity being valid,
-                        // but we must set the below name text as null for all players
-                        // or else PlayerEntity#spawnEntity will find a null objective and not touch EntityData#SCORE_TAG
-                        entity.setBelowNameText(null);
-                    }
-                }
-            }
+            case ADD, UPDATE ->
+                objective.updateProperties(packet.getDisplayName(), packet.getType(), packet.getNumberFormat());
+            case REMOVE -> scoreboard.removeObjective(objective);
         }
 
-        if (objective == null || !objective.isActive()) {
+        // Scoreboard#removeObjective doesn't touch the display slot(s) that were attached to it.
+        // So Objective#hasDisplaySlot will be true as long as it's currently present on the Bedrock client
+        if (!objective.hasDisplaySlot()) {
             return;
         }
 

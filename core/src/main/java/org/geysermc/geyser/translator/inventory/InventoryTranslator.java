@@ -25,21 +25,42 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSortedSet;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.*;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.AutoCraftRecipeAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ConsumeAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftResultsDeprecatedAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.DropAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.SwapAction;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.TransferItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseContainer;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseSlot;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseStatus;
 import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.*;
+import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.CartographyContainer;
+import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.PlayerInventory;
+import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.click.Click;
 import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
@@ -56,18 +77,25 @@ import org.geysermc.geyser.translator.inventory.furnace.SmokerInventoryTranslato
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.recipe.Ingredient;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import static org.geysermc.geyser.translator.inventory.BundleInventoryTranslator.isBundle;
 
 @RequiredArgsConstructor
-public abstract class InventoryTranslator {
+public abstract class InventoryTranslator<Type extends Inventory> {
 
-    public static final InventoryTranslator PLAYER_INVENTORY_TRANSLATOR = new PlayerInventoryTranslator();
-    private static final Map<ContainerType, InventoryTranslator> INVENTORY_TRANSLATORS = new EnumMap<>(ContainerType.class) {
+    public static final InventoryTranslator<PlayerInventory> PLAYER_INVENTORY_TRANSLATOR = new PlayerInventoryTranslator();
+    private static final Map<ContainerType, InventoryTranslator<? extends Inventory>> INVENTORY_TRANSLATORS = new EnumMap<>(ContainerType.class) {
         {
             /* Chest UIs */
             put(ContainerType.GENERIC_9X1, new SingleChestInventoryTranslator(9));
@@ -110,17 +138,84 @@ public abstract class InventoryTranslator {
     public final int size;
     protected boolean refreshPending;
 
-    public abstract boolean prepareInventory(GeyserSession session, Inventory inventory);
-    public abstract void openInventory(GeyserSession session, Inventory inventory);
-    public abstract void closeInventory(GeyserSession session, Inventory inventory);
-    public abstract void updateProperty(GeyserSession session, Inventory inventory, int key, int value);
-    public abstract void updateInventory(GeyserSession session, Inventory inventory);
-    public abstract void updateSlot(GeyserSession session, Inventory inventory, int slot);
+    // Whether the inventory open should be delayed.
+    public boolean requiresOpeningDelay(GeyserSession session, Type inventory) {
+        return false;
+    }
+
+    /**
+     * Whether a new inventory should be prepared - or if we can re-use the previous one.
+     */
+    public boolean canReuseInventory(GeyserSession session, @NonNull Inventory inventory, @NonNull Inventory previous) {
+        // Filter for mismatches that require a new inventory.
+        if (inventory.getContainerType() == null || previous.getContainerType() == null ||
+            !Objects.equals(inventory.getContainerType(), previous.getContainerType()) ||
+            !Objects.equals(inventory.getTitle(), previous.getTitle()) ||
+            inventory.getSize() != previous.getSize()
+        ) {
+            return false;
+        }
+
+        // Finally, ensure that the previous inventory has been initialized
+        return previous.getHolderId() != -1 || previous.getHolderPosition() != Vector3i.ZERO;
+    }
+
+    /**
+     * Prepares the inventory before opening it. Bedrock requires the inventory to "exist" before opening it - that can be
+     * either a real block (e.g. chest), or an entity (e.g. horse)
+     * @return whether the inventory was successfully prepared
+     */
+    public abstract boolean prepareInventory(GeyserSession session, Type inventory);
+
+    /**
+     * Opens the previously prepared inventory.
+     */
+    public abstract void openInventory(GeyserSession session, Type inventory);
+
+    /**
+     * Closes the inventory, and if necessary, cleans up the prepared inventory.
+     */
+    public abstract void closeInventory(GeyserSession session, Type inventory, boolean force);
+
+    /**
+     * Updates a property in the inventory.
+     */
+    public abstract void updateProperty(GeyserSession session, Type inventory, int key, int value);
+
+    /**
+     * Updates the inventory by re-sending items for all slots of the inventory.
+     */
+    public abstract void updateInventory(GeyserSession session, Type inventory);
+
+    /**
+     * Updates a specific slot by re-sending the item.
+     */
+    public abstract void updateSlot(GeyserSession session, Type inventory, int slot);
+
+    /**
+     * Converts the Bedrock slot to the corresponding Java slot.
+     */
     public abstract int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData);
+
+    /**
+     * Converts a Java slot to the corresponding Bedrock slot.
+     */
     public abstract int javaSlotToBedrock(int javaSlot);
-    public abstract BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot);
+
+    /**
+     * Converts a Java slot to the corresponding Bedrock container and slot
+     */
+    public abstract BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot, Type inventory);
+
+    /**
+     * Returns the slot type for a Java slot id
+     */
     public abstract SlotType getSlotType(int javaSlot);
-    public abstract Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory);
+
+    /**
+     * Creates a new inventory.
+     */
+    public abstract Type createInventory(GeyserSession session, String name, int windowId, ContainerType containerType);
 
     /**
      * Used for crafting-related transactions. Will override in PlayerInventoryTranslator and CraftingInventoryTranslator.
@@ -137,7 +232,7 @@ public abstract class InventoryTranslator {
      *
      * @return true if this transfer should be rejected
      */
-    protected boolean shouldRejectItemPlace(GeyserSession session, Inventory inventory, ContainerSlotType bedrockSourceContainer,
+    protected boolean shouldRejectItemPlace(GeyserSession session, Type inventory, ContainerSlotType bedrockSourceContainer,
                                          int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
         return false;
     }
@@ -146,18 +241,18 @@ public abstract class InventoryTranslator {
      * Should be overrided if this request matches a certain criteria and shouldn't be treated normally.
      * E.G. anvil renaming or enchanting
      */
-    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, Inventory inventory) {
+    protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, Type inventory) {
         return false;
     }
 
     /**
      * If {@link #shouldHandleRequestFirst(ItemStackRequestAction, Inventory)} returns true, this will be called
      */
-    protected ItemStackResponse translateSpecialRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    protected ItemStackResponse translateSpecialRequest(GeyserSession session, Type inventory, ItemStackRequest request) {
         return rejectRequest(request);
     }
 
-    public final void translateRequests(GeyserSession session, Inventory inventory, List<ItemStackRequest> requests) {
+    public final void translateRequests(GeyserSession session, Type inventory, List<ItemStackRequest> requests) {
         this.refreshPending = false;
         ItemStackResponsePacket responsePacket = new ItemStackResponsePacket();
         for (ItemStackRequest request : requests) {
@@ -199,7 +294,7 @@ public abstract class InventoryTranslator {
         inventory.resetNextStateId();
     }
 
-    public ItemStackResponse translateRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponse translateRequest(GeyserSession session, Type inventory, ItemStackRequest request) {
         ClickPlan plan = new ClickPlan(session, this, inventory);
         IntSet affectedSlots = new IntOpenHashSet();
         int pendingOutput = 0;
@@ -212,11 +307,18 @@ public abstract class InventoryTranslator {
                 case PLACE: {
                     TransferItemStackRequestAction transferAction = (TransferItemStackRequestAction) action;
                     if (!(checkNetId(session, inventory, transferAction.getSource()) && checkNetId(session, inventory, transferAction.getDestination()))) {
-                        if (session.getGeyser().getConfig().isDebugMode()) {
+                        if (session.getGeyser().config().debugMode()) {
                             session.getGeyser().getLogger().error("DEBUG: About to reject TAKE/PLACE request made by " + session.bedrockUsername());
                             dumpStackRequestDetails(session, inventory, transferAction.getSource(), transferAction.getDestination());
                         }
                         return rejectRequest(request);
+                    }
+
+                    // Might be a bundle action... let's check.
+                    ItemStackResponse bundleResponse = BundleInventoryTranslator.handleBundle(session, this, inventory, request, false);
+                    if (bundleResponse != null) {
+                        // We can simplify a lot of logic because we aren't expecting multi-slot interactions.
+                        return bundleResponse;
                     }
 
                     int sourceSlot = bedrockSlotToJava(transferAction.getSource());
@@ -224,23 +326,22 @@ public abstract class InventoryTranslator {
                     boolean isSourceCursor = isCursor(transferAction.getSource());
                     boolean isDestCursor = isCursor(transferAction.getDestination());
 
-                    if ((this) instanceof PlayerInventoryTranslator) {
+                    if (this instanceof PlayerInventoryTranslator) {
                         if (destSlot == 5) {
-                            //only set the head if the destination is the head slot
+                            // only set the head if the destination is the head slot
                             GeyserItemStack javaItem = inventory.getItem(sourceSlot);
-                            if (javaItem.asItem() == Items.PLAYER_HEAD
-                                    && javaItem.getComponents() != null) {
-                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponents());
+                            if (javaItem.is(Items.PLAYER_HEAD) && javaItem.hasNonBaseComponents()) {
+                                FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
                             }
                         } else if (sourceSlot == 5) {
-                            //we are probably removing the head, so restore the original skin
+                            // we are probably removing the head, so restore the original skin
                             FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
                         }
                     }
 
-                    if (shouldRejectItemPlace(session, inventory, transferAction.getSource().getContainer(),
+                    if (shouldRejectItemPlace(session, inventory, transferAction.getSource().getContainerName().getContainer(),
                             isSourceCursor ? -1 : sourceSlot,
-                            transferAction.getDestination().getContainer(), isDestCursor ? -1 : destSlot)) {
+                            transferAction.getDestination().getContainerName().getContainer(), isDestCursor ? -1 : destSlot)) {
                         // This item would not be here in Java
                         return rejectRequest(request, false);
                     }
@@ -371,12 +472,13 @@ public abstract class InventoryTranslator {
                     break;
                 }
                 case SWAP: {
+                    // TODO breaks with bundles
                     SwapAction swapAction = (SwapAction) action;
                     ItemStackRequestSlotData source = swapAction.getSource();
                     ItemStackRequestSlotData destination = swapAction.getDestination();
 
                     if (!(checkNetId(session, inventory, source) && checkNetId(session, inventory, destination))) {
-                        if (session.getGeyser().getConfig().isDebugMode()) {
+                        if (session.getGeyser().config().debugMode()) {
                             session.getGeyser().getLogger().error("DEBUG: About to reject SWAP request made by " + session.bedrockUsername());
                             dumpStackRequestDetails(session, inventory, source, destination);
                         }
@@ -388,14 +490,14 @@ public abstract class InventoryTranslator {
                     boolean isSourceCursor = isCursor(source);
                     boolean isDestCursor = isCursor(destination);
 
-                    if (shouldRejectItemPlace(session, inventory, source.getContainer(),
+                    if (shouldRejectItemPlace(session, inventory, source.getContainerName().getContainer(),
                             isSourceCursor ? -1 : sourceSlot,
-                            destination.getContainer(), isDestCursor ? -1 : destSlot)) {
+                            destination.getContainerName().getContainer(), isDestCursor ? -1 : destSlot)) {
                         // This item would not be here in Java
                         return rejectRequest(request, false);
                     }
 
-                    if (!isSourceCursor && destination.getContainer() == ContainerSlotType.HOTBAR || destination.getContainer() == ContainerSlotType.HOTBAR_AND_INVENTORY) {
+                    if (!isSourceCursor && destination.getContainerName().getContainer() == ContainerSlotType.HOTBAR || destination.getContainerName().getContainer() == ContainerSlotType.HOTBAR_AND_INVENTORY) {
                         // Tell the server we're pressing one of the hotbar keys to save clicks
                         Click click = InventoryUtils.getClickForHotbarSwap(destination.getSlot());
                         if (click != null) {
@@ -404,18 +506,24 @@ public abstract class InventoryTranslator {
                         }
                     }
 
+                    // A note on all the bundle checks for clicks...
+                    // Left clicking in these contexts can count as using the bundle
+                    // and adding the stack to the contents of the bundle.
+                    // In these cases, we can safely use right-clicking while holding the bundle
+                    // as its stack size is 1.
+
                     if (isSourceCursor && isDestCursor) { //???
                         return rejectRequest(request);
                     } else if (isSourceCursor) { //swap cursor
                         if (InventoryUtils.canStack(cursor, plan.getItem(destSlot))) { //TODO: cannot simply swap if cursor stacks with slot (temp slot)
                             return rejectRequest(request);
                         }
-                        plan.add(Click.LEFT, destSlot);
+                        plan.add(isBundle(plan, destSlot) || isBundle(cursor) ? Click.RIGHT : Click.LEFT, destSlot);
                     } else if (isDestCursor) { //swap cursor
                         if (InventoryUtils.canStack(cursor, plan.getItem(sourceSlot))) { //TODO
                             return rejectRequest(request);
                         }
-                        plan.add(Click.LEFT, sourceSlot);
+                        plan.add(isBundle(plan, sourceSlot) || isBundle(cursor) ? Click.RIGHT : Click.LEFT, sourceSlot);
                     } else {
                         if (!cursor.isEmpty()) { //TODO: (temp slot)
                             return rejectRequest(request);
@@ -427,7 +535,7 @@ public abstract class InventoryTranslator {
                             return rejectRequest(request);
                         }
                         plan.add(Click.LEFT, sourceSlot); //pickup source into cursor
-                        plan.add(Click.LEFT, destSlot); //swap cursor with dest slot
+                        plan.add(isBundle(plan, sourceSlot) || isBundle(plan, destSlot) ? Click.RIGHT : Click.LEFT, destSlot); //swap cursor with dest slot
                         plan.add(Click.LEFT, sourceSlot); //release cursor onto source
                     }
                     break;
@@ -496,7 +604,8 @@ public abstract class InventoryTranslator {
                 case CRAFT_RESULTS_DEPRECATED: // Tends to be called for UI inventories
                 case CRAFT_RECIPE_OPTIONAL: // Anvils and cartography tables will handle this
                 case CRAFT_LOOM: // Looms 1.17.40+
-                case CRAFT_REPAIR_AND_DISENCHANT: { // Grindstones 1.17.40+
+                case CRAFT_REPAIR_AND_DISENCHANT: // Grindstones 1.17.40+
+                case MINE_BLOCK: { // server-auth block breaking, confirming durability
                     break;
                 }
                 default:
@@ -513,7 +622,7 @@ public abstract class InventoryTranslator {
         return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
     }
     
-    public ItemStackResponse translateCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponse translateCraftingRequest(GeyserSession session, Type inventory, ItemStackRequest request) {
         int resultSize = 0;
         int timesCrafted;
         CraftState craftState = CraftState.START;
@@ -564,7 +673,7 @@ public abstract class InventoryTranslator {
                     }
                     craftState = CraftState.TRANSFER;
 
-                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
+                    if (transferAction.getSource().getContainerName().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
                         return rejectRequest(request);
                     }
                     if (transferAction.getCount() <= 0) {
@@ -636,15 +745,15 @@ public abstract class InventoryTranslator {
         return acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
     }
 
-    public ItemStackResponse translateAutoCraftingRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    public ItemStackResponse translateAutoCraftingRequest(GeyserSession session, Type inventory, ItemStackRequest request) {
         final int gridSize = getGridSize();
         if (gridSize == -1) {
             return rejectRequest(request);
         }
         int gridDimensions = gridSize == 4 ? 2 : 3;
 
-        Ingredient[] ingredients = new Ingredient[0];
-        ItemStack output = null;
+        List<SlotDisplay> ingredients = Collections.emptyList();
+        SlotDisplay output = null;
         int recipeWidth = 0;
         int ingRemaining = 0;
         int ingredientIndex = -1;
@@ -698,7 +807,7 @@ public abstract class InventoryTranslator {
                         ingredients = shapelessRecipe.ingredients();
                         recipeWidth = gridDimensions;
                         output = shapelessRecipe.result();
-                        if (ingredients.length > gridSize) {
+                        if (ingredients.size() > gridSize) {
                             return rejectRequest(request);
                         }
                     }
@@ -729,8 +838,8 @@ public abstract class InventoryTranslator {
                     craftState = CraftState.INGREDIENTS;
 
                     if (ingRemaining == 0) {
-                        while (++ingredientIndex < ingredients.length) {
-                            if (ingredients[ingredientIndex].getOptions().length != 0) {
+                        while (++ingredientIndex < ingredients.size()) {
+                            if (!(ingredients.get(ingredientIndex) instanceof EmptySlotDisplay)) { // TODO I guess can technically other options be empty?
                                 ingRemaining = timesCrafted;
                                 break;
                             }
@@ -757,7 +866,7 @@ public abstract class InventoryTranslator {
                     }
                     craftState = CraftState.TRANSFER;
 
-                    if (transferAction.getSource().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
+                    if (transferAction.getSource().getContainerName().getContainer() != ContainerSlotType.CREATED_OUTPUT) {
                         return rejectRequest(request);
                     }
                     if (transferAction.getCount() <= 0) {
@@ -767,7 +876,7 @@ public abstract class InventoryTranslator {
                     int javaSlot = bedrockSlotToJava(transferAction.getDestination());
                     if (isCursor(transferAction.getDestination())) { //TODO
                         if (timesCrafted > 1) {
-                            tempSlot = findTempSlot(plan, GeyserItemStack.from(output), true);
+                            tempSlot = findTempSlot(plan, GeyserItemStack.from(session, output), true);
                             if (tempSlot == -1) {
                                 return rejectRequest(request);
                             }
@@ -815,7 +924,7 @@ public abstract class InventoryTranslator {
             }
         }
 
-        inventory.setItem(0, GeyserItemStack.from(output), session);
+        inventory.setItem(0, GeyserItemStack.from(session, output), session);
         plan.execute(true);
         return acceptRequest(request, makeContainerEntries(session, inventory, plan.getAffectedSlots()));
     }
@@ -823,7 +932,7 @@ public abstract class InventoryTranslator {
     /**
      * Handled in {@link PlayerInventoryTranslator}
      */
-    protected ItemStackResponse translateCreativeRequest(GeyserSession session, Inventory inventory, ItemStackRequest request) {
+    protected ItemStackResponse translateCreativeRequest(GeyserSession session, Type inventory, ItemStackRequest request) {
         return rejectRequest(request);
     }
 
@@ -876,7 +985,7 @@ public abstract class InventoryTranslator {
      *                   as bad (false).
      */
     protected static ItemStackResponse rejectRequest(ItemStackRequest request, boolean throwError) {
-        if (throwError && GeyserImpl.getInstance().getConfig().isDebugMode()) {
+        if (throwError && GeyserImpl.getInstance().config().debugMode()) {
             new Throwable("DEBUGGING: ItemStackRequest rejected " + request.toString()).printStackTrace();
         }
         return new ItemStackResponse(ItemStackResponseStatus.ERROR, request.getRequestId(), Collections.emptyList());
@@ -885,14 +994,19 @@ public abstract class InventoryTranslator {
     /**
      * Print out the contents of an ItemStackRequest, should the net ID check fail.
      */
-    protected void dumpStackRequestDetails(GeyserSession session, Inventory inventory, ItemStackRequestSlotData source, ItemStackRequestSlotData destination) {
+    protected void dumpStackRequestDetails(GeyserSession session, Type inventory, ItemStackRequestSlotData source, ItemStackRequestSlotData destination) {
         session.getGeyser().getLogger().error("Source: " + source.toString() + " Result: " + checkNetId(session, inventory, source));
         session.getGeyser().getLogger().error("Destination: " + destination.toString() + " Result: " + checkNetId(session, inventory, destination));
         session.getGeyser().getLogger().error("Geyser's record of source slot: " + inventory.getItem(bedrockSlotToJava(source)));
         session.getGeyser().getLogger().error("Geyser's record of destination slot: " + inventory.getItem(bedrockSlotToJava(destination)));
     }
 
-    public boolean checkNetId(GeyserSession session, Inventory inventory, ItemStackRequestSlotData slotInfoData) {
+    public boolean checkNetId(GeyserSession session, Type inventory, ItemStackRequestSlotData slotInfoData) {
+        if (BundleInventoryTranslator.isBundle(slotInfoData)) {
+            // Will thoroughly be investigated, if needed, in bundle checks.
+            return true;
+        }
+
         int netId = slotInfoData.getStackNetworkId();
         // "In my testing, sometimes the client thinks the netId of an item in the crafting grid is 1, even though we never said it was.
         // I think it only happens when we manually set the grid but that was my quick fix"
@@ -969,24 +1083,24 @@ public abstract class InventoryTranslator {
         return -1;
     }
 
-    protected final List<ItemStackResponseContainer> makeContainerEntries(GeyserSession session, Inventory inventory, IntSet affectedSlots) {
+    protected final List<ItemStackResponseContainer> makeContainerEntries(GeyserSession session, Type inventory, IntSet affectedSlots) {
         Map<ContainerSlotType, List<ItemStackResponseSlot>> containerMap = new HashMap<>();
         // Manually call iterator to prevent Integer boxing
         IntIterator it = affectedSlots.iterator();
         while (it.hasNext()) {
             int slot = it.nextInt();
-            BedrockContainerSlot bedrockSlot = javaSlotToBedrockContainer(slot);
+            BedrockContainerSlot bedrockSlot = javaSlotToBedrockContainer(slot, inventory);
             List<ItemStackResponseSlot> list = containerMap.computeIfAbsent(bedrockSlot.container(), k -> new ArrayList<>());
             list.add(makeItemEntry(bedrockSlot.slot(), inventory.getItem(slot)));
         }
 
         List<ItemStackResponseContainer> containerEntries = new ArrayList<>();
         for (Map.Entry<ContainerSlotType, List<ItemStackResponseSlot>> entry : containerMap.entrySet()) {
-            containerEntries.add(new ItemStackResponseContainer(entry.getKey(), entry.getValue(), new FullContainerName(entry.getKey(), 0)));
+            containerEntries.add(new ItemStackResponseContainer(entry.getKey(), entry.getValue(), new FullContainerName(entry.getKey(), null)));
         }
 
         ItemStackResponseSlot cursorEntry = makeItemEntry(0, session.getPlayerInventory().getCursor());
-        containerEntries.add(new ItemStackResponseContainer(ContainerSlotType.CURSOR, Collections.singletonList(cursorEntry), new FullContainerName(ContainerSlotType.CURSOR, 0)));
+        containerEntries.add(new ItemStackResponseContainer(ContainerSlotType.CURSOR, Collections.singletonList(cursorEntry), new FullContainerName(ContainerSlotType.CURSOR, null)));
 
         return containerEntries;
     }
@@ -997,23 +1111,20 @@ public abstract class InventoryTranslator {
             // As of 1.16.210: Bedrock needs confirmation on what the current item durability is.
             // If 0 is sent, then Bedrock thinks the item is not damaged
             int durability = 0;
-            DataComponents components = itemStack.getComponents();
-            if (components != null) {
-                Integer damage = components.get(DataComponentType.DAMAGE);
-                if (damage != null) {
-                    durability = ItemUtils.getCorrectBedrockDurability(itemStack.asItem(), damage);
-                }
+            Integer damage = itemStack.getComponent(DataComponentTypes.DAMAGE);
+            if (damage != null) {
+                durability = ItemUtils.getCorrectBedrockDurability(itemStack.asItem(), damage);
             }
 
-            itemEntry = new ItemStackResponseSlot((byte) bedrockSlot, (byte) bedrockSlot, (byte) itemStack.getAmount(), itemStack.getNetId(), "", durability);
+            itemEntry = new ItemStackResponseSlot((byte) bedrockSlot, (byte) bedrockSlot, (byte) itemStack.getAmount(), itemStack.getNetId(), "", durability, "");
         } else {
-            itemEntry = new ItemStackResponseSlot((byte) bedrockSlot, (byte) bedrockSlot, (byte) 0, 0, "", 0);
+            itemEntry = new ItemStackResponseSlot((byte) bedrockSlot, (byte) bedrockSlot, (byte) 0, 0, "", 0, "");
         }
         return itemEntry;
     }
 
     protected static boolean isCursor(ItemStackRequestSlotData slotInfoData) {
-        return slotInfoData.getContainer() == ContainerSlotType.CURSOR;
+        return slotInfoData.getContainerName().getContainer() == ContainerSlotType.CURSOR;
     }
 
     /**
@@ -1024,7 +1135,7 @@ public abstract class InventoryTranslator {
      * @return the InventoryType for the given ContainerType.
      */
     @Nullable
-    public static InventoryTranslator inventoryTranslator(@Nullable ContainerType type) {
+    public static InventoryTranslator<? extends Inventory> inventoryTranslator(@Nullable ContainerType type) {
         if (type == null) {
             return PLAYER_INVENTORY_TRANSLATOR;
         }

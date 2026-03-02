@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.level.block.property;
 
+import java.util.Optional;
+
 public final class IntegerProperty extends Property<Integer> {
     private final int offset;
     private final int valuesCount;
@@ -51,6 +53,16 @@ public final class IntegerProperty extends Property<Integer> {
 
     public int high() {
         return this.offset + this.valuesCount;
+    }
+
+    @Override
+    public Optional<Integer> valueOf(String string) {
+        try {
+            int value = Integer.parseInt(string);
+            return value >= low() && value <= high() ? Optional.of(value) : Optional.empty();
+        } catch (NumberFormatException exception) {
+            return Optional.empty();
+        }
     }
 
     public static IntegerProperty create(String name, int low, int high) {

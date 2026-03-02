@@ -26,10 +26,9 @@
 package org.geysermc.geyser.translator.sound.block;
 
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
+import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
@@ -42,7 +41,7 @@ public class OpenableSoundInteractionTranslator implements BlockSoundInteraction
     public void translate(GeyserSession session, Vector3f position, BlockState state) {
         String identifier = state.toString();
         if (identifier.contains("iron")) return;
-        SoundEvent event = getSound(identifier.contains("open=true"), identifier);
+        SoundEvent event = getSound(state.getValue(Properties.OPEN, false), identifier);
         LevelSoundEventPacket levelSoundEventPacket = new LevelSoundEventPacket();
         levelSoundEventPacket.setPosition(position.add(0.5, 0.5, 0.5));
         levelSoundEventPacket.setBabySound(false);

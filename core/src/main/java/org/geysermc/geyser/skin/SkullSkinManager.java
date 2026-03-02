@@ -28,42 +28,45 @@ package org.geysermc.geyser.skin;
 import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.skin.Skin;
-import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.PlayerListUtils;
 
-import java.util.Collections;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class SkullSkinManager extends SkinManager {
 
-    public static SerializedSkin buildSkullEntryManually(String skinId, byte[] skinData) {
-        // Prevents https://cdn.discordapp.com/attachments/613194828359925800/779458146191147008/unknown.png
+    public static SerializedSkin buildSkullEntryManually(GeyserSession session, String skinId, byte[] skinData) {
         skinId = skinId + "_skull";
-        return SerializedSkin.of(
-                skinId, "", SkinProvider.SKULL_GEOMETRY.geometryName(), ImageData.of(skinData), Collections.emptyList(),
-                ImageData.of(SkinProvider.EMPTY_CAPE.capeData()), SkinProvider.SKULL_GEOMETRY.geometryData(),
-                "", true, false, false, SkinProvider.EMPTY_CAPE.capeId(), skinId
-        );
+        return SerializedSkin.builder()
+            .skinId(skinId)
+            .skinResourcePatch(SkinProvider.SKULL_GEOMETRY.geometryName())
+            .skinData(ImageData.of(skinData))
+            .capeData(ImageData.of(SkinProvider.EMPTY_CAPE.capeData()))
+            .geometryData(SkinProvider.SKULL_GEOMETRY.geometryData())
+            .premium(true)
+            .capeId(SkinProvider.EMPTY_CAPE.capeId())
+            .fullSkinId(skinId)
+            .geometryDataEngineVersion(session.getClientData().getGameVersion())
+            .build();
     }
 
-    public static void requestAndHandleSkin(SkullPlayerEntity entity, GeyserSession session,
-                                            Consumer<Skin> skinConsumer) {
+    public static void requestAndHandleSkin(SkullPlayerEntity entity, GeyserSession session, Consumer<Skin> skinConsumer) {
         BiConsumer<Skin, Throwable> applySkin = (skin, throwable) -> {
-            try {
+            SerializedSkin serializedSkin = buildSkullEntryManually(session, skin.textureUrl(), skin.skinData());
+            if (GameProtocol.is1_21_130orHigher(session.protocolVersion())) {
+                PlayerListUtils.sendSkinUsingPlayerList(session, PlayerListUtils.forSkullPlayerEntity(entity, serializedSkin), entity, false);
+            } else {
                 PlayerSkinPacket packet = new PlayerSkinPacket();
-                packet.setUuid(entity.getUuid());
+                packet.setUuid(entity.uuid());
                 packet.setOldSkinName("");
                 packet.setNewSkinName(skin.textureUrl());
-                packet.setSkin(buildSkullEntryManually(skin.textureUrl(), skin.skinData()));
+                packet.setSkin(serializedSkin);
                 packet.setTrustedSkin(true);
                 session.sendUpstreamPacket(packet);
-            } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
             }
 
             if (skinConsumer != null) {
@@ -71,17 +74,8 @@ public class SkullSkinManager extends SkinManager {
             }
         };
 
-        GameProfileData data = GameProfileData.from(entity);
-        if (data == null) {
-            GeyserImpl.getInstance().getLogger().debug("Using fallback skin for skull at " + entity.getSkullPosition() +
-                    " with texture value: " + entity.getTexturesProperty() + " and UUID: " + entity.getSkullUUID());
-            // No texture available, fallback using the UUID
-            SkinData fallback = SkinProvider.determineFallbackSkinData(entity.getSkullUUID());
-            applySkin.accept(fallback.skin(), null);
-        } else {
-            SkinProvider.requestSkin(entity.getUuid(), data.skinUrl(), true)
-                    .whenCompleteAsync(applySkin);
-        }
+        SkinProvider.requestSkin(entity.uuid(), entity.getSkinUrl(), true)
+            .whenCompleteAsync(applySkin);
     }
 
 }

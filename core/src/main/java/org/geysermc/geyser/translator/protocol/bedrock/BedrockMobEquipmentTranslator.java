@@ -61,15 +61,15 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
 
         GeyserItemStack newItem = session.getPlayerInventory().getItemInHand();
 
-        if (session.isSneaking() && newItem.asItem() == Items.SHIELD) {
+        if (session.isSneaking() && newItem.is(Items.SHIELD)) {
             // Activate shield since we are already sneaking
             // (No need to send a release item packet - Java doesn't do this when swapping items)
             // Required to do it a tick later or else it doesn't register
             session.scheduleInEventLoop(() -> session.useItem(Hand.MAIN_HAND),
-                    50, TimeUnit.MILLISECONDS);
+                    session.getNanosecondsPerTick(), TimeUnit.NANOSECONDS);
         }
 
-        if (oldItem.getJavaId() != newItem.getJavaId()) {
+        if (!oldItem.isSameItem(newItem)) {
             // Java sends a cooldown indicator whenever you switch to a new item type
             CooldownUtils.sendCooldown(session);
         }

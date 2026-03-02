@@ -34,7 +34,10 @@ import java.util.Set;
 
 /**
  * Represents a completely custom item that is not based on an existing vanilla Minecraft item.
+ *
+ * @deprecated use the new {@link org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition}
  */
+@Deprecated
 public interface NonVanillaCustomItemData extends CustomItemData {
     /**
      * Gets the java identifier for this item.
@@ -80,10 +83,9 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @Nullable String toolType();
 
     /**
-     * Gets the tool tier of the item.
-     *
-     * @return the tool tier of the item
+     * @deprecated no longer used
      */
+    @Deprecated(forRemoval = true)
     @Nullable String toolTier();
 
     /**
@@ -108,10 +110,9 @@ public interface NonVanillaCustomItemData extends CustomItemData {
     @Nullable String translationString();
 
     /**
-     * Gets the repair materials of the item.
-     *
-     * @return the repair materials of the item
+     * @deprecated No longer used.
      */
+    @Deprecated(forRemoval = true)
     @Nullable Set<String> repairMaterials();
 
     /**
@@ -239,9 +240,11 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         @Override
         Builder displayHandheld(boolean displayHandheld);
 
+        @Deprecated
         @Override
         Builder textureSize(int textureSize);
 
+        @Deprecated
         @Override
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 

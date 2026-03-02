@@ -25,84 +25,168 @@
 
 package org.geysermc.geyser.registry.populator;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemCategory;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.CreativeItemGroup;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
+import org.geysermc.geyser.util.JsonUtils;
+import org.geysermc.geyser.registry.type.GeyserMappingItem;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
-import java.util.function.Consumer;
 
 public class CreativeItemRegistryPopulator {
     private static final List<BiPredicate<String, Integer>> JAVA_ONLY_ITEM_FILTER = List.of(
             // Bedrock-only as its own item
-            (identifier, data) -> identifier.equals("minecraft:empty_map") && data == 2,
-            // Bedrock-only banner patterns
-            (identifier, data) -> identifier.equals("minecraft:bordure_indented_banner_pattern") || identifier.equals("minecraft:field_masoned_banner_pattern")
+            (identifier, data) -> identifier.equals("minecraft:empty_map") && data == 2
     );
 
-    static void populate(ItemRegistryPopulator.PaletteVersion palette, Map<String, ItemDefinition> definitions, Consumer<ItemData.Builder> itemConsumer) {
+    static void readCreativeItemGroups(ItemRegistryPopulator.PaletteVersion palette, List<CreativeItemData> creativeItemData,
+                                       List<CreativeItemGroup> creativeItemGroups, Map<String, Integer> groupIndexMap, Map<CreativeItemCategory, Integer> lastCreativeItemGroup) {
+        GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
+
+        JsonArray creativeItemEntries;
+        try (InputStream stream = bootstrap.getResourceOrThrow(String.format("bedrock/creative_items.%s.json", palette.version()))) {
+            creativeItemEntries = JsonUtils.fromJson(stream).getAsJsonArray("groups");
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load creative item groups", e);
+        }
+
+        for (JsonElement creativeItemEntry : creativeItemEntries) {
+            JsonObject creativeItemEntryObject = creativeItemEntry.getAsJsonObject();
+            CreativeItemCategory category = CreativeItemCategory.valueOf(creativeItemEntryObject.get("category").getAsString().toUpperCase(Locale.ROOT));
+            String name = creativeItemEntryObject.get("name").getAsString();
+
+            JsonElement icon = creativeItemEntryObject.get("icon");
+            String identifier = icon.getAsJsonObject().get("id").getAsString();
+
+            ItemData itemData;
+            if (identifier.equals("minecraft:air")) {
+                itemData = ItemData.AIR;
+            } else {
+                itemData = creativeItemData.stream()
+                    .map(CreativeItemData::getItem)
+                    .filter(item -> item.getDefinition().getIdentifier().equals(identifier))
+                    .findFirst()
+                    .orElseThrow();
+            }
+
+            if (!name.isEmpty()) {
+                groupIndexMap.put(name, creativeItemGroups.size());
+            }
+
+            creativeItemGroups.add(new CreativeItemGroup(category, name, itemData));
+        }
+
+        CreativeItemCategory category = null;
+        for (int i = 0; i < creativeItemGroups.size(); i++) {
+            CreativeItemGroup creativeItemGroup = creativeItemGroups.get(i);
+            if (category == null) {
+                category = creativeItemGroup.getCategory();
+            }
+
+            if (creativeItemGroup.getCategory() != category) {
+                lastCreativeItemGroup.put(category, i - 1);
+                category = creativeItemGroup.getCategory();
+            }
+
+            if (i == creativeItemGroups.size() - 1) {
+                lastCreativeItemGroup.put(creativeItemGroup.getCategory(), i);
+            }
+        }
+    }
+
+    static void populate(ItemRegistryPopulator.PaletteVersion palette, Map<String, ItemDefinition> definitions, Map<String, GeyserMappingItem> items, BiConsumer<ItemData.Builder, Integer> itemConsumer) {
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
         // Load creative items
-        JsonNode creativeItemEntries;
+        JsonArray creativeItemEntries;
         try (InputStream stream = bootstrap.getResourceOrThrow(String.format("bedrock/creative_items.%s.json", palette.version()))) {
-            creativeItemEntries = GeyserImpl.JSON_MAPPER.readTree(stream).get("items");
+            creativeItemEntries = JsonUtils.fromJson(stream).getAsJsonArray("items");
         } catch (Exception e) {
             throw new AssertionError("Unable to load creative items", e);
         }
 
         BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
-        for (JsonNode itemNode : creativeItemEntries) {
-            ItemData.Builder itemBuilder = createItemData(itemNode, blockMappings, definitions);
+        for (JsonElement itemNode : creativeItemEntries) {
+            ItemData.Builder itemBuilder = createItemData((JsonObject) itemNode, items, blockMappings, definitions);
             if (itemBuilder == null) {
                 continue;
             }
 
-            itemConsumer.accept(itemBuilder);
+            var groupIdElement = itemNode.getAsJsonObject().get("groupId");
+            int groupId = groupIdElement != null ? groupIdElement.getAsInt() : 0;
+
+            itemConsumer.accept(itemBuilder, groupId);
         }
     }
 
-    private static ItemData.@Nullable Builder createItemData(JsonNode itemNode, BlockMappings blockMappings, Map<String, ItemDefinition> definitions) {
+    private static ItemData.@Nullable Builder createItemData(JsonObject itemNode, Map<String, GeyserMappingItem> items, BlockMappings blockMappings, Map<String, ItemDefinition> definitions) {
         int count = 1;
         int damage = 0;
         NbtMap tag = null;
 
-        String identifier = itemNode.get("id").textValue();
+        String identifier = itemNode.get("id").getAsString();
         for (BiPredicate<String, Integer> predicate : JAVA_ONLY_ITEM_FILTER) {
             if (predicate.test(identifier, damage)) {
                 return null;
             }
         }
 
-        JsonNode damageNode = itemNode.get("damage");
-        if (damageNode != null) {
-            damage = damageNode.asInt();
+        // Attempt to remove items that do not exist in Java (1.21.50 has 1.21.4 items, that don't exist on 1.21.2)
+        // we still add the lodestone compass - we're going to translate it.
+        if (!items.containsKey(identifier) && !identifier.equals("minecraft:lodestone_compass")) {
+            // bedrock identifier not found, let's make sure it's not just different
+            boolean found = false;
+            for (var mapping : items.values()) {
+                if (mapping.getBedrockIdentifier().equals(identifier)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            // TODO this is nice, but has the nasty side-effect of breaking creative categories.
+            // We would need to re-write those to fully remove new items / categories
+//            if (!found) {
+//                GeyserImpl.getInstance().getLogger().debug("Removing item that we don't yet translate: " + identifier);
+//                return null;
+//            }
         }
 
-        JsonNode countNode = itemNode.get("count");
+        JsonElement damageNode = itemNode.get("damage");
+        if (damageNode != null) {
+            damage = damageNode.getAsInt();
+        }
+
+        JsonElement countNode = itemNode.get("count");
         if (countNode != null) {
-            count = countNode.asInt();
+            count = countNode.getAsInt();
         }
 
         GeyserBedrockBlock blockDefinition = null;
-        JsonNode blockStateNode;
+        JsonElement blockStateNode;
         if ((blockStateNode = itemNode.get("block_state_b64")) != null) {
-            byte[] bytes = Base64.getDecoder().decode(blockStateNode.asText());
+            byte[] bytes = Base64.getDecoder().decode(blockStateNode.getAsString());
             ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
             try {
                 NbtMap stateTag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
@@ -121,9 +205,9 @@ public class CreativeItemRegistryPopulator {
             }
         }
 
-        JsonNode nbtNode = itemNode.get("nbt_b64");
+        JsonElement nbtNode = itemNode.get("nbt_b64");
         if (nbtNode != null) {
-            byte[] bytes = Base64.getDecoder().decode(nbtNode.asText());
+            byte[] bytes = Base64.getDecoder().decode(nbtNode.getAsString());
             ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
             try {
                 tag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();

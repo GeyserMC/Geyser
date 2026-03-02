@@ -25,12 +25,17 @@
 
 package org.geysermc.geyser.platform.neoforge;
 
+import net.minecraft.server.permissions.Permission;
+import net.minecraft.server.permissions.PermissionCheck;
+import net.minecraft.server.permissions.Permissions;
 import net.neoforged.neoforge.server.permission.events.PermissionGatherEvent;
 import net.neoforged.neoforge.server.permission.nodes.PermissionNode;
 import net.neoforged.neoforge.server.permission.nodes.PermissionTypes;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.platform.neoforge.mixin.PermissionNodeMixin;
+
+import java.util.Objects;
 
 /**
  * Common logic for handling the more complicated way we have to register permission on NeoForge
@@ -69,7 +74,12 @@ public class PermissionUtils {
                 case FALSE -> false;
                 case NOT_SET -> {
                     if (player != null) {
-                        yield player.createCommandSourceStack().hasPermission(player.server.getOperatorUserPermissionLevel());
+                        yield player.createCommandSourceStack().permissions().hasPermission(
+                                new Permission.HasCommandLevel(
+                                        Objects.requireNonNull(player.level())
+                                                .getServer().operatorUserPermissions().level()
+                                )
+                        );
                     }
                     yield false; // NeoForge javadocs say player is null in the case of an offline player.
                 }

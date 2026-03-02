@@ -32,7 +32,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
@@ -80,7 +80,7 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
         var sourceConverter = CommandSourceConverter.layered(
                 CommandSourceStack.class,
                 id -> getServer().getPlayerList().getPlayer(id),
-                Player::createCommandSourceStack,
+                ServerPlayer::createCommandSourceStack,
                 () -> getServer().createCommandSourceStack(), // NPE if method reference is used, since server is not available yet
                 ModCommandSource::new
         );

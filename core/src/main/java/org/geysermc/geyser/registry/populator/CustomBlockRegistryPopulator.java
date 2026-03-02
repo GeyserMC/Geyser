@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,8 @@ package org.geysermc.geyser.registry.populator;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
@@ -48,23 +50,35 @@ import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
 import org.geysermc.geyser.level.block.GeyserGeometryComponent;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance;
+import org.geysermc.geyser.level.block.type.Block;
+import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.level.physics.PistonBehavior;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
+import org.geysermc.geyser.translator.collision.OtherCollision;
+import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
 
 import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.geysermc.geyser.registry.populator.BlockRegistryPopulator.JAVA_BLOCKS_SIZE;
+import static org.geysermc.geyser.registry.populator.BlockRegistryPopulator.MIN_CUSTOM_RUNTIME_ID;
 
 public class CustomBlockRegistryPopulator {
 
@@ -90,7 +104,7 @@ public class CustomBlockRegistryPopulator {
      * @param stage the stage to populate
      */
     public static void populate(Stage stage) {
-        if (!GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
+        if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
             return;
         }
         
@@ -171,7 +185,7 @@ public class CustomBlockRegistryPopulator {
         }
 
         for(Map.Entry<String, CustomBlockState> entry : BLOCK_STATE_OVERRIDES_QUEUE.entrySet()) {
-            int id = BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(entry.getKey(), -1);
+            int id = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(entry.getKey(), -1);
             if (id == -1) {
                 GeyserImpl.getInstance().getLogger().warning("Custom block state override for Java Identifier: " +
                         entry.getKey() + " could not be registered as it is not a valid block state.");
@@ -195,7 +209,7 @@ public class CustomBlockRegistryPopulator {
                 CUSTOM_BLOCK_ITEM_OVERRIDES.put(block.javaIdentifier(), block.data());
             }
             block.states().forEach((javaIdentifier, customBlockState) -> {
-                int id = BlockRegistries.JAVA_IDENTIFIER_TO_ID.getOrDefault(javaIdentifier, -1);
+                int id = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(javaIdentifier, -1);
                 blockStateOverrides.put(id, customBlockState.state());
                 BoxComponent extendedCollisionBox = customBlockState.extendedCollisionBox();
                 if (extendedCollisionBox != null) {
@@ -231,6 +245,60 @@ public class CustomBlockRegistryPopulator {
      */
     private static void populateNonVanilla() {
         BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.set(NON_VANILLA_BLOCK_STATE_OVERRIDES);
+
+        if (NON_VANILLA_BLOCK_STATE_OVERRIDES.isEmpty()) {
+            // Nothing left to register, freeze block state registry
+            BlockRegistries.BLOCK_STATES.freeze();
+            return;
+        }
+
+        MIN_CUSTOM_RUNTIME_ID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).orElseThrow().javaId();
+        int maxCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().max(Comparator.comparing(JavaBlockState::javaId)).orElseThrow().javaId();
+
+        if (MIN_CUSTOM_RUNTIME_ID < BlockRegistries.BLOCK_STATES.get().size()) {
+            throw new RuntimeException("Non vanilla custom block state overrides runtime ID must start after the last vanilla block state (" + JAVA_BLOCKS_SIZE + ")");
+        }
+
+        JAVA_BLOCKS_SIZE = maxCustomRuntimeID + 1; // Runtime ids start at 0, so we need to add 1
+
+        // Now: Vanilla blocks are already loaded and registered; let's load non-vanilla properly too
+        IntSet usedNonVanillaRuntimeIDs = new IntOpenHashSet();
+
+        for (JavaBlockState javaBlockState : BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet()) {
+            if (!usedNonVanillaRuntimeIDs.add(javaBlockState.javaId())) {
+                throw new RuntimeException("Duplicate runtime ID " + javaBlockState.javaId() + " for non vanilla Java block state " + javaBlockState.identifier());
+            }
+
+            String javaId = javaBlockState.identifier();
+            int stateRuntimeId = javaBlockState.javaId();
+            String pistonBehavior = javaBlockState.pistonBehavior();
+
+            Block.Builder builder = Block.builder()
+                .javaId(stateRuntimeId)
+                .destroyTime(javaBlockState.blockHardness())
+                .pushReaction(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior));
+            if (!javaBlockState.canBreakWithHand()) {
+                builder.requiresCorrectToolForDrops();
+            }
+            String cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());
+            Block block = new Block(cleanJavaIdentifier, builder);
+            block.setJavaId(javaBlockState.stateGroupId());
+
+            BlockRegistries.JAVA_BLOCKS.registerWithAnyIndex(javaBlockState.stateGroupId(), block, Blocks.AIR);
+            BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
+            BlockRegistries.NON_VANILLA_BLOCK_IDS.register(set -> set.set(stateRuntimeId));
+
+            // TODO register different collision types?
+            BoundingBox[] geyserCollisions = Arrays.stream(javaBlockState.collision())
+                .map(box -> new BoundingBox(box.middleX(), box.middleY(), box.middleZ(),
+                    box.sizeX(), box.sizeY(), box.sizeZ()))
+                .toArray(BoundingBox[]::new);
+            OtherCollision collision = new OtherCollision(geyserCollisions);
+            BlockRegistries.COLLISIONS.registerWithAnyIndex(javaBlockState.javaId(), collision, collision);
+        }
+
+        BlockRegistries.BLOCK_STATES.freeze();
+
         if (!NON_VANILLA_BLOCK_STATE_OVERRIDES.isEmpty()) {
             GeyserImpl.getInstance().getLogger().info("Registered " + NON_VANILLA_BLOCK_STATE_OVERRIDES.size() + " non-vanilla block overrides.");
         }
@@ -317,7 +385,7 @@ public class CustomBlockRegistryPopulator {
                 // in the future, this can be used to replace items in the creative inventory
                 // this would require us to map https://wiki.bedrock.dev/documentation/creative-categories.html#for-blocks programatically
                 .putCompound("menu_category", NbtMap.builder()
-                    .putString("category", creativeCategory.internalName())
+                    .putString("category", creativeCategory.bedrockName())
                     .putString("group", creativeGroup)
                     .putBoolean("is_hidden_in_commands", false)
                 .build())
@@ -351,12 +419,14 @@ public class CustomBlockRegistryPopulator {
                     .build());
         }
 
-        if (components.selectionBox() != null) {
-            builder.putCompound("minecraft:selection_box", convertBox(components.selectionBox()));
+        BoxComponent selectionBox = components.selectionBox();
+        if (selectionBox != null) {
+            builder.putCompound("minecraft:selection_box", convertBox(selectionBox));
         }
 
-        if (components.collisionBox() != null) {
-            builder.putCompound("minecraft:collision_box", convertBox(components.collisionBox()));
+        BoxComponent collisionBox = components.collisionBox();
+        if (collisionBox != null) {
+            builder.putCompound("minecraft:collision_box", convertCollisionBox(collisionBox, protocolVersion));
         }
 
         if (components.geometry() != null) {
@@ -380,9 +450,20 @@ public class CustomBlockRegistryPopulator {
             for (Map.Entry<String, MaterialInstance> entry : components.materialInstances().entrySet()) {
                 MaterialInstance materialInstance = entry.getValue();
                 NbtMapBuilder materialBuilder = NbtMap.builder()
-                        .putString("render_method", materialInstance.renderMethod())
-                        .putBoolean("face_dimming", materialInstance.faceDimming())
-                        .putBoolean("ambient_occlusion", materialInstance.faceDimming());
+                        .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion())
+                        .putBoolean("isotropic", materialInstance.isotropic());
+
+                // todo this is actually an bitset, we should add the other properties some day
+                materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
+
+                if (materialInstance.renderMethod() != null) {
+                    materialBuilder.putString("render_method", materialInstance.renderMethod());
+                }
+
+                if (materialInstance.tintMethod() != null) {
+                    materialBuilder.putString("tint_method", materialInstance.tintMethod());
+                }
+
                 // Texture can be unspecified when blocks.json is used in RP (https://wiki.bedrock.dev/blocks/blocks-stable.html#minecraft-material-instances)
                 if (materialInstance.texture() != null) {
                     materialBuilder.putString("texture", materialInstance.texture());
@@ -460,6 +541,32 @@ public class CustomBlockRegistryPopulator {
     }
 
     /**
+     * Converts the provided COLLISION box component to an {@link NbtMap}
+     *
+     * @param boxComponent the box component to convert
+     * @return the NBT representation of the provided box component
+     */
+    private static NbtMap convertCollisionBox(BoxComponent boxComponent, int protocolVersion) {
+        if (GameProtocol.is1_21_130orHigher(protocolVersion)) {
+            float minX = 8f + boxComponent.originX();
+            float minY = boxComponent.originY();
+            float minZ = 8f + boxComponent.originZ();
+            return NbtMap.builder()
+                .putBoolean("enabled", !boxComponent.isEmpty())
+                .putList("boxes", NbtType.COMPOUND, NbtMap.builder()
+                .putFloat("minX", minX)
+                .putFloat("minY", minY)
+                .putFloat("minZ", minZ)
+                .putFloat("maxX", minX + boxComponent.sizeX())
+                .putFloat("maxY", minY + boxComponent.sizeY())
+                .putFloat("maxZ", minZ + boxComponent.sizeZ())
+                .build()).build();
+        } else {
+            return convertBox(boxComponent);
+        }
+    }
+
+    /**
      * Converts the provided box component to an {@link NbtMap}
      * 
      * @param boxComponent the box component to convert
@@ -469,7 +576,8 @@ public class CustomBlockRegistryPopulator {
         return NbtMap.builder()
                 .putBoolean("enabled", !boxComponent.isEmpty())
                 .putList("origin", NbtType.FLOAT, boxComponent.originX(), boxComponent.originY(), boxComponent.originZ())
-                .putList("size", NbtType.FLOAT, boxComponent.sizeX(), boxComponent.sizeY(), boxComponent.sizeZ())
+                // TODO remove after 1.21.130 - collision boxes sent to below 1.21.130 must be capped
+                .putList("size", NbtType.FLOAT, boxComponent.sizeX(), Math.min(boxComponent.sizeY(), 16), boxComponent.sizeZ())
                 .build();
     }
 

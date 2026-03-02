@@ -28,6 +28,8 @@ package org.geysermc.geyser.network;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.RequiredArgsConstructor;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.stream.Stream;
@@ -45,16 +47,19 @@ public class InvalidPacketHandler extends ChannelInboundHandlerAdapter {
                 .findFirst()
                 .orElse(cause);
 
+        GeyserLogger logger = GeyserImpl.getInstance().getLogger();
 
         if (!(rootCause instanceof IllegalArgumentException)) {
             // Kick users that cause exceptions
-            session.getGeyser().getLogger().warning("Exception caught in session of" + session.bedrockUsername() + ": " + rootCause.getMessage());
+            logger.error("Exception caught in session of " + session.bedrockUsername(), cause);
             session.disconnect("An internal error occurred!");
+            session.forciblyCloseUpstream();
             return;
         }
 
         // Kick users that try to send illegal packets
-        session.getGeyser().getLogger().warning(rootCause.getMessage());
+        logger.error("Illegal packet from " + session.bedrockUsername(), cause);
         session.disconnect("Invalid packet received!");
+        session.forciblyCloseUpstream();
     }
 }

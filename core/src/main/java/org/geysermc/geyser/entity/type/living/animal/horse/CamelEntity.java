@@ -25,22 +25,21 @@
 
 package org.geysermc.geyser.entity.type.living.animal.horse;
 
-import org.cloudburstmc.math.vector.Vector2f;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.vehicle.CamelVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.Attribute;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
@@ -48,15 +47,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Boolea
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.LongEntityMetadata;
 
-import java.util.UUID;
-
 public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     public static final float SITTING_HEIGHT_DIFFERENCE = 1.43F;
 
     private final CamelVehicleComponent vehicleComponent = new CamelVehicleComponent(this);
 
-    public CamelEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public CamelEntity(EntitySpawnContext context) {
+        super(context);
 
         dirtyMetadata.put(EntityDataTypes.CONTAINER_TYPE, (byte) ContainerType.HORSE.getId());
 
@@ -66,8 +63,6 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
 
     public void setHorseFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
-        boolean saddled = (xd & 0x04) == 0x04;
-        setFlag(EntityFlag.SADDLED, saddled);
         setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
         setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
 
@@ -96,11 +91,11 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
         }
 
         // Shows the dash meter
-        setFlag(EntityFlag.CAN_DASH, saddled);
+        // setFlag(EntityFlag.CAN_DASH, saddled);
     }
 
     @Override
-    protected @Nullable ItemTag getFoodTag() {
+    protected @Nullable Tag<Item> getFoodTag() {
         return ItemTag.CAMEL_FOOD;
     }
 
@@ -111,12 +106,12 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     }
 
     @Override
-    protected void setDimensions(Pose pose) {
+    protected void setDimensionsFromPose(Pose pose) {
         if (pose == Pose.SITTING) {
             setBoundingBoxHeight(definition.height() - SITTING_HEIGHT_DIFFERENCE);
             setBoundingBoxWidth(definition.width());
         } else {
-            super.setDimensions(pose);
+            super.setDimensionsFromPose(pose);
         }
     }
 
@@ -141,7 +136,7 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     @Override
     protected AttributeData calculateAttribute(Attribute javaAttribute, GeyserAttributeType type) {
         AttributeData attributeData = super.calculateAttribute(javaAttribute, type);
-        if (javaAttribute.getType() == AttributeType.Builtin.GENERIC_JUMP_STRENGTH) {
+        if (javaAttribute.getType() == AttributeType.Builtin.JUMP_STRENGTH) {
             vehicleComponent.setHorseJumpStrength(attributeData.getValue());
         }
         return attributeData;
@@ -150,11 +145,6 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     @Override
     public VehicleComponent<?> getVehicleComponent() {
         return vehicleComponent;
-    }
-
-    @Override
-    public Vector2f getAdjustedInput(Vector2f input) {
-        return input.mul(0.5f, input.getY() < 0 ? 0.25f : 1.0f);
     }
 
     @Override

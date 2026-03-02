@@ -42,7 +42,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
  * cannot be used to calculate the inventory slot indices. The Translator and the Updater must then
  * override any methods that use the size for such calculations
  */
-public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator {
+public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator<CrafterContainer> {
 
     public static final int JAVA_RESULT_SLOT = 45;
     public static final int BEDROCK_RESULT_SLOT = 50;
@@ -58,10 +58,8 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public void updateProperty(GeyserSession session, Inventory inventory, int key, int value) {
+    public void updateProperty(GeyserSession session, CrafterContainer container, int key, int value) {
         // the slot bits and triggered state are sent here rather than in a BlockEntityDataPacket. Yippee.
-        CrafterContainer container = (CrafterContainer) inventory;
-
         if (key == TRIGGERED_KEY) {
             container.setTriggered(value == TRIGGERED);
         } else {
@@ -77,7 +75,7 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
     @Override
     public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
         int slot = slotInfoData.getSlot();
-        switch (slotInfoData.getContainer()) {
+        switch (slotInfoData.getContainerName().getContainer()) {
             case HOTBAR_AND_INVENTORY, HOTBAR, INVENTORY -> {
                 //hotbar
                 if (slot >= 9) {
@@ -111,7 +109,7 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot) {
+    public BedrockContainerSlot javaSlotToBedrockContainer(int javaSlot, CrafterContainer container) {
         if (javaSlot == JAVA_RESULT_SLOT) {
             return new BedrockContainerSlot(ContainerSlotType.CRAFTER_BLOCK_CONTAINER, BEDROCK_RESULT_SLOT);
         }
@@ -139,9 +137,9 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
     }
 
     @Override
-    public Inventory createInventory(String name, int windowId, ContainerType containerType, PlayerInventory playerInventory) {
+    public CrafterContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
         // Java sends the triggered and slot bits incrementally through properties, which we store here
-        return new CrafterContainer(name, windowId, this.size, containerType, playerInventory);
+        return new CrafterContainer(session, name, windowId, this.size, containerType);
     }
 
     private static void updateBlockEntity(GeyserSession session, CrafterContainer container) {
@@ -161,5 +159,10 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
         tag.putShort("disabled_slots", container.getDisabledSlotsMask());
 
         BlockEntityUtils.updateBlockEntity(session, tag.build(), container.getHolderPosition());
+    }
+
+    @Override
+    public org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType closeContainerType(CrafterContainer container) {
+        return null;
     }
 }

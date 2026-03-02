@@ -34,7 +34,10 @@ import java.util.Set;
 
 /**
  * This is used to store data for a custom item.
+ *
+ * @deprecated use the new {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition}
  */
+@Deprecated
 public interface CustomItemData {
     /**
      * Gets the item's name.
@@ -95,15 +98,19 @@ public interface CustomItemData {
     /**
      * Gets the item's texture size. This is to resize the item if the texture is not 16x16.
      *
+     * @deprecated setting the texture size is deprecated; use attachables instead
      * @return the item's texture size
      */
+    @Deprecated
     int textureSize();
 
     /**
      * Gets the item's render offsets. If it is null, the item will be rendered normally, with no offsets.
      *
+     * @deprecated render offsets have been deprecated; attachables should be used instead
      * @return the item's render offsets
      */
+    @Deprecated
     @Nullable CustomRenderOffsets renderOffsets();
 
     /**
@@ -138,8 +145,10 @@ public interface CustomItemData {
 
         Builder creativeGroup(@Nullable String creativeGroup);
 
+        @Deprecated
         Builder textureSize(int textureSize);
 
+        @Deprecated
         Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
 
         Builder tags(@Nullable Set<String> tags);

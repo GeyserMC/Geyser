@@ -31,24 +31,26 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.jetbrains.annotations.Range;
 
+import java.util.Map;
+
+@Getter
 public class PlayerInventory extends Inventory {
     /**
      * Stores the held item slot, starting at index 0.
      * Add 36 in order to get the network item slot.
      */
-    @Getter
     @Setter
     private int heldItemSlot;
 
-    @Getter
     @NonNull
     private GeyserItemStack cursor = GeyserItemStack.EMPTY;
 
-    public PlayerInventory() {
-        super(0, 46, null);
+    public PlayerInventory(GeyserSession session) {
+        super(session, 0, 46, null);
         heldItemSlot = 0;
     }
 
@@ -69,7 +71,7 @@ public class PlayerInventory extends Inventory {
      * @return If the player is holding the item in either hand
      */
     public boolean isHolding(@NonNull Item item) {
-        return getItemInHand().asItem() == item || getOffhand().asItem() == item;
+        return getItemInHand().is(item) || getOffhand().is(item);
     }
 
     public GeyserItemStack getItemInHand(@NonNull Hand hand) {
@@ -84,8 +86,16 @@ public class PlayerInventory extends Inventory {
         return items[36 + heldItemSlot];
     }
 
-    public boolean eitherHandMatchesItem(@NonNull Item item) {
-        return getItemInHand().asItem() == item || getItemInHand(Hand.OFF_HAND).asItem() == item;
+    // TODO other equipment slots
+    public Map<EquipmentSlot, GeyserItemStack> getEquipment() {
+        return Map.of(
+            EquipmentSlot.MAIN_HAND, getItemInHand(),
+            EquipmentSlot.OFF_HAND, items[45],
+            EquipmentSlot.BOOTS, items[8],
+            EquipmentSlot.LEGGINGS, items[7],
+            EquipmentSlot.CHESTPLATE, items[6],
+            EquipmentSlot.HELMET, items[5]
+        );
     }
 
     public void setItemInHand(@NonNull GeyserItemStack item) {
@@ -94,6 +104,11 @@ public class PlayerInventory extends Inventory {
             return;
         }
         items[36 + heldItemSlot] = item;
+    }
+
+    @Override
+    public boolean shouldConfirmContainerClose() {
+        return false;
     }
 
     public GeyserItemStack getOffhand() {

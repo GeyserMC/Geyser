@@ -25,12 +25,12 @@
 
 package org.geysermc.geyser.inventory;
 
-import org.geysermc.geyser.level.block.type.Block;
-import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.jetbrains.annotations.Range;
 
 /**
@@ -46,9 +46,9 @@ public class Container extends Inventory {
      */
     private boolean isUsingRealBlock = false;
 
-    public Container(String title, int id, int size, ContainerType containerType, PlayerInventory playerInventory) {
-        super(title, id, size, containerType);
-        this.playerInventory = playerInventory;
+    public Container(GeyserSession session, String title, int id, int size, ContainerType containerType) {
+        super(session, title, id, size, containerType);
+        this.playerInventory = session.getPlayerInventory();
         this.containerSize = this.size + InventoryTranslator.PLAYER_INVENTORY_SIZE;
     }
 

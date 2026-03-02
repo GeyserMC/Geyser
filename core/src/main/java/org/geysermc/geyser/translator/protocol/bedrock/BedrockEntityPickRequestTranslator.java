@@ -26,15 +26,11 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.EntityPickRequestPacket;
-import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.util.InventoryUtils;
-
-import java.util.Locale;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemFromEntityPacket;
 
 /**
  * Called when the Bedrock user uses the pick block button on an entity
@@ -49,50 +45,8 @@ public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityP
             return;
         }
         Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
-        if (entity == null) return;
-
-        // Get the corresponding item
-        String itemName;
-        switch (entity.getDefinition().entityType()) {
-            case BOAT, CHEST_BOAT -> {
-                // Include type of boat in the name
-                int variant = ((BoatEntity) entity).getVariant();
-                String typeOfBoat = switch (variant) {
-                    case 1 -> "spruce";
-                    case 2 -> "birch";
-                    case 3 -> "jungle";
-                    case 4 -> "acacia";
-                    case 5 -> "cherry";
-                    case 6 -> "dark_oak";
-                    case 7 -> "mangrove";
-                    case 8 -> "bamboo";
-                    default -> "oak";
-                };
-                itemName = typeOfBoat + "_" + entity.getDefinition().entityType().name().toLowerCase(Locale.ROOT);
-                // Bamboo boat is a raft
-                if (variant == 8) {
-                    itemName = itemName.replace("boat", "raft");
-                }
-            }
-            case LEASH_KNOT -> itemName = "lead";
-            case CHEST_MINECART, COMMAND_BLOCK_MINECART, FURNACE_MINECART, HOPPER_MINECART, TNT_MINECART ->
-                    // The Bedrock identifier matches the item name which moves MINECART to the end of the name
-                    // TODO test
-                    itemName = entity.getDefinition().identifier();
-            case SPAWNER_MINECART -> itemName = "minecart"; // Turns into a normal minecart
-            //case ITEM_FRAME -> Not an entity in Bedrock Edition
-            //case GLOW_ITEM_FRAME ->
-            case ARMOR_STAND, END_CRYSTAL, MINECART, PAINTING ->
-                    // No spawn egg, just an item
-                    itemName = entity.getDefinition().entityType().toString().toLowerCase(Locale.ROOT);
-            default -> itemName = entity.getDefinition().entityType().toString().toLowerCase(Locale.ROOT) + "_spawn_egg";
+        if (entity != null) {
+            session.sendDownstreamGamePacket(new ServerboundPickItemFromEntityPacket(entity.javaId(), false));
         }
-
-        String fullItemName = "minecraft:" + itemName;
-        ItemMapping mapping = session.getItemMappings().getMapping(fullItemName);
-        // Verify it is, indeed, an item
-        if (mapping == null) return;
-
-        InventoryUtils.findOrCreateItem(session, fullItemName);
     }
 }

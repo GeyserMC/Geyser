@@ -43,6 +43,15 @@ public class BoundingBox implements Cloneable {
     private double sizeY;
     private double sizeZ;
 
+    public BoundingBox(Vector3d position, double sizeX, double sizeY, double sizeZ) {
+        this.middleX = position.getX();
+        this.middleY = position.getY();
+        this.middleZ = position.getZ();
+        this.sizeX = sizeX;
+        this.sizeY = sizeY;
+        this.sizeZ = sizeZ;
+    }
+
     public void translate(double x, double y, double z) {
         middleX += x;
         middleY += y;
@@ -57,6 +66,12 @@ public class BoundingBox implements Cloneable {
         sizeX += Math.abs(x);
         sizeY += Math.abs(y);
         sizeZ += Math.abs(z);
+    }
+
+    public void scale(double x, double y, double z) {
+        sizeX *= x;
+        sizeY *= y;
+        sizeZ *= z;
     }
 
     public void expand(double x, double y, double z) {
@@ -85,6 +100,10 @@ public class BoundingBox implements Cloneable {
 
     public boolean checkIntersection(Vector3d offset, BoundingBox otherBox) {
         return checkIntersection(offset.getX(), offset.getY(), offset.getZ(), otherBox);
+    }
+
+    public boolean checkIntersection(BoundingBox otherBox) {
+        return checkIntersection(0, 0, 0, otherBox);
     }
 
     public Vector3d getMin() {
@@ -127,6 +146,47 @@ public class BoundingBox implements Cloneable {
             case Y -> (sizeY + otherBox.getSizeY()) - Math.abs((middleY + yOffset) - otherBox.getMiddleY()) * 2 > EPSILON;
             case Z -> (sizeZ + otherBox.getSizeZ()) - Math.abs((middleZ + zOffset) - otherBox.getMiddleZ()) * 2 > EPSILON;
         };
+    }
+
+    public void pushOutOfBoundingBox(BoundingBox playerBox, Direction direction, double maxPushTolerance) {
+        switch (direction) {
+            case NORTH -> {
+                double distance = this.getMin(Axis.Z) - playerBox.getMax(Axis.Z);
+                if (Math.abs(distance) < maxPushTolerance) {
+                    playerBox.translate(0, 0, distance);
+                }
+            }
+            case SOUTH -> {
+                double distance = this.getMax(Axis.Z) - playerBox.getMin(Axis.Z);
+                if (Math.abs(distance) < maxPushTolerance) {
+                    playerBox.translate(0, 0, distance);
+                }
+            }
+            case EAST -> {
+                double distance = this.getMax(Axis.X) - playerBox.getMin(Axis.X);
+                if (Math.abs(distance) < maxPushTolerance) {
+                    playerBox.translate(distance, 0, 0);
+                }
+            }
+            case WEST -> {
+                double distance = this.getMin(Axis.X) - playerBox.getMax(Axis.X);
+                if (Math.abs(distance) < maxPushTolerance) {
+                    playerBox.translate(distance, 0, 0);
+                }
+            }
+            case UP -> {
+                double distance = this.getMax(Axis.Y) - playerBox.getMin(Axis.Y);
+                if (Math.abs(distance) < maxPushTolerance) {
+                    playerBox.translate(0, distance, 0);
+                }
+            }
+            case DOWN -> {
+                double distance = this.getMin(Axis.Y) - playerBox.getMax(Axis.Y);
+                if (Math.abs(distance) < maxPushTolerance) {
+                    playerBox.translate(0, distance, 0);
+                }
+            }
+        }
     }
 
     /**
@@ -179,6 +239,10 @@ public class BoundingBox implements Cloneable {
             case WEST -> getMax().getX() - otherBoundingBox.getMin().getX();
             case EAST -> otherBoundingBox.getMax().getX() - getMin().getX();
         };
+    }
+
+    public boolean isEmpty() {
+        return getMax(Axis.X) - getMin(Axis.X) < 1.0E-7D || getMax(Axis.Y) - getMin(Axis.Y) < 1.0E-7D || getMax(Axis.Z) - getMin(Axis.Z) < 1.0E-7D;
     }
 
     @SneakyThrows(CloneNotSupportedException.class)

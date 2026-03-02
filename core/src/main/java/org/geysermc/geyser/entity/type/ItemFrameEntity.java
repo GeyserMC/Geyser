@@ -26,7 +26,6 @@
 package org.geysermc.geyser.entity.type;
 
 import lombok.Getter;
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
@@ -34,7 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.InteractionResult;
@@ -46,12 +45,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
-import java.util.UUID;
-
 /**
  * Item frames are an entity in Java but a block entity in Bedrock.
  */
-public class ItemFrameEntity extends Entity {
+public class ItemFrameEntity extends HangingEntity {
     /**
      * Used for getting the Bedrock block position.
      * Blocks deal with integers whereas entities deal with floats.
@@ -60,7 +57,7 @@ public class ItemFrameEntity extends Entity {
     /**
      * Specific block 'state' we are emulating in Bedrock.
      */
-    private final BlockDefinition blockDefinition;
+    private BlockDefinition blockDefinition;
     /**
      * Rotation of item in frame.
      */
@@ -75,22 +72,14 @@ public class ItemFrameEntity extends Entity {
     @Getter
     private ItemStack heldItem = null;
     /**
-     * Determines if this entity needs updated on the client end/
+     * Determines if this entity needs to be updated on the client end.
      */
     private boolean changed = true;
 
-    public ItemFrameEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw, Direction direction) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public ItemFrameEntity(EntitySpawnContext context) {
+        super(context);
 
-        NbtMapBuilder blockBuilder = NbtMap.builder()
-                .putString("name", this.definition.entityType() == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_frame" : "minecraft:frame");
-        NbtMapBuilder statesBuilder = NbtMap.builder()
-                .putInt("facing_direction", direction.ordinal())
-                .putByte("item_frame_map_bit", (byte) 0)
-                .putByte("item_frame_photo_bit", (byte) 0);
-        blockBuilder.put("states", statesBuilder.build());
-
-        blockDefinition = session.getBlockMappings().getItemFrame(blockBuilder.build());
+        blockDefinition = buildBlockDefinition(Direction.SOUTH); // Default to SOUTH direction, like on Java - entity metadata should correct this when necessary
         bedrockPosition = Vector3i.from(position.getFloorX(), position.getFloorY(), position.getFloorZ());
 
         session.getItemFrameCache().put(bedrockPosition, this);
@@ -109,18 +98,33 @@ public class ItemFrameEntity extends Entity {
         valid = true;
     }
 
+    @Override
+    public void setDirection(Direction direction) {
+        blockDefinition = buildBlockDefinition(direction);
+        changed = true;
+    }
+
     public void setItemInFrame(EntityMetadata<ItemStack, ?> entityMetadata) {
         if (entityMetadata.getValue() != null) {
             this.heldItem = entityMetadata.getValue();
             ItemData itemData = ItemTranslator.translateToBedrock(session, heldItem);
-
             String customIdentifier = session.getItemMappings().getCustomIdMappings().get(itemData.getDefinition().getRuntimeId());
 
             NbtMapBuilder builder = NbtMap.builder();
-
             builder.putByte("Count", (byte) itemData.getCount());
-            if (itemData.getTag() != null) {
-                builder.put("tag", itemData.getTag());
+            NbtMap itemDataTag = itemData.getTag();
+            if (itemDataTag != null) {
+                // Remove custom name that Geyser sets for items due to translating non-"custom_name" components
+                String customName = ItemTranslator.getCustomName(session, heldItem.getDataComponentsPatch(),
+                    session.getItemMappings().getMapping(heldItem), 'f', true, false);
+                if (customName == null) {
+                    // No custom name found, must modify tag if custom name exists
+                    NbtMapBuilder copy = itemDataTag.toBuilder();
+                    copy.remove("display"); // Also removes lore, but, should not matter
+                    itemDataTag = copy.build();
+                }
+
+                builder.put("tag", itemDataTag);
             }
             builder.putShort("Damage", (short) itemData.getDamage());
             builder.putString("Name", customIdentifier != null ? customIdentifier : session.getItemMappings().getMapping(entityMetadata.getValue()).getBedrockIdentifier());
@@ -211,6 +215,18 @@ public class ItemFrameEntity extends Entity {
     @Override
     public InteractionResult interact(Hand hand) {
         return InventoryUtils.isEmpty(heldItem) && session.getPlayerInventory().getItemInHand(hand).isEmpty() ? InteractionResult.PASS : InteractionResult.SUCCESS;
+    }
+
+    private BlockDefinition buildBlockDefinition(Direction direction) {
+        NbtMapBuilder blockBuilder = NbtMap.builder()
+            .putString("name", this.definition.entityType() == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_frame" : "minecraft:frame");
+        NbtMapBuilder statesBuilder = NbtMap.builder()
+            .putInt("facing_direction", direction.ordinal())
+            .putByte("item_frame_map_bit", (byte) 0)
+            .putByte("item_frame_photo_bit", (byte) 0);
+        blockBuilder.put("states", statesBuilder.build());
+
+        return session.getBlockMappings().getItemFrame(blockBuilder.build());
     }
 
     /**

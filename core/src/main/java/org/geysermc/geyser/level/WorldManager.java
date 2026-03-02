@@ -38,8 +38,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemCodecHelper;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
 import java.util.HashMap;
@@ -126,7 +126,7 @@ public abstract class WorldManager {
      * @param value The new value for the gamerule
      */
     public void setGameRule(GeyserSession session, String name, Object value) {
-        session.sendCommand("gamerule " + name + " " + value);
+        session.sendCommandPacket("gamerule " + name + " " + value);
     }
 
     /**
@@ -148,16 +148,6 @@ public abstract class WorldManager {
     public abstract int getGameRuleInt(GeyserSession session, GameRule gameRule);
 
     /**
-     * Change the game mode of the given session
-     *
-     * @param session The session of the player to change the game mode of
-     * @param gameMode The game mode to change the player to
-     */
-    public void setPlayerGameMode(GeyserSession session, GameMode gameMode) {
-        session.sendCommand("gamemode " + gameMode.name().toLowerCase(Locale.ROOT));
-    }
-
-    /**
      * Get the default game mode of the server
      *
      * @param session the player requesting the default game mode
@@ -172,7 +162,7 @@ public abstract class WorldManager {
      * @param gameMode the new default game mode
      */
     public void setDefaultGameMode(GeyserSession session, GameMode gameMode) {
-        session.sendCommand("defaultgamemode " + gameMode.name().toLowerCase(Locale.ROOT));
+        session.sendCommandPacket("defaultgamemode " + gameMode.name().toLowerCase(Locale.ROOT));
     }
 
     /**
@@ -182,7 +172,7 @@ public abstract class WorldManager {
      * @param difficulty The difficulty to change to
      */
     public void setDifficulty(GeyserSession session, Difficulty difficulty) {
-        session.sendCommand("difficulty " + difficulty.name().toLowerCase(Locale.ROOT));
+        session.sendCommandPacket("difficulty " + difficulty.name().toLowerCase(Locale.ROOT));
     }
 
     /**
@@ -190,16 +180,6 @@ public abstract class WorldManager {
      */
     public String @Nullable [] getBiomeIdentifiers(boolean withTags) {
         return null;
-    }
-
-    /**
-     * Used for pick block, so we don't need to cache more data than necessary.
-     *
-     * @return expected NBT for this item.
-     */
-    @NonNull
-    public CompletableFuture<@Nullable DataComponents> getPickItemComponents(GeyserSession session, int x, int y, int z, boolean addExtraData) {
-        return CompletableFuture.completedFuture(null);
     }
 
     /**
@@ -213,9 +193,9 @@ public abstract class WorldManager {
         try {
             Map<DataComponentType<?>, DataComponent<?, ?>> components = new HashMap<>();
             Int2ObjectMaps.fastForEach(map, entry -> {
-                DataComponentType type = DataComponentType.from(entry.getIntKey());
+                DataComponentType<?> type = DataComponentTypes.from(entry.getIntKey());
                 ByteBuf buf = Unpooled.wrappedBuffer(entry.getValue());
-                DataComponent value = type.readDataComponent(ItemCodecHelper.INSTANCE, buf);
+                DataComponent<?, ?> value = type.readDataComponent(buf);
                 components.put(type, value);
             });
             return new DataComponents(components);

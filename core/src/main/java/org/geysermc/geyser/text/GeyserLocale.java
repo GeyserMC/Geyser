@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Properties;
 
 public class GeyserLocale {
+    public static final String SYSTEM_LOCALE = "system";
 
     /**
      * If we determine the default locale that the user wishes to use, use that locale
@@ -80,8 +81,8 @@ public class GeyserLocale {
      * Finalize the default locale, now that we know what the default locale should be.
      */
     public static void finalizeDefaultLocale(GeyserImpl geyser) {
-        String newDefaultLocale = geyser.getConfig().getDefaultLocale();
-        if (newDefaultLocale == null) {
+        String newDefaultLocale = geyser.config().defaultLocale();
+        if (SYSTEM_LOCALE.equals(newDefaultLocale)) {
             // We want to use the system locale which is already loaded
             return;
         }
@@ -158,7 +159,7 @@ public class GeyserLocale {
         // By loading both, we ensure that if a language string doesn't exist in the custom properties folder,
         // it's loaded from our jar
         if (validLocalLanguage) {
-            try (InputStream stream = new FileInputStream(localLanguage)) {
+            try (InputStreamReader stream = new InputStreamReader(new FileInputStream(localLanguage), StandardCharsets.UTF_8)) {
                 localeProp.load(stream);
             } catch (IOException e) {
                 String message = "Unable to load custom language override!";

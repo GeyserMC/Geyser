@@ -27,6 +27,7 @@ package org.geysermc.geyser.event;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
+import org.geysermc.event.FireResult;
 import org.geysermc.event.PostOrder;
 import org.geysermc.event.bus.impl.OwnedEventBusImpl;
 import org.geysermc.event.subscribe.OwnedSubscriber;
@@ -34,6 +35,7 @@ import org.geysermc.event.subscribe.Subscribe;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.EventSubscriber;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -67,5 +69,12 @@ public final class GeyserEventBus extends OwnedEventBusImpl<EventRegistrar, Even
     @NonNull
     public <T extends Event> Set<? extends EventSubscriber<EventRegistrar, T>> subscribers(@NonNull Class<T> eventClass) {
         return castGenericSet(super.subscribers(eventClass));
+    }
+
+    public void fireEventElseKick(@NonNull Event event, GeyserSession session) {
+        FireResult result = this.fire(event);
+        if (!result.success()) {
+            session.disconnect("Internal server error occurred! Please contact a server administrator.");
+        }
     }
 }

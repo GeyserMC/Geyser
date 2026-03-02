@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.registry.populator;
 
+import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -36,26 +37,35 @@ import org.geysermc.geyser.configuration.GeyserCustomSkullConfiguration;
 import org.geysermc.geyser.pack.SkullResourcePackManager;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
-import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.JsonUtils;
+import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.util.TextureUrlChecker;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 public class CustomSkullRegistryPopulator {
+
+    private static final Pattern SKULL_HASH_PATTERN = Pattern.compile("^[a-fA-F0-9]+$");
 
     public static void populate() {
         SkullResourcePackManager.SKULL_SKINS.clear(); // Remove skins after reloading
         BlockRegistries.CUSTOM_SKULLS.set(Object2ObjectMaps.emptyMap());
 
-        if (!GeyserImpl.getInstance().getConfig().isAddNonBedrockItems()) {
+        if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
             return;
         }
 
@@ -117,8 +127,8 @@ public class CustomSkullRegistryPopulator {
         });
 
         skinHashes.forEach((skinHash) -> {
-            if (!skinHash.matches("^[a-fA-F0-9]+$")) {
-                GeyserImpl.getInstance().getLogger().error("Skin hash " + skinHash + " does not match required format ^[a-fA-F0-9]{64}$ and will not be added as a custom block.");
+            if (!SKULL_HASH_PATTERN.matcher(skinHash).matches()) {
+                GeyserImpl.getInstance().getLogger().error("Skin hash " + skinHash + " does not match required format ^[a-fA-F0-9]+$ and will not be added as a custom block.");
                 return;
             }
 
@@ -141,18 +151,12 @@ public class CustomSkullRegistryPopulator {
      * @return the skin hash or null if the profile is invalid
      */
     private static @Nullable String getSkinHash(String profile) {
-        try {
-            SkinManager.GameProfileData profileData = SkinManager.GameProfileData.loadFromJson(profile);
-            if (profileData == null) {
-                GeyserImpl.getInstance().getLogger().warning("Skull texture " + profile + " contained no skins and will not be added as a custom block.");
-                return null;
-            }
-            String skinUrl = profileData.skinUrl();
-            return skinUrl.substring(skinUrl.lastIndexOf("/") + 1);
-        } catch (IOException e) {
-            GeyserImpl.getInstance().getLogger().error("Skull texture " + profile + " is invalid and will not be added as a custom block.", e);
+        String hash = loadHashFromJson(profile);
+        if (hash == null) {
+            GeyserImpl.getInstance().getLogger().warning("Skull texture " + profile + " contained no valid skins and will not be added as a custom block.");
             return null;
         }
+        return hash;
     }
 
     /**
@@ -176,15 +180,63 @@ public class CustomSkullRegistryPopulator {
      */
     private static @Nullable String getProfileFromUuid(String uuid) {
         try {
-            String uuidDigits = uuid.replace("-", "");
-            if (uuidDigits.length() != 32) {
-                GeyserImpl.getInstance().getLogger().error("Invalid skull uuid " + uuid + " This skull will not be added as a custom block.");
-                return null;
-            }
-            return SkinProvider.requestTexturesFromUUID(uuid).get();
+            UUID parsed = UUID.fromString(uuid);
+            return SkinProvider.requestTexturesFromUUID(parsed).get();
         } catch (InterruptedException | ExecutionException e) {
             GeyserImpl.getInstance().getLogger().error("Unable to request skull textures for " + uuid + " This skull will not be added as a custom block.", e);
             return null;
+        } catch (IllegalArgumentException e) {
+            GeyserImpl.getInstance().getLogger().error("Invalid skull uuid " + uuid + " This skull will not be added as a custom block.");
+            return null;
         }
+    }
+
+    /**
+     * Gets the skin hash from a profile
+     */
+    public static @Nullable String loadHashFromJson(String encodedJson) {
+        JsonObject skinObject;
+        try {
+            skinObject = JsonUtils.parseJson(new String(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
+        } catch (IllegalArgumentException e) {
+            GeyserImpl.getInstance().getLogger().warning("Invalid base64 encoded profile!");
+            return null;
+        }
+
+        MinimalTexturesPayload result;
+        try {
+            result = GeyserImpl.GSON.fromJson(skinObject, MinimalTexturesPayload.class);
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().error("Could not decode texture payload!", e);
+            return null;
+        }
+
+        if (result != null && result.textures != null) {
+            for (GameProfile.Texture texture : result.textures.values()) {
+                if (TextureUrlChecker.isAllowedTextureDomain(texture.getURL())) {
+                    continue;
+                }
+
+                GeyserImpl.getInstance().getLogger().warning("Textures payload has been tampered with! (non-whitelisted domain)!");
+                return null;
+            }
+
+            GameProfile.Texture skin = result.textures.get(GameProfile.TextureType.SKIN);
+            if (skin == null) {
+                GeyserImpl.getInstance().getLogger().warning("Textures payload contains no skin!");
+                return null;
+            }
+
+            return skin.getHash();
+        }
+        return null;
+    }
+
+    /*
+     * see mcpl GameProfile's MinecraftTexturesPayload for the full impl
+     * We only need the textures, and e.g. profileId throws due to missing uuid conversion
+     */
+    private static class MinimalTexturesPayload {
+        public Map<GameProfile.TextureType, GameProfile.Texture> textures;
     }
 }

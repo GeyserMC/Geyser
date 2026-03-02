@@ -56,7 +56,7 @@ public class ListRegistry<M> extends Registry<List<M>> {
      */
     @Nullable
     public M get(int index) {
-        if (index >= this.mappings.size()) {
+        if (index < 0 || index >= this.mappings.size()) {
             return null;
         }
 
@@ -138,6 +138,18 @@ public class ListRegistry<M> extends Registry<List<M>> {
      */
     public static <I, M> ListRegistry<M> create(RegistryLoader<I, List<M>> registryLoader) {
         return new ListRegistry<>(null, registryLoader);
+    }
+
+    /**
+     * Creates a new integer mapped registry with the given {@link RegistryLoader} and input.
+     *
+     * @param registryLoader the registry loader
+     * @param <I> the input
+     * @param <M> the type value
+     * @return a new registry with the given RegistryLoader
+     */
+    public static <I, M> ListRegistry<M> create(I input, RegistryLoader<I, List<M>> registryLoader) {
+        return new ListRegistry<>(input, registryLoader);
     }
 
     /**

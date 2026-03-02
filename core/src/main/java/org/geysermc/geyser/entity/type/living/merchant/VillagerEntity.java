@@ -32,16 +32,14 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BedBlock;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.VillagerData;
 
 import java.util.Optional;
-import java.util.UUID;
 
 public class VillagerEntity extends AbstractMerchantEntity {
     /**
@@ -88,8 +86,8 @@ public class VillagerEntity extends AbstractMerchantEntity {
     @Getter
     private boolean canTradeWith;
 
-    public VillagerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public VillagerEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     public void setVillagerData(EntityMetadata<VillagerData, ?> entityMetadata) {
@@ -111,11 +109,11 @@ public class VillagerEntity extends AbstractMerchantEntity {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         // The bed block position, if it exists
         if (!getFlag(EntityFlag.SLEEPING) || bedPosition == null) {
             // No need to worry about extra processing to compensate for sleeping
-            super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+            super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
             return;
         }
         

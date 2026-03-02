@@ -25,11 +25,10 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
 /**
- * A more compact version of {@link org.geysermc.mcprotocollib.protocol.data.game.recipe.Recipe}.
+ * A more compact version of {@link org.geysermc.mcprotocollib.protocol.data.game.recipe.display.RecipeDisplay}.
  */
 public interface GeyserRecipe {
     /**
@@ -37,6 +36,5 @@ public interface GeyserRecipe {
      */
     boolean isShaped();
 
-    @Nullable
-    ItemStack result();
+    SlotDisplay result();
 }

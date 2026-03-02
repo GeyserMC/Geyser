@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.util;
 
-import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.enchantment.Enchantment;
@@ -34,8 +34,8 @@ import org.geysermc.geyser.item.enchantment.EnchantmentComponent;
 import org.geysermc.geyser.item.type.FishingRodItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 
@@ -52,13 +52,13 @@ public final class ItemUtils {
             return 0;
         }
 
-        ItemEnchantments enchantmentData = components.get(DataComponentType.ENCHANTMENTS);
+        ItemEnchantments enchantmentData = components.get(DataComponentTypes.ENCHANTMENTS);
         if (enchantmentData == null) {
             return 0;
         }
 
         for (Map.Entry<Integer, Integer> entry : enchantmentData.getEnchantments().entrySet()) {
-            Enchantment enchantment = session.getRegistryCache().enchantments().byId(entry.getKey());
+            Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(entry.getKey());
             if (enchantment.bedrockEnchantment() == bedrockEnchantment) {
                 return entry.getValue();
             }
@@ -66,22 +66,18 @@ public final class ItemUtils {
         return 0;
     }
 
-    public static boolean hasEffect(GeyserSession session, @Nullable ItemStack itemStack, EnchantmentComponent component) {
-        if (itemStack == null) {
-            return false;
-        }
-        DataComponents components = itemStack.getDataComponents();
-        if (components == null) {
+    public static boolean hasEffect(GeyserSession session, @Nullable GeyserItemStack itemStack, EnchantmentComponent component) {
+        if (itemStack == null || itemStack.isEmpty()) {
             return false;
         }
 
-        ItemEnchantments enchantmentData = components.get(DataComponentType.ENCHANTMENTS);
+        ItemEnchantments enchantmentData = itemStack.getComponent(DataComponentTypes.ENCHANTMENTS);
         if (enchantmentData == null) {
             return false;
         }
 
         for (Integer id : enchantmentData.getEnchantments().keySet()) {
-            Enchantment enchantment = session.getRegistryCache().enchantments().byId(id);
+            Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(id);
             if (enchantment.effects().contains(component)) {
                 return true;
             }
@@ -100,17 +96,6 @@ public final class ItemUtils {
             return FishingRodItem.getBedrockDamage(original);
         }
         return original;
-    }
-
-    /**
-     * @param components the data components of the item
-     * @return the custom name of the item
-     */
-    public static @Nullable Component getCustomName(DataComponents components) {
-        if (components == null) {
-            return null;
-        }
-        return components.get(DataComponentType.CUSTOM_NAME);
     }
 
     private ItemUtils() {

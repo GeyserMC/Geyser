@@ -29,6 +29,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.command.RemoteConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -76,7 +77,7 @@ public class SpigotCommandSource implements GeyserCommandSource {
 
     @Override
     public boolean isConsole() {
-        return handle instanceof ConsoleCommandSender;
+        return handle instanceof ConsoleCommandSender || handle instanceof RemoteConsoleCommandSender;
     }
 
     @Override

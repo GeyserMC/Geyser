@@ -28,6 +28,7 @@ package org.geysermc.geyser.platform.bungeecord;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
+import net.md_5.bungee.netty.LengthPrependerAndCompressor;
 import net.md_5.bungee.protocol.packet.LoginSuccess;
 import net.md_5.bungee.protocol.packet.SetCompression;
 
@@ -40,8 +41,9 @@ public class GeyserBungeeCompressionDisabler extends ChannelOutboundHandlerAdapt
             // Fixes https://github.com/GeyserMC/Geyser/issues/4281
             // The server may send a LoginDisconnect packet after compression is set.
             if (!compressionDisabled) {
-                if (ctx.pipeline().get("compress") != null) {
-                    ctx.pipeline().remove("compress");
+                LengthPrependerAndCompressor compressor = ctx.pipeline().get(LengthPrependerAndCompressor.class);
+                if (compressor.isCompress()) {
+                    compressor.setCompress(false);
                     compressionDisabled = true;
                 }
                 if (ctx.pipeline().get("decompress") != null) {

@@ -25,10 +25,13 @@
 
 package org.geysermc.geyser.platform.mod.command;
 
+import com.google.gson.JsonElement;
+import com.mojang.serialization.JsonOps;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.level.ServerPlayer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -36,7 +39,6 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.text.ChatColor;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class ModCommandSource implements GeyserCommandSource {
@@ -65,8 +67,8 @@ public class ModCommandSource implements GeyserCommandSource {
     @Override
     public void sendMessage(net.kyori.adventure.text.Component message) {
         if (source.getEntity() instanceof ServerPlayer player) {
-            String decoded = GsonComponentSerializer.gson().serialize(message);
-            player.displayClientMessage(Objects.requireNonNull(Component.Serializer.fromJson(decoded, RegistryAccess.EMPTY)), false);
+            JsonElement jsonComponent = GsonComponentSerializer.gson().serializeToTree(message);
+            player.displayClientMessage(ComponentSerialization.CODEC.parse(RegistryOps.create(JsonOps.INSTANCE, player.registryAccess()), jsonComponent).getOrThrow(), false);
             return;
         }
         GeyserCommandSource.super.sendMessage(message);

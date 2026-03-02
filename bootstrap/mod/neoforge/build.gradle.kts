@@ -1,14 +1,27 @@
-// This is provided by "org.cloudburstmc.math.mutable" too, so yeet.
-// NeoForge's class loader is *really* annoying.
-provided("org.cloudburstmc.math", "api")
-provided("com.google.errorprone", "error_prone_annotations")
+plugins {
+    id("geyser.modded-conventions")
+    id("geyser.modrinth-uploading-conventions")
+}
 
 architectury {
     platformSetupLoomIde()
     neoForge()
 }
 
-val includeTransitive: Configuration = configurations.getByName("includeTransitive")
+loom {
+    mods {
+        create("geyser-neoforge") {
+            sourceSet(sourceSets.main.get())
+            sourceSet("main", projects.mod)
+            sourceSet("main", projects.core)
+        }
+    }
+}
+
+// This is provided by "org.cloudburstmc.math.mutable" too, so yeet.
+// NeoForge's class loader is *really* annoying.
+provided("org.cloudburstmc.math", "api")
+provided("com.google.errorprone", "error_prone_annotations")
 
 dependencies {
     // See https://github.com/google/guava/issues/6618
@@ -21,13 +34,16 @@ dependencies {
     neoForge(libs.neoforge.minecraft)
 
     api(project(":mod", configuration = "namedElements"))
-    shadow(project(path = ":mod", configuration = "transformProductionNeoForge")) {
-        isTransitive = false
-    }
-    shadow(projects.core) { isTransitive = false }
+    shadowBundle(project(path = ":mod", configuration = "transformProductionNeoForge"))
+    shadowBundle(projects.core)
 
     // Let's shade in our own api
-    shadow(projects.api) { isTransitive = false }
+    shadowBundle(projects.api)
+
+    // shade + relocate these to avoid conflicts
+    shadowBundle(libs.configurate.`interface`)
+    shadowBundle(libs.configurate.yaml)
+    shadowBundle(libs.configurate.core)
 
     // cannot be shaded, since neoforge will complain if floodgate-neoforge tries to provide this
     include(projects.common)
@@ -38,6 +54,8 @@ dependencies {
     modImplementation(libs.cloud.neoforge)
     include(libs.cloud.neoforge)
 }
+
+relocate("org.spongepowered.configurate")
 
 tasks.withType<Jar> {
     manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.neoforge.GeyserNeoForgeMain"
@@ -50,6 +68,10 @@ tasks {
 
     remapModrinthJar {
         archiveBaseName.set("geyser-neoforge")
+    }
+
+    shadowJar {
+        mergeServiceFiles()
     }
 }
 

@@ -25,23 +25,17 @@
 
 package org.geysermc.geyser.translator.protocol.java.scoreboard;
 
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamAction;
-import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetPlayerTeamPacket;
+import java.util.Arrays;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.scoreboard.Team;
-import org.geysermc.geyser.scoreboard.UpdateType;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-import org.geysermc.geyser.translator.text.MessageTranslator;
-
-import java.util.Arrays;
-import java.util.Set;
+import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamAction;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetPlayerTeamPacket;
 
 @Translator(packet = ClientboundSetPlayerTeamPacket.class)
 public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSetPlayerTeamPacket> {
@@ -60,82 +54,44 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
         int pps = session.getWorldCache().increaseAndGetScoreboardPacketsPerSecond();
 
         Scoreboard scoreboard = session.getWorldCache().getScoreboard();
-        Team team = scoreboard.getTeam(packet.getTeamName());
-        switch (packet.getAction()) {
-            case CREATE -> {
-                team = scoreboard.registerNewTeam(packet.getTeamName(), packet.getPlayers())
-                        .setName(MessageTranslator.convertMessage(packet.getDisplayName()))
-                        .setColor(packet.getColor())
-                        .setNameTagVisibility(packet.getNameTagVisibility())
-                        .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.locale()))
-                        .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.locale()));
 
-                if (packet.getPlayers().length != 0) {
-                    if ((team.getNameTagVisibility() != NameTagVisibility.ALWAYS && !team.isVisibleFor(session.getPlayerEntity().getUsername()))
-                            || team.getColor() != TeamColor.RESET
-                            || !team.getCurrentData().getPrefix().isEmpty()
-                            || !team.getCurrentData().getSuffix().isEmpty()) {
-                        // Something is here that would modify entity names
-                        scoreboard.updateEntityNames(team, true);
-                    }
+        if (packet.getAction() == TeamAction.CREATE) {
+            scoreboard.registerNewTeam(
+                packet.getTeamName(),
+                packet.getPlayers(),
+                packet.getDisplayName(),
+                packet.getPrefix(),
+                packet.getSuffix(),
+                packet.getNameTagVisibility(),
+                packet.getColor()
+            );
+        } else {
+            Team team = scoreboard.getTeam(packet.getTeamName());
+            if (team == null) {
+                if (logger.isDebug()) {
+                    logger.debug("Error while translating Team Packet " + packet.getAction()
+                        + "! Scoreboard Team " + packet.getTeamName() + " is not registered."
+                    );
                 }
+                return;
             }
-            case UPDATE -> {
-                if (team == null) {
-                    if (logger.isDebug()) {
-                        logger.debug("Error while translating Team Packet " + packet.getAction()
-                                + "! Scoreboard Team " + packet.getTeamName() + " is not registered."
-                        );
-                    }
-                    return;
-                }
 
-                TeamColor oldColor = team.getColor();
-                NameTagVisibility oldVisibility = team.getNameTagVisibility();
-                String oldPrefix = team.getCurrentData().getPrefix();
-                String oldSuffix = team.getCurrentData().getSuffix();
-
-                team.setName(MessageTranslator.convertMessage(packet.getDisplayName()))
-                        .setColor(packet.getColor())
-                        .setNameTagVisibility(packet.getNameTagVisibility())
-                        .setPrefix(MessageTranslator.convertMessage(packet.getPrefix(), session.locale()))
-                        .setSuffix(MessageTranslator.convertMessage(packet.getSuffix(), session.locale()))
-                        .setUpdateType(UpdateType.UPDATE);
-
-                if (oldVisibility != team.getNameTagVisibility()
-                        || oldColor != team.getColor()
-                        || !oldPrefix.equals(team.getCurrentData().getPrefix())
-                        || !oldSuffix.equals(team.getCurrentData().getSuffix())) {
-                    // Update entities attached to this team as something about their nameplates have changed
-                    scoreboard.updateEntityNames(team, false);
+            switch (packet.getAction()) {
+                case UPDATE -> {
+                    team.updateProperties(
+                        packet.getDisplayName(),
+                        packet.getPrefix(),
+                        packet.getSuffix(),
+                        packet.getNameTagVisibility(),
+                        packet.getColor()
+                    );
                 }
+                case ADD_PLAYER -> team.addEntities(packet.getPlayers());
+                case REMOVE_PLAYER -> team.removeEntities(packet.getPlayers());
+                case REMOVE -> scoreboard.removeTeam(packet.getTeamName());
             }
-            case ADD_PLAYER -> {
-                if (team == null) {
-                    if (logger.isDebug()) {
-                        logger.debug("Error while translating Team Packet " + packet.getAction()
-                                + "! Scoreboard Team " + packet.getTeamName() + " is not registered."
-                        );
-                    }
-                    return;
-                }
-                Set<String> added = team.addEntities(packet.getPlayers());
-                scoreboard.updateEntityNames(team, added, true);
-            }
-            case REMOVE_PLAYER -> {
-                if (team == null) {
-                    if (logger.isDebug()) {
-                        logger.debug("Error while translating Team Packet " + packet.getAction()
-                                + "! Scoreboard Team " + packet.getTeamName() + " is not registered."
-                        );
-                    }
-                    return;
-                }
-                Set<String> removed = team.removeEntities(packet.getPlayers());
-                scoreboard.updateEntityNames(null, removed, true);
-            }
-            case REMOVE -> scoreboard.removeTeam(packet.getTeamName());
         }
+
 
         // ScoreboardUpdater will handle it for us if the packets per second
         // (for score and team packets) is higher than the first threshold

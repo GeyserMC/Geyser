@@ -25,23 +25,13 @@
 
 package org.geysermc.geyser.entity.type;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.session.GeyserSession;
-
-import java.util.UUID;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 
 public class ExpOrbEntity extends Entity {
 
-    public ExpOrbEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> entityDefinition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        this(session, 1, entityId, geyserId, position);
-    }
-
-    public ExpOrbEntity(GeyserSession session, int amount, int entityId, long geyserId, Vector3f position) {
-        super(session, entityId, geyserId, null, EntityDefinitions.EXPERIENCE_ORB, position, Vector3f.ZERO, 0, 0, 0);
-
-        this.dirtyMetadata.put(EntityDataTypes.TRADE_EXPERIENCE, amount);
+    public ExpOrbEntity(EntitySpawnContext context) {
+        super(context);
+        this.dirtyMetadata.put(EntityDataTypes.TRADE_EXPERIENCE, 1);
     }
 }

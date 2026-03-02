@@ -26,7 +26,6 @@
 package org.geysermc.geyser.util;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntLists;
 import lombok.experimental.UtilityClass;
@@ -45,16 +44,20 @@ import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.GeyserLocale;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 @UtilityClass
 public class ChunkUtils {
 
+    private static final boolean SHOW_CHUNK_HEIGHT_WARNING_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowChunkHeightWarningLogs", "true"));
+
     public static final byte[] EMPTY_BIOME_DATA;
-
     public static final BlockStorage[] EMPTY_BLOCK_STORAGE;
-
     public static final int EMPTY_CHUNK_SECTION_SIZE;
+    private static final ConcurrentHashMap<Integer, byte[]> EMPTY_CHUNK_PAYLOAD_CACHE = new ConcurrentHashMap<>(3);
 
     static {
         EMPTY_BLOCK_STORAGE = new BlockStorage[0];
@@ -99,11 +102,18 @@ public class ChunkUtils {
             chunkPublisherUpdatePacket.setPosition(position);
             // Mitigates chunks not loading on 1.17.1 Paper and 1.19.3 Fabric. As of Bedrock 1.19.60.
             // https://github.com/GeyserMC/Geyser/issues/3490
-            chunkPublisherUpdatePacket.setRadius(GenericMath.ceil((session.getServerRenderDistance() + 1) * MathUtils.SQRT_OF_TWO) << 4);
+            chunkPublisherUpdatePacket.setRadius(squareToCircle(session.getServerRenderDistance()) << 4);
             session.sendUpstreamPacket(chunkPublisherUpdatePacket);
 
             session.setLastChunkPosition(newChunkPos);
         }
+    }
+
+    /**
+     * Converts a Java render distance number to the equivalent in Bedrock.
+     */
+    public static int squareToCircle(int renderDistance) {
+        return GenericMath.ceil((renderDistance + 1) * MathUtils.SQRT_OF_TWO);
     }
 
     /**
@@ -152,31 +162,31 @@ public class ChunkUtils {
         BedrockDimension bedrockDimension = session.getBedrockDimension();
         int bedrockSubChunkCount = bedrockDimension.height() >> 4;
 
-        byte[] payload;
-        // Allocate output buffer
-        ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(ChunkUtils.EMPTY_BIOME_DATA.length * bedrockSubChunkCount + 1); // Consists only of biome data and border blocks
-        try {
-            byteBuf.writeBytes(EMPTY_BIOME_DATA);
-            for (int i = 1; i < bedrockSubChunkCount; i++) {
-                byteBuf.writeByte((127 << 1) | 1);
+        byte[] payload = EMPTY_CHUNK_PAYLOAD_CACHE.computeIfAbsent(bedrockSubChunkCount, subChunkCount -> {
+            int biomeLength = EMPTY_BIOME_DATA.length;
+            int totalLength = biomeLength + subChunkCount;
+            byte[] data = new byte[totalLength];
+            // Copy biome data
+            System.arraycopy(EMPTY_BIOME_DATA, 0, data, 0, biomeLength);
+            // Marker byte (carry previous biome forward)
+            // The byte written here is a header that says to carry on the biome data from the previous chunk
+            byte marker = (byte) ((127 << 1) | 1);
+            // Fill marker bytes
+            for (int i = 0; i < subChunkCount - 1; i++) {
+                data[biomeLength + i] = marker;
             }
+            data[totalLength - 1] = 0; // Border blocks - Edu edition only
+            return data;
+        });
 
-            byteBuf.writeByte(0); // Border blocks - Edu edition only
-
-            payload = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(payload);
-
-            LevelChunkPacket data = new LevelChunkPacket();
-            data.setDimension(DimensionUtils.javaToBedrock(session.getBedrockDimension()));
-            data.setChunkX(chunkX);
-            data.setChunkZ(chunkZ);
-            data.setSubChunksLength(0);
-            data.setData(Unpooled.wrappedBuffer(payload));
-            data.setCachingEnabled(false);
-            session.sendUpstreamPacket(data);
-        } finally {
-            byteBuf.release();
-        }
+        LevelChunkPacket data = new LevelChunkPacket();
+        data.setDimension(bedrockDimension.bedrockId());
+        data.setChunkX(chunkX);
+        data.setChunkZ(chunkZ);
+        data.setSubChunksLength(0);
+        data.setData(Unpooled.wrappedBuffer(payload));
+        data.setCachingEnabled(false);
+        session.sendUpstreamPacket(data);
 
         if (forceUpdate) {
             Vector3i pos = Vector3i.from(chunkX << 4, 80, chunkZ << 4);
@@ -205,29 +215,21 @@ public class ChunkUtils {
     public static void loadDimension(GeyserSession session) {
         JavaDimension dimension = session.getDimensionType();
         int minY = dimension.minY();
-        int maxY = dimension.maxY();
-
-        if (minY % 16 != 0) {
-            throw new RuntimeException("Minimum Y must be a multiple of 16!");
-        }
-        if (maxY % 16 != 0) {
-            throw new RuntimeException("Maximum Y must be a multiple of 16!");
-        }
+        int height = dimension.height();
+        int maxY = minY + height;
 
         BedrockDimension bedrockDimension = session.getBedrockDimension();
         // Yell in the console if the world height is too height in the current scenario
         // The constraints change depending on if the player is in the overworld or not, and if experimental height is enabled
         // (Ignore this for the Nether. We can't change that at the moment without the workaround. :/ )
-        if (minY < bedrockDimension.minY() || (bedrockDimension.doUpperHeightWarn() && maxY > bedrockDimension.height())) {
+        if (SHOW_CHUNK_HEIGHT_WARNING_LOGS && (minY < bedrockDimension.minY() || (bedrockDimension.doUpperHeightWarn() && maxY > bedrockDimension.maxY()))) {
             session.getGeyser().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds",
                     String.valueOf(bedrockDimension.minY()),
-                    String.valueOf(bedrockDimension.height()),
-                    session.getRegistryCache().dimensions().byValue(session.getDimensionType())));
+                    String.valueOf(bedrockDimension.maxY()),
+                    session.getRegistryCache().registry(JavaRegistries.DIMENSION_TYPE).byValue(session.getDimensionType())));
         }
 
         session.getChunkCache().setMinY(minY);
-        session.getChunkCache().setHeightY(maxY);
-
-        session.getWorldBorder().setWorldCoordinateScale(dimension.worldCoordinateScale());
+        session.getChunkCache().setHeightY(height);
     }
 }

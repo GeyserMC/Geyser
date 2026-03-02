@@ -27,6 +27,7 @@ package org.geysermc.geyser.level.physics;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.util.TriState;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3d;
@@ -36,8 +37,8 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.Blocks;
@@ -47,8 +48,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.collision.OtherCollision;
-import org.geysermc.geyser.translator.collision.ScaffoldingCollision;
 import org.geysermc.geyser.translator.collision.SolidCollision;
+import org.geysermc.geyser.translator.collision.fixes.ScaffoldingCollision;
 import org.geysermc.geyser.util.BlockUtils;
 
 import java.text.DecimalFormat;
@@ -75,6 +76,9 @@ public class CollisionManager {
      */
     @Setter
     private boolean onScaffolding;
+
+    @Setter
+    private float scale = 1;
 
     /**
      * Additional space where blocks are checked, which is helpful for fixing NoCheatPlus's Passable check.
@@ -131,6 +135,11 @@ public class CollisionManager {
         double playerHeight = session.getPlayerEntity().getBoundingBoxHeight();
         playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2.0) + (playerHeight / 2.0));
         playerBoundingBox.setSizeY(playerHeight);
+        playerBoundingBox.setSizeX(session.getPlayerEntity().getBoundingBoxWidth());
+        playerBoundingBox.setSizeZ(session.getPlayerEntity().getBoundingBoxWidth());
+
+        // We also need to account for bounding box scaling.
+        playerBoundingBox.scale(scale, scale, scale);
     }
 
     /**
@@ -157,7 +166,7 @@ public class CollisionManager {
      * @param teleported whether the Bedrock player has teleported to a new position. If true, movement correction is skipped.
      * @return the position to send to the Java server, or null to cancel sending the packet
      */
-    public @Nullable Vector3d adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround, boolean teleported) {
+    public @Nullable CollisionResult adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround, boolean teleported) {
         PistonCache pistonCache = session.getPistonCache();
         // Bedrock clients tend to fall off of honey blocks, so we need to teleport them to the new position
         if (pistonCache.isPlayerAttachedToHoney()) {
@@ -165,10 +174,9 @@ public class CollisionManager {
         }
         // We need to parse the float as a string since casting a float to a double causes us to
         // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = bedrockPosition.getY() - EntityDefinitions.PLAYER.offset();
+        double javaY = Double.parseDouble(Float.toString(bedrockPosition.getY())) - EntityDefinitions.PLAYER.offset();
 
-        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY,
-                Double.parseDouble(Float.toString(bedrockPosition.getZ())));
+        Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY, Double.parseDouble(Float.toString(bedrockPosition.getZ())));
 
         // Don't correct position if controlling a vehicle
         if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
@@ -176,7 +184,7 @@ public class CollisionManager {
             playerBoundingBox.setMiddleY(position.getY() + playerBoundingBox.getSizeY() / 2);
             playerBoundingBox.setMiddleZ(position.getZ());
 
-            return playerBoundingBox.getBottomCenter();
+            return new CollisionResult(playerBoundingBox.getBottomCenter(), TriState.NOT_SET);
         }
 
         Vector3d startingPos = playerBoundingBox.getBottomCenter();
@@ -185,18 +193,13 @@ public class CollisionManager {
         playerBoundingBox.translate(adjustedMovement.getX(), adjustedMovement.getY(), adjustedMovement.getZ());
         playerBoundingBox.translate(pistonCache.getPlayerMotion().getX(), pistonCache.getPlayerMotion().getY(), pistonCache.getPlayerMotion().getZ());
         // Correct player position
-        if (!correctPlayerPosition()) {
-            // Cancel the movement if it needs to be cancelled
-            recalculatePosition();
-            return null;
-        }
+        correctPlayerPosition();
+
         // The server can't complain about our movement if we never send it
         // TODO get rid of this and handle teleports smoothly
         if (pistonCache.isPlayerCollided()) {
             return null;
         }
-
-        position = playerBoundingBox.getBottomCenter();
 
         boolean newOnGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0 || onGround;
         // Send corrected position to Bedrock if they differ by too much to prevent de-syncs
@@ -204,26 +207,25 @@ public class CollisionManager {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Client will dismount if on a vehicle
             if (playerEntity.getVehicle() == null && pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
-                playerEntity.moveAbsolute(position.toFloat(), playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), newOnGround, true);
+                recalculatePosition();
+                return null;
             }
         }
 
-        if (!onGround) {
+        position = playerBoundingBox.getBottomCenter();
+
+        if (!newOnGround) {
             // Trim the position to prevent rounding errors that make Java think we are clipping into a block
             position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
         }
 
-        return position;
+        return new CollisionResult(position, TriState.byBoolean(onGround));
     }
 
-    // TODO: This makes the player look upwards for some reason, rotation values must be wrong
     public void recalculatePosition() {
         PlayerEntity entity = session.getPlayerEntity();
-        // Gravity might need to be reset...
-        entity.updateBedrockMetadata(); // TODO may not be necessary
-
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
-        movePlayerPacket.setRuntimeEntityId(entity.getGeyserId());
+        movePlayerPacket.setRuntimeEntityId(entity.geyserId());
         movePlayerPacket.setPosition(entity.getPosition());
         movePlayerPacket.setRotation(entity.getBedrockRotation());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
@@ -231,9 +233,7 @@ public class CollisionManager {
     }
 
     public BlockPositionIterator collidableBlocksIterator(BoundingBox box) {
-        Vector3d position = Vector3d.from(box.getMiddleX(),
-                box.getMiddleY() - (box.getSizeY() / 2),
-                box.getMiddleZ());
+        Vector3d position = Vector3d.from(box.getMiddleX(), box.getMiddleY() - (box.getSizeY() / 2), box.getMiddleZ());
 
         // Expand volume by 1 in each direction to include moving blocks
         double pistonExpand = session.getPistonCache().getPistons().isEmpty() ? 0 : 1;
@@ -257,12 +257,10 @@ public class CollisionManager {
     }
 
     /**
-     * Returns false if the movement is invalid, and in this case it shouldn't be sent to the server and should be
-     * cancelled
+     * Silently compensate for movement problems due to collision and floating points errors on bedrock.
      * See {@link BlockCollision#correctPosition(GeyserSession, int, int, int, BoundingBox)} for more info
      */
-    public boolean correctPlayerPosition() {
-
+    public void correctPlayerPosition() {
         // These may be set to true by the correctPosition method in ScaffoldingCollision
         touchingScaffolding = false;
         onScaffolding = false;
@@ -270,26 +268,24 @@ public class CollisionManager {
         // Used when correction code needs to be run before the main correction
         BlockPositionIterator iter = session.getCollisionManager().playerCollidableBlocksIterator();
         int[] blocks = session.getGeyser().getWorldManager().getBlocksAt(session, iter);
-        for (iter.reset(); iter.hasNext(); iter.next()) {
-            BlockCollision blockCollision = BlockUtils.getCollision(blocks[iter.getIteration()]);
-            if (blockCollision != null) {
-                blockCollision.beforeCorrectPosition(iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox);
-            }
-        }
 
         // Main correction code
         for (iter.reset(); iter.hasNext(); iter.next()) {
-            BlockCollision blockCollision = BlockUtils.getCollision(blocks[iter.getIteration()]);
+            final int blockId = blocks[iter.getIteration()];
+
+            // These block have different offset between BE and JE so we ignore them because if we "correct" the position
+            // it will lead to complication and more inaccurate movement.
+            if (session.getBlockMappings().getCollisionIgnoredBlocks().contains(blockId)) {
+                continue;
+            }
+
+            BlockCollision blockCollision = BlockUtils.getCollision(blockId);
             if (blockCollision != null) {
-                if (!blockCollision.correctPosition(session, iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox)) {
-                    return false;
-                }
+                blockCollision.correctPosition(session, iter.getX(), iter.getY(), iter.getZ(), playerBoundingBox);
             }
         }
 
         updateScaffoldingFlags(true);
-
-        return true;
     }
 
     public Vector3d correctPlayerMovement(Vector3d movement, boolean checkWorld, boolean teleported) {
@@ -346,7 +342,7 @@ public class CollisionManager {
         return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
     }
 
-    private Vector3d correctMovementForCollisions(Vector3d movement, BoundingBox boundingBox, boolean checkWorld, boolean walkOnLava) {
+    public Vector3d correctMovementForCollisions(Vector3d movement, BoundingBox boundingBox, boolean checkWorld, boolean walkOnLava) {
         double movementX = movement.getX();
         double movementY = movement.getY();
         double movementZ = movement.getZ();
@@ -416,51 +412,19 @@ public class CollisionManager {
     }
 
     /**
-     * @return true if the block located at the player's floor position plus 1 would intersect with the player,
-     * were they not sneaking
-     */
-    public boolean mustPlayerSneakHere() {
-        return checkPose(EntityDefinitions.PLAYER.height());
-    }
-
-    /**
-     * @return true if the block located at the player's floor position plus 1 would intersect with the player,
-     * were they not crawling
-     */
-    public boolean mustPlayerCrawlHere() {
-        return checkPose(PlayerEntity.SNEAKING_POSE_HEIGHT);
-    }
-
-    /**
-     * @param height check and see if this height is invalid in the current player position
-     */
-    private boolean checkPose(float height) {
-        Vector3i position = session.getPlayerEntity().getPosition().toInt();
-        BlockCollision collision = BlockUtils.getCollisionAt(session, position);
-        if (collision != null) {
-            // Determine, if the player's bounding box *were* at full height, if it would intersect with the block
-            // at the current location.
-            double originalY = playerBoundingBox.getMiddleY();
-            double originalHeight = playerBoundingBox.getSizeY();
-            double standingY = originalY - (originalHeight / 2.0) + (height / 2.0);
-
-            playerBoundingBox.setSizeY(EntityDefinitions.PLAYER.height());
-            playerBoundingBox.setMiddleY(standingY);
-            boolean result = collision.checkIntersection(position, playerBoundingBox);
-            result |= session.getPistonCache().checkCollision(position, playerBoundingBox);
-            playerBoundingBox.setSizeY(originalHeight);
-            playerBoundingBox.setMiddleY(originalY);
-            return result;
-        }
-        return false;
-    }
-
-    /**
      * @return if the player is currently in a water block
      */
     public boolean isPlayerInWater() {
         BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getPlayerEntity().getPosition().toInt());
         return state.is(Blocks.WATER) && state.getValue(Properties.LEVEL) == 0;
+    }
+
+    /**
+     * @return if the player is currently touching water
+     */
+    public boolean isPlayerTouchingWater() {
+        BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getPlayerEntity().position().toInt());
+        return state.is(Blocks.WATER);
     }
 
     public boolean isWaterInEyes() {
@@ -482,7 +446,8 @@ public class CollisionManager {
      * @param updateMetadata whether we should update metadata if something changed
      */
     public void updateScaffoldingFlags(boolean updateMetadata) {
-        Entity entity = session.getPlayerEntity();
+        SessionPlayerEntity entity = session.getPlayerEntity();
+        entity.setInsideScaffolding(touchingScaffolding);
         boolean isSneakingWithScaffolding = (touchingScaffolding || onScaffolding) && session.isSneaking();
 
         entity.setFlag(EntityFlag.OVER_DESCENDABLE_BLOCK, onScaffolding);

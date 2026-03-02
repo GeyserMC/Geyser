@@ -25,8 +25,20 @@
 
 package org.geysermc.geyser.entity.properties.type;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityProperty;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 
-public interface PropertyType {
+public interface PropertyType<Type, NetworkRepresentation extends EntityProperty> extends GeyserEntityProperty<Type> {
     NbtMap nbtMap();
+
+    NetworkRepresentation defaultValue(int index);
+
+    NetworkRepresentation createValue(int index, @Nullable Type value);
+
+    default void apply(GeyserEntityPropertyManager manager, Type value) {
+        manager.addProperty(this, value);
+    }
 }

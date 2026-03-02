@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.level.block.property;
 
+import java.util.Optional;
+
 public abstract class Property<T extends Comparable<T>> {
     private final String name;
 
@@ -39,6 +41,8 @@ public abstract class Property<T extends Comparable<T>> {
     public abstract int valuesCount();
 
     public abstract int indexOf(T value);
+
+    public abstract Optional<T> valueOf(String string);
 
     @Override
     public String toString() {

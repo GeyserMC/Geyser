@@ -40,6 +40,8 @@ public class JavaClientboundResourcePackPushPacket extends PacketTranslator<Clie
         // We need to "answer" this to avoid timeout issues related to resource packs
         // If packs are required, we need to lie to the server that we accepted them, as we get kicked otherwise.
         if (packet.isRequired()) {
+            session.sendDownstreamPacket(new ServerboundResourcePackPacket(packet.getId(), ResourcePackStatus.ACCEPTED));
+            session.sendDownstreamPacket(new ServerboundResourcePackPacket(packet.getId(), ResourcePackStatus.DOWNLOADED));
             session.sendDownstreamPacket(new ServerboundResourcePackPacket(packet.getId(), ResourcePackStatus.SUCCESSFULLY_LOADED));
         } else {
             session.sendDownstreamPacket(new ServerboundResourcePackPacket(packet.getId(), ResourcePackStatus.DECLINED));

@@ -26,15 +26,13 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.LecternUpdatePacket;
-import org.geysermc.geyser.inventory.Inventory;
+import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.inventory.LecternInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
 
 /**
  * Used to translate moving pages, or closing the inventory
@@ -45,16 +43,16 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
     @Override
     public void translate(GeyserSession session, LecternUpdatePacket packet) {
         // Bedrock wants to either move a page or exit
-        if (!(session.getOpenInventory() instanceof LecternContainer lecternContainer)) {
+        InventoryHolder<?> holder = session.getInventoryHolder();
+        if (holder == null || !(holder.inventory() instanceof LecternContainer lecternContainer)) {
             session.getGeyser().getLogger().debug("Expected lectern but it wasn't open!");
             return;
         }
 
         if (lecternContainer.getCurrentBedrockPage() == packet.getPage()) {
             // The same page means Bedrock is closing the window
-            ServerboundContainerClosePacket closeWindowPacket = new ServerboundContainerClosePacket(lecternContainer.getJavaId());
-            session.sendDownstreamGamePacket(closeWindowPacket);
-            InventoryUtils.closeInventory(session, lecternContainer.getJavaId(), false);
+            InventoryUtils.sendJavaContainerClose(holder);
+            InventoryUtils.closeInventory(session, holder, false);
         } else {
             // Each "page" Bedrock gives to us actually represents two pages (think opening a book and seeing two pages)
             // Each "page" on Java is just one page (think a spiral notebook folded back to only show one page)
@@ -64,9 +62,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
             // So, fun fact: We need to separately handle fake lecterns!
             // Since those are not actually a real lectern... the Java server won't respond to our requests.
             if (!lecternContainer.isUsingRealBlock()) {
-                LecternInventoryTranslator translator = (LecternInventoryTranslator) session.getInventoryTranslator();
-                Inventory inventory = session.getOpenInventory();
-                translator.updateProperty(session, inventory, 0, newJavaPage);
+                holder.updateProperty(0, newJavaPage);
                 return;
             }
 
@@ -75,12 +71,12 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
             // is a byte when transmitted over the network and therefore this stops us at 128
             if (newJavaPage > currentJavaPage) {
                 for (int i = currentJavaPage; i < newJavaPage; i++) {
-                    ServerboundContainerButtonClickPacket clickButtonPacket = new ServerboundContainerButtonClickPacket(session.getOpenInventory().getJavaId(), 2);
+                    ServerboundContainerButtonClickPacket clickButtonPacket = new ServerboundContainerButtonClickPacket(lecternContainer.getJavaId(), 2);
                     session.sendDownstreamGamePacket(clickButtonPacket);
                 }
             } else {
                 for (int i = currentJavaPage; i > newJavaPage; i--) {
-                    ServerboundContainerButtonClickPacket clickButtonPacket = new ServerboundContainerButtonClickPacket(session.getOpenInventory().getJavaId(), 1);
+                    ServerboundContainerButtonClickPacket clickButtonPacket = new ServerboundContainerButtonClickPacket(lecternContainer.getJavaId(), 1);
                     session.sendDownstreamGamePacket(clickButtonPacket);
                 }
             }

@@ -42,6 +42,6 @@ public class AdvancementsCommand extends GeyserCommand {
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
         GeyserSession session = Objects.requireNonNull(context.sender().connection());
-        session.getAdvancementsCache().buildAndShowMenuForm();
+        session.getAdvancementsCache().buildAndShowForm();
     }
 }
