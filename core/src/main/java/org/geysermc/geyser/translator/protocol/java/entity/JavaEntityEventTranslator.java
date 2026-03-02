@@ -248,6 +248,8 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case LIVING_EQUIPMENT_BREAK_FEET:
             case LIVING_EQUIPMENT_BREAK_MAIN_HAND:
             case LIVING_EQUIPMENT_BREAK_OFF_HAND:
+            case SADDLE_BREAK:
+            case LIVING_EQUIPMENT_BREAK_BODY:
                 LevelSoundEventPacket equipmentBreakPacket = new LevelSoundEventPacket();
                 equipmentBreakPacket.setSound(SoundEvent.BREAK);
                 equipmentBreakPacket.setPosition(entity.bedrockPosition());

@@ -105,18 +105,21 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        if (session.getPlayerEntity().getVehicle() == this && session.getPlayerEntity().isRidingInFront()) {
-            // Minimal glitching when ClientboundMoveVehiclePacket is sent
-            // TODO offsets
-            moveEntityPacket.setPosition(this.position.up(EntityDefinitions.PLAYER.offset() - this.definition.offset()));
-        } else {
-            moveEntityPacket.setPosition(bedrockPosition());
-        }
+        moveEntityPacket.setPosition(bedrockPosition());
         moveEntityPacket.setRotation(bedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(teleported);
 
         session.sendUpstreamPacket(moveEntityPacket);
+    }
+
+    @Override
+    public Vector3f bedrockPosition() {
+        if (session.getPlayerEntity().getVehicle() == this && session.getPlayerEntity().isRidingInFront()) {
+            // Minimal glitching when ClientboundMoveVehiclePacket is sent
+            return position.up(EntityDefinitions.PLAYER.offset());
+        }
+        return super.bedrockPosition();
     }
 
     @Override
