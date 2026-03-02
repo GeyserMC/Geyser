@@ -222,12 +222,17 @@ public class GeyserItemStack {
         }
     }
 
-    public int capacity() {
+    /**
+     * Gets the maximum amount that can be added to this stack without exceeding the max stack size
+     *
+     * @return the difference between the max stack size and the current amount
+     */
+    public int remainingSpace() {
         return Math.max(maxStackSize() - amount, 0);
     }
 
     public int add(int add) {
-        add = Math.min(add, capacity());
+        add = Math.min(add, remainingSpace());
         amount += add;
         return add;
     }

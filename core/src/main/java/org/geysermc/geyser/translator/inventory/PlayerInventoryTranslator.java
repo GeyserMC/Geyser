@@ -533,7 +533,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                         } else {
                             // If the player is shift clicking an item with a stack size greater than java edition,
                             // emulate the action ourselves instead.
-                            if (firstTransfer && inventory.getItem(destSlot).capacity() < transferAmount) {
+                            if (firstTransfer && inventory.getItem(destSlot).remainingSpace() < transferAmount) {
                                 GeyserItemStack newItemStack = javaCreativeItem.copy(javaCreativeItem.maxStackSize());
                                 emulateCreativeQuickMove(session, inventory, affectedSlots, newItemStack);
                                 this.refreshPending = true;
@@ -610,8 +610,8 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                 firstEmptySlot = slot;
             }
 
-            if (InventoryUtils.canStack(slotItem, creativeItem) && slotItem.capacity() > 0) {
-                creativeItem.sub(slotItem.add(creativeItem.getAmount())); // Transfer as much as possible without passing stack capacity
+            if (InventoryUtils.canStack(slotItem, creativeItem) && slotItem.remainingSpace() > 0) {
+                creativeItem.sub(slotItem.add(creativeItem.getAmount())); // Transfer as much as possible without passing max stack size
                 affectedSlots.add(slot);
                 if (creativeItem.isEmpty()) {
                     return;
