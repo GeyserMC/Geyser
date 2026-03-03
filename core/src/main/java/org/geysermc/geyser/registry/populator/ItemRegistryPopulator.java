@@ -739,6 +739,32 @@ public class ItemRegistryPopulator {
                 }
             }
 
+            // Since the fireworks tag now won't show up due to this is being a data driven item, we have to translate it to lore ourselves
+            for (int j = 0; j < creativeItems.size(); j++) {
+                CreativeItemData itemData = creativeItems.get(j);
+                if (!itemData.getItem().getDefinition().getIdentifier().equals("minecraft:firework_rocket")) {
+                    continue;
+                }
+
+                NbtMap tag = null;
+                if (itemData.getItem().getTag() != null) {
+                    final DataComponents components = new DataComponents(new HashMap<>());
+                    Items.FIREWORK_ROCKET.translateNbtToJava(null, itemData.getItem().getTag(), components, null);
+                    final BedrockItemBuilder builder = new BedrockItemBuilder();
+                    Items.FIREWORK_ROCKET.translateComponentsToBedrock(null, components, TooltipOptions.ALL_SHOWN, builder);
+
+                    tag = builder.build();
+                }
+
+                creativeItems.set(j, new CreativeItemData(ItemData.builder()
+                    .usingNetId(true)
+                    .netId(itemData.getItem().getNetId())
+                    .definition(itemData.getItem().getDefinition())
+                    .tag(tag)
+                    .count(itemData.getItem().getCount())
+                    .build(), itemData.getNetId(), itemData.getGroupId()));
+            }
+
             ItemMappings itemMappings = ItemMappings.builder()
                     .items(mappings.toArray(new ItemMapping[0]))
                     .zeroBlockDefinitionRuntimeId(mappings.stream()

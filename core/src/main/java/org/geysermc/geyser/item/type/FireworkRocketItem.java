@@ -25,27 +25,25 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.IntArrays;
-import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.item.TooltipOptions;
-import org.geysermc.geyser.item.hashing.data.FireworkExplosionShape;
 import org.geysermc.geyser.level.FireworkColor;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
     public FireworkRocketItem(String javaIdentifier, Builder builder) {
@@ -80,41 +78,44 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
             return;
         }
 
-        final String locale = session.locale();
-
         // Then we translate everything into lore since the explosion tag and everything is not visible anymore due to this being a data driven item.
         List<String> lore = builder.getOrCreateLore();
-        lore.add(MessageTranslator.convertMessageForTooltip(Component.translatable("item.minecraft.firework_rocket.flight"), locale) + " " + fireworks.getFlightDuration());
+        lore.add(withTranslation("§r", "item.fireworks.flight", " " + fireworks.getFlightDuration()));
 
         for (Fireworks.FireworkExplosion explosion : explosions) {
-            lore.add("  " + MessageTranslator.convertMessageForTooltip(Component.translatable("item.minecraft.firework_star.shape." + FireworkExplosionShape.values()[explosion.getShapeId()].name().toLowerCase(Locale.ROOT)), locale));
+            lore.add(withTranslation("§r  ", "item.fireworksCharge.type." + explosion.getShapeId()));
 
-            final StringBuilder colorBuilder = new StringBuilder("  ");
+            final List<String> colors = new ArrayList<>();
+            colors.add("§r  ");
             for (int color : explosion.getColors()) {
                 FireworkColor fireworkColor = FireworkColor.values()[FireworkColor.fromJavaRGB(color)];
-                colorBuilder.append(MessageTranslator.convertMessageForTooltip(Component.translatable("item.minecraft.firework_star." + fireworkColor.name().toLowerCase(Locale.ROOT)), locale));
-                colorBuilder.append(" ");
-            }
-            if (explosion.getColors().length != 0) {
-                lore.add(MessageTranslator.convertMessageForTooltip(Component.translatable(colorBuilder.toString()), locale));
+                colors.add("item.fireworksCharge." + fireworkColor.getName());
+                colors.add(" ");
             }
 
-            final StringBuilder fadeColorBuilder = new StringBuilder();
+            if (explosion.getColors().length != 0) {
+                lore.add(withTranslation(colors.toArray(new String[0])));
+            }
+
+            colors.clear();
+            colors.add("§r  ");
+            colors.add("item.fireworksCharge.fadeTo");
+            colors.add(" ");
             for (int color : explosion.getFadeColors()) {
                 FireworkColor fireworkColor = FireworkColor.values()[FireworkColor.fromJavaRGB(color)];
-                fadeColorBuilder.append(MessageTranslator.convertMessageForTooltip(Component.translatable("item.minecraft.firework_star." + fireworkColor.name().toLowerCase(Locale.ROOT)), locale));
-                fadeColorBuilder.append(" ");
+                colors.add("item.fireworksCharge." + fireworkColor.getName());
+                colors.add(" ");
             }
             if (explosion.getFadeColors().length != 0) {
-                lore.add("  " + MessageTranslator.convertMessageForTooltip(Component.translatable("item.minecraft.firework_star.fade_to"), locale)  + " " + fadeColorBuilder);
+                lore.add(withTranslation(colors.toArray(new String[0])));
             }
 
             if (explosion.isHasTrail()) {
-                lore.add("  " + MessageTranslator.convertMessageForTooltip(Component.translatable("item.minecraft.firework_star.trail"), locale));
+                lore.add(withTranslation("§r  ", "item.fireworksCharge.trail"));
             }
 
             if (explosion.isHasTwinkle()) {
-                lore.add("  " + MessageTranslator.convertMessageForTooltip(Component.translatable("item.minecraft.firework_star.flicker"), locale));
+                lore.add(withTranslation("§r  ", "item.fireworksCharge.flicker"));
             }
         }
     }
@@ -194,5 +195,19 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
         } else {
             return null;
         }
+    }
+
+    public static String withTranslation(String... strings) {
+        final JsonObject object = new JsonObject();
+        final JsonArray array = new JsonArray();
+
+        for (String s : strings) {
+            final JsonObject object1 = new JsonObject();
+            object1.addProperty("translate", s);
+            array.add(object1);
+        }
+
+        object.add("rawtext", array);
+        return object.toString();
     }
 }

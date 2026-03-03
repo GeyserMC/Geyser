@@ -889,38 +889,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         cameraPresetsPacket.getPresets().addAll(CameraDefinitions.CAMERA_PRESETS);
         upstream.sendPacket(cameraPresetsPacket);
 
-        // Since the fireworks tag now won't show up due to this is being a data driven item, we have to translate it to lore ourselves
-        // so the item data can show up in the creative menu. Also doing it here so that we know what locale player choose and translate it properly.
-
-        final List<CreativeItemData> creativeItemList = new ArrayList<>();
-
-        for (CreativeItemData data : this.itemMappings.getCreativeItems()) {
-            if (!data.getItem().getDefinition().getIdentifier().equals("minecraft:firework_rocket")) {
-                creativeItemList.add(data);
-                continue;
-            }
-
-            NbtMap tag = null;
-            if (data.getItem().getTag() != null) {
-                final DataComponents components = new DataComponents(new HashMap<>());
-                Items.FIREWORK_ROCKET.translateNbtToJava(this, data.getItem().getTag(), components, this.getItemMappings().getMapping(Items.FIREWORK_ROCKET));
-                final BedrockItemBuilder builder = new BedrockItemBuilder();
-                Items.FIREWORK_ROCKET.translateComponentsToBedrock(this, components, TooltipOptions.ALL_SHOWN, builder);
-
-                tag = builder.build();
-            }
-
-            creativeItemList.add(new CreativeItemData(ItemData.builder()
-                .usingNetId(true)
-                .netId(data.getItem().getNetId())
-                .definition(data.getItem().getDefinition())
-                .tag(tag)
-                .count(data.getItem().getCount())
-                .build(), data.getNetId(), data.getGroupId()));
-        }
-
         CreativeContentPacket creativePacket = new CreativeContentPacket();
-        creativePacket.getContents().addAll(creativeItemList);
+        creativePacket.getContents().addAll(this.itemMappings.getCreativeItems());
         creativePacket.getGroups().addAll(this.itemMappings.getCreativeItemGroups());
         upstream.sendPacket(creativePacket);
 
