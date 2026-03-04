@@ -36,11 +36,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public record HitboxImpl(
-    Vector3f min,
-    Vector3f max,
-    Vector3f pivot
-) implements Hitbox {
+public class HitboxImpl implements Hitbox {
+
+    public static Hitbox EMPTY = new HitboxImpl(Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO) {
+        @Override
+        public NbtMap toNbtMap() {
+            return NbtMap.EMPTY;
+        }
+    };
+
+    private final Vector3f min;
+    private final Vector3f max;
+    private final Vector3f pivot;
+
+    public HitboxImpl(Vector3f min, Vector3f max, Vector3f pivot) {
+        this.min = min;
+        this.max = max;
+        this.pivot = pivot;
+    }
 
     public static List<Hitbox> fromMetaData(@Nullable NbtMap metaDataMap) {
         if (metaDataMap == null) {
@@ -51,9 +64,9 @@ public record HitboxImpl(
         List<NbtMap> hitboxes = metaDataMap.getList("Hitboxes", NbtType.COMPOUND);
         for (NbtMap hitbox : hitboxes) {
             boxes.add(new HitboxImpl(
-               Vector3f.from(hitbox.getFloat("MinX"), hitbox.getFloat("MinY"), hitbox.getFloat("MinZ")),
-               Vector3f.from(hitbox.getFloat("MaxX"), hitbox.getFloat("MaxY"), hitbox.getFloat("MaxZ")),
-               Vector3f.from(hitbox.getFloat("PivotX"), hitbox.getFloat("PivotY"), hitbox.getFloat("PivotZ"))
+                Vector3f.from(hitbox.getFloat("MinX"), hitbox.getFloat("MinY"), hitbox.getFloat("MinZ")),
+                Vector3f.from(hitbox.getFloat("MaxX"), hitbox.getFloat("MaxY"), hitbox.getFloat("MaxZ")),
+                Vector3f.from(hitbox.getFloat("PivotX"), hitbox.getFloat("PivotY"), hitbox.getFloat("PivotZ"))
             ));
         }
         return boxes;
@@ -84,6 +97,45 @@ public record HitboxImpl(
         }
         return NbtMap.builder().putList("Hitboxes", NbtType.COMPOUND, list).build();
     }
+
+    @Override
+    public Vector3f min() {
+        return min;
+    }
+
+    @Override
+    public Vector3f max() {
+        return max;
+    }
+
+    @Override
+    public Vector3f pivot() {
+        return pivot;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (HitboxImpl) obj;
+        return Objects.equals(this.min, that.min) &&
+            Objects.equals(this.max, that.max) &&
+            Objects.equals(this.pivot, that.pivot);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(min, max, pivot);
+    }
+
+    @Override
+    public String toString() {
+        return "HitboxImpl[" +
+            "min=" + min + ", " +
+            "max=" + max + ", " +
+            "pivot=" + pivot + ']';
+    }
+
 
     public static class Builder implements Hitbox.Builder {
         Vector3f min, max, pivot;
