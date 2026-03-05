@@ -89,4 +89,32 @@ public class Container extends Inventory {
     public void setUsingRealBlock(boolean usingRealBlock, Block block) {
         isUsingRealBlock = usingRealBlock;
     }
+
+    @Override
+    protected String getPrefixedTitle(GeyserSession session, String title) {
+        if (session.integratedPackActive()) {
+            return getIntegratedPackTitlePrefix(this.containerType) + title;
+        }
+        return title;
+    }
+
+    /**
+     * The prefix to add to the title if the integrated pack is active.
+     * It is used within the GeyserIntegratedPack to apply specific changes.
+     * <p>
+     * <b>This prefix should always consist of (invalid) color codes only.</b>
+     * Color codes prevent the client from cropping the title text for being too long.
+     * @return a prefix for the title
+     */
+    public static String getIntegratedPackTitlePrefix(ContainerType containerType) {
+        return switch (containerType) {
+            case GENERIC_9X1 -> "§z§1§r";
+            case GENERIC_9X2 -> "§z§2§r";
+            case GENERIC_9X3 -> "§z§3§r";
+            case GENERIC_9X4 -> "§z§4§r";
+            case GENERIC_9X5 -> "§z§5§r";
+            case GENERIC_9X6 -> "§z§6§r";
+            default -> "";
+        };
+    }
 }

@@ -337,9 +337,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             SetTitlePacket titlePacket = new SetTitlePacket();
             titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
             titlePacket.setText(GeyserLocale.getPlayerLocaleString("geyser.auth.login.wait", session.locale()));
-            titlePacket.setFadeInTime(0);
-            titlePacket.setFadeOutTime(1);
-            titlePacket.setStayTime(2);
             titlePacket.setXuid("");
             titlePacket.setPlatformOnlineId("");
             session.sendUpstreamPacket(titlePacket);
