@@ -25,19 +25,60 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
+import it.unimi.dsi.fastutil.Pair;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.SmithingRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
-public record GeyserSmithingRecipe(SlotDisplay template,
+import java.util.ArrayList;
+import java.util.List;
+
+public record GeyserSmithingRecipe(int id,
+                                   int netId,
+                                   SlotDisplay template,
                                    SlotDisplay base,
                                    SlotDisplay addition,
                                    SlotDisplay result) implements GeyserRecipe {
-    public GeyserSmithingRecipe(SmithingRecipeDisplay display) {
-        this(display.template(), display.base(), display.addition(), display.result());
+    public GeyserSmithingRecipe(int id, int netId, SmithingRecipeDisplay display) {
+        this(id, netId, display.template(), display.base(), display.addition(), display.result());
     }
 
     @Override
     public boolean isShaped() {
         return false;
+    }
+
+    @Override
+    public List<RecipeData> asRecipeData(GeyserSession session) {
+        Pair<Item, ItemData> output = RecipeUtil.translateToOutput(session, result);
+        if (output == null) {
+            return List.of();
+        }
+
+        List<ItemDescriptorWithCount> bases = RecipeUtil.translateToInput(session, base);
+        List<ItemDescriptorWithCount> templates = RecipeUtil.translateToInput(session, template);
+        List<ItemDescriptorWithCount> additions = RecipeUtil.translateToInput(session, addition);
+        if (bases == null || templates == null || additions == null) {
+            return List.of();
+        }
+
+        List<RecipeData> recipeData = new ArrayList<>();
+        int i = 0;
+        for (ItemDescriptorWithCount template : templates) {
+            for (ItemDescriptorWithCount base : bases) {
+                for (ItemDescriptorWithCount addition : additions) {
+                    // Note: vanilla inputs use aux value of Short.MAX_VALUE
+                    recipeData.add(SmithingTransformRecipeData.of(id + "_" + i, template, base, addition,
+                            output.right(), "smithing_table", netId + i));
+                    i++;
+                }
+            }
+        }
+        return recipeData;
     }
 }
