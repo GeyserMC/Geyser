@@ -106,10 +106,10 @@ public abstract class Inventory {
     }
 
     protected Inventory(GeyserSession session, String title, int javaId, int size, ContainerType containerType) {
-        this.title = title;
         this.javaId = javaId;
         this.size = size;
         this.containerType = containerType;
+        this.title = getPrefixedTitle(session, title);
         this.items = new GeyserItemStack[size];
         Arrays.fill(items, GeyserItemStack.EMPTY);
 
@@ -192,5 +192,14 @@ public abstract class Inventory {
      */
     public boolean shouldConfirmContainerClose() {
         return true;
+    }
+
+    /**
+     * Used for setting the title, which may be modified to apply integrated pack features.
+     * See {@link Container#getPrefixedTitle(GeyserSession, String)}
+     * @return the title to display
+     */
+    protected String getPrefixedTitle(GeyserSession session, String title) {
+        return title;
     }
 }

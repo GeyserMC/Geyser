@@ -63,7 +63,7 @@ public class PreferencesCache {
         this.session = session;
 
         prefersCustomSkulls = session.getGeyser().config().gameplay().maxVisibleCustomSkulls() != 0;
-        cooldownPreference = session.getGeyser().config().gameplay().showCooldown();
+        cooldownPreference = session.getGeyser().config().gameplay().cooldownType();
     }
 
     /**

@@ -96,6 +96,10 @@ public final class WorldCache {
         return Math.max(pps, pendingPps);
     }
 
+    public boolean isTitleTimesIncorrect() {
+        return titleTimesNeedReset;
+    }
+
     public void markTitleTimesAsIncorrect() {
         titleTimesNeedReset = true;
     }

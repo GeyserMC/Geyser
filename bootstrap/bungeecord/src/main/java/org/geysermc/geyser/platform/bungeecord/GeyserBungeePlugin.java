@@ -27,6 +27,7 @@ package org.geysermc.geyser.platform.bungeecord;
 
 import io.netty.channel.Channel;
 import net.md_5.bungee.BungeeCord;
+import net.md_5.bungee.Util;
 import net.md_5.bungee.api.CommandSender;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -318,7 +319,18 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     private Optional<InetSocketAddress> findCompatibleListener() {
-        return getProxy().getConfig().getListeners().stream()
+        var listeners = getProxy().getConfig().getListeners();
+        if (listeners.size() == 1) {
+            return listeners.stream()
+                .filter(info -> info.getSocketAddress() instanceof InetSocketAddress)
+                .map(info -> (InetSocketAddress) info.getSocketAddress())
+                .findFirst();
+        }
+
+        String bungeeListener = this.geyserConfig.advanced().java().bungeeListener();
+        SocketAddress asAddress = Util.getAddr(bungeeListener);
+            return listeners.stream()
+                .filter(info -> info.getSocketAddress().equals(asAddress))
                 .filter(info -> info.getSocketAddress() instanceof InetSocketAddress)
                 .map(info -> (InetSocketAddress) info.getSocketAddress())
                 .findFirst();
