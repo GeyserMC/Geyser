@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
@@ -32,8 +34,11 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemSt
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftRecipeAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestActionType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.TransferItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.geysermc.geyser.inventory.*;
+import org.geysermc.geyser.inventory.click.Click;
+import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
@@ -77,6 +82,49 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
         if (container.getItem(1).getJavaId() != javaOutput.getId()) {
             // We don't know there is an output here, so we tell ourselves that there is
             container.setItem(1, GeyserItemStack.from(session, javaOutput), session);
+        }
+        
+        // support for quick move on the output.
+        for (ItemStackRequestAction action : request.getActions()) {
+            // skip initial action - craft recipe is ALWAYS the first action from what I can see (already handled above)
+            if (action.getType() == ItemStackRequestActionType.CRAFT_RECIPE) {
+                continue;
+            }
+
+            if (action instanceof TransferItemStackRequestAction transfer) {
+                if (transfer.getSource().getContainerName().getContainer() == ContainerSlotType.CREATED_OUTPUT) {
+                    ContainerSlotType destContainer = transfer.getDestination().getContainerName().getContainer();
+                    if (destContainer == ContainerSlotType.HOTBAR
+                        || destContainer == ContainerSlotType.HOTBAR_AND_INVENTORY
+                        || destContainer == ContainerSlotType.INVENTORY) {
+                        
+                        // shift click of the result into the inventory
+                        ClickPlan plan = new ClickPlan(session, this, container);
+                        plan.add(Click.LEFT_SHIFT, 1);
+                        plan.execute(true);
+                        
+                        IntSet affectedSlots = plan.getAffectedSlots();
+                        
+                        // slot 0 = stonecutter input, special logic here as getGridSize is non existent! yay!
+                        // from my testing, this seems to cause ClickPlan#reduceCraftingGrid to return early which is
+                        // why we have to handle this logic ourselves...
+                        // to do, check in to the mental asylum
+                        GeyserItemStack input = container.getItem(0);
+                        if (!input.isEmpty()) {
+                            input.sub(1);
+                            if (input.isEmpty()) {
+                                container.setItem(0, GeyserItemStack.EMPTY, session);
+                            }
+                        }
+
+                        // we need to ALWAYS update slot 0 as well so that the client knows the new input count
+                        IntSet reportedSlots = new IntOpenHashSet(affectedSlots);
+                        reportedSlots.add(0);
+
+                        return acceptRequest(request, makeContainerEntries(session, container, reportedSlots));
+                    }
+                }
+            }
         }
 
         return translateRequest(session, container, request);
