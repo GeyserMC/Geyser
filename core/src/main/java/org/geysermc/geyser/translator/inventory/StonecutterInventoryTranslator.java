@@ -85,25 +85,24 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
         }
         
         // support for quick move on the output.
+        // CRAFT_RECIPE is always at index 0 so we do instanceof checks for obvious reasons
         for (ItemStackRequestAction action : request.getActions()) {
-            // skip initial action - craft recipe is ALWAYS the first action from what I can see (already handled above)
-            if (action.getType() == ItemStackRequestActionType.CRAFT_RECIPE) {
-                continue;
-            }
-
             if (action instanceof TransferItemStackRequestAction transfer) {
                 if (transfer.getSource().getContainerName().getContainer() == ContainerSlotType.CREATED_OUTPUT) {
                     ContainerSlotType destContainer = transfer.getDestination().getContainerName().getContainer();
-                    if (destContainer == ContainerSlotType.HOTBAR
+                    
+                    // touchscreen clients will send a transfer action after crafting so we do this check here
+                    boolean isShiftClick = data.getNumberOfRequestedCrafts() > 1
+                        || destContainer == ContainerSlotType.HOTBAR_AND_INVENTORY;
+
+                    if (isShiftClick && (destContainer == ContainerSlotType.HOTBAR
                         || destContainer == ContainerSlotType.HOTBAR_AND_INVENTORY
-                        || destContainer == ContainerSlotType.INVENTORY) {
+                        || destContainer == ContainerSlotType.INVENTORY)) {
                         
                         // shift click of the result into the inventory
                         ClickPlan plan = new ClickPlan(session, this, container);
                         plan.add(Click.LEFT_SHIFT, 1);
                         plan.execute(true);
-                        
-                        IntSet affectedSlots = plan.getAffectedSlots();
                         
                         // slot 0 = stonecutter input, special logic here as getGridSize is non existent! yay!
                         // from my testing, this seems to cause ClickPlan#reduceCraftingGrid to return early which is
@@ -112,13 +111,10 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
                         GeyserItemStack input = container.getItem(0);
                         if (!input.isEmpty()) {
                             input.sub(1);
-                            if (input.isEmpty()) {
-                                container.setItem(0, GeyserItemStack.EMPTY, session);
-                            }
                         }
 
                         // we need to ALWAYS update slot 0 as well so that the client knows the new input count
-                        IntSet reportedSlots = new IntOpenHashSet(affectedSlots);
+                        IntSet reportedSlots = new IntOpenHashSet(plan.getAffectedSlots());
                         reportedSlots.add(0);
 
                         return acceptRequest(request, makeContainerEntries(session, container, reportedSlots));
@@ -126,7 +122,8 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
                 }
             }
         }
-
+        
+        // translate the request normally as it's a plain single craft. no shift-click transfer actions found
         return translateRequest(session, container, request);
     }
 
