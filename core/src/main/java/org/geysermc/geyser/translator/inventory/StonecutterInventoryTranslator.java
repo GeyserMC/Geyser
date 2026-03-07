@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
@@ -83,41 +82,43 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
             // We don't know there is an output here, so we tell ourselves that there is
             container.setItem(1, GeyserItemStack.from(session, javaOutput), session);
         }
-        
+
+        // The client might send multiple ItemStackRequests for one shift click,
+        // so check if input is empty, meaning we already sent one
+        GeyserItemStack input = container.getItem(0);
+        if (input.isEmpty()) {
+            return rejectRequest(request, false);
+        }
+
         // support for quick move on the output.
         // CRAFT_RECIPE is always at index 0 so we do instanceof checks for obvious reasons
-        for (ItemStackRequestAction action : request.getActions()) {
-            if (action instanceof TransferItemStackRequestAction transfer) {
-                if (transfer.getSource().getContainerName().getContainer() == ContainerSlotType.CREATED_OUTPUT) {
-                    ContainerSlotType destContainer = transfer.getDestination().getContainerName().getContainer();
-                    
-                    // touchscreen clients will send a transfer action after crafting so we do this check here
-                    boolean isShiftClick = data.getNumberOfRequestedCrafts() > 1
-                        || destContainer == ContainerSlotType.HOTBAR_AND_INVENTORY;
+        if (data.getNumberOfRequestedCrafts() > 1) {
+            for (ItemStackRequestAction action : request.getActions()) {
+                if (action instanceof TransferItemStackRequestAction transfer) {
+                    if (transfer.getSource().getContainerName().getContainer() == ContainerSlotType.CREATED_OUTPUT) {
+                        ContainerSlotType destContainer = transfer.getDestination().getContainerName().getContainer();
 
-                    if (isShiftClick && (destContainer == ContainerSlotType.HOTBAR
-                        || destContainer == ContainerSlotType.HOTBAR_AND_INVENTORY
-                        || destContainer == ContainerSlotType.INVENTORY)) {
-                        
-                        // shift click of the result into the inventory
-                        ClickPlan plan = new ClickPlan(session, this, container);
-                        plan.add(Click.LEFT_SHIFT, 1);
-                        plan.execute(true);
-                        
-                        // slot 0 = stonecutter input, special logic here as getGridSize is non existent! yay!
-                        // from my testing, this seems to cause ClickPlan#reduceCraftingGrid to return early which is
-                        // why we have to handle this logic ourselves...
-                        // to do, check in to the mental asylum
-                        GeyserItemStack input = container.getItem(0);
-                        if (!input.isEmpty()) {
-                            input.sub(1);
+                        if (destContainer == ContainerSlotType.HOTBAR
+                            || destContainer == ContainerSlotType.HOTBAR_AND_INVENTORY
+                            || destContainer == ContainerSlotType.INVENTORY) {
+
+                            // shift click of the result into the inventory
+                            ClickPlan plan = new ClickPlan(session, this, container);
+                            plan.add(Click.LEFT_SHIFT, 1);
+                            plan.execute(true);
+
+                            // slot 0 = stonecutter input, special logic here as getGridSize is non existent! yay!
+                            // from my testing, this seems to cause ClickPlan#reduceCraftingGrid to return early which is
+                            // why we have to handle this logic ourselves...
+                            // to do, check in to the mental asylum
+                            container.setItem(0, GeyserItemStack.EMPTY, session); // assume that all input was used. server will resync
+
+                            // we need to ALWAYS update slot 0 as well so that the client knows the new input count
+                            IntSet reportedSlots = plan.getAffectedSlots();
+                            reportedSlots.add(0);
+
+                            return acceptRequest(request, makeContainerEntries(session, container, reportedSlots));
                         }
-
-                        // we need to ALWAYS update slot 0 as well so that the client knows the new input count
-                        IntSet reportedSlots = new IntOpenHashSet(plan.getAffectedSlots());
-                        reportedSlots.add(0);
-
-                        return acceptRequest(request, makeContainerEntries(session, container, reportedSlots));
                     }
                 }
             }
