@@ -207,7 +207,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             session.sendDownstreamGamePacket(sprintPacket);
         }
 
-        BedrockMovePlayer.translate(session, packet)
+        BedrockMovePlayer.translate(session, packet); 
         session.getBlockBreakHandler().handlePlayerAuthInputPacket(packet);
 
         // This is the best way send this since most modern anticheat will expect this to be in sync with the player movement packet.
