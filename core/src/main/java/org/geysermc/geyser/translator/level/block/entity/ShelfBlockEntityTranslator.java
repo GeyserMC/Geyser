@@ -31,19 +31,35 @@ import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.item.parser.ItemStackParser;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
-import java.util.Comparator;
+import java.util.Arrays;
+import java.util.List;
 
 @BlockEntity(type = BlockEntityType.SHELF)
 public class ShelfBlockEntityTranslator extends BlockEntityTranslator {
 
+    private static final int SLOT_COUNT = 3;
+    private static final NbtMap EMPTY_ITEM = BedrockItemBuilder.createItemNbt("", 0, 0).build();
+
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         // We can't translate align_items_to_bottom, I think :(
-        bedrockNbt.putList("Items", NbtType.COMPOUND, javaNbt.getList("Items", NbtType.COMPOUND).stream()
-            .sorted(Comparator.comparingInt(stack -> stack.getByte("Slot")))
-            .map(stack -> ItemStackParser.javaItemStackToBedrock(session, stack).build())
-            .toList());
+
+        // Bedrock determines shelf item position by list index, so we must produce
+        // a dense list with empty items for unoccupied slots.
+        NbtMap[] items = new NbtMap[SLOT_COUNT];
+        Arrays.fill(items, EMPTY_ITEM);
+
+        List<NbtMap> javaItems = javaNbt.getList("Items", NbtType.COMPOUND);
+        for (NbtMap stack : javaItems) {
+            int slot = stack.getByte("Slot");
+            if (slot >= 0 && slot < SLOT_COUNT) {
+                items[slot] = ItemStackParser.javaItemStackToBedrock(session, stack).build();
+            }
+        }
+
+        bedrockNbt.putList("Items", NbtType.COMPOUND, Arrays.asList(items));
     }
 }
