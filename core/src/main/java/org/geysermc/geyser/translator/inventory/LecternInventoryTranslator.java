@@ -112,7 +112,18 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
                 BlockEntityUtils.updateBlockEntity(session, map, position);
                 // Bedrock will not follow up with a ContainerClosePacket that'd reset this.
                 session.setClosingInventory(false);
-                InventoryUtils.openPendingInventory(session);
+
+                // only attempts to open a pending inventory if the pending inventory is NOT the lectern we're closing
+                // because we override closeInventory, we don't get the benefits of InventoryUtils#closeInventory setting the
+                // holder to null which would resolve this issue for the most part. without this check, we attempt to open the
+                // lectern (current "pending" inventory) AGAIN, causing the lectern to appear empty
+                // without this, we'd see in debug `ContainerClosePacket(id=-1, serverInitiated=false)` meaning the client rejected it...
+                // this is a hack; it's the *polar opposite* of a fix, but without any useful info on how bedrock actually
+                // handles lecterns all of this logic gets to stay until then. </3 mojang
+                InventoryHolder<?> pendingHolder = session.getInventoryHolder();
+                if (pendingHolder != null && pendingHolder.inventory() != container) {
+                    InventoryUtils.openPendingInventory(session);
+                }
             };
 
             if (force) {
