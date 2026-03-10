@@ -206,10 +206,6 @@ public abstract class WorldManager {
         }
     };
 
-    public int getBedrockIdOverride(GeyserSession session, int x, int y, int z) {
-        return -1;
-    }
-
     public GeyserBedrockBlock getBedrockBlockOverride(GeyserSession session, int x, int y, int z) {
         return null;
     }

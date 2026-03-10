@@ -28,12 +28,15 @@ package org.geysermc.geyser.registry.populator.conversion;
 import com.gardensmc.gardensfurniture.GardensFurniture;
 import com.gardensmc.gardensfurniture.custom.block.CustomBlock;
 import com.gardensmc.gardensfurniture.custom.block.bedrock.BedrockBlock;
+import com.gardensmc.gardensfurniture.custom.item.BedrockBlockState;
 import com.gardensmc.gardensfurniture.custom.item.CustomCaveVineItem;
 import com.gardensmc.gardensfurniture.custom.item.CustomDirectionalItem;
 import com.gardensmc.gardensfurniture.custom.item.CustomItem;
 import com.gardensmc.gardensfurniture.custom.item.CustomPlaceableItem;
 import it.unimi.dsi.fastutil.Pair;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
+import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
@@ -43,6 +46,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.CustomItemOptions;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,64 +60,81 @@ import java.util.function.BiConsumer;
 
 public class FurnitureItemConverter {
 
+    public static Map<String, CustomBlockData> CUSTOM_NAME_TO_BLOCK = new HashMap<>();
     public static Map<String, CustomBlockData> ITEM_MODEL_TO_BLOCK_DATA = new HashMap<>();
 
     public static List<CustomBlockData> buildGeyserCustomBlocks() {
+//        var componentBuilder = CustomBlockComponents.builder()
+//            .geometry(GeometryComponent.builder()
+//                .identifier("minecraft:geometry.full_block")
+//                .build())
+//            .materialInstance("north", MaterialInstance.builder().texture("maple_log_side").renderMethod("alpha_test").build())
+//            .materialInstance("east", MaterialInstance.builder().texture("maple_log_side").renderMethod("alpha_test").build())
+//            .materialInstance("south", MaterialInstance.builder().texture("maple_log_side").renderMethod("alpha_test").build())
+//            .materialInstance("west", MaterialInstance.builder().texture("maple_log_side").renderMethod("alpha_test").build())
+//            .materialInstance("up", MaterialInstance.builder().texture("maple_log_top").renderMethod("alpha_test").build())
+//            .materialInstance("down", MaterialInstance.builder().texture("maple_log_top").renderMethod("alpha_test").build())
+//            .destructibleByMining(Float.MAX_VALUE)
+//            .placeAir(true);
+//        var customBlock = new GeyserCustomBlockData.Builder()
+//            .name("maple_log")
+//            .stringProperty("axis", List.of("x", "y", "z"))
+//            .permutations(List.of(
+//                new CustomBlockPermutation(
+//                    CustomBlockComponents.builder()
+//                        .transformation(new TransformationComponent(90, 90, 0))
+//                        .build(),
+//                    "q.block_property('axis') == 'x'"
+//                ),
+//                new CustomBlockPermutation(
+//                    CustomBlockComponents.builder()
+//                        .transformation(new TransformationComponent(90, 0, 0))
+//                        .build(),
+//                    "q.block_property('axis') == 'z'"
+//                )
+//            ))
+//            .components(componentBuilder.build())
+//            .build();
+//        CUSTOM_NAME_TO_BLOCK.put("maple_log", customBlock);
+//        return List.of(
+//            customBlock
+//        );
+
+
         return GardensFurniture.itemRegistry.getCustomItems().values()
             .stream()
             .filter(customItem -> customItem instanceof CustomPlaceableItem)
-            .flatMap(placeableItem -> ((CustomPlaceableItem) placeableItem).getPlaceableBlocks().stream().map(block -> Pair.of(placeableItem, block)))
-            .map(pair -> toGeyserBlock(pair.first(), pair.second()))
+            .map(placeable -> toGeyserBlock((CustomPlaceableItem) placeable))
             .filter(Objects::nonNull)
             .toList();
     }
 
     @Nullable
-    private static CustomBlockData toGeyserBlock(CustomItem customItem, CustomBlock customBlock) {
-        var bedrockBlock = customBlock.getBedrockBlock();
+    private static CustomBlockData toGeyserBlock(CustomPlaceableItem customItem) {
+        var bedrockBlock = customItem.getBedrockBlock();
         if (bedrockBlock == null) {
             return null;
         }
-        var customBlockData = buildGeyserBlock(customBlock.getBlockId(), bedrockBlock);
+        var customBlockData = buildGeyserBlock(customItem, bedrockBlock);
         var itemModel = customItem.getComponents() == null ? null : customItem.getComponents().getItem_model();
         if (itemModel != null) {
             ITEM_MODEL_TO_BLOCK_DATA.put(itemModel, customBlockData);
         }
+        CUSTOM_NAME_TO_BLOCK.put(customItem.getIdentifier(), customBlockData);
         return customBlockData;
     }
 
-    private static CustomBlockData buildGeyserBlock(String name, BedrockBlock bedrockBlock) {
-        var componentBuilder = CustomBlockComponents.builder()
-            .geometry(GeometryComponent.builder()
-                .identifier(bedrockBlock.getGeometry() == null ? "minecraft:geometry.full_block" : bedrockBlock.getGeometry())
-                .build())
-            .destructibleByMining(Float.MAX_VALUE)
-            .placeAir(true);
-        var rotation = bedrockBlock.getRotation();
-        if (!rotation.isEmpty()) {
-            componentBuilder.transformation(new TransformationComponent(rotation.get(0), rotation.get(1), rotation.get(2)));
-        }
-        var collisionBox = bedrockBlock.getCollisionBox();
-        if (collisionBox != null) {
-            var origin = collisionBox.getOrigin();
-            var size = collisionBox.getSize();
-            componentBuilder.collisionBox(new BoxComponent(origin.get(0), origin.get(1), origin.get(2), size.get(0), size.get(1), size.get(2)));
-        }
-        var selectionBox = bedrockBlock.getSelectionBox();
-        if (selectionBox != null) {
-            var origin = selectionBox.getOrigin();
-            var size = selectionBox.getSize();
-            componentBuilder.selectionBox(new BoxComponent(origin.get(0), origin.get(1), origin.get(2), size.get(0), size.get(1), size.get(2)));
-        }
-        bedrockBlock.getMaterialInstances().forEach(materialInstance -> componentBuilder.materialInstance(materialInstance.name(), MaterialInstance.builder()
-                .texture(materialInstance.texture())
-                .renderMethod("alpha_test")
-                .build()
-        ));
-        return new GeyserCustomBlockData.Builder()
-            .name(name)
-            .components(componentBuilder.build()).includedInCreativeInventory(true).creativeCategory(CreativeCategory.NATURE)
-            .build();
+//    private static CustomBlockState buildCustomBlockState() {
+//        new CustomBlockState
+//    }
+
+    private static CustomBlockData buildGeyserBlock(CustomPlaceableItem placeableItem, BedrockBlock bedrockBlock) {
+        var blockData = new GeyserCustomBlockData.Builder()
+            .name(placeableItem.getIdentifier())
+            .components(bedrockBlock.toCustomBlockComponents());
+        placeableItem.onBuildGeyserBlockData(blockData);
+        blockData.permutations(placeableItem.getPermutations());
+        return blockData.build();
     }
 
     public static void registerItems(BiConsumer<String, CustomItemData> register) {

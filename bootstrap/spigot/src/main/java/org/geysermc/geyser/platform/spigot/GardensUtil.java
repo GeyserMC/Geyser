@@ -6,27 +6,13 @@ import com.gardensmc.gardensfurniture.store.FurnitureStore;
 import com.gardensmc.gardensfurniture.store.FurnitureStoreHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
+import org.geysermc.geyser.registry.populator.conversion.FurnitureItemConverter;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.session.GeyserSession;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
-import java.util.stream.Collectors;
-
 public class GardensUtil {
-
-    private static Map<String, GeyserBedrockBlock> CUSTOM_NAME_TO_BLOCK;
-
-    public static int getBedrockBlockIdOverride(GeyserSession session, int x, int y, int z) {
-        var furnitureStore = getFurnitureStore(session, x, y, z);
-        if (furnitureStore != null) {
-            var geyserBlock = getGeyserBlock(session, furnitureStore.getItemIdentifier());
-            if (geyserBlock != null) {
-                return geyserBlock.getRuntimeId();
-            }
-        }
-        return -1;
-    }
 
     @Nullable
     public static GeyserBedrockBlock getBedrockBlockOverride(GeyserSession session, int x, int y, int z) {
@@ -35,20 +21,31 @@ public class GardensUtil {
             var customItem = GardensFurniture.itemRegistry.getItem(furnitureStore.getItemIdentifier());
             if (customItem instanceof CustomPlaceableItem placeableItem) {
                 var block = Bukkit.getPlayer(session.getPlayerEntity().getUuid()).getWorld().getBlockAt(x, y, z);
-                return getGeyserBlock(session, placeableItem.getPlacedBlock(block).getBlockId());
+                return getGeyserBlock(session, placeableItem, block);
             }
         }
         return null;
     }
 
     @Nullable
-    private static GeyserBedrockBlock getGeyserBlock(GeyserSession session, String blockId) {
-        if (CUSTOM_NAME_TO_BLOCK == null) {
-            CUSTOM_NAME_TO_BLOCK = session.getBlockMappings().getCustomBlockStateDefinitions().entrySet()
-                .stream()
-                .collect(Collectors.toMap(entry -> entry.getKey().name(), Map.Entry::getValue));
+    private static GeyserBedrockBlock getGeyserBlock(GeyserSession session, CustomPlaceableItem placeableItem, Block block) {
+        var blockData = FurnitureItemConverter.CUSTOM_NAME_TO_BLOCK.get(placeableItem.getIdentifier());
+        if (blockData == null) {
+            return null;
         }
-        return CUSTOM_NAME_TO_BLOCK.get(blockId);
+        var blockStateBuilder = blockData.blockStateBuilder();
+        placeableItem.onBuildGeyserBlockState(blockStateBuilder, block);
+        var b = blockStateBuilder.build();
+        return session.getBlockMappings().getCustomBlockStateDefinitions().get(b);
+//        var blockStates = session.getBlockMappings().getCustomBlockStateDefinitions();
+//        System.out.println("BlockStates Registered:");
+//        System.out.println(blockStates.keySet().stream().toList());
+//        if (CUSTOM_NAME_TO_BLOCK == null) {
+//            CUSTOM_NAME_TO_BLOCK = session.getBlockMappings().getCustomBlockStateDefinitions().entrySet()
+//                .stream()
+//                .collect(Collectors.toMap(entry -> entry.getKey().name(), Map.Entry::getValue));
+//        }
+//        return CUSTOM_NAME_TO_BLOCK.get(blockId);
     }
 
     private static FurnitureStore getFurnitureStore(GeyserSession session, int x, int y, int z) {

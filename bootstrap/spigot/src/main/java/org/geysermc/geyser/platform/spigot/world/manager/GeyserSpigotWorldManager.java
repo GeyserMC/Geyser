@@ -151,11 +151,6 @@ public class GeyserSpigotWorldManager extends WorldManager {
     }
 
     @Override
-    public int getBedrockIdOverride(GeyserSession session, int x, int y, int z) {
-        return GardensUtil.getBedrockBlockIdOverride(session, x, y, z);
-    }
-
-    @Override
     public GeyserBedrockBlock getBedrockBlockOverride(GeyserSession session, int x, int y, int z) {
         return GardensUtil.getBedrockBlockOverride(session, x, y, z);
     }

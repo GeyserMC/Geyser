@@ -49,12 +49,16 @@ public class ChunkUtil {
             if (session.getBlockMappings().getFurnitureBlocks().contains(javaId)) {
                 // could be a custom block
                 Vector3i realPos = Vector3i.from((packet.getX() << 4) + (yzx & 0xF), ((sectionY + yOffset) << 4) + ((yzx >> 8) & 0xF), (packet.getZ() << 4) + ((yzx >> 4) & 0xF));
-                var bedrockIdOverride = session.getGeyser().getWorldManager().getBedrockIdOverride(session, realPos.getX(), realPos.getY(), realPos.getZ());
-                if (bedrockIdOverride != -1) {
+                var blockOverride = session.getGeyser().getWorldManager().getBedrockBlockOverride(session, realPos.getX(), realPos.getY(), realPos.getZ());
+                if (blockOverride != null) {
+                    System.out.println(blockOverride.getRuntimeId());
                     // this is custom
 //                    System.out.println("Found custom block at: " + realPos);
                     int xzy = indexYZXtoXZY(yzx);
-                    bedrockData.set(xzy, layer0.idFor(bedrockIdOverride)); // modify bedrock packet data
+                    var id = layer0.idFor(blockOverride.getRuntimeId());
+                    if (id > 0 && id <= layer0.getBitArray().getVersion().getMaxEntryValue()) {
+                        bedrockData.set(xzy, id); // modify bedrock packet data
+                    }
                 }
             }
         }

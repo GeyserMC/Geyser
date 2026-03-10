@@ -199,7 +199,7 @@ public final class BlockUtils {
             case WEST -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_WEST);
         }
         levelEventPacket.setPosition(position.toFloat());
-        levelEventPacket.setData(session.getBlockMappings().getBedrockBlock(blockState).getRuntimeId());
+        levelEventPacket.setData(session.getBlockMappings().getBedrockBlockId(session, position, blockState.javaId()));
         session.sendUpstreamPacket(levelEventPacket);
     }
 

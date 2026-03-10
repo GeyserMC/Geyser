@@ -169,7 +169,7 @@ public interface CustomBlockComponents {
         Builder displayName(String displayName);
 
         Builder geometry(GeometryComponent geometry);
-
+        
         Builder materialInstance(@NonNull String name, @NonNull MaterialInstance materialInstance);
 
         Builder placementFilter(List<PlacementConditions> placementConditions);

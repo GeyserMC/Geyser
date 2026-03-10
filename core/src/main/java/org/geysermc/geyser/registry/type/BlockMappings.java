@@ -85,9 +85,9 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
 
     public int getBedrockBlockId(GeyserSession session, Vector3i pos, int javaState) {
         if (furnitureBlocks.contains(javaState)) {
-            var furnitureBlock = session.getGeyser().getWorldManager().getBedrockIdOverride(session, pos.getX(), pos.getY(), pos.getZ());
-            if (furnitureBlock != -1) {
-                return furnitureBlock;
+            var furnitureBlock = session.getGeyser().getWorldManager().getBedrockBlockOverride(session, pos.getX(), pos.getY(), pos.getZ());
+            if (furnitureBlock != null) {
+                return furnitureBlock.getRuntimeId();
             }
         }
         return getBedrockBlockId(javaState);
