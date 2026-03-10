@@ -27,6 +27,7 @@ package org.geysermc.geyser.inventory;
 
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
@@ -46,7 +47,7 @@ public class Container extends Inventory {
      */
     private boolean isUsingRealBlock = false;
 
-    public Container(GeyserSession session, String title, int id, int size, ContainerType containerType) {
+    public Container(GeyserSession session, String title, int id, int size, @Nullable ContainerType containerType) {
         super(session, title, id, size, containerType);
         this.playerInventory = session.getPlayerInventory();
         this.containerSize = this.size + InventoryTranslator.PLAYER_INVENTORY_SIZE;
@@ -106,7 +107,11 @@ public class Container extends Inventory {
      * Color codes prevent the client from cropping the title text for being too long.
      * @return a prefix for the title
      */
-    public static String getIntegratedPackTitlePrefix(ContainerType containerType) {
+    public static String getIntegratedPackTitlePrefix(@Nullable ContainerType containerType) {
+        if (containerType == null) {
+            return "";
+        }
+
         return switch (containerType) {
             case GENERIC_9X1 -> "§z§1§r";
             case GENERIC_9X2 -> "§z§2§r";
