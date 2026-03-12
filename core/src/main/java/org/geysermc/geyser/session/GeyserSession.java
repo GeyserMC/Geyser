@@ -84,6 +84,7 @@ import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
@@ -150,6 +151,7 @@ import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
+import org.geysermc.geyser.inventory.recipe.RecipeUtil;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
@@ -521,8 +523,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final Int2ObjectMap<List<String>> javaToBedrockRecipeIds;
 
     private final Int2ObjectMap<GeyserRecipe> craftingRecipes;
-    @Setter
-    private Pair<CraftingRecipeData, GeyserRecipe> lastCreatedRecipe = null; // TODO try to prevent sending duplicate recipes
     private final AtomicInteger lastRecipeNetId;
 
     /**
@@ -2524,5 +2524,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public String getDebugInfo() {
         return "Username: %s, DeviceOs: %s, Version: %s".formatted(bedrockUsername(), platform(), version());
+    }
+
+    public CraftingDataPacket getCraftingDataPacket() {
+        CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
+        craftingDataPacket.setCleanRecipes(true);
+        craftingDataPacket.getCraftingData().addAll(RecipeUtil.CARTOGRAPHY_RECIPES);
+        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(getUpstream().getProtocolVersion()));
+        for (GeyserRecipe recipe : craftingRecipes.values()) {
+            craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(this));
+        }
+        for (GeyserSmithingRecipe recipe : smithingRecipes) {
+            craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(this));
+        }
+        return craftingDataPacket;
     }
 }

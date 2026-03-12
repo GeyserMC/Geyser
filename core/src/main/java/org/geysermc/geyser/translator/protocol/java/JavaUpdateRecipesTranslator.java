@@ -94,16 +94,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     @Override
     public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
         int netId = session.getLastRecipeNetId().get();
-        CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
-        craftingDataPacket.setCleanRecipes(true);
-        craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
-        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
-        for (GeyserRecipe recipe : session.getCraftingRecipes().values()) {
-            craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(session));
-        }
-        for (GeyserSmithingRecipe recipe : session.getSmithingRecipes()) {
-            craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(session));
-        }
+        CraftingDataPacket craftingDataPacket = session.getCraftingDataPacket();
 
         boolean oldSmithingTable;
         int[] smithingBase = packet.getItemSets().get(SMITHING_BASE);
