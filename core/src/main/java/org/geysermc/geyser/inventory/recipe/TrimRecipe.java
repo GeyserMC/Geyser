@@ -25,9 +25,11 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
+import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTrimRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
 import org.geysermc.geyser.GeyserImpl;
@@ -43,7 +45,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ProvidesTrimMaterial;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import static org.geysermc.geyser.util.InventoryUtils.LAST_RECIPE_NET_ID;
 
 /**
  * Stores information on trim materials and patterns, including smithing armor hacks for pre-1.20.
@@ -51,11 +56,26 @@ import java.util.Map;
 public final class TrimRecipe {
     private static final Map<ProvidesTrimMaterial, Item> trimMaterialProviders = new HashMap<>();
 
-    // For CraftingDataPacket
-    public static final String ID = "minecraft:smithing_armor_trim";
-    public static final ItemDescriptorWithCount BASE = tagDescriptor("minecraft:trimmable_armors");
-    public static final ItemDescriptorWithCount ADDITION = tagDescriptor("minecraft:trim_materials");
-    public static final ItemDescriptorWithCount TEMPLATE = tagDescriptor("minecraft:trim_templates");
+    public static final List<ObjectIntPair<String>> NETHERITE_UPGRADES = List.of(
+        ObjectIntPair.of("minecraft:netherite_sword", ++LAST_RECIPE_NET_ID),
+        ObjectIntPair.of("minecraft:netherite_shovel", ++LAST_RECIPE_NET_ID),
+        ObjectIntPair.of("minecraft:netherite_pickaxe", ++LAST_RECIPE_NET_ID),
+        ObjectIntPair.of("minecraft:netherite_axe", ++LAST_RECIPE_NET_ID),
+        ObjectIntPair.of("minecraft:netherite_hoe", ++LAST_RECIPE_NET_ID),
+        ObjectIntPair.of("minecraft:netherite_helmet", ++LAST_RECIPE_NET_ID),
+        ObjectIntPair.of("minecraft:netherite_chestplate", ++LAST_RECIPE_NET_ID),
+        ObjectIntPair.of("minecraft:netherite_leggings", ++LAST_RECIPE_NET_ID),
+        ObjectIntPair.of("minecraft:netherite_boots", ++LAST_RECIPE_NET_ID)
+    );
+
+    public static final SmithingTrimRecipeData RECIPE = SmithingTrimRecipeData.of(
+        "minecraft:smithing_armor_trim",
+        tagDescriptor("minecraft:trimmable_armors"),
+        tagDescriptor("minecraft:trim_materials"),
+        tagDescriptor("minecraft:trim_templates"),
+        "smithing_table",
+        ++LAST_RECIPE_NET_ID
+    );
 
     public static TrimMaterial readTrimMaterial(RegistryEntryContext context) {
         String key = context.id().asMinimalString();
