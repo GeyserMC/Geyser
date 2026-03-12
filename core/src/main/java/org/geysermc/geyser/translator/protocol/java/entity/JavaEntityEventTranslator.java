@@ -39,7 +39,6 @@ import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.EvokerFangsEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
@@ -55,6 +54,7 @@ import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundEntityEventPacket;
 
 import java.util.Collections;
@@ -105,14 +105,14 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                     LevelEventPacket particlePacket = new LevelEventPacket();
                     particlePacket.setType(ParticleType.ICON_CRACK);
                     particlePacket.setData(ItemTranslator.getBedrockItemDefinition(session, egg.getItemStack()).getRuntimeId() << 16);
-                    particlePacket.setPosition(entity.getPosition());
+                    particlePacket.setPosition(entity.bedrockPosition());
                     for (int i = 0; i < 6; i++) {
                         session.sendUpstreamPacket(particlePacket);
                     }
-                } else if (entity.getDefinition() == EntityDefinitions.SNOWBALL) {
+                } else if (entity.getJavaTypeDefinition().is(BuiltinEntityType.SNOWBALL)) {
                     LevelEventPacket particlePacket = new LevelEventPacket();
                     particlePacket.setType(ParticleType.SNOWBALL_POOF);
-                    particlePacket.setPosition(entity.getPosition());
+                    particlePacket.setPosition(entity.bedrockPosition());
                     for (int i = 0; i < 8; i++) {
                         session.sendUpstreamPacket(particlePacket);
                     }
@@ -138,7 +138,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                         // https://minecraft.wiki/w/Fishing_Rod#Hooking_mobs_and_other_entities
                         SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
                         motionPacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
-                        motionPacket.setMotion(hookOwner.getPosition().sub(session.getPlayerEntity().getPosition()).mul(0.1f));
+                        motionPacket.setMotion(hookOwner.bedrockPosition().sub(session.getPlayerEntity().bedrockPosition()).mul(0.1f));
                         session.sendUpstreamPacket(motionPacket);
                     }
                 }
@@ -152,7 +152,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case ZOMBIE_VILLAGER_CURE: // Played when a zombie bites the golden apple
                 LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
                 soundPacket.setSound(SoundEvent.REMEDY);
-                soundPacket.setPosition(entity.getPosition());
+                soundPacket.setPosition(entity.bedrockPosition());
                 soundPacket.setExtraData(-1);
                 soundPacket.setIdentifier("");
                 soundPacket.setRelativeVolumeDisabled(false);
@@ -183,7 +183,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
 
                 PlaySoundPacket playSoundPacket = new PlaySoundPacket();
                 playSoundPacket.setSound("random.totem");
-                playSoundPacket.setPosition(entity.getPosition());
+                playSoundPacket.setPosition(entity.bedrockPosition());
                 playSoundPacket.setVolume(1.0F);
                 playSoundPacket.setPitch(1.0F + (ThreadLocalRandom.current().nextFloat() * 0.1F) - 0.05F);
                 session.sendUpstreamPacket(playSoundPacket);
@@ -198,7 +198,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
 
                 return;
             case SHEEP_GRAZE_OR_TNT_CART_EXPLODE:
-                if (entity.getDefinition() == EntityDefinitions.SHEEP) {
+                if (entity.getJavaTypeDefinition().is(BuiltinEntityType.SHEEP)) {
                     entityEventPacket.setType(EntityEventType.EAT_GRASS);
                 } else {
                     entityEventPacket.setType(EntityEventType.PRIME_TNT_MINECART);
@@ -216,23 +216,23 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case VILLAGER_SWEAT:
                 LevelEventPacket levelEventPacket = new LevelEventPacket();
                 levelEventPacket.setType(ParticleType.WATER_SPLASH);
-                levelEventPacket.setPosition(entity.getPosition().up(entity.getDefinition().height()));
+                levelEventPacket.setPosition(entity.bedrockPosition().up(entity.height()));
                 session.sendUpstreamPacket(levelEventPacket);
                 return;
             case IRON_GOLEM_EMPTY_HAND:
                 entityEventPacket.setType(EntityEventType.GOLEM_FLOWER_WITHDRAW);
                 break;
             case ATTACK:
-                if (entity.getDefinition() == EntityDefinitions.IRON_GOLEM || entity.getDefinition() == EntityDefinitions.EVOKER_FANGS
-                        || entity.getDefinition() == EntityDefinitions.WARDEN) {
+                if (entity.getJavaTypeDefinition().is(BuiltinEntityType.IRON_GOLEM) || entity.getJavaTypeDefinition().is(BuiltinEntityType.EVOKER_FANGS)
+                        || entity.getJavaTypeDefinition().is(BuiltinEntityType.WARDEN)) {
                     entityEventPacket.setType(EntityEventType.ATTACK_START);
-                    if (entity.getDefinition() == EntityDefinitions.EVOKER_FANGS) {
+                    if (entity.getJavaTypeDefinition().is(BuiltinEntityType.EVOKER_FANGS)) {
                         ((EvokerFangsEntity) entity).setAttackStarted();
                     }
                 }
                 break;
             case RABBIT_JUMP_OR_MINECART_SPAWNER_DELAY_RESET:
-                if (entity.getDefinition() == EntityDefinitions.RABBIT) {
+                if (entity.getJavaTypeDefinition().is(BuiltinEntityType.RABBIT)) {
                     // This doesn't match vanilla Bedrock behavior but I'm unsure how to make it better
                     // I assume part of the problem is that Bedrock uses a duration and Java just says the rabbit is jumping
                     SetEntityDataPacket dataPacket = new SetEntityDataPacket();
@@ -250,7 +250,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case LIVING_EQUIPMENT_BREAK_OFF_HAND:
                 LevelSoundEventPacket equipmentBreakPacket = new LevelSoundEventPacket();
                 equipmentBreakPacket.setSound(SoundEvent.BREAK);
-                equipmentBreakPacket.setPosition(entity.getPosition());
+                equipmentBreakPacket.setPosition(entity.bedrockPosition());
                 equipmentBreakPacket.setExtraData(-1);
                 equipmentBreakPacket.setIdentifier("");
                 session.sendUpstreamPacket(equipmentBreakPacket);
@@ -266,12 +266,12 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 }
                 return;
             case GOAT_LOWERING_HEAD:
-                if (entity.getDefinition() == EntityDefinitions.GOAT) {
+                if (entity.getJavaTypeDefinition().is(BuiltinEntityType.GOAT)) {
                     entityEventPacket.setType(EntityEventType.ATTACK_START);
                 }
                 break;
             case GOAT_STOP_LOWERING_HEAD:
-                if (entity.getDefinition() == EntityDefinitions.GOAT) {
+                if (entity.getJavaTypeDefinition().is(BuiltinEntityType.GOAT)) {
                     entityEventPacket.setType(EntityEventType.ATTACK_STOP);
                 }
                 break;
@@ -283,7 +283,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 }
                 break;
             case WARDEN_RECEIVE_SIGNAL:
-                if (entity.getDefinition() == EntityDefinitions.WARDEN) {
+                if (entity.getJavaTypeDefinition().is(BuiltinEntityType.WARDEN)) {
                     entityEventPacket.setType(EntityEventType.VIBRATION_DETECTED);
                 }
                 break;

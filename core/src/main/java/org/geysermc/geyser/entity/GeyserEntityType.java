@@ -1,0 +1,229 @@
+/*
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.entity;
+
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import lombok.Getter;
+import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.Constants;
+import org.geysermc.geyser.api.entity.custom.CustomJavaEntityType;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.definition.JavaEntityType;
+import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.impl.IdentifierImpl;
+import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+
+import java.util.EnumMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+
+public record GeyserEntityType(Identifier identifier, int javaId) implements JavaEntityType, CustomJavaEntityType {
+    private static final Identifier UNREGISTERED = IdentifierImpl.of(Constants.GEYSER_CUSTOM_NAMESPACE, "unregistered_sadface");
+
+    private static final Map<BuiltinEntityType, GeyserEntityType> VANILLA = new EnumMap<>(BuiltinEntityType.class);
+    private static final Int2ObjectMap<GeyserEntityType> CUSTOM = new Int2ObjectOpenHashMap<>();
+    private static final Object2ObjectMap<Identifier, GeyserEntityType> CUSTOM_BY_IDENTIFIER = new Object2ObjectOpenHashMap<>();
+
+    private GeyserEntityType(BuiltinEntityType builtin) {
+        this(IdentifierImpl.of(builtin.name().toLowerCase(Locale.ROOT)), builtin.id());
+    }
+
+    private GeyserEntityType(int javaId) {
+        this(UNREGISTERED, javaId);
+    }
+
+    public boolean isUnregistered() {
+        return identifier.equals(UNREGISTERED);
+    }
+
+    @Override
+    public boolean vanilla() {
+        return VANILLA.containsValue(this);
+    }
+
+    @Override
+    public float width() {
+        var definition = Registries.JAVA_ENTITY_TYPES.get(this);
+        if (definition == null) {
+            throw new IllegalStateException("No entity definition registered for " + this);
+        }
+        return definition.width();
+    }
+
+    @Override
+    public float height() {
+        var definition = Registries.JAVA_ENTITY_TYPES.get(this);
+        if (definition == null) {
+            throw new IllegalStateException("No entity definition registered for " + this);
+        }
+        return definition.height();
+    }
+
+    @Override
+    public @Nullable GeyserEntityDefinition defaultBedrockDefinition() {
+        var definition = Registries.JAVA_ENTITY_TYPES.get(this);
+        if (definition == null) {
+            throw new IllegalStateException("No entity definition registered for " + this);
+        }
+        return definition.defaultBedrockDefinition();
+    }
+
+    public boolean is(EntityType type) {
+        return javaId == type.id();
+    }
+
+    public static GeyserEntityType ofVanilla(BuiltinEntityType builtin) {
+        return VANILLA.computeIfAbsent(builtin, GeyserEntityType::new);
+    }
+
+    /**
+     * @throws IllegalArgumentException document this in API
+     */
+    public static GeyserEntityType ofVanilla(Identifier javaIdentifier) {
+        return ofVanilla(BuiltinEntityType.valueOf(javaIdentifier.path().toUpperCase(Locale.ROOT)));
+    }
+
+    public static GeyserEntityType of(int javaId) {
+        if (javaId >= 0 && javaId < BuiltinEntityType.VALUES.length) {
+            return ofVanilla(BuiltinEntityType.VALUES[javaId]);
+        }
+
+        GeyserEntityType type = CUSTOM.get(javaId);
+        return type == null ? new GeyserEntityType(javaId) : type;
+    }
+
+    @Nullable
+    public static GeyserEntityType of(Key javaKey) {
+        if (javaKey.namespace().equals(Key.MINECRAFT_NAMESPACE)) {
+            try {
+                return ofVanilla(MinecraftKey.keyToIdentifier(javaKey));
+            } catch (IllegalArgumentException exception) {
+                return null;
+            }
+        }
+        return CUSTOM_BY_IDENTIFIER.get(MinecraftKey.keyToIdentifier(javaKey));
+    }
+
+    public static GeyserEntityType of(EntityType type) {
+        return type instanceof BuiltinEntityType builtin ? ofVanilla(builtin) : of(type.id());
+    }
+
+    public static GeyserEntityType createCustomAndRegister(GeyserJavaEntityTypeBuild builder) {
+        Identifier javaIdentifier = Objects.requireNonNull(builder.identifier, "javaIdentifier may not be null");
+        int javaId = builder.javaId;
+
+        if (javaIdentifier.vanilla()) {
+            throw new IllegalArgumentException("Cannot register custom entity type in vanilla namespace!" + javaIdentifier);
+        } else if (javaId < 0) {
+            throw new IllegalArgumentException("Invalid ID (may not be below zero): " + javaId);
+        } else if (javaId < BuiltinEntityType.VALUES.length) {
+            throw new IllegalArgumentException("Invalid ID (conflicts with vanilla entity type): " + javaId);
+        } else if (CUSTOM.containsKey(javaId) || CUSTOM_BY_IDENTIFIER.containsKey(javaIdentifier)) {
+            throw new IllegalArgumentException("Custom entity type with identifier " + javaIdentifier + " and ID " + javaId + " conflicts with existing custom entity type");
+        }
+        GeyserEntityType type = new GeyserEntityType(javaIdentifier, javaId);
+        CUSTOM.put(javaId, type);
+        CUSTOM_BY_IDENTIFIER.put(javaIdentifier, type);
+        return type;
+    }
+
+    @Getter
+    public static class GeyserJavaEntityTypeBuild implements CustomJavaEntityType.Builder {
+        private Identifier identifier;
+        private int javaId;
+        private float width;
+        private float height;
+        private BedrockEntityDefinition defaultBedrockDefinition;
+
+        @Override
+        public GeyserJavaEntityTypeBuild type(@NonNull Identifier entityType) {
+            Objects.requireNonNull(entityType, "entityType may not be null");
+            if (entityType.vanilla()) {
+                throw new IllegalArgumentException("Cannot register custom entity type in vanilla namespace!" + entityType);
+            }
+            if (CUSTOM_BY_IDENTIFIER.containsKey(entityType)) {
+                throw new IllegalArgumentException("Custom entity type with identifier " + entityType + " already exists!");
+            }
+            this.identifier = entityType;
+            return this;
+        }
+
+        @Override
+        public GeyserJavaEntityTypeBuild javaId(int javaId) {
+            if (javaId < 0) {
+                throw new IllegalArgumentException("Invalid custom entity type id (may not be negative): " + javaId);
+            }
+            if (javaId < BuiltinEntityType.VALUES.length) {
+                throw new IllegalArgumentException("Invalid custom entity type id (conflicts with vanilla entity type): " + javaId);
+            }
+            if (CUSTOM.containsKey(javaId)) {
+                throw new IllegalArgumentException("Custom entity type with id " + javaId + " already exists!");
+            }
+            this.javaId = javaId;
+            return this;
+        }
+
+        @Override
+        public GeyserJavaEntityTypeBuild width(@NonNegative float width) {
+            if (width < 0) {
+                throw new IllegalArgumentException("Invalid custom entity type width (may not be negative): " + width);
+            }
+            this.width = width;
+            return this;
+        }
+
+        @Override
+        public GeyserJavaEntityTypeBuild height(@NonNegative float height) {
+            if (height < 0) {
+                throw new IllegalArgumentException("Invalid custom entity type height (may not be negative): " + height);
+            }
+            this.height = height;
+            return this;
+        }
+
+        @Override
+        public GeyserJavaEntityTypeBuild definition(@Nullable GeyserEntityDefinition defaultBedrockDefinition) {
+            if (defaultBedrockDefinition == null) {
+                this.defaultBedrockDefinition = null;
+            } else if (defaultBedrockDefinition instanceof BedrockEntityDefinition bedrockEntityDefinition) {
+                this.defaultBedrockDefinition = bedrockEntityDefinition;
+            } else {
+                throw new IllegalArgumentException("Invalid default geyser definition: " + defaultBedrockDefinition);
+            }
+            return this;
+        }
+    }
+}

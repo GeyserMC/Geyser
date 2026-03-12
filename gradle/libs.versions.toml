@@ -18,7 +18,7 @@ protocol-common = "3.0.0.Beta12-20260129.225905-2"
 protocol-codec = "3.0.0.Beta12-20260129.225905-2"
 raknet = "1.0.0.CR3-20260204.210255-26"
 minecraftauth = "5.0.0"
-mcprotocollib = "1.21.11-20260217.182735-13"
+mcprotocollib = "1.21.11-feature-custom-entities-SNAPSHOT"
 adventure = "4.25.0"
 adventure-platform = "4.4.1"
 junit = "6.0.0"
@@ -84,6 +84,7 @@ fastutil-int-byte-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int
 fastutil-int-boolean-maps = { group = "org.cloudburstmc.fastutil.maps", name = "int-boolean-maps", version.ref = "fastutil" }
 fastutil-object-int-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-int-maps", version.ref = "fastutil" }
 fastutil-object-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-object-maps", version.ref = "fastutil" }
+fastutil-object-long-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-long-maps", version.ref = "fastutil" }
 fastutil-long-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "long-object-maps", version.ref = "fastutil" }
 fastutil-reference-object-maps = { group = "org.cloudburstmc.fastutil.maps", name = "reference-object-maps", version.ref = "fastutil" }
 fastutil-object-boolean-maps = { group = "org.cloudburstmc.fastutil.maps", name = "object-boolean-maps", version.ref = "fastutil" }
@@ -178,7 +179,7 @@ runvelocity = { id = "xyz.jpenilla.run-velocity", version.ref = "runtask" }
 runpaper = { id = "xyz.jpenilla.run-paper", version.ref = "runtask" }
 
 [bundles]
-fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-long-object-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps", "fastutil-reference-object-maps", "fastutil-object-boolean-maps" ]
+fastutil = [ "fastutil-int-int-maps", "fastutil-int-long-maps", "fastutil-long-object-maps", "fastutil-object-long-maps", "fastutil-int-byte-maps", "fastutil-int-boolean-maps", "fastutil-object-int-maps", "fastutil-object-object-maps", "fastutil-reference-object-maps", "fastutil-object-boolean-maps" ]
 adventure = [ "adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-text-serializer-plain" ]
 log4j = [ "log4j-api", "log4j-core", "log4j-slf4j2-impl", "log4j-iostreams", "log4j-jul" ]
 jline = [ "jline-terminal", "jline-terminal-jna", "jline-reader" ]

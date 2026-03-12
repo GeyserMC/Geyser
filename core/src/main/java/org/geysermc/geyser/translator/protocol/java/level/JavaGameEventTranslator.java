@@ -89,7 +89,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                     // Fix a bug where the player has glitched movement and thinks they are still on the ground
                     MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
                     movePlayerPacket.setRuntimeEntityId(entity.geyserId());
-                    movePlayerPacket.setPosition(entity.getPosition());
+                    movePlayerPacket.setPosition(entity.bedrockPosition());
                     movePlayerPacket.setRotation(entity.getBedrockRotation());
                     movePlayerPacket.setOnGround(false);
                     movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
@@ -139,7 +139,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 arrowSoundPacket.setSound("random.orb");
                 arrowSoundPacket.setPitch(0.5f);
                 arrowSoundPacket.setVolume(0.5f);
-                arrowSoundPacket.setPosition(entity.getPosition());
+                arrowSoundPacket.setPosition(entity.bedrockPosition());
                 session.sendUpstreamPacket(arrowSoundPacket);
                 break;
             default:

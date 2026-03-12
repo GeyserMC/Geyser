@@ -92,7 +92,7 @@ public class PaintingEntity extends HangingEntity {
 
         valid = true;
 
-        session.getGeyser().getLogger().debug("Spawned painting on " + position);
+        session.getGeyser().getLogger().debug("Spawned painting on " + position());
     }
 
     @Override
@@ -101,7 +101,7 @@ public class PaintingEntity extends HangingEntity {
     }
 
     private Vector3f fixOffset(PaintingType paintingName) {
-        Vector3f position = super.position;
+        Vector3f position = position();
         // ViaVersion already adds the offset for us on older versions,
         // so no need to do it then otherwise it will be spaced
         if (session.isEmulatePost1_18Logic()) {

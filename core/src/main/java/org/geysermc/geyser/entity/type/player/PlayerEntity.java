@@ -37,7 +37,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
@@ -141,13 +141,13 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     }
 
     @Override
-    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
         if (leftParrot != null) {
-            leftParrot.moveAbsoluteRaw(position, yaw, pitch, headYaw, true, teleported);
+            leftParrot.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, true, teleported);
         }
         if (rightParrot != null) {
-            rightParrot.moveAbsoluteRaw(position, yaw, pitch, headYaw, true, teleported);
+            rightParrot.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, true, teleported);
         }
     }
 
@@ -191,10 +191,17 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
                 return;
             }
             // The parrot is a separate entity in Bedrock, but part of the player entity in Java
-            EntitySpawnContext context = EntitySpawnContext.inherited(session, EntityDefinitions.PARROT, this, position);
+            EntitySpawnContext context = EntitySpawnContext.inherited(session, VanillaEntities.PARROT, this, position());
+            if (context.callParrotEvent(this, variant.getAsInt(), !isLeft)) {
+                GeyserImpl.getInstance().getLogger().debug(session, "Cancelled parrot spawn as definition is null!");
+                return;
+            }
             ParrotEntity parrot = new ParrotEntity(context);
-            parrot.spawnEntity();
             parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, variant.getAsInt());
+            if (context.consumers() != null) {
+                context.consumers().forEach(consumer -> consumer.accept(parrot));
+            }
+            parrot.spawnEntity();
             // Different position whether the parrot is left or right
             float offset = isLeft ? 0.4f : -0.4f;
             parrot.getDirtyMetadata().put(EntityDataTypes.SEAT_OFFSET, Vector3f.from(offset, -0.22, -0.1));
@@ -249,11 +256,6 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
      */
     public UUID getTabListUuid() {
         return uuid();
-    }
-
-    @Override
-    public Vector3f position() {
-        return this.position.down(definition.offset());
     }
 
     // From 1.21.8 code, should be correct since some pose should be prioritized.

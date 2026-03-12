@@ -42,7 +42,6 @@ import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.skin.SkinData;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.level.block.Blocks;
@@ -112,7 +111,7 @@ public abstract class AvatarEntity extends LivingEntity {
         addPlayerPacket.setUsername(username);
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
-        addPlayerPacket.setPosition(position.sub(0, definition.offset(), 0));
+        addPlayerPacket.setPosition(bedrockPosition());
         addPlayerPacket.setRotation(getBedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(ItemTranslator.translateToBedrock(session, getMainHandItem()));
@@ -138,17 +137,17 @@ public abstract class AvatarEntity extends LivingEntity {
     }
 
     @Override
-    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        setPosition(position);
+    public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
+        setPosition(javaPosition);
 
         setOnGround(isOnGround);
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
-        movePlayerPacket.setPosition(this.position);
+        movePlayerPacket.setPosition(bedrockPosition());
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(this instanceof SessionPlayerEntity || teleported ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
@@ -169,22 +168,22 @@ public abstract class AvatarEntity extends LivingEntity {
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
-        this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+        setPosition(position().add(relX, relY, relZ));
 
         setOnGround(isOnGround);
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
-        movePlayerPacket.setPosition(position);
+        movePlayerPacket.setPosition(bedrockPosition());
         movePlayerPacket.setRotation(getBedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(this instanceof SessionPlayerEntity ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
         // If the player is moved while sleeping, we have to adjust their y, so it appears
         // correctly on Bedrock. This fixes GSit's lay.
         if (getFlag(EntityFlag.SLEEPING)) {
-            if (bedPosition != null && (bedPosition.getY() == 0 || bedPosition.distanceSquared(position.toInt()) > 4)) {
+            if (bedPosition != null && (bedPosition.getY() == 0 || bedPosition.distanceSquared(position().toInt()) > 4)) {
                 // Force the player movement by using a teleport
-                movePlayerPacket.setPosition(Vector3f.from(position.getX(), position.getY() - definition.offset() + 0.2f, position.getZ()));
+                movePlayerPacket.setPosition(Vector3f.from(position().getX(), position().getY() + 0.2f, position().getZ()));
                 movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
             }
         }
@@ -203,7 +202,7 @@ public abstract class AvatarEntity extends LivingEntity {
             // Messes with Bedrock if we send this to the client itself, though.
             super.setPosition(position.up(0.2f));
         } else {
-            super.setPosition(position.add(0, definition.offset(), 0));
+            super.setPosition(position);
         }
     }
 
@@ -303,7 +302,7 @@ public abstract class AvatarEntity extends LivingEntity {
     /**
      * Whether this entity is listed on the player list.
      * Since player entities are used for e.g. custom skulls too, we need to hack around
-     * limitations introduced in 1.21.130 to ensure skins are correctly applied. 
+     * limitations introduced in 1.21.130 to ensure skins are correctly applied.
      * @see SkinManager#sendSkinPacket(GeyserSession, AvatarEntity, SkinData)
      * @return whether this player entity is listed
      */
@@ -332,7 +331,7 @@ public abstract class AvatarEntity extends LivingEntity {
 
         if (pose == Pose.SWIMMING) {
             // This is just for, so we know if player is swimming or crawling.
-            if (session.getGeyser().getWorldManager().blockAt(session, position.down(EntityDefinitions.PLAYER.offset()).toInt()).is(Blocks.WATER)) {
+            if (session.getGeyser().getWorldManager().blockAt(session, position().toInt()).is(Blocks.WATER)) {
                 setFlag(EntityFlag.SWIMMING, true);
             } else {
                 setFlag(EntityFlag.CRAWLING, true);
@@ -358,11 +357,11 @@ public abstract class AvatarEntity extends LivingEntity {
         switch (pose) {
             case SNEAKING -> {
                 height = SNEAKING_POSE_HEIGHT;
-                width = definition.width();
+                width = width();
             }
             case FALL_FLYING, SPIN_ATTACK, SWIMMING -> {
                 height = 0.6f;
-                width = definition.width();
+                width = width();
             }
             case DYING -> {
                 height = 0.2f;

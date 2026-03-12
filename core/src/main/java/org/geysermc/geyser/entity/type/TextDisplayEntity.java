@@ -31,7 +31,7 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.translator.text.MessageTranslator;
@@ -134,7 +134,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         // If the line count changed, update the position to account for the new offset
         if (this.lineCount != oldLineCount) {
-            Vector3f positionWithoutOffset = position.down(calculateLineOffset(oldLineCount));
+            Vector3f positionWithoutOffset = position().down(calculateLineOffset(oldLineCount));
             moveAbsoluteRaw(positionWithoutOffset, yaw, pitch, headYaw, onGround, false);
         }
     }
@@ -170,7 +170,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         }
 
         if (this.secondEntity == null) {
-            secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, position.down(calculateLineOffset()).down(LINE_HEIGHT_OFFSET)));
+            secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, VanillaEntities.ARMOR_STAND, this, position().down(calculateLineOffset()).down(LINE_HEIGHT_OFFSET)));
         }
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, this.nametag);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
