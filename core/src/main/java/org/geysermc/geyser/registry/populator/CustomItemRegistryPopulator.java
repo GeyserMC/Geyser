@@ -161,8 +161,8 @@ public class CustomItemRegistryPopulator {
     }
 
     public static GeyserCustomMappingData registerCustomItem(Item javaItem, GeyserMappingItem vanillaMapping, CustomItemDefinition customItem,
-                                                             int bedrockId, int protocolVersion) throws InvalidItemComponentsException {
-        CustomItemContext context = CustomItemContext.createVanillaAndValidateComponents(javaItem, vanillaMapping, customItem, bedrockId, protocolVersion);
+                                                             int bedrockId, int protocolVersion, boolean firstMappingsPass) throws InvalidItemComponentsException {
+        CustomItemContext context = CustomItemContext.createVanillaAndValidateComponents(javaItem, vanillaMapping, customItem, bedrockId, protocolVersion, firstMappingsPass);
 
         NbtMapBuilder bedrockComponents = createComponentNbt(javaItem.javaKey(), context);
         ItemDefinition itemDefinition = new SimpleItemDefinition(customItem.bedrockIdentifier().toString(), bedrockId, ItemVersion.DATA_DRIVEN, true, bedrockComponents.build());
@@ -170,8 +170,8 @@ public class CustomItemRegistryPopulator {
         return new GeyserCustomMappingData(customItem, itemDefinition, bedrockId);
     }
 
-    public static NonVanillaItemRegistration registerCustomItem(NonVanillaCustomItemDefinition customItem, int bedrockId, int protocolVersion) throws InvalidItemComponentsException {
-        CustomItemContext context = CustomItemContext.createNonVanillaAndValidateComponents(customItem, bedrockId, protocolVersion);
+    public static NonVanillaItemRegistration registerCustomItem(NonVanillaCustomItemDefinition customItem, int bedrockId, int protocolVersion, boolean firstPass) throws InvalidItemComponentsException {
+        CustomItemContext context = CustomItemContext.createNonVanillaAndValidateComponents(customItem, bedrockId, protocolVersion, firstPass);
 
         String bedrockIdentifier = customItem.bedrockIdentifier().toString();
         NbtMapBuilder bedrockComponents = createComponentNbt(MinecraftKey.identifierToKey(customItem.identifier()), context);

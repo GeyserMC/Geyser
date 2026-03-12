@@ -542,7 +542,7 @@ public class ItemRegistryPopulator {
                         }
 
                         try {
-                            GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(javaItem, mappingItem, customItem, customProtocolId, palette.protocolVersion);
+                            GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(javaItem, mappingItem, customItem, customProtocolId, palette.protocolVersion, firstMappingsPass);
 
                             if (customItem.bedrockOptions().creativeCategory() != CreativeCategory.NONE) {
                                 CreativeItemData creativeItemData = new CreativeItemData(ItemData.builder()
@@ -662,7 +662,7 @@ public class ItemRegistryPopulator {
 
                     int customItemId = nextFreeBedrockId++;
                     try {
-                        NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion);
+                        NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion, firstMappingsPass);
 
                         ItemMapping mapping = registration.mapping();
                         Item javaItem = registration.javaItem();
