@@ -39,7 +39,7 @@ import java.util.*;
 @Value
 public class GeyserCustomBlockComponents implements CustomBlockComponents {
     BoxComponent selectionBox;
-    BoxComponent collisionBox;
+    Set<BoxComponent> collisionBoxes;
     String displayName;
     GeometryComponent geometry;
     Map<String, MaterialInstance> materialInstances;
@@ -54,7 +54,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
 
     private GeyserCustomBlockComponents(Builder builder) {
         this.selectionBox = builder.selectionBox;
-        this.collisionBox = builder.collisionBox;
+        this.collisionBoxes = builder.collisionBoxes;
         this.displayName = builder.displayName;
         GeometryComponent geo = builder.geometry;
         if (builder.unitCube && geo == null) {
@@ -89,7 +89,12 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
 
     @Override
     public BoxComponent collisionBox() {
-        return collisionBox;
+        return collisionBoxes.isEmpty() ? null : collisionBoxes.iterator().next();
+    }
+
+    @Override
+    public @NonNull Set<BoxComponent> collisionBoxes() {
+        return collisionBoxes;
     }
 
     @Override
@@ -154,7 +159,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
 
     public static class Builder implements CustomBlockComponents.Builder {
         protected BoxComponent selectionBox;
-        protected BoxComponent collisionBox;
+        protected Set<BoxComponent> collisionBoxes = new HashSet<>();
         protected String displayName;
         protected GeometryComponent geometry;
         protected final Object2ObjectMap<String, MaterialInstance> materialInstances = new Object2ObjectOpenHashMap<>();
@@ -203,7 +208,20 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         @Override
         public Builder collisionBox(BoxComponent collisionBox) {
             validateBox(collisionBox, true);
-            this.collisionBox = collisionBox;
+            this.collisionBoxes = Collections.singleton(collisionBox);
+            return this;
+        }
+
+        @Override
+        public CustomBlockComponents.Builder collisionBoxes(BoxComponent... collisionBoxes) {
+            if (collisionBoxes.length > 16) {
+                throw new IllegalArgumentException("Cannot have more than 16 collision boxes");
+            }
+
+            for (BoxComponent box : collisionBoxes) {
+                validateBox(box, true);
+            }
+            this.collisionBoxes = new HashSet<>(Arrays.asList(collisionBoxes));
             return this;
         }
 

@@ -49,9 +49,21 @@ public interface CustomBlockComponents {
     /**
      * Gets the collision box component
      * Equivalent to "minecraft:collision_box"
-     * @return The collision box.
+     * @return The collision box
+     * @deprecated Use {@link #collisionBoxes()} instead.
      */
+    @Deprecated(since = "2.9.5")
     @Nullable BoxComponent collisionBox();
+
+    /**
+     * Gets the collision boxes component
+     * Equivalent to "minecraft:collision_box", which can be either one,
+     * none, or up to 16 collision boxes.
+     *
+     * @since 2.9.5
+     * @return the collision boxes
+     */
+    @NonNull Set<BoxComponent> collisionBoxes();
 
     /**
      * Gets the display name component
@@ -165,6 +177,8 @@ public interface CustomBlockComponents {
         Builder selectionBox(BoxComponent selectionBox);
 
         Builder collisionBox(BoxComponent collisionBox);
+
+        Builder collisionBoxes(BoxComponent... collisionBoxes);
 
         Builder displayName(String displayName);
 

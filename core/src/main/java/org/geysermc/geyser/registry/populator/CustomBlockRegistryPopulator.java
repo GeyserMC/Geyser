@@ -42,6 +42,7 @@ import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
+import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions.Face;
@@ -424,23 +425,24 @@ public class CustomBlockRegistryPopulator {
             builder.putCompound("minecraft:selection_box", convertBox(selectionBox));
         }
 
-        BoxComponent collisionBox = components.collisionBox();
-        if (collisionBox != null) {
-            builder.putCompound("minecraft:collision_box", convertCollisionBox(collisionBox, protocolVersion));
+        Set<BoxComponent> collisionBoxes = components.collisionBoxes();
+        if (!collisionBoxes.isEmpty()) {
+            builder.putCompound("minecraft:collision_box", convertCollisionBoxes(collisionBoxes, protocolVersion));
         }
 
-        if (components.geometry() != null) {
+        GeometryComponent geometryComponent = components.geometry();
+        if (geometryComponent != null) {
             NbtMapBuilder geometryBuilder = NbtMap.builder();
             if (protocolVersion >= Bedrock_v594.CODEC.getProtocolVersion()) {
-                geometryBuilder.putString("identifier", components.geometry().identifier());
-                if (components.geometry().boneVisibility() != null) {
+                geometryBuilder.putString("identifier", geometryComponent.identifier());
+                if (geometryComponent.boneVisibility() != null) {
                     NbtMapBuilder boneVisibilityBuilder = NbtMap.builder();
-                    components.geometry().boneVisibility().entrySet().forEach(
+                    geometryComponent.boneVisibility().entrySet().forEach(
                         entry -> boneVisibilityBuilder.putString(entry.getKey(), entry.getValue()));
                     geometryBuilder.putCompound("bone_visibility", boneVisibilityBuilder.build());
                 }
             } else {
-                geometryBuilder.putString("value", components.geometry().identifier());
+                geometryBuilder.putString("value", geometryComponent.identifier());
             }
             builder.putCompound("minecraft:geometry", geometryBuilder.build());
         }
@@ -543,26 +545,33 @@ public class CustomBlockRegistryPopulator {
     /**
      * Converts the provided COLLISION box component to an {@link NbtMap}
      *
-     * @param boxComponent the box component to convert
+     * @param boxes the box component to convert
      * @return the NBT representation of the provided box component
      */
-    private static NbtMap convertCollisionBox(BoxComponent boxComponent, int protocolVersion) {
+    private static NbtMap convertCollisionBoxes(Set<BoxComponent> boxes, int protocolVersion) {
         if (GameProtocol.is1_21_130orHigher(protocolVersion)) {
-            float minX = 8f + boxComponent.originX();
-            float minY = boxComponent.originY();
-            float minZ = 8f + boxComponent.originZ();
+            List<NbtMap> boxesNbt = new ArrayList<>();
+            for (BoxComponent boxComponent : boxes) {
+                float minX = 8f + boxComponent.originX();
+                float minY = boxComponent.originY();
+                float minZ = 8f + boxComponent.originZ();
+
+                boxesNbt.add(NbtMap.builder()
+                    .putFloat("minX", minX)
+                    .putFloat("minY", minY)
+                    .putFloat("minZ", minZ)
+                    .putFloat("maxX", minX + boxComponent.sizeX())
+                    .putFloat("maxY", minY + boxComponent.sizeY())
+                    .putFloat("maxZ", minZ + boxComponent.sizeZ())
+                    .build());
+            }
+
             return NbtMap.builder()
-                .putBoolean("enabled", !boxComponent.isEmpty())
-                .putList("boxes", NbtType.COMPOUND, NbtMap.builder()
-                .putFloat("minX", minX)
-                .putFloat("minY", minY)
-                .putFloat("minZ", minZ)
-                .putFloat("maxX", minX + boxComponent.sizeX())
-                .putFloat("maxY", minY + boxComponent.sizeY())
-                .putFloat("maxZ", minZ + boxComponent.sizeZ())
-                .build()).build();
+                .putBoolean("enabled", !boxes.isEmpty())
+                .putList("boxes", NbtType.COMPOUND, boxesNbt)
+                .build();
         } else {
-            return convertBox(boxComponent);
+            return convertBox(boxes.stream().findAny().orElseThrow());
         }
     }
 
