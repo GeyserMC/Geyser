@@ -41,7 +41,6 @@ import java.util.List;
 public class ShelfBlockEntityTranslator extends BlockEntityTranslator {
 
     private static final int SLOT_COUNT = 3;
-    private static final NbtMap EMPTY_ITEM = BedrockItemBuilder.createItemNbt("", 0, 0).build();
 
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
@@ -49,8 +48,9 @@ public class ShelfBlockEntityTranslator extends BlockEntityTranslator {
 
         // Bedrock determines shelf item position by list index, so we must produce
         // a dense list with empty items for unoccupied slots.
+        // Verified with BDS 1.26.0.2
         NbtMap[] items = new NbtMap[SLOT_COUNT];
-        Arrays.fill(items, EMPTY_ITEM);
+        Arrays.fill(items, BedrockItemBuilder.EMPTY_ITEM);
 
         List<NbtMap> javaItems = javaNbt.getList("Items", NbtType.COMPOUND);
         for (NbtMap stack : javaItems) {
