@@ -40,6 +40,7 @@ import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.PlayerBlockActionData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.cloudburstmc.protocol.bedrock.packet.MobEffectPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
@@ -47,6 +48,7 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.level.EffectType;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -60,6 +62,7 @@ import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransacti
 import org.geysermc.geyser.translator.protocol.java.level.JavaBlockDestructionTranslator;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.BlockBreakStage;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
@@ -327,6 +330,17 @@ public class BlockBreakHandler {
                 this.serverSideBlockBreaking = true;
             }
 
+            // Survival fly in Bedrock doesn't come with a mining speed penalty, but we can use effects to lower the mining speed to match Java's one
+            if (session.getGameMode() == GameMode.SURVIVAL && session.isFlying() && breakProgress > 0) {
+                MobEffectPacket mobEffectPacket = new MobEffectPacket();
+                mobEffectPacket.setAmplifier(0);
+                mobEffectPacket.setDuration((int) BlockUtils.reciprocal(breakProgress));
+                mobEffectPacket.setEvent(MobEffectPacket.Event.ADD);
+                mobEffectPacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
+                mobEffectPacket.setEffectId(EffectType.MINING_FATIGUE.getBedrockId());
+                session.sendUpstreamPacket(mobEffectPacket);
+            }
+
             LevelEventPacket startBreak = new LevelEventPacket();
             startBreak.setType(LevelEvent.BLOCK_START_BREAK);
             startBreak.setPosition(position.toFloat());
@@ -417,6 +431,15 @@ public class BlockBreakHandler {
             ServerboundPlayerActionPacket abortBreakingPacket = new ServerboundPlayerActionPacket(PlayerAction.CANCEL_DIGGING, currentBlockPos,
                 Direction.DOWN.mcpl(), 0);
             session.sendDownstreamGamePacket(abortBreakingPacket);
+        }
+
+        // Remove effect again which is applied to simulate survival fly block breaking
+        if (session.getGameMode() == GameMode.SURVIVAL && session.isFlying()) {
+            MobEffectPacket mobEffectPacket = new MobEffectPacket();
+            mobEffectPacket.setEvent(MobEffectPacket.Event.REMOVE);
+            mobEffectPacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
+            mobEffectPacket.setEffectId(EffectType.MINING_FATIGUE.getBedrockId());
+            session.sendUpstreamPacket(mobEffectPacket);
         }
 
         BlockUtils.sendBedrockStopBlockBreak(session, position.toFloat());
