@@ -215,7 +215,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
                                 packetBlockPosition.distanceSquared(session.getLastInteractionBlockPosition()) < 0.00001;
                         session.setLastInteractionBlockPosition(packetBlockPosition);
-                        session.setLastInteractionPlayerPosition(session.getPlayerEntity().getPosition());
+                        session.setLastInteractionPlayerPosition(session.getPlayerEntity().position());
                         if (hasAlreadyClicked) {
                             session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
                             break;
@@ -250,9 +250,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // As of 1.21, Paper does not have any additional range checks that would inconvenience normal players.
-                        Vector3f playerPosition = session.getPlayerEntity().getPosition();
-                        playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
-
+                        Vector3f playerPosition = session.getPlayerEntity().position().up(session.getEyeHeight());
                         if (!canInteractWithBlock(session, playerPosition, packetBlockPosition)) {
                             BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
                             return;
@@ -417,7 +415,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                             // BDS uses a LevelSoundEvent2Packet, but that doesn't work here... (as of 1.21.20)
                                             LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
                                             soundPacket.setSound(SoundEvent.valueOf("GOAT_CALL_" + instrument.bedrockInstrument().ordinal()));
-                                            soundPacket.setPosition(session.getPlayerEntity().getPosition());
+                                            soundPacket.setPosition(session.getPlayerEntity().bedrockPosition());
                                             soundPacket.setIdentifier("minecraft:player");
                                             soundPacket.setExtraData(-1);
                                             session.sendUpstreamPacket(soundPacket);
@@ -524,13 +522,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     }
 
     private void processEntityInteraction(GeyserSession session, InventoryTransactionPacket packet, Entity entity) {
-        Vector3f entityPosition = entity.getPosition();
+        Vector3f entityPosition = entity.position();
         if (!session.getWorldBorder().isInsideBorderBoundaries(entityPosition)) {
             // No transaction is able to go through (as of Java Edition 1.18.1)
             return;
         }
 
-        Vector3f clickPosition = packet.getClickPosition().sub(entityPosition);
+        Vector3f clickPosition = packet.getClickPosition().sub(entity.bedrockPosition());
         boolean isSpectator = session.getGameMode() == GameMode.SPECTATOR;
         for (Hand hand : EntityUtils.HANDS) {
             session.sendDownstreamGamePacket(new ServerboundInteractPacket(entity.getEntityId(),

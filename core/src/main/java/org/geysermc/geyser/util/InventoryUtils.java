@@ -232,13 +232,13 @@ public class InventoryUtils {
         // Check if a fake block can be placed, either above the player or beneath.
         BedrockDimension dimension = session.getBedrockDimension();
         int minY = dimension.minY(), maxY = minY + dimension.height();
-        Vector3i flatPlayerPosition = session.getPlayerEntity().getPosition().toInt();
+        Vector3i flatPlayerPosition = session.getPlayerEntity().bedrockPosition().toInt();
         Vector3i position = flatPlayerPosition.add(Vector3i.UP);
         if (position.getY() < minY) {
             return null;
         }
         if (position.getY() >= maxY || !canUseWorldSpace(session, position)) {
-            position = flatPlayerPosition.sub(0, 4, 0);
+            position = flatPlayerPosition.down(3);
             if (position.getY() >= maxY || !canUseWorldSpace(session, position)) {
                 return null;
             }
