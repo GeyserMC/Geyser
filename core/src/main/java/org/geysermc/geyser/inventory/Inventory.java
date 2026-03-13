@@ -29,6 +29,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -72,7 +73,7 @@ public abstract class Inventory {
      * Used for smooth transitions between two windows of the same type.
      */
     @Getter
-    protected final ContainerType containerType;
+    protected final @Nullable ContainerType containerType;
 
     @Getter
     protected final String title;
@@ -101,11 +102,11 @@ public abstract class Inventory {
     @Setter
     private boolean displayed;
 
-    protected Inventory(GeyserSession session, int id, int size, ContainerType containerType) {
+    protected Inventory(GeyserSession session, int id, int size, @Nullable ContainerType containerType) {
         this(session, "Inventory", id, size, containerType);
     }
 
-    protected Inventory(GeyserSession session, String title, int javaId, int size, ContainerType containerType) {
+    protected Inventory(GeyserSession session, String title, int javaId, int size, @Nullable ContainerType containerType) {
         this.javaId = javaId;
         this.size = size;
         this.containerType = containerType;
