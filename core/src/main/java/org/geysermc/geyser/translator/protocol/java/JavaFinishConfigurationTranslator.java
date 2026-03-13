@@ -25,9 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -37,8 +35,6 @@ import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.Clie
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.geysermc.geyser.inventory.recipe.RecipeUtil.CARTOGRAPHY_RECIPES;
 
 @Translator(packet = ClientboundFinishConfigurationPacket.class)
 public class JavaFinishConfigurationTranslator extends PacketTranslator<ClientboundFinishConfigurationPacket> {
