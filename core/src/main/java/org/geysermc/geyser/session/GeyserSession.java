@@ -28,10 +28,9 @@ package org.geysermc.geyser.session;
 import com.google.gson.JsonObject;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
-import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntObjectPair;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -542,7 +541,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * The key is the Bedrock recipe net ID; the values are their respective output and button ID.
      */
     @Setter
-    private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes;
+    private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes = Int2ObjectMaps.emptyMap();
     private final List<GeyserSmithingRecipe> smithingRecipes = new ArrayList<>();
 
     /**
