@@ -55,14 +55,7 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         }
         session.getEntityCache().removeAllPlayerEntities();
 
-        // Potion mixes are registered by default, as they are needed to be able to put ingredients into the brewing stand.
-        // (Also add it here so recipes get cleared on configuration - 1.21.3)
-        CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
-        craftingDataPacket.setCleanRecipes(true);
-        craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
-        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
         if (session.isSentSpawnPacket()) {
-            session.getUpstream().sendPacket(craftingDataPacket);
             // TODO proper fix to check if we've been online - in online mode (with auth screen),
             //  recipes are not yet known
             if (session.getStonecutterRecipes() != null) {
@@ -72,8 +65,9 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
                 session.getSmithingRecipes().clear();
                 session.getStonecutterRecipes().clear();
             }
+            session.getUpstream().sendPacket(session.getCraftingDataPacket());
         } else {
-            session.getUpstream().queuePostStartGamePacket(craftingDataPacket);
+            session.getUpstream().queuePostStartGamePacket(session.getCraftingDataPacket());
         }
 
         // while ClientboundLoginPacket holds the level, it doesn't hold the scoreboard.

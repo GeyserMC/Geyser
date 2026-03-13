@@ -55,7 +55,6 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
         int netId = session.getLastRecipeNetId().get();
         Int2ObjectMap<List<String>> javaToBedrockRecipeIds = session.getJavaToBedrockRecipeIds();
         Int2ObjectMap<GeyserRecipe> geyserRecipes = session.getCraftingRecipes();
-        CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
 
         UnlockedRecipesPacket recipesPacket = new UnlockedRecipesPacket();
         recipesPacket.setAction(packet.isReplace() ? UnlockedRecipesPacket.ActionType.INITIALLY_UNLOCKED : UnlockedRecipesPacket.ActionType.NEWLY_UNLOCKED);
@@ -70,11 +69,8 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             if (display instanceof ShapedCraftingRecipeDisplay shapedRecipe) {
                 GeyserRecipe geyserRecipe = new GeyserShapedRecipe(contents.id(), netId, shapedRecipe);
 
-                List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
-                craftingDataPacket.getCraftingData().addAll(recipeData);
-
                 List<String> bedrockRecipeIds = new ArrayList<>();
-                for (int i = 0; i < recipeData.size(); i++) {
+                for (int i = 0; i < geyserRecipe.asRecipeData(session).size(); i++) {
                     String recipeId = contents.id() + "_" + i;
                     recipesPacket.getUnlockedRecipes().add(recipeId);
                     bedrockRecipeIds.add(recipeId);
@@ -84,11 +80,8 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             } else if (display instanceof ShapelessCraftingRecipeDisplay shapelessRecipe) {
                 GeyserRecipe geyserRecipe = new GeyserShapelessRecipe(contents.id(), netId, shapelessRecipe);
 
-                List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
-                craftingDataPacket.getCraftingData().addAll(recipeData);
-
                 List<String> bedrockRecipeIds = new ArrayList<>();
-                for (int i = 0; i < recipeData.size(); i++) {
+                for (int i = 0; i < geyserRecipe.asRecipeData(session).size(); i++) {
                     String recipeId = contents.id() + "_" + i;
                     recipesPacket.getUnlockedRecipes().add(recipeId);
                     bedrockRecipeIds.add(recipeId);
@@ -104,10 +97,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 GeyserSmithingRecipe geyserRecipe = new GeyserSmithingRecipe(contents.id(), netId, smithingRecipe);
                 session.getSmithingRecipes().add(geyserRecipe);
 
-                List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
-                craftingDataPacket.getCraftingData().addAll(recipeData);
-
-                netId += recipeData.size();
+                netId += geyserRecipe.asRecipeData(session).size();
             }
         }
 
@@ -115,7 +105,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             // Sending an empty list here will crash the client as of 1.20.60
             // This was definitely in the codebase the entire time and did not
             // accidentally get refactored out during Java 1.21.3. :)
-            session.sendUpstreamPacket(craftingDataPacket);
+            session.sendUpstreamPacket(session.getCraftingDataPacket());
             session.sendUpstreamPacket(recipesPacket);
         }
         session.getLastRecipeNetId().set(netId);
