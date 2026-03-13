@@ -79,7 +79,7 @@ public class InventoryUtils {
      * Stores the last used recipe network ID. Since 1.16.200 (and for server-authoritative inventories),
      * each recipe needs a unique network ID (or else in .200 the client crashes).
      */
-    public static int LAST_RECIPE_NET_ID;
+    public static int LAST_RECIPE_NET_ID = 1;
     
     public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new DataComponents(new HashMap<>()));
 
