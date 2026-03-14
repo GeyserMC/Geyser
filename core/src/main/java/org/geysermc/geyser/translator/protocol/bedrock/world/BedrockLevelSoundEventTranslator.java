@@ -25,19 +25,12 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.world;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
-import org.geysermc.geyser.level.block.property.Properties;
-import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.CooldownUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
 @Translator(packet = LevelSoundEventPacket.class)
 public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoundEventPacket> {
@@ -52,28 +45,6 @@ public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoun
             // Send a faux cooldown since Bedrock has no cooldown support
             // Sent here because Java still sends a cooldown if the player doesn't hit anything but Bedrock always sends a sound
             CooldownUtils.setCooldownHitTime(session);
-        }
-
-        // Used by client to get book from lecterns in survial mode since 1.20.70
-        if (packet.getSound() == SoundEvent.HIT) {
-            Vector3f position = packet.getPosition();
-            Vector3i blockPosition = Vector3i.from(position.getX(), position.getY(), position.getZ());
-
-            BlockState potentialLectern = session.getGeyser().getWorldManager().blockAt(session, blockPosition);
-
-            if (potentialLectern.getValue(Properties.HAS_BOOK, false)) {
-                session.setDroppingLecternBook(true);
-
-                ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
-                        blockPosition,
-                        Direction.DOWN,
-                        Hand.MAIN_HAND,
-                        0, 0, 0,
-                        false,
-                        false,
-                        session.getWorldCache().nextPredictionSequence());
-                session.sendDownstreamGamePacket(blockPacket);
-            }
         }
     }
 }

@@ -28,9 +28,7 @@ package org.geysermc.geyser.translator.inventory;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.geysermc.erosion.util.LecternUtils;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
@@ -90,8 +88,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         // Heck, the latter crashes the client xd
         // BDS just sends an empty base lectern tag... that kicks out the client. Fine. Let's do that!
         Vector3i position = container.getHolderPosition();
-        NbtMapBuilder baseLecternTag = LecternUtils.getBaseLecternTag(position.getX(), position.getY(), position.getZ(), 0);
-        BlockEntityUtils.updateBlockEntity(session, baseLecternTag.build(), position);
+        BlockEntityUtils.updateBlockEntity(session, LecternBlock.getBaseLecternTag(position, false), position);
 
         // Closing lecterns isn't followed up by a ContainerClosePacket, so this wouldn't ever be reset.
         session.setPendingOrCurrentBedrockInventoryId(-1);
