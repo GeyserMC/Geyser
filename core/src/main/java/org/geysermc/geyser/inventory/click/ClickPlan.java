@@ -157,13 +157,13 @@ public final class ClickPlan {
             }
 
             ServerboundContainerClickPacket clickPacket = new ServerboundContainerClickPacket(
-                    inventory.getJavaId(),
-                    stateId,
-                    action.slot,
-                    action.click.actionType,
-                    action.click.action,
-                    DataComponentHashers.hashStack(session, clickedItemStack),
-                    changedHashedItems
+                inventory.getJavaId(),
+                stateId,
+                action.slot,
+                action.click.actionType,
+                action.click.action,
+                DataComponentHashers.hashStack(session, clickedItemStack),
+                changedHashedItems
             );
 
             session.sendDownstreamGamePacket(clickPacket);
@@ -397,7 +397,40 @@ public final class ClickPlan {
                     swap(action.slot, inventory.getOffsetForHotbar(8), clicked);
                     break;
                 case LEFT_SHIFT:
-                    //TODO
+                    if (clicked.isEmpty()) {
+                        break;
+                    }
+                    
+                    int remaining = clicked.getAmount();
+                    // are we shift-clicking items from the player inventory, or from the container?
+                    boolean sourceInPlayerInventory = action.slot >= translator.size;
+
+                    if (!sourceInPlayerInventory) {
+                        int hotbarOffset = inventory.getOffsetForHotbar(0);
+                        int mainStart = hotbarOffset - 27;
+                        int mainEnd = hotbarOffset - 1;
+                        int hotbarEnd = hotbarOffset + 8;
+
+                        // from what I understand, java has this priority for shift clicks:
+                        // 1. existing partial stacks in main inventory, top rows first
+                        // 2. existing partial stacks in hotbar
+                        // 3. empty slots in main inventory
+                        // 4. empty slots in hotbar
+                        
+                        // fill partial stacks in main inventory, then opt for hotbar afterwards
+                        remaining = fillPartialStacks(action.slot, clicked, remaining, mainStart, mainEnd);
+                        remaining = fillPartialStacks(action.slot, clicked, remaining, hotbarOffset, hotbarEnd);
+                        
+                        // fill empty slots in main inventory, then opt for hotbar afterwards
+                        remaining = fillEmptySlots(action.slot, clicked, remaining, mainStart, mainEnd);
+                        fillEmptySlots(action.slot, clicked, remaining, hotbarOffset, hotbarEnd); // remaining is no longer used 
+                    } else { // the other way around. the source is the player inventory, and we're shift clicking into the target container
+                        // fill partial stacks in top inventory, then opt for empty slots
+                        // this isn't a player's inventory, so we do not need the hotbar/main-inventory logic and vice versa :P
+                        remaining = fillPartialStacks(action.slot, clicked, remaining, 0, translator.size - 1);
+                        fillEmptySlots(action.slot, clicked, remaining, 0, translator.size - 1);
+                    }
+                    
                     break;
                 case DROP_ONE:
                     if (!clicked.isEmpty()) {
@@ -499,6 +532,47 @@ public final class ClickPlan {
                 sub(slot, item, crafted);
             }
         }
+    }
+
+    /**
+     * Utility method for LEFT_SHIFT. Java has some specific logic where it will try fill partial stacks first, so this is
+     * just a util method to reduce code duplication.
+     * 
+     * @return The remaining item count
+     */
+    private int fillPartialStacks(int sourceSlot, GeyserItemStack source, int remaining, int rangeStart, int rangeEnd) {
+        if (remaining <= 0) return 0; // we already return early within the underlying loop, this is a sanity check and/or readability to avoid confusion
+        for (int i = rangeStart; i <= rangeEnd && remaining > 0; i++) {
+            if (!canStack(i, source)) continue;
+
+            GeyserItemStack dest = getItem(i);
+            int canAdd = Math.min(remaining, dest.getMaxStackSize() - dest.getAmount());
+            if (canAdd <= 0) continue;
+
+            add(i, dest, canAdd);
+            sub(sourceSlot, source, canAdd);
+            remaining -= canAdd;
+        }
+        return remaining;
+    }
+
+    /**
+     * Utility method for LEFT_SHIFT. Java has some specific logic where it will fill empty slots AFTER attempting to fill partial slots...
+     * 
+     * @return The remaining item count
+     */
+    private int fillEmptySlots(int sourceSlot, GeyserItemStack source, int remaining, int rangeStart, int rangeEnd) {
+        if (remaining <= 0) return 0; // we already return early within the underlying loop, this is a sanity check and/or readability to avoid confusion
+        for (int i = rangeStart; i <= rangeEnd && remaining > 0; i++) {
+            if (!isEmpty(i)) continue;
+
+            int toMove = Math.min(remaining, source.getMaxStackSize());
+
+            setItem(i, source.copy(toMove));
+            sub(sourceSlot, source, toMove);
+            remaining -= toMove;
+        }
+        return remaining;
     }
 
     /**

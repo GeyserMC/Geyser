@@ -38,6 +38,8 @@ public class LecternContainer extends Container {
     private int currentBedrockPage = 0;
     @Setter
     private NbtMap blockEntityTag;
+    @Setter
+    private int currentBookHash;
 
     private boolean isBookInPlayerInventory = false;
 

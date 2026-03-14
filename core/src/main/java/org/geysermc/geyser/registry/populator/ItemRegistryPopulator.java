@@ -73,6 +73,7 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.inventory.item.StoredItemMappings;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserRangeDispatchPredicate;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
@@ -88,6 +89,8 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.registry.type.NonVanillaItemRegistration;
 import org.geysermc.geyser.registry.type.PaletteItem;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.geyser.util.JsonUtils;
 
@@ -223,6 +226,20 @@ public class ItemRegistryPopulator {
                 }
 
                 ItemDefinition definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.from(entry.getVersion()), entry.isComponentBased(), components);
+
+                // Some item on Bedrock Edition have a different stack size, so we're changing that through the component.
+                // This resolve https://github.com/GeyserMC/Geyser/issues/5612 and https://github.com/GeyserMC/Geyser/issues/4905
+                if (definition.getIdentifier().equals("minecraft:cake")) {
+                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.from(entry.getVersion()), true, fromItemDefinitionToDataDriven(definition, 1, null, null, false));
+                } else if (definition.getIdentifier().equals("minecraft:armor_stand")) {
+                    // You have to change the item version to data driven for armor stand else this won't work.
+                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.DATA_DRIVEN, true, fromItemDefinitionToDataDriven(definition, 16, "armor_stand", "item.armor_stand.name", false));
+                } else if (definition.getIdentifier().equals("minecraft:firework_rocket")) {
+                    // For fireworks rocket, we purposely make this item data driven so now bedrock won't do client-sided boosting
+                    // and now we can control fireworks boost ourselves! This resolve https://github.com/GeyserMC/Geyser/issues/5409
+                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.DATA_DRIVEN, true, fromItemDefinitionToDataDriven(definition, 64, "fireworks", "item.fireworks.name", true));
+                }
+
                 definitions.put(entry.getName(), definition);
                 registry.put(definition.getRuntimeId(), definition);
             }
@@ -525,7 +542,7 @@ public class ItemRegistryPopulator {
                         }
 
                         try {
-                            GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(javaItem, mappingItem, customItem, customProtocolId, palette.protocolVersion);
+                            GeyserCustomMappingData customMapping = CustomItemRegistryPopulator.registerCustomItem(javaItem, mappingItem, customItem, customProtocolId, palette.protocolVersion, firstMappingsPass);
 
                             if (customItem.bedrockOptions().creativeCategory() != CreativeCategory.NONE) {
                                 CreativeItemData creativeItemData = new CreativeItemData(ItemData.builder()
@@ -645,7 +662,7 @@ public class ItemRegistryPopulator {
 
                     int customItemId = nextFreeBedrockId++;
                     try {
-                        NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion);
+                        NonVanillaItemRegistration registration = CustomItemRegistryPopulator.registerCustomItem(customItem, customItemId, palette.protocolVersion, firstMappingsPass);
 
                         ItemMapping mapping = registration.mapping();
                         Item javaItem = registration.javaItem();
@@ -722,6 +739,32 @@ public class ItemRegistryPopulator {
                 }
             }
 
+            // Since the fireworks tag now won't show up due to this is being a data driven item, we have to translate it to lore ourselves
+            for (int j = 0; j < creativeItems.size(); j++) {
+                CreativeItemData itemData = creativeItems.get(j);
+                if (!itemData.getItem().getDefinition().getIdentifier().equals("minecraft:firework_rocket")) {
+                    continue;
+                }
+
+                NbtMap tag = null;
+                if (itemData.getItem().getTag() != null) {
+                    final DataComponents components = new DataComponents(new HashMap<>());
+                    Items.FIREWORK_ROCKET.translateNbtToJava(null, itemData.getItem().getTag(), components, null);
+                    final BedrockItemBuilder builder = new BedrockItemBuilder();
+                    Items.FIREWORK_ROCKET.translateComponentsToBedrock(null, components, TooltipOptions.ALL_SHOWN, builder);
+
+                    tag = builder.build();
+                }
+
+                creativeItems.set(j, new CreativeItemData(ItemData.builder()
+                    .usingNetId(true)
+                    .netId(itemData.getItem().getNetId())
+                    .definition(itemData.getItem().getDefinition())
+                    .tag(tag)
+                    .count(itemData.getItem().getCount())
+                    .build(), itemData.getNetId(), itemData.getGroupId()));
+            }
+
             ItemMappings itemMappings = ItemMappings.builder()
                     .items(mappings.toArray(new ItemMapping[0]))
                     .zeroBlockDefinitionRuntimeId(mappings.stream()
@@ -781,6 +824,41 @@ public class ItemRegistryPopulator {
         itemProperties.putInt("creative_category", 4); // 4 - "Items"
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
+        builder.putCompound("components", componentBuilder.build());
+        return builder.build();
+    }
+  
+    private static NbtMap fromItemDefinitionToDataDriven(ItemDefinition definition, int maxStackSize, String texture, String displayName, boolean swing) {
+        NbtMapBuilder builder = NbtMap.builder();
+        builder.putString("name", definition.getIdentifier()).putInt("id", definition.getRuntimeId());
+
+        NbtMapBuilder itemProperties = NbtMap.builder();
+
+        NbtMapBuilder componentBuilder = NbtMap.builder();
+
+        if (texture != null) {
+            NbtMap iconMap = NbtMap.builder()
+                .putCompound("textures", NbtMap.builder()
+                    .putString("default", texture)
+                    .build())
+                .build();
+            itemProperties.putCompound("minecraft:icon", iconMap);
+        }
+
+        if (displayName != null) {
+            componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", displayName).build());
+        }
+
+        itemProperties.putBoolean("allow_off_hand", true);
+        itemProperties.putInt("max_stack_size", maxStackSize);
+
+        componentBuilder.putCompound("item_properties", itemProperties.build());
+
+        if (swing) {
+            componentBuilder.putCompound("minecraft:throwable", NbtMap.builder().putBoolean("do_swing_animation", true).build());
+            componentBuilder.putCompound("minecraft:projectile", NbtMap.builder().putString("projectile_entity", "minecraft:snowball").build());
+        }
+
         builder.putCompound("components", componentBuilder.build());
         return builder.build();
     }

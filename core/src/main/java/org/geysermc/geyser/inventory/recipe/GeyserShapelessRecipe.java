@@ -25,19 +25,51 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
+import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
+import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.ShapelessCraftingRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
-public record GeyserShapelessRecipe(List<SlotDisplay> ingredients, SlotDisplay result) implements GeyserRecipe {
+public record GeyserShapelessRecipe(int id,
+                                    int netId,
+                                    List<SlotDisplay> ingredients,
+                                    SlotDisplay result) implements GeyserRecipe {
 
-    public GeyserShapelessRecipe(ShapelessCraftingRecipeDisplay data) {
-        this(data.ingredients(), data.result());
+    public GeyserShapelessRecipe(int id, int netId, ShapelessCraftingRecipeDisplay data) {
+        this(id, netId, data.ingredients(), data.result());
     }
 
     @Override
     public boolean isShaped() {
         return false;
+    }
+
+    @Override
+    public List<RecipeData> asRecipeData(GeyserSession session) {
+        var bedrockRecipes = RecipeUtil.combinations(session, result, ingredients);
+        if (bedrockRecipes == null) {
+            return List.of();
+        }
+
+        List<RecipeData> recipeData = new ArrayList<>();
+        ItemData output = bedrockRecipes.right();
+        List<List<ItemDescriptorWithCount>> left = bedrockRecipes.left();
+        int i = 0;
+        for (List<ItemDescriptorWithCount> inputs : left) {
+            recipeData.add(ShapelessRecipeData.shapeless(id + "_" + i, inputs,
+                    Collections.singletonList(output), UUID.randomUUID(), "crafting_table", 0,
+                    netId + i, RecipeUnlockingRequirement.INVALID));
+            i++;
+        }
+        return recipeData;
     }
 }

@@ -26,16 +26,17 @@
 package org.geysermc.geyser.registry.populator.custom;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
 import org.geysermc.geyser.item.custom.ComponentConverters;
-import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,8 +68,8 @@ public record CustomItemContext(CustomItemDefinition definition, DataComponents 
      * @throws InvalidItemComponentsException when the custom item definition has an invalid combination of components in its component patch
      */
     public static CustomItemContext createVanillaAndValidateComponents(Item javaItem, GeyserMappingItem vanillaMapping, CustomItemDefinition customItem,
-                                                                       int customItemId, int protocolVersion) throws InvalidItemComponentsException {
-        return new CustomItemContext(customItem, checkComponents(customItem, javaItem, resolvable -> {}), List.of(), Optional.of(vanillaMapping), customItemId, protocolVersion);
+                                                                       int customItemId, int protocolVersion, boolean firstPass) throws InvalidItemComponentsException {
+        return new CustomItemContext(customItem, checkComponents(customItem, javaItem, resolvable -> {}, firstPass), List.of(), Optional.of(vanillaMapping), customItemId, protocolVersion);
     }
 
     /**
@@ -80,9 +81,9 @@ public record CustomItemContext(CustomItemDefinition definition, DataComponents 
      * @return the created context
      * @throws InvalidItemComponentsException when the custom item definition has an invalid combination of components in its component patch
      */
-    public static CustomItemContext createNonVanillaAndValidateComponents(NonVanillaCustomItemDefinition customItem, int customItemId, int protocolVersion) throws InvalidItemComponentsException {
+    public static CustomItemContext createNonVanillaAndValidateComponents(NonVanillaCustomItemDefinition customItem, int customItemId, int protocolVersion, boolean firstPass) throws InvalidItemComponentsException {
         List<ResolvableComponent<?>> resolvableComponents = new ArrayList<>();
-        DataComponents components = checkComponents(customItem, null, resolvableComponents::add);
+        DataComponents components = checkComponents(customItem, null, resolvableComponents::add, firstPass);
         return new CustomItemContext(customItem, components, resolvableComponents, Optional.empty(), customItemId, protocolVersion);
     }
 
@@ -95,16 +96,15 @@ public record CustomItemContext(CustomItemDefinition definition, DataComponents 
      * @param javaItem the vanilla item to patch components on to, can be null for non-vanilla custom items
      * @return the custom data components patched on the vanilla item's components (if present), validated
      */
-    private static DataComponents checkComponents(CustomItemDefinition definition, Item javaItem, Consumer<ResolvableComponent<?>> resolvableConsumer) throws InvalidItemComponentsException {
+    private static DataComponents checkComponents(CustomItemDefinition definition, Item javaItem, Consumer<ResolvableComponent<?>> resolvableConsumer, boolean firstPass) throws InvalidItemComponentsException {
         DataComponents components = patchDataComponents(javaItem, definition, resolvableConsumer);
         int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 0);
         int maxDamage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
+        Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
 
-        if (components.get(DataComponentTypes.EQUIPPABLE) != null && stackSize > 1) {
-            // V1 compat: Allow old items to function; we'll patch in stack size to one later
-            if (!(definition instanceof GeyserCustomItemDefinition)) {
-                throw new InvalidItemComponentsException("Bedrock doesn't support equippable items with a stack size above 1");
-            }
+        if (equippable != null && stackSize > 1 && firstPass) {
+            GeyserImpl.getInstance().getLogger().warning("Bedrock doesn't support stackable equippable items! Custom item %s with stack size %s and equippable component for slot %s will not work as expected!"
+                .formatted(definition.bedrockIdentifier(), stackSize, equippable.slot()));
         } else if (stackSize > 1 && maxDamage > 0) {
             throw new InvalidItemComponentsException("Stack size must be 1 when max damage is above 0");
         }
