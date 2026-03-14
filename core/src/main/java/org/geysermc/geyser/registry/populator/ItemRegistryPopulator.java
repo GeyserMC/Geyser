@@ -230,14 +230,14 @@ public class ItemRegistryPopulator {
                 // Some item on Bedrock Edition have a different stack size, so we're changing that through the component.
                 // This resolve https://github.com/GeyserMC/Geyser/issues/5612 and https://github.com/GeyserMC/Geyser/issues/4905
                 if (definition.getIdentifier().equals("minecraft:cake")) {
-                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.from(entry.getVersion()), true, fromItemDefinitionToDataDriven(definition, 1, null, null));
+                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.from(entry.getVersion()), true, fromItemDefinitionToDataDriven(definition, 1, null, null, false));
                 } else if (definition.getIdentifier().equals("minecraft:armor_stand")) {
                     // You have to change the item version to data driven for armor stand else this won't work.
-                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.DATA_DRIVEN, true, fromItemDefinitionToDataDriven(definition, 16, "armor_stand", "item.armor_stand.name"));
+                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.DATA_DRIVEN, true, fromItemDefinitionToDataDriven(definition, 16, "armor_stand", "item.armor_stand.name", false));
                 } else if (definition.getIdentifier().equals("minecraft:firework_rocket")) {
                     // For fireworks rocket, we purposely make this item data driven so now bedrock won't do client-sided boosting
                     // and now we can control fireworks boost ourselves! This resolve https://github.com/GeyserMC/Geyser/issues/5409
-                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.DATA_DRIVEN, true, fromItemDefinitionToDataDriven(definition, 64, "fireworks", "item.fireworks.name"));
+                    definition = new SimpleItemDefinition(entry.getName().intern(), id, ItemVersion.DATA_DRIVEN, true, fromItemDefinitionToDataDriven(definition, 64, "fireworks", "item.fireworks.name", true));
                 }
 
                 definitions.put(entry.getName(), definition);
@@ -828,7 +828,7 @@ public class ItemRegistryPopulator {
         return builder.build();
     }
   
-    private static NbtMap fromItemDefinitionToDataDriven(ItemDefinition definition, int maxStackSize, String texture, String displayName) {
+    private static NbtMap fromItemDefinitionToDataDriven(ItemDefinition definition, int maxStackSize, String texture, String displayName, boolean swing) {
         NbtMapBuilder builder = NbtMap.builder();
         builder.putString("name", definition.getIdentifier()).putInt("id", definition.getRuntimeId());
 
@@ -853,6 +853,12 @@ public class ItemRegistryPopulator {
         itemProperties.putInt("max_stack_size", maxStackSize);
 
         componentBuilder.putCompound("item_properties", itemProperties.build());
+
+        if (swing) {
+            componentBuilder.putCompound("minecraft:throwable", NbtMap.builder().putBoolean("do_swing_animation", true).build());
+            componentBuilder.putCompound("minecraft:projectile", NbtMap.builder().putString("projectile_entity", "minecraft:snowball").build());
+        }
+
         builder.putCompound("components", componentBuilder.build());
         return builder.build();
     }
