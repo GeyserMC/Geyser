@@ -160,7 +160,6 @@ public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T>
                         .properties(propertiesBuilder)
                         .identifier(identifier)
                         .build();
-                    Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(identifier, bedrockDefinition);
                 }
             }
 

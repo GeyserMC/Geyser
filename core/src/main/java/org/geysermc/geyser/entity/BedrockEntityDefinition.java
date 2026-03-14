@@ -101,7 +101,12 @@ public record BedrockEntityDefinition(
         }
 
         BedrockEntityDefinition build() {
-            return new BedrockEntityDefinition(identifier, propertiesBuilder != null ? propertiesBuilder.build() : new GeyserEntityProperties());
+            BedrockEntityDefinition definition = new BedrockEntityDefinition(
+                identifier,
+                propertiesBuilder != null ? propertiesBuilder.build() : new GeyserEntityProperties()
+            );
+            Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(identifier, definition);
+            return definition;
         }
     }
 }

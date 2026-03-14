@@ -188,6 +188,10 @@ public class EntitySpawnContext {
     }
 
     public boolean callParrotEvent(PlayerEntity player, int variant, boolean right) {
+        if (EnvironmentUtils.IS_UNIT_TESTING) {
+            return true;
+        }
+
         GeyserImpl.getInstance().eventBus().fire(new ServerAttachParrotsEvent(session) {
             @Override
             public GeyserPlayerEntity player() {
@@ -246,7 +250,7 @@ public class EntitySpawnContext {
             }
         });
 
-        return bedrockEntityDefinition == null;
+        return bedrockEntityDefinition != null;
     }
 
     // Not assigned by default - preparation for cancellable entity spawning

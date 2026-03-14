@@ -36,24 +36,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class HitboxImpl implements Hitbox {
+public record HitboxImpl(Vector3f min, Vector3f max, Vector3f pivot) implements Hitbox {
 
-    public static Hitbox EMPTY = new HitboxImpl(Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO) {
-        @Override
-        public NbtMap toNbtMap() {
-            return NbtMap.EMPTY;
-        }
-    };
-
-    private final Vector3f min;
-    private final Vector3f max;
-    private final Vector3f pivot;
-
-    public HitboxImpl(Vector3f min, Vector3f max, Vector3f pivot) {
-        this.min = min;
-        this.max = max;
-        this.pivot = pivot;
-    }
+    public static final Hitbox EMPTY = new HitboxImpl(Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
 
     public static List<Hitbox> fromMetaData(@Nullable NbtMap metaDataMap) {
         if (metaDataMap == null) {
@@ -72,72 +57,33 @@ public class HitboxImpl implements Hitbox {
         return boxes;
     }
 
-    public NbtMap toNbtMap() {
+    public static NbtMap toNbtMap(Hitbox hitbox) {
+        if (Objects.equals(EMPTY, hitbox)) {
+            return NbtMap.EMPTY;
+        }
+
         return NbtMap.builder()
-            .putFloat("MinX", min.getX())
-            .putFloat("MinY", min.getY())
-            .putFloat("MinZ", min.getZ())
-            .putFloat("MaxX", max.getX())
-            .putFloat("MaxY", max.getY())
-            .putFloat("MaxZ", max.getZ())
-            .putFloat("PivotX", pivot.getX())
-            .putFloat("PivotY", pivot.getY())
-            .putFloat("PivotZ", pivot.getZ())
+            .putFloat("MinX", hitbox.min().getX())
+            .putFloat("MinY", hitbox.min().getY())
+            .putFloat("MinZ", hitbox.min().getZ())
+            .putFloat("MaxX", hitbox.max().getX())
+            .putFloat("MaxY", hitbox.max().getY())
+            .putFloat("MaxZ", hitbox.max().getZ())
+            .putFloat("PivotX", hitbox.pivot().getX())
+            .putFloat("PivotY", hitbox.pivot().getY())
+            .putFloat("PivotZ", hitbox.pivot().getZ())
             .build();
     }
 
     public static NbtMap toNbtMap(List<Hitbox> hitboxes) {
         List<NbtMap> list = new ArrayList<>();
         for (Hitbox hitbox : hitboxes) {
-            if (hitbox instanceof HitboxImpl impl) {
-                list.add(impl.toNbtMap());
-            } else {
-                throw new IllegalArgumentException("Unknown hitbox class implementation: " + hitbox.getClass().getSimpleName());
-            }
+            list.add(toNbtMap(hitbox));
         }
         return NbtMap.builder().putList("Hitboxes", NbtType.COMPOUND, list).build();
     }
 
-    @Override
-    public Vector3f min() {
-        return min;
-    }
-
-    @Override
-    public Vector3f max() {
-        return max;
-    }
-
-    @Override
-    public Vector3f pivot() {
-        return pivot;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (HitboxImpl) obj;
-        return Objects.equals(this.min, that.min) &&
-            Objects.equals(this.max, that.max) &&
-            Objects.equals(this.pivot, that.pivot);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(min, max, pivot);
-    }
-
-    @Override
-    public String toString() {
-        return "HitboxImpl[" +
-            "min=" + min + ", " +
-            "max=" + max + ", " +
-            "pivot=" + pivot + ']';
-    }
-
-
-    public static class Builder implements Hitbox.Builder {
+    public static class BuilderImpl implements Hitbox.Builder {
         Vector3f min, max, pivot;
 
         @Override

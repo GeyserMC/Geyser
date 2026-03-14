@@ -218,7 +218,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(GeyserEntityDataType.class, args -> GeyserEntityDataImpl.lookup((Class<?>) args[0], (String) args[1]));
         providers.put(GeyserListEntityDataType.class, args -> GeyserListEntityDataImpl.lookup((Class<?>) args[0], (Class<?>) args[1], (String) args[2]));
 
-        providers.put(Hitbox.Builder.class, args -> new HitboxImpl.Builder());
+        providers.put(Hitbox.Builder.class, args -> new HitboxImpl.BuilderImpl());
         providers.put(Hitbox.class, args -> HitboxImpl.EMPTY);
 
         return providers;
