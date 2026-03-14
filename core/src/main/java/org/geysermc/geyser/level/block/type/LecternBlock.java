@@ -53,9 +53,9 @@ public class LecternBlock extends Block implements BedrockChunkWantsBlockEntityT
 
     @Override
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
-        // Prevent block updates while we're reading a book in the lectern
+        // Prevent additional block updates while we're reading a book in the lectern
         if (session.getOpenInventory() instanceof LecternContainer container) {
-            if (container.isUsingRealBlock() && Objects.equals(container.getHolderPosition(), position)) {
+            if (Objects.equals(container.getHolderPosition(), position)) {
                 // We'll update the block once we close the lectern
                 return;
             }
