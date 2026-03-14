@@ -128,9 +128,14 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         GeyserItemStack itemStack = container.getItem(0);
         if (!itemStack.isEmpty()) {
             boolean wasDropping = session.isDroppingLecternBook();
+            int oldBookHash = container.getCurrentBookHash();
             updateBook(session, container, itemStack);
 
-            if (!wasDropping && container.getBlockEntityTag() != null) {
+            // Only open the inventory here if we:
+            // 1. were not dropping the book; in which case we also closed the inventory already;
+            // 2. have a valid lectern block entity tag;
+            // 3. didn't open the inventory already
+            if (!wasDropping && container.getBlockEntityTag() != null && oldBookHash == 0) {
                 openInventory(session, container);
             }
         }
@@ -162,7 +167,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
                 InventoryUtils.closeInventory(session, container.getJavaId(), false);
             }
             session.setDroppingLecternBook(false);
-        } else if (!Objects.equals(book.hashCode(), container.getHashOldBook())) {
+        } else if (!Objects.equals(book.hashCode(), container.getCurrentBookHash())) {
             Vector3i position = container.getHolderPosition();
 
             int currentPage;
@@ -188,7 +193,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
                 currentPage = 0;
             }
 
-            container.setHashOldBook(book.hashCode());
+            container.setCurrentBookHash(book.hashCode());
             container.setCurrentBedrockPage(currentPage);
             container.setBlockEntityTag(blockEntityTag);
 

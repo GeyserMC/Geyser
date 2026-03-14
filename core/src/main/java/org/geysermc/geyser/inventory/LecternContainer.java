@@ -39,7 +39,7 @@ public class LecternContainer extends Container {
     @Setter
     private NbtMap blockEntityTag;
     @Setter
-    private int hashOldBook;
+    private int currentBookHash;
 
     private boolean isBookInPlayerInventory = false;
 
