@@ -150,8 +150,8 @@ public class Entity implements GeyserEntity {
 
     // hacky temp solution till i can think of something better
     // this would be the height / width of the bounding box regardless of pose etc
-    private float customBoundingBoxHeight;
-    private float customBoundingBoxWidth;
+    private Float customBoundingBoxHeight;
+    private Float customBoundingBoxWidth;
 
     protected List<Entity> passengers = Collections.emptyList();
     protected Entity vehicle;
@@ -679,14 +679,14 @@ public class Entity implements GeyserEntity {
     }
 
     public float getBoundingBoxHeight() {
-        if (customBoundingBoxHeight != 0) {
+        if (customBoundingBoxHeight != null) {
             return customBoundingBoxHeight;
         }
         return boundingBoxHeight;
     }
 
     public float getBoundingBoxWidth() {
-        if (customBoundingBoxWidth != 0) {
+        if (customBoundingBoxWidth != null) {
             return customBoundingBoxWidth;
         }
         return boundingBoxWidth;
