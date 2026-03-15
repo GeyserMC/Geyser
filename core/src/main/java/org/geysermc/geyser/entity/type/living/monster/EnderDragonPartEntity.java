@@ -26,6 +26,7 @@
 package org.geysermc.geyser.entity.type.living.monster;
 
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.geysermc.geyser.entity.VanillaEntities;
@@ -36,7 +37,10 @@ import org.geysermc.geyser.session.GeyserSession;
 public class EnderDragonPartEntity extends Entity {
 
     public EnderDragonPartEntity(GeyserSession session, int entityId, long geyserId, float width, float height) {
-        super(dragonPartSpawnContext(session, entityId, width, height, geyserId));
+        super(dragonPartSpawnContext(session, entityId, geyserId));
+
+        dirtyMetadata.put(EntityDataTypes.WIDTH, width);
+        dirtyMetadata.put(EntityDataTypes.HEIGHT, height);
 
         setFlag(EntityFlag.INVISIBLE, true);
         setFlag(EntityFlag.FIRE_IMMUNE, true);
@@ -61,7 +65,7 @@ public class EnderDragonPartEntity extends Entity {
         session.getQueuedImmediatelyPackets().add(moveEntityPacket);
     }
 
-    public static EntitySpawnContext dragonPartSpawnContext(GeyserSession session, int entityId, float width, float height, long geyserId) {
-        return new EntitySpawnContext(session, VanillaEntities.ENDER_DRAGON_PART, entityId, height, width, geyserId);
+    public static EntitySpawnContext dragonPartSpawnContext(GeyserSession session, int entityId, long geyserId) {
+        return new EntitySpawnContext(session, VanillaEntities.ENDER_DRAGON_PART, entityId, geyserId);
     }
 }

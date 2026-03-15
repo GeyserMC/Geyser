@@ -50,7 +50,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
 
     public SnifferEntity(EntitySpawnContext context) {
         super(context);
-        diggingHeight = height - 0.4f;
+        diggingHeight = javaTypeDefinition.height() - 0.4f;
     }
 
     @Override
@@ -63,7 +63,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
     protected void setDimensionsFromPose(Pose pose) {
         if (getFlag(EntityFlag.DIGGING)) {
             setBoundingBoxHeight(diggingHeight);
-            setBoundingBoxWidth(width);
+            setBoundingBoxWidth(javaTypeDefinition.width());
         } else {
             super.setDimensionsFromPose(pose);
         }

@@ -148,6 +148,11 @@ public class Entity implements GeyserEntity {
     protected boolean silent = false;
     /* Metadata end */
 
+    // hacky temp solution till i can think of something better
+    // this would be the height / width of the bounding box regardless of pose etc
+    private float customBoundingBoxHeight;
+    private float customBoundingBoxWidth;
+
     protected List<Entity> passengers = Collections.emptyList();
     protected Entity vehicle;
     /**
@@ -174,11 +179,8 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.PROTECTED) // For players
     private boolean flagsDirty = false;
 
-    @Accessors(fluent = true)
-    protected float width;
-    @Accessors(fluent = true)
-    protected float height;
     protected float offset;
+    protected float scale = 1.0F;
 
     protected final @Nullable GeyserEntityPropertyManager propertyManager;
 
@@ -194,8 +196,6 @@ public class Entity implements GeyserEntity {
         this.yaw = context.yaw();
         this.pitch = context.pitch();
         this.headYaw = context.headYaw();
-        this.width = context.width();
-        this.height = context.height();
         this.offset = context.offset();
         this.valid = false;
         this.propertyManager = bedrockDefinition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(bedrockDefinition.registeredProperties());
@@ -210,12 +210,12 @@ public class Entity implements GeyserEntity {
      * Called on entity spawn. Used to populate the entity metadata and flags with default values.
      */
     protected void initializeMetadata() {
-        dirtyMetadata.put(EntityDataTypes.WIDTH, width);
-        dirtyMetadata.put(EntityDataTypes.HEIGHT, height);
-        dirtyMetadata.put(EntityDataTypes.SCALE, 1f);
+        dirtyMetadata.put(EntityDataTypes.SCALE, scale);
         dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
         dirtyMetadata.put(EntityDataTypes.AIR_SUPPLY_MAX, getMaxAir());
         setDimensionsFromPose(Pose.STANDING);
+        dirtyMetadata.put(EntityDataTypes.WIDTH, getBoundingBoxWidth());
+        dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
         setFlag(EntityFlag.HAS_GRAVITY, true);
         setFlag(EntityFlag.HAS_COLLISION, true);
         setFlag(EntityFlag.CAN_SHOW_NAME, true);
@@ -656,14 +656,14 @@ public class Entity implements GeyserEntity {
      */
     protected void setDimensionsFromPose(Pose pose) {
         // No flexibility options for basic entities
-        setBoundingBoxHeight(height);
-        setBoundingBoxWidth(width);
+        setBoundingBoxHeight(javaTypeDefinition.height());
+        setBoundingBoxWidth(javaTypeDefinition.width());
     }
 
     public boolean setBoundingBoxHeight(float height) {
         if (height != boundingBoxHeight) {
             boundingBoxHeight = height;
-            dirtyMetadata.put(EntityDataTypes.HEIGHT, boundingBoxHeight);
+            dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
 
             updatePassengerOffsets();
             return true;
@@ -674,8 +674,41 @@ public class Entity implements GeyserEntity {
     public void setBoundingBoxWidth(float width) {
         if (width != boundingBoxWidth) {
             boundingBoxWidth = width;
-            dirtyMetadata.put(EntityDataTypes.WIDTH, boundingBoxWidth);
+            dirtyMetadata.put(EntityDataTypes.WIDTH, getBoundingBoxWidth());
         }
+    }
+
+    public float getBoundingBoxHeight() {
+        if (customBoundingBoxHeight != 0) {
+            return customBoundingBoxHeight;
+        }
+        return boundingBoxHeight;
+    }
+
+    public float getBoundingBoxWidth() {
+        if (customBoundingBoxWidth != 0) {
+            return customBoundingBoxWidth;
+        }
+        return boundingBoxWidth;
+    }
+
+    public void setCustomBoundingBoxWidth(float width) {
+        this.customBoundingBoxWidth = width;
+        dirtyMetadata.put(EntityDataTypes.WIDTH, customBoundingBoxWidth);
+    }
+
+    public void setCustomBoundingBoxHeight(float height) {
+        this.customBoundingBoxHeight = height;
+        dirtyMetadata.put(EntityDataTypes.HEIGHT, customBoundingBoxHeight);
+    }
+
+    public void setScale(float scale) {
+        this.scale = scale;
+        applyScale();
+    }
+
+    protected void applyScale() {
+        dirtyMetadata.put(EntityDataTypes.SCALE, scale);
     }
 
     /**

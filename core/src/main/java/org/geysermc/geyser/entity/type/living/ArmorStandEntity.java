@@ -150,8 +150,8 @@ public class ArmorStandEntity extends LivingEntity {
                 setBoundingBoxWidth(0.0f);
                 setBoundingBoxHeight(0.0f);
             } else {
-                setBoundingBoxWidth(width);
-                setBoundingBoxHeight(height);
+                setBoundingBoxWidth(javaTypeDefinition.width());
+                setBoundingBoxHeight(javaTypeDefinition.height());
             }
 
             updateMountOffset();
@@ -412,13 +412,13 @@ public class ArmorStandEntity extends LivingEntity {
         if (!positionRequiresOffset || isMarker || secondEntity != null) {
             return 0;
         }
-        return height * getScale();
+        return getBoundingBoxHeight() * getScale();
     }
 
     /**
      * @return the scale according to Java
      */
-    private float getScale() {
+    public float getScale() {
         return isSmall ? 0.5f : 1f;
     }
 

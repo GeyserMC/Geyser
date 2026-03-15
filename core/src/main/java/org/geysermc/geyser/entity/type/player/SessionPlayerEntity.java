@@ -480,8 +480,8 @@ public class SessionPlayerEntity extends PlayerEntity {
             entity.setBoundingBoxHeight(0.5625F);
             entity.updateBedrockMetadata();
         } else if (entity == null && this.vehicle instanceof BoatEntity) {
-            this.vehicle.setBoundingBoxWidth(this.vehicle.width());
-            this.vehicle.setBoundingBoxHeight(this.vehicle.height());
+            this.vehicle.setBoundingBoxWidth(this.vehicle.getBoundingBoxWidth());
+            this.vehicle.setBoundingBoxHeight(this.vehicle.getBoundingBoxHeight());
             this.vehicle.updateBedrockMetadata();
         }
 

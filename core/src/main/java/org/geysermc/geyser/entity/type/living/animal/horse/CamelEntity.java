@@ -108,8 +108,8 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     @Override
     protected void setDimensionsFromPose(Pose pose) {
         if (pose == Pose.SITTING) {
-            setBoundingBoxHeight(height - SITTING_HEIGHT_DIFFERENCE);
-            setBoundingBoxWidth(width);
+            setBoundingBoxHeight(javaTypeDefinition.height() - SITTING_HEIGHT_DIFFERENCE);
+            setBoundingBoxWidth(javaTypeDefinition.width());
         } else {
             super.setDimensionsFromPose(pose);
         }

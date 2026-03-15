@@ -46,9 +46,9 @@ public class GeyserEntityDataImpl<T> implements GeyserEntityDataType<T> {
         TYPES = new Object2ObjectOpenHashMap<>();
         TYPES.put("color", new GeyserEntityDataImpl<>(Byte.class, "color", EntityDataTypes.COLOR));
         TYPES.put("variant", new GeyserEntityDataImpl<>(Integer.class, "variant", EntityDataTypes.VARIANT));
-        TYPES.put("width", new GeyserEntityDataImpl<>(Float.class, "width", EntityDataTypes.WIDTH));
-        TYPES.put("height", new GeyserEntityDataImpl<>(Float.class, "height", EntityDataTypes.HEIGHT));
-        TYPES.put("scale", new GeyserEntityDataImpl<>(Float.class, "scale", EntityDataTypes.SCALE));
+        TYPES.put("width", new GeyserEntityDataImpl<>(Float.class, "width", Entity::setCustomBoundingBoxWidth, Entity::getCustomBoundingBoxWidth));
+        TYPES.put("height", new GeyserEntityDataImpl<>(Float.class, "height", Entity::setCustomBoundingBoxHeight, Entity::getCustomBoundingBoxHeight));
+        TYPES.put("scale", new GeyserEntityDataImpl<>(Float.class, "scale", Entity::setScale, Entity::getScale));
 
         // "custom"
         TYPES.put("vertical_offset", new GeyserEntityDataImpl<>(Float.class, "vertical_offset", (entity, value) -> entity.offset(value, true), Entity::getOffset));

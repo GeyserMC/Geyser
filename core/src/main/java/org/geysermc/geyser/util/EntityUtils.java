@@ -279,20 +279,20 @@ public final class EntityUtils {
             if (mountDefinition.is(BuiltinEntityType.MINECART) || mountDefinition.is(BuiltinEntityType.HOPPER_MINECART) || mountDefinition.is(BuiltinEntityType.TNT_MINECART)
                 || mountDefinition.is(BuiltinEntityType.CHEST_MINECART) || mountDefinition.is(BuiltinEntityType.FURNACE_MINECART)
                 || mountDefinition.is(BuiltinEntityType.SPAWNER_MINECART) || mountDefinition.is(BuiltinEntityType.COMMAND_BLOCK_MINECART)) {
-                yOffset -= mount.height() * 0.5f;
+                yOffset -= mount.getBoundingBoxHeight() * 0.5f;
             }
             if (passengerDefinition.is(BuiltinEntityType.MINECART) || passengerDefinition.is(BuiltinEntityType.HOPPER_MINECART) || passengerDefinition.is(BuiltinEntityType.TNT_MINECART)
                 || passengerDefinition.is(BuiltinEntityType.CHEST_MINECART) || passengerDefinition.is(BuiltinEntityType.FURNACE_MINECART) || passengerDefinition.is(BuiltinEntityType.SPAWNER_MINECART)
                 || passengerDefinition.is(BuiltinEntityType.COMMAND_BLOCK_MINECART) || passengerDefinition.is(BuiltinEntityType.SHULKER)) {
-                yOffset += passenger.height() * 0.5f;
+                yOffset += passenger.getBoundingBoxHeight() * 0.5f;
             } else if (passengerDefinition.is(BuiltinEntityType.FALLING_BLOCK)) {
                 yOffset += 0.995f;
             }
             if (mount instanceof BoatEntity) {
-                yOffset -= mount.height() * 0.5f;
+                yOffset -= mount.getBoundingBoxHeight() * 0.5f;
             }
             if (passenger instanceof BoatEntity) {
-                yOffset += passenger.height() * 0.5f;
+                yOffset += passenger.getBoundingBoxHeight() * 0.5f;
             }
             if (mount instanceof ArmorStandEntity armorStand) {
                 yOffset -= armorStand.getYOffset();

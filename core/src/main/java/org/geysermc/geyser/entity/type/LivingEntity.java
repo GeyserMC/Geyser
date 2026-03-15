@@ -95,12 +95,6 @@ public class LivingEntity extends Entity implements Tickable {
     private boolean isMaxFrozenState = false;
 
     /**
-     * The base scale entity data, without attributes applied. Used for such cases as baby variants.
-     */
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    private float scale;
-    /**
      * The scale sent through the Java attributes packet
      */
     @Getter(AccessLevel.NONE)
@@ -340,17 +334,13 @@ public class LivingEntity extends Entity implements Tickable {
         return freezingPercentage;
     }
 
-    protected void setScale(float scale) {
-        this.scale = scale;
-        applyScale();
-    }
-
     protected void setAttributeScale(float scale) {
         this.attributeScale = MathUtils.clamp(scale, GeyserAttributeType.SCALE.getMinimum(), GeyserAttributeType.SCALE.getMaximum());
         applyScale();
     }
 
-    private void applyScale() {
+    @Override
+    protected void applyScale() {
         // Take any adjustments Bedrock requires, and compute it alongside the attribute's additional changes
         this.dirtyMetadata.put(EntityDataTypes.SCALE, scale * attributeScale);
     }
