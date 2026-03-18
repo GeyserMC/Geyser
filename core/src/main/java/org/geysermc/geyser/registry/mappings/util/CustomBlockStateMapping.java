@@ -27,14 +27,12 @@ package org.geysermc.geyser.registry.mappings.util;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
-import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 
 /**
  * This class is used to store a custom block state mapping, which contains custom
  * block states and a potentially null extended collision box
  * 
  * @param state The state of the block
- * @param extendedCollisionBox The extended collision box of the block
  */
-public record CustomBlockStateMapping(@NonNull CustomBlockState state, BoxComponent extendedCollisionBox) {
+public record CustomBlockStateMapping(@NonNull CustomBlockState state) {
 }
