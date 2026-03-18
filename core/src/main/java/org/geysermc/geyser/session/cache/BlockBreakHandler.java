@@ -48,8 +48,10 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.block.type.LecternBlock;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -60,6 +62,8 @@ import org.geysermc.geyser.translator.protocol.bedrock.BedrockInventoryTransacti
 import org.geysermc.geyser.translator.protocol.java.level.JavaBlockDestructionTranslator;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.BlockBreakStage;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
@@ -67,6 +71,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -136,9 +141,9 @@ public class BlockBreakHandler {
     protected Set<Vector3i> restoredBlocks = new HashSet<>(2);
 
     /**
-     * Used to ignore subsequent block interactions after an item frame interaction
+     * Used to ignore subsequent block interactions after an item frame or lectern interaction
      */
-    protected @Nullable Vector3i itemFramePos = null;
+    protected @Nullable Vector3i interactPosition = null;
 
     /**
      * See {@link JavaBlockDestructionTranslator} for usage and explanation
@@ -166,7 +171,7 @@ public class BlockBreakHandler {
         if (packet.getInputData().contains(PlayerAuthInputData.PERFORM_BLOCK_ACTIONS)) {
             handleBlockBreakActions(packet);
             restoredBlocks.clear();
-            this.itemFramePos = null;
+            this.interactPosition = null;
         } else {
             tick(packet.getTick());
         }
@@ -206,6 +211,10 @@ public class BlockBreakHandler {
                     }
 
                     BlockState state = getCurrentBlockState(position);
+                    if (testForLectern(session, position, state)) {
+                        continue;
+                    }
+
                     if (!canBreak(position, state, actionData.getAction())) {
                         BlockUtils.sendBedrockStopBlockBreak(session, position.toFloat());
                         restoredBlocks.add(position);
@@ -279,6 +288,11 @@ public class BlockBreakHandler {
                 case ABORT_BREAK -> {
                     // Also handles item frame interactions in adventure mode
                     if (testForItemFrameEntity(position)) {
+                        continue;
+                    }
+
+                    BlockState state = getCurrentBlockState(position);
+                    if (testForLectern(session, position, state)) {
                         continue;
                     }
 
@@ -429,7 +443,8 @@ public class BlockBreakHandler {
      * @return whether block breaking must stop due to an item frame interaction
      */
     protected boolean testForItemFrameEntity(Vector3i position) {
-        if (itemFramePos != null && itemFramePos.equals(position)) {
+        // Already interacted with item frame or lectern, skip
+        if (interactPosition != null && interactPosition.equals(position)) {
             return true;
         }
 
@@ -438,9 +453,41 @@ public class BlockBreakHandler {
             ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(itemFrameEntity.getEntityId(),
                 InteractAction.ATTACK, session.isSneaking());
             session.sendDownstreamGamePacket(attackPacket);
-            itemFramePos = position;
+            interactPosition = position;
             return true;
         }
+        return false;
+    }
+
+    protected boolean testForLectern(GeyserSession session, Vector3i position, BlockState state) {
+        // Already interacted with item frame or lectern, skip
+        if (interactPosition != null && interactPosition.equals(position)) {
+            return true;
+        }
+
+        // Cannot take out lectern books in adventure mode
+        if (session.getGameMode() == GameMode.ADVENTURE) {
+            return false;
+        }
+
+        Block block = state.block();
+        // Client wants to take out books
+        if (block instanceof LecternBlock && state.getValue(Properties.HAS_BOOK, false)) {
+            this.session.setDroppingLecternBook(true);
+
+            ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
+                position,
+                org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.DOWN,
+                Hand.MAIN_HAND,
+                0, 0, 0,
+                false,
+                false,
+                this.session.getWorldCache().nextPredictionSequence());
+            this.session.sendDownstreamGamePacket(blockPacket);
+            interactPosition = position;
+            return true;
+        }
+
         return false;
     }
 
