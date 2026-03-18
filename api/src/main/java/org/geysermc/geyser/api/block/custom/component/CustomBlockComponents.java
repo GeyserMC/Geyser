@@ -174,11 +174,12 @@ public interface CustomBlockComponents {
     }
 
     interface Builder {
-        Builder selectionBox(BoxComponent selectionBox);
+        Builder selectionBox(@Nullable BoxComponent selectionBox);
 
-        Builder collisionBox(BoxComponent collisionBox);
+        @Deprecated(since = "2.9.5")
+        Builder collisionBox(@Nullable BoxComponent collisionBox);
 
-        Builder collisionBoxes(BoxComponent... collisionBoxes);
+        Builder collisionBoxes(@Nullable BoxComponent... collisionBoxes);
 
         Builder displayName(String displayName);
 

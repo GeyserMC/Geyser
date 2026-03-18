@@ -83,18 +83,18 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     }
 
     @Override
-    public BoxComponent selectionBox() {
+    public @Nullable BoxComponent selectionBox() {
         return selectionBox;
     }
 
     @Override
-    public BoxComponent collisionBox() {
+    public @Nullable BoxComponent collisionBox() {
         return collisionBoxes.isEmpty() ? null : collisionBoxes.iterator().next();
     }
 
     @Override
     public @NonNull Set<BoxComponent> collisionBoxes() {
-        return collisionBoxes;
+        return Set.copyOf(collisionBoxes);
     }
 
     @Override
@@ -159,7 +159,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
 
     public static class Builder implements CustomBlockComponents.Builder {
         protected BoxComponent selectionBox;
-        protected Set<BoxComponent> collisionBoxes = new HashSet<>();
+        protected @NonNull Set<BoxComponent> collisionBoxes = new HashSet<>();
         protected String displayName;
         protected GeometryComponent geometry;
         protected final Object2ObjectMap<String, MaterialInstance> materialInstances = new Object2ObjectOpenHashMap<>();
@@ -199,29 +199,40 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         }
 
         @Override
-        public Builder selectionBox(BoxComponent selectionBox) {
+        public Builder selectionBox(@Nullable BoxComponent selectionBox) {
             validateBox(selectionBox, false);
             this.selectionBox = selectionBox;
             return this;
         }
 
         @Override
-        public Builder collisionBox(BoxComponent collisionBox) {
+        public Builder collisionBox(@Nullable BoxComponent collisionBox) {
             validateBox(collisionBox, true);
-            this.collisionBoxes = Collections.singleton(collisionBox);
+            this.collisionBoxes = collisionBox == null ? Collections.emptySet() : Collections.singleton(collisionBox);
             return this;
         }
 
         @Override
-        public CustomBlockComponents.Builder collisionBoxes(BoxComponent... collisionBoxes) {
+        public CustomBlockComponents.Builder collisionBoxes(@Nullable BoxComponent... collisionBoxes) {
+            if (collisionBoxes == null || collisionBoxes.length == 0) {
+                this.collisionBoxes = Collections.emptySet();
+                return this;
+            }
+
             if (collisionBoxes.length > 16) {
                 throw new IllegalArgumentException("Cannot have more than 16 collision boxes");
             }
 
+            Set<BoxComponent> boxes = new HashSet<>();
             for (BoxComponent box : collisionBoxes) {
+                if (box == null) {
+                    throw new IllegalArgumentException("Collision box cannot be null");
+                }
                 validateBox(box, true);
+                boxes.add(box);
             }
-            this.collisionBoxes = new HashSet<>(Arrays.asList(collisionBoxes));
+
+            this.collisionBoxes = boxes;
             return this;
         }
 

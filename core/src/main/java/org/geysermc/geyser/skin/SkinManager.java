@@ -38,7 +38,6 @@ import org.geysermc.geyser.api.skin.Skin;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.api.skin.SkinGeometry;
 import org.geysermc.geyser.entity.type.player.AvatarEntity;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -115,7 +114,7 @@ public class SkinManager {
         SkinGeometry geometry = skinData.geometry();
 
         // Since 1.21.130: PlayerSkinPacket only works if player is listed; might as well always use the player list packet
-        if (entity.uuid().equals(session.getPlayerEntity().uuid()) || (GameProtocol.is1_21_130orHigher(session.protocolVersion()) && !entity.isListed())) {
+        if (entity.uuid().equals(session.getPlayerEntity().uuid()) || !entity.isListed()) {
             PlayerListPacket.Entry entry = PlayerListUtils.buildEntryManually(
                 session,
                 entity.uuid(),

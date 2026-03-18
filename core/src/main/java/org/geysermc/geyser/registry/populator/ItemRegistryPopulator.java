@@ -46,9 +46,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
-import org.cloudburstmc.protocol.bedrock.codec.v844.Bedrock_v844;
-import org.cloudburstmc.protocol.bedrock.codec.v859.Bedrock_v859;
-import org.cloudburstmc.protocol.bedrock.codec.v860.Bedrock_v860;
 import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
@@ -114,6 +111,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class ItemRegistryPopulator {
 
+    @SuppressWarnings("unused") // kept here for convenience when updating
     record PaletteVersion(String version, int protocolVersion, Map<Item, Item> javaOnlyItems, Remapper remapper) {
 
         public PaletteVersion(String version, int protocolVersion) {
@@ -136,29 +134,7 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
-        Map<Item, Item> eightFourFourFallbacks = new HashMap<>();
-        eightFourFourFallbacks.put(Items.WOODEN_SPEAR, Items.WOODEN_SWORD);
-        eightFourFourFallbacks.put(Items.STONE_SPEAR, Items.STONE_SWORD);
-        eightFourFourFallbacks.put(Items.COPPER_SPEAR, Items.COPPER_SWORD);
-        eightFourFourFallbacks.put(Items.IRON_SPEAR, Items.IRON_SWORD);
-        eightFourFourFallbacks.put(Items.GOLDEN_SPEAR, Items.GOLDEN_SWORD);
-        eightFourFourFallbacks.put(Items.DIAMOND_SPEAR, Items.DIAMOND_SWORD);
-        eightFourFourFallbacks.put(Items.NETHERITE_SPEAR, Items.NETHERITE_SWORD);
-        eightFourFourFallbacks.put(Items.COPPER_NAUTILUS_ARMOR, Items.COPPER_HORSE_ARMOR);
-        eightFourFourFallbacks.put(Items.IRON_NAUTILUS_ARMOR, Items.IRON_HORSE_ARMOR);
-        eightFourFourFallbacks.put(Items.GOLDEN_NAUTILUS_ARMOR, Items.GOLDEN_HORSE_ARMOR);
-        eightFourFourFallbacks.put(Items.DIAMOND_NAUTILUS_ARMOR, Items.DIAMOND_HORSE_ARMOR);
-        eightFourFourFallbacks.put(Items.NETHERITE_NAUTILUS_ARMOR, Items.DIAMOND_HORSE_ARMOR); // Any version without nautilus armor won't have netherite horse armor either
-        eightFourFourFallbacks.put(Items.NETHERITE_HORSE_ARMOR, Items.DIAMOND_HORSE_ARMOR);
-        eightFourFourFallbacks.put(Items.NAUTILUS_SPAWN_EGG, Items.PUFFERFISH_SPAWN_EGG);
-        eightFourFourFallbacks.put(Items.ZOMBIE_NAUTILUS_SPAWN_EGG, Items.PUFFERFISH_SPAWN_EGG);
-        eightFourFourFallbacks.put(Items.CAMEL_HUSK_SPAWN_EGG, Items.CAMEL_SPAWN_EGG);
-        eightFourFourFallbacks.put(Items.PARCHED_SPAWN_EGG, Items.SKELETON_SPAWN_EGG);
-
-        List<PaletteVersion> paletteVersions = new ArrayList<>(6);
-        paletteVersions.add(new PaletteVersion("1_21_110", Bedrock_v844.CODEC.getProtocolVersion(), eightFourFourFallbacks));
-        paletteVersions.add(new PaletteVersion("1_21_120", Bedrock_v859.CODEC.getProtocolVersion(), eightFourFourFallbacks));
-        paletteVersions.add(new PaletteVersion("1_21_120", Bedrock_v860.CODEC.getProtocolVersion(), eightFourFourFallbacks));
+        List<PaletteVersion> paletteVersions = new ArrayList<>(3);
         paletteVersions.add(new PaletteVersion("1_21_130", Bedrock_v898.CODEC.getProtocolVersion()));
         paletteVersions.add(new PaletteVersion("1_26_0", Bedrock_v924.CODEC.getProtocolVersion()));
         paletteVersions.add(new PaletteVersion("1_26_10", Bedrock_v944.CODEC.getProtocolVersion()));
