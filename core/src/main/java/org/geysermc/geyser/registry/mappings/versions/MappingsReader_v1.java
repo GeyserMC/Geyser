@@ -653,22 +653,26 @@ public class MappingsReader_v1 extends MappingsReader {
      * @return the {@link BoxComponent}
      */
     private @Nullable Set<BoxComponent> createBoxComponents(JsonElement element) {
-        if (element instanceof JsonObject node) {
+        if (element instanceof JsonArray array) {
             Set<BoxComponent> components = new HashSet<>();
-            if (node.isJsonArray()) {
-                for (JsonElement box : node.getAsJsonArray()) {
-                    BoxComponent boxComponent = readBoxComponent(box);
-                    if (boxComponent != null) {
-                        components.add(boxComponent);
-                    }
-                }
-            } else {
-                BoxComponent component = readBoxComponent(element);
-                if (component != null) {
-                    components.add(component);
+            for (JsonElement box : array) {
+                BoxComponent boxComponent = readBoxComponent(box);
+                if (boxComponent != null) {
+                    components.add(boxComponent);
                 }
             }
             return components.isEmpty() ? null : components;
+        }
+
+        if (element instanceof JsonObject) {
+            Set<BoxComponent> components = new HashSet<>();
+            BoxComponent component = readBoxComponent(element);
+            if (component != null) {
+                components.add(component);
+                return components;
+            } else {
+                return null;
+            }
         }
         return null;
     }
