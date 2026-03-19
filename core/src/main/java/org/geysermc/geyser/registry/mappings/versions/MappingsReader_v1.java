@@ -407,16 +407,16 @@ public class MappingsReader_v1 extends MappingsReader {
         // Deprecated; but we should map it as best we can
         BoxComponent extendedCollisionBox = readBoxComponent(node.get("extended_collision_box"));
         if (extendedCollisionBox != null) {
-            if (extendedCollisionBox.originY() + extendedCollisionBox.sizeY() > 0.5f) {
+            if (extendedCollisionBox.originY() + extendedCollisionBox.sizeY() > 8f) {
                 GeyserImpl.getInstance().getLogger().error("Extended collision boxes exceeding a total collision box height of 1.5 blocks are no longer supported!");
             }
 
             BoxComponent mapped = new BoxComponent(
                 extendedCollisionBox.originX(),
-                extendedCollisionBox.originY() + 1, // we still want to apply it to the top portion
+                extendedCollisionBox.originY() + 16, // we still want to apply it to the top portion
                 extendedCollisionBox.originZ(),
                 extendedCollisionBox.sizeX(),
-                Math.min(extendedCollisionBox.sizeY(), 0.5f), // but limit to total 1.5 high
+                Math.min(extendedCollisionBox.sizeY(), 8), // but limit to total 1.5 high
                 extendedCollisionBox.sizeZ()
             );
 
