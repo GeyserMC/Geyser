@@ -58,7 +58,6 @@ import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
-import org.geysermc.geyser.registry.mappings.util.CustomBlockStateMapping;
 import org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockUtils;
@@ -67,7 +66,6 @@ import org.geysermc.geyser.util.MinecraftKey;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -291,7 +289,7 @@ public class MappingsReader_v1 extends MappingsReader {
             CustomBlockData blockData = customBlockDataBuilder
                 .components(componentsMapping)
                 .build();
-            return new CustomBlockMapping(blockData, Map.of(identifier, new CustomBlockStateMapping(blockData.defaultBlockState())), identifier, !onlyOverrideStates);
+            return new CustomBlockMapping(blockData, Map.of(identifier, blockData.defaultBlockState()), identifier, !onlyOverrideStates);
         }
 
         Map<String, CustomBlockComponents> componentsMap = new LinkedHashMap<>();
@@ -368,8 +366,8 @@ public class MappingsReader_v1 extends MappingsReader {
             .permutations(permutations)
             .build();
         // Build CustomBlockStates for each Java block state we wish to override
-        Map<String, CustomBlockStateMapping> states = blockStateBuilders.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, e -> new CustomBlockStateMapping(e.getValue().apply(customBlockData.blockStateBuilder()))));
+        Map<String, CustomBlockState> states = blockStateBuilders.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> (e.getValue().apply(customBlockData.blockStateBuilder()))));
 
         return new CustomBlockMapping(customBlockData, states, identifier, overrideItem);
     }
@@ -385,10 +383,10 @@ public class MappingsReader_v1 extends MappingsReader {
     private CustomBlockComponents createCustomBlockComponentsMapping(JsonElement element, String stateKey, String name) {
         // This is needed to find the correct selection box for the given block
         int id = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(stateKey, -1);
-        BoxComponent boxComponent = createBoxComponents(id);
+        Set<BoxComponent> collisionBoxes = createCollisionBoxes(id);
         CustomBlockComponents.Builder builder = new GeyserCustomBlockComponents.Builder()
-            .collisionBox(boxComponent)
-            .selectionBox(boxComponent);
+            .collisionBoxes(collisionBoxes)
+            .selectionBox(createSelectionBox(id));
 
         if (!(element instanceof JsonObject node)) {
             // No other components were defined
@@ -399,15 +397,33 @@ public class MappingsReader_v1 extends MappingsReader {
         if (selectionBox != null) {
             builder.selectionBox(selectionBox);
         }
-        Set<BoxComponent> collisionBoxes = createBoxComponents(node.get("collision_box"));
+
+        Set<BoxComponent> customCollisionBoxes = createBoxComponents(node.get("collision_box"));
+        if (customCollisionBoxes != null) {
+            collisionBoxes = customCollisionBoxes;
+            builder.collisionBoxes(collisionBoxes);
+        }
 
         // Deprecated; but we should map it as best we can
         BoxComponent extendedCollisionBox = readBoxComponent(node.get("extended_collision_box"));
         if (extendedCollisionBox != null) {
-            // TODO
-        }
+            if (extendedCollisionBox.originY() + extendedCollisionBox.sizeY() > 0.5f) {
+                GeyserImpl.getInstance().getLogger().error("Extended collision boxes exceeding a total collision box height of 1.5 blocks are no longer supported!");
+            }
 
-        builder.collisionBoxes(createBoxComponents(node.get("collision_box")).toArray(BoxComponent[]::new));
+            BoxComponent mapped = new BoxComponent(
+                extendedCollisionBox.originX(),
+                extendedCollisionBox.originY() + 1, // we still want to apply it to the top portion
+                extendedCollisionBox.originZ(),
+                extendedCollisionBox.sizeX(),
+                Math.min(extendedCollisionBox.sizeY(), 0.5f), // but limit to total 1.5 high
+                extendedCollisionBox.sizeZ()
+            );
+
+            // Add to existing collision boxes
+            collisionBoxes.add(mapped);
+            builder.collisionBoxes(collisionBoxes);
+        }
 
         // We set this to max value by default so that we may dictate the correct destroy time ourselves
         float destructibleByMining = Float.MAX_VALUE;
@@ -544,10 +560,9 @@ public class MappingsReader_v1 extends MappingsReader {
      * Creates a {@link BoxComponent} based on a Java block's collision with provided bounds and offsets
      *
      * @param javaId the block's Java ID
-     * @param heightTranslation the height translation of the box
      * @return the {@link BoxComponent}
      */
-    private BoxComponent createBoxComponents(int javaId, float heightTranslation) {
+    private BoxComponent createSelectionBox(int javaId) {
         // Some blocks (e.g. plants) have no collision box
         BlockCollision blockCollision = BlockUtils.getCollision(javaId);
         if (blockCollision == null || blockCollision.getBoundingBoxes().length == 0) {
@@ -574,10 +589,10 @@ public class MappingsReader_v1 extends MappingsReader {
             maxZ = Math.max(maxZ, (float) (boundingBox.getMiddleZ() + offsetZ));
         }
         minX = MathUtils.clamp(minX, 0, 1);
-        minY = MathUtils.clamp(minY + heightTranslation, 0, 1);
+        minY = MathUtils.clamp(minY, 0, 1);
         minZ = MathUtils.clamp(minZ, 0, 1);
         maxX = MathUtils.clamp(maxX, 0, 1);
-        maxY = MathUtils.clamp(maxY + heightTranslation, 0, 1);
+        maxY = MathUtils.clamp(maxY, 0, 1);
         maxZ = MathUtils.clamp(maxZ, 0, 1);
 
         return new BoxComponent(
@@ -590,35 +605,45 @@ public class MappingsReader_v1 extends MappingsReader {
         );
     }
 
-    /**
-     * Creates a {@link BoxComponent} based on a Java block's collision
-     *
-     * @param javaId the block's Java ID
-     * @return the {@link BoxComponent}
-     */
-    private BoxComponent createBoxComponents(int javaId) {
-        return createBoxComponents(javaId, 0);
-    }
-
-    /**
-     * Creates the {@link BoxComponent} for an extended collision box based on a Java block's collision
-     *
-     * @param javaId the block's Java ID
-     * @return the {@link BoxComponent} or null if the block's collision box would not exceed 16 y units
-     */
-    // TODO yeet me; just gotta figure out how to replace
-    private @Nullable BoxComponent createExtendedBoxComponent(int javaId) {
+    private Set<BoxComponent> createCollisionBoxes(int javaId) {
         BlockCollision blockCollision = BlockUtils.getCollision(javaId);
         if (blockCollision == null) {
-            return null;
+            HashSet<BoxComponent> boxes = new HashSet<>(1);
+            boxes.add(BoxComponent.emptyBox());
+            return boxes;
         }
-        for (BoundingBox box : blockCollision.getBoundingBoxes()) {
-            double maxY = 0.5 * box.getSizeY() + box.getMiddleY();
-            if (maxY > 1) {
-                return createBoxComponents(javaId, -1);
-            }
+
+        BoundingBox[] boundingBoxes = blockCollision.getBoundingBoxes();
+        HashSet<BoxComponent> boxes = new HashSet<>(boundingBoxes == null || boundingBoxes.length == 0 ? 1 : boundingBoxes.length);
+        if (boundingBoxes == null || boundingBoxes.length == 0) {
+            boxes.add(BoxComponent.emptyBox());
+            return boxes;
         }
-        return null;
+
+        for (BoundingBox boundingBox : boundingBoxes) {
+            double offsetX = boundingBox.getSizeX() * 0.5;
+            double offsetY = boundingBox.getSizeY() * 0.5;
+            double offsetZ = boundingBox.getSizeZ() * 0.5;
+
+            float minX = MathUtils.clamp((float) (boundingBox.getMiddleX() - offsetX), 0, 1);
+            float minY = MathUtils.clamp((float) (boundingBox.getMiddleY() - offsetY), 0, 1);
+            float minZ = MathUtils.clamp((float) (boundingBox.getMiddleZ() - offsetZ), 0, 1);
+
+            float maxX = MathUtils.clamp((float) (boundingBox.getMiddleX() + offsetX), 0, 1);
+            float maxY = MathUtils.clamp((float) (boundingBox.getMiddleY() + offsetY), 0, 1.5f);
+            float maxZ = MathUtils.clamp((float) (boundingBox.getMiddleZ() + offsetZ), 0, 1);
+
+            boxes.add(new BoxComponent(
+                16 * (1 - maxX) - 8, // For some odd reason X is mirrored on Bedrock
+                16 * minY,
+                16 * minZ - 8,
+                16 * (maxX - minX),
+                16 * (maxY - minY),
+                16 * (maxZ - minZ)
+            ));
+        }
+
+        return boxes;
     }
 
     /**
@@ -627,21 +652,23 @@ public class MappingsReader_v1 extends MappingsReader {
      * @param element the JSON node
      * @return the {@link BoxComponent}
      */
-    private Set<BoxComponent> createBoxComponents(JsonElement element) {
+    private @Nullable Set<BoxComponent> createBoxComponents(JsonElement element) {
         if (element instanceof JsonObject node) {
+            Set<BoxComponent> components = new HashSet<>();
             if (node.isJsonArray()) {
-                Set<BoxComponent> components = new HashSet<>();
                 for (JsonElement box : node.getAsJsonArray()) {
                     BoxComponent boxComponent = readBoxComponent(box);
                     if (boxComponent != null) {
                         components.add(boxComponent);
                     }
                 }
-                return components;
             } else {
                 BoxComponent component = readBoxComponent(element);
-                return component != null ? Collections.singleton(component) : null;
+                if (component != null) {
+                    components.add(component);
+                }
             }
+            return components.isEmpty() ? null : components;
         }
         return null;
     }

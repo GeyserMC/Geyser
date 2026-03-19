@@ -195,7 +195,6 @@ public class CustomBlockRegistryPopulator {
         }
         BLOCK_STATE_OVERRIDES_QUEUE = null;
 
-        Map<BoxComponent, CustomBlockData> extendedCollisionBoxSet = new HashMap<>();
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         mappingsConfigReader.loadBlockMappingsFromJson((key, block) -> {
             CUSTOM_BLOCKS.add(block.data());
@@ -204,7 +203,7 @@ public class CustomBlockRegistryPopulator {
             }
             block.states().forEach((javaIdentifier, customBlockState) -> {
                 int id = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(javaIdentifier, -1);
-                blockStateOverrides.put(id, customBlockState.state());
+                blockStateOverrides.put(id, customBlockState);
             });
         });
 
