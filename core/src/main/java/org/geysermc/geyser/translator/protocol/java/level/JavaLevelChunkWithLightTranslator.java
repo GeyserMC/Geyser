@@ -33,8 +33,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntImmutableList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NBTOutputStream;
@@ -78,16 +76,15 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.geysermc.geyser.util.ChunkUtils.*;
+import static org.geysermc.geyser.util.ChunkUtils.EMPTY_BLOCK_STORAGE;
+import static org.geysermc.geyser.util.ChunkUtils.EMPTY_CHUNK_SECTION_SIZE;
+import static org.geysermc.geyser.util.ChunkUtils.indexYZXtoXZY;
 
 @Translator(packet = ClientboundLevelChunkWithLightPacket.class)
 public class JavaLevelChunkWithLightTranslator extends PacketTranslator<ClientboundLevelChunkWithLightPacket> {
-    private static final ThreadLocal<ExtendedCollisionsStorage> EXTENDED_COLLISIONS_STORAGE = ThreadLocal.withInitial(ExtendedCollisionsStorage::new);
 
     @Override
     public void translate(GeyserSession session, ClientboundLevelChunkWithLightPacket packet) {
-        final boolean useExtendedCollisions = !session.getBlockMappings().getExtendedCollisionBoxes().isEmpty();
-
         if (session.isSpawned()) {
             ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
         }
@@ -119,49 +116,21 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
         try {
             ByteBuf in = Unpooled.wrappedBuffer(packet.getChunkData());
-            boolean extendedCollisionNextSection = false;
             for (int sectionY = 0; sectionY < chunkSize; sectionY++) {
                 ChunkSection javaSection = MinecraftTypes.readChunkSection(in, BlockRegistries.BLOCK_STATES.get().size(),
                     session.getRegistryCache().registry(JavaRegistries.BIOME).size());
                 javaChunks[sectionY] = javaSection.getBlockData();
                 javaBiomes[sectionY] = javaSection.getBiomeData();
-                boolean extendedCollision = extendedCollisionNextSection;
-                boolean thisExtendedCollisionNextSection = false;
 
                 int bedrockSectionY = sectionY + sectionCountDiff;
                 int subChunkIndex = sectionY + yOffset;
                 if (bedrockSectionY < 0 || maxBedrockSectionY < bedrockSectionY) {
                     // Ignore this chunk section since it goes outside the bounds accepted by the Bedrock client
-                    if (useExtendedCollisions) {
-                        EXTENDED_COLLISIONS_STORAGE.get().clear();
-                    }
-                    extendedCollisionNextSection = false;
                     continue;
                 }
 
                 // No need to encode an empty section...
                 if (javaSection.isBlockCountEmpty()) {
-                    // Unless we need to send extended collisions
-                    if (useExtendedCollisions) {
-                        if (extendedCollision) {
-                            int blocks = EXTENDED_COLLISIONS_STORAGE.get().bottomLayerCollisions() + 1;
-                            BitArray bedrockData = BitArrayVersion.forBitsCeil(Integer.SIZE - Integer.numberOfLeadingZeros(blocks)).createArray(BlockStorage.SIZE);
-                            BlockStorage layer0 = new BlockStorage(bedrockData, new IntArrayList(blocks));
-    
-                            layer0.idFor(session.getBlockMappings().getBedrockAir().getRuntimeId());
-                            for (int yzx = 0; yzx < BlockStorage.SIZE / 16; yzx++) {
-                                if (EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
-                                    bedrockData.set(indexYZXtoXZY(yzx), layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY)));
-                                    EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0, sectionY);
-                                }
-                            }
-    
-                            BlockStorage[] layers = new BlockStorage[]{ layer0 };
-                            sections[bedrockSectionY] = new GeyserChunkSection(layers, subChunkIndex);
-                        }
-                        EXTENDED_COLLISIONS_STORAGE.get().clear();
-                        extendedCollisionNextSection = false;
-                    }
                     continue;
                 }
 
@@ -182,24 +151,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                             section.getBlockStorageArray()[1].setFullBlock(xzy, session.getBlockMappings().getBedrockWater().getRuntimeId());
                         }
 
-                        // Extended collision blocks
-                        if (useExtendedCollisions) {
-                            if (EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
-                                if (javaId == Block.JAVA_AIR_ID) {
-                                    section.getBlockStorageArray()[0].setFullBlock(xzy, EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY));
-                                }
-                                EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0, sectionY);
-                                continue;
-                            }
-                            BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(javaId);
-                            if (aboveBedrockExtendedCollisionDefinition != null) {
-                                EXTENDED_COLLISIONS_STORAGE.get().set((yzx + 0x100) & 0xFFF, aboveBedrockExtendedCollisionDefinition.getRuntimeId(), sectionY);
-                                if ((xzy & 0xF) == 15) {
-                                    thisExtendedCollisionNextSection = true;
-                                }
-                            }
-                        }
-
                         // Check if block is piston or flower to see if we'll need to create additional block entities, as they're only block entities in Bedrock
                         if (state.block() instanceof BedrockChunkWantsBlockEntityTag blockEntity) {
                             bedrockBlockEntities.add(blockEntity.createTag(session,
@@ -209,7 +160,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                         }
                     }
                     sections[bedrockSectionY] = section;
-                    extendedCollisionNextSection = thisExtendedCollisionNextSection;
                     continue;
                 }
 
@@ -225,10 +175,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     } else {
                         sections[bedrockSectionY] = new GeyserChunkSection(new BlockStorage[] {blockStorage}, subChunkIndex);
                     }
-                    if (useExtendedCollisions) {
-                        EXTENDED_COLLISIONS_STORAGE.get().clear();
-                        extendedCollisionNextSection = false;
-                    }
                     // If a chunk contains all of the same piston or flower pot then god help us
                     continue;
                 }
@@ -239,7 +185,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 bedrockOnlyBlockEntityIds.clear();
 
                 // Iterate through palette and convert state IDs to Bedrock, doing some additional checks as we go
-                int extendedCollisionsInPalette = 0;
                 for (int i = 0; i < javaPalette.size(); i++) {
                     int javaId = javaPalette.idToState(i);
                     bedrockPalette.add(session.getBlockMappings().getBedrockBlockId(javaId));
@@ -250,13 +195,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
 
                     if (javaId == Block.JAVA_AIR_ID) {
                         airPaletteId = i;
-                    }
-
-                    if (useExtendedCollisions) {
-                        if (session.getBlockMappings().getExtendedCollisionBoxes().get(javaId) != null) {
-                            extendedCollision = true;
-                            extendedCollisionsInPalette++;
-                        }
                     }
 
                     // Check if block is piston, flower or cauldron to see if we'll need to create additional block entities, as they're only block entities in Bedrock
@@ -283,19 +221,13 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     }
                 }
 
-                // We need to ensure we use enough bits to represent extended collision blocks in the chunk section
-                int sectionCollisionBlocks = 0;
-                if (useExtendedCollisions) {
-                    int bottomLayerCollisions = extendedCollision ? EXTENDED_COLLISIONS_STORAGE.get().bottomLayerCollisions() : 0;
-                    sectionCollisionBlocks = bottomLayerCollisions + extendedCollisionsInPalette;
-                }
-                int bedrockDataBits = Integer.SIZE - Integer.numberOfLeadingZeros(javaPalette.size() + sectionCollisionBlocks);
+                int bedrockDataBits = Integer.SIZE - Integer.numberOfLeadingZeros(javaPalette.size());
                 BitArray bedrockData = BitArrayVersion.forBitsCeil(bedrockDataBits).createArray(BlockStorage.SIZE);
                 BlockStorage layer0 = new BlockStorage(bedrockData, bedrockPalette);
                 BlockStorage[] layers;
 
                 // Convert data array from YZX to XZY coordinate order
-                if (waterloggedPaletteIds.isEmpty() && !extendedCollision) {
+                if (waterloggedPaletteIds.isEmpty()) {
                     // No blocks are waterlogged, simply convert coordinate order
                     // This could probably be optimized further...
                     for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
@@ -305,7 +237,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     }
 
                     layers = new BlockStorage[]{ layer0 };
-                } else if (!waterloggedPaletteIds.isEmpty() && !extendedCollision) {
+                } else {
                     // The section contains waterlogged blocks, we need to convert coordinate order AND generate a V1 block storage for
                     // layer 1 with palette ID 1 indicating water
                     int[] layer1Data = new int[BlockStorage.SIZE >> 5];
@@ -325,68 +257,9 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                             session.getBlockMappings().getBedrockWater().getRuntimeId());
 
                     layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
-                } else if (waterloggedPaletteIds.isEmpty()) {
-                    for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
-                        int paletteId = javaData.get(yzx);
-                        int xzy = indexYZXtoXZY(yzx);
-                        bedrockData.set(xzy, paletteId);
-
-                        if (EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
-                            if (paletteId == airPaletteId) {
-                                bedrockData.set(xzy, layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY)));
-                            }
-                            EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0, sectionY);
-                            continue;
-                        }
-                        BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings()
-                                .getExtendedCollisionBoxes().get(javaPalette.idToState(paletteId));
-                        if (aboveBedrockExtendedCollisionDefinition != null) {
-                            EXTENDED_COLLISIONS_STORAGE.get().set((yzx + 0x100) & 0xFFF, aboveBedrockExtendedCollisionDefinition.getRuntimeId(), sectionY);
-                            if ((xzy & 0xF) == 15) {
-                                thisExtendedCollisionNextSection = true;
-                            }
-                        }
-                    }
-
-                    layers = new BlockStorage[]{ layer0 };
-                } else {
-                    int[] layer1Data = new int[BlockStorage.SIZE >> 5];
-                    for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
-                        int paletteId = javaData.get(yzx);
-                        int xzy = indexYZXtoXZY(yzx);
-                        bedrockData.set(xzy, paletteId);
-
-                        if (waterloggedPaletteIds.get(paletteId)) {
-                            layer1Data[xzy >> 5] |= 1 << (xzy & 0x1F);
-                        }
-
-                        if (EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY) != 0) {
-                            if (paletteId == airPaletteId) {
-                                bedrockData.set(xzy, layer0.idFor(EXTENDED_COLLISIONS_STORAGE.get().get(yzx, sectionY)));
-                            }
-                            EXTENDED_COLLISIONS_STORAGE.get().set(yzx, 0, sectionY);
-                            continue;
-                        }
-                        BlockDefinition aboveBedrockExtendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes()
-                                .get(javaPalette.idToState(paletteId));
-                        if (aboveBedrockExtendedCollisionDefinition != null) {
-                            EXTENDED_COLLISIONS_STORAGE.get().set((yzx + 0x100) & 0xFFF, aboveBedrockExtendedCollisionDefinition.getRuntimeId(), sectionY);
-                            if ((xzy & 0xF) == 15) {
-                                thisExtendedCollisionNextSection = true;
-                            }
-                        }
-                    }
-
-                    // V1 palette
-                    IntList layer1Palette = IntList.of(
-                            session.getBlockMappings().getBedrockAir().getRuntimeId(), // Air - see BlockStorage's constructor for more information
-                            session.getBlockMappings().getBedrockWater().getRuntimeId());
-
-                    layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
                 }
 
                 sections[bedrockSectionY] = new GeyserChunkSection(layers, subChunkIndex);
-                extendedCollisionNextSection = thisExtendedCollisionNextSection;
             }
 
             if (!session.getErosionHandler().isActive()) {
@@ -529,52 +402,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                 // Update this item frame so it doesn't get lost in the abyss
                 //TODO optimize
                 entry.getValue().updateBlock(true);
-            }
-        }
-    }
-
-    static final class ExtendedCollisionsStorage {
-        private int[] data;
-        private int sectionY;
-    
-        int get(int index, int sY) {
-            if (data == null) {
-                return 0;
-            }
-            if (!(sY ==  sectionY || sY == sectionY + 1)) {
-                data = null;
-                return 0;
-            }
-            return data[index];
-        }
-    
-        void set(int index, int value, int sY) {
-            ensureDataExists();
-            data[index] = value;
-            sectionY = sY;
-        }
-
-        void clear() {
-            data = null;
-        }
-    
-        int bottomLayerCollisions() {
-            if (data == null) {
-                return 0;
-            }
-    
-            IntSet uniqueNonZeroSet = new IntOpenHashSet();
-            for (int i = 0; i < BlockStorage.SIZE / 16; i++) {
-                if (data[i] != 0) {
-                    uniqueNonZeroSet.add(data[i]);
-                }
-            }
-            return uniqueNonZeroSet.size();
-        }
-    
-        private void ensureDataExists() {
-            if (data == null) {
-                data = new int[BlockStorage.SIZE];
             }
         }
     }

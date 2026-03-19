@@ -237,6 +237,30 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         }
 
         @Override
+        public CustomBlockComponents.Builder collisionBoxes(@Nullable Collection<BoxComponent> collisionBoxes) {
+            if (collisionBoxes == null) {
+                this.collisionBoxes = Collections.emptySet();
+                return this;
+            }
+
+            if (collisionBoxes.size() > 16) {
+                throw new IllegalArgumentException("Cannot have more than 16 collision boxes");
+            }
+
+            Set<BoxComponent> boxes = new HashSet<>();
+            for (BoxComponent box : collisionBoxes) {
+                if (box == null) {
+                    throw new IllegalArgumentException("Collision box cannot be null");
+                }
+                validateBox(box, true);
+                boxes.add(box);
+            }
+
+            this.collisionBoxes = boxes;
+            return this;
+        }
+
+        @Override
         public Builder displayName(String displayName) {
             this.displayName = displayName;
             return this;

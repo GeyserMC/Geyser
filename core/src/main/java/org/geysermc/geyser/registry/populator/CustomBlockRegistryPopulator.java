@@ -52,11 +52,7 @@ import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.level.block.Blocks;
-import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
-import org.geysermc.geyser.level.block.GeyserCustomBlockData;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
-import org.geysermc.geyser.level.block.GeyserGeometryComponent;
-import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.PistonBehavior;
@@ -71,7 +67,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -100,14 +95,14 @@ public class CustomBlockRegistryPopulator {
 
     /**
      * Populates the custom block registries by stage
-     * 
+     *
      * @param stage the stage to populate
      */
     public static void populate(Stage stage) {
         if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
             return;
         }
-        
+
         switch (stage) {
             case DEFINITION -> populateBedrock();
             case VANILLA_REGISTRATION -> populateVanilla();
@@ -200,8 +195,6 @@ public class CustomBlockRegistryPopulator {
         }
         BLOCK_STATE_OVERRIDES_QUEUE = null;
 
-        Map<CustomBlockData, Set<Integer>> extendedCollisionBoxes = new HashMap<>();
-        Map<BoxComponent, CustomBlockData> extendedCollisionBoxSet = new HashMap<>();
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         mappingsConfigReader.loadBlockMappingsFromJson((key, block) -> {
             CUSTOM_BLOCKS.add(block.data());
@@ -210,20 +203,10 @@ public class CustomBlockRegistryPopulator {
             }
             block.states().forEach((javaIdentifier, customBlockState) -> {
                 int id = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(javaIdentifier, -1);
-                blockStateOverrides.put(id, customBlockState.state());
-                BoxComponent extendedCollisionBox = customBlockState.extendedCollisionBox();
-                if (extendedCollisionBox != null) {
-                    CustomBlockData extendedCollisionBlock = extendedCollisionBoxSet.computeIfAbsent(extendedCollisionBox, box -> {
-                        CustomBlockData collisionBlock = createExtendedCollisionBlock(box, extendedCollisionBoxSet.size());
-                        CUSTOM_BLOCKS.add(collisionBlock);
-                        return collisionBlock;
-                    });
-                    extendedCollisionBoxes.computeIfAbsent(extendedCollisionBlock, k -> new HashSet<>())
-                            .add(id);
-                }
+                blockStateOverrides.put(id, customBlockState);
             });
         });
-    
+
         BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.set(blockStateOverrides);
         if (!blockStateOverrides.isEmpty()) {
             GeyserImpl.getInstance().getLogger().info("Registered " + blockStateOverrides.size() + " custom block overrides.");
@@ -232,11 +215,6 @@ public class CustomBlockRegistryPopulator {
         BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.set(CUSTOM_BLOCK_ITEM_OVERRIDES);
         if (!CUSTOM_BLOCK_ITEM_OVERRIDES.isEmpty()) {
             GeyserImpl.getInstance().getLogger().info("Registered " + CUSTOM_BLOCK_ITEM_OVERRIDES.size() + " custom block item overrides.");
-        }
-
-        BlockRegistries.EXTENDED_COLLISION_BOXES.set(extendedCollisionBoxes);
-        if (!extendedCollisionBoxes.isEmpty()) {
-            GeyserImpl.getInstance().getLogger().info("Registered " + extendedCollisionBoxes.size() + " custom block extended collision boxes.");
         }
     }
 
@@ -317,7 +295,7 @@ public class CustomBlockRegistryPopulator {
     /**
      * Generates and appends all custom block states to the provided list of custom block states
      * Appends the custom block states to the provided list of NBT maps
-     * 
+     *
      * @param customBlock the custom block data to generate states for
      * @param blockStates the list of NBT maps to append the custom block states to
      * @param customExtBlockStates the list of custom block states to append the custom block states to
@@ -327,7 +305,7 @@ public class CustomBlockRegistryPopulator {
         for (CustomBlockProperty<?> property : customBlock.properties().values()) {
             totalPermutations *= property.values().size();
         }
-    
+
         for (int i = 0; i < totalPermutations; i++) {
             NbtMapBuilder statesBuilder = NbtMap.builder();
             int permIndex = i;
@@ -336,7 +314,7 @@ public class CustomBlockRegistryPopulator {
                 permIndex /= property.values().size();
             }
             NbtMap states = statesBuilder.build();
-    
+
             blockStates.add(NbtMap.builder()
                     .putString("name", customBlock.identifier())
                     .putCompound("states", states)
@@ -347,7 +325,7 @@ public class CustomBlockRegistryPopulator {
 
     /**
      * Generates and returns the block property data for the provided custom block
-     * 
+     *
      * @param customBlock the custom block to generate block property data for
      * @param protocolVersion the protocol version to use for the block property data
      * @return the block property data for the provided custom block
@@ -361,7 +339,7 @@ public class CustomBlockRegistryPopulator {
                     .putString("condition", permutation.condition())
                     .build());
         }
-    
+
         // The order that properties are defined influences the order that block states are generated
         List<NbtMap> properties = new ArrayList<>();
         for (CustomBlockProperty<?> property : customBlock.properties().values()) {
@@ -376,7 +354,7 @@ public class CustomBlockRegistryPopulator {
             }
             properties.add(propertyBuilder.build());
         }
-    
+
         CreativeCategory creativeCategory = customBlock.creativeCategory() != null ? customBlock.creativeCategory() : CreativeCategory.NONE;
         String creativeGroup = customBlock.creativeGroup() != null ? customBlock.creativeGroup() : "";
         NbtMapBuilder propertyTag = NbtMap.builder()
@@ -402,7 +380,7 @@ public class CustomBlockRegistryPopulator {
 
     /**
      * Converts the provided custom block components to an {@link NbtMap} to be sent to the client in the StartGame packet
-     * 
+     *
      * @param components the custom block components to convert
      * @param protocolVersion the protocol version to use for the conversion
      * @return the NBT representation of the provided custom block components
@@ -585,8 +563,7 @@ public class CustomBlockRegistryPopulator {
         return NbtMap.builder()
                 .putBoolean("enabled", !boxComponent.isEmpty())
                 .putList("origin", NbtType.FLOAT, boxComponent.originX(), boxComponent.originY(), boxComponent.originZ())
-                // TODO remove after 1.21.130 - collision boxes sent to below 1.21.130 must be capped
-                .putList("size", NbtType.FLOAT, boxComponent.sizeX(), Math.min(boxComponent.sizeY(), 16), boxComponent.sizeZ())
+                .putList("size", NbtType.FLOAT, boxComponent.sizeX(), boxComponent.sizeY(), boxComponent.sizeZ())
                 .build();
     }
 
@@ -624,26 +601,5 @@ public class CustomBlockRegistryPopulator {
         });
 
         return conditions;
-    }
-
-    private static CustomBlockData createExtendedCollisionBlock(BoxComponent boxComponent, int extendedCollisionBlock) {
-        return new GeyserCustomBlockData.Builder()
-                .name("extended_collision_" + extendedCollisionBlock)
-                .components(
-                    new GeyserCustomBlockComponents.Builder()
-                        .collisionBox(boxComponent)
-                        .selectionBox(BoxComponent.emptyBox())
-                        .materialInstance("*", new GeyserMaterialInstance.Builder()
-                            .texture("glass")
-                            .renderMethod("alpha_test")
-                            .faceDimming(false)
-                            .ambientOcclusion(false)
-                            .build())
-                        .lightDampening(0)
-                        .geometry(new GeyserGeometryComponent.Builder()
-                            .identifier("geometry.invisible")
-                            .build())
-                        .build())
-                .build();
     }
 }

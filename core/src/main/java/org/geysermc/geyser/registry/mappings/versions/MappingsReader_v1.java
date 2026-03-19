@@ -57,10 +57,7 @@ import org.geysermc.geyser.level.block.GeyserGeometryComponent;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.registry.BlockRegistries;
-import org.geysermc.geyser.registry.mappings.util.CustomBlockComponentsMapping;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
-import org.geysermc.geyser.registry.mappings.util.CustomBlockStateBuilderMapping;
-import org.geysermc.geyser.registry.mappings.util.CustomBlockStateMapping;
 import org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockUtils;
@@ -70,6 +67,7 @@ import org.geysermc.geyser.util.MinecraftKey;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -287,14 +285,14 @@ public class MappingsReader_v1 extends MappingsReader {
 
         if (BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get().containsKey(identifier)) {
             // There is only one Java block state to override
-            CustomBlockComponentsMapping componentsMapping = createCustomBlockComponentsMapping(object, identifier, name);
+            CustomBlockComponents componentsMapping = createCustomBlockComponentsMapping(object, identifier, name);
             CustomBlockData blockData = customBlockDataBuilder
-                .components(componentsMapping.components())
+                .components(componentsMapping)
                 .build();
-            return new CustomBlockMapping(blockData, Map.of(identifier, new CustomBlockStateMapping(blockData.defaultBlockState(), componentsMapping.extendedCollisionBox())), identifier, !onlyOverrideStates);
+            return new CustomBlockMapping(blockData, Map.of(identifier, blockData.defaultBlockState()), identifier, !onlyOverrideStates);
         }
 
-        Map<String, CustomBlockComponentsMapping> componentsMap = new LinkedHashMap<>();
+        Map<String, CustomBlockComponents> componentsMap = new LinkedHashMap<>();
 
         if (object.get("state_overrides") instanceof JsonObject stateOverrides) {
             // Load components for specific Java block states
@@ -326,21 +324,20 @@ public class MappingsReader_v1 extends MappingsReader {
         // We pass in the first state and just use the hitbox from that as the default
         // Each state will have its own so this is fine
         String firstState = componentsMap.keySet().iterator().next();
-        CustomBlockComponentsMapping firstComponentsMapping = createCustomBlockComponentsMapping(object, firstState, name);
-        customBlockDataBuilder.components(firstComponentsMapping.components());
+        customBlockDataBuilder.components(createCustomBlockComponentsMapping(object, firstState, name));
 
         return createCustomBlockMapping(customBlockDataBuilder, componentsMap, identifier, !onlyOverrideStates);
     }
 
-    private CustomBlockMapping createCustomBlockMapping(CustomBlockData.Builder customBlockDataBuilder, Map<String, CustomBlockComponentsMapping> componentsMap, String identifier, boolean overrideItem) {
+    private CustomBlockMapping createCustomBlockMapping(CustomBlockData.Builder customBlockDataBuilder, Map<String, CustomBlockComponents> componentsMap, String identifier, boolean overrideItem) {
         Map<String, LinkedHashSet<String>> valuesMap = new Object2ObjectOpenHashMap<>();
 
         List<CustomBlockPermutation> permutations = new ArrayList<>();
-        Map<String, CustomBlockStateBuilderMapping> blockStateBuilders = new Object2ObjectOpenHashMap<>();
+        Map<String, Function<CustomBlockState.Builder, CustomBlockState>> blockStateBuilders = new Object2ObjectOpenHashMap<>();
 
         // For each Java block state, extract the property values, create a CustomBlockPermutation,
         // and a CustomBlockState builder
-        for (Map.Entry<String, CustomBlockComponentsMapping> entry : componentsMap.entrySet()) {
+        for (Map.Entry<String, CustomBlockComponents> entry : componentsMap.entrySet()) {
             String state = entry.getKey();
             String[] pairs = splitStateString(state);
 
@@ -359,8 +356,8 @@ public class MappingsReader_v1 extends MappingsReader {
                 blockStateBuilder = blockStateBuilder.andThen(builder -> builder.stringProperty(property, value));
             }
 
-            permutations.add(new CustomBlockPermutation(entry.getValue().components(), String.join(" && ", conditions)));
-            blockStateBuilders.put(state, new CustomBlockStateBuilderMapping(blockStateBuilder.andThen(CustomBlockState.Builder::build), entry.getValue().extendedCollisionBox()));
+            permutations.add(new CustomBlockPermutation(entry.getValue(), String.join(" && ", conditions)));
+            blockStateBuilders.put(state, blockStateBuilder.andThen(CustomBlockState.Builder::build));
         }
 
         valuesMap.forEach((key, value) -> customBlockDataBuilder.stringProperty(key, new ArrayList<>(value)));
@@ -369,8 +366,8 @@ public class MappingsReader_v1 extends MappingsReader {
             .permutations(permutations)
             .build();
         // Build CustomBlockStates for each Java block state we wish to override
-        Map<String, CustomBlockStateMapping> states = blockStateBuilders.entrySet().stream()
-            .collect(Collectors.toMap(Map.Entry::getKey, e -> new CustomBlockStateMapping(e.getValue().builder().apply(customBlockData.blockStateBuilder()), e.getValue().extendedCollisionBox())));
+        Map<String, CustomBlockState> states = blockStateBuilders.entrySet().stream()
+            .collect(Collectors.toMap(Map.Entry::getKey, e -> (e.getValue().apply(customBlockData.blockStateBuilder()))));
 
         return new CustomBlockMapping(customBlockData, states, identifier, overrideItem);
     }
@@ -383,33 +380,50 @@ public class MappingsReader_v1 extends MappingsReader {
      * @param name the name of the custom block
      * @return the {@link CustomBlockComponents} object
      */
-    private CustomBlockComponentsMapping createCustomBlockComponentsMapping(JsonElement element, String stateKey, String name) {
+    private CustomBlockComponents createCustomBlockComponentsMapping(JsonElement element, String stateKey, String name) {
         // This is needed to find the correct selection box for the given block
         int id = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(stateKey, -1);
-        BoxComponent boxComponent = createBoxComponent(id);
-        BoxComponent extendedBoxComponent = createExtendedBoxComponent(id);
+        Set<BoxComponent> collisionBoxes = createCollisionBoxes(id);
         CustomBlockComponents.Builder builder = new GeyserCustomBlockComponents.Builder()
-            .collisionBox(boxComponent)
-            .selectionBox(boxComponent);
+            .collisionBoxes(collisionBoxes)
+            .selectionBox(createSelectionBox(id));
 
         if (!(element instanceof JsonObject node)) {
             // No other components were defined
-            return new CustomBlockComponentsMapping(builder.build(), extendedBoxComponent);
+            return builder.build();
         }
 
-        BoxComponent selectionBox = createBoxComponent(node.get("selection_box"));
+        BoxComponent selectionBox = readBoxComponent(node.get("selection_box"));
         if (selectionBox != null) {
             builder.selectionBox(selectionBox);
         }
-        BoxComponent collisionBox = createBoxComponent(node.get("collision_box"));
-        if (collisionBox != null) {
-            builder.collisionBox(collisionBox);
-        }
-        BoxComponent extendedCollisionBox = createBoxComponent(node.get("extended_collision_box"));
-        if (extendedCollisionBox != null) {
-            extendedBoxComponent = extendedCollisionBox;
+
+        Set<BoxComponent> customCollisionBoxes = createBoxComponents(node.get("collision_box"));
+        if (customCollisionBoxes != null) {
+            collisionBoxes = customCollisionBoxes;
+            builder.collisionBoxes(collisionBoxes);
         }
 
+        // Deprecated; but we should map it as best we can
+        BoxComponent extendedCollisionBox = readBoxComponent(node.get("extended_collision_box"));
+        if (extendedCollisionBox != null) {
+            if (extendedCollisionBox.originY() + extendedCollisionBox.sizeY() > 8f) {
+                GeyserImpl.getInstance().getLogger().error("Extended collision boxes exceeding a total collision box height of 1.5 blocks are no longer supported!");
+            }
+
+            BoxComponent mapped = new BoxComponent(
+                extendedCollisionBox.originX(),
+                extendedCollisionBox.originY() + 16, // we still want to apply it to the top portion
+                extendedCollisionBox.originZ(),
+                extendedCollisionBox.sizeX(),
+                Math.min(extendedCollisionBox.sizeY(), 8), // but limit to total 1.5 high
+                extendedCollisionBox.sizeZ()
+            );
+
+            // Add to existing collision boxes
+            collisionBoxes.add(mapped);
+            builder.collisionBoxes(collisionBoxes);
+        }
 
         // We set this to max value by default so that we may dictate the correct destroy time ourselves
         float destructibleByMining = Float.MAX_VALUE;
@@ -539,17 +553,16 @@ public class MappingsReader_v1 extends MappingsReader {
             builder.tags(tagsSet);
         }
 
-        return new CustomBlockComponentsMapping(builder.build(), extendedBoxComponent);
+        return builder.build();
     }
 
     /**
      * Creates a {@link BoxComponent} based on a Java block's collision with provided bounds and offsets
      *
      * @param javaId the block's Java ID
-     * @param heightTranslation the height translation of the box
      * @return the {@link BoxComponent}
      */
-    private BoxComponent createBoxComponent(int javaId, float heightTranslation) {
+    private BoxComponent createSelectionBox(int javaId) {
         // Some blocks (e.g. plants) have no collision box
         BlockCollision blockCollision = BlockUtils.getCollision(javaId);
         if (blockCollision == null || blockCollision.getBoundingBoxes().length == 0) {
@@ -576,10 +589,10 @@ public class MappingsReader_v1 extends MappingsReader {
             maxZ = Math.max(maxZ, (float) (boundingBox.getMiddleZ() + offsetZ));
         }
         minX = MathUtils.clamp(minX, 0, 1);
-        minY = MathUtils.clamp(minY + heightTranslation, 0, 1);
+        minY = MathUtils.clamp(minY, 0, 1);
         minZ = MathUtils.clamp(minZ, 0, 1);
         maxX = MathUtils.clamp(maxX, 0, 1);
-        maxY = MathUtils.clamp(maxY + heightTranslation, 0, 1);
+        maxY = MathUtils.clamp(maxY, 0, 1);
         maxZ = MathUtils.clamp(maxZ, 0, 1);
 
         return new BoxComponent(
@@ -592,34 +605,45 @@ public class MappingsReader_v1 extends MappingsReader {
         );
     }
 
-    /**
-     * Creates a {@link BoxComponent} based on a Java block's collision
-     *
-     * @param javaId the block's Java ID
-     * @return the {@link BoxComponent}
-     */
-    private BoxComponent createBoxComponent(int javaId) {
-        return createBoxComponent(javaId, 0);
-    }
-
-    /**
-     * Creates the {@link BoxComponent} for an extended collision box based on a Java block's collision
-     *
-     * @param javaId the block's Java ID
-     * @return the {@link BoxComponent} or null if the block's collision box would not exceed 16 y units
-     */
-    private @Nullable BoxComponent createExtendedBoxComponent(int javaId) {
+    private Set<BoxComponent> createCollisionBoxes(int javaId) {
         BlockCollision blockCollision = BlockUtils.getCollision(javaId);
         if (blockCollision == null) {
-            return null;
+            HashSet<BoxComponent> boxes = new HashSet<>(1);
+            boxes.add(BoxComponent.emptyBox());
+            return boxes;
         }
-        for (BoundingBox box : blockCollision.getBoundingBoxes()) {
-            double maxY = 0.5 * box.getSizeY() + box.getMiddleY();
-            if (maxY > 1) {
-                return createBoxComponent(javaId, -1);
-            }
+
+        BoundingBox[] boundingBoxes = blockCollision.getBoundingBoxes();
+        HashSet<BoxComponent> boxes = new HashSet<>(boundingBoxes == null || boundingBoxes.length == 0 ? 1 : boundingBoxes.length);
+        if (boundingBoxes == null || boundingBoxes.length == 0) {
+            boxes.add(BoxComponent.emptyBox());
+            return boxes;
         }
-        return null;
+
+        for (BoundingBox boundingBox : boundingBoxes) {
+            double offsetX = boundingBox.getSizeX() * 0.5;
+            double offsetY = boundingBox.getSizeY() * 0.5;
+            double offsetZ = boundingBox.getSizeZ() * 0.5;
+
+            float minX = MathUtils.clamp((float) (boundingBox.getMiddleX() - offsetX), 0, 1);
+            float minY = MathUtils.clamp((float) (boundingBox.getMiddleY() - offsetY), 0, 1);
+            float minZ = MathUtils.clamp((float) (boundingBox.getMiddleZ() - offsetZ), 0, 1);
+
+            float maxX = MathUtils.clamp((float) (boundingBox.getMiddleX() + offsetX), 0, 1);
+            float maxY = MathUtils.clamp((float) (boundingBox.getMiddleY() + offsetY), 0, 1.5f);
+            float maxZ = MathUtils.clamp((float) (boundingBox.getMiddleZ() + offsetZ), 0, 1);
+
+            boxes.add(new BoxComponent(
+                16 * (1 - maxX) - 8, // For some odd reason X is mirrored on Bedrock
+                16 * minY,
+                16 * minZ - 8,
+                16 * (maxX - minX),
+                16 * (maxY - minY),
+                16 * (maxZ - minZ)
+            ));
+        }
+
+        return boxes;
     }
 
     /**
@@ -628,7 +652,28 @@ public class MappingsReader_v1 extends MappingsReader {
      * @param element the JSON node
      * @return the {@link BoxComponent}
      */
-    private @Nullable BoxComponent createBoxComponent(JsonElement element) {
+    private @Nullable Set<BoxComponent> createBoxComponents(JsonElement element) {
+        if (element instanceof JsonObject node) {
+            Set<BoxComponent> components = new HashSet<>();
+            if (node.isJsonArray()) {
+                for (JsonElement box : node.getAsJsonArray()) {
+                    BoxComponent boxComponent = readBoxComponent(box);
+                    if (boxComponent != null) {
+                        components.add(boxComponent);
+                    }
+                }
+            } else {
+                BoxComponent component = readBoxComponent(element);
+                if (component != null) {
+                    components.add(component);
+                }
+            }
+            return components.isEmpty() ? null : components;
+        }
+        return null;
+    }
+
+    private @Nullable BoxComponent readBoxComponent(JsonElement element) {
         if (element instanceof JsonObject node) {
             if (node.has("origin") && node.has("size")) {
                 JsonArray origin = node.getAsJsonArray("origin");
