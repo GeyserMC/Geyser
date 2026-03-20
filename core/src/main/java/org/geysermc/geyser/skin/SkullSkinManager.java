@@ -27,10 +27,8 @@ package org.geysermc.geyser.skin;
 
 import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
 import org.geysermc.geyser.api.skin.Skin;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.PlayerListUtils;
 
@@ -57,17 +55,8 @@ public class SkullSkinManager extends SkinManager {
     public static void requestAndHandleSkin(SkullPlayerEntity entity, GeyserSession session, Consumer<Skin> skinConsumer) {
         BiConsumer<Skin, Throwable> applySkin = (skin, throwable) -> {
             SerializedSkin serializedSkin = buildSkullEntryManually(session, skin.textureUrl(), skin.skinData());
-            if (GameProtocol.is1_21_130orHigher(session.protocolVersion())) {
-                PlayerListUtils.sendSkinUsingPlayerList(session, PlayerListUtils.forSkullPlayerEntity(entity, serializedSkin), entity, false);
-            } else {
-                PlayerSkinPacket packet = new PlayerSkinPacket();
-                packet.setUuid(entity.uuid());
-                packet.setOldSkinName("");
-                packet.setNewSkinName(skin.textureUrl());
-                packet.setSkin(serializedSkin);
-                packet.setTrustedSkin(true);
-                session.sendUpstreamPacket(packet);
-            }
+            // Since 1.21.130: PlayerSkinPacket only works if player entity is listed
+            PlayerListUtils.sendSkinUsingPlayerList(session, PlayerListUtils.forSkullPlayerEntity(entity, serializedSkin), entity, false);
 
             if (skinConsumer != null) {
                 skinConsumer.accept(skin);
