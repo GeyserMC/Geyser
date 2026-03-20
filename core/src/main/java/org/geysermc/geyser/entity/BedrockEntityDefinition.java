@@ -49,7 +49,9 @@ public record BedrockEntityDefinition(
     }
 
     public static BedrockEntityDefinition ofVanilla(Identifier identifier) {
-        return builder().identifier(identifier).build();
+        BedrockEntityDefinition bedrockEntityDefinition = builder().identifier(identifier).build();
+        Registries.BEDROCK_ENTITY_DEFINITIONS.register(identifier, bedrockEntityDefinition);
+        return bedrockEntityDefinition;
     }
 
     public static BedrockEntityDefinition getOrCreate(@NonNull Identifier identifier) {
@@ -101,12 +103,8 @@ public record BedrockEntityDefinition(
         }
 
         BedrockEntityDefinition build() {
-            BedrockEntityDefinition definition = new BedrockEntityDefinition(
-                identifier,
-                propertiesBuilder != null ? propertiesBuilder.build() : new GeyserEntityProperties()
-            );
-            Registries.BEDROCK_ENTITY_DEFINITIONS.get().put(identifier, definition);
-            return definition;
+            return new BedrockEntityDefinition(identifier, propertiesBuilder != null ?
+                propertiesBuilder.build() : new GeyserEntityProperties());
         }
     }
 }
