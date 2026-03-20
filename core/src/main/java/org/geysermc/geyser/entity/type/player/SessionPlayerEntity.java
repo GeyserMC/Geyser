@@ -572,4 +572,10 @@ public class SessionPlayerEntity extends PlayerEntity {
     public boolean isGliding() {
         return getFlag(EntityFlag.GLIDING);
     }
+
+    public AttributeData updateDolphinsGrace(boolean value) {
+        AttributeData data = GeyserAttributeType.UNDERWATER_MOVEMENT.getAttribute(value ? 0.024f : 0.02f);
+        attributes.put(GeyserAttributeType.UNDERWATER_MOVEMENT, data);
+        return data;
+    }
 }
