@@ -407,19 +407,30 @@ public class MappingsReader_v1 extends MappingsReader {
         // Deprecated; but we should map it as best we can
         BoxComponent extendedCollisionBox = readBoxComponent(node.get("extended_collision_box"));
         if (extendedCollisionBox != null) {
-            if (extendedCollisionBox.originY() + extendedCollisionBox.sizeY() > 8f) {
-                GeyserImpl.getInstance().getLogger().error("Extended collision boxes exceeding a total collision box height of 1.5 blocks are no longer supported!");
+            GeyserImpl.getInstance().getLogger().warning("Extended collision boxes are deprecated and will be removed in a future version. Please increase the height using collision boxes instead.");
+
+            // Map extended collision boxes by adding an increased height to the collisions set
+            // For that, we increase the height and limit it to extend by 0.5 blocks max
+            float mappedOriginY = extendedCollisionBox.originY() + 16.0f; // move up
+            float mappedSizeY = extendedCollisionBox.sizeY();
+
+            if (mappedOriginY >= 24f) {
+                // Can't map this... we'll just set a wall collision, kek
+                mappedOriginY = 16f;
+                mappedSizeY = 8f;
+            } else if (mappedOriginY + mappedSizeY > 24f) {
+                // Clamp size to fit within 24
+                mappedSizeY = Math.min(mappedSizeY, 24f - mappedOriginY);
             }
 
             BoxComponent mapped = new BoxComponent(
                 extendedCollisionBox.originX(),
-                extendedCollisionBox.originY() + 16, // we still want to apply it to the top portion
+                mappedOriginY,
                 extendedCollisionBox.originZ(),
                 extendedCollisionBox.sizeX(),
-                Math.min(extendedCollisionBox.sizeY(), 8), // but limit to total 1.5 high
+                mappedSizeY,
                 extendedCollisionBox.sizeZ()
             );
-
             // Add to existing collision boxes
             collisionBoxes.add(mapped);
             builder.collisionBoxes(collisionBoxes);

@@ -327,15 +327,14 @@ public class CustomBlockRegistryPopulator {
      * Generates and returns the block property data for the provided custom block
      *
      * @param customBlock the custom block to generate block property data for
-     * @param protocolVersion the protocol version to use for the block property data
      * @return the block property data for the provided custom block
      */
     @SuppressWarnings("unchecked")
-    static BlockPropertyData generateBlockPropertyData(CustomBlockData customBlock, int protocolVersion) {
+    static BlockPropertyData generateBlockPropertyData(CustomBlockData customBlock) {
         List<NbtMap> permutations = new ArrayList<>();
         for (CustomBlockPermutation permutation : customBlock.permutations()) {
             permutations.add(NbtMap.builder()
-                    .putCompound("components", CustomBlockRegistryPopulator.convertComponents(permutation.components(), protocolVersion))
+                    .putCompound("components", CustomBlockRegistryPopulator.convertComponents(permutation.components()))
                     .putString("condition", permutation.condition())
                     .build());
         }
@@ -358,7 +357,7 @@ public class CustomBlockRegistryPopulator {
         CreativeCategory creativeCategory = customBlock.creativeCategory() != null ? customBlock.creativeCategory() : CreativeCategory.NONE;
         String creativeGroup = customBlock.creativeGroup() != null ? customBlock.creativeGroup() : "";
         NbtMapBuilder propertyTag = NbtMap.builder()
-                .putCompound("components", CustomBlockRegistryPopulator.convertComponents(customBlock.components(), protocolVersion))
+                .putCompound("components", CustomBlockRegistryPopulator.convertComponents(customBlock.components()))
                 // this is required or the client will crash
                 // in the future, this can be used to replace items in the creative inventory
                 // this would require us to map https://wiki.bedrock.dev/documentation/creative-categories.html#for-blocks programatically
@@ -382,10 +381,9 @@ public class CustomBlockRegistryPopulator {
      * Converts the provided custom block components to an {@link NbtMap} to be sent to the client in the StartGame packet
      *
      * @param components the custom block components to convert
-     * @param protocolVersion the protocol version to use for the conversion
      * @return the NBT representation of the provided custom block components
      */
-    private static NbtMap convertComponents(CustomBlockComponents components, int protocolVersion) {
+    private static NbtMap convertComponents(CustomBlockComponents components) {
         if (components == null) {
             return NbtMap.EMPTY;
         }
@@ -402,7 +400,10 @@ public class CustomBlockRegistryPopulator {
             builder.putCompound("minecraft:selection_box", convertBox(selectionBox));
         }
 
-        builder.putCompound("minecraft:collision_box", convertCollisionBoxes(components.collisionBoxes()));
+        Set<BoxComponent> collisionBoxes = components.collisionBoxes();
+        if (!collisionBoxes.isEmpty()) {
+            builder.putCompound("minecraft:collision_box", convertCollisionBoxes(components.collisionBoxes()));
+        }
 
         GeometryComponent geometryComponent = components.geometry();
         if (geometryComponent != null) {

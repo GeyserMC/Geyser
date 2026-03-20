@@ -162,7 +162,7 @@ public final class BlockRegistryPopulator {
             if (BlockRegistries.CUSTOM_BLOCKS.get().length != 0) {
                 CustomBlockRegistryPopulator.BLOCK_ID.set(CustomBlockRegistryPopulator.START_OFFSET);
                 for (CustomBlockData customBlock : BlockRegistries.CUSTOM_BLOCKS.get()) {
-                    customBlockProperties.add(CustomBlockRegistryPopulator.generateBlockPropertyData(customBlock, protocolVersion));
+                    customBlockProperties.add(CustomBlockRegistryPopulator.generateBlockPropertyData(customBlock));
                     CustomBlockRegistryPopulator.generateCustomBlockStates(customBlock, customBlockStates, customExtBlockStates);
                 }
                 blockStates.addAll(customBlockStates);
