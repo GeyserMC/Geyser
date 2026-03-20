@@ -79,7 +79,7 @@ public abstract class AvatarEntity extends LivingEntity {
 
     @Getter
     @Nullable
-    private Vector3i bedPosition;
+    protected Vector3i bedPosition;
 
     static {
         AbilityLayer abilityLayer = new AbilityLayer();
@@ -177,15 +177,6 @@ public abstract class AvatarEntity extends LivingEntity {
         movePlayerPacket.setRotation(bedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(this instanceof SessionPlayerEntity ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
-        // If the player is moved while sleeping, we have to adjust their y, so it appears
-        // correctly on Bedrock. This fixes GSit's lay.
-        if (getFlag(EntityFlag.SLEEPING)) {
-            if (bedPosition != null && (bedPosition.getY() == 0 || bedPosition.distanceSquared(position.toInt()) > 4)) {
-                // Force the player movement by using a teleport
-                movePlayerPacket.setPosition(this.position().up(0.2f));
-                movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
-            }
-        }
 
         if (movePlayerPacket.getMode() == MovePlayerPacket.Mode.TELEPORT) {
             movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
@@ -359,7 +350,7 @@ public abstract class AvatarEntity extends LivingEntity {
     public Vector3f bedrockPosition() {
         // Don't apply the full bedrock y offset when le player is sleeping
         if (bedPosition != null && getFlag(EntityFlag.SLEEPING)) {
-            return position; // TODO fixme for session player...
+            return position.up(0.2f);
         }
         return super.bedrockPosition();
     }
