@@ -32,6 +32,9 @@ import io.netty.util.NetUtil;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.util.VarInts;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.EventRegistrar;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserPostReloadEvent;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.util.JsonUtils;
 
@@ -47,7 +50,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
-public class GeyserLegacyPingPassthrough extends Thread implements IGeyserPingPassthrough, Runnable {
+public class GeyserLegacyPingPassthrough extends Thread implements IGeyserPingPassthrough, Runnable, EventRegistrar {
     private static final byte[] HAPROXY_BINARY_PREFIX = new byte[]{13, 10, 13, 10, 0, 13, 10, 81, 85, 73, 84, 10};
 
     private final GeyserImpl geyser;
@@ -73,10 +76,21 @@ public class GeyserLegacyPingPassthrough extends Thread implements IGeyserPingPa
             GeyserLegacyPingPassthrough pingPassthrough = new GeyserLegacyPingPassthrough(geyser, interval);
             pingPassthrough.setName("Geyser LegacyPingPassthrough Thread");
             pingPassthrough.setDaemon(true);
-            pingPassthrough.start();
+            if (geyser.isReloading()) {
+                geyser.eventBus().subscribe(pingPassthrough, GeyserPostReloadEvent.class, (ignored) -> pingPassthrough.start());
+            } else {
+                geyser.eventBus().subscribe(pingPassthrough, GeyserPostInitializeEvent.class, (ignored) -> pingPassthrough.start());
+            }
             return pingPassthrough;
         }
         return null;
+    }
+
+    @Override
+    public void start() {
+        // Already started, no need to keep the subscription
+        geyser.eventBus().unregisterAll(this);
+        super.start();
     }
 
     @Override
