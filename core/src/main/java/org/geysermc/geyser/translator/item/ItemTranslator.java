@@ -47,6 +47,7 @@ import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.PotionItem;
+import org.geysermc.geyser.item.type.TippedArrowItem;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
@@ -200,7 +201,9 @@ public final class ItemTranslator {
             PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
             // Make custom effect information visible when shown in tooltip
             if (potionContents != null && tooltip.showInTooltip(DataComponentTypes.POTION_CONTENTS)) {
-                customName += getPotionEffectInfo(potionContents, session.locale()); // TODO should this be done with lore instead?
+                // Add to the name (use '\n' to wrap lines) instead of the lore
+                // to make it show in HUD like the effect information of vanilla Bedrock potion
+                customName += getPotionEffectInfo(potionContents, components.getOrDefault(DataComponentTypes.POTION_DURATION_SCALE, 1f), session.locale());
             }
 
             nbtBuilder.setCustomName(customName);
@@ -371,22 +374,23 @@ public final class ItemTranslator {
         Effect.INFESTED
     );
 
-    public static String getPotionEffectInfo(PotionContents contents, String language) {
+    public static String getPotionEffectInfo(PotionContents contents, float durationScale, String language) {
         StringBuilder finalText = new StringBuilder();
         List<MobEffectInstance> effectInstanceList = contents.getCustomEffects();
         for (MobEffectInstance effectInstance : effectInstanceList) {
             Effect effect = effectInstance.getEffect();
             MobEffectDetails details = effectInstance.getDetails();
             int amplifier = details.getAmplifier();
-            int durations = details.getDuration();
-            TranslatableComponent appendTranslatable = Component.translatable("effect.minecraft." + effect.toString().toLowerCase(Locale.ROOT));
+            int duration = details.getDuration();
+            TranslatableComponent appendTranslatable = Component.translatable("effect.minecraft." + effect.name().toLowerCase(Locale.ROOT));
             if (amplifier != 0) {
                 appendTranslatable = Component.translatable("potion.withAmplifier",
                     appendTranslatable,
                     Component.translatable("potion.potency." + amplifier));
             }
-            if (durations > 20) {
-                int seconds = durations / 20;
+            if (duration > 20) {
+                int scaledDuration = (int) (duration * durationScale);
+                int seconds = scaledDuration / 20;
                 int secondsFormat = seconds % 60;
                 int minutes = seconds / 60;
                 int minutesFormat = minutes % 60;
@@ -398,13 +402,14 @@ public final class ItemTranslator {
                 appendTranslatable = Component.translatable("potion.withDuration",
                     appendTranslatable,
                     Component.text(text));
-            } else if (durations == -1) {
+            } else if (duration == -1) {
                 appendTranslatable = Component.translatable("potion.withDuration",
                     appendTranslatable,
                     Component.translatable("effect.duration.infinite"));
             }
             Component component = Component.text()
                 .resetStyle()
+                // Use blue to distinguish the gray vanilla Bedrock effect
                 .color((negativeEffectList.contains(effect)) ? NamedTextColor.RED : NamedTextColor.BLUE)
                 .append(appendTranslatable)
                 .build();
@@ -414,21 +419,34 @@ public final class ItemTranslator {
         return finalText.toString();
     }
 
-    public static String getPotionName(PotionContents contents, ItemMapping mapping, String language) {
+    public static String getPotionName(PotionContents contents, ItemMapping mapping, boolean includeDefault, String language) {
         String customPotionName = contents.getCustomName();
-        Potion potion = Potion.getByJavaId(contents.getPotionId());
-
         if (customPotionName != null) {
             // "custom_name" tag in "potion_contents" component
-            return MessageTranslator.convertMessage(
-                Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + customPotionName),
-                language);
+            return MinecraftLocale.getLocaleString(mapping.getJavaItem().translationKey() + ".effect." + customPotionName, language);
         }
-        if (!contents.getCustomEffects().isEmpty()) {
+
+        if (includeDefault) {
             // Make a name when has custom effects
-            String potionName = potion == null ? "empty" : potion.toString().toLowerCase(Locale.ROOT);
-            return MessageTranslator.convertMessage(Component.translatable(mapping.getJavaItem().translationKey() + ".effect." + potionName), language);
+            // because the custom effect information is display from the second line of the name.
+            // if name is not set, the custom effect information will not be displayed.
+            String potionName;
+            Potion potion = Potion.getByJavaId(contents.getPotionId());
+            if (potion != null) {
+                potionName = potion.name().toLowerCase(Locale.ROOT);
+                // Remove the incorrect prefix
+                // for example, potion "long_leaping" should use "leaping" in translatable name
+                if (potionName.startsWith("strong_")) {
+                    potionName = potionName.substring(7);
+                } else if (potionName.startsWith("long_")) {
+                    potionName = potionName.substring(5);
+                }
+            } else {
+                potionName = "empty";
+            }
+            return MinecraftLocale.getLocaleString(mapping.getJavaItem().translationKey() + ".effect." + potionName, language);
         }
+
         return null;
     }
 
@@ -564,17 +582,22 @@ public final class ItemTranslator {
             }
 
             if (!customNameOnly) {
-                if (mapping.getJavaItem() instanceof PotionItem) {
-                    PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
-                    if (potionContents != null) {
-                        String potionName = getPotionName(potionContents, mapping, session.locale()); // TODO also test this
+                boolean forceName = false;
+                PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
+                if (potionContents != null) {
+                    // hold the custom effect information (reason for this is mentioned in getPotionName method)
+                    forceName = TooltipOptions.fromComponents(components).showInTooltip(DataComponentTypes.POTION_CONTENTS)
+                            && !potionContents.getCustomEffects().isEmpty();
+                    // Get name in "potion_contents" component for vanilla potion items
+                    if (mapping.getJavaItem() instanceof PotionItem || mapping.getJavaItem() instanceof TippedArrowItem) {
+                        String potionName = getPotionName(potionContents, mapping, forceName, session.locale());
                         if (potionName != null) {
                             return ChatColor.RESET + ChatColor.ESCAPE + translationColor + potionName;
                         }
                     }
                 }
 
-                if (includeAll) {
+                if (includeAll || forceName) {
                     // Fix book title display in tooltips of shulker box
                     WrittenBookContent bookContent = components.get(DataComponentTypes.WRITTEN_BOOK_CONTENT);
                     if (bookContent != null) {
@@ -587,6 +610,11 @@ public final class ItemTranslator {
                     // Get the translated name and prefix it with a reset char to prevent italics - matches Java Edition
                     // behavior as of 1.21
                     return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MessageTranslator.convertMessage(customName, session.locale());
+                }
+
+                if (forceName) {
+                    String translationKey = mapping.getJavaItem().translationKey();
+                    return ChatColor.RESET + ChatColor.ESCAPE + translationColor + MinecraftLocale.getLocaleString(translationKey, session.locale());
                 }
             }
         }
