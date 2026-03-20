@@ -28,12 +28,13 @@ package org.geysermc.geyser.session;
 import com.google.gson.JsonObject;
 import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
-import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -76,14 +77,20 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.CraftingRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
+import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
@@ -150,6 +157,8 @@ import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
+import org.geysermc.geyser.inventory.recipe.RecipeUtil;
+import org.geysermc.geyser.inventory.recipe.TrimRecipe;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
@@ -158,6 +167,7 @@ import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
+import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -190,6 +200,7 @@ import org.geysermc.geyser.session.dialog.DialogManager;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.CooldownUtils;
@@ -214,6 +225,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.HandPreference;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ChatVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ParticleStatus;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.SkinPart;
@@ -521,8 +533,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final Int2ObjectMap<List<String>> javaToBedrockRecipeIds;
 
     private final Int2ObjectMap<GeyserRecipe> craftingRecipes;
-    @Setter
-    private Pair<CraftingRecipeData, GeyserRecipe> lastCreatedRecipe = null; // TODO try to prevent sending duplicate recipes
     private final AtomicInteger lastRecipeNetId;
 
     /**
@@ -530,7 +540,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * The key is the Bedrock recipe net ID; the values are their respective output and button ID.
      */
     @Setter
-    private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes;
+    private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes = Int2ObjectMaps.emptyMap();
     private final List<GeyserSmithingRecipe> smithingRecipes = new ArrayList<>();
 
     /**
@@ -2524,5 +2534,58 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public String getDebugInfo() {
         return "Username: %s, DeviceOs: %s, Version: %s".formatted(bedrockUsername(), platform(), version());
+    }
+
+    public CraftingDataPacket getCraftingDataPacket() {
+        CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
+        craftingDataPacket.setCleanRecipes(true);
+        craftingDataPacket.getCraftingData().addAll(RecipeUtil.CARTOGRAPHY_RECIPES);
+        // Potion mixes are registered by default, as they are needed to be able to put ingredients into the brewing stand.
+        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(getUpstream().getProtocolVersion()));
+        for (GeyserRecipe recipe : craftingRecipes.values()) {
+            craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(this));
+        }
+        for (GeyserSmithingRecipe recipe : smithingRecipes) {
+            craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(this));
+        }
+        if (oldSmithingTable) {
+            ItemMapping template = itemMappings.getStoredItems().upgradeTemplate();
+
+            for (ObjectIntPair<String> identifierAndNetId : TrimRecipe.NETHERITE_UPGRADES) {
+                craftingDataPacket.getCraftingData().add(SmithingTransformRecipeData.of(identifierAndNetId.left() + "_smithing",
+                    getDescriptorFromId(this, template.getBedrockIdentifier()),
+                    getDescriptorFromId(this, identifierAndNetId.left().replace("netherite", "diamond")),
+                    getDescriptorFromId(this, "minecraft:netherite_ingot"),
+                    ItemData.builder().definition(Objects.requireNonNull(itemMappings.getDefinition(identifierAndNetId.left()))).count(1).build(),
+                    "smithing_table",
+                    identifierAndNetId.rightInt()));
+            }
+        } else {
+            craftingDataPacket.getCraftingData().add(TrimRecipe.RECIPE);
+        }
+        for (Int2ObjectMap.Entry<GeyserStonecutterData> recipe : stonecutterRecipes.int2ObjectEntrySet()) {
+            int buttonId = recipe.getValue().buttonId();
+            int javaInput = recipe.getValue().input();
+            ItemMapping mapping = itemMappings.getMapping(javaInput);
+            ItemDescriptorWithCount descriptor = new ItemDescriptorWithCount(new DefaultDescriptor(mapping.getBedrockDefinition(), mapping.getBedrockData()), 1);
+            ItemStack javaOutput = recipe.getValue().output();
+            ItemData output = ItemTranslator.translateToBedrock(this, javaOutput);
+            int recipeNetId = recipe.getIntKey();
+            UUID uuid = UUID.randomUUID();
+            // We need to register stonecutting recipes, so they show up on Bedrock
+            // (Implementation note: recipe ID creates the order which stonecutting recipes are shown in stonecutter)
+            craftingDataPacket.getCraftingData().add(ShapelessRecipeData.shapeless("stonecutter_" + javaInput + "_" + buttonId,
+                Collections.singletonList(descriptor), Collections.singletonList(output), uuid, "stonecutter", 0, recipeNetId, RecipeUnlockingRequirement.INVALID));
+        }
+        return craftingDataPacket;
+    }
+
+    private ItemDescriptorWithCount getDescriptorFromId(GeyserSession session, String bedrockId) {
+        ItemDefinition bedrockDefinition = session.getItemMappings().getDefinition(bedrockId);
+        if (bedrockDefinition != null) {
+            return ItemDescriptorWithCount.fromItem(ItemData.builder().definition(bedrockDefinition).count(1).build());
+        }
+        GeyserImpl.getInstance().getLogger().debug("Unable to find item with identifier " + bedrockId);
+        return ItemDescriptorWithCount.EMPTY;
     }
 }
