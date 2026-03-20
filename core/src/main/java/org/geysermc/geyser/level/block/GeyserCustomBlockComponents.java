@@ -89,7 +89,17 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
 
     @Override
     public @Nullable BoxComponent collisionBox() {
-        return collisionBoxes.isEmpty() ? null : collisionBoxes.iterator().next();
+        if (collisionBoxes.isEmpty()) {
+            return null;
+        }
+
+        for (BoxComponent box : collisionBoxes) {
+            if (!box.isEmpty()) {
+                return box;
+            }
+        }
+
+        return null;
     }
 
     @Override
@@ -173,7 +183,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected boolean placeAir = false;
         protected Set<String> tags = new HashSet<>();
 
-        private void validateBox(BoxComponent box, boolean collision) {
+        private void validateBox(@Nullable BoxComponent box, boolean collision) {
             if (box == null) {
                 return;
             }

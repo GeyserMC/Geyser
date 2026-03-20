@@ -157,7 +157,7 @@ public interface CustomBlockComponents {
      * Equivalent to "minecraft:unit_cube"
      *
      * @deprecated Use {@link #geometry()} and compare with `minecraft:geometry.full_block` instead.
-     * @return the rotation
+     * @return whether this block is a unit cube
      * @since 2.2.0
      */
     @Deprecated(since = "2.2.2")

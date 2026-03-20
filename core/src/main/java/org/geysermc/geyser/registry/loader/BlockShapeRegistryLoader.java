@@ -64,6 +64,7 @@ public class BlockShapeRegistryLoader implements RegistryLoader<String, List<Bou
             BlockState state = blockStates.get(i);
             if (state == null) {
                 GeyserImpl.getInstance().getLogger().warning("Missing block state for Java block " + i);
+                collisions.add(null);
                 continue;
             }
             collisions.add(unmappedCollisionList.get(indices[i]));
