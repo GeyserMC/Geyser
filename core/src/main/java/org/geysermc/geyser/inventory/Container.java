@@ -93,7 +93,7 @@ public class Container extends Inventory {
 
     @Override
     protected String getPrefixedTitle(GeyserSession session, String title) {
-        if (session.integratedPackActive()) {
+        if (session.integratedPackActive() && session.getGeyser().config().gameplay().integratedPack().nonVanillaInventories()) {
             return getIntegratedPackTitlePrefix(this.containerType) + title;
         }
         return title;
