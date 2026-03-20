@@ -189,10 +189,10 @@ public class InventoryUtils {
         updateCursor(session);
 
         if (holder != null) {
-            holder.closeInventory(confirm);
             if (holder.shouldConfirmClose(confirm)) {
                 session.setClosingInventory(true);
             }
+            holder.closeInventory(confirm);
             session.getBundleCache().onInventoryClose(holder.inventory());
             GeyserImpl.getInstance().getLogger().debug(session, "Closed inventory: (java id: %s/bedrock id: %s), waiting on confirm? %s", holder.javaId(), holder.bedrockId(), session.isClosingInventory());
         }

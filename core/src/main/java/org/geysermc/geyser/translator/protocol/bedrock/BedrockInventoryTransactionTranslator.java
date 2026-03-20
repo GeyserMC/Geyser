@@ -30,7 +30,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
@@ -186,27 +185,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             if (isGodBridging) {
                                 BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
                                 return;
-                            }
-                        }
-
-                        // Check if this is a double placement due to an extended collision block
-                        if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty()) {
-                            Vector3i belowBlockPos = null;
-                            switch (packet.getBlockFace()) {
-                                case 1 -> belowBlockPos = blockPos.add(0, -2, 0);
-                                case 2 -> belowBlockPos = blockPos.add(0, -1, 1);
-                                case 3 -> belowBlockPos = blockPos.add(0, -1, -1);
-                                case 4 -> belowBlockPos = blockPos.add(1, -1, 0);
-                                case 5 -> belowBlockPos = blockPos.add(-1, -1, 0);
-                            }
-
-                            if (belowBlockPos != null) {
-                                int belowBlock = session.getGeyser().getWorldManager().getBlockAt(session, belowBlockPos);
-                                BlockDefinition extendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(belowBlock);
-                                if (extendedCollisionDefinition != null && (System.currentTimeMillis() - session.getLastInteractionTime()) < 200) {
-                                    BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
-                                    return;
-                                }
                             }
                         }
 
@@ -465,7 +443,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (session.getPlayerInventory().getItemInHand().getComponent(DataComponentTypes.PIERCING_WEAPON) != null && session.getGameMode() != GameMode.SPECTATOR) {
                             session.sendDownstreamPacket(new ServerboundPlayerActionPacket(PlayerAction.STAB, Vector3i.ZERO, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.DOWN, 0));
                             session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
-                            CooldownUtils.sendCooldown(session);
+                            CooldownUtils.setCooldownHitTime(session);
                         }
                     }
                 }
@@ -514,7 +492,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
 
                         // Since 1.19.10, LevelSoundEventPackets are no longer sent by the client when attacking entities
-                        CooldownUtils.sendCooldown(session);
+                        CooldownUtils.setCooldownHitTime(session);
                     }
                 }
                 break;

@@ -34,7 +34,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
@@ -42,24 +41,21 @@ import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
+import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
 import org.geysermc.geyser.api.block.custom.component.PlacementConditions.Face;
+import org.geysermc.geyser.api.block.custom.component.TransformationComponent;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.level.block.Blocks;
-import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
-import org.geysermc.geyser.level.block.GeyserCustomBlockData;
 import org.geysermc.geyser.level.block.GeyserCustomBlockState;
-import org.geysermc.geyser.level.block.GeyserGeometryComponent;
-import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.PistonBehavior;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.type.CustomSkull;
@@ -71,7 +67,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -100,14 +95,14 @@ public class CustomBlockRegistryPopulator {
 
     /**
      * Populates the custom block registries by stage
-     * 
+     *
      * @param stage the stage to populate
      */
     public static void populate(Stage stage) {
         if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
             return;
         }
-        
+
         switch (stage) {
             case DEFINITION -> populateBedrock();
             case VANILLA_REGISTRATION -> populateVanilla();
@@ -200,8 +195,6 @@ public class CustomBlockRegistryPopulator {
         }
         BLOCK_STATE_OVERRIDES_QUEUE = null;
 
-        Map<CustomBlockData, Set<Integer>> extendedCollisionBoxes = new HashMap<>();
-        Map<BoxComponent, CustomBlockData> extendedCollisionBoxSet = new HashMap<>();
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         mappingsConfigReader.loadBlockMappingsFromJson((key, block) -> {
             CUSTOM_BLOCKS.add(block.data());
@@ -210,20 +203,10 @@ public class CustomBlockRegistryPopulator {
             }
             block.states().forEach((javaIdentifier, customBlockState) -> {
                 int id = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(javaIdentifier, -1);
-                blockStateOverrides.put(id, customBlockState.state());
-                BoxComponent extendedCollisionBox = customBlockState.extendedCollisionBox();
-                if (extendedCollisionBox != null) {
-                    CustomBlockData extendedCollisionBlock = extendedCollisionBoxSet.computeIfAbsent(extendedCollisionBox, box -> {
-                        CustomBlockData collisionBlock = createExtendedCollisionBlock(box, extendedCollisionBoxSet.size());
-                        CUSTOM_BLOCKS.add(collisionBlock);
-                        return collisionBlock;
-                    });
-                    extendedCollisionBoxes.computeIfAbsent(extendedCollisionBlock, k -> new HashSet<>())
-                            .add(id);
-                }
+                blockStateOverrides.put(id, customBlockState);
             });
         });
-    
+
         BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.set(blockStateOverrides);
         if (!blockStateOverrides.isEmpty()) {
             GeyserImpl.getInstance().getLogger().info("Registered " + blockStateOverrides.size() + " custom block overrides.");
@@ -232,11 +215,6 @@ public class CustomBlockRegistryPopulator {
         BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.set(CUSTOM_BLOCK_ITEM_OVERRIDES);
         if (!CUSTOM_BLOCK_ITEM_OVERRIDES.isEmpty()) {
             GeyserImpl.getInstance().getLogger().info("Registered " + CUSTOM_BLOCK_ITEM_OVERRIDES.size() + " custom block item overrides.");
-        }
-
-        BlockRegistries.EXTENDED_COLLISION_BOXES.set(extendedCollisionBoxes);
-        if (!extendedCollisionBoxes.isEmpty()) {
-            GeyserImpl.getInstance().getLogger().info("Registered " + extendedCollisionBoxes.size() + " custom block extended collision boxes.");
         }
     }
 
@@ -317,7 +295,7 @@ public class CustomBlockRegistryPopulator {
     /**
      * Generates and appends all custom block states to the provided list of custom block states
      * Appends the custom block states to the provided list of NBT maps
-     * 
+     *
      * @param customBlock the custom block data to generate states for
      * @param blockStates the list of NBT maps to append the custom block states to
      * @param customExtBlockStates the list of custom block states to append the custom block states to
@@ -327,7 +305,7 @@ public class CustomBlockRegistryPopulator {
         for (CustomBlockProperty<?> property : customBlock.properties().values()) {
             totalPermutations *= property.values().size();
         }
-    
+
         for (int i = 0; i < totalPermutations; i++) {
             NbtMapBuilder statesBuilder = NbtMap.builder();
             int permIndex = i;
@@ -336,7 +314,7 @@ public class CustomBlockRegistryPopulator {
                 permIndex /= property.values().size();
             }
             NbtMap states = statesBuilder.build();
-    
+
             blockStates.add(NbtMap.builder()
                     .putString("name", customBlock.identifier())
                     .putCompound("states", states)
@@ -347,21 +325,20 @@ public class CustomBlockRegistryPopulator {
 
     /**
      * Generates and returns the block property data for the provided custom block
-     * 
+     *
      * @param customBlock the custom block to generate block property data for
-     * @param protocolVersion the protocol version to use for the block property data
      * @return the block property data for the provided custom block
      */
     @SuppressWarnings("unchecked")
-    static BlockPropertyData generateBlockPropertyData(CustomBlockData customBlock, int protocolVersion) {
+    static BlockPropertyData generateBlockPropertyData(CustomBlockData customBlock) {
         List<NbtMap> permutations = new ArrayList<>();
         for (CustomBlockPermutation permutation : customBlock.permutations()) {
             permutations.add(NbtMap.builder()
-                    .putCompound("components", CustomBlockRegistryPopulator.convertComponents(permutation.components(), protocolVersion))
+                    .putCompound("components", CustomBlockRegistryPopulator.convertComponents(permutation.components()))
                     .putString("condition", permutation.condition())
                     .build());
         }
-    
+
         // The order that properties are defined influences the order that block states are generated
         List<NbtMap> properties = new ArrayList<>();
         for (CustomBlockProperty<?> property : customBlock.properties().values()) {
@@ -376,11 +353,11 @@ public class CustomBlockRegistryPopulator {
             }
             properties.add(propertyBuilder.build());
         }
-    
+
         CreativeCategory creativeCategory = customBlock.creativeCategory() != null ? customBlock.creativeCategory() : CreativeCategory.NONE;
         String creativeGroup = customBlock.creativeGroup() != null ? customBlock.creativeGroup() : "";
         NbtMapBuilder propertyTag = NbtMap.builder()
-                .putCompound("components", CustomBlockRegistryPopulator.convertComponents(customBlock.components(), protocolVersion))
+                .putCompound("components", CustomBlockRegistryPopulator.convertComponents(customBlock.components()))
                 // this is required or the client will crash
                 // in the future, this can be used to replace items in the creative inventory
                 // this would require us to map https://wiki.bedrock.dev/documentation/creative-categories.html#for-blocks programatically
@@ -402,12 +379,11 @@ public class CustomBlockRegistryPopulator {
 
     /**
      * Converts the provided custom block components to an {@link NbtMap} to be sent to the client in the StartGame packet
-     * 
+     *
      * @param components the custom block components to convert
-     * @param protocolVersion the protocol version to use for the conversion
      * @return the NBT representation of the provided custom block components
      */
-    private static NbtMap convertComponents(CustomBlockComponents components, int protocolVersion) {
+    private static NbtMap convertComponents(CustomBlockComponents components) {
         if (components == null) {
             return NbtMap.EMPTY;
         }
@@ -424,23 +400,20 @@ public class CustomBlockRegistryPopulator {
             builder.putCompound("minecraft:selection_box", convertBox(selectionBox));
         }
 
-        BoxComponent collisionBox = components.collisionBox();
-        if (collisionBox != null) {
-            builder.putCompound("minecraft:collision_box", convertCollisionBox(collisionBox, protocolVersion));
+        Set<BoxComponent> collisionBoxes = components.collisionBoxes();
+        if (!collisionBoxes.isEmpty()) {
+            builder.putCompound("minecraft:collision_box", convertCollisionBoxes(components.collisionBoxes()));
         }
 
-        if (components.geometry() != null) {
+        GeometryComponent geometryComponent = components.geometry();
+        if (geometryComponent != null) {
             NbtMapBuilder geometryBuilder = NbtMap.builder();
-            if (protocolVersion >= Bedrock_v594.CODEC.getProtocolVersion()) {
-                geometryBuilder.putString("identifier", components.geometry().identifier());
-                if (components.geometry().boneVisibility() != null) {
-                    NbtMapBuilder boneVisibilityBuilder = NbtMap.builder();
-                    components.geometry().boneVisibility().entrySet().forEach(
-                        entry -> boneVisibilityBuilder.putString(entry.getKey(), entry.getValue()));
-                    geometryBuilder.putCompound("bone_visibility", boneVisibilityBuilder.build());
-                }
-            } else {
-                geometryBuilder.putString("value", components.geometry().identifier());
+            geometryBuilder.putString("identifier", geometryComponent.identifier());
+            Map<String, String> boneVisibility = geometryComponent.boneVisibility();
+            if (boneVisibility != null) {
+                NbtMapBuilder boneVisibilityBuilder = NbtMap.builder();
+                boneVisibility.forEach(boneVisibilityBuilder::putString);
+                geometryBuilder.putCompound("bone_visibility", boneVisibilityBuilder.build());
             }
             builder.putCompound("minecraft:geometry", geometryBuilder.build());
         }
@@ -480,47 +453,53 @@ public class CustomBlockRegistryPopulator {
                     .build());
         }
 
-        if (components.placementFilter() != null) {
+        List<PlacementConditions> placementFilter = components.placementFilter();
+        if (placementFilter != null) {
             builder.putCompound("minecraft:placement_filter", NbtMap.builder()
-                    .putList("conditions", NbtType.COMPOUND, convertPlacementFilter(components.placementFilter()))
+                    .putList("conditions", NbtType.COMPOUND, convertPlacementFilter(placementFilter))
                     .build());
         }
 
-        if (components.destructibleByMining() != null) {
+        Float destructibleByMining = components.destructibleByMining();
+        if (destructibleByMining != null) {
             builder.putCompound("minecraft:destructible_by_mining", NbtMap.builder()
-                    .putFloat("value", components.destructibleByMining())
+                    .putFloat("value", destructibleByMining)
                     .build());
         }
 
-        if (components.friction() != null) {
+        Float friction = components.friction();
+        if (friction != null) {
             builder.putCompound("minecraft:friction", NbtMap.builder()
-                    .putFloat("value", components.friction())
+                    .putFloat("value", friction)
                     .build());
         }
 
-        if (components.lightEmission() != null) {
+        Integer lightEmission = components.lightEmission();
+        if (lightEmission != null) {
             builder.putCompound("minecraft:light_emission", NbtMap.builder()
-                    .putByte("emission", components.lightEmission().byteValue())
+                    .putByte("emission", lightEmission.byteValue())
                     .build());
         }
 
-        if (components.lightDampening() != null) {
+        Integer lightDampening = components.lightDampening();
+        if (lightDampening != null) {
             builder.putCompound("minecraft:light_dampening", NbtMap.builder()
-                    .putByte("lightLevel", components.lightDampening().byteValue())
+                    .putByte("lightLevel", lightDampening.byteValue())
                     .build());
         }
 
-        if (components.transformation() != null) {
+        TransformationComponent transformationComponent = components.transformation();
+        if (transformationComponent != null) {
             builder.putCompound("minecraft:transformation", NbtMap.builder()
-                    .putInt("RX", MathUtils.unwrapDegreesToInt(components.transformation().rx()) / 90)
-                    .putInt("RY", MathUtils.unwrapDegreesToInt(components.transformation().ry()) / 90)
-                    .putInt("RZ", MathUtils.unwrapDegreesToInt(components.transformation().rz()) / 90)
-                    .putFloat("SX", components.transformation().sx())
-                    .putFloat("SY", components.transformation().sy())
-                    .putFloat("SZ", components.transformation().sz())
-                    .putFloat("TX", components.transformation().tx())
-                    .putFloat("TY", components.transformation().ty())
-                    .putFloat("TZ", components.transformation().tz())
+                    .putInt("RX", MathUtils.unwrapDegreesToInt(transformationComponent.rx()) / 90)
+                    .putInt("RY", MathUtils.unwrapDegreesToInt(transformationComponent.ry()) / 90)
+                    .putInt("RZ", MathUtils.unwrapDegreesToInt(transformationComponent.rz()) / 90)
+                    .putFloat("SX", transformationComponent.sx())
+                    .putFloat("SY", transformationComponent.sy())
+                    .putFloat("SZ", transformationComponent.sz())
+                    .putFloat("TX", transformationComponent.tx())
+                    .putFloat("TY", transformationComponent.ty())
+                    .putFloat("TZ", transformationComponent.tz())
                     .build());
         }
 
@@ -543,27 +522,36 @@ public class CustomBlockRegistryPopulator {
     /**
      * Converts the provided COLLISION box component to an {@link NbtMap}
      *
-     * @param boxComponent the box component to convert
+     * @param boxes the box component to convert
      * @return the NBT representation of the provided box component
      */
-    private static NbtMap convertCollisionBox(BoxComponent boxComponent, int protocolVersion) {
-        if (GameProtocol.is1_21_130orHigher(protocolVersion)) {
+    private static NbtMap convertCollisionBoxes(Set<BoxComponent> boxes) {
+        List<NbtMap> boxesNbt = new ArrayList<>();
+        boolean empty = true;
+        for (BoxComponent boxComponent : boxes) {
+            if (boxComponent.isEmpty()) {
+                continue;
+            }
+            empty = false;
+
             float minX = 8f + boxComponent.originX();
             float minY = boxComponent.originY();
             float minZ = 8f + boxComponent.originZ();
-            return NbtMap.builder()
-                .putBoolean("enabled", !boxComponent.isEmpty())
-                .putList("boxes", NbtType.COMPOUND, NbtMap.builder()
-                    .putFloat("minX", minX)
-                    .putFloat("minY", minY)
-                    .putFloat("minZ", minZ)
-                    .putFloat("maxX", minX + boxComponent.sizeX())
-                    .putFloat("maxY", minY + boxComponent.sizeY())
-                    .putFloat("maxZ", minZ + boxComponent.sizeZ())
-                .build()).build();
-        } else {
-            return convertBox(boxComponent);
+
+            boxesNbt.add(NbtMap.builder()
+                .putFloat("minX", minX)
+                .putFloat("minY", minY)
+                .putFloat("minZ", minZ)
+                .putFloat("maxX", minX + boxComponent.sizeX())
+                .putFloat("maxY", minY + boxComponent.sizeY())
+                .putFloat("maxZ", minZ + boxComponent.sizeZ())
+                .build());
         }
+
+        return NbtMap.builder()
+            .putBoolean("enabled", !empty)
+            .putList("boxes", NbtType.COMPOUND, boxesNbt)
+            .build();
     }
 
     /**
@@ -576,8 +564,7 @@ public class CustomBlockRegistryPopulator {
         return NbtMap.builder()
                 .putBoolean("enabled", !boxComponent.isEmpty())
                 .putList("origin", NbtType.FLOAT, boxComponent.originX(), boxComponent.originY(), boxComponent.originZ())
-                // TODO remove after 1.21.130 - collision boxes sent to below 1.21.130 must be capped
-                .putList("size", NbtType.FLOAT, boxComponent.sizeX(), Math.min(boxComponent.sizeY(), 16), boxComponent.sizeZ())
+                .putList("size", NbtType.FLOAT, boxComponent.sizeX(), boxComponent.sizeY(), boxComponent.sizeZ())
                 .build();
     }
 
@@ -615,26 +602,5 @@ public class CustomBlockRegistryPopulator {
         });
 
         return conditions;
-    }
-
-    private static CustomBlockData createExtendedCollisionBlock(BoxComponent boxComponent, int extendedCollisionBlock) {
-        return new GeyserCustomBlockData.Builder()
-                .name("extended_collision_" + extendedCollisionBlock)
-                .components(
-                    new GeyserCustomBlockComponents.Builder()
-                        .collisionBox(boxComponent)
-                        .selectionBox(BoxComponent.emptyBox())
-                        .materialInstance("*", new GeyserMaterialInstance.Builder()
-                            .texture("glass")
-                            .renderMethod("alpha_test")
-                            .faceDimming(false)
-                            .ambientOcclusion(false)
-                            .build())
-                        .lightDampening(0)
-                        .geometry(new GeyserGeometryComponent.Builder()
-                            .identifier("geometry.invisible")
-                            .build())
-                        .build())
-                .build();
     }
 }

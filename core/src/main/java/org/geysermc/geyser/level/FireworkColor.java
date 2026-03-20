@@ -25,9 +25,12 @@
 
 package org.geysermc.geyser.level;
 
+import lombok.Getter;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.util.HSVLike;
 import org.checkerframework.checker.nullness.qual.NonNull;
+
+import java.util.Locale;
 
 public enum FireworkColor {
     BLACK(1973019),
@@ -37,12 +40,12 @@ public enum FireworkColor {
     BLUE(2437522),
     PURPLE(8073150),
     CYAN(2651799),
-    LIGHT_GRAY(11250603),
+    LIGHT_GRAY(11250603, "silver"),
     GRAY(4408131),
     PINK(14188952),
     LIME(4312372),
     YELLOW(14602026),
-    LIGHT_BLUE(6719955),
+    LIGHT_BLUE(6719955, "lightBlue"),
     MAGENTA(12801229),
     ORANGE(15435844),
     WHITE(15790320);
@@ -51,8 +54,17 @@ public enum FireworkColor {
 
     private final TextColor color;
 
+    @Getter
+    private final String name;
+
+    FireworkColor(int rgbValue, String name) {
+        this.color = TextColor.color(rgbValue);
+        this.name = name;
+    }
+
     FireworkColor(int rgbValue) {
         this.color = TextColor.color(rgbValue);
+        this.name = this.name().toLowerCase(Locale.ROOT);
     }
 
     private static HSVLike toHSV(int rgbValue) {

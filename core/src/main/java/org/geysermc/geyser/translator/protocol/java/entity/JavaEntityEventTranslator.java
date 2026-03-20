@@ -121,6 +121,9 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case WOLF_SHAKE_WATER:
                 entityEventPacket.setType(EntityEventType.SHAKE_WETNESS);
                 break;
+            case WOLF_SHAKE_WATER_STOP:
+                entityEventPacket.setType(EntityEventType.SHAKE_WETNESS_STOP);
+                break;
             case PLAYER_FINISH_USING_ITEM:
                 if (entity instanceof SessionPlayerEntity) {
                     entity.setFlag(EntityFlag.USING_ITEM, false);
