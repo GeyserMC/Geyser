@@ -26,13 +26,19 @@
 package org.geysermc.geyser.api.entity.type;
 
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
+import org.geysermc.geyser.api.entity.data.GeyserEntityDataTypes;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -41,10 +47,56 @@ import java.util.function.Consumer;
  */
 public interface GeyserEntity {
     /**
-     * @return the entity ID that the server has assigned to this entity.
+     * @return the entity ID that the server has assigned to this entity, or 0 if none is present
      */
     @NonNegative
     int javaId();
+
+    /**
+     * @return the Geyser entity id that the Bedrock client sees
+     */
+    @Positive
+    long geyserId();
+
+    /**
+     * @return the entity uuid that the server has assigned to this entity,
+     * or null if none is assigned
+     */
+    @Nullable
+    UUID uuid();
+
+    /**
+     * @return the Bedrock entity definition
+     */
+    @NonNull GeyserEntityDefinition definition();
+
+    /**
+     * The position of this entity, without the Bedrock edition offset
+     * defined in the Bedrock entity definition.
+     *
+     * @return the position of the entity, as it is known to the Java server.
+     */
+    @NonNull Vector3f position();
+
+    /**
+     * Queries the current value of a given {@link GeyserEntityDataType}.
+     *
+     * @see GeyserEntityDataTypes
+     * @param dataType the entity data type to query
+     * @return the value, or null if not set
+     * @param <T> the type of the value
+     */
+    <T> @Nullable T value(@NonNull GeyserEntityDataType<T> dataType);
+
+    /**
+     * Updates an entity property with a new value.
+     * If the new value is null, the property is reset to the default value.
+     *
+     * @param dataType an entity data type, such as from {@link GeyserEntityDataTypes}
+     * @param value the new property value
+     * @param <T> the type of the value
+     */
+     <T> void update(@NonNull GeyserEntityDataType<T> dataType, @Nullable T value);
 
     /**
      * Updates an entity property with a new value.
@@ -60,12 +112,9 @@ public interface GeyserEntity {
     }
 
     /**
-     * Updates multiple properties with just one update packet.
-     * @see BatchPropertyUpdater
-     *
-     * @param consumer a batch updater
-     * @since 2.9.0
+     * @deprecated - use {@link #updateProperty(GeyserEntityProperty, Object)} instead
      */
+    @Deprecated
     default void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer) {
         this.updatePropertiesBatched(consumer, false);
     }
@@ -74,10 +123,10 @@ public interface GeyserEntity {
      * Updates multiple properties with just one update packet, which can be sent immediately to the client.
      * Usually, sending updates immediately is not required except for specific situations where packet batching
      * would result in update order issues.
-     * @see BatchPropertyUpdater
      *
      * @param consumer a batch updater
      * @param immediate whether this update should be sent immediately
+     * @see BatchPropertyUpdater
      * @since 2.9.1
      */
     void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer, boolean immediate);

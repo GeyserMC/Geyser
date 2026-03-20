@@ -55,15 +55,15 @@ public class FireballEntity extends ThrowableEntity {
     }
 
     @Override
-    protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    protected void moveAbsoluteImmediate(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // Advance the position by a few ticks before sending it to Bedrock
         Vector3f lastMotion = motion;
-        Vector3f newPosition = position;
+        Vector3f newPosition = javaPosition;
         for (int i = 0; i < futureTicks; i++) {
             newPosition = tickMovement(newPosition);
         }
         super.moveAbsoluteImmediate(newPosition, yaw, pitch, headYaw, isOnGround, teleported);
-        this.position = position;
+        setPosition(javaPosition);
         this.motion = lastMotion;
     }
 
@@ -72,6 +72,6 @@ public class FireballEntity extends ThrowableEntity {
         if (removedInVoid() || vehicle != null) {
             return;
         }
-        moveAbsoluteImmediate(tickMovement(position), getYaw(), getPitch(), getHeadYaw(), false, false);
+        moveAbsoluteImmediate(tickMovement(position()), getYaw(), getPitch(), getHeadYaw(), false, false);
     }
 }
