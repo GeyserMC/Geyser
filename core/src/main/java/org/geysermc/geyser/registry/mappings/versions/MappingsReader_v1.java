@@ -314,7 +314,7 @@ public class MappingsReader_v1 extends MappingsReader {
                 .stream()
                 .filter(s -> s.startsWith(identifier + "["))
                 .filter(Predicate.not(componentsMap::containsKey))
-                .forEach(state -> componentsMap.put(state, createCustomBlockComponentsMapping(null, state, name)));
+                .forEach(state -> componentsMap.put(state, createCustomBlockComponentsMapping(object, state, name)));
         }
 
         if (componentsMap.isEmpty()) {
