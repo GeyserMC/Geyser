@@ -37,6 +37,8 @@ import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.registry.loader.BlockShapeRegistryLoader;
 import org.geysermc.geyser.registry.loader.CollisionRegistryLoader;
 import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.populator.BlockRegistryPopulator;
@@ -69,6 +71,11 @@ public class BlockRegistries {
      * A mapped registry containing which holds block IDs to its {@link BlockCollision}.
      */
     public static final ListDeferredRegistry<BlockCollision> COLLISIONS = ListDeferredRegistry.create(Pair.of("org.geysermc.geyser.translator.collision.CollisionRemapper", "mappings/collisions.nbt"), CollisionRegistryLoader::new);
+
+    /**
+     * A mapped registry containing which holds block IDs to the respective set of {@link BoundingBox} array
+     */
+    public static final ListDeferredRegistry<BoundingBox[]> SHAPES = ListDeferredRegistry.create("mappings/block_shapes.nbt", BlockShapeRegistryLoader::new);
 
     /**
      * A registry which stores Java IDs to {@link Block}, containing miscellaneous information about
@@ -136,6 +143,7 @@ public class BlockRegistries {
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.DEFINITION);
         BlockRegistryPopulator.populate(BlockRegistryPopulator.Stage.INIT_JAVA);
         COLLISIONS.load();
+        SHAPES.load();
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.NON_VANILLA_REGISTRATION);
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.VANILLA_REGISTRATION);
         CustomBlockRegistryPopulator.populate(CustomBlockRegistryPopulator.Stage.CUSTOM_REGISTRATION);

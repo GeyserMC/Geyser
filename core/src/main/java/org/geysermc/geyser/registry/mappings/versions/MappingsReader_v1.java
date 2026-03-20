@@ -564,8 +564,8 @@ public class MappingsReader_v1 extends MappingsReader {
      */
     private BoxComponent createSelectionBox(int javaId) {
         // Some blocks (e.g. plants) have no collision box
-        BlockCollision blockCollision = BlockUtils.getCollision(javaId);
-        if (blockCollision == null || blockCollision.getBoundingBoxes().length == 0) {
+        BoundingBox[] shapes = BlockRegistries.SHAPES.get(javaId);
+        if (shapes == null || shapes.length == 0) {
             return BoxComponent.emptyBox();
         }
 
@@ -575,7 +575,7 @@ public class MappingsReader_v1 extends MappingsReader {
         float maxX = -5;
         float maxY = -5;
         float maxZ = -5;
-        for (BoundingBox boundingBox : blockCollision.getBoundingBoxes()) {
+        for (BoundingBox boundingBox : shapes) {
             double offsetX = boundingBox.getSizeX() * 0.5;
             double offsetY = boundingBox.getSizeY() * 0.5;
             double offsetZ = boundingBox.getSizeZ() * 0.5;
