@@ -251,11 +251,6 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         return uuid();
     }
 
-    @Override
-    public Vector3f position() {
-        return this.position.down(definition.offset());
-    }
-
     // From 1.21.8 code, should be correct since some pose should be prioritized.
     public Pose getDesiredPose() {
         if (this.getBedPosition() != null) {

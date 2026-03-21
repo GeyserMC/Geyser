@@ -95,9 +95,9 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         double width = vehicle.getBoundingBoxWidth();
         double height = vehicle.getBoundingBoxHeight();
         this.boundingBox = new BoundingBox(
-                vehicle.getPosition().getX(),
-                vehicle.getPosition().getY() + height / 2,
-                vehicle.getPosition().getZ(),
+                vehicle.position().getX(),
+                vehicle.position().getY() + height / 2,
+                vehicle.position().getZ(),
                 width, height, width
         );
     }
@@ -630,7 +630,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
                 Math.abs(motion.getZ()) < MIN_VELOCITY ? 0 : motion.getZ()
         );
 
-        Vector3f lastRotation = vehicle.getBedrockRotation();
+        Vector3f lastRotation = vehicle.bedrockRotation();
         updateRotation();
 
         Vector2f playerInput = vehicle.getSession().getPlayerEntity().getVehicleInput();
@@ -760,8 +760,6 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
      * @param lastRotation the previous rotation of the vehicle (pitch, yaw, headYaw)
      */
     protected void moveVehicle(Vector3d javaPos, Vector3f lastRotation) {
-        Vector3f bedrockPos = javaPos.toFloat();
-
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(vehicle.geyserId());
 
@@ -769,19 +767,22 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
         }
 
-        if (vehicle.getPosition().getX() != bedrockPos.getX()) {
+        Vector3f oldBedrockPos = vehicle.bedrockPosition();
+        vehicle.setPosition(javaPos.toFloat());
+        Vector3f newBedrockPos = vehicle.bedrockPosition();
+
+        if (oldBedrockPos.getX() != newBedrockPos.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-            moveEntityDeltaPacket.setX(bedrockPos.getX());
+            moveEntityDeltaPacket.setX(newBedrockPos.getX());
         }
-        if (vehicle.getPosition().getY() != bedrockPos.getY()) {
+        if (oldBedrockPos.getY() != newBedrockPos.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-            moveEntityDeltaPacket.setY(bedrockPos.getY());
+            moveEntityDeltaPacket.setY(newBedrockPos.getY());
         }
-        if (vehicle.getPosition().getZ() != bedrockPos.getZ()) {
+        if (oldBedrockPos.getZ() != newBedrockPos.getZ()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-            moveEntityDeltaPacket.setZ(bedrockPos.getZ());
+            moveEntityDeltaPacket.setZ(newBedrockPos.getZ());
         }
-        vehicle.setPosition(bedrockPos);
 
         if (vehicle.getPitch() != lastRotation.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
@@ -800,6 +801,10 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
             vehicle.getSession().sendUpstreamPacket(moveEntityDeltaPacket);
         }
 
+        sendServerboundMoveVehiclePacket(javaPos);
+    }
+
+    protected void sendServerboundMoveVehiclePacket(Vector3d javaPos) {
         ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos, vehicle.getYaw(), vehicle.getPitch(), vehicle.isOnGround());
         vehicle.getSession().sendDownstreamPacket(moveVehiclePacket);
     }
