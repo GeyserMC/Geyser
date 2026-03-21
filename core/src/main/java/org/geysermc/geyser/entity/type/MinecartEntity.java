@@ -301,11 +301,6 @@ public class MinecartEntity extends Entity implements Tickable {
     }
 
     @Override
-    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsoluteRaw(position.up(this.definition.offset()), yaw, pitch, headYaw, isOnGround, teleported);
-    }
-
-    @Override
     public Vector3f bedrockRotation() {
         // Note: minecart rotation on rails does not care about the actual rotation value
         return Vector3f.from(0, getYaw(), 0);

@@ -117,7 +117,7 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
     public Vector3f bedrockPosition() {
         if (session.getPlayerEntity().getVehicle() == this && session.getPlayerEntity().isRidingInFront()) {
             // Minimal glitching when ClientboundMoveVehiclePacket is sent
-            return position.up(EntityDefinitions.PLAYER.offset());
+            return position.up(EntityDefinitions.PLAYER.offset() - offset);
         }
         return super.bedrockPosition();
     }
