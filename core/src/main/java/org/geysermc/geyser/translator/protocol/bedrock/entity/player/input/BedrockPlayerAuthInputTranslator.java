@@ -36,7 +36,6 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTransaction;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
@@ -331,6 +330,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 // This doesn't work if teleported is false
                 vehicle.moveAbsoluteRaw(position, vehicle.getYaw(), vehicle.getPitch(), vehicle.getHeadYaw(),
                     vehicle.isOnGround(), true);
+                return;
             }
 
             vehicle.setPosition(vehiclePosition);
