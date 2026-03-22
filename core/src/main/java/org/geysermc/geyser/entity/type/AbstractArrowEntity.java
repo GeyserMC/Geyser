@@ -31,7 +31,7 @@ import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
-public class AbstractArrowEntity extends Entity {
+public class AbstractArrowEntity extends ThrowableEntity {
 
     public AbstractArrowEntity(EntitySpawnContext context) {
         super(context);
@@ -60,6 +60,16 @@ public class AbstractArrowEntity extends Entity {
 
     @Override
     public void setHeadYaw(float headYaw) {
+    }
+
+    @Override
+    protected float getGravity() {
+        return getFlag(EntityFlag.HAS_GRAVITY) ? 0.05f : 0f;
+    }
+
+    @Override
+    protected float getDrag() {
+        return isInWater() ? 0.6f : 0.99f;
     }
 
     @Override

@@ -126,6 +126,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 break;
             case PLAYER_FINISH_USING_ITEM:
                 if (entity instanceof SessionPlayerEntity) {
+                    session.clearUsingItemPrediction();
                     entity.setFlag(EntityFlag.USING_ITEM, false);
                 }
 
