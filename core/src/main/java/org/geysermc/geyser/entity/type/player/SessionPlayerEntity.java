@@ -225,6 +225,8 @@ public class SessionPlayerEntity extends PlayerEntity {
         // Special handling: position while sleeping
         if (bedPosition != null && getFlag(EntityFlag.SLEEPING)) {
             this.position = position.down(0.2f);
+        } else if (this.vehicle != null) {
+            this.position = position.down(this.vehicle.getOffset());
         } else {
             this.position = position.down(offset);
         }
