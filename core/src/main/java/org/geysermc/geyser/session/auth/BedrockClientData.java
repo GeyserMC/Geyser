@@ -127,6 +127,30 @@ public final class BedrockClientData {
     @SerializedName(value = "ThirdPartyNameOnly")
     private boolean thirdPartyNameOnly;
 
+    @SerializedName(value = "IsEduMode")
+    private boolean isEduMode;
+    @SerializedName(value = "TenantId")
+    private String tenantId;
+    @SerializedName(value = "ADRole")
+    private int adRole;
+
+    /**
+     * Returns a human-readable name for the AD role code.
+     */
+    public String adRoleName() {
+        return switch (adRole) {
+            case 0 -> "student";
+            case 1 -> "teacher";
+            default -> "role=" + adRole;
+        };
+    }
+    @SerializedName(value = "EduJoinerToHostNonce")
+    private String eduJoinerToHostNonce;
+    @SerializedName(value = "EduSessionToken")
+    private String eduSessionToken;
+    @SerializedName(value = "EduTokenChain")
+    private String eduTokenChain;
+
     @SerializedName(value = "Waterdog_IP")
     private String waterdogIp;
     @SerializedName(value = "Waterdog_XUID")
@@ -134,6 +158,14 @@ public final class BedrockClientData {
 
     @Setter
     private transient String originalString = null;
+
+    /**
+     * Returns true if this client is Minecraft Education Edition,
+     * detected by IsEduMode field in the client data JWT.
+     */
+    public boolean isEducationEdition() {
+        return isEduMode;
+    }
 
     public DeviceOs getDeviceOs() {
         return deviceOs != null ? deviceOs : DeviceOs.UNKNOWN;

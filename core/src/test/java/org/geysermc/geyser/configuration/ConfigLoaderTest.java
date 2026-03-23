@@ -109,6 +109,10 @@ public class ConfigLoaderTest {
         migratedV4.node("java").comment(null);
         defaultConfig.node("java").comment(null);
 
+        // Education section won't exist in migrated v4 configs
+        migratedV4.node("education").raw(null);
+        defaultConfig.node("education").raw(null);
+
         // Metric uuids, if present, won't be equal, ofc
         var migratedUuid = migratedV4.node("metrics-uuid");
         if (!migratedUuid.virtual()) {

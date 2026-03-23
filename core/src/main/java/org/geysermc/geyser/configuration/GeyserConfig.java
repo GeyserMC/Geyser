@@ -29,6 +29,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.network.AuthType;
+import org.geysermc.geyser.network.EducationTenancyMode;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
 import org.geysermc.geyser.network.GameProtocol;
@@ -113,6 +114,9 @@ public interface GeyserConfig {
     default UUID metricsUuid() {
         return UUID.randomUUID();
     }
+
+    @Comment("Education Edition support. Set tenancy-mode to enable.")
+    EducationConfig education();
 
     @Comment("If debug messages should be sent through console")
     boolean debugMode();
@@ -352,6 +356,20 @@ public interface GeyserConfig {
         @Comment("The radius in blocks around the player in which custom skulls are displayed.")
         @DefaultNumeric(32)
         int customSkullRenderDistance();
+    }
+
+    @ConfigSerializable
+    interface EducationConfig {
+        @Comment("""
+                Tenancy mode controls whether Education Edition support is enabled and how it operates.
+                "off" = Education support is disabled. Education clients are rejected. (default)
+                "official" = Uses Microsoft's MESS registration. Server appears in the Education server list.
+                             Configure server details in edu_official.yml.
+                "hybrid" = MESS-registered, with additional tenants supported via tokens in edu_standalone.yml.
+                "standalone" = No MESS registration. All tokens come from edu_standalone.yml.""")
+        default EducationTenancyMode tenancyMode() {
+            return EducationTenancyMode.OFF;
+        }
     }
 
     @ConfigSerializable

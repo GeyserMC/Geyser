@@ -187,6 +187,10 @@ public class ConfigMigrations {
             .addVersion(7, ConfigurationTransformation.builder()
                 .addAction(path("gameplay", "show-cooldown"), rename(new Object[] { "gameplay", "cooldown-type" }))
                 .build())
+            .addVersion(8, ConfigurationTransformation.builder()
+                // EduGeyser: education section is auto-populated by Configurate defaults.
+                // This version bump exists so vanilla v7 configs are recognized as needing the new section.
+                .build())
         .build();
 
     static TransformAction renameAndMove(String... newPath) {
