@@ -30,6 +30,7 @@ import org.cloudburstmc.protocol.bedrock.data.auth.CertificateChainPayload;
 import org.cloudburstmc.protocol.bedrock.data.auth.TokenPayload;
 import org.geysermc.geyser.GeyserLogger;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 
@@ -76,8 +77,8 @@ public final class EducationChainVerifier {
                     logger.debug("[EduChainDump] --- Chain JWT #%s (parts: %s) ---", i, parts.length);
 
                     if (parts.length >= 2) {
-                        String header = new String(Base64.getUrlDecoder().decode(padBase64(parts[0])));
-                        String payload = new String(Base64.getUrlDecoder().decode(padBase64(parts[1])));
+                        String header = new String(Base64.getUrlDecoder().decode(padBase64(parts[0])), StandardCharsets.UTF_8);
+                        String payload = new String(Base64.getUrlDecoder().decode(padBase64(parts[1])), StandardCharsets.UTF_8);
                         logger.debug("[EduChainDump]   Header:  %s", header);
                         logger.debug("[EduChainDump]   Payload: %s", payload);
                     } else {
@@ -89,8 +90,8 @@ public final class EducationChainVerifier {
                 logger.debug("[EduChainDump] Auth payload is TokenPayload (single token).");
                 String[] parts = token.split("\\.");
                 if (parts.length >= 2) {
-                    String header = new String(Base64.getUrlDecoder().decode(padBase64(parts[0])));
-                    String payload = new String(Base64.getUrlDecoder().decode(padBase64(parts[1])));
+                    String header = new String(Base64.getUrlDecoder().decode(padBase64(parts[0])), StandardCharsets.UTF_8);
+                    String payload = new String(Base64.getUrlDecoder().decode(padBase64(parts[1])), StandardCharsets.UTF_8);
                     logger.debug("[EduChainDump]   Header:  %s", header);
                     logger.debug("[EduChainDump]   Payload: %s", payload);
                 }
@@ -103,8 +104,8 @@ public final class EducationChainVerifier {
                 String[] parts = clientDataJwt.split("\\.");
                 logger.debug("[EduChainDump] --- Client Data JWT (parts: %s) ---", parts.length);
                 if (parts.length >= 2) {
-                    String header = new String(Base64.getUrlDecoder().decode(padBase64(parts[0])));
-                    String payload = new String(Base64.getUrlDecoder().decode(padBase64(parts[1])));
+                    String header = new String(Base64.getUrlDecoder().decode(padBase64(parts[0])), StandardCharsets.UTF_8);
+                    String payload = new String(Base64.getUrlDecoder().decode(padBase64(parts[1])), StandardCharsets.UTF_8);
                     logger.debug("[EduChainDump]   Header:  %s", header);
                     // Client data payloads can exceed 10KB (skin data); truncate to keep logs readable
                     if (payload.length() > 2000) {

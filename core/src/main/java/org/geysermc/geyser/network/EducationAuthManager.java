@@ -1530,7 +1530,7 @@ public class EducationAuthManager {
                 }
                 return null;
             }
-            String payloadJson = new String(Base64.getUrlDecoder().decode(EducationChainVerifier.padBase64(parts[1])));
+            String payloadJson = new String(Base64.getUrlDecoder().decode(EducationChainVerifier.padBase64(parts[1])), StandardCharsets.UTF_8);
             JsonObject payload = JsonParser.parseString(payloadJson).getAsJsonObject();
 
             if (!payload.has("chain")) {

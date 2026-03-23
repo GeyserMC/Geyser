@@ -648,7 +648,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     /**
      * Whether this client is Minecraft Education Edition.
-     * Detected from TitleId in client JWT, with fallback to education-token config.
+     * Determined from BedrockClientData.isEducationEdition(), which reads the IsEduMode claim in the client JWT.
      */
     @Getter @Setter
     private boolean educationClient = false;
