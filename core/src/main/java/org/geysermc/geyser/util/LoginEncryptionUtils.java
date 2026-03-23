@@ -40,16 +40,23 @@ import org.geysermc.cumulus.response.SimpleFormResponse;
 import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.network.EducationAuthManager;
+import org.geysermc.geyser.network.EducationChainVerifier;
+import org.geysermc.geyser.network.EducationTenancyMode;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 
+import org.jose4j.jws.JsonWebSignature;
+import org.jose4j.jwt.JwtClaims;
+
 import javax.crypto.SecretKey;
 import java.net.InetSocketAddress;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.Base64;
 import java.util.function.BiConsumer;
 
 public class LoginEncryptionUtils {
@@ -65,12 +72,7 @@ public class LoginEncryptionUtils {
 
             ChainValidationResult result = EncryptionUtils.validatePayload(authPayload);
 
-            geyser.getLogger().debug(String.format("Is player data signed? %s", result.signed()));
-
-            if (!result.signed() && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()) {
-                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
-                return;
-            }
+            geyser.getLogger().debug("Is player data signed? %s", result.signed());
 
             // Should always be present, but hey, why not make it safe :D
             Long rawIssuedAt = (Long) result.rawIdentityClaims().get("iat");
@@ -95,6 +97,28 @@ public class LoginEncryptionUtils {
             data.setOriginalString(jwt);
             session.setClientData(data);
 
+            // Education Edition clients use self-signed login chains (no Xbox Live),
+            // so result.signed() is always false for them. We must detect edu clients
+            // before the Xbox validation check to avoid rejecting them.
+            boolean isEducationClient = data.isEducationEdition();
+
+            // Xbox validation: reject unsigned non-edu clients when validation is enabled
+            if (!result.signed() && !isEducationClient && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()) {
+                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+                return;
+            }
+
+            // Handle Education Edition authentication and tenant extraction
+            if (isEducationClient) {
+                if (geyser.config().education().tenancyMode() == EducationTenancyMode.OFF) {
+                    session.disconnect("Education Edition is not enabled on this server.");
+                    return;
+                }
+                if (!handleEducationLogin(session, geyser, data, result, authPayload, jwt)) {
+                    return;
+                }
+            }
+
             IdentityData extraData = result.identityClaims().extraData;
             String xuid = extraData.xuid;
             if (geyser.config().advanced().bedrock().useWaterdogpeForwarding()) {
@@ -111,6 +135,7 @@ public class LoginEncryptionUtils {
                     return;
                 }
             }
+
             session.setAuthData(new AuthData(extraData.displayName, extraData.identity, xuid, issuedAt, extraData.minecraftId));
 
             try {
@@ -129,16 +154,176 @@ public class LoginEncryptionUtils {
         }
     }
 
+    /**
+     * Handles Education Edition-specific login logic: sets the education flag,
+     * extracts the tenant ID from the EduTokenChain, and verifies the client
+     * via MESS nonce verification (official/hybrid) or config trust (standalone).
+     *
+     * @return true if the login should continue, false if the session was disconnected
+     */
+    private static boolean handleEducationLogin(GeyserSession session, GeyserImpl geyser,
+                                             BedrockClientData data, ChainValidationResult result,
+                                             AuthPayload authPayload, String jwt) {
+        session.setEducationClient(true);
+
+        // Dump the full JWT chain for education clients (debug mode only)
+        if (geyser.config().debugMode()) {
+            EducationChainVerifier.dumpEduChain(geyser.getLogger(), authPayload, jwt);
+        }
+
+        EducationAuthManager eduAuthMgr = geyser.getEducationAuthManager();
+
+        // Extract the REAL tenant ID from the EduTokenChain JWT payload.
+        // Do NOT use data.getTenantId() -- it is always null for edu clients.
+        String tenantId = eduAuthMgr.extractTenantIdFromEduTokenChain(data.getEduTokenChain());
+        session.setEducationTenantId(tenantId);
+
+        geyser.getLogger().debug("[EduAuth] Education client: tenant=%s, role=%s",
+                tenantId != null ? tenantId : "unknown", data.adRoleName());
+
+        // Verify the client based on tenancy mode
+        EducationTenancyMode tenancyMode = geyser.config().education().tenancyMode();
+        String joinerNonce = data.getEduJoinerToHostNonce();
+        boolean hasNonce = joinerNonce != null && !joinerNonce.isEmpty();
+
+        if (tenancyMode == EducationTenancyMode.STANDALONE) {
+            // Standalone: no MESS registration, no nonce verification possible
+            eduAuthMgr.recordUnverifiedJoin();
+            return true;
+        }
+
+        if (tenancyMode == EducationTenancyMode.OFFICIAL) {
+            // Official: nonce is required
+            if (!hasNonce) {
+                geyser.getLogger().warning("[EduAuth] Rejected: no nonce (official mode requires server list connection)");
+                eduAuthMgr.recordRejectedJoin();
+                session.disconnect(
+                    "Education Edition Connection Failed\n\n" +
+                    "This server requires connection via the Minecraft Education server list.\n" +
+                    "Direct IP/URI connections are not allowed in official mode.\n\n" +
+                    "Please connect through the in-game server list instead."
+                );
+                return false;
+            }
+            if (!eduAuthMgr.verifyNonce(joinerNonce)) {
+                geyser.getLogger().warning("[EduAuth] Rejected: nonce not found in MESS joiner queue");
+                eduAuthMgr.recordRejectedJoin();
+                session.disconnect(
+                    "Education Edition Connection Failed\n\n" +
+                    "Your connection could not be verified with Microsoft.\n" +
+                    "This may happen if the server just restarted.\n\n" +
+                    "Please try again in a few seconds."
+                );
+                return false;
+            }
+            session.setNonceVerified(true);
+            eduAuthMgr.recordVerifiedJoin();
+            geyser.getLogger().debug("[EduAuth] Nonce verified for tenant %s", tenantId);
+            return true;
+        }
+
+        // Hybrid: config-trust tenants are allowed without nonce verification.
+        // All other tenants must be verified via nonce (owning tenant via server list).
+        if (tenantId != null && eduAuthMgr.isConfigTrustTenant(tenantId)) {
+            // Tenant is explicitly listed in server-tokens — allow via config trust
+            eduAuthMgr.recordUnverifiedJoin();
+            geyser.getLogger().debug("[EduAuth] Config-trust allow for tenant %s (hybrid mode)", tenantId);
+            return true;
+        }
+
+        // Not a config-trust tenant — require nonce verification
+        if (!hasNonce) {
+            geyser.getLogger().warning("[EduAuth] Rejected: tenant " +
+                    (tenantId != null ? tenantId : "unknown") + " not in server-tokens and no nonce present");
+            eduAuthMgr.recordRejectedJoin();
+            session.disconnect(
+                "Education Edition Connection Failed\n\n" +
+                "Your school (tenant: " + (tenantId != null ? tenantId : "unknown") + ") is not configured on this server.\n" +
+                "Connect via the Minecraft Education server list, or ask the\n" +
+                "server administrator to add your school's tenant token."
+            );
+            return false;
+        }
+        if (!eduAuthMgr.verifyNonce(joinerNonce)) {
+            geyser.getLogger().warning("[EduAuth] Rejected: nonce not found in MESS joiner queue");
+            eduAuthMgr.recordRejectedJoin();
+            session.disconnect(
+                "Education Edition Connection Failed\n\n" +
+                "Your connection could not be verified with Microsoft.\n\n" +
+                "Please try again in a few seconds."
+            );
+            return false;
+        }
+        session.setNonceVerified(true);
+        eduAuthMgr.recordVerifiedJoin();
+        geyser.getLogger().debug("[EduAuth] Nonce verified for tenant %s (hybrid mode)", tenantId);
+        return true;
+    }
+
     private static void startEncryptionHandshake(GeyserSession session, PublicKey key) throws Exception {
         KeyPair serverKeyPair = EncryptionUtils.createKeyPair();
         byte[] token = EncryptionUtils.generateRandomToken();
 
-        ServerToClientHandshakePacket packet = new ServerToClientHandshakePacket();
-        packet.setJwt(EncryptionUtils.createHandshakeJwt(serverKeyPair, token));
-        session.sendUpstreamPacketImmediately(packet);
+        String jwt;
+        if (session.isEducationClient()) {
+            jwt = buildEducationHandshakeJwt(session, serverKeyPair, token);
+            if (jwt == null) {
+                return; // Client was disconnected inside buildEducationHandshakeJwt
+            }
+        } else {
+            jwt = EncryptionUtils.createHandshakeJwt(serverKeyPair, token);
+        }
 
         SecretKey encryptionKey = EncryptionUtils.getSecretKey(serverKeyPair.getPrivate(), key, token);
+
+        ServerToClientHandshakePacket packet = new ServerToClientHandshakePacket();
+        packet.setJwt(jwt);
+        session.sendUpstreamPacketImmediately(packet);
         session.getUpstream().getSession().enableEncryption(encryptionKey);
+    }
+
+    /**
+     * Builds the education handshake JWT with a signedToken claim.
+     * Routes tokens by tenant ID from the pool, falling back to the MESS-registered token.
+     *
+     * @return the JWT string, or null if no token was available (client is disconnected)
+     */
+    private static String buildEducationHandshakeJwt(GeyserSession session, KeyPair serverKeyPair, byte[] token) throws Exception {
+        GeyserImpl geyser = session.getGeyser();
+        EducationAuthManager eduAuth = geyser.getEducationAuthManager();
+
+        String educationToken = eduAuth.getTokenForSession(session);
+
+        if (educationToken == null || educationToken.isEmpty()) {
+            String clientTenantId = session.getEducationTenantId();
+            String tenantInfo = (clientTenantId != null) ? clientTenantId : "unknown";
+            int poolSize = eduAuth.getRegisteredTenantCount();
+            geyser.getLogger().warning("[EduTenancy] No server token available for tenant: " + tenantInfo);
+
+            session.disconnect(
+                "Education Edition Connection Failed\n\n" +
+                "Your school (tenant: " + tenantInfo + ") is not configured on this server.\n\n" +
+                "This server has " + poolSize + " tenant(s) registered.\n" +
+                "Ask the server administrator to add your school's tenant to the server configuration.\n\n" +
+                "If you are the admin, add a server token in edu_standalone.yml,\n" +
+                "use /geyser edu token, or register the server in your school's\n" +
+                "Minecraft Education admin portal."
+            );
+            return null;
+        }
+
+        // Build the edu handshake JWT with signedToken claim
+        JsonWebSignature jws = new JsonWebSignature();
+        jws.setAlgorithmHeaderValue("ES384");
+        jws.setHeader("x5u", Base64.getEncoder().encodeToString(
+            serverKeyPair.getPublic().getEncoded()));
+        jws.setKey(serverKeyPair.getPrivate());
+
+        JwtClaims claims = new JwtClaims();
+        claims.setClaim("salt", Base64.getEncoder().encodeToString(token));
+        claims.setClaim("signedToken", educationToken);
+        jws.setPayload(claims.toJson());
+        return jws.getCompactSerialization();
     }
 
     private static void sendEncryptionFailedMessage(GeyserImpl geyser) {

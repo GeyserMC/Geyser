@@ -215,9 +215,19 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        if (geyser.getSessionManager().isXuidAlreadyPending(session.xuid()) || geyser.getSessionManager().sessionByXuid(session.xuid()) != null) {
-            session.disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", session.bedrockUsername()));
-            return PacketSignal.HANDLED;
+        // Education clients without Xbox accounts use placeholder XUID "0", so the XUID-based
+        // duplicate check would incorrectly reject all edu players after the first one.
+        // Edu clients are instead checked by tenant ID + username combination.
+        if (session.isEducationClient()) {
+            if (geyser.getSessionManager().isEducationPlayerAlreadyConnected(session.getEducationTenantId(), session.bedrockUsername())) {
+                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", session.bedrockUsername()));
+                return PacketSignal.HANDLED;
+            }
+        } else {
+            if (geyser.getSessionManager().isXuidAlreadyPending(session.xuid()) || geyser.getSessionManager().sessionByXuid(session.xuid()) != null) {
+                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", session.bedrockUsername()));
+                return PacketSignal.HANDLED;
+            }
         }
 
         geyser.getSessionManager().addPendingSession(session);
