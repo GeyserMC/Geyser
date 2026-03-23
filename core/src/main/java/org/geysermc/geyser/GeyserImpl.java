@@ -81,6 +81,8 @@ import org.geysermc.geyser.extension.GeyserExtensionManager;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.network.EducationAuthManager;
+import org.geysermc.geyser.network.EducationTenancyMode;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.GeyserServer;
 import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
@@ -169,6 +171,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     private ScheduledExecutorService scheduledThread;
 
     private GeyserServer geyserServer;
+    @Getter
+    private EducationAuthManager educationAuthManager;
+
     private final GeyserBootstrap bootstrap;
 
     private final GeyserEventBus eventBus;
@@ -396,7 +401,6 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 }
             }
 
-
             if (platformType() != PlatformType.VIAPROXY) {
                 boolean floodgatePresent = bootstrap.testFloodgatePluginPresent();
                 if (config.java().authType() == AuthType.FLOODGATE && !floodgatePresent) {
@@ -503,6 +507,23 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             } catch (Exception exception) {
                 logger.severe(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.bad_key"), exception);
             }
+        }
+
+        // Initialize Education Edition auth manager and token pool
+        EducationTenancyMode tenancyMode = config.education().tenancyMode();
+        this.educationAuthManager = new EducationAuthManager();
+        this.educationAuthManager.setup(this);
+        if (tenancyMode != EducationTenancyMode.OFF) {
+            if (tenancyMode != EducationTenancyMode.STANDALONE) {
+                this.educationAuthManager.initialize();
+            } else {
+                logger.debug("[EduTenancy] Standalone tenancy mode - skipping MESS registration");
+            }
+            if (tenancyMode != EducationTenancyMode.OFFICIAL) {
+                this.educationAuthManager.loadManualTokens();
+                this.educationAuthManager.loadDeviceCodeTokens();
+            }
+            logger.info(String.format("[EduTenancy] Tenancy mode: %s, registered tenants: %s", tenancyMode, educationAuthManager.getRegisteredTenantCount()));
         }
 
         MetricsPlatform metricsPlatform = bootstrap.createMetricsPlatform();
@@ -745,6 +766,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.done"));
         }
 
+        runIfNonNull(educationAuthManager, EducationAuthManager::shutdown);
         runIfNonNull(scheduledThread, ScheduledExecutorService::shutdown);
         runIfNonNull(geyserServer, GeyserServer::shutdown);
         runIfNonNull(skinUploader, FloodgateSkinUploader::close);
