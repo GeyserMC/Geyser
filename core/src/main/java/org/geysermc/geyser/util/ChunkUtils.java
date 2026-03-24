@@ -41,7 +41,6 @@ import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.chunk.BlockStorage;
-import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
@@ -56,28 +55,12 @@ public class ChunkUtils {
 
     public static final byte[] EMPTY_BIOME_DATA;
     public static final BlockStorage[] EMPTY_BLOCK_STORAGE;
-    public static final int EMPTY_CHUNK_SECTION_SIZE;
     private static final ConcurrentHashMap<Integer, byte[]> EMPTY_CHUNK_PAYLOAD_CACHE = new ConcurrentHashMap<>(3);
 
     static {
         EMPTY_BLOCK_STORAGE = new BlockStorage[0];
 
         ByteBuf byteBuf = Unpooled.buffer();
-        try {
-            new GeyserChunkSection(EMPTY_BLOCK_STORAGE, 0)
-                    .writeToNetwork(byteBuf);
-
-            byte[] emptyChunkData = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(emptyChunkData);
-
-            EMPTY_CHUNK_SECTION_SIZE = emptyChunkData.length;
-
-            emptyChunkData = null;
-        } finally {
-            byteBuf.release();
-        }
-
-        byteBuf = Unpooled.buffer();
         try {
             BlockStorage blockStorage = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(0));
             blockStorage.writeToNetwork(byteBuf);
