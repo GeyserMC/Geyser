@@ -245,7 +245,7 @@ public class SkullCache {
                 customBlockState = customSkull.getFloorBlockState(blockState.getValue(Properties.ROTATION_16));
             }
 
-            return session.getBlockMappings().getCustomBlockStateDefinitions().get(customBlockState);
+            return BlockRegistries.BLOCKS.get().getCustomBlockStateDefinitions().get(customBlockState);
         }
         return null;
     }

@@ -624,7 +624,7 @@ public class PistonBlockEntity {
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
             updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
             updateBlockPacket.setBlockPosition(newPos);
-            updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockMovingBlock());
+            updateBlockPacket.setDefinition(BlockRegistries.BLOCKS.get().getBedrockMovingBlock());
             updateBlockPacket.setDataLayer(0);
             session.sendUpstreamPacket(updateBlockPacket);
             // Update moving block with correct details
@@ -800,7 +800,7 @@ public class PistonBlockEntity {
      */
     private NbtMap buildMovingBlockTag(Vector3i position, BlockState state, Vector3i pistonPosition) {
         // Get Bedrock block state data
-        NbtMap movingBlock = session.getBlockMappings().getBedrockBlock(state).getState();
+        NbtMap movingBlock = BlockRegistries.BLOCKS.get().getBedrockBlock(state).getState();
         NbtMapBuilder builder = BlockEntityTranslator.getConstantBedrockTag("MovingBlock", position)
                 .putBoolean("expanding", action == PistonValueType.PUSHING)
                 .putCompound("movingBlock", movingBlock)

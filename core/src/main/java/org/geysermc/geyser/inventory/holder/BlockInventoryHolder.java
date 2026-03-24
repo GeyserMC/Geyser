@@ -122,7 +122,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(position);
-        blockPacket.setDefinition(session.getBlockMappings().getVanillaBedrockBlock(defaultJavaBlockState));
+        blockPacket.setDefinition(BlockRegistries.BLOCKS.get().getVanillaBedrockBlock(defaultJavaBlockState));
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
         container.setHolderPosition(position);
@@ -218,7 +218,7 @@ public class BlockInventoryHolder extends InventoryHolder {
                     UpdateBlockPacket blockPacket = new UpdateBlockPacket();
                     blockPacket.setDataLayer(0);
                     blockPacket.setBlockPosition(holderPos);
-                    blockPacket.setDefinition(session.getBlockMappings().getBedrockAir());
+                    blockPacket.setDefinition(BlockRegistries.BLOCKS.get().getBedrockAir());
                     blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
                     session.sendUpstreamPacket(blockPacket);
                 } else {
@@ -235,7 +235,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         UpdateBlockPacket blockPacket = new UpdateBlockPacket();
         blockPacket.setDataLayer(0);
         blockPacket.setBlockPosition(holderPos);
-        blockPacket.setDefinition(session.getBlockMappings().getBedrockBlock(realBlock));
+        blockPacket.setDefinition(BlockRegistries.BLOCKS.get().getBedrockBlock(realBlock));
         blockPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(blockPacket);
     }

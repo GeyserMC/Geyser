@@ -28,9 +28,9 @@ package org.geysermc.geyser.translator.sound.block;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
@@ -46,7 +46,7 @@ public class ButtonSoundInteractionTranslator implements BlockSoundInteractionTr
         levelSoundEventPacket.setRelativeVolumeDisabled(false);
         levelSoundEventPacket.setIdentifier(":");
         levelSoundEventPacket.setSound(event);
-        levelSoundEventPacket.setExtraData(session.getBlockMappings().getBedrockBlock(state).getRuntimeId());
+        levelSoundEventPacket.setExtraData(BlockRegistries.BLOCKS.get().getBedrockBlock(state).getRuntimeId());
 
         session.sendUpstreamPacket(levelSoundEventPacket);
     }

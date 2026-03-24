@@ -149,7 +149,7 @@ public final class SoundUtils {
         } else if (sound == SoundEvent.PLACE && soundMapping.extraData() == -1) {
             if (!soundMapping.identifier().equals(":")) {
                 int javaId = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.get().getOrDefault(soundMapping.identifier(), Block.JAVA_AIR_ID);
-                soundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(javaId));
+                soundPacket.setExtraData(BlockRegistries.BLOCKS.get().getBedrockBlockId(javaId));
             } else {
                 session.getGeyser().getLogger().debug("PLACE sound mapping identifier was invalid! Please report: " + soundMapping);
             }

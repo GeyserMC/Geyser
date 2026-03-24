@@ -39,6 +39,7 @@ import org.cloudburstmc.protocol.bedrock.packet.StopSoundPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.JukeboxSong;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.SoundMapping;
 import org.geysermc.geyser.session.GeyserSession;
@@ -249,7 +250,7 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
                 effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_DESTROY_BLOCK);
 
                 BreakBlockEventData breakBlockEventData = (BreakBlockEventData) packet.getData();
-                effectPacket.setData(session.getBlockMappings().getBedrockBlockId(breakBlockEventData.getBlockState()));
+                effectPacket.setData(BlockRegistries.BLOCKS.get().getBedrockBlockId(breakBlockEventData.getBlockState()));
             }
             case PARTICLES_SPELL_POTION_SPLASH, PARTICLES_INSTANT_POTION_SPLASH -> {
                 effectPacket.setType(org.cloudburstmc.protocol.bedrock.data.LevelEvent.PARTICLE_POTION_SPLASH);

@@ -156,6 +156,7 @@ import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -386,12 +387,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Stores session collision
      */
     private final CollisionManager collisionManager;
-
-    /**
-     * Stores the block mappings for this specific version.
-     */
-    @Setter
-    private BlockMappings blockMappings;
 
     /**
      * Stores the item translations for this specific version.
@@ -1807,7 +1802,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private void startGame() {
         this.upstream.getCodecHelper().setItemDefinitions(this.itemMappings);
-        this.upstream.getCodecHelper().setBlockDefinitions(this.blockMappings);
+        this.upstream.getCodecHelper().setBlockDefinitions(BlockRegistries.BLOCKS.get());
         this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
 
         StartGamePacket startGamePacket = buildStartGamePacket();
@@ -1882,7 +1877,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getItemDefinitions().addAll(this.itemMappings.getItemDefinitions().values());
 
         // Needed for custom block mappings and custom skulls system
-        startGamePacket.getBlockProperties().addAll(this.blockMappings.getBlockProperties());
+        startGamePacket.getBlockProperties().addAll(BlockRegistries.BLOCKS.get().getBlockProperties());
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);

@@ -271,7 +271,7 @@ public class ItemRegistryPopulator {
             Map<CreativeItemCategory, Integer> lastCreativeGroupIds = new Object2IntOpenHashMap<>();
             CreativeItemRegistryPopulator.readCreativeItemGroups(palette, creativeItems, creativeItemGroups, creativeGroupIds, lastCreativeGroupIds);
 
-            BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
+            BlockMappings blockMappings = BlockRegistries.BLOCKS.get();
 
             Set<Item> javaOnlyItems = new ObjectOpenHashSet<>();
             Collections.addAll(javaOnlyItems, Items.SPECTRAL_ARROW, Items.DEBUG_STICK,
@@ -391,7 +391,7 @@ public class ItemRegistryPopulator {
                             if (bedrockBlock == null) {
                                 // We need to loop around again (we can't cache the block tags above) because Bedrock can include states that we don't have a pairing for
                                 // in it's "preferred" block state - I.E. the first matching block state in the list
-                                for (GeyserBedrockBlock block : blockMappings.getBedrockRuntimeMap()) {
+                                for (GeyserBedrockBlock block : blockMappings.getBedrockRuntimeMap().values()) {
                                     if (block == null) {
                                         continue;
                                     }

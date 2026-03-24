@@ -49,6 +49,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.network.GameProtocol;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.translator.level.block.entity.PistonBlockEntity;
@@ -133,7 +134,7 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
         placeBlockSoundPacket.setSound(SoundEvent.PLACE);
         placeBlockSoundPacket.setPosition(packet.getPos().toFloat());
         placeBlockSoundPacket.setBabySound(false);
-        placeBlockSoundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(packet.getBlockId()));
+        placeBlockSoundPacket.setExtraData(BlockRegistries.BLOCKS.get().getBedrockBlockId(packet.getBlockId()));
         placeBlockSoundPacket.setIdentifier(":");
         session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);

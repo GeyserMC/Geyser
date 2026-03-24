@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -85,7 +86,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
         placeBlockSoundPacket.setSound(SoundEvent.PLACE);
         placeBlockSoundPacket.setPosition(lastPlacePos.toFloat());
         placeBlockSoundPacket.setBabySound(false);
-        placeBlockSoundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(packet.getEntry().getBlock()));
+        placeBlockSoundPacket.setExtraData(BlockRegistries.BLOCKS.get().getBedrockBlockId(packet.getEntry().getBlock()));
         placeBlockSoundPacket.setIdentifier(":");
         session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);

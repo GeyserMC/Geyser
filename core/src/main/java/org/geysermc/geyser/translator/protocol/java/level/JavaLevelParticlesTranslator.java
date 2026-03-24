@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.BlockParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticleData;
@@ -98,7 +99,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
     public static @Nullable Function<Vector3f, BedrockPacket> createParticle(GeyserSession session, Particle particle) {
         switch (particle.getType()) {
             case BLOCK -> {
-                int blockState = session.getBlockMappings().getBedrockBlockId(((BlockParticleData) particle.getData()).getBlockState());
+                int blockState = BlockRegistries.BLOCKS.get().getBedrockBlockId(((BlockParticleData) particle.getData()).getBlockState());
                 return (position) -> {
                     LevelEventPacket packet = new LevelEventPacket();
                     packet.setType(LevelEvent.PARTICLE_CRACK_BLOCK);
@@ -108,7 +109,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                 };
             }
             case FALLING_DUST -> {
-                int blockState = session.getBlockMappings().getBedrockBlockId(((BlockParticleData) particle.getData()).getBlockState());
+                int blockState = BlockRegistries.BLOCKS.get().getBedrockBlockId(((BlockParticleData) particle.getData()).getBlockState());
                 return (position) -> {
                     LevelEventPacket packet = new LevelEventPacket();
                     // In fact, FallingDustParticle should have data like DustParticle,

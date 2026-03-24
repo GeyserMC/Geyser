@@ -205,7 +205,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         }
 
         // Set the block translation based off of version
-        session.setBlockMappings(BlockRegistries.BLOCKS.forVersion(loginPacket.getProtocolVersion()));
         session.setItemMappings(Registries.ITEMS.forVersion(loginPacket.getProtocolVersion()));
 
         LoginEncryptionUtils.encryptPlayerConnection(session, loginPacket);

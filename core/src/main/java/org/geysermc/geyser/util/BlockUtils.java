@@ -199,7 +199,7 @@ public final class BlockUtils {
             case WEST -> levelEventPacket.setType(LevelEvent.PARTICLE_BREAK_BLOCK_WEST);
         }
         levelEventPacket.setPosition(position.toFloat());
-        levelEventPacket.setData(session.getBlockMappings().getBedrockBlock(blockState).getRuntimeId());
+        levelEventPacket.setData(BlockRegistries.BLOCKS.get().getBedrockBlock(blockState).getRuntimeId());
         session.sendUpstreamPacket(levelEventPacket);
     }
 
@@ -215,7 +215,7 @@ public final class BlockUtils {
         LevelEventPacket blockBreakPacket = new LevelEventPacket();
         blockBreakPacket.setType(LevelEvent.PARTICLE_DESTROY_BLOCK);
         blockBreakPacket.setPosition(vector);
-        blockBreakPacket.setData(session.getBlockMappings().getBedrockBlockId(blockState));
+        blockBreakPacket.setData(BlockRegistries.BLOCKS.get().getBedrockBlockId(blockState));
         session.sendUpstreamPacket(blockBreakPacket);
     }
 
@@ -228,7 +228,7 @@ public final class BlockUtils {
     }
 
     public static void restoreCorrectBlockAndItem(GeyserSession session, Vector3i vector, BlockState blockState, int slot) {
-        BlockDefinition bedrockBlock = session.getBlockMappings().getBedrockBlock(blockState);
+        BlockDefinition bedrockBlock = BlockRegistries.BLOCKS.get().getBedrockBlock(blockState);
 
         if (blockState.block() instanceof SkullBlock skullBlock && skullBlock.skullType() == SkullBlock.Type.PLAYER) {
             // The changed block was a player skull so check if a custom block was defined for this skull
@@ -248,7 +248,7 @@ public final class BlockUtils {
         UpdateBlockPacket updateWaterPacket = new UpdateBlockPacket();
         updateWaterPacket.setDataLayer(1);
         updateWaterPacket.setBlockPosition(vector);
-        updateWaterPacket.setDefinition(BlockRegistries.WATERLOGGED.get().get(blockState.javaId()) ? session.getBlockMappings().getBedrockWater() : session.getBlockMappings().getBedrockAir());
+        updateWaterPacket.setDefinition(BlockRegistries.WATERLOGGED.get().get(blockState.javaId()) ? BlockRegistries.BLOCKS.get().getBedrockWater() : BlockRegistries.BLOCKS.get().getBedrockAir());
         updateWaterPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(updateWaterPacket);
 

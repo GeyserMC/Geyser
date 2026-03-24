@@ -30,6 +30,7 @@ import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
@@ -50,7 +51,7 @@ public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
     @Override
     public void updateDefaultBlockMetadata() {
         BlockState furnace = Blocks.FURNACE.defaultBlockState().withValue(Properties.LIT, hasFuel);
-        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(furnace));
+        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, BlockRegistries.BLOCKS.get().getBedrockBlock(furnace));
         dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, 6);
     }
 

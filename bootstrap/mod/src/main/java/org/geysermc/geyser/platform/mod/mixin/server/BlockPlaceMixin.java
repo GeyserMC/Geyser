@@ -37,6 +37,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -68,7 +69,7 @@ public class BlockPlaceMixin {
         placeBlockSoundPacket.setSound(SoundEvent.PLACE);
         placeBlockSoundPacket.setPosition(position);
         placeBlockSoundPacket.setBabySound(false);
-        placeBlockSoundPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(Block.BLOCK_STATE_REGISTRY.getId(placedState)));
+        placeBlockSoundPacket.setExtraData(BlockRegistries.BLOCKS.get().getBedrockBlockId(Block.BLOCK_STATE_REGISTRY.getId(placedState)));
         placeBlockSoundPacket.setIdentifier(":");
         session.sendUpstreamPacket(placeBlockSoundPacket);
         session.setLastBlockPlacePosition(null);

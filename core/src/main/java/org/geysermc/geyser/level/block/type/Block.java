@@ -89,7 +89,7 @@ public class Block {
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
         checkForEmptySkull(session, state, position);
 
-        BlockDefinition definition = session.getBlockMappings().getBedrockBlock(state);
+        BlockDefinition definition = BlockRegistries.BLOCKS.get().getBedrockBlock(state);
         sendBlockUpdatePacket(session, state, definition, position);
     }
 
@@ -106,9 +106,9 @@ public class Block {
         waterPacket.setDataLayer(1);
         waterPacket.setBlockPosition(position);
         if (BlockRegistries.WATERLOGGED.get().get(state.javaId())) {
-            waterPacket.setDefinition(session.getBlockMappings().getBedrockWater());
+            waterPacket.setDefinition(BlockRegistries.BLOCKS.get().getBedrockWater());
         } else {
-            waterPacket.setDefinition(session.getBlockMappings().getBedrockAir());
+            waterPacket.setDefinition(BlockRegistries.BLOCKS.get().getBedrockAir());
         }
         session.sendUpstreamPacket(waterPacket);
     }

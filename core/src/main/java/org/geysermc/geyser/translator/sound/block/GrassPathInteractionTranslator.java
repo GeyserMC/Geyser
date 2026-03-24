@@ -29,6 +29,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.sound.BlockSoundInteractionTranslator;
 import org.geysermc.geyser.translator.sound.SoundTranslator;
@@ -44,7 +45,7 @@ public class GrassPathInteractionTranslator implements BlockSoundInteractionTran
         levelSoundEventPacket.setRelativeVolumeDisabled(false);
         levelSoundEventPacket.setIdentifier(":");
         levelSoundEventPacket.setSound(SoundEvent.ITEM_USE_ON);
-        levelSoundEventPacket.setExtraData(session.getBlockMappings().getBedrockBlockId(state.javaId()));
+        levelSoundEventPacket.setExtraData(BlockRegistries.BLOCKS.get().getBedrockBlockId(state.javaId()));
         session.sendUpstreamPacket(levelSoundEventPacket);
     }
 }

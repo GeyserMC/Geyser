@@ -36,6 +36,7 @@ import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
@@ -105,7 +106,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
         if (digTicks > 0 && --digTicks < DIG_START && digTicks % 5 == 0) {
             Vector3f rot = Vector3f.createDirectionDeg(0, -getYaw()).mul(2.25f);
             Vector3f pos = getPosition().add(rot).up(0.2f).floor(); // Handle non-full blocks
-            int blockId = session.getBlockMappings().getBedrockBlockId(session.getGeyser().getWorldManager().getBlockAt(session, pos.toInt().down()));
+            int blockId = BlockRegistries.BLOCKS.get().getBedrockBlockId(session.getGeyser().getWorldManager().getBlockAt(session, pos.toInt().down()));
 
             LevelEventPacket levelEventPacket = new LevelEventPacket();
             levelEventPacket.setType(LevelEvent.PARTICLE_DESTROY_BLOCK_NO_SOUND);

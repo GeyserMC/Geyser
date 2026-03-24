@@ -31,6 +31,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
@@ -73,7 +74,7 @@ public class BrushableBlockEntityTranslator extends BlockEntityTranslator implem
         bedrockNbt.putInt("brush_count", blockState.getValue(Properties.DUSTED));
 
         // The type of brushable block, not sure why bedrock requires this
-        String identifier = session.getBlockMappings().getJavaToBedrockIdentifiers().get(blockState.block().javaId());
+        String identifier = BlockRegistries.BLOCKS.get().getJavaToBedrockIdentifiers().get(blockState.block().javaId());
         if (identifier == null) {
             identifier = blockState.block().javaIdentifier().value();
         }

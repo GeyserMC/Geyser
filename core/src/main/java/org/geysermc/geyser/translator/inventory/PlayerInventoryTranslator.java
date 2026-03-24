@@ -54,6 +54,7 @@ import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -597,13 +598,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
 
             UpdateBlockPacket packet = new UpdateBlockPacket();
             packet.setBlockPosition(pos);
-            packet.setDefinition(session.getBlockMappings().getNetherPortalBlock());
+            packet.setDefinition(BlockRegistries.BLOCKS.get().getNetherPortalBlock());
             packet.setDataLayer(0);
             packet.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
             session.sendUpstreamPacket(packet);
 
             session.scheduleInEventLoop(() -> {
-                BlockDefinition definition = session.getBlockMappings().getBedrockBlock(session.getGeyser().getWorldManager().blockAt(session, pos));
+                BlockDefinition definition = BlockRegistries.BLOCKS.get().getBedrockBlock(session.getGeyser().getWorldManager().blockAt(session, pos));
                 packet.setDefinition(definition);
                 packet.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
                 session.sendUpstreamPacket(packet);

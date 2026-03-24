@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity.type;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 
 public class FallingBlockEntity extends Entity {
@@ -35,7 +36,7 @@ public class FallingBlockEntity extends Entity {
     public FallingBlockEntity(EntitySpawnContext context, int javaId) {
         super(context);
 
-        this.dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getBedrockBlock(javaId));
+        this.dirtyMetadata.put(EntityDataTypes.BLOCK, BlockRegistries.BLOCKS.get().getBedrockBlock(javaId));
     }
 
     @Override
