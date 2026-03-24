@@ -1900,6 +1900,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // It does *not* mean we can dictate the break speed server-sided :(
         startGamePacket.setServerAuthoritativeBlockBreaking(true);
 
+        startGamePacket.setBlockNetworkIdsHashed(true);
+
         return startGamePacket;
     }
 

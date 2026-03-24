@@ -59,8 +59,7 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
      */
     Int2ObjectMap<String> javaToBedrockIdentifiers;
 
-    Map<NbtMap, GeyserBedrockBlock> stateDefinitionMap;
-    GeyserBedrockBlock[] bedrockRuntimeMap;
+    Int2ObjectMap<GeyserBedrockBlock> bedrockRuntimeMap;
     int[] remappedVanillaIds;
 
     BlockDefinition commandBlock;
@@ -123,10 +122,7 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
 
     @Override
     public @Nullable GeyserBedrockBlock getDefinition(int bedrockId) {
-        if (bedrockId < 0 || bedrockId >= this.bedrockRuntimeMap.length) {
-            return null;
-        }
-        return bedrockRuntimeMap[bedrockId];
+        return bedrockRuntimeMap.get(bedrockId);
     }
 
     public @Nullable GeyserBedrockBlock getDefinition(NbtMap tag) {
@@ -134,7 +130,7 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
             return null;
         }
 
-        return this.stateDefinitionMap.get(tag);
+        return new GeyserBedrockBlock(tag);
     }
 
     @Override

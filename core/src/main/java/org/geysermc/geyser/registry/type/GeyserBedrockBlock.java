@@ -25,15 +25,38 @@
 
 package org.geysermc.geyser.registry.type;
 
+import org.cloudburstmc.nbt.NBTOutputStream;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 public class GeyserBedrockBlock implements BlockDefinition {
+    private static final int FNV1_32_INIT = 0x811c9dc5;
+    private static final int FNV1_PRIME_32 = 0x01000193;
+
     private final int runtimeId;
     private final NbtMap state;
 
-    public GeyserBedrockBlock(int runtimeId, NbtMap state) {
-        this.runtimeId = runtimeId;
+    public GeyserBedrockBlock(NbtMap state) {
+        byte[] bytes;
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
+             NBTOutputStream output = NbtUtils.createWriterLE(stream)) {
+            output.writeTag(state);
+            bytes = stream.toByteArray();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        int hash = FNV1_32_INIT;
+        for (byte b : bytes) {
+            hash ^= (b & 0xff);
+            hash *= FNV1_PRIME_32;
+        }
+
+        this.runtimeId = hash;
         this.state = state;
     }
 
