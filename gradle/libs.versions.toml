@@ -18,7 +18,7 @@ protocol-common = "3.0.0.Beta12-20260316.225858-10"
 protocol-codec = "3.0.0.Beta12-20260316.225858-10"
 raknet = "1.0.0.CR3-20260317.160234-28"
 minecraftauth = "5.0.0"
-mcprotocollib = "1.21.11-20260217.182735-13"
+mcprotocollib = "26.1-20260318.192043-11"
 adventure = "4.25.0"
 adventure-platform = "4.4.1"
 junit = "6.0.0"
@@ -38,21 +38,21 @@ bungeecord = "1.21-R0.1-20250215.224541-54"
 bungeecord-api = "1.21-R0.1"
 velocity = "3.4.0-SNAPSHOT"
 viaproxy = "3.3.2-SNAPSHOT"
-fabric-loader = "0.18.2"
-fabric-api = "0.139.4+1.21.11"
-fabric-permissions-api = "0.6.1"
-neoforge-minecraft = "21.11.0-beta"
+#fabric-loader = "0.18.2"
+#fabric-api = "0.144.0+26.1"
+#fabric-permissions-api = "0.6.1"
+#neoforge-minecraft = "26.1.0.1-beta"
 mixin = "0.8.5"
 mixinextras = "0.3.5"
-minecraft = "1.21.11"
+minecraft = "26.1"
 mockito = "5.+"
 
 # plugin versions
 indra = "4.0.0"
 shadow = "9.2.2"
-architectury-plugin = "3.4.162"
-architectury-loom = "1.13.457"
-loom-companion = "1.13.467"
+#architectury-plugin = "3.4.162"
+#architectury-loom = "1.13.457"
+#loom-companion = "1.13.467"
 minotaur = "2.8.10"
 lombok = "9.1.0"
 blossom = "2.2.0"
@@ -124,11 +124,11 @@ mixinextras = { module = "io.github.llamalad7:mixinextras-common", version.ref =
 minecraft = { group = "com.mojang", name = "minecraft", version.ref = "minecraft" }
 
 # Check these on https://fabricmc.net/develop/
-fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }
-fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.ref = "fabric-api" }
-fabric-permissions-api = { group = "me.lucko", name = "fabric-permissions-api", version.ref = "fabric-permissions-api" }
+#fabric-loader = { group = "net.fabricmc", name = "fabric-loader", version.ref = "fabric-loader" }
+#fabric-api = { group = "net.fabricmc.fabric-api", name = "fabric-api", version.ref = "fabric-api" }
+#fabric-permissions-api = { group = "me.lucko", name = "fabric-permissions-api", version.ref = "fabric-permissions-api" }
 
-neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge-minecraft" }
+#neoforge-minecraft = { group = "net.neoforged", name = "neoforge", version.ref = "neoforge-minecraft" }
 
 adapters-spigot = { group = "org.geysermc.geyser.adapters", name = "spigot-all", version.ref = "adapters" }
 adapters-paper = { group = "org.geysermc.geyser.adapters", name = "paper-all", version.ref = "adapters" }
@@ -166,10 +166,10 @@ mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 lombok = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok" }
 indra = { group = "net.kyori", name  = "indra-common", version.ref = "indra" }
 shadow = { group = "com.gradleup.shadow", name = "com.gradleup.shadow.gradle.plugin", version.ref = "shadow" }
-architectury-plugin = { group = "architectury-plugin", name = "architectury-plugin.gradle.plugin", version.ref = "architectury-plugin" }
-architectury-loom = { group = "dev.architectury.loom", name = "dev.architectury.loom.gradle.plugin", version.ref = "architectury-loom" }
+#architectury-plugin = { group = "architectury-plugin", name = "architectury-plugin.gradle.plugin", version.ref = "architectury-plugin" }
+#architectury-loom = { group = "dev.architectury.loom", name = "dev.architectury.loom-no-remap.gradle.plugin", version.ref = "architectury-loom" }
 minotaur = { group = "com.modrinth.minotaur", name = "Minotaur", version.ref = "minotaur" }
-loom-companion = { group = "dev.architectury.loom-companion", name = "dev.architectury.loom-companion.gradle.plugin", version.ref = "loom-companion" }
+#loom-companion = { group = "dev.architectury.loom-companion", name = "dev.architectury.loom-companion.gradle.plugin", version.ref = "loom-companion" }
 
 [plugins]
 indra = { id = "net.kyori.indra", version.ref = "indra" }

@@ -22,8 +22,8 @@ dependencies {
     implementation(libs.lombok)
     implementation(libs.indra)
     implementation(libs.shadow)
-    implementation(libs.architectury.plugin)
-    implementation(libs.architectury.loom)
+    //implementation(libs.architectury.plugin)
+    //implementation(libs.architectury.loom)
     implementation(libs.minotaur)
-    implementation(libs.loom.companion)
+    //implementation(libs.loom.companion)
 }
