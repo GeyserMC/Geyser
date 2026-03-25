@@ -498,7 +498,7 @@ public final class ItemTranslator {
                     if (block == null) {
                         continue;
                     }
-                    String identifier = BlockRegistries.BLOCKS.get().getJavaToBedrockIdentifiers().get(block.javaId());
+                    String identifier = session.getBlockMappings().getJavaToBedrockIdentifiers().get(block.javaId());
                     if (identifier == null) {
                         canModifyBedrock.add(block.javaIdentifier().value());
                     } else {
@@ -617,7 +617,7 @@ public final class ItemTranslator {
      */
     private static void translateCustomBlock(CustomBlockData customBlockData, GeyserSession session, ItemData.Builder builder) {
         ItemDefinition itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customBlockData);
-        BlockDefinition blockDefinition = BlockRegistries.BLOCKS.get().getCustomBlockStateDefinitions().get(customBlockData.defaultBlockState());
+        BlockDefinition blockDefinition = session.getBlockMappings().getCustomBlockStateDefinitions().get(customBlockData.defaultBlockState());
         builder.definition(itemDefinition);
         builder.blockDefinition(blockDefinition);
     }
@@ -646,7 +646,7 @@ public final class ItemTranslator {
         if (customSkull != null) {
             CustomBlockData customBlockData = customSkull.getCustomBlockData();
             ItemDefinition itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customBlockData);
-            BlockDefinition blockDefinition = BlockRegistries.BLOCKS.get().getCustomBlockStateDefinitions().get(customBlockData.defaultBlockState());
+            BlockDefinition blockDefinition = session.getBlockMappings().getCustomBlockStateDefinitions().get(customBlockData.defaultBlockState());
             builder.definition(itemDefinition);
             builder.blockDefinition(blockDefinition);
         }

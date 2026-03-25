@@ -33,7 +33,6 @@ import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.geyser.util.MathUtils;
@@ -73,7 +72,7 @@ public class MinecartEntity extends Entity implements Tickable {
         // Optional block state -> "0" is air, aka none
         // Sets whether the custom block should be enabled
         dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) (entityMetadata.getPrimitiveValue() != 0 ? 1 : 0));
-        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, BlockRegistries.BLOCKS.get().getBedrockBlock(entityMetadata.getPrimitiveValue()));
+        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(entityMetadata.getPrimitiveValue()));
     }
 
     public void setCustomBlockOffset(IntEntityMetadata entityMetadata) {

@@ -31,7 +31,6 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
@@ -42,7 +41,7 @@ public class EndermanEntity extends MonsterEntity {
     }
 
     public void setCarriedBlock(IntEntityMetadata entityMetadata) {
-        BlockDefinition bedrockBlockId = BlockRegistries.BLOCKS.get().getBedrockBlock(entityMetadata.getPrimitiveValue());
+        BlockDefinition bedrockBlockId = session.getBlockMappings().getBedrockBlock(entityMetadata.getPrimitiveValue());
 
         dirtyMetadata.put(EntityDataTypes.CARRY_BLOCK_STATE, bedrockBlockId);
     }

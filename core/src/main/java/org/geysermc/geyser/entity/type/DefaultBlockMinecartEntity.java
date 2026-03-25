@@ -27,7 +27,6 @@ package org.geysermc.geyser.entity.type;
 
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
 /**
@@ -57,7 +56,7 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
         showCustomBlock = entityMetadata.getPrimitiveValue() != 0;
 
         if (showCustomBlock) {
-            dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, BlockRegistries.BLOCKS.get().getBedrockBlock(customBlock));
+            dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(customBlock));
             dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, customBlockOffset);
         } else {
             updateDefaultBlockMetadata();

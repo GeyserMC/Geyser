@@ -208,7 +208,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // Bedrock sends block interact code for a Java entity so we send entity code back to Java
-                        if (BlockRegistries.BLOCKS.get().isItemFrame(packet.getBlockDefinition())) {
+                        if (session.getBlockMappings().isItemFrame(packet.getBlockDefinition())) {
                             Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
                             if (itemFrameEntity != null) {
                                 processEntityInteraction(session, packet, itemFrameEntity);
@@ -335,14 +335,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (packet.getActions().isEmpty()) {
                             if (session.getOpPermissionLevel() >= 2 && session.getGameMode() == GameMode.CREATIVE) {
                                 // Otherwise insufficient permissions
-                                if (BlockRegistries.BLOCKS.get().getJigsawStates().contains(packet.getBlockDefinition())) {
+                                if (session.getBlockMappings().getJigsawStates().contains(packet.getBlockDefinition())) {
                                     ContainerOpenPacket openPacket = new ContainerOpenPacket();
                                     openPacket.setBlockPosition(packet.getBlockPosition());
                                     openPacket.setId((byte) 1);
                                     openPacket.setType(ContainerType.JIGSAW_EDITOR);
                                     openPacket.setUniqueEntityId(-1);
                                     session.sendUpstreamPacket(openPacket);
-                                } else if (BlockRegistries.BLOCKS.get().getStructureBlockStates().containsValue(packet.getBlockDefinition())) {
+                                } else if (session.getBlockMappings().getStructureBlockStates().containsValue(packet.getBlockDefinition())) {
                                     ContainerOpenPacket openPacket = new ContainerOpenPacket();
                                     openPacket.setBlockPosition(packet.getBlockPosition());
                                     openPacket.setId((byte) 1);

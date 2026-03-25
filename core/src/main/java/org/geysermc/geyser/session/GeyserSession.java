@@ -75,7 +75,6 @@ import org.cloudburstmc.protocol.bedrock.data.SpawnBiomeType;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
-import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -106,7 +105,6 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateAdventureSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateSoftEnumPacket;
-import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
@@ -158,7 +156,6 @@ import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -389,6 +386,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Stores session collision
      */
     private final CollisionManager collisionManager;
+
+    /**
+     * Stores the block mappings for this specific version.
+     */
+    @Setter
+    private BlockMappings blockMappings;
 
     /**
      * Stores the item translations for this specific version.
@@ -1804,17 +1807,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private void startGame() {
         this.upstream.getCodecHelper().setItemDefinitions(this.itemMappings);
-        this.upstream.getCodecHelper().setBlockDefinitions(new DefinitionRegistry<>() {
-            @Override
-            public BlockDefinition getDefinition(int runtimeId) {
-                return () -> runtimeId;
-            }
-
-            @Override
-            public boolean isRegistered(BlockDefinition definition) {
-                return true;
-            }
-        });
+        this.upstream.getCodecHelper().setBlockDefinitions(this.blockMappings);
         this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
 
         StartGamePacket startGamePacket = buildStartGamePacket();
@@ -1889,7 +1882,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getItemDefinitions().addAll(this.itemMappings.getItemDefinitions().values());
 
         // Needed for custom block mappings and custom skulls system
-        startGamePacket.getBlockProperties().addAll(BlockRegistries.BLOCKS.get().getBlockProperties());
+        startGamePacket.getBlockProperties().addAll(this.blockMappings.getBlockProperties());
 
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);

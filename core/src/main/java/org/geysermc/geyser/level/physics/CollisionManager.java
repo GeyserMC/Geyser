@@ -44,7 +44,6 @@ import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.translator.collision.BlockCollision;
@@ -276,7 +275,7 @@ public class CollisionManager {
 
             // These block have different offset between BE and JE so we ignore them because if we "correct" the position
             // it will lead to complication and more inaccurate movement.
-            if (BlockRegistries.BLOCKS.get().getCollisionIgnoredBlocks().contains(blockId)) {
+            if (session.getBlockMappings().getCollisionIgnoredBlocks().contains(blockId)) {
                 continue;
             }
 

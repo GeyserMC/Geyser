@@ -43,7 +43,6 @@ import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.GeyserChunkSection;
 import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -194,7 +193,7 @@ public class ChunkUtils {
             UpdateBlockPacket blockPacket = new UpdateBlockPacket();
             blockPacket.setBlockPosition(pos);
             blockPacket.setDataLayer(0);
-            blockPacket.setDefinition(BlockRegistries.BLOCKS.get().getBedrockBlock(1));
+            blockPacket.setDefinition(session.getBlockMappings().getBedrockBlock(1));
             session.sendUpstreamPacket(blockPacket);
         }
     }

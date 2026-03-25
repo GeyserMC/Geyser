@@ -199,6 +199,16 @@ public final class BlockRegistryPopulator {
             Block lastBlockSeen = null;
 
             // Stream isn't ideal.
+            List<Block> javaPottable = BlockRegistries.JAVA_BLOCKS.get()
+                    .parallelStream()
+                    .flatMap(block -> {
+                        if (block instanceof FlowerPotBlock flowerPot && flowerPot.flower() != Blocks.AIR) {
+                            return Stream.of(flowerPot.flower());
+                        }
+                        return null;
+                    })
+                    .toList();
+            Map<Block, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
             IntOpenHashSet itemFrames = new IntOpenHashSet();
             IntArrayList collisionIgnoredBlocks = new IntArrayList();
 
@@ -264,6 +274,12 @@ public final class BlockRegistryPopulator {
 
                 if (waterlogged) {
                     BlockRegistries.WATERLOGGED.get().set(javaRuntimeId);
+                }
+
+                // Get the tag needed for non-empty flower pots
+                if (javaPottable.contains(block)) {
+                    // Specifically NOT putIfAbsent - mangrove propagule breaks otherwise
+                    flowerPotBlocks.put(block, blockStates.get(bedrockDefinition.getRuntimeId()));
                 }
 
                 javaToVanillaBedrockBlocks[javaRuntimeId] = vanillaBedrockDefinition;
@@ -345,6 +361,7 @@ public final class BlockRegistryPopulator {
                     .javaToVanillaBedrockBlocks(javaToVanillaBedrockBlocks)
                     .javaToBedrockIdentifiers(javaToBedrockIdentifiers)
                     .itemFrames(itemFrames)
+                    .flowerPotBlocks(flowerPotBlocks)
                     .jigsawStates(jigsawDefinitions)
                     .structureBlockStates(structureBlockDefinitions)
                     .remappedVanillaIds(remappedVanillaIds)

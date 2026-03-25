@@ -34,7 +34,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
@@ -158,7 +157,7 @@ public class ItemFrameEntity extends HangingEntity {
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(bedrockPosition);
-        updateBlockPacket.setDefinition(BlockRegistries.BLOCKS.get().getBedrockAir()); //TODO maybe set this to the world block or another item frame?
+        updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir()); //TODO maybe set this to the world block or another item frame?
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
