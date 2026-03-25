@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.TreeMap;
 
 public class GeyserBedrockBlock implements BlockDefinition {
     private static final int FNV1_32_INIT = 0x811c9dc5;
@@ -41,10 +42,16 @@ public class GeyserBedrockBlock implements BlockDefinition {
     private final NbtMap state;
 
     public GeyserBedrockBlock(NbtMap state) {
+        NbtMap tag = NbtMap.builder()
+            .putString("name", state.getString("name"))
+            .putCompound("states", NbtMap.fromMap(
+                new TreeMap<>(state.getCompound("states"))))
+            .build();
+
         byte[] bytes;
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream();
              NBTOutputStream output = NbtUtils.createWriterLE(stream)) {
-            output.writeTag(state);
+            output.writeTag(tag);
             bytes = stream.toByteArray();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -57,7 +64,7 @@ public class GeyserBedrockBlock implements BlockDefinition {
         }
 
         this.runtimeId = hash;
-        this.state = state;
+        this.state = tag;
     }
 
     @Override

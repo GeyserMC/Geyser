@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.registry.populator;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import com.google.gson.JsonArray;
@@ -34,6 +33,7 @@ import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -199,17 +199,7 @@ public final class BlockRegistryPopulator {
             Block lastBlockSeen = null;
 
             // Stream isn't ideal.
-            List<Block> javaPottable = BlockRegistries.JAVA_BLOCKS.get()
-                    .parallelStream()
-                    .flatMap(block -> {
-                        if (block instanceof FlowerPotBlock flowerPot && flowerPot.flower() != Blocks.AIR) {
-                            return Stream.of(flowerPot.flower());
-                        }
-                        return null;
-                    })
-                    .toList();
-            Map<Block, NbtMap> flowerPotBlocks = new Object2ObjectOpenHashMap<>();
-            Map<NbtMap, BlockDefinition> itemFrames = new Object2ObjectOpenHashMap<>();
+            IntOpenHashSet itemFrames = new IntOpenHashSet();
             IntArrayList collisionIgnoredBlocks = new IntArrayList();
 
             Set<BlockDefinition> jigsawDefinitions = new ObjectOpenHashSet<>();
@@ -274,12 +264,6 @@ public final class BlockRegistryPopulator {
 
                 if (waterlogged) {
                     BlockRegistries.WATERLOGGED.get().set(javaRuntimeId);
-                }
-
-                // Get the tag needed for non-empty flower pots
-                if (javaPottable.contains(block)) {
-                    // Specifically NOT putIfAbsent - mangrove propagule breaks otherwise
-                    //flowerPotBlocks.put(block, bedrockRuntimeMap.get(bedrockDefinition.getRuntimeId()).getState());
                 }
 
                 javaToVanillaBedrockBlocks[javaRuntimeId] = vanillaBedrockDefinition;
@@ -352,7 +336,7 @@ public final class BlockRegistryPopulator {
             for (NbtMap entry : blockStates) {
                 String name = entry.getString("name");
                 if (name.equals("minecraft:frame") || name.equals("minecraft:glow_frame")) {
-                    itemFrames.put(entry, new GeyserBedrockBlock(entry));
+                    itemFrames.add(new GeyserBedrockBlock(entry).getRuntimeId());
                 }
             }
 
@@ -361,7 +345,6 @@ public final class BlockRegistryPopulator {
                     .javaToVanillaBedrockBlocks(javaToVanillaBedrockBlocks)
                     .javaToBedrockIdentifiers(javaToBedrockIdentifiers)
                     .itemFrames(itemFrames)
-                    .flowerPotBlocks(flowerPotBlocks)
                     .jigsawStates(jigsawDefinitions)
                     .structureBlockStates(structureBlockDefinitions)
                     .remappedVanillaIds(remappedVanillaIds)

@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry.type;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.Builder;
 import lombok.Value;
@@ -35,7 +36,6 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
-import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 
 import java.util.List;
@@ -67,8 +67,7 @@ public class BlockMappings {
 
     IntArrayList collisionIgnoredBlocks;
 
-    Map<NbtMap, BlockDefinition> itemFrames;
-    Map<Block, NbtMap> flowerPotBlocks;
+    IntOpenHashSet itemFrames;
 
     Set<BlockDefinition> jigsawStates;
     Map<String, BlockDefinition> structureBlockStates;
@@ -103,16 +102,8 @@ public class BlockMappings {
         return this.javaToVanillaBedrockBlocks[javaState];
     }
 
-    public BlockDefinition getItemFrame(NbtMap tag) {
-        return this.itemFrames.get(tag);
-    }
-
     public boolean isItemFrame(BlockDefinition definition) {
-        if (definition instanceof GeyserBedrockBlock def) {
-            return this.itemFrames.containsKey(def.getState());
-        }
-
-        return false;
+        return this.itemFrames.contains(definition.getRuntimeId());
     }
 
     public BlockDefinition getStructureBlockFromMode(String mode) {

@@ -70,7 +70,7 @@ public class FlowerPotBlock extends Block implements BedrockChunkWantsBlockEntit
             // Get the Bedrock CompoundTag of the block.
             // This is where we need to store the *Java* name because Bedrock has six minecraft:sapling blocks with different block states.
             // TODO flattening might make this nicer in the future!
-            NbtMap plant = BlockRegistries.BLOCKS.get().getFlowerPotBlocks().get(this.flower);
+            NbtMap plant = BlockRegistries.BLOCKS.get().getBedrockBlock(flower.javaId()).getState();
             if (plant != null) {
                 tagBuilder.putCompound("PlantBlock", plant.toBuilder().build());
             }
