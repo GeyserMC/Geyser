@@ -94,6 +94,7 @@ public final class RegistryCache implements JavaRegistryProvider {
         register(JavaRegistries.TRIM_PATTERN, TrimRecipe::readTrimPattern);
         register(JavaRegistries.DAMAGE_TYPE, RegistryReader.UNIT);
         register(JavaRegistries.DIALOG, Dialog::readDialog);
+        register(JavaRegistries.WORLD_CLOCK, RegistryReader.UNIT);
 
         register(JavaRegistries.CAT_VARIANT, VariantHolder.reader(CatEntity.BuiltInVariant.class, CatEntity.BuiltInVariant.BLACK));
         register(JavaRegistries.FROG_VARIANT, VariantHolder.reader(FrogEntity.BuiltInVariant.class, FrogEntity.BuiltInVariant.TEMPERATE));

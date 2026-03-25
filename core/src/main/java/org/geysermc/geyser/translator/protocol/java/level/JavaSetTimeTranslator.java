@@ -25,32 +25,32 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.mcprotocollib.protocol.data.game.level.ClockNetworkState;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundSetTimePacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
 @Translator(packet = ClientboundSetTimePacket.class)
 public class JavaSetTimeTranslator extends PacketTranslator<ClientboundSetTimePacket> {
+    private static final Key OVERWORLD_WORLD_CLOCK_ID = Key.key(Key.MINECRAFT_NAMESPACE, "overworld");
 
     @Override
     public void translate(GeyserSession session, ClientboundSetTimePacket packet) {
         session.setWorldTicks(packet.getGameTime());
 
-        long time = packet.getDayTime();
+        int overworldId = JavaRegistries.WORLD_CLOCK.networkId(session, OVERWORLD_WORLD_CLOCK_ID);
 
-        // https://minecraft.wiki/w/Day-night_cycle#24-hour_Minecraft_day
-        SetTimePacket setTimePacket = new SetTimePacket();
-        // We use modulus to prevent an integer overflow
-        // 24000 is the range of ticks that a Minecraft day can be; we times by 8 so all moon phases are visible
-        // (Last verified behavior: Bedrock 1.18.12 / Java 1.18.2)
-        setTimePacket.setTime((int) (Math.abs(time) % (24000 * 8)));
-        session.sendUpstreamPacket(setTimePacket);
+        long time = packet.getGameTime();
 
-        // We need to send a gamerule if this changed
-        if (session.isDaylightCycle() != packet.isTickDayTime()) {
-            session.setDaylightCycle(packet.isTickDayTime());
+        session.sendTimePacket(time);
+
+        if (packet.getClockUpdates().containsKey(overworldId)) {
+            ClockNetworkState state = packet.getClockUpdates().get(overworldId);
+            // We need to send a gamerule if this changed
+            session.setClockRate(state.rate());
         }
     }
 }

@@ -29,6 +29,7 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
+import org.geysermc.geyser.api.util.Unit;
 import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
 import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.nautilus.ZombieNautilusEntity;
@@ -90,6 +91,7 @@ public class JavaRegistries {
     public static final JavaRegistryKey<TrimPattern> TRIM_PATTERN = create("trim_pattern");
     public static final JavaRegistryKey<RegistryUnit> DAMAGE_TYPE = create("damage_type");
     public static final JavaRegistryKey<Dialog> DIALOG = create("dialog");
+    public static final JavaRegistryKey<RegistryUnit> WORLD_CLOCK = create("world_clock");
 
     public static final JavaRegistryKey<CatEntity.BuiltInVariant> CAT_VARIANT = create("cat_variant");
     public static final JavaRegistryKey<FrogEntity.BuiltInVariant> FROG_VARIANT = create("frog_variant");

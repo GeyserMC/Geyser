@@ -33,7 +33,7 @@ import java.util.Locale;
  * This enum stores each gamerule along with the value type and the default.
  * It is used to construct the list for the settings menu
  */
-// TODO gamerules with feature flags (e.g. minecart speed with minecart experiment)
+// TODO gamerules from ClientboundGameRuleValuesPacket
 public enum GameRule {
     ADVANCE_TIME("gamerule.doDaylightCycle", true),
     ADVANCE_WEATHER("gamerule.doWeatherCycle", true),

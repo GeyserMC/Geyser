@@ -113,7 +113,7 @@ public class DataComponentHashers {
 
         register(DataComponentTypes.CUSTOM_NAME, ComponentHasher.COMPONENT);
         register(DataComponentTypes.MINIMUM_ATTACK_CHARGE, MinecraftHasher.FLOAT);
-        register(DataComponentTypes.DAMAGE_TYPE, RegistryHasher.eitherHolderHasher(JavaRegistries.DAMAGE_TYPE));
+        register(DataComponentTypes.DAMAGE_TYPE, MinecraftHasher.INT);
         register(DataComponentTypes.ITEM_NAME, ComponentHasher.COMPONENT);
         register(DataComponentTypes.ITEM_MODEL, MinecraftHasher.KEY);
         register(DataComponentTypes.LORE, ComponentHasher.COMPONENT.list());
@@ -156,7 +156,7 @@ public class DataComponentHashers {
             .accept("seconds", MinecraftHasher.FLOAT, UseCooldown::seconds)
             .optionalNullable("cooldown_group", MinecraftHasher.KEY, UseCooldown::cooldownGroup));
         registerMap(DataComponentTypes.DAMAGE_RESISTANT, builder -> builder
-            .accept("types", MinecraftHasher.TAG, Function.identity()));
+            .accept("types", MinecraftHasher.TAG, HolderSet::getLocation));
         registerMap(DataComponentTypes.TOOL, builder -> builder
             .acceptList("rules", RegistryHasher.TOOL_RULE, ToolData::getRules)
             .optional("default_mining_speed", MinecraftHasher.FLOAT, ToolData::getDefaultMiningSpeed, 1.0F)
@@ -171,10 +171,10 @@ public class DataComponentHashers {
             .optionalNullable("sound", RegistryHasher.SOUND_EVENT, PiercingWeapon::sound)
             .optionalNullable("hit_sound", RegistryHasher.SOUND_EVENT, PiercingWeapon::hitSound)); // TODO test 1.21.11
         registerMap(DataComponentTypes.ATTACK_RANGE, builder -> builder
-            .optional("min_reach", MinecraftHasher.FLOAT, AttackRange::minRange, 0.0F)
-            .optional("max_reach", MinecraftHasher.FLOAT, AttackRange::maxRange, 3.0F)
-            .optional("min_creative_reach", MinecraftHasher.FLOAT, AttackRange::minCreativeRange, 0.0F)
-            .optional("max_creative_reach", MinecraftHasher.FLOAT, AttackRange::maxCreativeRange, 5.0F)
+            .optional("min_reach", MinecraftHasher.FLOAT, AttackRange::minReach, 0.0F)
+            .optional("max_reach", MinecraftHasher.FLOAT, AttackRange::maxReach, 3.0F)
+            .optional("min_creative_reach", MinecraftHasher.FLOAT, AttackRange::minCreativeReach, 0.0F)
+            .optional("max_creative_reach", MinecraftHasher.FLOAT, AttackRange::maxCreativeReach, 5.0F)
             .optional("hitbox_margin", MinecraftHasher.FLOAT, AttackRange::hitboxMargin, 0.3F)
             .optional("mob_factor", MinecraftHasher.FLOAT, AttackRange::mobFactor, 1.0F)); // TODO test 1.21.11
         registerMap(DataComponentTypes.SWING_ANIMATION, builder -> builder
@@ -207,7 +207,10 @@ public class DataComponentHashers {
             .optional("disable_cooldown_scale", MinecraftHasher.FLOAT, BlocksAttacks::disableCooldownScale, 1.0F)
             .optional("damage_reductions", RegistryHasher.BLOCKS_ATTACKS_DAMAGE_REDUCTION.list(), BlocksAttacks::damageReductions, List.of(new BlocksAttacks.DamageReduction(90.0F, null, 0.0F, 1.0F)))
             .optional("item_damage", RegistryHasher.BLOCKS_ATTACKS_ITEM_DAMAGE_FUNCTION, BlocksAttacks::itemDamage, new BlocksAttacks.ItemDamageFunction(1.0F, 0.0F, 1.0F))
-            .optionalNullable("bypassed_by", MinecraftHasher.TAG, BlocksAttacks::bypassedBy)
+            .optionalNullable("bypassed_by", MinecraftHasher.TAG, blocksAttacks -> {
+                if (blocksAttacks.bypassedBy() == null) return null;
+                else return blocksAttacks.bypassedBy().getLocation();
+            })
             .optionalNullable("block_sound", RegistryHasher.SOUND_EVENT, BlocksAttacks::blockSound)
             .optionalNullable("disabled_sound", RegistryHasher.SOUND_EVENT, BlocksAttacks::disableSound)); // TODO needs tests
         registerMap(DataComponentTypes.KINETIC_WEAPON, builder -> builder
@@ -258,13 +261,13 @@ public class DataComponentHashers {
             .accept("id", RegistryHasher.BLOCK_ENTITY_TYPE_KEY, TypedEntityData::type)
             .accept(TypedEntityData::tag, MapBuilder.inlineNbtMap()));
 
-        register(DataComponentTypes.INSTRUMENT, RegistryHasher.INSTRUMENT_COMPONENT);
-        register(DataComponentTypes.PROVIDES_TRIM_MATERIAL, RegistryHasher.PROVIDES_TRIM_MATERIAL);
+        register(DataComponentTypes.INSTRUMENT, RegistryHasher.INSTRUMENT.holder());
+        register(DataComponentTypes.PROVIDES_TRIM_MATERIAL, RegistryHasher.TRIM_MATERIAL.holder());
 
         registerInt(DataComponentTypes.OMINOUS_BOTTLE_AMPLIFIER);
 
-        register(DataComponentTypes.JUKEBOX_PLAYABLE, RegistryHasher.JUKEBOX_PLAYABLE);
-        register(DataComponentTypes.PROVIDES_BANNER_PATTERNS, MinecraftHasher.TAG);
+        register(DataComponentTypes.JUKEBOX_PLAYABLE, RegistryHasher.JUKEBOX_SONG.holder());
+        register(DataComponentTypes.PROVIDES_BANNER_PATTERNS, MinecraftHasher.TAG.cast(HolderSet::getLocation));
         register(DataComponentTypes.RECIPES, MinecraftHasher.NBT_LIST);
 
         registerMap(DataComponentTypes.LODESTONE_TRACKER, builder -> builder
@@ -303,8 +306,8 @@ public class DataComponentHashers {
         register(DataComponentTypes.RABBIT_VARIANT, RegistryHasher.RABBIT_VARIANT);
         register(DataComponentTypes.PIG_VARIANT, RegistryHasher.PIG_VARIANT);
         register(DataComponentTypes.COW_VARIANT, RegistryHasher.COW_VARIANT);
-        register(DataComponentTypes.CHICKEN_VARIANT, RegistryHasher.eitherHolderHasher(JavaRegistries.CHICKEN_VARIANT));
-        register(DataComponentTypes.ZOMBIE_NAUTILUS_VARIANT, RegistryHasher.eitherHolderHasher(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT)); // TODO test 1.21.11
+        register(DataComponentTypes.CHICKEN_VARIANT, RegistryHasher.CHICKEN_VARIANT);
+        register(DataComponentTypes.ZOMBIE_NAUTILUS_VARIANT, RegistryHasher.ZOMBIE_NAUTILUS_VARIANT); // TODO test 1.21.11
         register(DataComponentTypes.FROG_VARIANT, RegistryHasher.FROG_VARIANT);
         register(DataComponentTypes.HORSE_VARIANT, RegistryHasher.HORSE_VARIANT);
         register(DataComponentTypes.PAINTING_VARIANT, RegistryHasher.PAINTING_VARIANT.cast(Holder::id)); // This can and will throw when a direct holder was received, which is still possible due to a bug in 1.21.6.
@@ -495,7 +498,7 @@ public class DataComponentHashers {
         specialComponents.put(DataComponentTypes.MAX_STACK_SIZE, 44);
         testHash(session, DataComponentTypes.USE_REMAINDER, new ItemStack(Items.PUMPKIN.javaId(), 32, specialComponents), 1991032843);
 
-        testHash(session, DataComponentTypes.DAMAGE_RESISTANT, MinecraftKey.key("testing"), -1230493835);
+        testHash(session, DataComponentTypes.DAMAGE_RESISTANT, new HolderSet(MinecraftKey.key("testing")), -1230493835);
 
         testHash(session, DataComponentTypes.TOOL, new ToolData(List.of(), 5.0F, 3, false), -1789071928);
         testHash(session, DataComponentTypes.TOOL, new ToolData(List.of(), 3.0F, 1, true), -7422944);

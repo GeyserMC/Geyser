@@ -35,6 +35,7 @@ import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.geyser.util.SoundUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 
@@ -90,16 +91,13 @@ public interface GeyserInstrument {
     }
 
     // TODO test in 1.21.5
-    static GeyserInstrument fromComponent(GeyserSession session, Instrument component) {
-        if (component.instrumentLocation() != null) {
-            return session.getRegistryCache().registry(JavaRegistries.INSTRUMENT).byKey(component.instrumentLocation());
-        } else if (component.instrumentHolder() != null) {
-            if (component.instrumentHolder().isId()) {
-                return session.getRegistryCache().registry(JavaRegistries.INSTRUMENT).byId(component.instrumentHolder().id());
-            }
-            return new Wrapper(component, session.locale());
+    static GeyserInstrument fromComponent(GeyserSession session, Holder<Instrument> component) {
+        if (component.isCustom()) {
+            return new Wrapper(component.custom(), session.locale());
+        } else if (component.isId()) {
+            return session.getRegistryCache().registry(JavaRegistries.INSTRUMENT).byId(component.id());
         }
-        throw new IllegalStateException("Instrument must have either a location or a holder");
+        throw new IllegalStateException("Instrument must either be custom or have an id");
     }
 
     record Wrapper(Instrument instrument, String locale) implements GeyserInstrument {

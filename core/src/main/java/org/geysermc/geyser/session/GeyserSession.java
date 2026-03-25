@@ -640,7 +640,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.
      */
-    private boolean daylightCycle = true;
+    private boolean shouldClientTickClock = true;
 
     private boolean reducedDebugInfo = false;
 
@@ -724,12 +724,24 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private long clientTicks;
 
     /**
+     * The world time in ticks according to the server but floored
+     * <p>
+     * Note: The TickingStatePacket is currently ignored.
+     */
+    private long worldTicks;
+
+    /**
      * The world time in ticks according to the server
      * <p>
      * Note: The TickingStatePacket is currently ignored.
      */
+    private double partialWorldTick;
+
+    /**
+     * How fast the world time should pass according to the server
+     */
     @Setter
-    private long worldTicks;
+    private float clockRate = 1.0f;
 
     /**
      * Used to return players back to their vehicles if the server doesn't want them unmounting.
@@ -1162,8 +1174,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         downstream.setFlag(BuiltinFlags.CLIENT_TRANSFERRING, loginEvent.transferring());
         downstream.connect(false);
 
-        if (!daylightCycle) {
-            setDaylightCycle(true);
+        if (!shouldClientTickClock) {
+            setShouldClientTickClock(true);
         }
     }
 
@@ -1364,7 +1376,25 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         ticks++;
-        worldTicks++;
+        partialWorldTick += clockRate;
+        if (partialWorldTick >= 1) {
+            worldTicks++;
+            partialWorldTick--;
+
+            if (!isShouldClientTickClock()) {
+                sendTimePacket(worldTicks);
+            }
+        }
+    }
+
+    public void sendTimePacket(long time) {
+        // https://minecraft.wiki/w/Day-night_cycle#24-hour_Minecraft_day
+        SetTimePacket setTimePacket = new SetTimePacket();
+        // We use modulus to prevent an integer overflow
+        // 24000 is the range of ticks that a Minecraft day can be; we times by 8 so all moon phases are visible
+        // (Last verified behavior: Bedrock 1.18.12 / Java 1.18.2)
+        setTimePacket.setTime((int) (Math.abs(time) % (24000 * 8)));
+        this.sendUpstreamPacket(setTimePacket);
     }
 
     public void sendJsonUIData(String key, String value) {
@@ -1769,7 +1799,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         // Disable time progression whilst the form is open
         // Once logged into the game this is set correctly when receiving a time packet from the server
-        setDaylightCycle(false);
+        setShouldClientTickClock(false);
     }
 
     public @NonNull PlayerInventory getPlayerInventory() {
@@ -2076,10 +2106,25 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      *
      * @param doCycle If the cycle should continue
      */
-    public void setDaylightCycle(boolean doCycle) {
+    public void setShouldClientTickClock(boolean doCycle) {
+        if (this.shouldClientTickClock == doCycle) return;
         sendGameRule("dodaylightcycle", doCycle);
         // Save the value so we don't have to constantly send a daylight cycle gamerule update
-        this.daylightCycle = doCycle;
+        this.shouldClientTickClock = doCycle;
+    }
+
+    /**
+     * Sets the current world ticks
+     * @param worldTicks the current world ticks according to the server
+     */
+    public void setWorldTicks(long worldTicks) {
+        this.worldTicks = worldTicks;
+        this.partialWorldTick = 0;
+    }
+
+    public void setClockRate(float rate) {
+        this.clockRate = rate;
+        setShouldClientTickClock(this.clockRate == 1.0f);
     }
 
     /**

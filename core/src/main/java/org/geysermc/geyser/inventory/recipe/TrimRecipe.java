@@ -40,7 +40,6 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.ProvidesTrimMaterial;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,7 +48,7 @@ import java.util.Map;
  * Stores information on trim materials and patterns, including smithing armor hacks for pre-1.20.
  */
 public final class TrimRecipe {
-    private static final Map<ProvidesTrimMaterial, Item> trimMaterialProviders = new HashMap<>();
+    private static final Map<Holder<ArmorTrim.TrimMaterial>, Item> trimMaterialProviders = new HashMap<>();
 
     // For CraftingDataPacket
     public static final String ID = "minecraft:smithing_armor_trim";
@@ -69,9 +68,8 @@ public final class TrimRecipe {
         int networkId = context.getNetworkId(context.id());
         ItemMapping trimItem = null;
         if (context.session().isPresent()) {
-            for (ProvidesTrimMaterial provider : materialProviders().keySet()) {
-                Holder<ArmorTrim.TrimMaterial> materialHolder = provider.materialHolder();
-                if (context.id().equals(provider.materialLocation()) || (materialHolder != null && materialHolder.isId() && materialHolder.id() == networkId)) {
+            for (Holder<ArmorTrim.TrimMaterial> provider : materialProviders().keySet()) {
+                if ((provider.isCustom() && context.id().asString().equals(provider.custom().assetBase())) || (provider.isId() && provider.id() == networkId)) {
                     trimItem = context.session().get().getItemMappings().getMapping(materialProviders().get(provider));
                     break;
                 }
@@ -110,10 +108,10 @@ public final class TrimRecipe {
     }
 
     // Lazy initialise
-    private static Map<ProvidesTrimMaterial, Item> materialProviders() {
+    private static Map<Holder<ArmorTrim.TrimMaterial>, Item> materialProviders() {
         if (trimMaterialProviders.isEmpty()) {
             for (Item item : Registries.JAVA_ITEMS.get()) {
-                ProvidesTrimMaterial provider = item.getComponent(null, DataComponentTypes.PROVIDES_TRIM_MATERIAL);
+                Holder<ArmorTrim.TrimMaterial> provider = item.getComponent(null, DataComponentTypes.PROVIDES_TRIM_MATERIAL);
                 if (provider != null) {
                     trimMaterialProviders.put(provider, item);
                 }
