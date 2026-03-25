@@ -34,7 +34,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
-import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -45,7 +44,7 @@ import java.util.Set;
 
 @Builder
 @Value
-public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
+public class BlockMappings {
     GeyserBedrockBlock bedrockAir;
     BlockDefinition bedrockWater;
     BlockDefinition bedrockMovingBlock;
@@ -120,7 +119,6 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
         return structureBlockStates.get(mode);
     }
 
-    @Override
     public @Nullable GeyserBedrockBlock getDefinition(int bedrockId) {
         return bedrockRuntimeMap.get(bedrockId);
     }
@@ -131,10 +129,5 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
         }
 
         return new GeyserBedrockBlock(tag);
-    }
-
-    @Override
-    public boolean isRegistered(BlockDefinition bedrockBlock) {
-        return getDefinition(bedrockBlock.getRuntimeId()) == bedrockBlock;
     }
 }

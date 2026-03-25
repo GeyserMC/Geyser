@@ -75,6 +75,7 @@ import org.cloudburstmc.protocol.bedrock.data.SpawnBiomeType;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
+import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -105,6 +106,7 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateAdventureSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateSoftEnumPacket;
+import org.cloudburstmc.protocol.common.DefinitionRegistry;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
@@ -1802,7 +1804,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private void startGame() {
         this.upstream.getCodecHelper().setItemDefinitions(this.itemMappings);
-        this.upstream.getCodecHelper().setBlockDefinitions(BlockRegistries.BLOCKS.get());
+        this.upstream.getCodecHelper().setBlockDefinitions(new DefinitionRegistry<>() {
+            @Override
+            public BlockDefinition getDefinition(int runtimeId) {
+                return () -> runtimeId;
+            }
+
+            @Override
+            public boolean isRegistered(BlockDefinition definition) {
+                return true;
+            }
+        });
         this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
 
         StartGamePacket startGamePacket = buildStartGamePacket();

@@ -168,7 +168,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
         for (ItemMapping mapping : this.items) {
             if (mapping.getBedrockDefinition().getRuntimeId() == definition.getRuntimeId()) {
                 if (isBlock && !hasDamage) { // Pre-1.16.220 will not use block runtime IDs at all, so we shouldn't check either
-                    if (data.getBlockDefinition() != mapping.getBedrockBlockDefinition()) {
+                    if (data.getBlockDefinition().getRuntimeId() != mapping.getBedrockBlockDefinition().getRuntimeId()) {
                         continue;
                     }
                 } else {
