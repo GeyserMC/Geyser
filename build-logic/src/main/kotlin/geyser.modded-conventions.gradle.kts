@@ -6,7 +6,7 @@ import org.gradle.kotlin.dsl.dependencies
 plugins {
     id("geyser.platform-conventions")
     id("architectury-plugin")
-    id("dev.architectury.loom")
+    id("dev.architectury.loom-no-remap")
 }
 
 // These are provided by Minecraft/modded platforms already, no need to include them
@@ -77,13 +77,6 @@ tasks {
         // The remapped shadowJar is the final desired mod jar
         archiveVersion.set(project.version.toString())
         archiveClassifier.set("shaded")
-    }
-
-    remapJar {
-        dependsOn(shadowJar)
-        inputFile.set(shadowJar.get().archiveFile)
-        archiveClassifier.set("")
-        archiveVersion.set("")
     }
 
     register("remapModrinthJar", RemapJarTask::class) {
