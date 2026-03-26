@@ -19,8 +19,8 @@ loom {
 }
 
 dependencies {
-    modImplementation(libs.fabric.loader)
-    modApi(libs.fabric.api)
+    implementation(libs.fabric.loader)
+    api(libs.fabric.api)
 
     api(project(":mod", configuration = "namedElements"))
     shadowBundle(project(path = ":mod", configuration = "transformProductionFabric"))
@@ -47,7 +47,7 @@ dependencies {
     shadowBundle(projects.api)
     shadowBundle(projects.common)
 
-    modImplementation(libs.cloud.fabric)
+    implementation(libs.cloud.fabric)
     include(libs.cloud.fabric)
     include(libs.fabric.permissions.api)
 }
