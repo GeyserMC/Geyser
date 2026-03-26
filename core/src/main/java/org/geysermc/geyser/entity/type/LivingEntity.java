@@ -392,7 +392,7 @@ public class LivingEntity extends Entity implements Tickable {
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         if (this instanceof ClientVehicle clientVehicle) {
-            if (clientVehicle.isClientControlled()) {
+            if (clientVehicle.shouldSimulateMovement()) {
                 return;
             }
             clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
@@ -436,9 +436,9 @@ public class LivingEntity extends Entity implements Tickable {
     }
 
     public boolean shouldLerp() {
-        // We'll already send movement of these on our end every tick
+        // We shouldn't lerp the vehicle if the client is controlling is, or we're controlling it.
         if (this instanceof ClientVehicle clientVehicle) {
-            return !clientVehicle.isClientControlled();
+            return !clientVehicle.shouldSimulateMovement() && !session.isInClientPredictedVehicle();
         }
         return true;
     }
