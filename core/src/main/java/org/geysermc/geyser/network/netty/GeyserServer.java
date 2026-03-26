@@ -226,8 +226,6 @@ public final class GeyserServer {
             }
         }
 
-        GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser);
-        playerGroup = serverInitializer.getEventLoopGroup();
         this.geyser.getLogger().debug("Setting MTU to " + this.geyser.config().advanced().bedrock().mtu());
 
         int rakPacketLimit = positivePropOrDefault("Geyser.RakPacketLimit", DEFAULT_PACKET_LIMIT);
@@ -239,7 +237,10 @@ public final class GeyserServer {
         boolean rakSendCookie = Boolean.parseBoolean(System.getProperty("Geyser.RakSendCookie", "true"));
         this.geyser.getLogger().debug("Setting RakNet send cookie to " + rakSendCookie);
 
-        ServerBootstrap bootstrap = new ServerBootstrap()
+        GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser, rakSendCookie);
+        playerGroup = serverInitializer.getEventLoopGroup();
+
+        return new ServerBootstrap()
             .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannelClass()))
             .group(group, childGroup)
             .option(RakChannelOption.RAK_HANDLE_PING, true)
@@ -248,12 +249,6 @@ public final class GeyserServer {
             .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
             .option(RakChannelOption.RAK_SERVER_COOKIE_MODE, rakSendCookie ? RakServerCookieMode.ACTIVE : RakServerCookieMode.INVALID)
             .childHandler(serverInitializer);
-
-        if (!rakSendCookie) {
-            bootstrap = bootstrap.option(RakChannelOption.RAK_PROTOCOL_VERSION, 11);
-        }
-
-        return bootstrap;
     }
 
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
