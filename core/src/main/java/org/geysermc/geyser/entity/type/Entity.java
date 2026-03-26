@@ -264,7 +264,7 @@ public class Entity implements GeyserEntity {
 
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         if (this instanceof ClientVehicle clientVehicle) {
-            if (clientVehicle.isClientControlled()) {
+            if (clientVehicle.shouldSimulateMovement()) {
                 return;
             }
             clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);

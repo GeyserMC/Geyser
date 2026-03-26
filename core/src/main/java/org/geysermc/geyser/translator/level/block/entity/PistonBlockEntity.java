@@ -350,7 +350,7 @@ public class PistonBlockEntity {
 
         boolean onGround;
         BoundingBox playerBoundingBox;
-        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.shouldSimulateMovement()) {
             onGround = session.getPlayerEntity().getVehicle().isOnGround();
             playerBoundingBox = clientVehicle.getVehicleComponent().getBoundingBox();
         } else {

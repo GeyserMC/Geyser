@@ -184,7 +184,7 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
     }
 
     @Override
-    public boolean isClientControlled() {
+    public boolean shouldSimulateMovement() {
         return getPlayerPassenger() == session.getPlayerEntity() && session.getPlayerInventory().isHolding(Items.WARPED_FUNGUS_ON_A_STICK);
     }
 

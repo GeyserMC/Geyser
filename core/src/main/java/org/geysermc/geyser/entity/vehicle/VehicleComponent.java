@@ -173,7 +173,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
      * Called every session tick while the player is mounted on the vehicle.
      */
     public void tickVehicle() {
-        if (!vehicle.isClientControlled()) {
+        if (!vehicle.shouldSimulateMovement()) {
             return;
         }
 

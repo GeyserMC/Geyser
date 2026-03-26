@@ -150,7 +150,7 @@ public class CollisionManager {
      * @return the bounding box to use for movement calculations
      */
     public BoundingBox getActiveBoundingBox() {
-        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.shouldSimulateMovement()) {
             return clientVehicle.getVehicleComponent().getBoundingBox();
         }
 
@@ -179,7 +179,7 @@ public class CollisionManager {
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY, Double.parseDouble(Float.toString(bedrockPosition.getZ())));
 
         // Don't correct position if controlling a vehicle
-        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.shouldSimulateMovement()) {
             playerBoundingBox.setMiddleX(position.getX());
             playerBoundingBox.setMiddleY(position.getY() + playerBoundingBox.getSizeY() / 2);
             playerBoundingBox.setMiddleZ(position.getZ());
