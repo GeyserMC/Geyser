@@ -510,7 +510,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     public float getJumpVelocity() {
         float velocity = 0.42F;
 
-        if (session.getGeyser().getWorldManager().blockAt(session, this.position.up(0.1F).toInt()).is(Blocks.HONEY_BLOCK)) {
+        if (session.getGeyser().getWorldManager().blockAt(session, this.position.down(0.1F).toInt()).is(Blocks.HONEY_BLOCK)) {
             velocity *= 0.6F;
         }
 
