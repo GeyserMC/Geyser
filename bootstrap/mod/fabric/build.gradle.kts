@@ -61,15 +61,12 @@ relocate("org.cloudburstmc.protocol")
 relocate("org.spongepowered.configurate")
 
 tasks {
-    remapJar {
-        archiveBaseName.set("Geyser-Fabric")
-    }
-
     remapModrinthJar {
         archiveBaseName.set("geyser-fabric")
     }
 
     shadowJar {
+        archiveBaseName.set("Geyser-Fabric")
         mergeServiceFiles()
     }
 }
