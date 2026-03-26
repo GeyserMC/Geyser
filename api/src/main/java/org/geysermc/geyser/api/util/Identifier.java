@@ -29,6 +29,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.jetbrains.annotations.ApiStatus;
 
+// TODO: using static Identifiers, both in API and by API users, is not really possible at the moment, since providers have to be registered first, which probably won't have happened
+// when a class's clinit is run
 /**
  * An identifying object for representing unique objects.
  * This identifier consists of two parts:

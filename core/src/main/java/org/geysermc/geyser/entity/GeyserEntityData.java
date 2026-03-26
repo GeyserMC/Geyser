@@ -29,11 +29,11 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
-import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.HashSet;
@@ -56,6 +56,30 @@ public class GeyserEntityData implements EntityData {
         CompletableFuture<GeyserEntity> future = new CompletableFuture<>();
         session.ensureInEventLoop(() -> future.complete(session.getEntityCache().getEntityByJavaId(javaId)));
         return future;
+    }
+
+    @Override
+    public @Nullable GeyserEntity byJavaId(@NonNegative int javaId) {
+        //noinspection ConstantValue
+        if (javaId < 0) {
+            throw new IllegalArgumentException("entity id cannot be negative! (got: " + javaId + ")");
+        }
+        return session.getEntityCache().getEntityByJavaId(javaId);
+    }
+
+    @Override
+    public @Nullable GeyserEntity byUuid(@NonNull UUID javaUuid) {
+        Objects.requireNonNull(javaUuid, "javaUuid");
+        return session.getEntityCache().getEntityByUuid(javaUuid);
+    }
+
+    @Override
+    public @Nullable GeyserEntity byGeyserId(@NonNegative long geyserId) {
+        //noinspection ConstantValue
+        if (geyserId < 0) {
+            throw new IllegalArgumentException("geyser entity id cannot be negative! (got: " + geyserId + ")");
+        }
+        return session.getEntityCache().getEntityByGeyserId(geyserId);
     }
 
     @Override

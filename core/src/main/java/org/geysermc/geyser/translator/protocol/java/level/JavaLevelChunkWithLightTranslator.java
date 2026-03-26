@@ -86,7 +86,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
     @Override
     public void translate(GeyserSession session, ClientboundLevelChunkWithLightPacket packet) {
         if (session.isSpawned()) {
-            ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().getPosition().toInt());
+            ChunkUtils.updateChunkPosition(session, session.getPlayerEntity().position().toInt());
         }
 
         // Ensure that, if the player is using lower world heights, the position is not offset

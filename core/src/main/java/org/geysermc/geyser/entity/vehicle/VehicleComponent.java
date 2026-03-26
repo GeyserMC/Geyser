@@ -57,7 +57,7 @@ import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 
 public class VehicleComponent<T extends Entity & ClientVehicle> {
@@ -95,9 +95,9 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         double width = vehicle.getBoundingBoxWidth();
         double height = vehicle.getBoundingBoxHeight();
         this.boundingBox = new BoundingBox(
-                vehicle.getPosition().getX(),
-                vehicle.getPosition().getY() + height / 2,
-                vehicle.getPosition().getZ(),
+                vehicle.position().getX(),
+                vehicle.position().getY() + height / 2,
+                vehicle.position().getZ(),
                 width, height, width
         );
     }
@@ -237,7 +237,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         double lavaHeight = getFluidHeightAndApplyMovement(ctx, iter, Fluid.LAVA, vehicle.getSession().getDimensionType().ultrawarm() ? 0.007 : 0.007 / 3, min.getY());
 
         // Apply upward motion if the vehicle is a Strider, and it is submerged in lava
-        if (lavaHeight > 0 && vehicle.getDefinition().entityType() == EntityType.STRIDER) {
+        if (lavaHeight > 0 && vehicle.getJavaTypeDefinition().is(BuiltinEntityType.STRIDER)) {
             Vector3i blockPos = ctx.centerPos().toInt();
             if (!CollisionManager.FLUID_COLLISION.isBelow(blockPos.getY(), boundingBox) || ctx.getBlock(blockPos.up()).is(Blocks.LAVA)) {
                 vehicle.setMotion(vehicle.getMotion().mul(0.5f).add(0, 0.05f, 0));
@@ -760,7 +760,8 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
      * @param lastRotation the previous rotation of the vehicle (pitch, yaw, headYaw)
      */
     protected void moveVehicle(Vector3d javaPos, Vector3f lastRotation) {
-        Vector3f bedrockPos = javaPos.toFloat();
+        Vector3f oldPosition = vehicle.position();
+        vehicle.setPosition(javaPos.toFloat());
 
         MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
         moveEntityDeltaPacket.setRuntimeEntityId(vehicle.geyserId());
@@ -769,19 +770,18 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
         }
 
-        if (vehicle.getPosition().getX() != bedrockPos.getX()) {
+        if (vehicle.position().getX() != oldPosition.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-            moveEntityDeltaPacket.setX(bedrockPos.getX());
+            moveEntityDeltaPacket.setX(vehicle.bedrockPosition().getX());
         }
-        if (vehicle.getPosition().getY() != bedrockPos.getY()) {
+        if (vehicle.position().getY() != oldPosition.getY()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-            moveEntityDeltaPacket.setY(bedrockPos.getY());
+            moveEntityDeltaPacket.setY(vehicle.bedrockPosition().getY());
         }
-        if (vehicle.getPosition().getZ() != bedrockPos.getZ()) {
+        if (vehicle.position().getZ() != oldPosition.getZ()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-            moveEntityDeltaPacket.setZ(bedrockPos.getZ());
+            moveEntityDeltaPacket.setZ(vehicle.bedrockPosition().getZ());
         }
-        vehicle.setPosition(bedrockPos);
 
         if (vehicle.getPitch() != lastRotation.getX()) {
             moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
