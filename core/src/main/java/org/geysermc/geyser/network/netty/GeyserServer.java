@@ -239,15 +239,21 @@ public final class GeyserServer {
         boolean rakSendCookie = Boolean.parseBoolean(System.getProperty("Geyser.RakSendCookie", "true"));
         this.geyser.getLogger().debug("Setting RakNet send cookie to " + rakSendCookie);
 
-        return new ServerBootstrap()
-                .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannelClass()))
-                .group(group, childGroup)
-                .option(RakChannelOption.RAK_HANDLE_PING, true)
-                .option(RakChannelOption.RAK_MAX_MTU, this.geyser.config().advanced().bedrock().mtu())
-                .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
-                .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
-                .option(RakChannelOption.RAK_SERVER_COOKIE_MODE, rakSendCookie ? RakServerCookieMode.ACTIVE : RakServerCookieMode.OFF)
-                .childHandler(serverInitializer);
+        ServerBootstrap bootstrap = new ServerBootstrap()
+            .channelFactory(RakChannelFactory.server(TRANSPORT.datagramChannelClass()))
+            .group(group, childGroup)
+            .option(RakChannelOption.RAK_HANDLE_PING, true)
+            .option(RakChannelOption.RAK_MAX_MTU, this.geyser.config().advanced().bedrock().mtu())
+            .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
+            .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
+            .option(RakChannelOption.RAK_SERVER_COOKIE_MODE, rakSendCookie ? RakServerCookieMode.ACTIVE : RakServerCookieMode.INVALID)
+            .childHandler(serverInitializer);
+
+        if (!rakSendCookie) {
+            bootstrap = bootstrap.option(RakChannelOption.RAK_PROTOCOL_VERSION, 11);
+        }
+
+        return bootstrap;
     }
 
     public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
