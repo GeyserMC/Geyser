@@ -33,7 +33,7 @@ dependencies {
 
     neoForge(libs.neoforge.minecraft)
 
-    api(project(":mod", configuration = "namedElements"))
+    api(project(":mod"))
     shadowBundle(project(path = ":mod", configuration = "transformProductionNeoForge"))
     shadowBundle(projects.core)
 

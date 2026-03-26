@@ -22,7 +22,7 @@ dependencies {
     implementation(libs.fabric.loader)
     api(libs.fabric.api)
 
-    api(project(":mod", configuration = "namedElements"))
+    api(project(":mod"))
     shadowBundle(project(path = ":mod", configuration = "transformProductionFabric"))
     shadowBundle(projects.core)
     includeTransitive(projects.core)
