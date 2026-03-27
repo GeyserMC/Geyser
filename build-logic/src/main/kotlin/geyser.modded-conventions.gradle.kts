@@ -75,8 +75,8 @@ tasks {
         // Mirrors the example fabric project, otherwise tons of dependencies are shaded that shouldn't be
         configurations = listOf(project.configurations.getByName("shadowBundle"))
         // The remapped shadowJar is the final desired mod jar
-        archiveVersion.set(project.version.toString())
-        archiveClassifier.set("shaded")
+        archiveVersion.set("")
+        archiveClassifier.set("")
     }
 
     register("remapModrinthJar", RemapJarTask::class) {
