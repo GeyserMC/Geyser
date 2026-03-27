@@ -420,7 +420,12 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
+        boolean serverUsingItem = (entityMetadata.getPrimitiveValue() & 0x01) == 0x01;
         super.setLivingEntityFlags(entityMetadata);
+
+        if (!serverUsingItem && session.shouldIgnoreServerUsingItemFalse()) {
+            setFlag(EntityFlag.USING_ITEM, true);
+        }
 
         // Forcefully update flags since we're not tracking thing like using item properly.
         // For eg: when player start using item client-sided (and the USING_ITEM flag is false on geyser side)

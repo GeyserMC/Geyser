@@ -213,6 +213,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.HandPreference;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ChatVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.ParticleStatus;
@@ -256,6 +257,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 public class GeyserSession implements GeyserConnection, GeyserCommandSource {
+
+    private static final long USING_ITEM_PREDICTION_GRACE_MILLIS = 250L;
 
     private final GeyserImpl geyser;
     private final UpstreamSession upstream;
@@ -623,6 +626,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * -1 means there is no active arm swing
      */
     private int armAnimationTicks = -1;
+
+    /**
+     * Small grace window to ignore stale Java metadata that clears USING_ITEM too early.
+     */
+    private long usingItemPredictionUntil;
 
     /**
      * The tick in which the player last hit air.
@@ -1460,6 +1468,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return;
         }
 
+        if (shouldPredictUsingItem(hand)) {
+            playerEntity.setFlag(EntityFlag.USING_ITEM, true);
+            playerEntity.updateBedrockMetadata();
+            beginUsingItemPrediction();
+        }
+
         float yaw = playerEntity.getJavaYaw(), pitch = playerEntity.getPitch();
         if (useTouchRotation) { // Only use touch rotation when we actually needed to, resolve https://github.com/GeyserMC/Geyser/issues/5704
             yaw = playerEntity.getBedrockInteractRotation().getY();
@@ -1470,10 +1484,41 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     public void releaseItem() {
+        clearUsingItemPrediction();
         // Followed to the Minecraft Protocol specification outlined at wiki.vg
         ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, Vector3i.ZERO,
             Direction.DOWN, 0);
         sendDownstreamGamePacket(releaseItemPacket);
+    }
+
+    private boolean shouldPredictUsingItem(Hand hand) {
+        var itemInHand = playerInventoryHolder.inventory().getItemInHand(hand);
+        if (itemInHand.isEmpty()) {
+            return false;
+        }
+
+        if (itemInHand.getComponent(DataComponentTypes.CONSUMABLE) != null) {
+            return true;
+        }
+
+        return itemInHand.is(Items.BOW)
+            || itemInHand.is(Items.CROSSBOW)
+            || itemInHand.is(Items.TRIDENT)
+            || itemInHand.is(Items.SPYGLASS)
+            || itemInHand.is(Items.GOAT_HORN)
+            || itemInHand.is(Items.BRUSH);
+    }
+
+    public void beginUsingItemPrediction() {
+        usingItemPredictionUntil = System.currentTimeMillis() + USING_ITEM_PREDICTION_GRACE_MILLIS;
+    }
+
+    public void clearUsingItemPrediction() {
+        usingItemPredictionUntil = 0L;
+    }
+
+    public boolean shouldIgnoreServerUsingItemFalse() {
+        return playerEntity.getFlag(EntityFlag.USING_ITEM) && System.currentTimeMillis() < usingItemPredictionUntil;
     }
 
     /**
@@ -1523,6 +1568,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private boolean disableBlocking() {
         if (playerEntity.getFlag(EntityFlag.BLOCKING)) {
+            clearUsingItemPrediction();
             ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM,
                 Vector3i.ZERO, Direction.DOWN, 0);
             sendDownstreamGamePacket(releaseItemPacket);
