@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.util.InteractionResult;
@@ -226,7 +227,7 @@ public class ItemFrameEntity extends HangingEntity {
             .putByte("item_frame_photo_bit", (byte) 0);
         blockBuilder.put("states", statesBuilder.build());
 
-        return session.getBlockMappings().getItemFrame(blockBuilder.build());
+        return new GeyserBedrockBlock(blockBuilder.build());
     }
 
     /**

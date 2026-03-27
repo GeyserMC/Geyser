@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry.type;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import lombok.Builder;
 import lombok.Value;
@@ -59,8 +60,7 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
      */
     Int2ObjectMap<String> javaToBedrockIdentifiers;
 
-    Map<NbtMap, GeyserBedrockBlock> stateDefinitionMap;
-    GeyserBedrockBlock[] bedrockRuntimeMap;
+    Int2ObjectMap<GeyserBedrockBlock> bedrockRuntimeMap;
     int[] remappedVanillaIds;
 
     BlockDefinition commandBlock;
@@ -69,7 +69,7 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
 
     IntArrayList collisionIgnoredBlocks;
 
-    Map<NbtMap, BlockDefinition> itemFrames;
+    IntOpenHashSet itemFrames;
     Map<Block, NbtMap> flowerPotBlocks;
 
     Set<BlockDefinition> jigsawStates;
@@ -105,16 +105,8 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
         return this.javaToVanillaBedrockBlocks[javaState];
     }
 
-    public BlockDefinition getItemFrame(NbtMap tag) {
-        return this.itemFrames.get(tag);
-    }
-
     public boolean isItemFrame(BlockDefinition definition) {
-        if (definition instanceof GeyserBedrockBlock def) {
-            return this.itemFrames.containsKey(def.getState());
-        }
-
-        return false;
+        return this.itemFrames.contains(definition.getRuntimeId());
     }
 
     public BlockDefinition getStructureBlockFromMode(String mode) {
@@ -123,10 +115,7 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
 
     @Override
     public @Nullable GeyserBedrockBlock getDefinition(int bedrockId) {
-        if (bedrockId < 0 || bedrockId >= this.bedrockRuntimeMap.length) {
-            return null;
-        }
-        return bedrockRuntimeMap[bedrockId];
+        return bedrockRuntimeMap.get(bedrockId);
     }
 
     public @Nullable GeyserBedrockBlock getDefinition(NbtMap tag) {
@@ -134,7 +123,7 @@ public class BlockMappings implements DefinitionRegistry<BlockDefinition> {
             return null;
         }
 
-        return this.stateDefinitionMap.get(tag);
+        return new GeyserBedrockBlock(tag);
     }
 
     @Override
