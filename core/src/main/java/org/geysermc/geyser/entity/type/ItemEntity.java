@@ -59,7 +59,7 @@ public class ItemEntity extends ThrowableEntity {
         AddItemEntityPacket itemPacket = new AddItemEntityPacket();
         itemPacket.setRuntimeEntityId(geyserId);
         itemPacket.setUniqueEntityId(geyserId);
-        itemPacket.setPosition(position.add(0d, this.definition.offset(), 0d));
+        itemPacket.setPosition(bedrockPosition());
         itemPacket.setMotion(motion);
         itemPacket.setFromFishing(false);
         itemPacket.setItemInHand(item);
@@ -115,7 +115,8 @@ public class ItemEntity extends ThrowableEntity {
             // Move the item entity down so it doesn't float above the water
             offset = -definition.offset();
         }
-        super.moveAbsoluteImmediate(position.add(0, offset, 0), 0, 0, 0, isOnGround, teleported);
+        setOffset(offset);
+        super.moveAbsoluteImmediate(position, 0, 0, 0, isOnGround, teleported);
         this.position = position;
 
         waterLevel = session.getGeyser().getWorldManager().getBlockAtAsync(session, position.getFloorX(), position.getFloorY(), position.getFloorZ())
