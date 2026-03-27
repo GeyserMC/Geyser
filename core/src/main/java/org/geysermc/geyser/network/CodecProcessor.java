@@ -81,7 +81,6 @@ import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SettingsCommandPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SimpleEventPacket;
-import org.cloudburstmc.protocol.bedrock.packet.SubChunkRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
 import org.cloudburstmc.protocol.common.util.VarInts;
 
@@ -265,7 +264,6 @@ class CodecProcessor {
             // Illegal unusued serverbound packets that relate to unused features
             .updateSerializer(ClientCacheBlobStatusPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(SubClientLoginPacket.class, ILLEGAL_SERIALIZER)
-            .updateSerializer(SubChunkRequestPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(GameTestRequestPacket.class, ILLEGAL_SERIALIZER)
             // Ignored serverbound packets
             .updateSerializer(ClientToServerHandshakePacket.class, IGNORED_SERIALIZER)
