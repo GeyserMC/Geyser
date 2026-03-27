@@ -19,10 +19,10 @@ loom {
 }
 
 dependencies {
-    modImplementation(libs.fabric.loader)
-    modApi(libs.fabric.api)
+    implementation(libs.fabric.loader)
+    api(libs.fabric.api)
 
-    api(project(":mod", configuration = "namedElements"))
+    api(project(":mod"))
     shadowBundle(project(path = ":mod", configuration = "transformProductionFabric"))
     shadowBundle(projects.core)
     includeTransitive(projects.core)
@@ -47,7 +47,7 @@ dependencies {
     shadowBundle(projects.api)
     shadowBundle(projects.common)
 
-    modImplementation(libs.cloud.fabric)
+    implementation(libs.cloud.fabric)
     include(libs.cloud.fabric)
     include(libs.fabric.permissions.api)
 }
@@ -61,15 +61,12 @@ relocate("org.cloudburstmc.protocol")
 relocate("org.spongepowered.configurate")
 
 tasks {
-    remapJar {
-        archiveBaseName.set("Geyser-Fabric")
-    }
-
     remapModrinthJar {
         archiveBaseName.set("geyser-fabric")
     }
 
     shadowJar {
+        archiveBaseName.set("Geyser-Fabric")
         mergeServiceFiles()
     }
 }
