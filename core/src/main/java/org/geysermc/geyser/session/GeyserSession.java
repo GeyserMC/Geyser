@@ -62,7 +62,6 @@ import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
 import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
-import org.cloudburstmc.protocol.bedrock.data.AuthoritativeMovementMode;
 import org.cloudburstmc.protocol.bedrock.data.ChatRestrictionLevel;
 import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.GamePublishSetting;
@@ -740,7 +739,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * How fast the world time should pass according to the server
      */
-    @Setter
     private float clockRate = 1.0f;
 
     /**
@@ -1909,8 +1907,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
 
-        startGamePacket.getItemDefinitions().addAll(this.itemMappings.getItemDefinitions().values());
-
         // Needed for custom block mappings and custom skulls system
         startGamePacket.getBlockProperties().addAll(this.blockMappings.getBlockProperties());
 
@@ -1923,7 +1919,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         startGamePacket.setChatRestrictionLevel(ChatRestrictionLevel.NONE);
 
-        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.SERVER);
         startGamePacket.setRewindHistorySize(0);
         // Server authorative block breaking results in the client always sending
         // positions for block breaking actions, which is easier to validate
