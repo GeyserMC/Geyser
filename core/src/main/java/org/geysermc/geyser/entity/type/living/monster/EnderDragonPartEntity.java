@@ -41,7 +41,6 @@ public class EnderDragonPartEntity extends Entity {
 
         dirtyMetadata.put(EntityDataTypes.WIDTH, width);
         dirtyMetadata.put(EntityDataTypes.HEIGHT, height);
-
         setFlag(EntityFlag.INVISIBLE, true);
         setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
@@ -58,7 +57,7 @@ public class EnderDragonPartEntity extends Entity {
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
         moveEntityPacket.setPosition(bedrockPosition());
-        moveEntityPacket.setRotation(getBedrockRotation());
+        moveEntityPacket.setRotation(bedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(teleported);
 

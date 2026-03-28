@@ -91,7 +91,7 @@ public class ArmorStandEntity extends LivingEntity {
     @Override
     public void spawnEntity() {
         // Apply the offset if we're the second entity
-        offset(getYOffset(), false);
+        setOffset(getYOffset());
         super.spawnEntity();
     }
 
@@ -105,7 +105,7 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveAbsoluteRaw(position().add(relX, relY, relZ), yaw, pitch, headYaw, onGround, false);
+        moveAbsoluteRaw(position.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
     }
 
     @Override
@@ -114,7 +114,7 @@ public class ArmorStandEntity extends LivingEntity {
             secondEntity.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
         }
         // Fake the height to be above where it is so the nametag appears in the right location
-        offset(getYOffset(), false);
+        setOffset(getYOffset());
         super.moveAbsoluteRaw(javaPosition, yaw, yaw, yaw, isOnGround, teleported);
     }
 
@@ -435,7 +435,7 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
-    public Vector3f getBedrockRotation() {
+    public Vector3f bedrockRotation() {
         return Vector3f.from(getYaw(), getYaw(), getYaw());
     }
 }

@@ -134,7 +134,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
         for (int i = 0; i < segmentHistory.length; i++) {
             segmentHistory[i] = new Segment();
             segmentHistory[i].yaw = getHeadYaw();
-            segmentHistory[i].y = position().getY();
+            segmentHistory[i].y = position.getY();
         }
     }
 
@@ -212,7 +212,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
         }
         // Send updated positions
         for (EnderDragonPartEntity part : allParts) {
-             part.moveAbsoluteRaw(part.position().add(position()), 0, 0, 0, false, false);
+             part.moveAbsoluteRaw(part.position().add(position), 0, 0, 0, false, false);
         }
     }
 
@@ -251,7 +251,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
             phaseTicks++;
             if (phase == 3) { // Landing Phase
                 float headHeight = head.getBoundingBoxHeight();
-                Vector3f headCenter = head.bedrockPosition().up(headHeight * 0.5f);
+                Vector3f headCenter = head.position().up(headHeight * 0.5f);
 
                 for (int i = 0; i < 8; i++) {
                     Vector3f particlePos = headCenter.add(random.nextGaussian() / 2f, random.nextGaussian() / 2f, random.nextGaussian() / 2f);
@@ -317,7 +317,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
     private void pushSegment() {
         latestSegment = (latestSegment + 1) % segmentHistory.length;
         segmentHistory[latestSegment].yaw = getHeadYaw();
-        segmentHistory[latestSegment].y = position().getY();
+        segmentHistory[latestSegment].y = position.getY();
     }
 
     /**

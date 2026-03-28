@@ -90,7 +90,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                     MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
                     movePlayerPacket.setRuntimeEntityId(entity.geyserId());
                     movePlayerPacket.setPosition(entity.bedrockPosition());
-                    movePlayerPacket.setRotation(entity.getBedrockRotation());
+                    movePlayerPacket.setRotation(entity.bedrockRotation());
                     movePlayerPacket.setOnGround(false);
                     movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
                     movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);

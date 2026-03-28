@@ -82,7 +82,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
             movePlayerPacket.setRuntimeEntityId(entity.geyserId());
             movePlayerPacket.setPosition(entity.bedrockPosition());
-            movePlayerPacket.setRotation(entity.getBedrockRotation());
+            movePlayerPacket.setRotation(entity.bedrockRotation());
             movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
             session.sendUpstreamPacket(movePlayerPacket);
 

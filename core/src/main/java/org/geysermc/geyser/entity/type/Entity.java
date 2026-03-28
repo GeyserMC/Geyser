@@ -111,12 +111,9 @@ public class Entity implements GeyserEntity {
     protected String nametag = "";
     protected boolean customNameVisible;
 
-    /**
-     * The entity position as it is known to the Java server
-     */
-    @Setter
-    private Vector3f position;
+    protected Vector3f position;
     protected Vector3f motion;
+    protected float offset;
 
     /**
      * x = Yaw, y = Pitch, z = HeadYaw
@@ -179,7 +176,6 @@ public class Entity implements GeyserEntity {
     @Setter(AccessLevel.PROTECTED) // For players
     private boolean flagsDirty = false;
 
-    protected float offset;
     protected float scale = 1.0F;
 
     protected final @Nullable GeyserEntityPropertyManager propertyManager;
@@ -196,10 +192,10 @@ public class Entity implements GeyserEntity {
         this.yaw = context.yaw();
         this.pitch = context.pitch();
         this.headYaw = context.headYaw();
-        this.offset = context.offset();
         this.valid = false;
         this.propertyManager = bedrockDefinition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(bedrockDefinition.registeredProperties());
 
+        setOffset(context.offset());
         setPosition(context.position());
         setAirSupply(getMaxAir());
 
@@ -290,7 +286,7 @@ public class Entity implements GeyserEntity {
 
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         if (this instanceof ClientVehicle clientVehicle) {
-            if (clientVehicle.isClientControlled()) {
+            if (clientVehicle.shouldSimulateMovement()) {
                 return;
             }
             clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
@@ -349,17 +345,17 @@ public class Entity implements GeyserEntity {
         }
     }
 
-    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, boolean isOnGround, boolean teleported) {
-        moveAbsolute(javaPosition, yaw, pitch, getHeadYaw(), isOnGround, teleported);
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, boolean isOnGround, boolean teleported) {
+        moveAbsolute(position, yaw, pitch, getHeadYaw(), isOnGround, teleported);
     }
 
-    public void moveAbsolute(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
     }
 
-    public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        setPosition(javaPosition);
-        // Setters are intentional so it can be overridden in places like AbstractArrowEntity
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        setPosition(position);
+        // Setters are intentional, so it can be overridden in places like AbstractArrowEntity
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
@@ -369,7 +365,7 @@ public class Entity implements GeyserEntity {
             MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
             moveEntityPacket.setRuntimeEntityId(geyserId);
             moveEntityPacket.setPosition(bedrockPosition());
-            moveEntityPacket.setRotation(getBedrockRotation());
+            moveEntityPacket.setRotation(bedrockRotation());
             moveEntityPacket.setOnGround(isOnGround);
             moveEntityPacket.setTeleported(teleported);
 
@@ -749,8 +745,18 @@ public class Entity implements GeyserEntity {
      *
      * @return the bedrock rotation
      */
-    public Vector3f getBedrockRotation() {
+    public Vector3f bedrockRotation() {
         return Vector3f.from(getPitch(), getYaw(), getHeadYaw());
+    }
+
+    /**
+     * Gets the Bedrock edition position with the offset applied
+     */
+    public Vector3f bedrockPosition() {
+        if (offset == 0f) {
+            return position;
+        }
+        return position.up(offset);
     }
 
     /**
@@ -785,13 +791,6 @@ public class Entity implements GeyserEntity {
 
     public boolean isAlive() {
         return this.valid;
-    }
-
-    public Vector3f bedrockPosition() {
-        if (this.offset == 0f) {
-            return position;
-        }
-        return position.up(offset);
     }
 
     /**
@@ -863,7 +862,7 @@ public class Entity implements GeyserEntity {
         List<Leashable> leashedInRange = session.getEntityCache().getEntities().values().stream()
             .filter(entity -> entity instanceof Leashable leashablex && leashablex.leashHolderBedrockId() == this.geyserId())
             .filter(entity -> {
-                BoundingBox leashedBB = new BoundingBox(entity.position.toDouble(), entity.boundingBoxWidth, entity.boundingBoxHeight, entity.boundingBoxWidth);
+                BoundingBox leashedBB = new BoundingBox(entity.position().toDouble(), entity.boundingBoxWidth, entity.boundingBoxHeight, entity.boundingBoxWidth);
                 return searchBB.checkIntersection(leashedBB);
             }).map(Leashable.class::cast).toList();
 
@@ -944,7 +943,7 @@ public class Entity implements GeyserEntity {
     }
 
     public void offset(float offset, boolean teleport) {
-        this.offset = offset;
+        setOffset(offset);
         // TODO queue
         if (isValid() && teleport) {
             this.moveRelativeRaw(0, 0, 0, 0, 0, 0, isOnGround());

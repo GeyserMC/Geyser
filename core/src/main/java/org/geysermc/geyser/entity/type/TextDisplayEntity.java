@@ -124,7 +124,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         if (secondEntity != null) {
             secondEntity.moveAbsoluteRaw(position.down(LINE_HEIGHT_OFFSET), yaw, pitch, headYaw, isOnGround, teleported);
         }
-        super.moveAbsoluteRaw(position.up(calculateLineOffset()), yaw, pitch, headYaw, isOnGround, teleported);
+        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     public void setText(EntityMetadata<Component, ?> entityMetadata) {
@@ -134,8 +134,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
         // If the line count changed, update the position to account for the new offset
         if (this.lineCount != oldLineCount) {
-            Vector3f positionWithoutOffset = position().down(calculateLineOffset(oldLineCount));
-            moveAbsoluteRaw(positionWithoutOffset, yaw, pitch, headYaw, onGround, false);
+            setOffset(calculateLineOffset());
+            moveAbsoluteRaw(position, yaw, pitch, headYaw, onGround, false);
         }
     }
 
@@ -170,7 +170,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         }
 
         if (this.secondEntity == null) {
-            secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, VanillaEntities.ARMOR_STAND, this, position().down(calculateLineOffset()).down(LINE_HEIGHT_OFFSET)));
+            secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, VanillaEntities.ARMOR_STAND, this, position.down(LINE_HEIGHT_OFFSET)));
         }
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, this.nametag);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
@@ -181,14 +181,6 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
     }
-
-    /**
-     * Calculates the line offset for the current line count.
-     */
-    public float calculateLineOffset() {
-        return calculateLineOffset(lineCount);
-    }
-
     /**
      * Calculates the Y offset needed to match Java Edition's text centering
      * behavior for multi-line text displays.
@@ -196,7 +188,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
      *
      * @return the Y offset to apply based on the number of lines
      */
-    public static float calculateLineOffset(int lineCount) {
+    public float calculateLineOffset() {
         if (lineCount == 0) {
             return 0;
         }

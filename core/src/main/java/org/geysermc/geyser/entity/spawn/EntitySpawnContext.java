@@ -63,15 +63,15 @@ public class EntitySpawnContext {
     private BedrockEntityDefinition bedrockEntityDefinition;
     private Vector3f position;
     private Vector3f motion;
+    private float offset;
     private float yaw;
     private float pitch;
     private float headYaw;
-    private float offset;
     private @Nullable Long geyserId;
     private @Nullable Collection<Consumer<GeyserEntity>> consumers;
 
     public static final TriFunction<GeyserSession, UUID, EntityTypeDefinition<?>, EntitySpawnContext> DUMMY_CONTEXT = ((session, uuid, definition) -> {
-        return new EntitySpawnContext(session, definition, 0, uuid);
+        return new EntitySpawnContext(session, definition, -1, uuid);
     });
 
     public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> type, int javaId, UUID uuid) {
@@ -100,13 +100,13 @@ public class EntitySpawnContext {
         this.entityTypeDefinition = definition;
         this.javaId = javaId;
         this.uuid = uuid;
-        this.bedrockEntityDefinition = bedrockEntityDefinition;
         this.position = position;
+        this.offset = definition.offset();
+        this.bedrockEntityDefinition = bedrockEntityDefinition;
         this.motion = motion;
         this.yaw = yaw;
         this.pitch = pitch;
         this.headYaw = headYaw;
-        this.offset = offset;
         this.geyserId = geyserId;
         this.consumers = null;
     }

@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.session.cache;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2d;
@@ -32,8 +34,6 @@ import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import lombok.Getter;
-import lombok.Setter;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -163,8 +163,8 @@ public class WorldBorder {
             PlayerEntity playerEntity = session.getPlayerEntity();
             // Move the player back, but allow gravity to take place
             // Teleported = true makes going back better, but disconnects the player from their mounted entity
-            playerEntity.moveAbsolute(Vector3f.from(playerEntity.getPosition().getX(), newPosition.getY(), playerEntity.getPosition().getZ()),
-                playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
+            Vector3f combinedPosition = Vector3f.from(playerEntity.position().getX(), newPosition.getY(), playerEntity.position().getZ());
+            playerEntity.moveAbsoluteRaw(combinedPosition, playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
         }
         return isInWorldBorder;
     }
@@ -329,16 +329,16 @@ public class WorldBorder {
         float particlePosY = entityPosition.getY();
         float particlePosZ = entityPosition.getZ();
 
-        if (entityPosition.getX() > Math.min(warningMaxX, maxX - CLOSE_TO_BORDER)) {
+        if (particlePosX > Math.min(warningMaxX, maxX - CLOSE_TO_BORDER)) {
             drawWall(Vector3f.from(maxX, particlePosY, particlePosZ), true);
         }
-        if (entityPosition.getX() < Math.max(warningMinX, minX + CLOSE_TO_BORDER)) {
+        if (particlePosX < Math.max(warningMinX, minX + CLOSE_TO_BORDER)) {
             drawWall(Vector3f.from(minX, particlePosY, particlePosZ), true);
         }
-        if (entityPosition.getZ() > Math.min(warningMaxZ, maxZ - CLOSE_TO_BORDER)) {
+        if (particlePosZ > Math.min(warningMaxZ, maxZ - CLOSE_TO_BORDER)) {
             drawWall(Vector3f.from(particlePosX, particlePosY, maxZ), false);
         }
-        if (entityPosition.getZ() < Math.max(warningMinZ, minZ + CLOSE_TO_BORDER)) {
+        if (particlePosZ < Math.max(warningMinZ, minZ + CLOSE_TO_BORDER)) {
             drawWall(Vector3f.from(particlePosX, particlePosY, minZ), false);
         }
     }

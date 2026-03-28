@@ -141,7 +141,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                         // https://minecraft.wiki/w/Fishing_Rod#Hooking_mobs_and_other_entities
                         SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
                         motionPacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
-                        motionPacket.setMotion(hookOwner.bedrockPosition().sub(session.getPlayerEntity().bedrockPosition()).mul(0.1f));
+                        motionPacket.setMotion(hookOwner.position().sub(session.getPlayerEntity().position()).mul(0.1f));
                         session.sendUpstreamPacket(motionPacket);
                     }
                 }
@@ -219,7 +219,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case VILLAGER_SWEAT:
                 LevelEventPacket levelEventPacket = new LevelEventPacket();
                 levelEventPacket.setType(ParticleType.WATER_SPLASH);
-                levelEventPacket.setPosition(entity.bedrockPosition().up(entity.getBoundingBoxHeight()));
+                levelEventPacket.setPosition(entity.position().up(entity.getBoundingBoxHeight()));
                 session.sendUpstreamPacket(levelEventPacket);
                 return;
             case IRON_GOLEM_EMPTY_HAND:
@@ -251,6 +251,8 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case LIVING_EQUIPMENT_BREAK_FEET:
             case LIVING_EQUIPMENT_BREAK_MAIN_HAND:
             case LIVING_EQUIPMENT_BREAK_OFF_HAND:
+            case SADDLE_BREAK:
+            case LIVING_EQUIPMENT_BREAK_BODY:
                 LevelSoundEventPacket equipmentBreakPacket = new LevelSoundEventPacket();
                 equipmentBreakPacket.setSound(SoundEvent.BREAK);
                 equipmentBreakPacket.setPosition(entity.bedrockPosition());

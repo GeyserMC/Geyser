@@ -149,7 +149,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
         setPitch(pitch);
         setHeadYaw(headYaw);
         setOnGround(isOnGround);
-        setPosition(Vector3f.from(position().getX() + relX, position().getY() + relY, position().getZ() + relZ));
+        this.position = position.add(relX, relY, relZ);
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);

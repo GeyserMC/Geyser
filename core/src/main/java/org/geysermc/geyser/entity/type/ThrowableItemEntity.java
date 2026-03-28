@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.entity.type;
 
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
@@ -59,9 +60,11 @@ public class ThrowableItemEntity extends ThrowableEntity {
         age++;
 
         // Prevent projectiles from blocking the player's screen
+        // TODO this seems incorrect
         if (session.isTickingFrozen()) {
             // This may seem odd, but it matches java edition
-            setInvisible(session.getPlayerEntity().position().distanceSquared(position()) < 12.25);
+            Vector3f playerPos = session.getPlayerEntity().position();
+            setInvisible(playerPos.distanceSquared(this.position) < 12.25);
         } else {
             setInvisible(age < 2);
         }
