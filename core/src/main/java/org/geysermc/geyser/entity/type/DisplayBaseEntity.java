@@ -50,26 +50,9 @@ public class DisplayBaseEntity extends Entity {
             return;
         }
 
-        // No more translation, remove the old
-        if (Vector3f.ZERO.equals(this.baseTranslation)) {
-            if (vehicle == null) {
-                this.setRiderSeatPosition(this.baseTranslation);
-                this.moveRelativeRaw(-oldTranslation.getX(), -oldTranslation.getY(), -oldTranslation.getZ(), yaw, pitch, headYaw, false);
-            } else {
-                EntityUtils.updateMountOffset(this, this.vehicle, true, true, 0, 1);
-                this.updateBedrockMetadata();
-            }
-            return;
-        }
-
-        // Use the diff between the old and new translation
-        float xTranslation = oldTranslation.getX() - this.baseTranslation.getX();
-        float yTranslation = oldTranslation.getY() - this.baseTranslation.getY();
-        float zTranslation = oldTranslation.getZ() - this.baseTranslation.getZ();
-
         if (this.vehicle == null) {
             this.setRiderSeatPosition(this.baseTranslation);
-            this.moveRelativeRaw(xTranslation, yTranslation, zTranslation, yaw, pitch, headYaw, false);
+            this.moveRelativeRaw(0, 0, 0, yaw, pitch, headYaw, false);
         } else {
             EntityUtils.updateMountOffset(this, this.vehicle, true, true, 0, 1);
             this.updateBedrockMetadata();
@@ -78,5 +61,10 @@ public class DisplayBaseEntity extends Entity {
 
     public Vector3f getTranslation() {
         return baseTranslation;
+    }
+
+    @Override
+    public Vector3f bedrockPosition() {
+        return super.bedrockPosition().add(baseTranslation);
     }
 }
