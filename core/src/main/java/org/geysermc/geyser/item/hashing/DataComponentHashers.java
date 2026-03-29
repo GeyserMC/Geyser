@@ -41,7 +41,6 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
@@ -113,7 +112,7 @@ public class DataComponentHashers {
 
         register(DataComponentTypes.CUSTOM_NAME, ComponentHasher.COMPONENT);
         register(DataComponentTypes.MINIMUM_ATTACK_CHARGE, MinecraftHasher.FLOAT);
-        register(DataComponentTypes.DAMAGE_TYPE, MinecraftHasher.INT);
+        register(DataComponentTypes.DAMAGE_TYPE, RegistryHasher.DAMAGE_TYPE);
         register(DataComponentTypes.ITEM_NAME, ComponentHasher.COMPONENT);
         register(DataComponentTypes.ITEM_MODEL, MinecraftHasher.KEY);
         register(DataComponentTypes.LORE, ComponentHasher.COMPONENT.list());
@@ -156,7 +155,7 @@ public class DataComponentHashers {
             .accept("seconds", MinecraftHasher.FLOAT, UseCooldown::seconds)
             .optionalNullable("cooldown_group", MinecraftHasher.KEY, UseCooldown::cooldownGroup));
         registerMap(DataComponentTypes.DAMAGE_RESISTANT, builder -> builder
-            .accept("types", MinecraftHasher.TAG, HolderSet::getLocation));
+            .accept("types", RegistryHasher.DAMAGE_TYPE.holderSet(), Function.identity()));
         registerMap(DataComponentTypes.TOOL, builder -> builder
             .acceptList("rules", RegistryHasher.TOOL_RULE, ToolData::getRules)
             .optional("default_mining_speed", MinecraftHasher.FLOAT, ToolData::getDefaultMiningSpeed, 1.0F)
@@ -207,10 +206,7 @@ public class DataComponentHashers {
             .optional("disable_cooldown_scale", MinecraftHasher.FLOAT, BlocksAttacks::disableCooldownScale, 1.0F)
             .optional("damage_reductions", RegistryHasher.BLOCKS_ATTACKS_DAMAGE_REDUCTION.list(), BlocksAttacks::damageReductions, List.of(new BlocksAttacks.DamageReduction(90.0F, null, 0.0F, 1.0F)))
             .optional("item_damage", RegistryHasher.BLOCKS_ATTACKS_ITEM_DAMAGE_FUNCTION, BlocksAttacks::itemDamage, new BlocksAttacks.ItemDamageFunction(1.0F, 0.0F, 1.0F))
-            .optionalNullable("bypassed_by", MinecraftHasher.TAG, blocksAttacks -> {
-                if (blocksAttacks.bypassedBy() == null) return null;
-                else return blocksAttacks.bypassedBy().getLocation();
-            })
+            .optionalNullable("bypassed_by", RegistryHasher.DAMAGE_TYPE.holderSet(), BlocksAttacks::bypassedBy)
             .optionalNullable("block_sound", RegistryHasher.SOUND_EVENT, BlocksAttacks::blockSound)
             .optionalNullable("disabled_sound", RegistryHasher.SOUND_EVENT, BlocksAttacks::disableSound)); // TODO needs tests
         registerMap(DataComponentTypes.KINETIC_WEAPON, builder -> builder
@@ -224,6 +220,8 @@ public class DataComponentHashers {
             .optionalNullable("sound", RegistryHasher.SOUND_EVENT, KineticWeapon::sound)
             .optionalNullable("hit_sound", RegistryHasher.SOUND_EVENT, KineticWeapon::hitSound)); // TODO test 1.21.11
         register(DataComponentTypes.STORED_ENCHANTMENTS, RegistryHasher.ITEM_ENCHANTMENTS);
+
+        register(DataComponentTypes.DYE, MinecraftHasher.DYE_COLOR);
 
         registerInt(DataComponentTypes.DYED_COLOR);
         registerInt(DataComponentTypes.MAP_COLOR);
@@ -267,7 +265,7 @@ public class DataComponentHashers {
         registerInt(DataComponentTypes.OMINOUS_BOTTLE_AMPLIFIER);
 
         register(DataComponentTypes.JUKEBOX_PLAYABLE, RegistryHasher.JUKEBOX_SONG.holder());
-        register(DataComponentTypes.PROVIDES_BANNER_PATTERNS, MinecraftHasher.TAG.cast(HolderSet::getLocation));
+        register(DataComponentTypes.PROVIDES_BANNER_PATTERNS, RegistryHasher.BANNER_PATTERN.holderSet());
         register(DataComponentTypes.RECIPES, MinecraftHasher.NBT_LIST);
 
         registerMap(DataComponentTypes.LODESTONE_TRACKER, builder -> builder
