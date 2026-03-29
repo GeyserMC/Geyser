@@ -134,9 +134,11 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
+        Map<Item, Item> dandelion = Map.of(Items.GOLDEN_DANDELION, Items.DANDELION);
+
         List<PaletteVersion> paletteVersions = new ArrayList<>(3);
-        paletteVersions.add(new PaletteVersion("1_21_130", Bedrock_v898.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("1_26_0", Bedrock_v924.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_130", Bedrock_v898.CODEC.getProtocolVersion(), dandelion));
+        paletteVersions.add(new PaletteVersion("1_26_0", Bedrock_v924.CODEC.getProtocolVersion(), dandelion));
         paletteVersions.add(new PaletteVersion("1_26_10", Bedrock_v944.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
