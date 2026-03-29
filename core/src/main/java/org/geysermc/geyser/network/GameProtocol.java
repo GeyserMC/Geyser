@@ -77,8 +77,7 @@ public final class GameProtocol {
      * Java codec that is supported. We only ever support one version for
      * Java Edition.
      */
-    private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC
-        .toBuilder().protocolVersion(775).minecraftVersion("26.1").build();
+    private static final PacketCodec DEFAULT_JAVA_CODEC = MinecraftCodec.CODEC;
 
     static {
         // Strict ordering
