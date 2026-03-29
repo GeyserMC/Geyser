@@ -33,7 +33,7 @@ dependencies {
 
     neoForge(libs.neoforge.minecraft)
 
-    api(project(":mod", configuration = "namedElements"))
+    api(project(":mod"))
     shadowBundle(project(path = ":mod", configuration = "transformProductionNeoForge"))
     shadowBundle(projects.core)
 
@@ -51,7 +51,7 @@ dependencies {
     // Include all transitive deps of core via JiJ
     includeTransitive(projects.core)
 
-    modImplementation(libs.cloud.neoforge)
+    implementation(libs.cloud.neoforge)
     include(libs.cloud.neoforge)
 }
 
@@ -62,15 +62,12 @@ tasks.withType<Jar> {
 }
 
 tasks {
-    remapJar {
-        archiveBaseName.set("Geyser-NeoForge")
-    }
-
     remapModrinthJar {
         archiveBaseName.set("geyser-neoforge")
     }
 
     shadowJar {
+        archiveBaseName.set("Geyser-NeoForge")
         mergeServiceFiles()
     }
 }

@@ -58,7 +58,7 @@ public class ModCommandSource implements GeyserCommandSource {
     @Override
     public void sendMessage(@NonNull String message) {
         if (source.getEntity() instanceof ServerPlayer) {
-            ((ServerPlayer) source.getEntity()).displayClientMessage(Component.literal(message), false);
+            ((ServerPlayer) source.getEntity()).sendSystemMessage(Component.literal(message), false);
         } else {
             GeyserImpl.getInstance().getLogger().info(ChatColor.toANSI(message + ChatColor.RESET));
         }
@@ -68,7 +68,7 @@ public class ModCommandSource implements GeyserCommandSource {
     public void sendMessage(net.kyori.adventure.text.Component message) {
         if (source.getEntity() instanceof ServerPlayer player) {
             JsonElement jsonComponent = GsonComponentSerializer.gson().serializeToTree(message);
-            player.displayClientMessage(ComponentSerialization.CODEC.parse(RegistryOps.create(JsonOps.INSTANCE, player.registryAccess()), jsonComponent).getOrThrow(), false);
+            player.sendSystemMessage(ComponentSerialization.CODEC.parse(RegistryOps.create(JsonOps.INSTANCE, player.registryAccess()), jsonComponent).getOrThrow(), false);
             return;
         }
         GeyserCommandSource.super.sendMessage(message);
