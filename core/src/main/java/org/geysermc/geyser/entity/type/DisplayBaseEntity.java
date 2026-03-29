@@ -52,7 +52,7 @@ public class DisplayBaseEntity extends Entity {
 
         if (this.vehicle == null) {
             this.setRiderSeatPosition(this.baseTranslation);
-            this.moveRelativeRaw(0, 0, 0, yaw, pitch, headYaw, false);
+            this.moveAbsoluteRaw(position, yaw, pitch, headYaw, onGround, true);
         } else {
             EntityUtils.updateMountOffset(this, this.vehicle, true, true, 0, 1);
             this.updateBedrockMetadata();
