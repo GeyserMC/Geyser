@@ -181,6 +181,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
     }
+
     /**
      * Calculates the Y offset needed to match Java Edition's text centering
      * behavior for multi-line text displays.
