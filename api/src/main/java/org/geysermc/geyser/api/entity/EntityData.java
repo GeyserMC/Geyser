@@ -42,12 +42,28 @@ import java.util.concurrent.CompletableFuture;
 public interface EntityData {
 
     /**
+     * @deprecated use {@link #byJavaId(int)}
+     */
+    @Deprecated
+    @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
+
+    /**
      * Returns a {@link GeyserEntity} to e.g. make them play an emote.
      *
      * @param javaId the Java entity ID to look up
      * @return a {@link GeyserEntity} if present in this connection's entity tracker
      */
-    @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
+    @Nullable GeyserEntity byJavaId(@NonNegative int javaId);
+
+    /**
+     * Returns a {@link GeyserEntity} to e.g. update entity properties.
+     */
+    @Nullable GeyserEntity byUuid(@NonNull UUID javaUuid);
+
+    /**
+     * Returns a {@link GeyserEntity} based on a Geyser entity id
+     */
+    @Nullable GeyserEntity byGeyserId(@NonNegative long geyserId);
 
     /**
      * (Un)locks the client's movement inputs, so that they cannot move.

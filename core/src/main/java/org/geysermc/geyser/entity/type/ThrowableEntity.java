@@ -32,7 +32,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.level.block.BlockStateValues;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 
 /**
  * Used as a class for any object-like entity that moves as a projectile
@@ -119,20 +119,16 @@ public class ThrowableEntity extends Entity implements Tickable {
      */
     protected float getGravity() {
         if (getFlag(EntityFlag.HAS_GRAVITY)) {
-            switch (definition.entityType()) {
-                case LINGERING_POTION, SPLASH_POTION:
-                    return 0.05f;
-                case EXPERIENCE_BOTTLE:
-                    return 0.07f;
-                case FIREBALL:
-                case SHULKER_BULLET:
-                    return 0;
-                case SNOWBALL:
-                case EGG:
-                case ENDER_PEARL:
-                    return 0.03f;
-                case LLAMA_SPIT:
-                    return 0.06f;
+            if (javaTypeDefinition.is(BuiltinEntityType.LINGERING_POTION) || javaTypeDefinition.is(BuiltinEntityType.SPLASH_POTION)) {
+                return 0.05f;
+            } else if (javaTypeDefinition.is(BuiltinEntityType.EXPERIENCE_BOTTLE)) {
+                return 0.07f;
+            } else if (javaTypeDefinition.is(BuiltinEntityType.FIREBALL) || javaTypeDefinition.is(BuiltinEntityType.SHULKER_BULLET)) {
+                return 0;
+            } else if (javaTypeDefinition.is(BuiltinEntityType.SNOWBALL) || javaTypeDefinition.is(BuiltinEntityType.EGG) || javaTypeDefinition.is(BuiltinEntityType.ENDER_PEARL)) {
+                return 0.03f;
+            } else if (javaTypeDefinition.is(BuiltinEntityType.LLAMA_SPIT)) {
+                return 0.06f;
             }
         }
         return 0;
@@ -145,20 +141,13 @@ public class ThrowableEntity extends Entity implements Tickable {
         if (isInWater()) {
             return 0.8f;
         } else {
-            switch (definition.entityType()) {
-                case LINGERING_POTION, SPLASH_POTION:
-                case EXPERIENCE_BOTTLE:
-                case SNOWBALL:
-                case EGG:
-                case ENDER_PEARL:
-                case LLAMA_SPIT:
-                    return 0.99f;
-                case FIREBALL:
-                case SMALL_FIREBALL:
-                case DRAGON_FIREBALL:
-                    return 0.95f;
-                case SHULKER_BULLET:
-                    return 1;
+            if (javaTypeDefinition.is(BuiltinEntityType.LINGERING_POTION) || javaTypeDefinition.is(BuiltinEntityType.SPLASH_POTION) || javaTypeDefinition.is(BuiltinEntityType.EXPERIENCE_BOTTLE)
+                || javaTypeDefinition.is(BuiltinEntityType.SNOWBALL) || javaTypeDefinition.is(BuiltinEntityType.EGG) || javaTypeDefinition.is(BuiltinEntityType.ENDER_PEARL) || javaTypeDefinition.is(BuiltinEntityType.LLAMA_SPIT)) {
+                return 0.99f;
+            } else if (javaTypeDefinition.is(BuiltinEntityType.FIREBALL) || javaTypeDefinition.is(BuiltinEntityType.SMALL_FIREBALL) || javaTypeDefinition.is(BuiltinEntityType.DRAGON_FIREBALL)) {
+                return 0.95f;
+            } else if (javaTypeDefinition.is(BuiltinEntityType.SHULKER_BULLET)) {
+                return 1;
             }
         }
         return 1;
@@ -174,7 +163,7 @@ public class ThrowableEntity extends Entity implements Tickable {
 
     @Override
     public void despawnEntity() {
-        if (definition.entityType() == EntityType.ENDER_PEARL) {
+        if (javaTypeDefinition.is(BuiltinEntityType.ENDER_PEARL)) {
             LevelEventPacket particlePacket = new LevelEventPacket();
             particlePacket.setType(LevelEvent.PARTICLE_TELEPORT);
             particlePacket.setPosition(bedrockPosition());

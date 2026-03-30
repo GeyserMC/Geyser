@@ -42,7 +42,6 @@ import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -81,6 +80,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
@@ -399,7 +399,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                             session.sendUpstreamPacket(soundPacket);
                                         } else {
                                             PlaySoundPacket playSoundPacket = new PlaySoundPacket();
-                                            playSoundPacket.setPosition(session.getPlayerEntity().position());
+                                            playSoundPacket.setPosition(session.getPlayerEntity().bedrockPosition());
                                             playSoundPacket.setSound(SoundUtils.translatePlaySound(instrument.soundEvent()));
                                             playSoundPacket.setPitch(1.0F);
                                             playSoundPacket.setVolume(instrument.range() / 16.0F);
@@ -475,7 +475,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         int entityId;
-                        if (entity.getDefinition() == EntityDefinitions.ENDER_DRAGON) {
+                        if (entity.getJavaTypeDefinition().is(BuiltinEntityType.ENDER_DRAGON)) {
                             // Redirects the attack to its body entity, this only happens when
                             // attacking the underbelly of the ender dragon
                             entityId = entity.getEntityId() + 3;

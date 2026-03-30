@@ -32,7 +32,6 @@ import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.item.type.Item;
@@ -43,15 +42,15 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.SnifferStat
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 
 public class SnifferEntity extends AnimalEntity implements Tickable {
-    private static final float DIGGING_HEIGHT = EntityDefinitions.SNIFFER.height() - 0.4f;
     private static final int DIG_END = 120;
     private static final int DIG_START = DIG_END - 34;
-
+    private final float diggingHeight;
     private Pose pose = Pose.STANDING; // Needed to call setDimensions for DIGGING state
     private int digTicks;
 
     public SnifferEntity(EntitySpawnContext context) {
         super(context);
+        diggingHeight = javaTypeDefinition.height() - 0.4f;
     }
 
     @Override
@@ -63,8 +62,8 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
     @Override
     protected void setDimensionsFromPose(Pose pose) {
         if (getFlag(EntityFlag.DIGGING)) {
-            setBoundingBoxHeight(DIGGING_HEIGHT);
-            setBoundingBoxWidth(definition.width());
+            setBoundingBoxHeight(diggingHeight);
+            setBoundingBoxWidth(javaTypeDefinition.width());
         } else {
             super.setDimensionsFromPose(pose);
         }

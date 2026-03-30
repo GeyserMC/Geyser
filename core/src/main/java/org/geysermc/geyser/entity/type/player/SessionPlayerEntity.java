@@ -38,7 +38,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.BoatEntity;
@@ -138,7 +138,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     private boolean collidingVertically;
 
     public SessionPlayerEntity(GeyserSession session) {
-        super(new EntitySpawnContext(session, EntityDefinitions.PLAYER, -1, null), null, null);
+        super(new EntitySpawnContext(session, VanillaEntities.PLAYER, -1, null), null, null);
 
         valid = true;
     }
@@ -232,7 +232,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         }
 
         // Player is "above" the void so they're not supposed to no clip.
-        if (session.isNoClip() && position.getY() - EntityDefinitions.PLAYER.offset() >= session.getBedrockDimension().minY() - 5) {
+        if (session.isNoClip() && position().getY() >= session.getBedrockDimension().minY() - 5) {
             session.setNoClip(false);
         }
     }
@@ -492,8 +492,9 @@ public class SessionPlayerEntity extends PlayerEntity {
             entity.setBoundingBoxHeight(0.5625F);
             entity.updateBedrockMetadata();
         } else if (entity == null && this.vehicle instanceof BoatEntity) {
-            this.vehicle.setBoundingBoxWidth(this.vehicle.getDefinition().width());
-            this.vehicle.setBoundingBoxHeight(this.vehicle.getDefinition().height());
+            // TODO this should respect custom offsets
+            this.vehicle.setBoundingBoxWidth(this.vehicle.getJavaTypeDefinition().width());
+            this.vehicle.setBoundingBoxHeight(this.vehicle.getJavaTypeDefinition().height());
             this.vehicle.updateBedrockMetadata();
         }
 
