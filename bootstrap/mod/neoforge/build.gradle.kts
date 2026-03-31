@@ -62,17 +62,22 @@ tasks.withType<Jar> {
 }
 
 tasks {
-    remapModrinthJar {
-        archiveBaseName.set("geyser-neoforge")
-    }
-
-    shadowJar {
+    named<Jar>("mergeShadowAndJarJar") {
+        from (
+            zipTree( shadowJar.map { it.outputs.files.singleFile } ).matching {
+                exclude("LICENSE")
+            },
+            zipTree( jar.map { it.outputs.files.singleFile } ).matching {
+                include("META-INF/jars/**")
+                include("META-INF/jarjar/**")
+                include("LICENSE")
+            }
+        )
         archiveBaseName.set("Geyser-NeoForge")
-        mergeServiceFiles()
     }
 }
 
 modrinth {
     loaders.add("neoforge")
-    uploadFile.set(tasks.getByPath("remapModrinthJar"))
+    uploadFile.set(tasks.getByName("renameModrinthJar"))
 }

@@ -61,19 +61,25 @@ relocate("org.cloudburstmc.protocol")
 relocate("org.spongepowered.configurate")
 
 tasks {
-    remapModrinthJar {
-        archiveBaseName.set("geyser-fabric")
-    }
-
-    shadowJar {
+    named<Jar>("mergeShadowAndJarJar") {
+        from (
+            zipTree( shadowJar.map { it.outputs.files.singleFile } ).matching {
+                exclude("fabric.mod.json")
+                exclude("LICENSE")
+            },
+            zipTree( jar.map { it.outputs.files.singleFile } ).matching {
+                include("META-INF/jars/**")
+                include("fabric.mod.json")
+                include("LICENSE")
+            }
+        )
         archiveBaseName.set("Geyser-Fabric")
-        mergeServiceFiles()
     }
 }
 
 modrinth {
     loaders.add("fabric")
-    uploadFile.set(tasks.getByPath("remapModrinthJar"))
+    uploadFile.set(tasks.getByName("renameModrinthJar"))
     dependencies {
         required.project("fabric-api")
     }

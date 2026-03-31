@@ -74,16 +74,33 @@ tasks {
     shadowJar {
         // Mirrors the example fabric project, otherwise tons of dependencies are shaded that shouldn't be
         configurations = listOf(project.configurations.getByName("shadowBundle"))
-        // The remapped shadowJar is the final desired mod jar
+        archiveBaseName.set("${project.name}-shaded")
+        mergeServiceFiles()
+    }
+
+    // This task combines the output of the "jar" task, which includes JiJ dependencies,
+    // and the shadowJar for the final jar.
+    // thanks bluemap
+    // https://github.com/BlueMap-Minecraft/BlueMap/blob/cfe73115dc4d1bdd97bc659f41364da65a6a2179/implementations/fabric/build.gradle.kts#L93-L107
+    register<Jar>("mergeShadowAndJarJar") {
+        dependsOn( tasks.shadowJar, tasks.jar )
+        // from sources / final name are configured in the respective projects
         archiveVersion.set("")
         archiveClassifier.set("")
     }
 
-    register("remapModrinthJar", RemapJarTask::class) {
-        dependsOn(shadowJar)
-        inputFile.set(shadowJar.get().archiveFile)
-        archiveVersion.set(versionName(project))
-        archiveClassifier.set("")
+    tasks.register<Copy>("renameModrinthJar") {
+        val sourceJar = tasks.named<Jar>("mergeShadowAndJarJar")
+        dependsOn(sourceJar)
+
+        from(sourceJar.flatMap { it.archiveFile })
+        into(layout.buildDirectory.dir("libs"))
+
+        rename { "${versionName(project)}.jar" }
+    }
+
+    build {
+        dependsOn(tasks.getByName("mergeShadowAndJarJar"))
     }
 }
 
