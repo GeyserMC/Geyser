@@ -52,26 +52,18 @@ public abstract class Inventory {
     @Getter
     private int bedrockId;
 
-    /**
-     * The Java inventory state ID from the server. As of Java Edition 1.18.1 this value has one instance per player.
-     * If this is out of sync with the server when a packet containing it is handled, the server will resync items.
-     * This field has existed since Java Edition 1.17.1.
-     */
+    
     @Getter
     @Setter
     private int stateId;
-    /**
-     * See {@link ClickPlan#execute(boolean)}; used as a hack
-     */
+    
     @Getter
     private int nextStateId = -1;
 
     @Getter
     protected final int size;
 
-    /**
-     * Used for smooth transitions between two windows of the same type.
-     */
+    
     @Getter
     protected final @Nullable ContainerType containerType;
 
@@ -80,24 +72,17 @@ public abstract class Inventory {
 
     protected final GeyserItemStack[] items;
 
-    /**
-     * The location of the inventory block. Will either be a fake block above the player's head, or the actual block location.
-     */
+    
     @Getter
     @Setter
     protected Vector3i holderPosition = Vector3i.ZERO;
 
-    /**
-     * The entity id of the entity holding the inventory.
-     * Either this, or the holder position must be set in order for Bedrock to open inventories.
-     */
+    
     @Getter
     @Setter
     protected long holderId = -1;
 
-    /**
-     * Whether this inventory is currently shown to the Bedrock player.
-     */
+    
     @Getter
     @Setter
     private boolean displayed;
@@ -114,16 +99,16 @@ public abstract class Inventory {
         this.items = new GeyserItemStack[size];
         Arrays.fill(items, GeyserItemStack.EMPTY);
 
-        // This is to prevent conflicts with special bedrock inventory IDs.
-        // The vanilla java server only sends an ID between 1 and 100 when opening an inventory,
-        // so this is rarely needed. (certain plugins)
-        // Example: https://github.com/GeyserMC/Geyser/issues/3254
+        
+        
+        
+        
         this.bedrockId = javaId <= 100 ? javaId : (javaId % 100) + 1;
 
-        // We occasionally need to re-open inventories with a delay in cases where
-        // Java wouldn't - e.g. for virtual chest menus that switch pages.
-        // And, well, we want to avoid reusing Bedrock inventory id's that are currently being used in a closing inventory;
-        // so to be safe we just deviate in that case as well.
+        
+        
+        
+        
         if ((session.getInventoryHolder() != null && session.getInventoryHolder().bedrockId() == bedrockId) || session.isClosingInventory()) {
             this.bedrockId += 1;
         }
@@ -148,7 +133,7 @@ public abstract class Inventory {
         updateItemNetId(oldItem, newItem, session);
         items[slot] = newItem;
 
-        // Lodestone caching
+        
         if (newItem.is(Items.COMPASS)) {
             var tracker = newItem.getComponent(DataComponentTypes.LODESTONE_TRACKER);
             if (tracker != null) {
@@ -170,16 +155,14 @@ public abstract class Inventory {
                 session.getBundleCache().onOldItemDelete(oldItem);
             }
         } else {
-            // Empty item means no more bundle if one existed.
+            
             session.getBundleCache().onOldItemDelete(oldItem);
         }
     }
 
-    /**
-     * See {@link org.geysermc.geyser.inventory.click.ClickPlan#execute(boolean)} for more details.
-     */
+    
     public void incrementStateId(int count) {
-        // nextStateId == -1 means that it was not needed until now
+        
         nextStateId = (nextStateId == -1 ? stateId : nextStateId) + count & Short.MAX_VALUE;
     }
 
@@ -187,19 +170,12 @@ public abstract class Inventory {
         nextStateId = -1;
     }
 
-    /**
-     * Whether we should be sending a {@link org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket}
-     * when closing the inventory.
-     */
+    
     public boolean shouldConfirmContainerClose() {
         return true;
     }
 
-    /**
-     * Used for setting the title, which may be modified to apply integrated pack features.
-     * See {@link Container#getPrefixedTitle(GeyserSession, String)}
-     * @return the title to display
-     */
+    
     protected String getPrefixedTitle(GeyserSession session, String title) {
         return title;
     }

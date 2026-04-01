@@ -88,9 +88,9 @@ import java.util.Optional;
 import java.util.Set;
 
 public class CustomItemRegistryPopulator {
-    // In behaviour packs and Java components this is set to a text value, such as "eat" or "drink"; over Bedrock network it's sent as an int.
-    // These don't all work correctly on Bedrock - see the Consumable.Animation Javadoc in the API
-    // Last checked for bedrock 1.21.94 - IDs might have changed since then
+    
+    
+    
     private static final Map<Consumable.ItemUseAnimation, Integer> BEDROCK_ANIMATIONS = Map.of(
         Consumable.ItemUseAnimation.NONE, 0,
         Consumable.ItemUseAnimation.EAT, 1,
@@ -102,7 +102,7 @@ public class CustomItemRegistryPopulator {
         Consumable.ItemUseAnimation.SPYGLASS, 10,
         Consumable.ItemUseAnimation.BRUSH, 12
     );
-    // default to high use duration to slow down the player
+    
     private static final float DEFAULT_ITEM_USE_DURATION = 1000.0F;
 
     private static final AttackRange DEFAULT_ATTACK_RANGE = new AttackRange(0.0F, 3.0F, 0.0F, 5.0F, 0.3F, 1.0F);
@@ -111,7 +111,7 @@ public class CustomItemRegistryPopulator {
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<Identifier, CustomItemDefinition> customItems,
                                 Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems) {
         MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
-        // Load custom items from mappings files
+        
         mappingsConfigReader.loadItemMappingsFromJson((identifier, item) -> {
             try {
                 validateVanillaOverride(identifier, item, customItems, items);
@@ -145,7 +145,7 @@ public class CustomItemRegistryPopulator {
 
                 for (NonVanillaCustomItemDefinition existing : nonVanillaCustomItems.values()) {
                     if (existing.identifier().equals(definition.identifier()) || existing.javaId() == definition.javaId()) {
-                        // Until predicates are a thing, then predicate conflict detection should be used like with vanilla items
+                        
                         throw new CustomItemDefinitionRegisterException("A non-vanilla custom item definition (identifier=" + definition.identifier() + ", network ID=" + definition.javaId() + ") is already registered!");
                     }
                 }
@@ -216,22 +216,22 @@ public class CustomItemRegistryPopulator {
 
     private static void checkPredicate(Map.Entry<Identifier, CustomItemDefinition> existing, Identifier vanillaIdentifier,
                                        CustomItemDefinition newItem) throws CustomItemDefinitionRegisterException {
-        // If the definitions are for different Java items or models then it doesn't matter
+        
         if (!vanillaIdentifier.equals(existing.getKey()) || !newItem.model().equals(existing.getValue().model())) {
             return;
         }
-        // If they both don't have predicates they conflict
+        
         if (existing.getValue().predicates().isEmpty() && newItem.predicates().isEmpty()) {
             throw new CustomItemDefinitionRegisterException("both entries don't have predicates, one must have a predicate");
         }
 
-        // If their amount of predicates is equal, and the new definition contains all the existing predicates, then they also conflict
+        
         if (existing.getValue().predicates().size() == newItem.predicates().size()) {
             boolean equal = true;
 
             for (MinecraftPredicate<?> predicate : existing.getValue().predicates()) {
-                // This .contains() only works for common predicates that are backed using record classes in the API module!! This is because those properly work with .equals()
-                // Custom predicates defined by API users (not by JSON mappings, those only use common predicates) will not work with conflict detection here!
+                
+                
                 if (!newItem.predicates().contains(predicate)) {
                     equal = false;
                     break;
@@ -266,7 +266,7 @@ public class CustomItemRegistryPopulator {
         boolean canDestroyInCreative = toolData == null || toolData.isCanDestroyBlocksInCreative();
         computeCreativeDestroyProperties(canDestroyInCreative, itemProperties, componentBuilder);
 
-        // Using API component here because MCPL one is just an ID holder set, and we can't get identifiers from that
+        
         JavaRepairable repairable = context.definition().components().get(JavaItemDataComponents.REPAIRABLE);
         if (repairable != null) {
             computeRepairableProperties(repairable, componentBuilder);
@@ -277,7 +277,7 @@ public class CustomItemRegistryPopulator {
             boolean renderOffsets = context.definition() instanceof GeyserCustomItemDefinition definition && definition.isOldConvertedItem();
             int protectionValue = context.definition().bedrockOptions().protectionValue();
             if (context.definition().bedrockOptions() instanceof GeyserCustomItemBedrockOptions options) {
-                // Fallback to vanilla item's protection value if no protection value is set
+                
                 protectionValue = options.protectionValue(context);
             }
             computeArmorProperties(equippable, protectionValue, componentBuilder, renderOffsets);
@@ -308,9 +308,9 @@ public class CustomItemRegistryPopulator {
             computePiercingWeaponProperties(componentBuilder, attackRange);
         }
 
-        // Please note that technically this component is present on all items in vanilla Minecraft, which, if we think about consistency, would mean
-        // we'd have to translate its default value if the component is removed using a patch or not present on a non-vanilla item
-        // It doesn't really matter though, since Bedrock has its own default values if the component isn't present
+        
+        
+        
         SwingAnimation swingAnimation = context.components().get(DataComponentTypes.SWING_ANIMATION);
         if (swingAnimation != null) {
             computeSwingAnimationProperties(componentBuilder, swingAnimation);
@@ -318,8 +318,8 @@ public class CustomItemRegistryPopulator {
 
         Optional<Consumable> consumableComponent = Optional.ofNullable(context.components().get(DataComponentTypes.CONSUMABLE))
             .or(() -> context.vanillaMapping().flatMap(mapping -> {
-                // If there is no consumable component, and the vanilla item is a trident, manually add a consumable component
-                // with a spear animation and a really high consume duration, to get the trident animation in 3rd-person working
+                
+                
                 if (mapping.getBedrockIdentifier().equals("minecraft:trident")) {
                     return Optional.of(new Consumable(DEFAULT_ITEM_USE_DURATION, Consumable.ItemUseAnimation.TRIDENT, null, false, List.of()));
                 }
@@ -369,11 +369,11 @@ public class CustomItemRegistryPopulator {
         if (throwable != null) {
             computeThrowableProperties(componentBuilder, throwable);
         } else if (context.definition().components().get(GeyserItemDataComponents.PROJECTILE) != null) {
-            // Is already called in computeThrowableProperties, which is why this is an else if statement
+            
             computeProjectileProperties(componentBuilder);
         }
 
-        // Bedrock doesn't really use these otherwise
+        
         if (throwable != null || chargeable != null || consumableComponent.isPresent()) {
             computeUseEffectsProperties(itemProperties, componentBuilder,
                 context.components().getOrDefault(DataComponentTypes.USE_EFFECTS, DEFAULT_USE_EFFECTS),
@@ -391,7 +391,7 @@ public class CustomItemRegistryPopulator {
             computeEntityPlacerProperties(componentBuilder);
         }
 
-        // this is not ideal, remove once v1 is removed!
+        
         if (context.definition() instanceof GeyserCustomItemDefinition definition && definition.isOldConvertedItem()) {
             CustomRenderOffsets renderOffsets = definition.getRenderOffsets();
             if (renderOffsets != null) {
@@ -421,8 +421,8 @@ public class CustomItemRegistryPopulator {
     private static void setupBasicItemInfo(CustomItemDefinition definition, DataComponents components, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         CustomItemBedrockOptions options = definition.bedrockOptions();
 
-        // Don't send an icon if the item has a block placer component, and is set to use its block as icon
-        // This makes bedrock use a 3D render of the block this item places as icon
+        
+        
         GeyserBlockPlacer blockPlacer = definition.components().get(GeyserItemDataComponents.BLOCK_PLACER);
         if (blockPlacer == null || !blockPlacer.useBlockIcon()) {
             NbtMap iconMap = NbtMap.builder()
@@ -443,10 +443,10 @@ public class CustomItemRegistryPopulator {
 
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", definition.displayName()).build());
 
-        // Add a Geyser tag to the item, allowing Molang queries
+        
         addItemTag(componentBuilder, Identifier.of("geyser:is_custom"));
 
-        // Add other defined tags to the item
+        
         Set<Identifier> tags = options.tags();
         for (Identifier tag : tags) {
             addItemTag(componentBuilder, tag);
@@ -456,12 +456,12 @@ public class CustomItemRegistryPopulator {
         itemProperties.putBoolean("hand_equipped", options.displayHandheld());
 
         int maxDamage = components.getOrDefault(DataComponentTypes.MAX_DAMAGE, 0);
-        // Note that Java requires stack size to be 1 when max damage is above 0, and bedrock requires stack size to be 1 when the item can be equipped
-        // We already checked and threw for these cases in CustomItemContext#checkComponents though
-        // This can be missing if a non-vanilla item didn't specify a max stack size, or if a component patch removed the component. In that case vanilla Minecraft defaults to 1
+        
+        
+        
         int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 1);
 
-        // Hack for v1 compat: Allow e.g. carved pumpkins to continue working as a base
+        
         if (stackSize > 1 && definition instanceof GeyserCustomItemDefinition customItemDefinition && customItemDefinition.isOldConvertedItem()) {
             Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
             if (equippable != null) {
@@ -471,7 +471,7 @@ public class CustomItemRegistryPopulator {
 
         itemProperties.putInt("max_stack_size", stackSize);
 
-        // Ignore durability if the item's predicates requires that it be unbreakable
+        
         if (maxDamage > 0 && !isUnbreakableItem(definition)) {
             componentBuilder.putCompound("minecraft:durability", NbtMap.builder()
                 .putCompound("damage_chance", NbtMap.builder()
@@ -580,11 +580,11 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void computeBlockItemProperties(GeyserBlockPlacer blockPlacer, NbtMapBuilder componentBuilder) {
-        // carved pumpkin should be able to be worn and for that we would need to add wearable and armor with protection 0 here
-        // however this would have the side effect of preventing carved pumpkins from working as an attachable on the RP side outside the head slot
-        // it also causes the item to glitch when right-clicked to "equip" so this should only be added here later if these issues can be overcome
+        
+        
+        
 
-        // all block items registered should be given this component to prevent double placement
+        
         componentBuilder.putCompound("minecraft:block_placer", NbtMap.builder()
             .putString("block", blockPlacer.block().toString())
             .putBoolean("canUseBlockAsIcon", blockPlacer.useBlockIcon())
@@ -620,7 +620,7 @@ public class CustomItemRegistryPopulator {
 
     private static void computeConsumableProperties(Consumable consumable, @Nullable FoodProperties foodProperties, NbtMapBuilder itemProperties, NbtMapBuilder componentBuilder) {
         String animationName = switch (consumable.animation()) {
-            case TRIDENT -> "spear"; // SPEAR is not supported in bedrock and not in the BEDROCK_ANIMATIONS map, so it'll be skipped
+            case TRIDENT -> "spear"; 
             default -> consumable.animation().toString().toLowerCase();
         };
         Integer animationId = BEDROCK_ANIMATIONS.get(consumable.animation());
@@ -643,8 +643,8 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void computeEntityPlacerProperties(NbtMapBuilder componentBuilder) {
-        // all items registered that place entities should be given this component to prevent double placement
-        // it is okay that the entity here does not match the actual one since we control what entity actually spawns
+        
+        
         componentBuilder.putCompound("minecraft:entity_placer", NbtMap.builder()
             .putList("dispense_on", NbtType.STRING)
             .putString("entity", "minecraft:minecart")
@@ -653,15 +653,15 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void computeThrowableProperties(NbtMapBuilder componentBuilder, GeyserThrowableComponent throwable) {
-        // allows item to be thrown when holding down right click (individual presses are required w/o this component)
+        
         componentBuilder.putCompound("minecraft:throwable", NbtMap.builder().putBoolean("do_swing_animation", throwable.doSwingAnimation()).build());
 
-        // Required for the swing animation to play correctly
+        
         computeProjectileProperties(componentBuilder);
     }
 
     private static void computeProjectileProperties(NbtMapBuilder componentBuilder) {
-        // it is okay that the projectile here does not match the actual one since we control what entity actually spawns
+        
         componentBuilder.putCompound("minecraft:projectile", NbtMap.builder().putString("projectile_entity", "minecraft:snowball").build());
     }
 
@@ -692,7 +692,7 @@ public class CustomItemRegistryPopulator {
 
     private static void computeSwingAnimationProperties(NbtMapBuilder componentBuilder, SwingAnimation swingAnimation) {
         componentBuilder.putCompound("minecraft:swing_duration", NbtMap.builder()
-            .putFloat("value", swingAnimation.duration() / 20.0F) // Java is in ticks, bedrock is in seconds
+            .putFloat("value", swingAnimation.duration() / 20.0F) 
             .build());
     }
 
@@ -700,11 +700,11 @@ public class CustomItemRegistryPopulator {
                                                     UseEffects effects, Optional<Float> setUseDuration) {
         float useDuration = setUseDuration.orElse(DEFAULT_ITEM_USE_DURATION);
 
-        // this is the duration of the use animation in ticks; note that in behavior packs this is set as a float in seconds, but over the network it is an int in ticks
+        
         itemProperties.putInt("use_duration", (int) (useDuration * 20));
 
         componentBuilder.putCompound("minecraft:use_modifiers", NbtMap.builder()
-            .putFloat("movement_modifier", effects.speedMultiplier()) // TODO: test if this is 1-to-1 with Java, it probably isn't
+            .putFloat("movement_modifier", effects.speedMultiplier()) 
             .putFloat("use_duration", useDuration)
             .build());
     }
@@ -713,7 +713,7 @@ public class CustomItemRegistryPopulator {
         return component
             .putCompound("reach", createReachMap(attackRange.minRange(), attackRange.maxRange()))
             .putCompound("creative_reach", createReachMap(attackRange.minCreativeRange(), attackRange.maxCreativeRange()))
-            .putFloat("hitbox_margin", attackRange.hitboxMargin()); // TODO is this 1-to-1 with Java?
+            .putFloat("hitbox_margin", attackRange.hitboxMargin()); 
     }
 
     private static void addKineticConditionMap(NbtMapBuilder component, String key, KineticWeapon.@Nullable Condition condition) {
@@ -749,7 +749,7 @@ public class CustomItemRegistryPopulator {
         if (tagList == null) {
             builder.putList("item_tags", NbtType.STRING, tag.toString());
         } else {
-            // NbtList is immutable
+            
             if (!tagList.contains(tag.toString())) {
                 tagList = new ArrayList<>(tagList);
                 tagList.add(tag.toString());
@@ -761,14 +761,14 @@ public class CustomItemRegistryPopulator {
     private static NbtMap toNbtMap(CustomRenderOffsets renderOffsets) {
         NbtMapBuilder builder = NbtMap.builder();
 
-        CustomRenderOffsets.Hand mainHand = renderOffsets.mainHand();
+        CustomRenderOffsets.Hand mainHand = renderOffsets.mainHand;
         if (mainHand != null) {
             NbtMap nbt = toNbtMap(mainHand);
             if (nbt != null) {
                 builder.putCompound("main_hand", nbt);
             }
         }
-        CustomRenderOffsets.Hand offhand = renderOffsets.offhand();
+        CustomRenderOffsets.Hand offhand = renderOffsets.offhand;
         if (offhand != null) {
             NbtMap nbt = toNbtMap(offhand);
             if (nbt != null) {
@@ -780,8 +780,8 @@ public class CustomItemRegistryPopulator {
     }
 
     private static @Nullable NbtMap toNbtMap(CustomRenderOffsets.Hand hand) {
-        NbtMap firstPerson = toNbtMap(hand.firstPerson());
-        NbtMap thirdPerson = toNbtMap(hand.thirdPerson());
+        NbtMap firstPerson = toNbtMap(hand.firstPerson);
+        NbtMap thirdPerson = toNbtMap(hand.thirdPerson);
 
         if (firstPerson == null && thirdPerson == null) {
             return null;
@@ -803,9 +803,9 @@ public class CustomItemRegistryPopulator {
             return null;
         }
 
-        CustomRenderOffsets.OffsetXYZ position = offset.position();
-        CustomRenderOffsets.OffsetXYZ rotation = offset.rotation();
-        CustomRenderOffsets.OffsetXYZ scale = offset.scale();
+        CustomRenderOffsets.OffsetXYZ position = offset.position;
+        CustomRenderOffsets.OffsetXYZ rotation = offset.rotation;
+        CustomRenderOffsets.OffsetXYZ scale = offset.scale;
 
         if (position == null && rotation == null && scale == null) {
             return null;
@@ -826,7 +826,7 @@ public class CustomItemRegistryPopulator {
     }
 
     private static List<Float> toList(CustomRenderOffsets.OffsetXYZ xyz) {
-        return List.of(xyz.x(), xyz.y(), xyz.z());
+        return List.of(xyz.x, xyz.y, xyz.z);
     }
 
     private static NbtMap xyzToScaleList(float x, float y, float z) {

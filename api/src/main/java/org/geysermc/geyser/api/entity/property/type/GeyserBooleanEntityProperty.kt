@@ -22,14 +22,12 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.entity.property.type
 
-package org.geysermc.geyser.api.entity.property.type;
-
-import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty
 
 /**
  * Represents a boolean entity property.
  * @since 2.9.0
  */
-public interface GeyserBooleanEntityProperty extends GeyserEntityProperty<Boolean> {
-}
+interface GeyserBooleanEntityProperty : GeyserEntityProperty<Boolean?>

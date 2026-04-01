@@ -39,10 +39,7 @@ import java.util.Map;
 
 @Getter
 public class PlayerInventory extends Inventory {
-    /**
-     * Stores the held item slot, starting at index 0.
-     * Add 36 in order to get the network item slot.
-     */
+    
     @Setter
     private int heldItemSlot;
 
@@ -64,12 +61,7 @@ public class PlayerInventory extends Inventory {
         cursor = newCursor;
     }
 
-    /**
-     * Checks if the player is holding the specified item in either hand
-     *
-     * @param item The item to look for
-     * @return If the player is holding the item in either hand
-     */
+    
     public boolean isHolding(@NonNull Item item) {
         return getItemInHand().is(item) || getOffhand().is(item);
     }
@@ -86,7 +78,7 @@ public class PlayerInventory extends Inventory {
         return items[36 + heldItemSlot];
     }
 
-    // TODO other equipment slots
+    
     public Map<EquipmentSlot, GeyserItemStack> getEquipment() {
         return Map.of(
             EquipmentSlot.MAIN_HAND, getItemInHand(),

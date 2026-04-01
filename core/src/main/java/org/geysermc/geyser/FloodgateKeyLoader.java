@@ -33,8 +33,8 @@ import java.nio.file.Path;
 
 public class FloodgateKeyLoader {
     public static Path getKeyPath(GeyserConfig config, Path floodgateDataFolder, Path geyserDataFolder, GeyserLogger logger) {
-        // Always prioritize Floodgate's key, if it is installed.
-        // This mostly prevents people from trying to copy the key and corrupting it in the process
+        
+        
         if (floodgateDataFolder != null) {
             Path autoKey = floodgateDataFolder.resolve("key.pem");
             if (Files.exists(autoKey)) {

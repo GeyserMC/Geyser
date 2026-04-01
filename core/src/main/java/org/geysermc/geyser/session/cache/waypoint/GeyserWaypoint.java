@@ -90,8 +90,8 @@ public abstract class GeyserWaypoint {
     public void setPlayer(PlayerEntity entity) {
         if (sendListPackets) {
             if (entity == null) {
-                // We're already emulating the waypoint with player list packets
-                // Could occur due to player list shenanigans for PlayStation devices
+                
+                
                 return;
             }
             untrack();
@@ -99,7 +99,7 @@ public abstract class GeyserWaypoint {
             entityUuid = entity.uuid();
             sendListPackets = false;
             sendLocationPacket(true);
-        } else if (entity == null) { // Previously had an attached player, and now that player is gone
+        } else if (entity == null) { 
             entityId = session.getEntityCache().getNextEntityId().incrementAndGet();
             entityUuid = UUID.randomUUID();
             sendListPackets = true;
@@ -125,8 +125,8 @@ public abstract class GeyserWaypoint {
             PlayerListPacket packet = new PlayerListPacket();
             packet.setAction(action);
 
-            // Not sending a skin causes a player list entry to be invalid,
-            // leading to waypoints not showing
+            
+            
             PlayerListPacket.Entry entry = new PlayerListPacket.Entry(entityUuid);
             entry.setEntityId(entityId);
             entry.setColor(color);
@@ -154,8 +154,8 @@ public abstract class GeyserWaypoint {
     }
 
     private static Color getWaypointColor(TrackedWaypoint waypoint) {
-        // Use icon's colour, or calculate from UUID/ID if it is not specified
-        // This is similar to how Java does it, but they do some brightness modifications too, which is a lot of math (see LocatorBarRenderer)
+        
+        
         return waypoint.icon().color()
             .or(() -> Optional.ofNullable(waypoint.uuid()).map(UUID::hashCode))
             .or(() -> Optional.ofNullable(waypoint.id()).map(String::hashCode))

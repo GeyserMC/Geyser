@@ -40,27 +40,23 @@ public class BlockCollision {
     @Getter
     protected final BoundingBox[] boundingBoxes;
 
-    /**
-     * This is used to control the maximum distance a face of a bounding box can push the player away
-     */
+    
     protected final double pushAwayTolerance = CollisionManager.COLLISION_TOLERANCE * 1.1;
 
     protected BlockCollision(BoundingBox[] boxes) {
         this.boundingBoxes = boxes;
     }
 
-    /**
-     * Silently move player bounding box/position out of block when needed to.
-     */
+    
     public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
         final double collisionExpansion = CollisionManager.COLLISION_TOLERANCE * 2;
-        // Make player collision slightly bigger to pick up on blocks that could cause problems with NoCheatPlus's Passable check.
+        
         playerCollision.expand(collisionExpansion, 0, collisionExpansion);
 
-        // Due to floating points errors, or because of block collision difference, player could be slightly clipping into the block.
-        // So we check if the player is intersecting the block, if they do then push them out. This fixes NoCheatPlus's Passable check and other anticheat checks.
-        // This check doesn't allow players right up against the block, so they must be pushed slightly away. However, we should only do it if the
-        // push distance is smaller than "pushAwayTolerance", we don't want to push player out when they're actually inside a block.
+        
+        
+        
+        
         for (BoundingBox boundingBox : this.boundingBoxes) {
             if (!boundingBox.checkIntersection(x, y, z, playerCollision)) {
                 continue;
@@ -69,7 +65,7 @@ public class BlockCollision {
             boundingBox = boundingBox.clone();
             boundingBox.translate(x, y, z);
 
-            // The ULP should give an upper bound on the floating point error
+            
             double xULP = Math.ulp((float) Math.max(Math.abs(playerCollision.getMiddleX()) + playerCollision.getSizeX() / 2.0, Math.abs(x) + 1));
             double zULP = Math.ulp((float) Math.max(Math.abs(playerCollision.getMiddleZ()) + playerCollision.getSizeZ() / 2.0, Math.abs(z) + 1));
             double xPushAwayTolerance = Math.max(pushAwayTolerance, xULP), zPushAwayTolerance = Math.max(pushAwayTolerance, zULP);
@@ -84,7 +80,7 @@ public class BlockCollision {
             correctPosition(session, x, y, z, boundingBox, playerCollision, xPushAwayTolerance, zPushAwayTolerance);
         }
 
-        // Revert back to the old collision size.
+        
         playerCollision.expand(-collisionExpansion, 0, -collisionExpansion);
     }
 
@@ -114,13 +110,7 @@ public class BlockCollision {
         return offset;
     }
 
-    /**
-     * Checks if this block collision is below the given bounding box.
-     *
-     * @param blockY the y position of the block in the world
-     * @param boundingBox the bounding box to compare
-     * @return true if this block collision is below the bounding box
-     */
+    
     public boolean isBelow(int blockY, BoundingBox boundingBox) {
         double minY = boundingBox.getMiddleY() - boundingBox.getSizeY() / 2;
         for (BoundingBox b : boundingBoxes) {

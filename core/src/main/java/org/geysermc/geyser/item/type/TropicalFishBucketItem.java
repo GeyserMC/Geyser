@@ -52,18 +52,18 @@ public class TropicalFishBucketItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
-        // Prevent name from appearing as "Bucket of"
+        
         builder.putByte("AppendCustomName", (byte) 1);
         builder.putString("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.tropical_fish", session.locale()));
 
-        // Add Java's client side lore tag
+        
         Integer pattern = components.get(DataComponentTypes.TROPICAL_FISH_PATTERN);
         Integer baseColor = components.get(DataComponentTypes.TROPICAL_FISH_BASE_COLOR);
         Integer patternColor = components.get(DataComponentTypes.TROPICAL_FISH_PATTERN_COLOR);
 
-        // The pattern component decides whether to show the tooltip of all 3 components, as of Java 1.21.5
+        
         if ((pattern != null || (baseColor != null && patternColor != null)) && tooltip.showInTooltip(DataComponentTypes.TROPICAL_FISH_PATTERN)) {
-            //TODO test this for 1.21.5
+            
             int packedVariant = getPackedVariant(pattern, baseColor, patternColor);
             List<String> lore = builder.getOrCreateLore();
 

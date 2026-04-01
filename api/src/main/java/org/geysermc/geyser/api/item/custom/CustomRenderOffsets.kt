@@ -22,30 +22,28 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.item.custom;
-
-import org.checkerframework.checker.nullness.qual.Nullable;
+package org.geysermc.geyser.api.item.custom
 
 /**
  * This class is used to store the render offsets of custom items.
  */
-public record CustomRenderOffsets(@Nullable Hand mainHand, @Nullable Hand offhand) {
+@kotlin.jvm.JvmRecord
+data class CustomRenderOffsets(@kotlin.jvm.JvmField val mainHand: Hand?, @kotlin.jvm.JvmField val offhand: Hand?) {
     /**
      * The hand that is used for the offset.
      */
-    public record Hand(@Nullable Offset firstPerson, @Nullable Offset thirdPerson) {
-    }
+    @kotlin.jvm.JvmRecord
+    data class Hand(@kotlin.jvm.JvmField val firstPerson: Offset?, @kotlin.jvm.JvmField val thirdPerson: Offset?)
 
     /**
      * The offset of the item.
      */
-    public record Offset(@Nullable OffsetXYZ position, @Nullable OffsetXYZ rotation, @Nullable OffsetXYZ scale) {
-    }
+    @kotlin.jvm.JvmRecord
+    data class Offset(@kotlin.jvm.JvmField val position: OffsetXYZ?, @kotlin.jvm.JvmField val rotation: OffsetXYZ?, @kotlin.jvm.JvmField val scale: OffsetXYZ?)
 
     /**
      * X, Y and Z positions for the offset.
      */
-    public record OffsetXYZ(float x, float y, float z) {
-    }
+    @kotlin.jvm.JvmRecord
+    data class OffsetXYZ(@kotlin.jvm.JvmField val x: Float, @kotlin.jvm.JvmField val y: Float, @kotlin.jvm.JvmField val z: Float)
 }

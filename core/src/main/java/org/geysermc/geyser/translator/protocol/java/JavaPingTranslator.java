@@ -31,13 +31,13 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundPingPacket;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundPongPacket;
 
-// This packet is the same as keep alive, except it runs on the client's main thread.
+
 @Translator(packet = ClientboundPingPacket.class)
 public class JavaPingTranslator extends PacketTranslator<ClientboundPingPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundPingPacket packet) {
-        // We use this once the client replies
+        
         final int id = packet.getId();
 
         if (!session.getGeyser().config().gameplay().forwardPlayerPing()) {
@@ -45,7 +45,7 @@ public class JavaPingTranslator extends PacketTranslator<ClientboundPingPacket> 
             return;
         }
 
-        // ClientboundPingPacket are sent in sync, hence we ensure they're sent in the event loop
+        
         session.sendNetworkLatencyStackPacket(id, true, () -> session.sendDownstreamPacket(new ServerboundPongPacket(id)));
     }
 }

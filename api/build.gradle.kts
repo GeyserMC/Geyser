@@ -3,12 +3,14 @@ plugins {
     idea
     id("geyser.publish-conventions")
     alias(libs.plugins.blossom)
+    kotlin("jvm") version "2.3.20"
 }
 
 dependencies {
     api(libs.base.api)
     api(libs.math)
     api(libs.jetbrains.annotations)
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 version = property("version")!!
@@ -22,4 +24,10 @@ sourceSets {
             }
         }
     }
+}
+repositories {
+    mavenCentral()
+}
+kotlin {
+    jvmToolchain(21)
 }

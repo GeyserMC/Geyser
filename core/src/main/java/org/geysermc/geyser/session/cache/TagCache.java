@@ -44,23 +44,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
- * will remain empty, matching Java Edition behavior. Looking up a tag that wasn't listed in that packet will return an empty array.
- * Only tags from registries in {@link JavaRegistries} are stored. Read {@link JavaRegistryKey} for more information.
- *
- * <p>To simply check if an element is in a tag, it's preferred to use the element's "{@code is}" method, if available. For example:</p>
- *
- * <ul>
- *     <li>{@link org.geysermc.geyser.level.block.type.Block#is(GeyserSession, Tag)}</li>
- *     <li>{@link org.geysermc.geyser.level.block.type.Block#is(GeyserSession, HolderSet)}</li>
- *     <li>{@link org.geysermc.geyser.item.type.Item#is(GeyserSession, Tag)}</li>
- *     <li>{@link org.geysermc.geyser.item.type.Item#is(GeyserSession, HolderSet)}</li>
- *     <li>{@link org.geysermc.geyser.inventory.GeyserItemStack#is(GeyserSession, Tag)}</li>
- *     <li>{@link org.geysermc.geyser.inventory.GeyserItemStack#is(GeyserSession, HolderSet)}</li>
- *     <li>{@link GeyserHolderSet#contains(GeyserSession, Object)}</li>
- * </ul>
- */
+
 public final class TagCache {
     private final GeyserSession session;
     private final Map<Tag<?>, int[]> tags = new Object2ObjectOpenHashMap<>();
@@ -85,7 +69,7 @@ public final class TagCache {
             Map<Key, int[]> registryTags = allTags.get(registryKey);
 
             if (registry == JavaRegistries.BLOCK) {
-                // Hack btw
+                
                 int[] convertableToMud = registryTags.get(MinecraftKey.key("convertable_to_mud"));
                 boolean emulatePost1_18Logic = convertableToMud != null && convertableToMud.length != 0;
                 session.setEmulatePost1_18Logic(emulatePost1_18Logic);
@@ -93,7 +77,7 @@ public final class TagCache {
                     logger.debug("Emulating post 1.18 block predication logic for " + session.bedrockUsername() + "? " + emulatePost1_18Logic);
                 }
             } else if (registry == JavaRegistries.ITEM) {
-                // Hack btw
+                
                 boolean emulatePost1_13Logic = registryTags.get(MinecraftKey.key("signs")).length > 1;
                 session.setEmulatePost1_13Logic(emulatePost1_13Logic);
                 if (logger.isDebug()) {
@@ -109,16 +93,14 @@ public final class TagCache {
         for (Map.Entry<Key, int[]> tag : packetTags.entrySet()) {
             int[] value = tag.getValue();
             if (sort) {
-                // Used in RecipeBookAddTranslator
+                
                 Arrays.sort(value);
             }
             this.tags.put(new Tag<>(registry, tag.getKey()), value);
         }
     }
 
-    /**
-     * Should only be used when the network ID of an element is already known. If not, prefer using the {@link TagCache#is(Tag, Object)} shorthand method.
-     */
+    
     public boolean is(@NonNull Tag<?> tag, int id) {
         return contains(getRaw(tag), id);
     }
@@ -127,11 +109,7 @@ public final class TagCache {
         return contains(getRaw(tag), tag.registry().networkId(session, object));
     }
 
-    /**
-     * Prefer using {@link GeyserHolderSet#contains(GeyserSession, Object)}.
-     *
-     * @return true if the specified network ID is in the given {@link GeyserHolderSet}.
-     */
+    
     public <T> boolean is(@NonNull GeyserHolderSet<T> holderSet, @Nullable T object) {
         if (object == null) {
             return false;
@@ -139,17 +117,15 @@ public final class TagCache {
         return contains(holderSet.resolveRaw(this), holderSet.getRegistry().networkId(session, object));
     }
 
-    /**
-     * @return true if the specified network ID is in the given {@link HolderSet} set.
-     */
+    
     public <T> boolean is(@Nullable HolderSet holderSet, @NonNull JavaRegistryKey<T> registry, int id) {
         if (holderSet == null) {
             return false;
         }
 
         int[] entries = holderSet.resolve(key -> {
-            // This should never happen, since a key in a HolderSet is always a tag
-            // We check for it anyway
+            
+            
             if (key.value().startsWith("#")) {
                 key = Key.key(key.namespace(), key.value().substring(1));
             }
@@ -163,16 +139,12 @@ public final class TagCache {
         return mapRawArray(session, getRaw(tag), tag.registry());
     }
 
-    /**
-     * @return the network IDs in the given tag. This can be an empty array.
-     */
+    
     public int[] getRaw(@NonNull Tag<?> tag) {
         return this.tags.getOrDefault(tag, IntArrays.EMPTY_ARRAY);
     }
 
-    /**
-     * Maps a raw array of network IDs to their respective objects.
-     */
+    
     public static <T> List<T> mapRawArray(GeyserSession session, int[] array, JavaRegistryKey<T> registry) {
         return Arrays.stream(array).mapToObj(i -> registry.value(session, i)).toList();
     }

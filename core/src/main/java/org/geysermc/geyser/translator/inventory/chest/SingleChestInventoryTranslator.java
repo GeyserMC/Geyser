@@ -51,20 +51,20 @@ public class SingleChestInventoryTranslator extends ChestInventoryTranslator<Gen
             @Override
             protected boolean isValidBlock(GeyserSession session, Vector3i position, BlockState blockState) {
                 if (blockState.is(Blocks.ENDER_CHEST) || blockState.is(Blocks.BARREL)) {
-                    // Can't have double ender chests or barrels
+                    
                     return true;
                 }
 
                 if (!super.isValidBlock(session, position, blockState)) {
                     return false;
                 } else if (blockState.getValue(Properties.CHEST_TYPE) != ChestType.SINGLE) {
-                    // Add provision to ensure this isn't a double chest
+                    
                     return false;
                 } else {
-                    // On 1.21.110 and above the client likes to merge single chests next to each other, even when we
-                    // tell the client not to
-                    // So, check for chests left and right of this chest. If there is a chest facing the same way,
-                    // there is a chance the client has merged them, and we can't use this block
+                    
+                    
+                    
+                    
                     Direction facing = blockState.getValue(Properties.HORIZONTAL_FACING);
                     Vector3i left = position.add((facing.getAxis() == Axis.X ? Direction.SOUTH : Direction.WEST).getUnitVector());
                     Vector3i right = position.add((facing.getAxis() == Axis.X ? Direction.NORTH : Direction.EAST).getUnitVector());

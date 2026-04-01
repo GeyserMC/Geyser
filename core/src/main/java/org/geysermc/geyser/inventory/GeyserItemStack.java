@@ -59,7 +59,7 @@ import java.util.function.Supplier;
 
 @Data
 public class GeyserItemStack {
-    public static final GeyserItemStack EMPTY = new GeyserItemStack(null, Items.AIR_ID, 0, null); // session can be null because air is a vanilla item
+    public static final GeyserItemStack EMPTY = new GeyserItemStack(null, Items.AIR_ID, 0, null); 
 
     @Nullable
     private final ComponentCache componentCache;
@@ -138,27 +138,17 @@ public class GeyserItemStack {
         return javaId == other.javaId;
     }
 
-    /**
-     * Returns all components of this item - base and additional components sent over the network.
-     * These are NOT modifiable! To add components, use {@link #getOrCreateComponents()}.
-     *
-     * @return the item's base data components and the "additional" ones that may exist.
-     */
+    
     public @Nullable DataComponents getAllComponents() {
         return isEmpty() ? null : asItem().gatherComponents(componentCache, components);
     }
 
-    /**
-     * @return the {@link DataComponents} patch that's sent over the network.
-     */
+    
     public @Nullable DataComponents getComponents() {
         return isEmpty() ? null : components;
     }
 
-    /**
-     * @return whether this GeyserItemStack has any component modifications additional to
-     * the base item components.
-     */
+    
     public boolean hasNonBaseComponents() {
         return components != null;
     }
@@ -171,19 +161,11 @@ public class GeyserItemStack {
         return components;
     }
 
-    /**
-     * Returns the stored data component for a given {@link DataComponentType}, or null.
-     * <p>
-     * This method will first check the additional components that may exist,
-     * and fallback to the item's default (or, "base") components if need be.
-     * @param type the {@link DataComponentType} to query
-     * @return the value for said type, or null.
-     * @param <T> the value's type
-     */
+    
     @Nullable
     public <T> T getComponent(@NonNull DataComponentType<T> type) {
-        // A data component patch may contain null values to remove base components
-        // e.g. an elytra without the glider component
+        
+        
         if (components != null && components.contains(type)) {
             return components.get(type);
         }
@@ -210,10 +192,10 @@ public class GeyserItemStack {
 
     public void mergeBundleData(GeyserSession session, BundleCache.BundleData oldBundleData) {
         if (oldBundleData != null && this.bundleData != null) {
-            // Old bundle; re-use old IDs
+            
             this.bundleData.updateNetIds(session, oldBundleData);
         } else if (this.bundleData != null) {
-            // New bundle; allocate new ID
+            
             session.getBundleCache().markNewBundle(this.bundleData);
         }
     }
@@ -234,14 +216,14 @@ public class GeyserItemStack {
         if (isEmpty()) {
             return null;
         }
-        // Sync our updated bundle data to server, if applicable
-        // Not fresh from server? Then we have changes to apply!~
+        
+        
         if (bundleData != null && !bundleData.freshFromServer()) {
             if (!bundleData.contents().isEmpty()) {
                 getOrCreateComponents().put(DataComponentTypes.BUNDLE_CONTENTS, bundleData.toComponent());
             } else {
                 if (components != null) {
-                    // Empty list = no component = should delete
+                    
                     components.getDataComponents().remove(DataComponentTypes.BUNDLE_CONTENTS);
                 }
             }
@@ -284,7 +266,7 @@ public class GeyserItemStack {
     }
 
     public int getDamage() {
-        // Damage can't be negative
+        
         int damage = Math.max(this.getComponentElseGet(DataComponentTypes.DAMAGE, () -> 0), 0);
         return Math.min(damage, this.getMaxDamage());
     }

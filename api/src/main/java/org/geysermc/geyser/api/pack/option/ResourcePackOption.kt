@@ -22,55 +22,51 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.pack.option
 
-package org.geysermc.geyser.api.pack.option;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.pack.ResourcePack;
-import org.geysermc.geyser.api.pack.exception.ResourcePackException;
+import org.geysermc.geyser.api.pack.ResourcePack
 
 /**
  * Represents a resource pack option that can be used to specify how a resource
  * pack is sent to Bedrock clients.
- * <p>
+ * 
+ * 
  * Not all options can be applied to all resource packs. For example, you cannot specify
  * a specific subpack to be loaded on resource packs that do not have subpacks.
  * To see which limitations apply to specific resource pack options, check the javadocs
- * or see the {@link #validate(ResourcePack)} method.
+ * or see the [.validate] method.
  * @since 2.6.2
  */
-public interface ResourcePackOption<T> {
-
+interface ResourcePackOption<T> {
     /**
      * @return the option type
      * @since 2.6.2
      */
-    @NonNull Type type();
+    fun type(): Type
 
     /**
      * @return the value of the option
      * @since 2.6.2
      */
-    @NonNull T value();
+    fun value(): T
 
     /**
      * Used to validate a specific options for a pack.
      * Some options are not applicable to some packs.
-     *
+     * 
      * @param pack the resource pack to validate the option for
-     * @throws ResourcePackException with the {@link ResourcePackException.Cause#INVALID_PACK_OPTION} cause
+     * @throws ResourcePackException with the [ResourcePackException.Cause.INVALID_PACK_OPTION] cause
      * @since 2.6.2
      */
-    void validate(@NonNull ResourcePack pack);
+    fun validate(pack: ResourcePack)
 
     /**
      * Represents the different types of resource pack options.
      * @since 2.6.2
      */
-    enum Type {
+    enum class Type {
         SUBPACK,
         PRIORITY,
         FALLBACK
     }
-
 }

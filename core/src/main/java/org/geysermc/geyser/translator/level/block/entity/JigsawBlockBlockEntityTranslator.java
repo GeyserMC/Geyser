@@ -45,8 +45,8 @@ public class JigsawBlockBlockEntityTranslator extends BlockEntityTranslator impl
         if (joint != null) {
             bedrockNbt.putString("joint", joint);
         } else {
-            // Tag is not present in at least 1.14.4 Paper
-            // Minecraft 1.18.1 deliberately has a fallback here, but not for any other value
+            
+            
             bedrockNbt.putString("joint", blockState.getValue(Properties.ORIENTATION).isHorizontal() ? "aligned" : "rollable");
         }
         bedrockNbt.putString("name", javaNbt.getString("name"));

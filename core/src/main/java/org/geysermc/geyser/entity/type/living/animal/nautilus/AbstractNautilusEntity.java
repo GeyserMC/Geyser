@@ -98,16 +98,16 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
                 return InteractiveTag.REPAIR_WOLF_ARMOR;
             }
             if (itemInHand.isEmpty()) {
-                return InteractiveTag.RIDE_HORSE; // Does not appear to be a specific interaction for Nautilus; needs ProxyPass verification
+                return InteractiveTag.RIDE_HORSE; 
             }
         } else if (getFlag(EntityFlag.BABY) || getFlag(EntityFlag.TAMED)) {
             if (itemInHand.is(session, ItemTag.NAUTILUS_FOOD)) {
-                // Can feed either baby nautilus, or tamed nautilus
+                
                 return InteractiveTag.FEED;
             }
         } else {
             if (itemInHand.is(session, ItemTag.NAUTILUS_TAMING_ITEMS)) {
-                // Nautilus taming food and untamed - can tame
+                
                 return InteractiveTag.TAME;
             }
         }
@@ -120,7 +120,7 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
         super.updateSaddled(saddled);
 
         if (this.passengers.contains(session.getPlayerEntity())) {
-            // We want to allow player to press jump again if pressing jump doesn't dismount the entity.
+            
             this.session.setLockInput(InputLocksFlag.JUMP, this.doesJumpDismount());
             this.session.updateInputLocks();
         }

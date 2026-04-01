@@ -51,12 +51,7 @@ import java.util.Optional;
 
 public final class BlockUtils {
 
-    /**
-     * Returns the total mining progress added by mining the block in a single tick
-     * Mirrors mojmap BlockBehaviour#getDestroyProgress
-     *
-     * @return the mining progress added by this tick.
-     */
+    
     public static float getBlockMiningProgressPerTick(GeyserSession session, Block block, GeyserItemStack itemInHand) {
         float destroySpeed = block.destroyTime();
         if (destroySpeed == -1.0F) {
@@ -148,12 +143,7 @@ public final class BlockUtils {
         return Math.ceil(1 / progress);
     }
 
-    /**
-     * Given a position, return the position if a block were located on the specified block face.
-     * @param blockPos the block position
-     * @param face the face of the block - see {@link org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction}
-     * @return the block position with the block face accounted for
-     */
+    
     public static Vector3i getBlockPosition(Vector3i blockPos, Direction face) {
         return switch (face) {
             case DOWN -> blockPos.sub(0, 1, 0);
@@ -165,20 +155,11 @@ public final class BlockUtils {
         };
     }
 
-    /**
-     * Taking in a complete Java block state identifier, output just the block ID of this block state without the states.
-     * Examples:
-     * minecraft:oak_log[axis=x] = minecraft:oak_log
-     * minecraft:stone_brick_wall[east=low,north=tall,south=none,up=true,waterlogged=false,west=tall] = minecraft:stone_brick_wall
-     * minecraft:stone = minecraft:stone
-     *
-     * @param fullJavaIdentifier a full Java block identifier, with possible block states.
-     * @return a clean identifier in the format of minecraft:block
-     */
+    
     public static String getCleanIdentifier(String fullJavaIdentifier) {
         int stateIndex = fullJavaIdentifier.indexOf('[');
         if (stateIndex == -1) {
-            // Identical to its clean variation
+            
             return fullJavaIdentifier;
         }
         return fullJavaIdentifier.substring(0, stateIndex);
@@ -231,7 +212,7 @@ public final class BlockUtils {
         BlockDefinition bedrockBlock = session.getBlockMappings().getBedrockBlock(blockState);
 
         if (blockState.block() instanceof SkullBlock skullBlock && skullBlock.skullType() == SkullBlock.Type.PLAYER) {
-            // The changed block was a player skull so check if a custom block was defined for this skull
+            
             SkullCache.Skull skull = session.getSkullCache().getSkulls().get(vector);
             if (skull != null && skull.getBlockDefinition() != null) {
                 bedrockBlock = skull.getBlockDefinition();
@@ -252,7 +233,7 @@ public final class BlockUtils {
         updateWaterPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
         session.sendUpstreamPacket(updateWaterPacket);
 
-        // Reset the item in hand to prevent "missing" blocks
+        
         session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getOffsetForHotbar(slot));
     }
 
@@ -278,7 +259,7 @@ public final class BlockUtils {
                 }
             }
         }
-        // Not checking NBT or data components - assume the predicate matches
+        
         return true;
     }
 

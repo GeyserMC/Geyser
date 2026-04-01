@@ -41,7 +41,7 @@ public class BucketSoundInteractionTranslator implements BlockSoundInteractionTr
     public void translate(GeyserSession session, Vector3f position, BlockState state) {
         String identifier = state.toString();
         if (!session.isPlacedBucket()) {
-            return; // No bucket was really interacted with
+            return; 
         }
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand();
         String handItemIdentifier = itemStack.asItem().javaIdentifier();

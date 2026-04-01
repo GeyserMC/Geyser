@@ -41,7 +41,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 @Getter
 public class ThrowableEggEntity extends ThrowableItemEntity {
 
-    // Used for egg break particles
+    
     private GeyserItemStack itemStack;
 
     public ThrowableEggEntity(EntitySpawnContext context) {

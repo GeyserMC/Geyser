@@ -41,7 +41,7 @@ public class BedrockToggleCrafterSlotRequestTranslator extends PacketTranslator<
             return;
         }
 
-        // Note that the Bedrock packet uses disabled, whereas the java packet used enabled.
+        
         session.sendDownstreamGamePacket(
                 new ServerboundContainerSlotStateChangedPacket(packet.getSlot(), container.getJavaId(), !packet.isDisabled()));
     }

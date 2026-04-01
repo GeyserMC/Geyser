@@ -31,9 +31,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundKeepAlivePacket;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundKeepAlivePacket;
 
-/**
- * Used to forward the keep alive packet to the client in order to get back a reliable ping.
- */
+
 @Translator(packet = ClientboundKeepAlivePacket.class)
 public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAlivePacket> {
 
@@ -44,7 +42,7 @@ public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAli
         }
 
         final long javaId = packet.getPingId();
-        // ClientboundKeepAlivePacket's are async, hence we won't add additional delay ensuring it's sent in the event loop would add
+        
         session.sendNetworkLatencyStackPacket(javaId, false, () -> session.sendDownstreamPacket(new ServerboundKeepAlivePacket(javaId)));
     }
 }

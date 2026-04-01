@@ -33,16 +33,10 @@ import org.geysermc.geyser.session.GeyserSession;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * A mutable "wrapper" around {@link EnchantOptionData}
- */
+
 public class GeyserEnchantOption {
     private static final List<EnchantData> EMPTY = Collections.emptyList();
-    /**
-     * This <a href="https://cdn.discordapp.com/attachments/613168850925649981/791030657169227816/unknown.png">text</a>
-     * is controlled by the server.
-     * So, of course, we have to throw in some easter eggs. ;)
-     */
+    
     private static final List<String> ENCHANT_NAMES = List.of("tougher armor", "lukeeey", "fall better",
             "explode less", "camo toy", "armor stab", "breathe better", "water walk", "rtm five one six", "oof ouch owie",
             "enemy on fire", "spider sad", "aj ferguson", "redned", "more items thx", "fast tool", "give me block",
@@ -54,10 +48,7 @@ public class GeyserEnchantOption {
     @Getter
     private final int javaIndex;
 
-    /**
-     * Whether the enchantment details have actually changed.
-     * Used to mitigate weird packet spamming pre-1.14, causing the net ID to always update.
-     */
+    
     private boolean hasChanged;
 
     private int xpCost = 0;

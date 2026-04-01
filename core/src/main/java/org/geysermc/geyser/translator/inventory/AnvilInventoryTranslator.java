@@ -55,13 +55,13 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator<A
 
     @Override
     protected ItemStackResponse translateSpecialRequest(GeyserSession session, AnvilContainer container, ItemStackRequest request) {
-        // Guarded by shouldHandleRequestFirst check
+        
         CraftRecipeOptionalAction data = (CraftRecipeOptionalAction) request.getActions()[0];
 
         if (request.getFilterStrings().length != 0) {
-            // Required as of 1.18.30 - FilterTextPackets no longer appear to be sent
+            
             String name = request.getFilterStrings()[data.getFilteredStringIndex()];
-            if (!Objects.equals(name, container.getNewName())) { // TODO is this still necessary after pre-1.19.50 support is dropped?
+            if (!Objects.equals(name, container.getNewName())) { 
                 container.checkForRename(session, name);
             }
         }
@@ -106,7 +106,7 @@ public class AnvilInventoryTranslator extends AbstractBlockInventoryTranslator<A
 
     @Override
     public void updateProperty(GeyserSession session, AnvilContainer container, int key, int value) {
-        // The only property sent by Java is key 0 which is the level cost
+        
         if (key != 0) return;
         container.setJavaLevelCost(value);
         container.setUseJavaLevelCost(true);

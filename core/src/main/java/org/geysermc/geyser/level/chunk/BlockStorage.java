@@ -50,7 +50,7 @@ public class BlockStorage {
     public BlockStorage(int airBlockId, BitArrayVersion version) {
         this.bitArray = version.createArray(SIZE);
         this.palette = new IntArrayList(16);
-        this.palette.add(airBlockId); // Air is at the start of every palette and controls what the default block is in second-layer non-air block spaces.
+        this.palette.add(airBlockId); 
     }
 
     public BlockStorage(BitArray bitArray, IntList palette) {
@@ -83,11 +83,11 @@ public class BlockStorage {
     }
 
     public int estimateNetworkSize() {
-        int size = 1; // Palette header
+        int size = 1; 
         size += this.bitArray.getWords().length * 4;
 
-        // We assume that none of the VarInts will be larger than 3 bytes
-        size += 3; // Palette size
+        
+        size += 3; 
         size += this.palette.size() * 3;
         return size;
     }
@@ -101,7 +101,7 @@ public class BlockStorage {
         this.bitArray = newBitArray;
     }
 
-    public int idFor(int runtimeId) { // Set to public so we can reuse the palette ID for biomes
+    public int idFor(int runtimeId) { 
         int index = this.palette.indexOf(runtimeId);
         if (index != -1) {
             return index;

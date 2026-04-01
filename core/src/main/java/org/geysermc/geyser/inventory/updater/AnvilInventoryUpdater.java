@@ -91,14 +91,14 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         int lastTargetSlot = anvilContainer.getLastTargetSlot();
         int targetSlot = getTargetSlot(anvilContainer, session);
         if (targetSlot != javaSlot) {
-            // Update the requested slot
+            
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             slotPacket.setContainerId(ContainerId.UI);
             slotPacket.setSlot(translator.javaSlotToBedrock(javaSlot));
             slotPacket.setItem(inventory.getItem(javaSlot).getItemData(session));
             session.sendUpstreamPacket(slotPacket);
         } else if (lastTargetSlot != javaSlot) {
-            // Update the previous target slot to remove repair cost changes
+            
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             slotPacket.setContainerId(ContainerId.UI);
             slotPacket.setSlot(translator.javaSlotToBedrock(lastTargetSlot));
@@ -116,8 +116,8 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             anvilContainer.setLastInput(input.copy());
             anvilContainer.setUseJavaLevelCost(false);
 
-            // Changing the item in the input slot resets the name field on Bedrock, but
-            // does not result in a FilterTextPacket
+            
+            
             String originalName = MessageTranslator.convertToPlainText(input.getComponent(DataComponentTypes.CUSTOM_NAME), session.locale());
             ServerboundRenameItemPacket renameItemPacket = new ServerboundRenameItemPacket(originalName);
             session.sendDownstreamGamePacket(renameItemPacket);
@@ -132,20 +132,17 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         }
     }
 
-    /**
-     * @param anvilContainer the anvil inventory
-     * @return the slot to change the repair cost
-     */
+    
     private int getTargetSlot(AnvilContainer anvilContainer, GeyserSession session) {
         GeyserItemStack input = anvilContainer.getInput();
         GeyserItemStack material = anvilContainer.getMaterial();
 
         if (!material.isEmpty()) {
             if (!input.isEmpty() && isRepairing(input, material, session)) {
-                // Changing the repair cost on the material item makes it non-stackable
+                
                 return 0;
             }
-            // Prefer changing the material item because it does not reset the name field
+            
             return 1;
         }
         return 0;
@@ -156,7 +153,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         itemData = hijackRepairCost(session, anvilContainer, itemData);
 
         if (slot == 0 && isRenaming(session, anvilContainer, true)) {
-            // Can't change the RepairCost because it resets the name field on Bedrock
+            
             return;
         }
 
@@ -173,24 +170,24 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         if (itemData.isNull()) {
             return itemData;
         }
-        // Fix level count by adjusting repair cost
+        
         int newRepairCost;
         if (anvilContainer.isUseJavaLevelCost()) {
             newRepairCost = anvilContainer.getJavaLevelCost();
         } else {
-            // Did not receive a ServerWindowPropertyPacket with the level cost
+            
             newRepairCost = calcLevelCost(session, anvilContainer, false);
         }
 
         int bedrockLevelCost = calcLevelCost(session, anvilContainer, true);
         if (bedrockLevelCost == -1) {
-            // Bedrock is unable to combine/repair the items
+            
             return itemData;
         }
 
         newRepairCost -= bedrockLevelCost;
         if (newRepairCost == 0) {
-            // No change to the repair cost needed
+            
             return itemData;
         }
 
@@ -203,14 +200,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return itemData.toBuilder().tag(tagBuilder.build()).build();
     }
 
-    /**
-     * Calculate the number of levels needed to combine/rename an item
-     *
-     * @param session        the geyser session
-     * @param anvilContainer the anvil container
-     * @param bedrock        True to count enchantments like Bedrock
-     * @return the number of levels needed
-     */
+    
     public int calcLevelCost(GeyserSession session, AnvilContainer anvilContainer, boolean bedrock) {
         GeyserItemStack input = anvilContainer.getInput();
         GeyserItemStack material = anvilContainer.getMaterial();
@@ -231,13 +221,13 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                 if (enchantmentLevelCost != -1) {
                     cost += enchantmentLevelCost;
                 } else if (cost == 0) {
-                    // Can't repair or merge enchantments
+                    
                     return -1;
                 }
             } else if (hasDurability(input) && isRepairing(input, material, session)) {
                 cost = calcRepairLevelCost(input, material);
                 if (cost == -1) {
-                    // No damage to repair
+                    
                     return -1;
                 }
             } else {
@@ -249,26 +239,19 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         if (isRenaming(session, anvilContainer, bedrock)) {
             totalCost++;
             if (cost == 0 && totalCost >= MAX_LEVEL_COST) {
-                // Items can still be renamed when the level cost for renaming exceeds 40
+                
                 totalCost = MAX_LEVEL_COST - 1;
             }
         }
         return totalCost;
     }
 
-    /**
-     * Calculate the levels needed to repair an item with its repair material
-     * E.g. iron_sword + iron_ingot
-     *
-     * @param input    an item with durability
-     * @param material the item's respective repair material
-     * @return the number of levels needed or 0 if it is not possible to repair any further
-     */
+    
     private int calcRepairLevelCost(GeyserItemStack input, GeyserItemStack material) {
         int newDamage = getDamage(input);
         int unitRepair = Math.min(newDamage, input.asItem().defaultMaxDamage() / 4);
         if (unitRepair <= 0) {
-            // No damage to repair
+            
             return -1;
         }
         for (int i = 0; i < material.getAmount(); i++) {
@@ -281,30 +264,16 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         return material.getAmount();
     }
 
-    /**
-     * Calculate the levels cost for repairing items by combining two of the same item
-     *
-     * @param input    an item with durability
-     * @param material a matching item
-     * @return the number of levels needed or 0 if it is not possible to repair any further
-     */
+    
     private int calcMergeRepairCost(GeyserItemStack input, GeyserItemStack material) {
-        // If the material item is damaged 112% or more, then the input item will not be repaired
+        
         if (getDamage(input) > 0 && getDamage(material) < (material.asItem().defaultMaxDamage() * 112 / 100)) {
             return 2;
         }
         return 0;
     }
 
-    /**
-     * Calculate the levels needed for combining the enchantments of two items
-     *
-     * @param session  Geyser session
-     * @param input    an item with durability
-     * @param material a matching item
-     * @param bedrock  True to count enchantments like Bedrock, False to count like Java
-     * @return the number of levels needed or -1 if no enchantments can be applied
-     */
+    
     private int calcMergeEnchantmentCost(GeyserSession session, GeyserItemStack input, GeyserItemStack material, boolean bedrock) {
         boolean hasCompatible = false;
         Object2IntMap<Enchantment> combinedEnchantments = getEnchantments(session, input);
@@ -345,10 +314,10 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                         hasCompatible = true;
                     }
                     if (enchantment.bedrockEnchantment() == BedrockEnchantment.IMPALING) {
-                        // Multiplier is halved on Bedrock for some reason
+                        
                         rarityMultiplier /= 2;
                     } else if (enchantment.bedrockEnchantment() == null) {
-                        // Whatever this is, doesn't exist on Bedrock
+                        
                         rarityMultiplier = 0;
                     }
                     cost += rarityMultiplier * (newLevel - currentLevel);
@@ -408,11 +377,11 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         if (anvilContainer.getResult().isEmpty()) {
             return false;
         }
-        // This should really check the name field in all cases, but that requires the localized name
-        // of the item which can change depending on NBT and Minecraft Edition
+        
+        
         Component originalName = anvilContainer.getInput().getComponent(DataComponentTypes.CUSTOM_NAME);
         if (bedrock && originalName != null && anvilContainer.getNewName() != null) {
-            // Check text and formatting
+            
             String legacyOriginalName = MessageTranslator.convertMessage(originalName, session.locale());
             return !legacyOriginalName.equals(anvilContainer.getNewName());
         }

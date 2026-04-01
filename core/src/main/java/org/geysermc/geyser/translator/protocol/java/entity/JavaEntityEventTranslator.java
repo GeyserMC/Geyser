@@ -132,13 +132,13 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 entityEventPacket.setType(EntityEventType.USE_ITEM);
                 break;
             case FISHING_HOOK_PULL_PLAYER:
-                // Player is pulled from a fishing rod
-                // The physics of this are clientside on Java
+                
+                
                 FishingHookEntity fishingHook = (FishingHookEntity) entity;
                 if (fishingHook.getBedrockTargetId() == session.getPlayerEntity().geyserId()) {
                     Entity hookOwner = session.getEntityCache().getEntityByGeyserId(fishingHook.getBedrockOwnerId());
                     if (hookOwner != null) {
-                        // https://minecraft.wiki/w/Fishing_Rod#Hooking_mobs_and_other_entities
+                        
                         SetEntityMotionPacket motionPacket = new SetEntityMotionPacket();
                         motionPacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
                         motionPacket.setMotion(hookOwner.position().sub(session.getPlayerEntity().position()).mul(0.1f));
@@ -152,7 +152,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case TAMEABLE_TAMING_SUCCEEDED:
                 entityEventPacket.setType(EntityEventType.TAME_SUCCEEDED);
                 break;
-            case ZOMBIE_VILLAGER_CURE: // Played when a zombie bites the golden apple
+            case ZOMBIE_VILLAGER_CURE: 
                 LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
                 soundPacket.setSound(SoundEvent.REMEDY);
                 soundPacket.setPosition(entity.bedrockPosition());
@@ -169,11 +169,11 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 entityEventPacket.setType(EntityEventType.FIREWORK_EXPLODE);
                 break;
             case WITCH_EMIT_PARTICLES:
-                entityEventPacket.setType(EntityEventType.WITCH_HAT_MAGIC); //TODO: CHECK
+                entityEventPacket.setType(EntityEventType.WITCH_HAT_MAGIC); 
                 break;
             case TOTEM_OF_UNDYING_MAKE_SOUND:
-                // Bedrock will not play the spinning animation without the item in the hand o.o
-                // Fixes https://github.com/GeyserMC/Geyser/issues/2446
+                
+                
                 boolean totemItemWorkaround = !session.getPlayerInventory().isHolding(Items.TOTEM_OF_UNDYING);
                 if (totemItemWorkaround) {
                     InventoryContentPacket offhandPacket = new InventoryContentPacket();
@@ -191,11 +191,11 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 playSoundPacket.setPitch(1.0F + (ThreadLocalRandom.current().nextFloat() * 0.1F) - 0.05F);
                 session.sendUpstreamPacket(playSoundPacket);
 
-                // Sent here early to ensure we have the totem in our hand
+                
                 session.sendUpstreamPacket(entityEventPacket);
 
                 if (totemItemWorkaround) {
-                    // Reset the item again
+                    
                     session.getPlayerInventoryHolder().updateSlot(45);
                 }
 
@@ -236,8 +236,8 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 break;
             case RABBIT_JUMP_OR_MINECART_SPAWNER_DELAY_RESET:
                 if (entity.getDefinition() == EntityDefinitions.RABBIT) {
-                    // This doesn't match vanilla Bedrock behavior but I'm unsure how to make it better
-                    // I assume part of the problem is that Bedrock uses a duration and Java just says the rabbit is jumping
+                    
+                    
                     SetEntityDataPacket dataPacket = new SetEntityDataPacket();
                     dataPacket.getMetadata().put(EntityDataTypes.JUMP_DURATION, (byte) 3);
                     dataPacket.setRuntimeEntityId(entity.geyserId());
@@ -260,7 +260,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 equipmentBreakPacket.setIdentifier("");
                 session.sendUpstreamPacket(equipmentBreakPacket);
                 return;
-            case PLAYER_SWAP_SAME_ITEM: // Not just used for players
+            case PLAYER_SWAP_SAME_ITEM: 
                 if (entity instanceof LivingEntity livingEntity) {
                     livingEntity.switchHands();
 
@@ -282,8 +282,8 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 break;
             case MAKE_POOF_PARTICLES:
                 if (entity instanceof LivingEntity) {
-                    // Note that this event usually makes noise, but because we set all entities as silent on the
-                    // client end this isn't an issue.
+                    
+                    
                     entityEventPacket.setType(EntityEventType.DEATH_SMOKE_CLOUD);
                 }
                 break;
@@ -308,7 +308,7 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
                 }
                 break;
             case SQUID_RESET_ROTATION:
-                // unused, but spams a bit
+                
                 break;
             default:
                 GeyserImpl.getInstance().getLogger().debug("unhandled entity event: " + packet);

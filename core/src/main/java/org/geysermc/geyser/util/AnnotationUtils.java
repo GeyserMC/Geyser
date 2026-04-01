@@ -56,30 +56,12 @@ public class AnnotationUtils {
         return false;
     }
 
-    /**
-     * Returns a set of all the classes that are annotated by a given annotation.
-     * Keep in mind that these are from a set of generated annotations generated
-     * at compile time by the annotation processor, meaning that arbitrary annotations
-     * cannot be passed into this method and expected to have a set of classes
-     * returned back.
-     *
-     * @param annotationClass the annotation class
-     * @return a set of all the classes annotated by the given annotation
-     */
+    
     public static Set<Class<?>> getGeneratedClassesForAnnotation(Class<? extends Annotation> annotationClass) {
         return getGeneratedClassesForAnnotation(annotationClass.getName());
     }
 
-    /**
-     * Returns a set of all the classes that are annotated by a given annotation.
-     * Keep in mind that these are from a set of generated annotations generated
-     * at compile time by the annotation processor, meaning that arbitrary annotations
-     * cannot be passed into this method and expected to have a set of classes
-     * returned back.
-     *
-     * @param input the fully qualified name of the annotation
-     * @return a set of all the classes annotated by the given annotation
-     */
+    
     public static Set<Class<?>> getGeneratedClassesForAnnotation(String input) {
         try (InputStream annotatedClass = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(input);
              BufferedReader reader = new BufferedReader(new InputStreamReader(annotatedClass))) {

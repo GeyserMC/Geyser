@@ -28,9 +28,7 @@ package org.geysermc.floodgate.util;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 
-/**
- * The Operation Systems where Bedrock players can connect with
- */
+
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public enum DeviceOs {
     UNKNOWN("Unknown"),
@@ -44,9 +42,7 @@ public enum DeviceOs {
     WIN32("Windows x86"),
     DEDICATED("Dedicated"),
     @Deprecated TVOS("Apple TV"),
-    /**
-     * This is for all PlayStation platforms not just PS4
-     */
+    
     PS4("PlayStation"),
     NX("Switch"),
     XBOX("Xbox"),
@@ -57,19 +53,12 @@ public enum DeviceOs {
 
     private final String displayName;
 
-    /**
-     * Get the DeviceOs instance from the identifier.
-     *
-     * @param id the DeviceOs identifier
-     * @return The DeviceOs or {@link #UNKNOWN} if the DeviceOs wasn't found
-     */
+    
     public static DeviceOs fromId(int id) {
         return id < VALUES.length ? VALUES[id] : VALUES[0];
     }
 
-    /**
-     * @return friendly display name of platform.
-     */
+    
     @Override
     public String toString() {
         return displayName;

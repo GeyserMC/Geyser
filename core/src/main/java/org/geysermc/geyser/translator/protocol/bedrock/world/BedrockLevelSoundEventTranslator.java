@@ -37,13 +37,13 @@ public class BedrockLevelSoundEventTranslator extends PacketTranslator<LevelSoun
 
     @Override
     public void translate(GeyserSession session, LevelSoundEventPacket packet) {
-        // lol what even :thinking:
+        
         session.sendUpstreamPacket(packet);
 
-        // Yes, what even, but thankfully we can hijack this packet to send the cooldown
+        
         if (packet.getSound() == SoundEvent.ATTACK_NODAMAGE || packet.getSound() == SoundEvent.ATTACK || packet.getSound() == SoundEvent.ATTACK_STRONG) {
-            // Send a faux cooldown since Bedrock has no cooldown support
-            // Sent here because Java still sends a cooldown if the player doesn't hit anything but Bedrock always sends a sound
+            
+            
             CooldownUtils.setCooldownHitTime(session);
         }
     }

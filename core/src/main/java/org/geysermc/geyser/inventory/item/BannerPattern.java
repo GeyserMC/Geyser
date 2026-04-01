@@ -94,7 +94,7 @@ public enum BannerPattern {
                 return bannerPattern;
             }
         }
-        return BASE; // Default fallback
+        return BASE; 
     }
 
     public static @Nullable BannerPattern getByBedrockIdentifier(String bedrockIdentifier) {

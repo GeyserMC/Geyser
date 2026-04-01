@@ -28,8 +28,8 @@ package org.geysermc.floodgate.news;
 import com.google.gson.JsonArray;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-// {} is used for things that have to be filled in by the server,
-// {@} is for things that have to be filled in by us
+
+
 public enum NewsItemMessage {
     UPDATE_AVAILABLE("There is an update available for {}. The newest version is: {}"),
     UPDATE_RECOMMENDED(UPDATE_AVAILABLE + ". Your version is quite old, updating is recommend."),

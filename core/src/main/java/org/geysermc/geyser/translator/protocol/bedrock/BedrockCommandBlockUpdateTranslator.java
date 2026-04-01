@@ -42,15 +42,15 @@ public class BedrockCommandBlockUpdateTranslator extends PacketTranslator<Comman
         boolean outputTracked = packet.isOutputTracked();
         if (packet.isBlock()) {
             CommandBlockMode mode = switch (packet.getMode()) {
-                case CHAIN -> // The green one
+                case CHAIN -> 
                         CommandBlockMode.SEQUENCE;
-                case REPEATING -> // The purple one
+                case REPEATING -> 
                         CommandBlockMode.AUTO;
-                default -> // NORMAL, the orange one
+                default -> 
                         CommandBlockMode.REDSTONE;
             };
             boolean isConditional = packet.isConditional();
-            boolean automatic = !packet.isRedstoneMode(); // Automatic = Always Active option in Java
+            boolean automatic = !packet.isRedstoneMode(); 
             ServerboundSetCommandBlockPacket commandBlockPacket = new ServerboundSetCommandBlockPacket(
                     packet.getBlockPosition(), command, mode, outputTracked, isConditional, automatic);
             session.sendDownstreamGamePacket(commandBlockPacket);

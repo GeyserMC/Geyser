@@ -56,7 +56,7 @@ public enum EffectType {
     ABSORPTION(22, Effect.ABSORPTION, 0x2552A5),
     SATURATION(23, Effect.SATURATION, 0xF82423),
     LEVITATION(24, Effect.LEVITATION, 0xCEFFFF),
-    FATAL_POISON(25, null, 0x4E9331), // Bedrock-exclusive effect, maybe useful later if we map to closest color
+    FATAL_POISON(25, null, 0x4E9331), 
     CONDUIT_POWER(26, Effect.CONDUIT_POWER, 0x1DC2D1),
     SLOW_FALLING(27, Effect.SLOW_FALLING, 0xF3CFB9),
     BAD_OMEN(28, Effect.BAD_OMEN, 0x0B6138),
@@ -70,7 +70,7 @@ public enum EffectType {
     RAID_OMEN(36, Effect.RAID_OMEN, 0xDE4058),
     BREATH_OF_THE_NAUTILUS(37, Effect.BREATH_OF_THE_NAUTILUS, 0x00FFEE),
 
-    // All Java-exclusive effects as of 1.16.2
+    
     GLOWING(0, Effect.GLOWING, 0x94A061),
     LUCK(0, Effect.LUCK, 0x59C106),
     BAD_LUCK(0, Effect.UNLUCK, 0xC0A44D),
@@ -96,7 +96,7 @@ public enum EffectType {
     }
 
     public static EffectType fromColor(int color) {
-        color = color & 0xFFFFFF; // Ignore alpha channel
+        color = color & 0xFFFFFF; 
         for (EffectType type : values()) {
             if (type.getColor() == color) {
                 return type;

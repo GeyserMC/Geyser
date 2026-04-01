@@ -42,7 +42,7 @@ public class WitherSkullEntity extends FireballEntity {
         boolean newDangerous = entityMetadata.getPrimitiveValue();
         if (newDangerous != isCharged) {
             isCharged = newDangerous;
-            // Is an entirely new entity in Bedrock but just a metadata type in Java
+            
             definition = isCharged ? EntityDefinitions.WITHER_SKULL_DANGEROUS : EntityDefinitions.WITHER_SKULL;
             despawnEntity();
             spawnEntity();

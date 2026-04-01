@@ -44,7 +44,7 @@ public final class BooleanProperty extends Property<Boolean> {
 
     @Override
     public Optional<Boolean> valueOf(String string) {
-        // Not using Boolean.parseBoolean because that will return false for any string not "true"
+        
         return switch (string) {
             case "true" -> Optional.of(true);
             case "false" -> Optional.of(false);

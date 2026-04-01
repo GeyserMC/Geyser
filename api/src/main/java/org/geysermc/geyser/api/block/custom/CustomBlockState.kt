@@ -22,54 +22,49 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.block.custom;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.util.Map;
+package org.geysermc.geyser.api.block.custom
 
 /**
- * This class is used to store a custom block state, which contains CustomBlockData 
+ * This class is used to store a custom block state, which contains CustomBlockData
  * tied to defined properties and values
  */
-public interface CustomBlockState {
+interface CustomBlockState {
     /**
      * Gets the custom block data associated with the state
-     *
+     * 
      * @return The custom block data for the state.
      */
-    @NonNull CustomBlockData block();
+    fun block(): CustomBlockData
 
     /**
      * Gets the name of the state
-     *
+     * 
      * @return The name of the state.
      */
-    @NonNull String name();
+    fun name(): String
 
     /**
      * Gets the given property for the state
-     *
+     * 
      * @param propertyName the property name
      * @return the boolean, int, or string property.
      */
-    @NonNull <T> T property(@NonNull String propertyName);
+    fun <T> property(propertyName: String): T
 
     /**
      * Gets a map of the properties for the state
-     *
+     * 
      * @return The properties for the state.
      */
-    @NonNull Map<String, Object> properties();
+    fun properties(): MutableMap<String?, Any?>
 
     interface Builder {
-        Builder booleanProperty(@NonNull String propertyName, boolean value);
+        fun booleanProperty(propertyName: String, value: Boolean): Builder?
 
-        Builder intProperty(@NonNull String propertyName, int value);
+        fun intProperty(propertyName: String, value: Int): Builder?
 
-        Builder stringProperty(@NonNull String propertyName, @NonNull String value);
+        fun stringProperty(propertyName: String, value: String): Builder?
 
-        CustomBlockState build();
+        fun build(): CustomBlockState?
     }
 }

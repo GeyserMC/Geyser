@@ -65,12 +65,12 @@ public class CIDRMatcher {
     }
 
     public boolean matches(InetAddress inetAddress) {
-        // check if IP is IPv4 or IPv6
+        
         if (cidrAddress.getClass() != inetAddress.getClass()) {
             return false;
         }
 
-        // check for equality if it's a simple CIDR
+        
         if (simpleCIDR) {
             return inetAddress.equals(cidrAddress);
         }

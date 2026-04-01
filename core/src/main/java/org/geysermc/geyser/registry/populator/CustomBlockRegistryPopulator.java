@@ -77,10 +77,10 @@ import static org.geysermc.geyser.registry.populator.BlockRegistryPopulator.MIN_
 
 public class CustomBlockRegistryPopulator {
 
-    // Since 1.20.60, custom blocks need a block_id in their nbt tag
+    
     public static AtomicInteger BLOCK_ID = new AtomicInteger();
 
-    // Custom block id's start at 10000, and count up
+    
     public static final int START_OFFSET = 10000;
 
     /**
@@ -147,7 +147,7 @@ public class CustomBlockRegistryPopulator {
                 if (!CUSTOM_BLOCKS.contains(customBlockState.block())) {
                     throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockState.name());
                 }
-                // We can't register these yet as we don't have the java block id registry populated
+                
                 BLOCK_STATE_OVERRIDES_QUEUE.put(javaIdentifier, customBlockState);
             }
 
@@ -225,7 +225,7 @@ public class CustomBlockRegistryPopulator {
         BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.set(NON_VANILLA_BLOCK_STATE_OVERRIDES);
 
         if (NON_VANILLA_BLOCK_STATE_OVERRIDES.isEmpty()) {
-            // Nothing left to register, freeze block state registry
+            
             BlockRegistries.BLOCK_STATES.freeze();
             return;
         }
@@ -237,9 +237,9 @@ public class CustomBlockRegistryPopulator {
             throw new RuntimeException("Non vanilla custom block state overrides runtime ID must start after the last vanilla block state (" + JAVA_BLOCKS_SIZE + ")");
         }
 
-        JAVA_BLOCKS_SIZE = maxCustomRuntimeID + 1; // Runtime ids start at 0, so we need to add 1
+        JAVA_BLOCKS_SIZE = maxCustomRuntimeID + 1; 
 
-        // Now: Vanilla blocks are already loaded and registered; let's load non-vanilla properly too
+        
         IntSet usedNonVanillaRuntimeIDs = new IntOpenHashSet();
 
         for (JavaBlockState javaBlockState : BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet()) {
@@ -266,10 +266,10 @@ public class CustomBlockRegistryPopulator {
             BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
             BlockRegistries.NON_VANILLA_BLOCK_IDS.register(set -> set.set(stateRuntimeId));
 
-            // TODO register different collision types?
+            
             BoundingBox[] geyserCollisions = Arrays.stream(javaBlockState.collision())
-                .map(box -> new BoundingBox(box.middleX(), box.middleY(), box.middleZ(),
-                    box.sizeX(), box.sizeY(), box.sizeZ()))
+                .map(box -> new BoundingBox(box.middleX, box.middleY, box.middleZ,
+                        box.sizeX, box.sizeY, box.sizeZ))
                 .toArray(BoundingBox[]::new);
             OtherCollision collision = new OtherCollision(geyserCollisions);
             BlockRegistries.COLLISIONS.registerWithAnyIndex(javaBlockState.javaId(), collision, collision);
@@ -334,12 +334,12 @@ public class CustomBlockRegistryPopulator {
         List<NbtMap> permutations = new ArrayList<>();
         for (CustomBlockPermutation permutation : customBlock.permutations()) {
             permutations.add(NbtMap.builder()
-                    .putCompound("components", CustomBlockRegistryPopulator.convertComponents(permutation.components()))
-                    .putString("condition", permutation.condition())
+                    .putCompound("components", CustomBlockRegistryPopulator.convertComponents(permutation.components))
+                    .putString("condition", permutation.condition)
                     .build());
         }
 
-        // The order that properties are defined influences the order that block states are generated
+        
         List<NbtMap> properties = new ArrayList<>();
         for (CustomBlockProperty<?> property : customBlock.properties().values()) {
             NbtMapBuilder propertyBuilder = NbtMap.builder()
@@ -358,15 +358,15 @@ public class CustomBlockRegistryPopulator {
         String creativeGroup = customBlock.creativeGroup() != null ? customBlock.creativeGroup() : "";
         NbtMapBuilder propertyTag = NbtMap.builder()
                 .putCompound("components", CustomBlockRegistryPopulator.convertComponents(customBlock.components()))
-                // this is required or the client will crash
-                // in the future, this can be used to replace items in the creative inventory
-                // this would require us to map https://wiki.bedrock.dev/documentation/creative-categories.html#for-blocks programatically
+                
+                
+                
                 .putCompound("menu_category", NbtMap.builder()
                     .putString("category", creativeCategory.bedrockName())
                     .putString("group", creativeGroup)
                     .putBoolean("is_hidden_in_commands", false)
                 .build())
-                // meaning of this version is unknown, but it's required for tags to work and should probably be checked periodically
+                
                 .putInt("molangVersion", 1)
                 .putList("permutations", NbtType.COMPOUND, permutations)
                 .putList("properties", NbtType.COMPOUND, properties)
@@ -426,7 +426,7 @@ public class CustomBlockRegistryPopulator {
                         .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion())
                         .putBoolean("isotropic", materialInstance.isotropic());
 
-                // todo this is actually an bitset, we should add the other properties some day
+                
                 materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
 
                 if (materialInstance.renderMethod() != null) {
@@ -437,7 +437,7 @@ public class CustomBlockRegistryPopulator {
                     materialBuilder.putString("tint_method", materialInstance.tintMethod());
                 }
 
-                // Texture can be unspecified when blocks.json is used in RP (https://wiki.bedrock.dev/blocks/blocks-stable.html#minecraft-material-instances)
+                
                 if (materialInstance.texture() != null) {
                     materialBuilder.putString("texture", materialInstance.texture());
                 }
@@ -445,9 +445,9 @@ public class CustomBlockRegistryPopulator {
             }
 
             builder.putCompound("minecraft:material_instances", NbtMap.builder()
-                    // we could read these, but there is no functional reason to use them at the moment
-                    // they only allow you to make aliases for material instances
-                    // but you could already just define the same instance twice if this was really needed
+                    
+                    
+                    
                     .putCompound("mappings", NbtMap.EMPTY)
                     .putCompound("materials", materialsBuilder.build())
                     .build());
@@ -491,21 +491,21 @@ public class CustomBlockRegistryPopulator {
         TransformationComponent transformationComponent = components.transformation();
         if (transformationComponent != null) {
             builder.putCompound("minecraft:transformation", NbtMap.builder()
-                    .putInt("RX", MathUtils.unwrapDegreesToInt(transformationComponent.rx()) / 90)
-                    .putInt("RY", MathUtils.unwrapDegreesToInt(transformationComponent.ry()) / 90)
-                    .putInt("RZ", MathUtils.unwrapDegreesToInt(transformationComponent.rz()) / 90)
-                    .putFloat("SX", transformationComponent.sx())
-                    .putFloat("SY", transformationComponent.sy())
-                    .putFloat("SZ", transformationComponent.sz())
-                    .putFloat("TX", transformationComponent.tx())
-                    .putFloat("TY", transformationComponent.ty())
-                    .putFloat("TZ", transformationComponent.tz())
+                    .putInt("RX", MathUtils.unwrapDegreesToInt(transformationComponent.rx) / 90)
+                    .putInt("RY", MathUtils.unwrapDegreesToInt(transformationComponent.ry) / 90)
+                    .putInt("RZ", MathUtils.unwrapDegreesToInt(transformationComponent.rz) / 90)
+                    .putFloat("SX", transformationComponent.sx)
+                    .putFloat("SY", transformationComponent.sy)
+                    .putFloat("SZ", transformationComponent.sz)
+                    .putFloat("TX", transformationComponent.tx)
+                    .putFloat("TY", transformationComponent.ty)
+                    .putFloat("TZ", transformationComponent.tz)
                     .build());
         }
 
-        // place_air is not an actual component
-        // We just apply a dummy event to prevent the client from trying to place a block
-        // This mitigates the issue with the client sometimes double placing blocks
+        
+        
+        
         if (components.placeAir()) {
             builder.putCompound("minecraft:on_player_placing", NbtMap.builder()
                     .putString("triggerType", "geyser:place_event")
@@ -534,17 +534,17 @@ public class CustomBlockRegistryPopulator {
             }
             empty = false;
 
-            float minX = 8f + boxComponent.originX();
-            float minY = boxComponent.originY();
-            float minZ = 8f + boxComponent.originZ();
+            float minX = 8f + boxComponent.originX;
+            float minY = boxComponent.originY;
+            float minZ = 8f + boxComponent.originZ;
 
             boxesNbt.add(NbtMap.builder()
                 .putFloat("minX", minX)
                 .putFloat("minY", minY)
                 .putFloat("minZ", minZ)
-                .putFloat("maxX", minX + boxComponent.sizeX())
-                .putFloat("maxY", minY + boxComponent.sizeY())
-                .putFloat("maxZ", minZ + boxComponent.sizeZ())
+                .putFloat("maxX", minX + boxComponent.sizeX)
+                .putFloat("maxY", minY + boxComponent.sizeY)
+                .putFloat("maxZ", minZ + boxComponent.sizeZ)
                 .build());
         }
 
@@ -563,8 +563,8 @@ public class CustomBlockRegistryPopulator {
     private static NbtMap convertBox(BoxComponent boxComponent) {
         return NbtMap.builder()
                 .putBoolean("enabled", !boxComponent.isEmpty())
-                .putList("origin", NbtType.FLOAT, boxComponent.originX(), boxComponent.originY(), boxComponent.originZ())
-                .putList("size", NbtType.FLOAT, boxComponent.sizeX(), boxComponent.sizeY(), boxComponent.sizeZ())
+                .putList("origin", NbtType.FLOAT, boxComponent.originX, boxComponent.originY, boxComponent.originZ)
+                .putList("size", NbtType.FLOAT, boxComponent.sizeX, boxComponent.sizeY, boxComponent.sizeZ)
                 .build();
     }
 
@@ -579,20 +579,20 @@ public class CustomBlockRegistryPopulator {
         placementFilter.forEach((condition) -> {
             NbtMapBuilder conditionBuilder = NbtMap.builder();
 
-            // allowed_faces on the network is represented by 6 bits for the 6 possible faces
-            // the enum has the proper values for that face only, so we just bitwise OR them together
+            
+            
             byte allowedFaces = 0;
-            for (Face face : condition.allowedFaces()) { allowedFaces |= (1 << face.ordinal()); }
+            for (Face face : condition.allowedFaces) { allowedFaces |= (1 << face.ordinal()); }
             conditionBuilder.putByte("allowed_faces", allowedFaces);
 
-            // block_filters is a list of either blocks or queries for block tags
-            // if these match the block the player is trying to place on, the placement is allowed by the client
+            
+            
             List <NbtMap> blockFilters = new ArrayList<>();
-            condition.blockFilters().forEach((value, type) -> {
+            condition.blockFilters.forEach((value, type) -> {
                 NbtMapBuilder blockFilterBuilder = NbtMap.builder();
                 switch (type) {
                     case BLOCK -> blockFilterBuilder.putString("name", value);
-                    // meaning of this version is unknown, but it's required for tags to work and should probably be checked periodically
+                    
                     case TAG -> blockFilterBuilder.putString("tags", value).putInt("tags_version", 6);
                 }
                 blockFilters.add(blockFilterBuilder.build());

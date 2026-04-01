@@ -38,7 +38,7 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
     private static final int DASH_TICKS = 55;
 
     @Setter
-    private float horseJumpStrength = 0.42f; // Not sent by vanilla Java server when spawned
+    private float horseJumpStrength = 0.42f; 
 
     @Setter
     private long lastPoseTick;
@@ -51,8 +51,8 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
     }
 
     public void startDashCooldown() {
-        // tickVehicle is only called while the vehicle is mounted. Use session ticks to keep
-        // track of time instead of counting down
+        
+        
         this.dashTick = vehicle.getSession().getTicks() + DASH_TICKS;
     }
 
@@ -74,7 +74,7 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
 
     @Override
     public void onDismount() {
-        // Prevent camel from getting stuck in dash animation
+        
         vehicle.setFlag(EntityFlag.HAS_DASH_COOLDOWN, false);
         vehicle.updateBedrockMetadata();
         super.onDismount();
@@ -123,12 +123,9 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
         return super.getRiddenRotation();
     }
 
-    /**
-     * Checks if the camel is sitting
-     * or transitioning to standing pose.
-     */
+    
     private boolean isStationary() {
-        // Java checks if sitting using lastPoseTick
+        
         return this.lastPoseTick < 0 || vehicle.getSession().getWorldTicks() < this.lastPoseTick + STANDING_TICKS;
     }
 

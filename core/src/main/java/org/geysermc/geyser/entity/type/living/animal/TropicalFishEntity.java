@@ -36,10 +36,7 @@ import java.util.List;
 
 public class TropicalFishEntity extends AbstractFishEntity {
 
-    /**
-     * A list of variant numbers that are given special names
-     * The index of the variant in this list is used as part of the locale key
-     */
+    
     private static final IntList PREDEFINED_VARIANTS = IntList.of(117506305, 117899265, 185008129, 117441793, 118161664, 65536, 50726144, 67764993, 234882305, 67110144, 117441025, 16778497, 101253888, 50660352, 918529, 235340288, 918273, 67108865, 917504, 459008, 67699456, 67371009);
 
     private static final List<String> VARIANT_NAMES = ImmutableList.of("kob", "sunstreak", "snooper", "dasher", "brinely", "spotty", "flopper", "stripey", "glitter", "blockfish", "betty", "clayfish");
@@ -52,10 +49,10 @@ public class TropicalFishEntity extends AbstractFishEntity {
     public void setFishVariant(IntEntityMetadata entityMetadata) {
         int varNumber = entityMetadata.getPrimitiveValue();
 
-        dirtyMetadata.put(EntityDataTypes.VARIANT, getShape(varNumber)); // Shape 0-1
-        dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, getPattern(varNumber)); // Pattern 0-5
-        dirtyMetadata.put(EntityDataTypes.COLOR, getBaseColor(varNumber)); // Base color 0-15
-        dirtyMetadata.put(EntityDataTypes.COLOR_2, getPatternColor(varNumber)); // Pattern color 0-15
+        dirtyMetadata.put(EntityDataTypes.VARIANT, getShape(varNumber)); 
+        dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, getPattern(varNumber)); 
+        dirtyMetadata.put(EntityDataTypes.COLOR, getBaseColor(varNumber)); 
+        dirtyMetadata.put(EntityDataTypes.COLOR_2, getPatternColor(varNumber)); 
     }
 
     public static int getPackedVariant(int pattern, int baseColor, int patternColor) {

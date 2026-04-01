@@ -22,21 +22,19 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.event.lifecycle
 
-package org.geysermc.geyser.api.event.lifecycle;
-
-import org.geysermc.event.Event;
-import org.geysermc.event.PostOrder;
-import org.geysermc.geyser.api.permission.PermissionChecker;
+import org.geysermc.event.Event
+import org.geysermc.geyser.api.permission.PermissionChecker
 
 /**
  * Fired by any permission manager implementations that wish to add support for custom permission checking.
  * This event is not guaranteed to be fired - it is currently only fired on Geyser-Standalone and ViaProxy.
- * <p>
- * Subscribing to this event with an earlier {@link PostOrder} and registering a {@link PermissionChecker}
+ * 
+ * 
+ * Subscribing to this event with an earlier [PostOrder] and registering a [PermissionChecker]
  * will result in that checker having a higher priority than others.
  */
-public interface GeyserRegisterPermissionCheckersEvent extends Event {
-
-    void register(PermissionChecker checker);
+interface GeyserRegisterPermissionCheckersEvent : Event {
+    fun register(checker: PermissionChecker?)
 }

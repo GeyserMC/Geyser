@@ -57,8 +57,8 @@ public final class WaypointCache {
         }
 
         if (packet.getOperation() == WaypointOperation.TRACK || packet.getOperation()== WaypointOperation.UNTRACK) {
-            // Only show locator bar when there are waypoints on it
-            // This is equivalent to Java, and the Java locatorBar game rule won't work otherwise
+            
+            
             session.sendGameRule("locatorBar", !waypoints.isEmpty());
         }
     }
@@ -66,18 +66,18 @@ public final class WaypointCache {
     public void listPlayer(PlayerEntity player) {
         GeyserWaypoint waypoint = waypoints.get(player.uuid().toString());
         if (waypoint != null) {
-            // This will remove the fake player packet previously sent to the client,
-            // and change the waypoint to use the player's entity ID instead.
-            // This is important because sometimes a waypoint is sent before player info telling us to list the player, so a fake player packet is sent to the client
-            // When the player becomes listed the right colour will already be used, this is always put in the colours map, no matter if the
-            // player info existed or not
+            
+            
+            
+            
+            
             waypoint.setPlayer(player);
         } else {
-            // If we haven't received a waypoint for the player, we need to tell the client to hide them
-            // Bedrock likes to create their own waypoints for players in render distance, but Java doesn't do this, and we don't want this either, since it could
-            // lead to duplicate/wrong waypoints on the locator bar
-            // For example, if a Java server hides a player from the locator bar even when they're not sneaking, bedrock will still show them when in render
-            // distance
+            
+            
+            
+            
+            
             PlayerLocationPacket locationPacket = new PlayerLocationPacket();
             locationPacket.setType(PlayerLocationPacket.Type.HIDE);
             locationPacket.setTargetEntityId(player.geyserId());
@@ -88,10 +88,10 @@ public final class WaypointCache {
     public void unlistPlayer(PlayerEntity player) {
         GeyserWaypoint waypoint = waypoints.get(player.uuid().toString());
         if (waypoint != null) {
-            // This will remove the player packet previously sent to the client,
-            // and change the waypoint to use the player's entity ID instead.
-            // This is important because a player waypoint can still show even when a player becomes unlisted,
-            // so a fake player packet has to be sent to the client now
+            
+            
+            
+            
             waypoint.setPlayer(null);
         }
     }
@@ -117,16 +117,16 @@ public final class WaypointCache {
         GeyserWaypoint tracked = GeyserWaypoint.create(session, player, waypoint);
         if (tracked != null) {
             uuid.ifPresent(id -> waypointColors.put(id, tracked.color()));
-            // Resend player entry with new waypoint colour
+            
             player.ifPresent(this::updatePlayerEntry);
 
             tracked.track(waypoint.data());
             waypoints.put(waypointId(waypoint), tracked);
         } else {
             player.ifPresent(playerEntity -> {
-                // When tracked waypoint is null, the waypoint shouldn't show up on the locator bar (Java type is EMPTY)
-                // If this waypoint is linked to a player, tell the bedrock client to hide it
-                // If we don't do this bedrock will show the waypoint anyway when the player is in render distance (read comments above in trackPlayer)
+                
+                
+                
                 PlayerLocationPacket locationPacket = new PlayerLocationPacket();
                 locationPacket.setType(PlayerLocationPacket.Type.HIDE);
                 locationPacket.setTargetEntityId(playerEntity.geyserId());
@@ -156,8 +156,8 @@ public final class WaypointCache {
     }
 
     private void updatePlayerEntry(PlayerEntity player) {
-        // No need to resend the entry if the player wasn't listed anyway,
-        // it will become listed later with the right colour
+        
+        
         if (!player.isListed()) {
             return;
         }

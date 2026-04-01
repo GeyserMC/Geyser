@@ -40,11 +40,7 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractMountInven
     private final int chestSize;
     private final int equipSlot;
 
-    /**
-     * @param size the total Java size of the inventory
-     * @param equipSlot the Java equipment slot. Java always has two slots - one for armor and one for saddle. Chested horses
-     *                  on Bedrock only acknowledge one slot.
-     */
+    
     public ChestedHorseInventoryTranslator(int size, int equipSlot) {
         super(size);
         this.chestSize = size - 2;
@@ -67,7 +63,7 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractMountInven
         if (slot == this.equipSlot) {
             return new BedrockContainerSlot(ContainerSlotType.HORSE_EQUIP, 0);
         }
-        if (slot <= this.size - 1) { // Accommodate for the lack of one slot (saddle or armor)
+        if (slot <= this.size - 1) { 
             return new BedrockContainerSlot(ContainerSlotType.LEVEL_ENTITY, slot - 1);
         }
         return super.javaSlotToBedrockContainer(slot, container);
@@ -97,8 +93,8 @@ public abstract class ChestedHorseInventoryTranslator extends AbstractMountInven
         session.sendUpstreamPacket(contentPacket);
 
         ItemData[] horseItems = new ItemData[chestSize + 1];
-        // Manually specify the first slot - Java always has two slots (armor and saddle) and one is invisible.
-        // Bedrock doesn't have this invisible slot.
+        
+        
         horseItems[0] = container.getItem(this.equipSlot).getItemData(session);
         for (int i = 1; i < horseItems.length; i++) {
             horseItems[i] = container.getItem(i + 1).getItemData(session);

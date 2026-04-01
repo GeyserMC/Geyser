@@ -37,7 +37,7 @@ public class ElderGuardianEntity extends GuardianEntity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        // Otherwise it just looks like a normal guardian but bigger
+        
         setFlag(EntityFlag.ELDER, true);
     }
 }

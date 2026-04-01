@@ -88,23 +88,11 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
-/**
- * {@link RegistryHasher}s are hashers that hash a network integer ID to a namespaced identifier. {@link RegistryHasher}s can be created using static utility methods in this class, and all registry hashers should be kept in here.
- *
- * <p>The {@link DirectType} parameter is only used for registry hashers that are able to encode {@link Holder}s, and must be left as a {@code ?} if this functionality is not in use. This makes it clear the hasher is not
- * supposed to be able to encode holders.</p>
- *
- * <p>To create a hasher that can encode a {@link Holder}, a direct hasher should be created that hashes a {@link DirectType} (in case of a custom holder), and {@link RegistryHasher#registry(JavaRegistryKey, MinecraftHasher)}
- * should be used to create the registry hasher. {@link RegistryHasher#holder()} can then be used to obtain a hasher that encodes a holder of {@link DirectType}.</p>
- *
- * <p>Along with {@link RegistryHasher}s, this class also contains a bunch of hashers for various Minecraft objects. For organisational purposes, these are grouped in various sections with comments.</p>
- *
- * @param <DirectType> the type this hasher hashes. Only used for registry hashers that can hash holders.
- */
+
 @SuppressWarnings("UnstableApiUsage")
 public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
-    // Java registries
+    
 
     RegistryHasher<?> BLOCK = registry(JavaRegistries.BLOCK);
 
@@ -122,7 +110,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<DataComponentType<?>> DATA_COMPONENT_TYPE = KEY.cast(DataComponentType::getKey);
 
-    // Mob effects can both be an enum constant or ID in MCPL.
+    
     MinecraftHasher<Effect> EFFECT = enumRegistry();
 
     RegistryHasher<?> EFFECT_ID = enumIdRegistry(Effect.values());
@@ -131,7 +119,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     RegistryHasher<?> VILLAGER_TYPE = enumIdRegistry(VillagerVariant.values());
 
-    // Java data-driven registries
+    
 
     MinecraftHasher<BuiltinSound> BUILTIN_SOUND = KEY.cast(sound -> MinecraftKey.key(sound.getName()));
 
@@ -198,8 +186,8 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     RegistryHasher<?> CAT_VARIANT = registry(JavaRegistries.CAT_VARIANT);
 
-    // Entity variants
-    // These are all not registries on Java, meaning they serialise as just literal strings, not namespaced IDs
+    
+    
 
     MinecraftHasher<Integer> FOX_VARIANT = MinecraftHasher.fromIdEnum(FoxVariant.values());
 
@@ -219,12 +207,12 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<Integer> AXOLOTL_VARIANT = MinecraftHasher.fromIdEnum(AxolotlVariant.values());
 
-    // Widely used Minecraft types
+    
 
     MinecraftHasher<DataComponent<?, ?>> DATA_COMPONENT_KEY = MinecraftHasher.either(KEY,
         component -> component.getValue() == null ? null : component.getType().getKey(), KEY_REMOVAL, component -> component.getType().getKey());
 
-    @SuppressWarnings({"unchecked", "rawtypes"}) // Java generics :(
+    @SuppressWarnings({"unchecked", "rawtypes"}) 
     MinecraftHasher<DataComponent<?, ?>> DATA_COMPONENT_VALUE = (component, encoder) -> {
         if (component.getValue() == null) {
             return UNIT.hash(Unit.INSTANCE, encoder);
@@ -240,13 +228,13 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("count", INT, ItemStack::getAmount)
         .optionalNullable("components", DATA_COMPONENTS, ItemStack::getDataComponentsPatch));
 
-    // Encoding of hidden effects is unfortunately not possible
+    
     MapBuilder<MobEffectDetails> MOB_EFFECT_DETAILS = builder -> builder
         .optional("amplifier", BYTE, instance -> (byte) instance.getAmplifier(), (byte) 0)
         .optional("duration", INT, MobEffectDetails::getDuration, 0)
         .optional("ambient", BOOL, MobEffectDetails::isAmbient, false)
         .optional("show_particles", BOOL, MobEffectDetails::isShowParticles, true)
-        .accept("show_icon", BOOL, MobEffectDetails::isShowIcon); // Yes, this is not an optional. I checked. Maybe it will be in the future and break everything!
+        .accept("show_icon", BOOL, MobEffectDetails::isShowIcon); 
 
     MinecraftHasher<MobEffectInstance> MOB_EFFECT_INSTANCE = MinecraftHasher.mapBuilder(builder -> builder
         .accept("id", RegistryHasher.EFFECT, MobEffectInstance::getEffect)
@@ -258,7 +246,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         case ADD_MULTIPLIED_TOTAL -> "add_multiplied_total";
     });
 
-    // Component-specific types
+    
 
     MinecraftHasher<ItemEnchantments> ITEM_ENCHANTMENTS = MinecraftHasher.map(RegistryHasher.ENCHANTMENT, MinecraftHasher.INT).cast(ItemEnchantments::getEnchantments);
 
@@ -279,9 +267,9 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<AdventureModePredicate.BlockPredicate> BLOCK_PREDICATE = MinecraftHasher.mapBuilder(builder -> builder
         .optionalNullable("blocks", BLOCK.holderSet(), AdventureModePredicate.BlockPredicate::getBlocks)
-        .optionalNullable("nbt", NBT_MAP, AdventureModePredicate.BlockPredicate::getNbt)); // Property and data component matchers are, unfortunately, too complicated to include here
+        .optionalNullable("nbt", NBT_MAP, AdventureModePredicate.BlockPredicate::getNbt)); 
 
-    // Encode as a single element if the list only has one element
+    
     MinecraftHasher<AdventureModePredicate> ADVENTURE_MODE_PREDICATE = MinecraftHasher.either(BLOCK_PREDICATE,
         predicate -> predicate.getPredicates().size() == 1 ? predicate.getPredicates().get(0) : null, BLOCK_PREDICATE.list(), AdventureModePredicate::getPredicates);
 
@@ -364,40 +352,19 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("ticks_in_hive", INT, BeehiveOccupant::getTicksInHive)
         .accept("min_ticks_in_hive", INT, BeehiveOccupant::getMinTicksInHive));
 
-    /**
-     * Creates a hasher that uses the {@link JavaRegistryKey#key(GeyserSession, int)} method to turn a network ID into a {@link Key}, and then encodes this key.
-     *
-     * @param registry the registry to create a hasher for.
-     */
+    
     static RegistryHasher<?> registry(JavaRegistryKey<?> registry) {
         MinecraftHasher<Integer> hasher = KEY.registryCast(registry::key);
         return hasher::hash;
     }
 
-    /**
-     * Creates a hasher that encodes network IDs using {@link RegistryHasher#registry(JavaRegistryKey)}, and is also able to encode {@link Holder}s by using the {@code directHasher}.
-     *
-     * <p>A hasher that encodes {@link Holder}s can be obtained by using {@link RegistryHasher#holder()}</p>
-     *
-     * @param registry the registry to create a hasher for.
-     * @param directHasher the hasher that encodes a custom object.
-     * @param <DirectType> the type of custom objects.
-     * @see RegistryHasher#holder()
-     */
+    
     // We don't use the registry generic type, because various registries don't use the MCPL type as their type
     static <DirectType> RegistryHasher<DirectType> registry(JavaRegistryKey<?> registry, MinecraftHasher<DirectType> directHasher) {
         return new RegistryHasherWithDirectHasher<>(registry(registry), directHasher);
     }
 
-    /**
-     * Creates a hasher that encodes a {@link Holder} of {@link DirectType}. If the holder has an ID, the {@link RegistryHasher} is used to encode it. If the holder is custom,
-     * a direct hasher specified in {@link RegistryHasher#registry(JavaRegistryKey, MinecraftHasher)} is used to encode it.
-     *
-     * <p>This method can only be used if this hasher has a direct hasher attached to it. That is only the case if {@link DirectType} is not {@code ?}. If this hasher doesn't have
-     * a direct hasher, a {@link IllegalStateException} will be thrown upon use.</p>
-     *
-     * @throws IllegalStateException when this hasher does not have a direct hasher attached to it.
-     */
+    
     default MinecraftHasher<Holder<DirectType>> holder() {
         if (this instanceof RegistryHasher.RegistryHasherWithDirectHasher<DirectType> withDirect) {
             return withDirect.holderHasher;
@@ -405,11 +372,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         throw new IllegalStateException("Tried to create a holder hasher on a registry hasher that does not have a direct hasher specified");
     }
 
-    /**
-     * Creates a hasher that hashes a {@link HolderSet} of the registry. {@link HolderSet}s can encode as a hash-prefixed tag, a single namespaced ID, or a list of namespaced IDs.
-     *
-     * <p>The hasher throws a {@link IllegalStateException} if the holder set does not have a tag nor a list of IDs. This should never happen.</p>
-     */
+    
     default MinecraftHasher<HolderSet> holderSet() {
         return (holder, encoder) -> {
             if (holder.getLocation() != null) {
@@ -424,54 +387,23 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         };
     }
 
-    /**
-     * Creates a hasher that uses {@link Enum#name()} (lowercased) to create a key in the {@code minecraft} namespace, and then hashes it.
-     *
-     * <p>Please be aware that you are using literal enum constants as key paths here, meaning that if there is a typo in a constant, or a constant changes name, things
-     * may break. Use cautiously.</p>
-     *
-     * @param <EnumConstant> the enum.
-     */
+    
     static <EnumConstant extends Enum<EnumConstant>> MinecraftHasher<EnumConstant> enumRegistry() {
         return KEY.cast(constant -> MinecraftKey.key(constant.name().toLowerCase(Locale.ROOT)));
     }
 
-    /**
-     * Uses {@link Enum#name()} (lowercased) to create a function that creates a {@link Key} from a {@link EnumConstant}, and uses this as {@code toKey}
-     * function in {@link RegistryHasher#enumIdRegistry(Enum[], Function)}.
-     *
-     * <p>Please be aware that you are using literal enum constants as key paths here, meaning that if there is a typo in a constant, or a constant changes name, things
-     * may break. Use cautiously.</p>
-     *
-     * @param values the array of {@link EnumConstant}s.
-     * @param <EnumConstant> the enum.
-     * @see RegistryHasher#enumIdRegistry(Enum[], Function)
-     */
+    
     static <EnumConstant extends Enum<EnumConstant>> RegistryHasher<?> enumIdRegistry(EnumConstant[] values) {
         return enumIdRegistry(values, constant -> MinecraftKey.key(constant.name().toLowerCase(Locale.ROOT)));
     }
 
-    /**
-     * Creates a hasher that looks up a network ID in the array of {@link EnumConstant}s, and then uses {@code toKey} to turn the constant into a key, which it then hashes.
-     *
-     * @param values the array of {@link EnumConstant}s.
-     * @param toKey the function that turns a {@link EnumConstant} into a {@link Key}.
-     * @param <EnumConstant> the enum.
-     * @see MinecraftHasher#fromIdEnum(Enum[])
-     */
+    
     static <EnumConstant extends Enum<EnumConstant>> RegistryHasher<?> enumIdRegistry(EnumConstant[] values, Function<EnumConstant, Key> toKey) {
         MinecraftHasher<Integer> hasher = KEY.cast(i -> toKey.apply(values[i]));
         return hasher::hash;
     }
 
-    /**
-     * Creates a hasher that hashes a {@code Holder<Key>}, also known as an {@code EitherHolder} in Mojmap.
-     *
-     * <p>Please note that a {@code Holder<Key>} is only a valid representation of an {@code EitherHolder} in MCPL if the stream codec of the {@code EitherHolder} does not support directly encoding unregistered values.</p>
-     *
-     * @param registry the registry the {@code Holder} is for.
-     * @return a hasher that hashes a {@code Holder<Key>} for the given registry.
-     */
+    
     static MinecraftHasher<Holder<Key>> eitherHolderHasher(JavaRegistryKey<?> registry) {
         return MinecraftHasher.KEY.registryCast((registries, holder) -> holder.getOrCompute(id -> registry.key(registries, id)));
     }

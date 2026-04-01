@@ -22,58 +22,54 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.block.custom.property;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
+package org.geysermc.geyser.api.block.custom.property
 
 /**
  * This class is used to define a custom block property's type.
  */
-public class PropertyType {
-    private static final PropertyType BOOLEAN = new PropertyType(Boolean.class);
-    private static final PropertyType INTEGER = new PropertyType(Integer.class);
-    private static final PropertyType STRING = new PropertyType(String.class);
-
-    /**
-     * Gets the property type for a boolean.
-     *
-     * @return The property type for a boolean.
-     */
-    @NonNull public static PropertyType booleanProp() {
-        return BOOLEAN;
-    }
-
-    /**
-     * Gets the property type for an integer.
-     *
-     * @return The property type for an integer.
-     */
-    @NonNull public static PropertyType integerProp() {
-        return INTEGER;
-    }
-
-    /**
-     * Gets the property type for a string.
-     *
-     * @return The property type for a string.
-     */
-    @NonNull public static PropertyType stringProp() {
-        return STRING;
-    }
-
-    private final Class<?> typeClass;
-
+class PropertyType private constructor(private val typeClass: Class<*>) {
     /**
      * Gets the class of the property type
-     *
+     * 
      * @return The class of the property type.
      */
-    @NonNull public Class<?> typeClass() {
-        return typeClass;
+    fun typeClass(): Class<*> {
+        return typeClass
     }
 
-    private PropertyType(Class<?> typeClass) {
-        this.typeClass = typeClass;
+    companion object {
+        private val BOOLEAN = PropertyType(Boolean::class.java)
+        private val INTEGER = PropertyType(Int::class.java)
+        private val STRING = PropertyType(String::class.java)
+
+        /**
+         * Gets the property type for a boolean.
+         * 
+         * @return The property type for a boolean.
+         */
+        @kotlin.jvm.JvmStatic
+        fun booleanProp(): PropertyType {
+            return BOOLEAN
+        }
+
+        /**
+         * Gets the property type for an integer.
+         * 
+         * @return The property type for an integer.
+         */
+        @kotlin.jvm.JvmStatic
+        fun integerProp(): PropertyType {
+            return INTEGER
+        }
+
+        /**
+         * Gets the property type for a string.
+         * 
+         * @return The property type for a string.
+         */
+        @kotlin.jvm.JvmStatic
+        fun stringProp(): PropertyType {
+            return STRING
+        }
     }
 }

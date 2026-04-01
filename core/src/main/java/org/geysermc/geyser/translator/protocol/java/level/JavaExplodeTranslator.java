@@ -53,9 +53,9 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
         builder.putFloat("originY", (float) packet.getCenter().getY());
         builder.putFloat("originZ", (float) packet.getCenter().getZ());
 
-        // As of Bedrock 1.21 - particles will only be created by the above packet if there are blocks to blow up?
-        // Not sure if the packet does anything - sending it just in case, because BDS still sends it.
-        // TODO move out of packet translator class
+        
+        
+        
         var particleCreator = JavaLevelParticlesTranslator.createParticle(session, packet.getExplosionParticle());
         if (particleCreator != null) {
             session.sendUpstreamPacket(particleCreator.apply(vector));
@@ -65,7 +65,7 @@ public class JavaExplodeTranslator extends PacketTranslator<ClientboundExplodePa
         session.sendUpstreamPacket(levelEventPacket);
 
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        float pitch = (1.0f + (random.nextFloat() - random.nextFloat()) * 0.2f) * 0.7f; // As of 1.21, Explosion#finalizeExplosion
+        float pitch = (1.0f + (random.nextFloat() - random.nextFloat()) * 0.2f) * 0.7f; 
         SoundUtils.playSound(session, packet.getExplosionSound(), vector, 4.0f, pitch);
 
         if (packet.getPlayerKnockback() != null) {

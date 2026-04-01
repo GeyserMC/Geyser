@@ -76,7 +76,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 session.sendDownstreamGamePacket(attackPacket);
                 break;
             case LEAVE_VEHICLE:
-                // Reset steering to avoid these accidentally triggering session#isHandsBusy
+                
                 session.setSteeringLeft(false);
                 session.setSteeringRight(false);
 
@@ -91,9 +91,9 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
 
                         long vehicleBedrockId = currentVehicle.geyserId();
                         if (session.getPlayerEntity().getVehicle().geyserId() == vehicleBedrockId) {
-                            // The Bedrock client, as of 1.19.51, dismounts on its end. The server may not agree with this.
-                            // If the server doesn't agree with our dismount (sends a packet saying we dismounted),
-                            // then remount the player.
+                            
+                            
+                            
                             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
                             linkPacket.setEntityLink(new EntityLinkData(vehicleBedrockId, session.getPlayerEntity().geyserId(), EntityLinkData.Type.PASSENGER, true, false, 0f));
                             session.sendUpstreamPacket(linkPacket);
@@ -102,7 +102,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 }
                 break;
             case MOUSEOVER:
-                // Handle the buttons for mobile - "Mount", etc; and the suggestions for console - "ZL: Mount", etc
+                
                 if (packet.getRuntimeEntityId() != 0) {
                     Entity interactEntity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
                     session.setMouseoverEntity(interactEntity);
@@ -113,7 +113,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                     interactEntity.updateInteractiveTag();
                 } else {
                     if (session.getMouseoverEntity() != null) {
-                        // No interactive tag should be sent
+                        
                         session.setMouseoverEntity(null);
                         session.getPlayerEntity().getDirtyMetadata().put(EntityDataTypes.INTERACT_TEXT, "");
                         session.getPlayerEntity().updateBedrockMetadata();
@@ -124,7 +124,7 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                 if (session.getInventoryHolder() == null) {
                     Entity ridingEntity = session.getPlayerEntity().getVehicle();
                     if (ridingEntity instanceof AbstractHorseEntity || ridingEntity instanceof AbstractNautilusEntity || ridingEntity instanceof ChestBoatEntity) {
-                        // This mob has an inventory of its own that we should open instead.
+                        
                         ServerboundPlayerCommandPacket openVehicleWindowPacket = new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(), PlayerState.OPEN_VEHICLE_INVENTORY);
                         session.sendDownstreamGamePacket(openVehicleWindowPacket);
                     } else {

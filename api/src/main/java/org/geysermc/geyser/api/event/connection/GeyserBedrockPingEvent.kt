@@ -22,89 +22,81 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.event.connection
 
-package org.geysermc.geyser.api.event.connection;
-
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.event.Event;
-
-import java.net.InetSocketAddress;
+import org.checkerframework.checker.index.qual.NonNegative
+import org.geysermc.event.Event
+import java.net.InetSocketAddress
 
 /**
  * Called whenever Geyser gets pinged by a Bedrock client.
- * <p>
+ * 
+ * 
  * This event allows you to modify/obtain the MOTD, maximum player count, and current number of players online.
  * Geyser will reply to the client with the information provided in this event.
  */
-public interface GeyserBedrockPingEvent extends Event {
-
+interface GeyserBedrockPingEvent : Event {
     /**
      * Sets the given string as the primary motd, the given string cannot be null.
-     *
+     * 
      * @param primary the string to set as the primary motd
      */
-    void primaryMotd(@NonNull String primary);
+    fun primaryMotd(primary: String)
 
     /**
      * Sets the given string as the secondary motd, the given string cannot be null.
      * Note: the secondary motd is only used for the LAN game entry.
-     *
+     * 
      * @param secondary the string to set as the secondary motd
      */
-    void secondaryMotd(@NonNull String secondary);
+    fun secondaryMotd(secondary: String)
 
     /**
      * Sets how many players are currently online, the given number cannot be below 0.
-     *
+     * 
      * @param count the number to set
      */
-    void playerCount(int count);
+    fun playerCount(count: Int)
 
     /**
      * Sets the maximum number of players that can join this server, the given number cannot be below 1.
-     *
+     * 
      * @param max the number to set
      */
-    void maxPlayerCount(int max);
+    fun maxPlayerCount(max: Int)
 
     /**
      * Gets the primary motd.
-     *
+     * 
      * @return the primary motd string
      */
-    @Nullable
-    String primaryMotd();
+    fun primaryMotd(): String?
 
     /**
      * Gets the secondary motd.
-     *
+     * 
      * @return the secondary motd string
      */
-    @Nullable
-    String secondaryMotd();
+    fun secondaryMotd(): String?
 
     /**
      * Gets the current number of players.
-     *
+     * 
      * @return number of players online
      */
-    @NonNegative
-    int playerCount();
+    fun playerCount(): @NonNegative Int
 
     /**
      * Gets the maximum number of players that can join this server
-     *
+     * 
      * @return maximum number of players that can join
      */
-    int maxPlayerCount();
+    fun maxPlayerCount(): Int
 
     /**
-     * Gets the {@link InetSocketAddress} of the client pinging us.
-     *
-     * @return a {@link InetSocketAddress}
+     * Gets the [InetSocketAddress] of the client pinging us.
+     * 
+     * @return a [InetSocketAddress]
      */
-    @NonNull
-    InetSocketAddress address();
+    fun address(): InetSocketAddress
 }

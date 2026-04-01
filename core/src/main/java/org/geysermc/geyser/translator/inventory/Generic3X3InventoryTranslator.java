@@ -34,9 +34,7 @@ import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
-/**
- * Droppers and dispensers
- */
+
 public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTranslator<Generic3X3Container> {
     public Generic3X3InventoryTranslator() {
         super(9, Blocks.DISPENSER, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DISPENSER, ContainerInventoryUpdater.INSTANCE,
@@ -52,7 +50,7 @@ public class Generic3X3InventoryTranslator extends AbstractBlockInventoryTransla
     public void openInventory(GeyserSession session, Generic3X3Container container) {
         ContainerOpenPacket containerOpenPacket = new ContainerOpenPacket();
         containerOpenPacket.setId((byte) container.getBedrockId());
-        // Required for opening the real block - otherwise, if the container type is incorrect, it refuses to open
+        
         containerOpenPacket.setType(container.isDropper() ? org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DROPPER : org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.DISPENSER);
         containerOpenPacket.setBlockPosition(container.getHolderPosition());
         containerOpenPacket.setUniqueEntityId(container.getHolderId());

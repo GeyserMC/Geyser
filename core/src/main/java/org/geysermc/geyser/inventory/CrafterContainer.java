@@ -42,10 +42,7 @@ public class CrafterContainer extends Container {
     @Setter
     private boolean triggered = false;
 
-    /**
-     * Bedrock Edition bitmask of the *disabled* slots.
-     * Disabled slots are 1, enabled slots are 0 - same as Java Edition
-     */
+    
     private short disabledSlotsMask = 0;
 
     public CrafterContainer(GeyserSession session, String title, int id, int size, ContainerType containerType) {
@@ -71,7 +68,7 @@ public class CrafterContainer extends Container {
     @Override
     public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
         if (slot == CrafterInventoryTranslator.JAVA_RESULT_SLOT) {
-            // Result item probably won't be an item that needs to worry about net ID or lodestone compasses
+            
             this.resultItem = newItem;
         } else if (isCraftingGrid(slot)) {
             super.setItem(slot, newItem, session);

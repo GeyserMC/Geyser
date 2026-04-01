@@ -30,9 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.geysermc.geyser.GeyserImpl;
 
-/**
- * Loads NBT data from the given resource path.
- */
+
 public class NbtRegistryLoader implements RegistryLoader<String, NbtMap> {
 
     @Override

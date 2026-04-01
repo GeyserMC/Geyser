@@ -34,9 +34,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.advancement.Advancement.Dis
 
 import java.util.List;
 
-/**
- * A wrapper around MCProtocolLib's {@link Advancement} class so we can control the parent of an advancement
- */
+
 public class GeyserAdvancement {
     private final Advancement advancement;
     private String rootId = null;
@@ -67,9 +65,7 @@ public class GeyserAdvancement {
         return this.advancement.getDisplayData();
     }
 
-    /**
-     * @return Purple for challenges and green for normal advancements
-     */
+    
     public String getDisplayColor() {
         DisplayData displayData = getDisplayData();
         return displayData != null && displayData.getAdvancementType() == AdvancementType.CHALLENGE ? ChatColor.LIGHT_PURPLE : ChatColor.GREEN;
@@ -78,14 +74,14 @@ public class GeyserAdvancement {
     public @NonNull String getRootId(AdvancementsCache advancementsCache) {
         if (rootId == null) {
             if (this.advancement.getParentId() == null) {
-                // We are the root ID
+                
                 this.rootId = this.advancement.getId();
             } else {
-                // Go through our cache, and descend until we find the root ID
+                
                 GeyserAdvancement parent = advancementsCache.getStoredAdvancements().get(this.advancement.getParentId());
                 if (parent == null) {
-                    // Parent doesn't exist, is invalid, or couldn't be found for another reason
-                    // So assuming there is no parent and this is the root
+                    
+                    
                     this.rootId = this.advancement.getId();
                 } else if (parent.getParentId() == null) {
                     this.rootId = parent.getId();

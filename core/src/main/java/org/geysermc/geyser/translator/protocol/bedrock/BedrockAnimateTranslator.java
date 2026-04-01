@@ -39,41 +39,41 @@ public class BedrockAnimateTranslator extends PacketTranslator<AnimatePacket> {
 
     @Override
     public void translate(GeyserSession session, AnimatePacket packet) {
-        // Stop the player sending animations before they have fully spawned into the server
+        
         if (!session.isSpawned()) {
             return;
         }
 
         if (packet.getAction() == AnimatePacket.Action.SWING_ARM) {
 
-            // If this is the case, we just hit the air. Poor air.
-            // Touch devices send PlayerAuthInputPackets with MISSED_SWING, and then the animate packet.
-            // This tends to happen 1-2 ticks after the auth input packet.
+            
+            
+            
             if (session.getTicks() - session.getLastAirHitTick() < 3) {
                 return;
             }
 
-            // Windows unfortunately sends the animate packet first, then the auth input packet with the MISSED_SWING.
-            // Often, these are sent in the same tick. In that case, the wait here ensures the auth input packet is processed first.
-            // Other times, there is a 1-tick-delay, which would result in the swing packet sent here. The BedrockAuthInputTranslator's
-            // MISSED_SWING case also accounts for that by checking if a swing was sent a tick ago here.
+            
+            
+            
+            
 
-            // We also send this right after entity attack to ensure packet order.
+            
             session.scheduleInEventLoop(() -> {
                     if (session.getArmAnimationTicks() != 0 && (session.getTicks() - session.getLastAirHitTick() > 2)) {
-                        // So, generally, a Java player can only do one *thing* at a time.
-                        // If a player right-clicks, for example, then there's probably only one action associated with
-                        // that right-click that will send a swing.
-                        // The only exception I can think of to this, *maybe*, is a player dropping items
-                        // Bedrock is a little funkier than this - it can send several arm animation packets in the
-                        // same tick, notably with high levels of haste applied.
-                        // Packet limiters do not like this and can crash the player.
-                        // If arm animation ticks is 0, then we just sent an arm swing packet this tick.
-                        // See https://github.com/GeyserMC/Geyser/issues/2875
-                        // This behavior was last touched on with ViaVersion 4.5.1 (with its packet limiter), Java 1.16.5,
-                        // and Bedrock 1.19.51.
-                        // Note for the future: we should probably largely ignore this packet and instead replicate
-                        // all actions on our end, and send swings where needed. Can be done once we replicate Block and Item interactions fully.
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
+                        
                         session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
                         session.activateArmAnimationTicking();
                     }

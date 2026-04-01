@@ -51,11 +51,11 @@ import java.util.List;
 import java.util.Map;
 
 public final class TagRegistryPopulator {
-    private static final Gson GSON = new GsonBuilder().create(); // temporary
+    private static final Gson GSON = new GsonBuilder().create(); 
 
     public static void populate() {
         Hash.Strategy<int[]> hashStrategy = new Hash.Strategy<>() {
-            // Necessary so arrays can actually be compared
+            
             @Override
             public int hashCode(int[] o) {
                 return Arrays.hashCode(o);
@@ -91,18 +91,18 @@ public final class TagRegistryPopulator {
             for (var entry : bedrockTags.entrySet()) {
                 List<String> value = entry.getValue();
                 if (value.isEmpty() || value.size() == 1) {
-                    // For our usecase, we don't need this. Empty values are worthless; one value can just be a reference
-                    // to the item itself, instead of the tag.
+                    
+                    
                     continue;
                 }
 
-                // In some cases, the int list will need to be minimized
+                
                 IntList javaNetworkIds = new IntArrayList(value.size());
                 for (int i = 0; i < value.size(); i++) {
                     String bedrockIdentifier = value.get(i);
                     Item javaItem = Registries.JAVA_ITEM_IDENTIFIERS.get(bedrockIdentifier);
                     if (javaItem == null) {
-                        // Time to search the long way around.
+                        
                         for (ItemMapping mapping : mappings.getItems()) {
                             if (mapping.getBedrockIdentifier().equals(bedrockIdentifier)) {
                                 javaItem = mapping.getJavaItem();
@@ -111,7 +111,7 @@ public final class TagRegistryPopulator {
                         }
                     }
                     if (javaItem == null) {
-                        // Triggers for Bedrock-only spawn eggs. We don't care.
+                        
                         continue;
                     }
 
@@ -119,7 +119,7 @@ public final class TagRegistryPopulator {
                 }
 
                 int[] javaNetworkIdArray = javaNetworkIds.toIntArray();
-                // Sort IDs so equality checks just have to match if each is equal and not necessarily an order difference.
+                
                 Arrays.sort(javaNetworkIdArray);
 
                 javaItemsToBedrockTag.put(javaNetworkIdArray, entry.getKey());

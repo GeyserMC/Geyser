@@ -30,11 +30,11 @@ import org.cloudburstmc.protocol.common.util.Preconditions;
 
 public class GeyserChunkSection {
 
-    // As of at least 1.19.80
+    
     private static final int CHUNK_SECTION_VERSION = 9;
 
     private final BlockStorage[] storage;
-    // Counts up from 00 for y >= 0 and down from FF for y < 0
+    
     private final int subChunkIndex;
 
     public GeyserChunkSection(int airBlockId, int subChunkIndex) {
@@ -61,7 +61,7 @@ public class GeyserChunkSection {
     public void writeToNetwork(ByteBuf buffer) {
         buffer.writeByte(CHUNK_SECTION_VERSION);
         buffer.writeByte(this.storage.length);
-        // Required for chunk version 9+
+        
         buffer.writeByte(this.subChunkIndex);
         for (BlockStorage blockStorage : this.storage) {
             blockStorage.writeToNetwork(buffer);
@@ -69,7 +69,7 @@ public class GeyserChunkSection {
     }
 
     public int estimateNetworkSize() {
-        int size = 2; // Version + storage count
+        int size = 2; 
         for (BlockStorage blockStorage : this.storage) {
             size += blockStorage.estimateNetworkSize();
         }

@@ -34,55 +34,33 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Objects;
 
-/**
- * Decodes an HAProxy proxy protocol header
- *
- * @see <a href="https://haproxy.1wt.eu/download/1.5/doc/proxy-protocol.txt">Proxy Protocol Specification</a>
- * @see <a href="https://github.com/netty/netty/blob/4.1/codec-haproxy/src/main/java/io/netty/handler/codec/haproxy/HAProxyMessageDecoder.java">Netty implementation</a>
- */
+
 public final class ProxyProtocolDecoder {
-    /**
-     * {@link ProtocolDetectionResult} for {@link HAProxyProtocolVersion#V1}.
-     */
+    
     private static final ProtocolDetectionResult<HAProxyProtocolVersion> DETECTION_RESULT_V1 =
             ProtocolDetectionResult.detected(HAProxyProtocolVersion.V1);
 
-    /**
-     * {@link ProtocolDetectionResult} for {@link HAProxyProtocolVersion#V2}.
-     */
+    
     private static final ProtocolDetectionResult<HAProxyProtocolVersion> DETECTION_RESULT_V2 =
             ProtocolDetectionResult.detected(HAProxyProtocolVersion.V2);
 
-    /**
-     * Used to extract a header frame out of the {@link ByteBuf} and return it.
-     */
+    
     private HeaderExtractor headerExtractor;
 
-    /**
-     * {@code true} if we're discarding input because we're already over maxLength
-     */
+    
     private boolean discarding;
 
-    /**
-     * Number of discarded bytes
-     */
+    
     private int discardedBytes;
 
-    /**
-     * {@code true} if we're finished decoding the proxy protocol header
-     */
+    
     private boolean finished;
 
-    /**
-     * Protocol specification version
-     */
+    
     private final int decodingVersion;
 
-    /**
-     * The latest v2 spec (2014/05/18) allows for additional data to be sent in the proxy protocol header beyond the
-     * address information block so now we need a configurable max header size
-     */
-    private final int v2MaxHeaderSize = 16 + 65535; // TODO: need to calculate max length if TLVs are desired.
+    
+    private final int v2MaxHeaderSize = 16 + 65535; 
 
     private ProxyProtocolDecoder(int version) {
         this.decodingVersion = version;
@@ -114,13 +92,7 @@ public final class ProxyProtocolDecoder {
         }
     }
 
-    /**
-     * Decodes a version 2, binary proxy protocol header. Copied from HAProxyMessage.
-     *
-     * @param header                     a version 2 proxy protocol header
-     * @return                           {@link HAProxyMessage} instance
-     * @throws HAProxyProtocolException  if any portion of the header is invalid
-     */
+    
     static HAProxyMessage decodeHeader0(ByteBuf header) {
         Objects.requireNonNull(header, "header");
 
@@ -129,7 +101,7 @@ public final class ProxyProtocolDecoder {
                     "incomplete header: " + header.readableBytes() + " bytes (expected: 16+ bytes)");
         }
 
-        // Per spec, the 13th byte is the protocol version and command byte
+        
         header.skipBytes(12);
         final byte verCmdByte = header.readByte();
 
@@ -155,7 +127,7 @@ public final class ProxyProtocolDecoder {
             return unknownMsg(HAProxyProtocolVersion.V2, HAProxyCommand.LOCAL);
         }
 
-        // Per spec, the 14th byte is the protocol and address family byte
+        
         HAProxyProxiedProtocol protAndFam;
         try {
             protAndFam = HAProxyProxiedProtocol.valueOf(header.readByte());
@@ -178,7 +150,7 @@ public final class ProxyProtocolDecoder {
         HAProxyProxiedProtocol.AddressFamily addressFamily = protAndFam.addressFamily();
 
         if (addressFamily == HAProxyProxiedProtocol.AddressFamily.AF_UNIX) {
-            // unix sockets require 216 bytes for address information
+            
             if (addressInfoLen < 216 || header.readableBytes() < 216) {
                 throw new HAProxyProtocolException(
                         "incomplete UNIX socket address information: " +
@@ -202,12 +174,12 @@ public final class ProxyProtocolDecoder {
                 addressLen = addressEnd - startIdx;
             }
             dstAddress = header.toString(startIdx, addressLen, CharsetUtil.US_ASCII);
-            // AF_UNIX defines that exactly 108 bytes are reserved for the address. The previous methods
-            // did not increase the reader index although we already consumed the information.
+            
+            
             header.readerIndex(startIdx + 108);
         } else {
             if (addressFamily == HAProxyProxiedProtocol.AddressFamily.AF_IPv4) {
-                // IPv4 requires 12 bytes for address information
+                
                 if (addressInfoLen < 12 || header.readableBytes() < 12) {
                     throw new HAProxyProtocolException(
                             "incomplete IPv4 address information: " +
@@ -215,7 +187,7 @@ public final class ProxyProtocolDecoder {
                 }
                 addressLen = 4;
             } else if (addressFamily == HAProxyProxiedProtocol.AddressFamily.AF_IPv6) {
-                // IPv6 requires 36 bytes for address information
+                
                 if (addressInfoLen < 36 || header.readableBytes() < 36) {
                     throw new HAProxyProtocolException(
                             "incomplete IPv6 address information: " +
@@ -227,7 +199,7 @@ public final class ProxyProtocolDecoder {
                         "unable to parse address information (unknown address family: " + addressFamily + ')');
             }
 
-            // Per spec, the src address begins at the 17th byte
+            
             srcAddress = ipBytesToString(header, addressLen);
             dstAddress = ipBytesToString(header, addressLen);
             srcPort = header.readUnsignedShort();
@@ -240,13 +212,7 @@ public final class ProxyProtocolDecoder {
         return new HAProxyMessage(ver, cmd, protAndFam, srcAddress, dstAddress, srcPort, dstPort);
     }
 
-    /**
-     * Convert ip address bytes to string representation. From IPBytesToString
-     *
-     * @param header     buffer containing ip address bytes
-     * @param addressLen number of bytes to read (4 bytes for IPv4, 16 bytes for IPv6)
-     * @return           string representation of the ip address
-     */
+    
     private static String ipBytesToString(ByteBuf header, int addressLen) {
         StringBuilder sb = new StringBuilder();
         final int ipv4Len = 4;
@@ -266,11 +232,9 @@ public final class ProxyProtocolDecoder {
         return sb.toString();
     }
 
-    /**
-     * From HAProxyMessage
-     */
+    
     private static boolean skipNextTLV(final ByteBuf header) {
-        // We need at least 4 bytes for a TLV
+        
         if (header.readableBytes() < 4) {
             return false;
         }
@@ -342,10 +306,7 @@ public final class ProxyProtocolDecoder {
         return port;
     }
 
-    /**
-     * Proxy protocol message for 'UNKNOWN' proxied protocols. Per spec, when the proxied protocol is
-     * 'UNKNOWN' we must discard all other header values.
-     */
+    
     private static HAProxyMessage unknownMsg(HAProxyProtocolVersion version, HAProxyCommand command) {
         return new HAProxyMessage(version, command, HAProxyProxiedProtocol.UNKNOWN, null, null, 0, 0);
     }
@@ -368,7 +329,7 @@ public final class ProxyProtocolDecoder {
 
     public static int findVersion(final ByteBuf buffer) {
         final int n = buffer.readableBytes();
-        // per spec, the version number is found in the 13th byte
+        
         if (n < 13) {
             return -1;
         }
@@ -377,13 +338,7 @@ public final class ProxyProtocolDecoder {
         return match(BINARY_PREFIX, buffer, idx) ? buffer.getByte(idx + BINARY_PREFIX_LENGTH) : 1;
     }
 
-    /**
-     * Create a frame out of the {@link ByteBuf} and return it.
-     *
-     * @param buffer  the {@link ByteBuf} from which to read data
-     * @return frame  the {@link ByteBuf} which represent the frame or {@code null} if no frame could
-     *                be created
-     */
+    
     private ByteBuf decodeStruct(ByteBuf buffer) {
         if (headerExtractor == null) {
             headerExtractor = new StructHeaderExtractor(v2MaxHeaderSize);
@@ -391,13 +346,7 @@ public final class ProxyProtocolDecoder {
         return headerExtractor.extract(buffer);
     }
 
-    /**
-     * Create a frame out of the {@link ByteBuf} and return it.
-     *
-     * @param buffer  the {@link ByteBuf} from which to read data
-     * @return frame  the {@link ByteBuf} which represent the frame or {@code null} if no frame could
-     *                be created
-     */
+    
     private ByteBuf decodeLine(ByteBuf buffer) {
         if (headerExtractor == null) {
             headerExtractor = new LineHeaderExtractor(108);
@@ -433,9 +382,7 @@ public final class ProxyProtocolDecoder {
             (byte) 'Y',
     };
 
-    /**
-     * Returns the {@link ProtocolDetectionResult} for the given {@link ByteBuf}.
-     */
+    
     public static ProtocolDetectionResult<HAProxyProtocolVersion> detectProtocol(ByteBuf buffer) {
         if (buffer.readableBytes() < 12) {
             return ProtocolDetectionResult.needsMoreData();
@@ -462,9 +409,7 @@ public final class ProxyProtocolDecoder {
         return true;
     }
 
-    /**
-     * HeaderExtractor create a header frame out of the {@link ByteBuf}.
-     */
+    
     private abstract class HeaderExtractor {
         /** Header max size */
         private final int maxHeaderSize;
@@ -473,13 +418,7 @@ public final class ProxyProtocolDecoder {
             this.maxHeaderSize = maxHeaderSize;
         }
 
-        /**
-         * Create a frame out of the {@link ByteBuf} and return it.
-         *
-         * @param buffer  the {@link ByteBuf} from which to read data
-         * @return frame  the {@link ByteBuf} which represent the frame or {@code null} if no frame could
-         *                be created
-         */
+        
         public @Nullable ByteBuf extract(ByteBuf buffer) {
             final int eoh = findEndOfHeader(buffer);
             if (!discarding) {
@@ -518,22 +457,10 @@ public final class ProxyProtocolDecoder {
             }
         }
 
-        /**
-         * Find the end of the header from the given {@link ByteBuf}，the end may be a CRLF, or the length given by the
-         * header.
-         *
-         * @param buffer the buffer to be searched
-         * @return {@code -1} if can not find the end, otherwise return the buffer index of end
-         */
+        
         protected abstract int findEndOfHeader(ByteBuf buffer);
 
-        /**
-         * Get the length of the header delimiter.
-         *
-         * @param buffer the buffer where delimiter is located
-         * @param eoh index of delimiter
-         * @return length of the delimiter
-         */
+        
         protected abstract int delimiterLength(ByteBuf buffer, int eoh);
     }
 
@@ -543,20 +470,17 @@ public final class ProxyProtocolDecoder {
             super(maxHeaderSize);
         }
 
-        /**
-         * Returns the index in the buffer of the end of line found.
-         * Returns -1 if no end of line was found in the buffer.
-         */
+        
         @Override
         protected int findEndOfHeader(ByteBuf buffer) {
             final int n = buffer.writerIndex();
             for (int i = buffer.readerIndex(); i < n; i++) {
                 final byte b = buffer.getByte(i);
                 if (b == '\r' && i < n - 1 && buffer.getByte(i + 1) == '\n') {
-                    return i;  // \r\n
+                    return i;  
                 }
             }
-            return -1;  // Not found.
+            return -1;  
         }
 
         @Override
@@ -571,25 +495,22 @@ public final class ProxyProtocolDecoder {
             super(maxHeaderSize);
         }
 
-        /**
-         * Returns the index in the buffer of the end of header if found.
-         * Returns -1 if no end of header was found in the buffer.
-         */
+        
         @Override
         protected int findEndOfHeader(ByteBuf buffer) {
             final int n = buffer.readableBytes();
 
-            // per spec, the 15th and 16th bytes contain the address length in bytes
+            
             if (n < 16) {
                 return -1;
             }
 
             int offset = buffer.readerIndex() + 14;
 
-            // the total header length will be a fixed 16 byte sequence + the dynamic address information block
+            
             int totalHeaderBytes = 16 + buffer.getUnsignedShort(offset);
 
-            // ensure we actually have the full header available
+            
             if (n >= totalHeaderBytes) {
                 return totalHeaderBytes;
             } else {

@@ -66,20 +66,20 @@ public class DumpCommand extends GeyserCommand {
     public void register(CommandManager<GeyserCommandSource> manager) {
         manager.command(baseBuilder(manager)
             .optional(ARGUMENTS, stringArrayParser(), SuggestionProvider.blockingStrings((ctx, input) -> {
-                // parse suggestions here
+                
                 List<String> inputs = new ArrayList<>();
                 while (input.hasRemainingInput()) {
                     inputs.add(input.readStringSkipWhitespace());
                 }
 
                 if (inputs.size() <= 2) {
-                    return SUGGESTIONS; // only `geyser dump` was typed (2 literals)
+                    return SUGGESTIONS; 
                 }
 
-                // the rest of the input after `geyser dump` is for this argument
+                
                 inputs = inputs.subList(2, inputs.size());
 
-                // don't suggest any words they have already typed
+                
                 List<String> suggestions = new ArrayList<>();
                 SUGGESTIONS.forEach(suggestions::add);
                 suggestions.removeAll(inputs);
@@ -164,7 +164,7 @@ public class DumpCommand extends GeyserCommand {
         }
 
         source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.dump.message", source.locale()) + " " + ChatColor.DARK_AQUA + uploadedDumpUrl);
-        if (!source.isConsole()) {
+        if (!source.isConsole) {
             geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.commands.dump.created", source.name(), uploadedDumpUrl));
         }
     }

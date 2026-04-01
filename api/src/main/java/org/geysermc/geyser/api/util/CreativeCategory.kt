@@ -22,16 +22,12 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.util;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+package org.geysermc.geyser.api.util
 
 /**
  * Represents the creative menu categories or tabs.
  */
-public enum CreativeCategory {
+enum class CreativeCategory(private val bedrockName: String, private val id: Int) {
     ALL("all", 0),
     CONSTRUCTION("construction", 1),
     NATURE("nature", 2),
@@ -40,21 +36,13 @@ public enum CreativeCategory {
     ITEM_COMMAND_ONLY("item_command_only", 5),
     NONE("none", 6);
 
-    private final String bedrockName;
-    private final int id;
-
-    CreativeCategory(String bedrockName, int id) {
-        this.bedrockName = bedrockName;
-        this.id = id;
-    }
-
     /**
      * Gets the bedrock name (used in behavior packs) of the category.
      * 
      * @return the name of the category
      */
-    public @NonNull String bedrockName() {
-        return bedrockName;
+    fun bedrockName(): String {
+        return bedrockName
     }
 
     /**
@@ -62,21 +50,24 @@ public enum CreativeCategory {
      * 
      * @return the ID of the category
      */
-    public int id() {
-        return id;
+    fun id(): Int {
+        return id
     }
 
-    /**
-     * Gets the creative category from its bedrock name.
-     *
-     * @return the creative category, or null if not found.
-     */
-    public static @Nullable CreativeCategory fromName(String name) {
-        for (CreativeCategory category : values()) {
-            if (category.bedrockName.equals(name)) {
-                return category;
+    companion object {
+        /**
+         * Gets the creative category from its bedrock name.
+         * 
+         * @return the creative category, or null if not found.
+         */
+        @kotlin.jvm.JvmStatic
+        fun fromName(name: String?): CreativeCategory? {
+            for (category in CreativeCategory.entries) {
+                if (category.bedrockName == name) {
+                    return category
+                }
             }
+            return null
         }
-        return null;
     }
 }

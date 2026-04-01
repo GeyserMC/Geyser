@@ -145,7 +145,7 @@ public class GeyserJavaBlockState implements JavaBlockState {
         @SuppressWarnings("removal")
         @Override
         public Builder hasBlockEntity(boolean hasBlockEntity) {
-            // keep the current behavior
+            
             if (this.pistonBehavior == null && hasBlockEntity) {
                 this.pistonBehavior = "BLOCK";
             }

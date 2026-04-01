@@ -44,7 +44,7 @@ public class OminousBottleItem extends Item {
     public ItemData.Builder translateToBedrock(GeyserSession session, int count, @Nullable DataComponents components, ItemMapping mapping, ItemMappings mappings) {
         var builder = super.translateToBedrock(session, count, components, mapping, mappings);
         if (components == null) {
-            // Level 1 ominous bottle is null components - Java 1.21.
+            
             return builder;
         }
         Integer amplifier = components.get(DataComponentTypes.OMINOUS_BOTTLE_AMPLIFIER);
@@ -56,7 +56,7 @@ public class OminousBottleItem extends Item {
 
     @Override
     public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
-        // This item can be pulled from the creative inventory with amplifiers.
+        
         GeyserItemStack itemStack = super.translateToJava(session, itemData, mapping, mappings);
         int damage = itemData.getDamage();
         if (damage == 0) {

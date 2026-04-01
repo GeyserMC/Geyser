@@ -92,7 +92,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     private boolean finishedResourcePackSending = false;
     private final Deque<String> packsToSend = new ArrayDeque<>();
     private final CompressionStrategy compressionStrategy;
-    // Avoid overloading consoles when downloading larger resource packs
+    
     private static final int PACKET_SEND_DELAY = 4 * 50;
     private final Queue<ResourcePackChunkRequestPacket> chunkRequestQueue = new ConcurrentLinkedQueue<>();
     private boolean currentlySendingChunks = false;
@@ -108,7 +108,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     private PacketSignal translateAndDefault(BedrockPacket packet) {
         Registries.BEDROCK_PACKET_TRANSLATORS.translate(packet.getClass(), packet, session, false);
-        return PacketSignal.HANDLED; // PacketSignal.UNHANDLED will log a WARN publicly
+        return PacketSignal.HANDLED; 
     }
 
     @Override
@@ -119,23 +119,23 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     private boolean setCorrectCodec(int protocolVersion) {
         BedrockCodec packetCodec = GameProtocol.getBedrockCodec(protocolVersion);
         if (packetCodec == null) {
-            // None of our Bedrock codecs support this client version, so we can simply compare it to our default protocol.
+            
             String supportedVersions = GameProtocol.getAllSupportedBedrockVersions();
             if (protocolVersion > GameProtocol.DEFAULT_BEDROCK_PROTOCOL) {
-                // Too early to determine session locale
+                
                 String disconnectMessage = GeyserLocale.getLocaleStringLog("geyser.network.outdated.server", supportedVersions);
-                // If the latest release matches this version, then let the user know.
+                
                 OptionalInt latestRelease = VersionCheckUtils.getLatestBedrockRelease();
                 if (latestRelease.isPresent() && latestRelease.getAsInt() == protocolVersion) {
-                    // Random note: don't make the disconnect message too long or Bedrock will cut it off on smaller screens
+                    
                     disconnectMessage += "\n" + GeyserLocale.getLocaleStringLog("geyser.version.new.on_disconnect", Constants.GEYSER_DOWNLOAD_LOCATION);
                 }
                 session.disconnect(disconnectMessage);
                 return false;
             } else if (protocolVersion < GameProtocol.DEFAULT_BEDROCK_PROTOCOL) {
-                // A note on the following line: various older client versions have different forms of DisconnectPacket.
-                // Using only the latest BedrockCompat for such clients leads to inaccurate disconnect messages: https://github.com/GeyserMC/Geyser/issues/4378
-                // This updates the BedrockCompat protocol if necessary:
+                
+                
+                
                 session.getUpstream().getSession().setCodec(BedrockCompat.disconnectCompat(protocolVersion));
 
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.outdated.client", supportedVersions));
@@ -151,7 +151,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public void onDisconnect(CharSequence reason) {
-        // Use our own disconnect messages for these reasons
+        
         if (BedrockDisconnectReasons.CLOSED.contentEquals(reason)) {
             this.session.getUpstream().getSession().setDisconnectReason(GeyserLocale.getLocaleStringLog("geyser.network.disconnect.closed_by_remote_peer"));
         } else if (BedrockDisconnectReasons.TIMEOUT.contentEquals(reason)) {
@@ -166,7 +166,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        // New since 1.19.30 - sent before login packet
+        
         PacketCompressionAlgorithm algorithm = PacketCompressionAlgorithm.ZLIB;
 
         NetworkSettingsPacket responsePacket = new NetworkSettingsPacket();
@@ -182,7 +182,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     @Override
     public PacketSignal handle(LoginPacket loginPacket) {
         if (geyser.isShuttingDown() || geyser.isReloading()) {
-            // Don't allow new players in if we're no longer operating
+            
             session.disconnect(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.message"));
             return PacketSignal.HANDLED;
         }
@@ -204,14 +204,14 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        // Set the block translation based off of version
+        
         session.setBlockMappings(BlockRegistries.BLOCKS.forVersion(loginPacket.getProtocolVersion()));
         session.setItemMappings(Registries.ITEMS.forVersion(loginPacket.getProtocolVersion()));
 
         LoginEncryptionUtils.encryptPlayerConnection(session, loginPacket);
 
         if (session.isClosed()) {
-            // Can happen if Xbox validation fails
+            
             return PacketSignal.HANDLED;
         }
 
@@ -222,7 +222,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         geyser.getSessionManager().addPendingSession(session);
 
-        // Fire SessionInitializeEvent here as we now know the client data
+        
         geyser.eventBus().fire(new SessionInitializeEvent(session));
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
@@ -232,7 +232,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         this.resourcePackLoadEvent = new SessionLoadResourcePacksEventImpl(session);
         this.geyser.eventBus().fireEventElseKick(this.resourcePackLoadEvent, session);
         if (session.isClosed()) {
-            // Can happen if an error occurs in the resource pack event; that'll disconnect the player
+            
             return PacketSignal.HANDLED;
         }
         session.integratedPackActive(resourcePackLoadEvent.isIntegratedPackActive());
@@ -269,7 +269,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 if (geyser.config().java().authType() != AuthType.ONLINE) {
                     session.authenticate(session.getAuthData().name());
                 } else if (!couldLoginUserByName(session.getAuthData().name())) {
-                    // We must spawn the white world
+                    
                     session.connect();
                 }
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.connect", session.getAuthData().name() +
@@ -288,7 +288,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             case HAVE_ALL_PACKS -> {
                 ResourcePackStackPacket stackPacket = new ResourcePackStackPacket();
                 stackPacket.setExperimentsPreviouslyToggled(false);
-                stackPacket.setForcedToAccept(false); // Leaving this as false allows the player to choose to download or not
+                stackPacket.setForcedToAccept(false); 
                 stackPacket.setGameVersion(session.getClientData().getGameVersion());
                 stackPacket.getResourcePacks().addAll(this.resourcePackLoadEvent.orderedPacks());
 
@@ -332,7 +332,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
     @Override
     public PacketSignal handle(PlayerAuthInputPacket packet) {
-        // This doesn't catch rotation, but for a niche case I don't exactly want to cache rotation...
+        
         if (!session.isClosed() && session.isLoggingIn() && !packet.getMotion().equals(Vector2f.ZERO)) {
             SetTitlePacket titlePacket = new SetTitlePacket();
             titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
@@ -351,8 +351,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        // Resolve some console pack downloading issues.
-        // See <https://github.com/PowerNukkitX/PowerNukkitX/pull/1997> for reference
+        
+        
         chunkRequestQueue.add(packet);
         if (isConsole()) {
             if (!currentlySendingChunks) {
@@ -382,7 +382,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         }
 
         PackCodec codec = holder.codec();
-        // If a remote pack ends up here, that usually implies that a client was not able to download the pack
+        
         if (codec instanceof GeyserUrlPackCodec urlPackCodec) {
             ResourcePackLoader.testRemotePack(session, urlPackCodec, holder);
             if (!resourcePackLoadEvent.value(holder.uuid(), ResourcePackOption.Type.FALLBACK, true)) {
@@ -418,15 +418,15 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         data.setData(Unpooled.wrappedBuffer(packData));
 
         if (isConsole()) {
-            // Also flushes packets
-            // Avoids bursting slower / delayed clients
+            
+            
             session.sendUpstreamPacketImmediately(data);
             session.scheduleInEventLoop(this::processNextChunk, PACKET_SEND_DELAY, TimeUnit.MILLISECONDS);
         } else {
             session.sendUpstreamPacket(data);
         }
 
-        // Check if it is the last chunk and send next pack in queue when available.
+        
         if (remainingSize <= GeyserResourcePack.CHUNK_SIZE && !packsToSend.isEmpty()) {
             sendPackDataInfo(packsToSend.pop());
         }

@@ -22,129 +22,129 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.bedrock.camera
 
-package org.geysermc.geyser.api.bedrock.camera;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.checkerframework.common.value.qual.IntRange;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.api.GeyserApi;
+import org.checkerframework.common.value.qual.IntRange
+import org.cloudburstmc.math.vector.Vector3f
+import org.geysermc.geyser.api.GeyserApi
 
 /**
- * This interface represents a camera position instruction. Can be built with the {@link #builder()}.
- * <p>
+ * This interface represents a camera position instruction. Can be built with the [.builder].
+ * 
+ * 
  * Any camera position instruction pins the client camera to a specific position and rotation.
- * You can set {@link CameraEaseType} to ensure a smooth transition that will last {@link #easeSeconds()} seconds.
- * A {@link CameraFade} can also be sent, which will transition the player to a coloured transition during the transition.
- * <p>
- * Use {@link CameraData#sendCameraPosition(CameraPosition)} to send such an instruction to any connection.
+ * You can set [CameraEaseType] to ensure a smooth transition that will last [.easeSeconds] seconds.
+ * A [CameraFade] can also be sent, which will transition the player to a coloured transition during the transition.
+ * 
+ * 
+ * Use [CameraData.sendCameraPosition] to send such an instruction to any connection.
  */
-public interface CameraPosition {
-
+interface CameraPosition {
     /**
      * Gets the camera's position.
-     *
+     * 
      * @return camera position vector
      */
-    @NonNull Vector3f position();
+    fun position(): Vector3f
 
     /**
-     * Gets the {@link CameraEaseType} of the camera.
+     * Gets the [CameraEaseType] of the camera.
      * If not set, there is no easing.
-     *
+     * 
      * @return camera ease type
      */
-    @Nullable CameraEaseType easeType();
+    fun easeType(): CameraEaseType?
 
     /**
-     * Gets the {@link CameraFade} to be sent along the camera position instruction.
+     * Gets the [CameraFade] to be sent along the camera position instruction.
      * If set, they will run at once.
-     *
+     * 
      * @return camera fade, or null if not present
      */
-    @Nullable CameraFade cameraFade();
+    fun cameraFade(): CameraFade?
 
     /**
      * Gets the easing duration of the camera, in seconds.
-     * Is only used if a {@link CameraEaseType} is set.
-     *
+     * Is only used if a [CameraEaseType] is set.
+     * 
      * @return camera easing duration in seconds
      */
-    float easeSeconds();
+    fun easeSeconds(): Float
 
     /**
      * Gets the x-axis rotation of the camera.
      * To prevent the camera from being upside down, Bedrock limits the range to -90 to 90.
-     * Will be overridden if {@link #facingPosition()} is set.
-     *
+     * Will be overridden if [.facingPosition] is set.
+     * 
      * @return camera x-axis rotation
      */
-    @IntRange(from = -90, to = 90) int rotationX();
+    fun rotationX(): @IntRange(from = -90, to = 90) Int
 
     /**
      * Gets the y-axis rotation of the camera.
-     * Will be overridden if {@link #facingPosition()} is set.
-     *
+     * Will be overridden if [.facingPosition] is set.
+     * 
      * @return camera y-axis rotation
      */
-    int rotationY();
+    fun rotationY(): Int
 
     /**
      * Gets the position that the camera is facing.
      * Can be used instead of manually setting rotation values.
-     * <p>
-     * If set, the rotation values set via {@link #rotationX()} and {@link #rotationY()} will be ignored.
-     *
+     * 
+     * 
+     * If set, the rotation values set via [.rotationX] and [.rotationY] will be ignored.
+     * 
      * @return Camera's facing position
      */
-    @Nullable Vector3f facingPosition();
+    fun facingPosition(): Vector3f?
 
     /**
      * Controls whether player effects, such as night vision or blindness, should be rendered on the camera.
      * Defaults to false.
-     *
+     * 
      * @return whether player effects should be rendered
      */
-    boolean renderPlayerEffects();
+    fun renderPlayerEffects(): Boolean
 
     /**
      * Controls whether the player position should be used for directional audio.
      * If false, the camera position will be used instead.
-     *
+     * 
      * @return whether the players position should be used for directional audio
      */
-    boolean playerPositionForAudio();
-
-    /**
-     * Creates a Builder for CameraPosition
-     *
-     * @return a CameraPosition Builder
-     */
-    static CameraPosition.Builder builder() {
-        return GeyserApi.api().provider(CameraPosition.Builder.class);
-    }
+    fun playerPositionForAudio(): Boolean
 
     interface Builder {
+        fun cameraFade(cameraFade: CameraFade?): Builder?
 
-        Builder cameraFade(@Nullable CameraFade cameraFade);
+        fun renderPlayerEffects(renderPlayerEffects: Boolean): Builder?
 
-        Builder renderPlayerEffects(boolean renderPlayerEffects);
+        fun playerPositionForAudio(playerPositionForAudio: Boolean): Builder?
 
-        Builder playerPositionForAudio(boolean playerPositionForAudio);
+        fun easeType(easeType: CameraEaseType?): Builder?
 
-        Builder easeType(@Nullable CameraEaseType easeType);
+        fun easeSeconds(easeSeconds: Float): Builder?
 
-        Builder easeSeconds(float easeSeconds);
+        fun position(position: Vector3f): Builder?
 
-        Builder position(@NonNull Vector3f position);
+        fun rotationX(rotationX: @IntRange(from = -90, to = 90) Int): Builder?
 
-        Builder rotationX(@IntRange(from = -90, to = 90) int rotationX);
+        fun rotationY(rotationY: Int): Builder?
 
-        Builder rotationY(int rotationY);
+        fun facingPosition(facingPosition: Vector3f?): Builder?
 
-        Builder facingPosition(@Nullable Vector3f facingPosition);
+        fun build(): CameraPosition?
+    }
 
-        CameraPosition build();
+    companion object {
+        /**
+         * Creates a Builder for CameraPosition
+         * 
+         * @return a CameraPosition Builder
+         */
+        fun builder(): Builder {
+            return GeyserApi.Companion.api().provider<Builder, Builder?>(Builder::class.java)
+        }
     }
 }

@@ -108,7 +108,7 @@ public class DumpInfo {
         this.gitInfo = new GitInfo(GeyserImpl.BUILD_NUMBER, GeyserImpl.COMMIT.substring(0, 7), GeyserImpl.COMMIT, GeyserImpl.BRANCH, GeyserImpl.REPOSITORY);
 
         try {
-            // Workaround for JsonAdapter not being allowed on methods
+            
             ConfigurationOptions options = InterfaceDefaultOptions.addTo(ConfigurationOptions.defaults(), builder ->
                     builder.addProcessor(AsteriskSerializer.Asterisk.class, String.class, AsteriskSerializer.CONFIGURATE_SERIALIZER))
                 .shouldCopyDefaults(false);
@@ -125,7 +125,7 @@ public class DumpInfo {
 
         String sha256Hash = "unknown";
         try {
-            // https://stackoverflow.com/questions/320542/how-to-get-the-path-of-a-running-jar-file
+            
             File file = new File(DumpInfo.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             ByteSource byteSource = Files.asByteSource(file);
             //noinspection UnstableApiUsage
@@ -152,7 +152,7 @@ public class DumpInfo {
         if (geyser.getGeyserServer() != null) {
             this.connectionAttempts = geyser.getGeyserServer().getConnectionAttempts();
         } else {
-            this.connectionAttempts = 0; // Fallback if Geyser failed to fully startup
+            this.connectionAttempts = 0; 
         }
 
         this.bootstrapInfo = geyser.getBootstrap().getDumpInfo();
@@ -222,8 +222,8 @@ public class DumpInfo {
             this.version = GeyserImpl.VERSION;
             this.javaName = System.getProperty("java.vm.name");
             this.javaVendor = System.getProperty("java.vendor");
-            this.javaVersion = ManagementFactory.getRuntimeMXBean().getVmVersion(); // Gives a little more to the version we can use over the system property
-            // Usually gives Java architecture but still may be helpful.
+            this.javaVersion = ManagementFactory.getRuntimeMXBean().getVmVersion(); 
+            
             this.architecture = System.getProperty("os.arch");
             this.operatingSystem = System.getProperty("os.name");
             this.operatingSystemVersion = System.getProperty("os.version");
@@ -241,26 +241,26 @@ public class DumpInfo {
         NetworkInfo() {
             if (AsteriskSerializer.showSensitive) {
                 try (Socket socket = new Socket()) {
-                    // This is the most reliable for getting the main local IP
+                    
                     socket.connect(new InetSocketAddress("geysermc.org", 80));
                     this.internalIP = socket.getLocalAddress().getHostAddress();
                 } catch (IOException e1) {
                     try {
-                        // Fallback to the normal way of getting the local IP
+                        
                         this.internalIP = InetAddress.getLocalHost().getHostAddress();
                     } catch (UnknownHostException ignored) {
                     }
                 }
             } else {
-                // Sometimes the internal IP is the external IP...
+                
                 this.internalIP = "***";
             }
 
             this.dockerCheck = checkDockerBasic();
         }
 
-        // By default, Geyser now sets the IP to the local IP in all cases on plugin versions so we don't notify the user of anything
-        // However we still have this check for the potential future bug
+        
+        
         private boolean checkDockerBasic() {
             try {
                 String OS = System.getProperty("os.name").toLowerCase();
@@ -271,7 +271,7 @@ public class DumpInfo {
                         return true;
                     }
                 }
-            } catch (Exception ignored) { } // Ignore any errors, inc ip failed to fetch, process could not run or access denied
+            } catch (Exception ignored) { } 
 
             return false;
         }
@@ -318,9 +318,7 @@ public class DumpInfo {
         }
     }
 
-    /**
-     * E.G. `-Xmx1024M` - all runtime JVM flags on this machine
-     */
+    
     public record FlagsInfo(List<String> flags) {
         public FlagsInfo() {
             this(ManagementFactory.getRuntimeMXBean().getInputArguments());

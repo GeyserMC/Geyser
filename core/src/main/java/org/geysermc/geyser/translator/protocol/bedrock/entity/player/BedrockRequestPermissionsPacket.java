@@ -30,9 +30,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-/**
- * Sent occasionally by a BDS client when opening the client side server settings menu.
- */
+
 @Translator(packet = RequestPermissionsPacket.class)
 public class BedrockRequestPermissionsPacket extends PacketTranslator<RequestPermissionsPacket> {
 

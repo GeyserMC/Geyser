@@ -93,7 +93,7 @@ public class EntitySpawnContext {
         this.geyserId = geyserId;
     }
 
-    // Not assigned by default - preparation for cancellable entity spawning
+    
     public long geyserId() {
         if (geyserId == null) {
             return geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();

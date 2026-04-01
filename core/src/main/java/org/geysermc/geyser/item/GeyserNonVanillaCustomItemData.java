@@ -211,7 +211,7 @@ public final class GeyserNonVanillaCustomItemData extends GeyserCustomItemData i
         }
 
         if (isEdible()) {
-            definition.component(JavaItemDataComponents.CONSUMABLE, JavaConsumable.builder().consumeSeconds(1.6F).animation(JavaConsumable.Animation.EAT)); // Default values
+            definition.component(JavaItemDataComponents.CONSUMABLE, JavaConsumable.builder().consumeSeconds(1.6F).animation(JavaConsumable.Animation.EAT)); 
             if (canAlwaysEat()) {
                 definition.component(JavaItemDataComponents.FOOD, JavaFoodProperties.builder().canAlwaysEat(true));
             }

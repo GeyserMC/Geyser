@@ -39,12 +39,10 @@ public final class GeyserPaperLogger extends GeyserSpigotLogger {
         componentLogger = plugin.getComponentLogger();
     }
 
-    /**
-     * Since 1.18.2 this is required so legacy format symbols don't show up in the console for colors
-     */
+    
     @Override
     public void sendMessage(Component message) {
-        // Done like this so the native component object field isn't relocated
+        
         componentLogger.info("{}", PaperAdventure.toNativeComponent(message));
     }
 

@@ -35,9 +35,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.translator.collision.CollisionRemapper;
 
-/**
- * In order for scaffolding to work on Bedrock, entity flags need to be sent to the player
- */
+
 @EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "^scaffolding$", usesParams = true, passDefaultBoxes = true)
 public class ScaffoldingCollision extends BlockCollision {
@@ -51,7 +49,7 @@ public class ScaffoldingCollision extends BlockCollision {
 
     @Override
     public void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox playerCollision) {
-        // Hack to not check below the player
+        
         playerCollision.setSizeY(playerCollision.getSizeY() - 0.001);
         playerCollision.setMiddleY(playerCollision.getMiddleY() + 0.002);
 
@@ -62,8 +60,8 @@ public class ScaffoldingCollision extends BlockCollision {
 
         boolean canStandOn = playerCollision.getMin(Axis.Y) >= y + 1 && !session.isSneaking();
 
-        // If these condition are met, then the scaffolding will have a bottom collision that is 0.125 block high.
-        // However, this is not the case in Bedrock, so we push the player up by 0.125 blocks so the player won't get setback.
+        
+        
         if (!canStandOn && this.bottom && playerCollision.getMin(Axis.Y) >= y) {
             double distance = y + 0.125 - (playerCollision.getMin(Axis.Y));
             if (Math.abs(distance) < 0.125F + CollisionManager.COLLISION_TOLERANCE * 1.01F) {
@@ -75,7 +73,7 @@ public class ScaffoldingCollision extends BlockCollision {
             session.getCollisionManager().setTouchingScaffolding(true);
             session.getCollisionManager().setOnScaffolding(true);
         } else {
-            // Hack to check slightly below the player
+            
             playerCollision.setSizeY(playerCollision.getSizeY() + 0.001);
             playerCollision.setMiddleY(playerCollision.getMiddleY() - 0.002);
 

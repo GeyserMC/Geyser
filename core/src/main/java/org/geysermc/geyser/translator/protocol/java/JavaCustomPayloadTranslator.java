@@ -67,14 +67,14 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             session.ensureInEventLoop(() -> {
                 byte[] data = packet.getData();
 
-                // If the data is empty, we just need to close the form
+                
                 if (data.length == 0) {
                     session.closeForm();
                     return;
                 }
 
-                // receive: first byte is form type, second and third are the id, remaining is the form data
-                // respond: first and second byte id, remaining is form response data
+                
+                
 
                 FormType type = FormType.fromOrdinal(data[0]);
                 if (type == null) {
@@ -86,8 +86,8 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 Form form = Forms.fromJson(dataString, type, (ignored, response) -> {
                     byte[] finalData;
                     if (response == null) {
-                        // Response data can be null as of 1.19.20 (same behaviour as empty response data)
-                        // Only need to send the form id
+                        
+                        
                         finalData = new byte[]{data[1], data[2]};
                     } else {
                         byte[] raw = response.getBytes(StandardCharsets.UTF_8);
@@ -106,7 +106,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             session.ensureInEventLoop(() -> {
                 byte[] data = packet.getData();
 
-                // port (4 bytes), address (remaining data)
+                
                 if (data.length < 5) {
                     throw new NullPointerException("Transfer data should be at least 5 bytes long");
                 }
@@ -129,7 +129,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 logger.debug("A packet has been sent using the Floodgate api");
                 byte[] data = packet.getData();
 
-                // packet id, packet data
+                
                 if (data.length < 2) {
                     throw new IllegalStateException("Packet data should be at least 2 bytes long");
                 }

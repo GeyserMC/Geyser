@@ -66,7 +66,7 @@ public interface GeyserPluginConfig extends GeyserConfig {
         @Override
         @Exclude
         default boolean forwardHostname() {
-            return true; // No need to worry about suspicious behavior flagging the server.
+            return true; 
         }
     }
 }

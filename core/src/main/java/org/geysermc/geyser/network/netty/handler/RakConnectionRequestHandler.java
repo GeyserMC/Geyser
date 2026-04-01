@@ -57,7 +57,7 @@ public class RakConnectionRequestHandler extends ChannelInboundHandlerAdapter {
 
         ByteBuf buf = packet.content();
         if (!buf.isReadable()) {
-            return; // No packet ID
+            return; 
         }
 
         boolean readableMagic = true;

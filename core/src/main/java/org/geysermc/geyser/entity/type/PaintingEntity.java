@@ -37,8 +37,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 
 public class PaintingEntity extends HangingEntity {
     private static final double OFFSET = -0.46875;
-    private int paintingId = -1; // Ideally this would be the default painting Java uses in their metadata, but seems to depend on the current paintings loaded in the registry
-    private Direction direction = Direction.SOUTH; // Default to SOUTH direction, like on Java - entity metadata should correct this when necessary
+    private int paintingId = -1; 
+    private Direction direction = Direction.SOUTH; 
 
     public PaintingEntity(EntitySpawnContext context) {
         super(context);
@@ -46,7 +46,7 @@ public class PaintingEntity extends HangingEntity {
 
     @Override
     public void spawnEntity() {
-        // Wait until we get the metadata needed
+        
     }
 
     @Override
@@ -81,7 +81,7 @@ public class PaintingEntity extends HangingEntity {
         addPaintingPacket.setMotive(type.getBedrockName());
         addPaintingPacket.setPosition(fixOffset(type));
         addPaintingPacket.setDirection(switch (direction) {
-            //TODO this doesn't seem right. Why did it work fine before?
+            
             case SOUTH -> 0;
             case WEST -> 1;
             case NORTH -> 2;
@@ -97,7 +97,7 @@ public class PaintingEntity extends HangingEntity {
 
     @Override
     public void updateHeadLookRotation(float headYaw) {
-        // Do nothing, as head look messes up paintings
+        
     }
 
     private Vector3f fixOffset(PaintingType paintingName) {

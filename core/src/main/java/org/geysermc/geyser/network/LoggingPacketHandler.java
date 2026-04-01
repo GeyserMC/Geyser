@@ -30,12 +30,7 @@ import org.cloudburstmc.protocol.common.PacketSignal;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 
-/**
- * Bare bones implementation of BedrockPacketHandler suitable for extension.
- * <p>
- * Logs and ignores all packets presented. Allows subclasses to override/implement only
- * packets of interest and limit boilerplate code.
- */
+
 public class LoggingPacketHandler implements BedrockPacketHandler {
     protected final GeyserImpl geyser;
     protected final GeyserSession session;
@@ -755,7 +750,7 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
         return defaultHandler(packet);
     }
 
-    // 1.16 new packets
+    
 
     @Override
     public PacketSignal handle(DebugInfoPacket packet) {
@@ -822,7 +817,7 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
         return defaultHandler(packet);
     }
 
-    // 1.16.100 new packets
+    
 
     @Override
     public PacketSignal handle(MotionPredictionHintsPacket packet) {
@@ -854,28 +849,28 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
         return defaultHandler(packet);
     }
 
-    // 1.16.200 new packet
+    
 
     @Override
     public PacketSignal handle(FilterTextPacket packet) {
         return defaultHandler(packet);
     }
 
-    // 1.19.0 new packet
+    
 
     @Override
     public PacketSignal handle(RequestAbilityPacket packet) {
         return defaultHandler(packet);
     }
 
-    // 1.19.30 new packet
+    
 
     @Override
     public PacketSignal handle(RequestNetworkSettingsPacket packet) {
         return defaultHandler(packet);
     }
 
-    // todo: fix arrangement
+    
 
     @Override
     public PacketSignal handle(ToggleCrafterSlotRequestPacket packet) {

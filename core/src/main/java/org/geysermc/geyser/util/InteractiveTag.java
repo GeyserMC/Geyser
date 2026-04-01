@@ -29,9 +29,7 @@ import lombok.Getter;
 
 import java.util.Locale;
 
-/**
- * All interactive tags in enum form. For potential API usage.
- */
+
 public enum InteractiveTag {
     NONE((Void) null),
     IGNITE_CREEPER("creeper"),
@@ -84,9 +82,7 @@ public enum InteractiveTag {
     EQUIP_NAUTILUS_ARMOR("equipnautilusarmor"),
     REMOVE_NAUTILUS_ARMOR("removenautilusarmor");
 
-    /**
-     * The full string that should be passed on to the client.
-     */
+    
     @Getter
     private final String value;
 

@@ -43,39 +43,26 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class SessionManager {
-    /**
-     * A list of all players who don't currently have a permanent UUID attached yet.
-     */
+    
     @Getter(AccessLevel.PACKAGE)
     private final Set<GeyserSession> pendingSessions = ConcurrentHashMap.newKeySet();
-    /**
-     * A list of all players who are currently in-game.
-     */
+    
     @Getter
     private final Map<UUID, GeyserSession> sessions = new ConcurrentHashMap<>();
 
-    /**
-     * Stores the number of connected sessions per address they're connected from.
-     * Used to raise per-IP connection limits.
-     */
+    
     @Getter(AccessLevel.PACKAGE)
     private final Map<InetAddress, AtomicInteger> connectedClients = new ConcurrentHashMap<>();
 
-    /**
-     * Specifies the maximum amount of connections per address
-     */
+    
     private final static int MAX_CONNECTIONS_PER_ADDRESS = Integer.getInteger("Geyser.MaxConnectionsPerAddress", 10);
 
-    /**
-     * Whether we should accept more connection requests from this address
-     */
+    
     public boolean reachedMaxConnectionsPerAddress(GeyserSession session) {
         return getAddressMultiplier(session.getSocketAddress().getAddress()) > MAX_CONNECTIONS_PER_ADDRESS;
     }
 
-    /**
-     * Called once the player has successfully authenticated to the Geyser server.
-     */
+    
     public void addPendingSession(GeyserSession session) {
         pendingSessions.add(session);
         connectedClients.compute(session.getSocketAddress().getAddress(), (key, count) -> {
@@ -88,9 +75,7 @@ public final class SessionManager {
         });
     }
 
-    /**
-     * Called once a player has successfully logged into their Java server.
-     */
+    
     public void addSession(UUID uuid, GeyserSession session) {
         pendingSessions.remove(session);
         sessions.put(uuid, session);
@@ -99,7 +84,7 @@ public final class SessionManager {
     public void removeSession(GeyserSession session) {
         UUID uuid = session.getPlayerEntity().uuid();
         if (uuid == null || sessions.remove(uuid) == null) {
-            // Connection was likely pending
+            
             pendingSessions.remove(session);
         }
         connectedClients.computeIfPresent(session.getSocketAddress().getAddress(), (key, count) -> {
@@ -134,11 +119,9 @@ public final class SessionManager {
         return null;
     }
 
-    /**
-     * Creates a new, immutable list containing all pending and active sessions.
-     */
+    
     public List<GeyserSession> getAllSessions() {
-        return ImmutableList.<GeyserSession>builder() // builderWithExpectedSize is probably not a good idea yet as older Spigot builds probably won't have it.
+        return ImmutableList.<GeyserSession>builder() 
                 .addAll(pendingSessions)
                 .addAll(sessions.values())
                 .build();
@@ -151,9 +134,7 @@ public final class SessionManager {
         }
     }
 
-    /**
-     * @return the total amount of sessions, including those pending.
-     */
+    
     public int size() {
         return pendingSessions.size() + sessions.size();
     }

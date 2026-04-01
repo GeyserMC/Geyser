@@ -128,8 +128,8 @@ public record GeyserExtensionDescription(@NonNull String id,
     @Getter
     @Setter
     public static class Dependency {
-        boolean required = true; // Defaults to true
-        LoadOrder load = LoadOrder.BEFORE; // Defaults to ensure the dependency loads before this extension
+        boolean required = true; 
+        LoadOrder load = LoadOrder.BEFORE; 
     }
 
     public enum LoadOrder {

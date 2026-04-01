@@ -29,11 +29,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-/**
- * This class contains the raw data send by Geyser to Floodgate or from Floodgate to Floodgate. This
- * class is only used internally, and you should look at FloodgatePlayer instead (FloodgatePlayer is
- * present in the API module of the Floodgate repo)
- */
+
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class BedrockData implements Cloneable {
@@ -80,7 +76,7 @@ public final class BedrockData implements Cloneable {
         }
 
         LinkedPlayer linkedPlayer = LinkedPlayer.fromString(split[8]);
-        // The format is the same as the order of the fields in this class
+        
         return new BedrockData(
                 split[0], split[1], split[2], Integer.parseInt(split[3]), split[4],
                 Integer.parseInt(split[5]), Integer.parseInt(split[6]), split[7], linkedPlayer,
@@ -100,7 +96,7 @@ public final class BedrockData implements Cloneable {
 
     @Override
     public String toString() {
-        // The format is the same as the order of the fields in this class
+        
         return version + '\0' + username + '\0' + xuid + '\0' + deviceOs + '\0' +
                 languageCode + '\0' + uiProfile + '\0' + inputMode + '\0' + ip + '\0' +
                 (linkedPlayer != null ? linkedPlayer.toString() : "null") + '\0' +

@@ -36,7 +36,7 @@ public class BreezeEntity extends MonsterEntity {
 
     @Override
     public void setPose(Pose pose) {
-        // TODO Test
+        
         setFlag(EntityFlag.FACING_TARGET_TO_RANGE_ATTACK, pose == Pose.SHOOTING);
         setFlag(EntityFlag.JUMP_GOAL_JUMP, pose == Pose.INHALING);
         super.setPose(pose);

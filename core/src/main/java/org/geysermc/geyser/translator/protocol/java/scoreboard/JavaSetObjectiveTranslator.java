@@ -50,7 +50,7 @@ public class JavaSetObjectiveTranslator extends PacketTranslator<ClientboundSetO
             objective = scoreboard.getObjective(packet.getName());
         }
 
-        // matches vanilla
+        
         if (objective == null) {
             return;
         }
@@ -61,14 +61,14 @@ public class JavaSetObjectiveTranslator extends PacketTranslator<ClientboundSetO
             case REMOVE -> scoreboard.removeObjective(objective);
         }
 
-        // Scoreboard#removeObjective doesn't touch the display slot(s) that were attached to it.
-        // So Objective#hasDisplaySlot will be true as long as it's currently present on the Bedrock client
+        
+        
         if (!objective.hasDisplaySlot()) {
             return;
         }
 
-        // ScoreboardUpdater will handle it for us if the packets per second
-        // (for score and team packets) is higher than the first threshold
+        
+        
         if (pps < ScoreboardUpdater.FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
             scoreboard.onUpdate();
         }

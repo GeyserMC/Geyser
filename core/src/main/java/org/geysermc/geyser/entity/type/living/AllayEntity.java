@@ -54,12 +54,12 @@ public class AllayEntity extends MobEntity {
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (this.canDuplicate && getFlag(EntityFlag.DANCING) && isDuplicationItem(itemInHand)) {
-            // Maybe better as another tag?
+            
             return InteractiveTag.GIVE_ITEM_TO_ALLAY;
         } else if (getMainHandItem().isEmpty() && !itemInHand.isEmpty()) {
             return InteractiveTag.GIVE_ITEM_TO_ALLAY;
         } else if (!getMainHandItem().isEmpty() && hand == Hand.MAIN_HAND && itemInHand.isEmpty()) {
-            // Seems like there isn't a good tag for this yet
+            
             return InteractiveTag.GIVE_ITEM_TO_ALLAY;
         } else {
             return super.testMobInteraction(hand, itemInHand);
@@ -73,7 +73,7 @@ public class AllayEntity extends MobEntity {
             //TOCHECK sound
             return InteractionResult.SUCCESS;
         } else if (getMainHandItem().isEmpty() && !itemInHand.isEmpty()) {
-            //TODO play sound?
+            
             return InteractionResult.SUCCESS;
         } else if (!getMainHandItem().isEmpty() && hand == Hand.MAIN_HAND && itemInHand.isEmpty()) {
             //TOCHECK also play sound here?

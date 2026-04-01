@@ -37,7 +37,7 @@ public class GhastEntity extends FlyingEntity {
     }
 
     public void setGhastAttacking(BooleanEntityMetadata entityMetadata) {
-        // If the ghast is attacking
+        
         dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, (byte) (entityMetadata.getPrimitiveValue() ? 1 : 0));
     }
 

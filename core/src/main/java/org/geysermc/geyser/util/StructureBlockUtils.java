@@ -69,7 +69,7 @@ public class StructureBlockUtils {
         responsePacket.setName(name);
         responsePacket.setSave(true);
         responsePacket.setTag(EMPTY_STRUCTURE_DATA.toBuilder()
-                // Bedrock does not like negative sizes here
+                
                 .putList("size", NbtType.INT, Math.abs(size.getX()), size.getY(), Math.abs(size.getZ()))
                 .build());
         responsePacket.setType(StructureTemplateResponseType.QUERY);

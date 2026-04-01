@@ -72,8 +72,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                 )
             );
 
-            // some are in an odd order to make sure that there is no bias for which score is send first,
-            // and to make sure that the score value also doesn't influence the order
+            
+            
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("a", "objective", 1));
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("b", "objective", 2));
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("c", "objective", 3));
@@ -131,7 +131,7 @@ public class OrderAndLimitSidebarScoreboardTests {
             });
             assertNoNextPacket(context);
 
-            // remove a score
+            
             context.translate(
                 resetScoreTranslator,
                 new ClientboundResetScorePacket("m", "objective")
@@ -149,7 +149,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                 return packet;
             });
 
-            // add a score
+            
             context.translate(
                 setScoreTranslator,
                 new ClientboundSetScorePacket("aa", "objective", 13)
@@ -167,7 +167,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                 return packet;
             });
 
-            // add score with same score value (after)
+            
             context.translate(
                 setScoreTranslator,
                 new ClientboundSetScorePacket("ga", "objective", 9)
@@ -191,7 +191,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                 return packet;
             });
 
-            // add another score with same score value (before all)
+            
             context.translate(
                 setScoreTranslator,
                 new ClientboundSetScorePacket("ag", "objective", 9)
@@ -217,7 +217,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                 return packet;
             });
 
-            // remove score with same value
+            
             context.translate(
                 resetScoreTranslator,
                 new ClientboundResetScorePacket("g", "objective")
@@ -241,7 +241,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                 return packet;
             });
 
-            // remove the other score with the same value
+            
             context.translate(
                 resetScoreTranslator,
                 new ClientboundResetScorePacket("ga", "objective")
@@ -287,8 +287,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                 )
             );
 
-            // some are in an odd order to make sure that there is no bias for which score is send first,
-            // and to make sure that the score value also doesn't influence the order
+            
+            
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("a", "objective", 1));
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("b", "objective", 2));
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("c", "objective", 3));
@@ -360,7 +360,7 @@ public class OrderAndLimitSidebarScoreboardTests {
             });
             assertNoNextPacket(context);
 
-            // remove a score
+            
             context.translate(
                 resetScoreTranslator,
                 new ClientboundResetScorePacket("m", "objective")
@@ -378,7 +378,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                 return packet;
             });
 
-            // add a score
+            
             context.translate(
                 setScoreTranslator,
                 new ClientboundSetScorePacket("aa", "objective", 13)
@@ -396,7 +396,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                 return packet;
             });
 
-            // add some teams for the upcoming score adds
+            
             context.translate(
                 setPlayerTeamTranslator,
                 new ClientboundSetPlayerTeamPacket(
@@ -429,8 +429,8 @@ public class OrderAndLimitSidebarScoreboardTests {
             );
             assertNoNextPacket(context);
 
-            // add a score that on Java should be after 'o', but would be before on Bedrock without manual order
-            // due to the team color
+            
+            
             context.translate(
                 setScoreTranslator,
                 new ClientboundSetScorePacket("oa", "objective", 11)
@@ -454,8 +454,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                 return packet;
             });
 
-            // add a score that on Java should be before 'o', but would be after on Bedrock without manual order
-            // due to the team color
+            
+            
             context.translate(
                 setScoreTranslator,
                 new ClientboundSetScorePacket("ao", "objective", 11)
@@ -481,7 +481,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                 return packet;
             });
 
-            // remove original 'o' score
+            
             context.translate(
                 resetScoreTranslator,
                 new ClientboundResetScorePacket("o", "objective")
@@ -505,7 +505,7 @@ public class OrderAndLimitSidebarScoreboardTests {
                 return packet;
             });
 
-            // remove the other score with the same value as 'o'
+            
             context.translate(
                 resetScoreTranslator,
                 new ClientboundResetScorePacket("oa", "objective")

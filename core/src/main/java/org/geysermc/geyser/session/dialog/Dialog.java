@@ -108,7 +108,7 @@ public abstract class Dialog {
         if (type.equals(PLAIN_MESSAGE_BODY)) {
             return Optional.ofNullable(MessageTranslator.convertFromNullableNbtTag(session, tag.get("contents")));
         }
-        // Other type is item, can't display that in forms
+        
         return Optional.empty();
     }
 

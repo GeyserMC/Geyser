@@ -32,9 +32,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 public class EntityEffectCache {
-    /**
-     * Used to clear effects on dimension switch.
-     */
+    
     @Getter
     private final Set<Effect> entityEffects = EnumSet.noneOf(Effect.class);
 

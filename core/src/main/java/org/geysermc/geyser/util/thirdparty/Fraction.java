@@ -14,95 +14,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.geysermc.geyser.util.thirdparty; // Geyser
+package org.geysermc.geyser.util.thirdparty; 
 
 import java.math.BigInteger;
 import java.util.Objects;
 
-/**
- * {@link Fraction} is a {@link Number} implementation that
- * stores fractions accurately.
- *
- * <p>This class is immutable, and interoperable with most methods that accept
- * a {@link Number}.</p>
- *
- * <p>Note that this class is intended for common use cases, it is <i>int</i>
- * based and thus suffers from various overflow issues. For a BigInteger based
- * equivalent, please see the Commons Math BigFraction class.</p>
- *
- * @since 2.0
- */
-// Geyser: Java Edition uses this for 1.21.3 bundle calculation. Rather than
-// Reimplementing an open-source class or bringing in a whole library,
-// the single class is used to ensure accuracy.
+
+
+
+
 public final class Fraction extends Number implements Comparable<Fraction> {
 
-    /**
-     * Required for serialization support. Lang version 2.0.
-     *
-     * @see java.io.Serializable
-     */
+    
     private static final long serialVersionUID = 65382027393090L;
 
-    /**
-     * {@link Fraction} representation of 0.
-     */
+    
     public static final Fraction ZERO = new Fraction(0, 1);
-    /**
-     * {@link Fraction} representation of 1.
-     */
+    
     public static final Fraction ONE = new Fraction(1, 1);
-    /**
-     * {@link Fraction} representation of 1/2.
-     */
+    
     public static final Fraction ONE_HALF = new Fraction(1, 2);
-    /**
-     * {@link Fraction} representation of 1/3.
-     */
+    
     public static final Fraction ONE_THIRD = new Fraction(1, 3);
-    /**
-     * {@link Fraction} representation of 2/3.
-     */
+    
     public static final Fraction TWO_THIRDS = new Fraction(2, 3);
-    /**
-     * {@link Fraction} representation of 1/4.
-     */
+    
     public static final Fraction ONE_QUARTER = new Fraction(1, 4);
-    /**
-     * {@link Fraction} representation of 2/4.
-     */
+    
     public static final Fraction TWO_QUARTERS = new Fraction(2, 4);
-    /**
-     * {@link Fraction} representation of 3/4.
-     */
+    
     public static final Fraction THREE_QUARTERS = new Fraction(3, 4);
-    /**
-     * {@link Fraction} representation of 1/5.
-     */
+    
     public static final Fraction ONE_FIFTH = new Fraction(1, 5);
-    /**
-     * {@link Fraction} representation of 2/5.
-     */
+    
     public static final Fraction TWO_FIFTHS = new Fraction(2, 5);
-    /**
-     * {@link Fraction} representation of 3/5.
-     */
+    
     public static final Fraction THREE_FIFTHS = new Fraction(3, 5);
-    /**
-     * {@link Fraction} representation of 4/5.
-     */
+    
     public static final Fraction FOUR_FIFTHS = new Fraction(4, 5);
 
 
-    /**
-     * Add two integers, checking for overflow.
-     *
-     * @param x an addend
-     * @param y an addend
-     * @return the sum {@code x+y}
-     * @throws ArithmeticException if the result can not be represented as
-     * an int
-     */
+    
     private static int addAndCheck(final int x, final int y) {
         final long s = (long) x + (long) y;
         if (s < Integer.MIN_VALUE || s > Integer.MAX_VALUE) {
@@ -110,20 +62,7 @@ public final class Fraction extends Number implements Comparable<Fraction> {
         }
         return (int) s;
     }
-    /**
-     * Creates a {@link Fraction} instance from a {@code double} value.
-     *
-     * <p>This method uses the <a href="https://web.archive.org/web/20210516065058/http%3A//archives.math.utk.edu/articles/atuyl/confrac/">
-     *  continued fraction algorithm</a>, computing a maximum of
-     *  25 convergents and bounding the denominator by 10,000.</p>
-     *
-     * @param value  the double value to convert
-     * @return a new fraction instance that is close to the value
-     * @throws ArithmeticException if {@code |value| &gt; Integer.MAX_VALUE}
-     *  or {@code value = NaN}
-     * @throws ArithmeticException if the calculated denominator is {@code zero}
-     * @throws ArithmeticException if the algorithm does not converge
-     */
+    
     public static Fraction getFraction(double value) {
         final int sign = value < 0 ? -1 : 1;
         value = Math.abs(value);
@@ -133,9 +72,9 @@ public final class Fraction extends Number implements Comparable<Fraction> {
         final int wholeNumber = (int) value;
         value -= wholeNumber;
 
-        int numer0 = 0; // the pre-previous
-        int denom0 = 1; // the pre-previous
-        int numer1 = 1; // the previous
+        int numer0 = 0; 
+        int denom0 = 1; 
+        int numer1 = 1; 
         int denom1 = 0; // the previous
         int numer2; // the current, setup in calculation
         int denom2; // the current, setup in calculation
@@ -172,18 +111,7 @@ public final class Fraction extends Number implements Comparable<Fraction> {
         return getReducedFraction((numer0 + wholeNumber * denom0) * sign, denom0);
     }
 
-    /**
-     * Creates a {@link Fraction} instance with the 2 parts
-     * of a fraction Y/Z.
-     *
-     * <p>Any negative signs are resolved to be on the numerator.</p>
-     *
-     * @param numerator  the numerator, for example the three in 'three sevenths'
-     * @param denominator  the denominator, for example the seven in 'three sevenths'
-     * @return a new fraction instance
-     * @throws ArithmeticException if the denominator is {@code zero}
-     * or the denominator is {@code negative} and the numerator is {@code Integer#MIN_VALUE}
-     */
+    
     public static Fraction getFraction(int numerator, int denominator) {
         if (denominator == 0) {
             throw new ArithmeticException("The denominator must not be zero");
@@ -197,22 +125,7 @@ public final class Fraction extends Number implements Comparable<Fraction> {
         }
         return new Fraction(numerator, denominator);
     }
-    /**
-     * Creates a {@link Fraction} instance with the 3 parts
-     * of a fraction X Y/Z.
-     *
-     * <p>The negative sign must be passed in on the whole number part.</p>
-     *
-     * @param whole  the whole number, for example the one in 'one and three sevenths'
-     * @param numerator  the numerator, for example the three in 'one and three sevenths'
-     * @param denominator  the denominator, for example the seven in 'one and three sevenths'
-     * @return a new fraction instance
-     * @throws ArithmeticException if the denominator is {@code zero}
-     * @throws ArithmeticException if the denominator is negative
-     * @throws ArithmeticException if the numerator is negative
-     * @throws ArithmeticException if the resulting numerator exceeds
-     *  {@code Integer.MAX_VALUE}
-     */
+    
     public static Fraction getFraction(final int whole, final int numerator, final int denominator) {
         if (denominator == 0) {
             throw new ArithmeticException("The denominator must not be zero");
@@ -234,24 +147,7 @@ public final class Fraction extends Number implements Comparable<Fraction> {
         }
         return new Fraction((int) numeratorValue, denominator);
     }
-    /**
-     * Creates a Fraction from a {@link String}.
-     *
-     * <p>The formats accepted are:</p>
-     *
-     * <ol>
-     *  <li>{@code double} String containing a dot</li>
-     *  <li>'X Y/Z'</li>
-     *  <li>'Y/Z'</li>
-     *  <li>'X' (a simple whole number)</li>
-     * </ol>
-     * <p>and a .</p>
-     *
-     * @param str  the string to parse, must not be {@code null}
-     * @return the new {@link Fraction} instance
-     * @throws NullPointerException if the string is {@code null}
-     * @throws NumberFormatException if the number format is invalid
-     */
+    
     public static Fraction getFraction(String str) {
         Objects.requireNonNull(str, "str");
         // parse double format
@@ -285,20 +181,7 @@ public final class Fraction extends Number implements Comparable<Fraction> {
         return getFraction(numer, denom);
     }
 
-    /**
-     * Creates a reduced {@link Fraction} instance with the 2 parts
-     * of a fraction Y/Z.
-     *
-     * <p>For example, if the input parameters represent 2/4, then the created
-     * fraction will be 1/2.</p>
-     *
-     * <p>Any negative signs are resolved to be on the numerator.</p>
-     *
-     * @param numerator  the numerator, for example the three in 'three sevenths'
-     * @param denominator  the denominator, for example the seven in 'three sevenths'
-     * @return a new fraction instance, with the numerator and denominator reduced
-     * @throws ArithmeticException if the denominator is {@code zero}
-     */
+    
     public static Fraction getReducedFraction(int numerator, int denominator) {
         if (denominator == 0) {
             throw new ArithmeticException("The denominator must not be zero");
@@ -325,16 +208,7 @@ public final class Fraction extends Number implements Comparable<Fraction> {
         return new Fraction(numerator, denominator);
     }
 
-    /**
-     * Gets the greatest common divisor of the absolute value of
-     * two numbers, using the "binary gcd" method which avoids
-     * division and modulo operations.  See Knuth 4.5.2 algorithm B.
-     * This algorithm is due to Josef Stein (1961).
-     *
-     * @param u  a non-zero number
-     * @param v  a non-zero number
-     * @return the greatest common divisor, never zero
-     */
+    
     private static int greatestCommonDivisor(int u, int v) {
         // From Commons Math:
         if (u == 0 || v == 0) {
@@ -392,15 +266,7 @@ public final class Fraction extends Number implements Comparable<Fraction> {
         return -u * (1 << k); // gcd is u*2^k
     }
 
-    /**
-     * Multiply two integers, checking for overflow.
-     *
-     * @param x a factor
-     * @param y a factor
-     * @return the product {@code x*y}
-     * @throws ArithmeticException if the result can not be represented as
-     *                             an int
-     */
+    
     private static int mulAndCheck(final int x, final int y) {
         final long m = (long) x * (long) y;
         if (m < Integer.MIN_VALUE || m > Integer.MAX_VALUE) {
@@ -409,15 +275,7 @@ public final class Fraction extends Number implements Comparable<Fraction> {
         return (int) m;
     }
 
-    /**
-     *  Multiply two non-negative integers, checking for overflow.
-     *
-     * @param x a non-negative factor
-     * @param y a non-negative factor
-     * @return the product {@code x*y}
-     * @throws ArithmeticException if the result can not be represented as
-     * an int
-     */
+    
     private static int mulPosAndCheck(final int x, final int y) {
         /* assert x>=0 && y>=0; */
         final long m = (long) x * (long) y;
@@ -427,15 +285,7 @@ public final class Fraction extends Number implements Comparable<Fraction> {
         return (int) m;
     }
 
-    /**
-     * Subtract two integers, checking for overflow.
-     *
-     * @param x the minuend
-     * @param y the subtrahend
-     * @return the difference {@code x-y}
-     * @throws ArithmeticException if the result can not be represented as
-     * an int
-     */
+    
     private static int subAndCheck(final int x, final int y) {
         final long s = (long) x - (long) y;
         if (s < Integer.MIN_VALUE || s > Integer.MAX_VALUE) {
@@ -444,38 +294,22 @@ public final class Fraction extends Number implements Comparable<Fraction> {
         return (int) s;
     }
 
-    /**
-     * The numerator number part of the fraction (the three in three sevenths).
-     */
+    
     private final int numerator;
 
-    /**
-     * The denominator number part of the fraction (the seven in three sevenths).
-     */
+    
     private final int denominator;
 
-    /**
-     * Cached output hashCode (class is immutable).
-     */
+    
     private transient int hashCode;
 
-    /**
-     * Cached output toString (class is immutable).
-     */
+    
     private transient String toString;
 
-    /**
-     * Cached output toProperString (class is immutable).
-     */
+    
     private transient String toProperString;
 
-    /**
-     * Constructs a {@link Fraction} instance with the 2 parts
-     * of a fraction Y/Z.
-     *
-     * @param numerator  the numerator, for example the three in 'three sevenths'
-     * @param denominator  the denominator, for example the seven in 'three sevenths'
-     */
+    
     private Fraction(final int numerator, final int denominator) {
         this.numerator = numerator;
         this.denominator = denominator;

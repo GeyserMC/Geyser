@@ -25,18 +25,12 @@
 
 package org.geysermc.geyser.util;
 
-/**
- * Used as a mirror of Java Edition's own interaction enum.
- */
+
 public enum InteractionResult {
     CONSUME(true),
-    /**
-     * Indicates that the action does nothing, or in rare cases is not a priority.
-     */
+    
     PASS(false),
-    /**
-     * Indicates that the action does something, and don't try to find another action to process.
-     */
+    
     SUCCESS(true);
 
     private final boolean consumesAction;

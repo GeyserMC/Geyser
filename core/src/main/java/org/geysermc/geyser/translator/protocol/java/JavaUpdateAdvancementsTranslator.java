@@ -49,14 +49,14 @@ public class JavaUpdateAdvancementsTranslator extends PacketTranslator<Clientbou
             advancementsCache.getStoredAdvancementProgress().clear();
         }
 
-        // Removes removed advancements from player's stored advancements
+        
         for (String removedAdvancement : packet.getRemovedAdvancements()) {
             advancementsCache.getStoredAdvancements().remove(removedAdvancement);
         }
 
         advancementsCache.getStoredAdvancementProgress().putAll(packet.getProgress());
 
-        // Adds advancements to the player's stored advancements when advancements are sent
+        
         for (Advancement advancement : packet.getAdvancements()) {
             if (advancement.getDisplayData() != null && (!advancement.getDisplayData().isHidden() || advancement.getDisplayData().isShowToast())) {
                 GeyserAdvancement geyserAdvancement = GeyserAdvancement.from(advancement);
@@ -69,12 +69,10 @@ public class JavaUpdateAdvancementsTranslator extends PacketTranslator<Clientbou
         sendAdvancementToasts(session, packet);
     }
 
-    /**
-     * Handle all advancements progress updates
-     */
+    
     public void sendAdvancementToasts(GeyserSession session, ClientboundUpdateAdvancementsPacket packet) {
         if (packet.isReset()) {
-            // Advancements are being cleared, so they can't be granted
+            
             return;
         }
         for (String advancementId : packet.getProgress().keySet()) {

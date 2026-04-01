@@ -49,7 +49,7 @@ public enum ObjectContentsType {
     private final String name;
     private final MapBuilder<? extends ObjectContents> builder;
 
-    @SuppressWarnings("unused") // So Java knows what T we are talking about
+    @SuppressWarnings("unused") 
     <T extends ObjectContents> ObjectContentsType(String name, Class<T> clazz, MapBuilder<T> builder) {
         this.name = name;
         this.builder = builder;

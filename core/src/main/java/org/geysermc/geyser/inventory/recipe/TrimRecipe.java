@@ -45,13 +45,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ProvidesTrim
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Stores information on trim materials and patterns, including smithing armor hacks for pre-1.20.
- */
+
 public final class TrimRecipe {
     private static final Map<ProvidesTrimMaterial, Item> trimMaterialProviders = new HashMap<>();
 
-    // For CraftingDataPacket
+    
     public static final String ID = "minecraft:smithing_armor_trim";
     public static final ItemDescriptorWithCount BASE = tagDescriptor("minecraft:trimmable_armors");
     public static final ItemDescriptorWithCount ADDITION = tagDescriptor("minecraft:trim_materials");
@@ -60,8 +58,8 @@ public final class TrimRecipe {
     public static TrimMaterial readTrimMaterial(RegistryEntryContext context) {
         String key = context.id().asMinimalString();
 
-        // Color is used when hovering over the item
-        // Find the nearest legacy color from the style Java gives us to work with
+        
+        
         Component description = MessageTranslator.componentFromNbtTag(context.data().get("description"));
         String legacy = MessageTranslator.convertMessage(Component.space().style(description.style()));
         String color = legacy.isBlank() ? ChatColor.WHITE : legacy.substring(2).trim();
@@ -79,25 +77,25 @@ public final class TrimRecipe {
         }
 
         if (trimItem == null) {
-            // This happens in testing and for custom trim materials, not sure what to do for the latter.
+            
             GeyserImpl.getInstance().getLogger().debug("Unable to found trim material item for material " + context.id());
             trimItem = ItemMapping.AIR;
         }
 
-        // Just pick out the resulting color code, without RESET in front.
+        
         return new TrimMaterial(key, color, trimItem.getBedrockIdentifier());
     }
 
     public static TrimPattern readTrimPattern(RegistryEntryContext context) {
         String key = context.id().asMinimalString();
 
-        // Not ideal, Java edition also gives us a translatable description... Bedrock wants the template item
+        
         String identifier = context.id().asString() + "_armor_trim_smithing_template";
         ItemMapping itemMapping = ItemMapping.AIR;
         if (context.session().isPresent()) {
             itemMapping = context.session().get().getItemMappings().getMapping(identifier);
             if (itemMapping == null) {
-                // This should never happen so not sure what to do here.
+                
                 GeyserImpl.getInstance().getLogger().debug("Unable to found trim pattern item for pattern " + context.id());
                 itemMapping = ItemMapping.AIR;
             }
@@ -109,7 +107,7 @@ public final class TrimRecipe {
         //no-op
     }
 
-    // Lazy initialise
+    
     private static Map<ProvidesTrimMaterial, Item> materialProviders() {
         if (trimMaterialProviders.isEmpty()) {
             for (Item item : Registries.JAVA_ITEMS.get()) {

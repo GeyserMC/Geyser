@@ -69,7 +69,7 @@ public class CubecraftScoreboardTest {
             var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();
             var setScoreTranslator = new JavaSetScoreTranslator();
 
-            // unused
+            
             context.translate(setTeamTranslator, new ClientboundSetPlayerTeamPacket("SB_NoName", Component.text("SB_NoName"), Component.empty(), Component.empty(), true, true, NameTagVisibility.NEVER, CollisionRule.NEVER, TeamColor.RESET, new String[0]));
             assertNoNextPacket(context);
 
@@ -100,9 +100,9 @@ public class CubecraftScoreboardTest {
             });
 
 
-            // Now they're going to create a bunch of teams and add players to those teams in a very inefficient way.
-            // Presumably this is a leftover from an old system, as these don't seem to do anything but hide their nametags.
-            // For which you could just use a single team.
+            
+            
+            
 
 
             context.translate(setTeamTranslator, new ClientboundSetPlayerTeamPacket("2i|1", Component.text("2i|1"), Component.empty(), Component.empty(), true, true, NameTagVisibility.ALWAYS, CollisionRule.ALWAYS, TeamColor.RESET, new String[0]));
@@ -180,9 +180,9 @@ public class CubecraftScoreboardTest {
             assertNoNextPacket(context);
 
 
-            // Now that those teams are created and people added to it, they set the final sidebar name and add the lines to it.
-            // They're also not doing this efficiently, because they don't add the players when the team is created.
-            // Instead, they send an additional packet.
+            
+            
+            
 
 
             context.translate(
@@ -640,12 +640,12 @@ public class CubecraftScoreboardTest {
                 return packet;
             });
 
-            // after this we get a ClientboundPlayerInfoUpdatePacket with the action UPDATE_DISPLAY_NAME,
-            // but that one is only shown in the tablist so we don't have to handle that.
-            // And after that we get each player's ClientboundPlayerInfoUpdatePacket with also a UPDATE_DISPLAY_NAME,
-            // which is also not interesting for us.
-            // CubeCraft seems to use two armor stands per player: 1 for the rank badge and 1 for the player name.
-            // So the only thing we have to verify is that the nametag is hidden
+            
+            
+            
+            
+            
+            
 
             spawnPlayer(context, "A_Player", 2);
             assertNextPacketMatch(context, AddPlayerPacket.class, packet -> {

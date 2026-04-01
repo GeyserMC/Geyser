@@ -44,8 +44,8 @@ import java.util.regex.Pattern;
 @UtilityClass
 public final class Bootstraps {
 
-    // The REUSEPORT_AVAILABLE socket option is available starting from kernel version 3.9.
-    // This option allows multiple sockets to listen on the same IP address and port without conflict.
+    
+    
     private static final int[] REUSEPORT_VERSION = new int[]{3, 9};
     private static final boolean REUSEPORT_AVAILABLE;
 
@@ -100,13 +100,13 @@ public final class Bootstraps {
                     if (channel.config().setOption(UnixChannelOption.SO_REUSEPORT, true)) {
                         bootstrap.option(UnixChannelOption.SO_REUSEPORT, true);
                     } else {
-                        // If this occurs, we guessed wrong and reuseport is not available
+                        
                         GeyserImpl.getInstance().getLogger().debug("so_reuseport is not available despite version being " + Native.KERNEL_VERSION);
                         success = false;
                     }
                 }
             } finally {
-                // Now yeet that channel
+                
                 channel.close().awaitUninterruptibly(3, TimeUnit.SECONDS);
             }
         } catch (Throwable e) {
@@ -117,7 +117,7 @@ public final class Bootstraps {
     }
 
     private static int[] fromString(String input) {
-        // Match only beginning of string for at least two digits separated by dot
+        
         Pattern pattern = Pattern.compile("^(\\d+)\\.(\\d+)");
         Matcher matcher = pattern.matcher(input);
 

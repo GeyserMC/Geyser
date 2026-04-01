@@ -22,18 +22,16 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.block.custom
 
-package org.geysermc.geyser.api.block.custom;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
+import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents
 
 /**
- * This class is used to store a custom block permutations, which contain custom 
+ * This class is used to store a custom block permutations, which contain custom
  * block components mapped to a Molang query that should return true or false
  * 
  * @param components The components of the block
  * @param condition The Molang query that should return true or false
  */
-public record CustomBlockPermutation(@NonNull CustomBlockComponents components, @NonNull String condition) {
-}
+@kotlin.jvm.JvmRecord
+data class CustomBlockPermutation(@kotlin.jvm.JvmField val components: CustomBlockComponents, @kotlin.jvm.JvmField val condition: String)

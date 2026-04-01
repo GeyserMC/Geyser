@@ -48,9 +48,7 @@ import java.net.SocketAddress;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Manages a Minecraft Java session over our LocalChannel implementations.
- */
+
 public final class LocalSession extends ClientNetworkSession {
     private static EventLoopGroup DEFAULT_EVENT_LOOP_GROUP;
     private static PreferredDirectByteBufAllocator PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR = null;
@@ -104,9 +102,7 @@ public final class LocalSession extends ClientNetworkSession {
         };
     }
 
-    /**
-     * Should only be called when direct ByteBufs should be preferred. At this moment, this should only be called on BungeeCord.
-     */
+    
     public static void createDirectByteBufAllocator() {
         if (PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR == null) {
             PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR = new PreferredDirectByteBufAllocator();

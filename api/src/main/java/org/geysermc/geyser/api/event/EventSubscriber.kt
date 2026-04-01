@@ -22,18 +22,16 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.event
 
-package org.geysermc.geyser.api.event;
-
-import org.geysermc.event.Event;
-import org.geysermc.event.subscribe.OwnedSubscriber;
+import org.geysermc.event.Event
+import org.geysermc.event.subscribe.OwnedSubscriber
 
 /**
- * Represents a subscribed listener to a {@link Event}. Wraps around
+ * Represents a subscribed listener to a [Event]. Wraps around
  * the event and is capable of unsubscribing from the event or give
  * information about it.
- *
+ * 
  * @param <T> the class of the event
- */
-public interface EventSubscriber<R extends EventRegistrar, T extends Event> extends OwnedSubscriber<R, T> {
-}
+</T> */
+interface EventSubscriber<R : EventRegistrar?, T : Event?> : OwnedSubscriber<R?, T?>

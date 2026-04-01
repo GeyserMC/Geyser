@@ -48,7 +48,7 @@ public class EnderDragonPartEntity extends Entity {
     @Override
     public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         setPosition(position);
-        // Setters are intentional so it can be overridden in places like AbstractArrowEntity
+        
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);

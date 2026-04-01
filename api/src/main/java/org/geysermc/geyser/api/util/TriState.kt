@@ -22,17 +22,13 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.util;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+package org.geysermc.geyser.api.util
 
 /**
  * This is a way to represent a boolean, but with a non set value added.
- * This class was inspired by adventure's <a href="https://github.com/KyoriPowered/adventure/blob/main/4/api/src/main/java/net/kyori/adventure/util/TriState.java">TriState</a>
+ * This class was inspired by adventure's [TriState](https://github.com/KyoriPowered/adventure/blob/main/4/api/src/main/java/net/kyori/adventure/util/TriState.java)
  */
-public enum TriState {
+enum class TriState {
     /**
      * Describes a value that is not set, null, or not present.
      */
@@ -50,34 +46,36 @@ public enum TriState {
 
     /**
      * Converts the TriState to a boolean.
-     *
+     * 
      * @return the boolean value of the TriState
      */
-    public @Nullable Boolean toBoolean() {
-        return switch (this) {
-            case TRUE -> true;
-            case FALSE -> false;
-            default -> null;
-        };
+    fun toBoolean(): Boolean? {
+        return when (this) {
+            TriState.TRUE -> true
+            TriState.FALSE -> false
+            else -> null
+        }
     }
 
-    /**
-     * Creates a TriState from a boolean.
-     *
-     * @param value the Boolean value
-     * @return the created TriState
-     */
-    public static @NonNull TriState fromBoolean(@Nullable Boolean value) {
-        return value == null ? NOT_SET : fromBoolean(value.booleanValue());
-    }
+    companion object {
+        /**
+         * Creates a TriState from a boolean.
+         * 
+         * @param value the Boolean value
+         * @return the created TriState
+         */
+        fun fromBoolean(value: Boolean?): TriState {
+            return if (value == null) TriState.NOT_SET else TriState.Companion.fromBoolean(value)
+        }
 
-    /**
-     * Creates a TriState from a primitive boolean.
-     *
-     * @param value the boolean value
-     * @return the created TriState
-     */
-    public @NonNull static TriState fromBoolean(boolean value) {
-        return value ? TRUE : FALSE;
+        /**
+         * Creates a TriState from a primitive boolean.
+         * 
+         * @param value the boolean value
+         * @return the created TriState
+         */
+        fun fromBoolean(value: Boolean): TriState {
+            return if (value) TriState.TRUE else TriState.FALSE
+        }
     }
 }

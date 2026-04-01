@@ -187,17 +187,17 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
             if (box == null) {
                 return;
             }
-            if (box.sizeX() < 0 || box.sizeY() < 0 || box.sizeZ() < 0) {
+            if (box.sizeX < 0 || box.sizeY < 0 || box.sizeZ < 0) {
                 throw new IllegalArgumentException("Box size must be non-negative.");
             }
-            float minX = box.originX() + 8;
-            float minY = box.originY();
-            float minZ = box.originZ() + 8;
-            float maxX = minX + box.sizeX();
-            float maxY = minY + box.sizeY();
-            float maxZ = minZ + box.sizeZ();
+            float minX = box.originX + 8;
+            float minY = box.originY;
+            float minZ = box.originZ + 8;
+            float maxX = minX + box.sizeX;
+            float maxY = minY + box.sizeY;
+            float maxZ = minZ + box.sizeZ;
             if (collision) {
-                // Since 1.21.130, max y of collisions is 24
+                
                 if (minX < 0 || minY < 0 || minZ < 0 || maxX > 16 || maxY > 24 || maxZ > 16) {
                     throw new IllegalArgumentException("Collision box bounds must be within (0, 0, 0) and (16, 24, 16). Received: (" + minX + ", " + minY + ", " + minZ + ") to (" + maxX + ", " + maxY + ", " + maxZ + ")");
                 }
@@ -338,7 +338,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
 
         @Override
         public Builder transformation(TransformationComponent transformation) {
-            if (transformation.rx() % 90 != 0 || transformation.ry() % 90 != 0 || transformation.rz() % 90 != 0) {
+            if (transformation.rx % 90 != 0 || transformation.ry % 90 != 0 || transformation.rz % 90 != 0) {
                 throw new IllegalArgumentException("Rotation of transformation must be a multiple of 90 degrees.");
             }
             this.transformation = transformation;

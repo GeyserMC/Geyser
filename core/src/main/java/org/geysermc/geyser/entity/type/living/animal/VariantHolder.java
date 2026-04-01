@@ -34,48 +34,27 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEnt
 
 import java.util.Locale;
 
-/**
- * Interface to help set up data-driven entity variants for mobs.
- *
- * <p>Data-driven variants are sent as an int ID of their variant registry by Java, but can be a metadata ID or entity property on bedrock.
- * This interface helps translate data-driven variants to built-in bedrock ones.</p>
- *
- * <p>Implementations usually have to implement {@link VariantHolder#variantRegistry()} and {@link VariantHolder#setBedrockVariant(BuiltIn)}, and should also
- * have an enum with built-in variants on bedrock (implementing {@link BuiltIn}).</p>
- *
- * @param <BedrockVariant> the enum of Bedrock variants.
- */
+
 public interface VariantHolder<BedrockVariant extends VariantHolder.BuiltIn> {
 
     default void setVariant(IntEntityMetadata variant) {
         setVariantFromJavaId(variant.getPrimitiveValue());
     }
 
-    /**
-     * Sets the variant of the entity.
-     */
+    
     default void setVariantFromJavaId(int variant) {
         setBedrockVariant(variantRegistry().value(getSession(), variant));
     }
 
     GeyserSession getSession();
 
-    /**
-     * The registry in {@link org.geysermc.geyser.session.cache.registry.JavaRegistries} for this mob's variants. The registry can utilise the {@link VariantHolder#reader(Class, Enum)} method
-     * to create a reader to be used in {@link org.geysermc.geyser.session.cache.RegistryCache}.
-     */
+    
     JavaRegistryKey<? extends BedrockVariant> variantRegistry();
 
-    /**
-     * Should set the variant for bedrock.
-     */
+    
     void setBedrockVariant(BedrockVariant bedrockVariant);
 
-    /**
-     * Creates a registry reader for this mob's variants.
-     *
-     * <p>This reader simply matches the identifiers of registry entries with built-in variants. If no built-in variant matches, the fallback/default is returned.</p>
-     */
+    
     static <BuiltInVariant extends Enum<? extends BuiltIn>> RegistryCache.RegistryReader<BuiltInVariant> reader(Class<BuiltInVariant> clazz, BuiltInVariant fallback) {
         BuiltInVariant[] variants = clazz.getEnumConstants();
         if (variants == null) {
@@ -91,11 +70,7 @@ public interface VariantHolder<BedrockVariant extends VariantHolder.BuiltIn> {
         };
     }
 
-    /**
-     * Should be implemented on an enum within the entity class. The enum lists vanilla variants that can appear on bedrock.
-     *
-     * <p>The enum constants should be named the same as their Java identifiers.</p>
-     */
+    
     interface BuiltIn {
 
         String name();

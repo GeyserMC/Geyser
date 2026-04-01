@@ -54,7 +54,7 @@ public class GoatEntity extends AnimalEntity {
     }
 
     public void setScreamer(BooleanEntityMetadata entityMetadata) {
-        // Metadata not used in Bedrock Edition
+        
         isScreamer = entityMetadata.getPrimitiveValue();
     }
 
@@ -68,7 +68,7 @@ public class GoatEntity extends AnimalEntity {
         }
     }
 
-    // TODO testMobInteraction?
+    
 
     @NonNull
     @Override

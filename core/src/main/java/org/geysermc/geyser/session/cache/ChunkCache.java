@@ -46,7 +46,7 @@ public class ChunkCache {
     private int heightY;
 
     public ChunkCache(GeyserSession session) {
-        this.cache = !session.getGeyser().getWorldManager().hasOwnChunkCache(); // To prevent Spigot from initializing
+        this.cache = !session.getGeyser().getWorldManager().hasOwnChunkCache(); 
         chunks = cache ? new Long2ObjectOpenHashMap<>() : null;
     }
 
@@ -60,9 +60,7 @@ public class ChunkCache {
         this.chunks.put(chunkPosition, geyserChunk);
     }
 
-    /**
-     * Doesn't check for cache enabled, so don't use this without checking that first!
-     */
+    
     private GeyserChunk getChunk(int chunkX, int chunkZ) {
         long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         return chunks.getOrDefault(chunkPosition, null);
@@ -79,7 +77,7 @@ public class ChunkCache {
         }
 
         if (y < minY || ((y - minY) >> 4) > chunk.sections().length - 1) {
-            // Y likely goes above or below the height limit of this world
+            
             return;
         }
 
@@ -89,11 +87,11 @@ public class ChunkCache {
             if (palette == null) {
                 previouslyEmpty = true;
                 if (block != Block.JAVA_AIR_ID) {
-                    // A previously empty chunk, which is no longer empty as a block has been added to it
+                    
                     palette = DataPalette.createForBlockState(Block.JAVA_AIR_ID, BlockRegistries.BLOCK_STATES.get().size());
                     chunk.sections()[(y - minY) >> 4] = palette;
                 } else {
-                    // Nothing to update
+                    
                     return;
                 }
             }
@@ -116,7 +114,7 @@ public class ChunkCache {
         }
 
         if (y < minY || ((y - minY) >> 4) > column.sections().length - 1) {
-            // Y likely goes above or below the height limit of this world
+            
             return Block.JAVA_AIR_ID;
         }
 
@@ -137,11 +135,7 @@ public class ChunkCache {
         chunks.remove(chunkPosition);
     }
 
-    /**
-     * Manually clears all entries in the chunk cache.
-     * The server is responsible for clearing chunk entries if out of render distance (for example) or switching dimensions,
-     * but it is the client that must clear sections in the event of proxy switches.
-     */
+    
     public void clear() {
         if (!cache) {
             return;

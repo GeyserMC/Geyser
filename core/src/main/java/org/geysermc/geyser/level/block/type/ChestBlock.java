@@ -45,7 +45,7 @@ public class ChestBlock extends Block {
 
         if (state.getValue(Properties.CHEST_TYPE) != ChestType.SINGLE) {
             NbtMapBuilder tagBuilder = BlockEntityTranslator.getConstantBedrockTag(BlockEntityType.CHEST, position.getX(), position.getY(), position.getZ());
-            BlockEntityUtils.getBlockEntityTranslator(BlockEntityType.CHEST).translateTag(session, tagBuilder, null, state); //TODO
+            BlockEntityUtils.getBlockEntityTranslator(BlockEntityType.CHEST).translateTag(session, tagBuilder, null, state); 
             BlockEntityUtils.updateBlockEntity(session, tagBuilder.build(), position);
         }
     }

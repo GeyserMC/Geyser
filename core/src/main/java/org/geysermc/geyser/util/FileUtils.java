@@ -53,19 +53,11 @@ public final class FileUtils {
     }
 
     public static <T> T loadJson(InputStream src, Class<T> valueType) {
-        // Read specifically with UTF-8 to allow any non-UTF-encoded JSON to read
+        
         return GeyserImpl.GSON.fromJson(new InputStreamReader(src, StandardCharsets.UTF_8), valueType);
     }
 
-    /**
-     * Open the specified file or copy if from resources
-     *
-     * @param file File to open
-     * @param name Name of the resource get if needed
-     * @param format Formatting callback
-     * @return File handle of the specified file
-     * @throws IOException if the file failed to copy from resource
-     */
+    
     public static File fileOrCopiedFromResource(File file, String name, Function<String, String> format, GeyserBootstrap bootstrap) throws IOException {
         if (!file.exists()) {
             //noinspection ResultOfMethodCallIgnored
@@ -89,25 +81,12 @@ public final class FileUtils {
         return file;
     }
 
-    /**
-     * Open the specified file or copy if from resources
-     *
-     * @param file File to open
-     * @param name Name of the resource get if needed
-     * @return File handle of the specified file
-     * @throws IOException if the file failed to copy from resource
-     */
+    
     public static File fileOrCopiedFromResource(File file, String name, GeyserBootstrap bootstrap) throws IOException {
         return fileOrCopiedFromResource(file, name, Function.identity(), bootstrap);
     }
 
-    /**
-     * Writes the given data to the specified file on disk
-     *
-     * @param file File to write to
-     * @param data Data to write to the file
-     * @throws IOException if the file failed to write
-     */
+    
     public static void writeFile(File file, char[] data) throws IOException {
         if (!file.exists()) {
             file.createNewFile();
@@ -122,23 +101,12 @@ public final class FileUtils {
         }
     }
 
-    /**
-     * Writes the given data to the specified file on disk
-     *
-     * @param name File path to write to
-     * @param data Data to write to the file
-     * @throws IOException if the file failed to write
-     */
+    
     public static void writeFile(String name, char[] data) throws IOException {
         writeFile(new File(name), data);
     }
 
-    /**
-     * Calculate the SHA256 hash of a file
-     *
-     * @param path Path to calculate the hash for
-     * @return A byte[] representation of the hash
-     */
+    
     public static byte[] calculateSHA256(Path path) {
         byte[] sha256;
 
@@ -151,12 +119,7 @@ public final class FileUtils {
         return sha256;
     }
 
-    /**
-     * Calculate the SHA1 hash of a file
-     *
-     * @param path Path to calculate the hash for
-     * @return A byte[] representation of the hash
-     */
+    
     public static byte[] calculateSHA1(Path path) {
         byte[] sha1;
 
@@ -169,10 +132,7 @@ public final class FileUtils {
         return sha1;
     }
 
-    /**
-     * @param resource the internal resource to read off from
-     * @return the byte array of an InputStream
-     */
+    
     public static byte[] readAllBytes(String resource) {
         try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(resource)) {
             return stream.readAllBytes();
@@ -181,21 +141,12 @@ public final class FileUtils {
         }
     }
 
-    /**
-     * @param resource the internal resource to read off from
-     * 
-     * @return the contents decoded as a UTF-8 String
-     */
+    
     public static String readToString(String resource) {
         return new String(readAllBytes(resource), StandardCharsets.UTF_8);
     }
 
-    /**
-     * Read the lines of a file and return it as a stream
-     *
-     * @param path File path to read
-     * @return The lines as a stream
-     */
+    
     public static Stream<String> readAllLines(Path path) {
         try {
             return new BufferedReader(new InputStreamReader(Files.newInputStream(path))).lines();

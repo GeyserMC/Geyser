@@ -49,65 +49,27 @@ public class VersionedDeferredRegistry<V> extends AbstractMappedDeferredRegistry
         super(input, registryInitializer, deferredLoader);
     }
 
-    /**
-     * Gets the closest value for the specified version. Only
-     * returns versions higher up than the specified if one
-     * does not exist for the given one. Useful in the event
-     * that you want to get a resource which is guaranteed for
-     * older versions, but not on newer ones.
-     *
-     * @param version the version
-     * @return the closest value for the specified version
-     * @throws IllegalArgumentException if no values exist at or above the given version
-     */
+    
     @NonNull
     public V forVersion(int version) {
         return backingRegistry().forVersion(version);
     }
-    /**
-     * Creates a new deferred registry.
-     *
-     * @param registryLoader the registry loader
-     * @param deferredLoader the deferred loader
-     * @param <I> the input type
-     * @return the new deferred registry
-     */
+    
     public static <I, V> VersionedDeferredRegistry<V> create(Function<RegistryLoader<I, Int2ObjectMap<V>>, VersionedRegistry<V>> registryLoader, RegistryLoader<I, Int2ObjectMap<V>> deferredLoader) {
         return new VersionedDeferredRegistry<>(registryLoader, deferredLoader);
     }
 
-    /**
-     * Creates a new deferred registry.
-     *
-     * @param registryLoader the registry loader
-     * @param deferredLoader the deferred loader
-     * @param <I> the input type
-     * @return the new deferred registry
-     */
+    
     public static <I, V> VersionedDeferredRegistry<V> create(Function<RegistryLoader<I, Int2ObjectMap<V>>, VersionedRegistry<V>> registryLoader, Supplier<RegistryLoader<I, Int2ObjectMap<V>>> deferredLoader) {
         return new VersionedDeferredRegistry<>(registryLoader, deferredLoader);
     }
 
-    /**
-     * Creates a new deferred registry.
-     *
-     * @param registryInitializer the registry initializer
-     * @param deferredLoader the deferred loader
-     * @param <I> the input type
-     * @return the new deferred registry
-     */
+    
     public static <I, V> VersionedDeferredRegistry<V> create(I input, RegistryInitializer<Int2ObjectMap<V>, VersionedRegistry<V>> registryInitializer, RegistryLoader<I, Int2ObjectMap<V>> deferredLoader) {
         return new VersionedDeferredRegistry<>(input, registryInitializer, deferredLoader);
     }
 
-    /**
-     * Creates a new deferred registry.
-     *
-     * @param registryInitializer the registry initializer
-     * @param deferredLoader the deferred loader
-     * @param <I> the input type
-     * @return the new deferred registry
-     */
+    
     public static <I, V> VersionedDeferredRegistry<V> create(I input, RegistryInitializer<Int2ObjectMap<V>, VersionedRegistry<V>> registryInitializer, Supplier<RegistryLoader<I, Int2ObjectMap<V>>> deferredLoader) {
         return new VersionedDeferredRegistry<>(input, registryInitializer, deferredLoader);
     }

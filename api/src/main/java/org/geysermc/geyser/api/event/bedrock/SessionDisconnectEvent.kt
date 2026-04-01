@@ -22,40 +22,32 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.event.bedrock
 
-package org.geysermc.geyser.api.event.bedrock;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
+import org.geysermc.geyser.api.connection.GeyserConnection
+import org.geysermc.geyser.api.event.connection.ConnectionEvent
 
 /**
  * Called when a Geyser session disconnects.
  */
-public class SessionDisconnectEvent extends ConnectionEvent {
-    private String disconnectReason;
-
-    public SessionDisconnectEvent(@NonNull GeyserConnection connection, @NonNull String reason) {
-        super(connection);
-        this.disconnectReason = reason;
-    }
-
+open class SessionDisconnectEvent(connection: GeyserConnection, private var disconnectReason: String) :
+    ConnectionEvent(connection) {
     /**
      * Gets the disconnect reason.
-     *
+     * 
      * @return the reason for the disconnect
      */
-    public @NonNull String disconnectReason() {
-        return disconnectReason;
+    fun disconnectReason(): String {
+        return disconnectReason
     }
 
     /**
      * Sets the disconnect message shown to the Bedrock client.
-     *
+     * 
      * @param disconnectReason the reason for the disconnect
      */
-    public void disconnectReason(@NonNull String disconnectReason) {
-        this.disconnectReason = disconnectReason;
+    fun disconnectReason(disconnectReason: String) {
+        this.disconnectReason = disconnectReason
     }
 }
 

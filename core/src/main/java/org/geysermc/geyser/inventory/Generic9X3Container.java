@@ -32,10 +32,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
-/**
- * A "hack" to be able to use existing barrels.
- * The only difference to chests appears to be the different ContainerSlotType - this accounts for it.
- */
+
 @Getter @Setter
 public class Generic9X3Container extends Container {
 

@@ -237,7 +237,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<FishingHookEntity> FISHING_BOBBER;
     public static final EntityDefinition<FoxEntity> FOX;
     public static final EntityDefinition<FrogEntity> FROG;
-    public static final EntityDefinition<FurnaceMinecartEntity> FURNACE_MINECART; // Not present on Bedrock
+    public static final EntityDefinition<FurnaceMinecartEntity> FURNACE_MINECART; 
     public static final EntityDefinition<GhastEntity> GHAST;
     public static final EntityDefinition<GiantEntity> GIANT;
     public static final EntityDefinition<ItemFrameEntity> GLOW_ITEM_FRAME;
@@ -249,7 +249,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<MinecartEntity> HOPPER_MINECART;
     public static final EntityDefinition<HorseEntity> HORSE;
     public static final EntityDefinition<ZombieEntity> HUSK;
-    public static final EntityDefinition<SpellcasterIllagerEntity> ILLUSIONER; // Not present on Bedrock
+    public static final EntityDefinition<SpellcasterIllagerEntity> ILLUSIONER; 
     public static final EntityDefinition<InteractionEntity> INTERACTION;
     public static final EntityDefinition<IronGolemEntity> IRON_GOLEM;
     public static final EntityDefinition<ItemEntity> ITEM;
@@ -301,7 +301,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<FireballEntity> SMALL_FIREBALL;
     public static final EntityDefinition<ThrowableItemEntity> SNOWBALL;
     public static final EntityDefinition<SnowGolemEntity> SNOW_GOLEM;
-    public static final EntityDefinition<SpawnerMinecartEntity> SPAWNER_MINECART; // Not present on Bedrock
+    public static final EntityDefinition<SpawnerMinecartEntity> SPAWNER_MINECART; 
     public static final EntityDefinition<AbstractArrowEntity> SPECTRAL_ARROW;
     public static final EntityDefinition<SpiderEntity> SPIDER;
     public static final EntityDefinition<BoatEntity> SPRUCE_BOAT;
@@ -335,19 +335,15 @@ public final class EntityDefinitions {
     public static final EntityDefinition<ZombieVillagerEntity> ZOMBIE_VILLAGER;
     public static final EntityDefinition<ZombifiedPiglinEntity> ZOMBIFIED_PIGLIN;
 
-    /**
-     * Is not sent over the network
-     */
+    
     public static final EntityDefinition<EnderDragonPartEntity> ENDER_DRAGON_PART;
-    /**
-     * Special Bedrock type
-     */
+    
     public static final EntityDefinition<WitherSkullEntity> WITHER_SKULL_DANGEROUS;
 
     static {
         EntityDefinition<Entity> entityBase = EntityDefinition.builder(Entity::new)
                 .addTranslator(MetadataTypes.BYTE, Entity::setFlags)
-                .addTranslator(MetadataTypes.INT, Entity::setAir) // Air/bubbles
+                .addTranslator(MetadataTypes.INT, Entity::setAir) 
                 .addTranslator(MetadataTypes.OPTIONAL_COMPONENT, Entity::setCustomName)
                 .addTranslator(MetadataTypes.BOOLEAN, Entity::setCustomNameVisible)
                 .addTranslator(MetadataTypes.BOOLEAN, Entity::setSilent)
@@ -356,13 +352,13 @@ public final class EntityDefinitions {
                 .addTranslator(MetadataTypes.INT, Entity::setFreezing)
                 .build();
 
-        // Extends entity
+        
         {
             AREA_EFFECT_CLOUD = EntityDefinition.inherited(AreaEffectCloudEntity::new, entityBase)
                     .type(EntityType.AREA_EFFECT_CLOUD)
                     .height(0.5f).width(1.0f)
                     .addTranslator(MetadataTypes.FLOAT, AreaEffectCloudEntity::setRadius)
-                    .addTranslator(null) // Waiting
+                    .addTranslator(null) 
                     .addTranslator(MetadataTypes.PARTICLE, AreaEffectCloudEntity::setParticle)
                     .build();
             DRAGON_FIREBALL = EntityDefinition.inherited(FireballEntity::new, entityBase)
@@ -375,11 +371,11 @@ public final class EntityDefinitions {
                     .identifier("minecraft:ender_crystal")
                     .addTranslator(MetadataTypes.OPTIONAL_BLOCK_POS, EnderCrystalEntity::setBlockTarget)
                     .addTranslator(MetadataTypes.BOOLEAN,
-                            (enderCrystalEntity, entityMetadata) -> enderCrystalEntity.setFlag(EntityFlag.SHOW_BOTTOM, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue())) // There is a base located on the ender crystal
+                            (enderCrystalEntity, entityMetadata) -> enderCrystalEntity.setFlag(EntityFlag.SHOW_BOTTOM, ((BooleanEntityMetadata) entityMetadata).getPrimitiveValue())) 
                     .build();
             EXPERIENCE_ORB = EntityDefinition.inherited(ExpOrbEntity::new, entityBase)
                     .type(EntityType.EXPERIENCE_ORB)
-                    .addTranslator(null) // int determining xb orb texture
+                    .addTranslator(null) 
                     .identifier("minecraft:xp_orb")
                     .build();
             EVOKER_FANGS = EntityDefinition.inherited(EvokerFangsEntity::new, entityBase)
@@ -391,12 +387,12 @@ public final class EntityDefinitions {
                     .type(EntityType.EYE_OF_ENDER)
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:eye_of_ender_signal")
-                    .addTranslator(null)  // Item
+                    .addTranslator(null)  
                     .build();
             FALLING_BLOCK = EntityDefinition.<FallingBlockEntity>inherited(null, entityBase)
                     .type(EntityType.FALLING_BLOCK)
                     .heightAndWidth(0.98f)
-                    .addTranslator(null) // "start block position"
+                    .addTranslator(null) 
                     .build();
             FIREWORK_ROCKET = EntityDefinition.inherited(FireworkEntity::new, entityBase)
                     .type(EntityType.FIREWORK_ROCKET)
@@ -404,13 +400,13 @@ public final class EntityDefinitions {
                     .identifier("minecraft:fireworks_rocket")
                     .addTranslator(MetadataTypes.ITEM_STACK, FireworkEntity::setFireworkItem)
                     .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, FireworkEntity::setPlayerGliding)
-                    .addTranslator(null) // Shot at angle
+                    .addTranslator(null) 
                     .build();
             FISHING_BOBBER = EntityDefinition.<FishingHookEntity>inherited(null, entityBase)
                     .type(EntityType.FISHING_BOBBER)
                     .identifier("minecraft:fishing_hook")
                     .addTranslator(MetadataTypes.INT, FishingHookEntity::setHookedEntity)
-                    .addTranslator(null) // Biting TODO check
+                    .addTranslator(null) 
                     .build();
             ITEM = EntityDefinition.inherited(ItemEntity::new, entityBase)
                     .type(EntityType.ITEM)
@@ -441,28 +437,28 @@ public final class EntityDefinitions {
                     .build();
 
             EntityDefinition<DisplayBaseEntity> displayBase = EntityDefinition.inherited(DisplayBaseEntity::new, entityBase)
-                    .addTranslator(null) // Interpolation delay
-                    .addTranslator(null) // Transformation interpolation duration
-                    .addTranslator(null) // Position/Rotation interpolation duration
-                    .addTranslator(MetadataTypes.VECTOR3, DisplayBaseEntity::setTranslation) // Translation
-                    .addTranslator(null) // Scale
-                    .addTranslator(null) // Left rotation
-                    .addTranslator(null) // Right rotation
-                    .addTranslator(null) // Billboard render constraints
-                    .addTranslator(null) // Brightness override
-                    .addTranslator(null) // View range
-                    .addTranslator(null) // Shadow radius
-                    .addTranslator(null) // Shadow strength
-                    .addTranslator(null) // Width
-                    .addTranslator(null) // Height
-                    .addTranslator(null) // Glow color override
+                    .addTranslator(null) 
+                    .addTranslator(null) 
+                    .addTranslator(null) 
+                    .addTranslator(MetadataTypes.VECTOR3, DisplayBaseEntity::setTranslation) 
+                    .addTranslator(null) 
+                    .addTranslator(null) 
+                    .addTranslator(null) 
+                    .addTranslator(null) 
+                    .addTranslator(null) 
+                    .addTranslator(null) 
+                    .addTranslator(null) 
+                    .addTranslator(null) 
+                    .addTranslator(null) 
+                    .addTranslator(null) 
+                    .addTranslator(null) 
                     .build();
             TEXT_DISPLAY = EntityDefinition.inherited(TextDisplayEntity::new, displayBase)
                     .type(EntityType.TEXT_DISPLAY)
                     .identifier("minecraft:armor_stand")
                     .addTranslator(MetadataTypes.COMPONENT, TextDisplayEntity::setText)
-                    .addTranslator(null) // Line width
-                    .addTranslator(null) // Background color
+                    .addTranslator(null) 
+                    .addTranslator(null) 
                     .addTranslator(null) // Text opacity
                     .addTranslator(null) // Bit mask
                     .build();
@@ -547,7 +543,7 @@ public final class EntityDefinitions {
                     .heightAndWidth(0.25f)
                     .identifier("minecraft:arrow")
                     .build();
-            TRIDENT = EntityDefinition.inherited(TridentEntity::new, abstractArrowBase) // TODO remove class
+            TRIDENT = EntityDefinition.inherited(TridentEntity::new, abstractArrowBase) 
                     .type(EntityType.TRIDENT)
                     .identifier("minecraft:thrown_trident")
                     .addTranslator(null) // Loyalty
@@ -875,7 +871,7 @@ public final class EntityDefinitions {
                     .addTranslator(MetadataTypes.BOOLEAN, ZombieVillagerEntity::setTransforming)
                     .addTranslator(MetadataTypes.VILLAGER_DATA, ZombieVillagerEntity::setZombieVillagerData)
                     .build();
-            ZOMBIFIED_PIGLIN = EntityDefinition.inherited(ZombifiedPiglinEntity::new, ZOMBIE) //TODO test how zombie entity metadata is handled?
+            ZOMBIFIED_PIGLIN = EntityDefinition.inherited(ZombifiedPiglinEntity::new, ZOMBIE) 
                     .type(EntityType.ZOMBIFIED_PIGLIN)
                     .height(1.95f).width(0.6f)
                     .identifier("minecraft:zombie_pigman")
@@ -892,7 +888,7 @@ public final class EntityDefinitions {
             GUARDIAN = EntityDefinition.inherited(GuardianEntity::new, mobEntityBase)
                     .type(EntityType.GUARDIAN)
                     .heightAndWidth(0.85f)
-                    .addTranslator(null) // Moving //TODO
+                    .addTranslator(null) // Moving 
                     .addTranslator(MetadataTypes.INT, GuardianEntity::setGuardianTarget)
                     .build();
             ELDER_GUARDIAN = EntityDefinition.inherited(ElderGuardianEntity::new, GUARDIAN)
@@ -953,7 +949,7 @@ public final class EntityDefinitions {
                     .build();
 
             EntityDefinition<RaidParticipantEntity> raidParticipantEntityBase = EntityDefinition.inherited(RaidParticipantEntity::new, mobEntityBase)
-                    .addTranslator(null) // Celebrating //TODO
+                    .addTranslator(null) // Celebrating 
                     .build();
             EntityDefinition<SpellcasterIllagerEntity> spellcasterEntityBase = EntityDefinition.inherited(SpellcasterIllagerEntity::new, raidParticipantEntityBase)
                     .addTranslator(MetadataTypes.BYTE, SpellcasterIllagerEntity::setSpellType)
@@ -1144,7 +1140,7 @@ public final class EntityDefinitions {
             DOLPHIN = EntityDefinition.inherited(DolphinEntity::new, ageableEntityBase)
                 .type(EntityType.DOLPHIN)
                 .height(0.6f).width(0.9f)
-                //TODO check
+                
                 .addTranslator(null) // treasure position
                 .addTranslator(null) // "got fish"
                 .addTranslator(null) // "moistness level"
@@ -1239,7 +1235,7 @@ public final class EntityDefinitions {
                 .height(0.35f).width(0.3f)
                 .addTranslator(MetadataTypes.CAT_VARIANT, CatEntity::setVariant)
                 .addTranslator(MetadataTypes.BOOLEAN, CatEntity::setResting)
-                .addTranslator(null) // "resting state one" //TODO
+                .addTranslator(null) // "resting state one" 
                 .addTranslator(MetadataTypes.INT, CatEntity::setCollarColor)
                 .build();
         PARROT = EntityDefinition.inherited(ParrotEntity::new, tameableEntityBase)

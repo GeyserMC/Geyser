@@ -49,10 +49,10 @@ public final class SidebarDisplaySlot extends DisplaySlot {
             .thenComparing(ScoreReference::name, String.CASE_INSENSITIVE_ORDER);
 
     private List<SidebarDisplayScore> displayScores = new ArrayList<>(SCORE_DISPLAY_LIMIT);
-    /// A copy of displayScores which can be modified by the render0 method for its calculation of the scores to
-    /// display. This was done to not add locks to displayScores, as that list can be used by multiple threads because
-    /// of the setTeamFor method. Additionally, there is a brief period in render0 where scores are not present in the
-    /// list which could lead to bugs that are hard to reproduce.
+    /
+    /
+    /
+    /
     private final List<SidebarDisplayScore> displayScoresCopy = new ArrayList<>(SCORE_DISPLAY_LIMIT);
 
     public SidebarDisplaySlot(GeyserSession session, Objective objective, ScoreboardPosition position) {
@@ -61,15 +61,15 @@ public final class SidebarDisplaySlot extends DisplaySlot {
 
     @Override
     protected void render0(List<ScoreInfo> addScores, List<ScoreInfo> removeScores) {
-        // While one could argue that we may not have to do this fancy Java filter when there are fewer scores than the
-        // line limit, it is also responsible for making sure that the scores are in the correct order.
+        
+        
         var newDisplayScores =
             objective.getScores().values().stream()
                 .filter(score -> !score.hidden())
                 .sorted(SCORE_DISPLAY_ORDER)
                 .limit(SCORE_DISPLAY_LIMIT)
                 .map(reference -> {
-                    // pretty much an ArrayList#remove
+                    
                     var iterator = displayScoresCopy.iterator();
                     while (iterator.hasNext()) {
                         var score = iterator.next();
@@ -79,21 +79,21 @@ public final class SidebarDisplaySlot extends DisplaySlot {
                         }
                     }
 
-                    // new score, so it should be added
+                    
                     return new SidebarDisplayScore(this, objective.getScoreboard().nextId(), reference);
                 }).collect(Collectors.toList());
 
-        // Make sure that we set the displayScores as early as possible, because setTeamFor relies on these potential
-        // changes. And even if no scores were added or removed, the order could've changed.
+        
+        
         displayScores = newDisplayScores;
 
-        // In newDisplayScores we removed the items that were already present from displayScoresCopy,
-        // meaning that the items that remain are items that are no longer displayed.
+        
+        
         for (var score : displayScoresCopy) {
             removeScores.add(score.cachedInfo());
         }
 
-        // The newDisplayScores have to be copied over to displayScoresCopy for the next render.
+        
         for (int i = 0; i < newDisplayScores.size(); i++) {
             if (i < displayScoresCopy.size()) {
                 displayScoresCopy.set(i, newDisplayScores.get(i));
@@ -102,7 +102,7 @@ public final class SidebarDisplaySlot extends DisplaySlot {
             }
         }
 
-        // fixes ordering issues with multiple entries with same score
+        
         if (!displayScores.isEmpty()) {
             SidebarDisplayScore lastScore = null;
             int count = 0;
@@ -113,8 +113,8 @@ public final class SidebarDisplaySlot extends DisplaySlot {
                 }
 
                 if (score.score() == lastScore.score()) {
-                    // Bedrock doesn't support some legacy color codes and adds some codes as well.
-                    // Keep this in mind if the line limit is ever increased.
+                    
+                    
                     if (count == 0) {
                         lastScore.order(ChatColor.colorDisplayOrder(count++));
                     }
@@ -142,7 +142,7 @@ public final class SidebarDisplaySlot extends DisplaySlot {
             boolean exists = score.exists();
 
             if (team != null) {
-                // entities are mostly removed from teams without notifying the scores.
+                
                 if (team.shouldRemove() || !team.hasEntity(score.name())) {
                     score.team(null);
                     add = true;
@@ -158,9 +158,9 @@ public final class SidebarDisplaySlot extends DisplaySlot {
                 addScores.add(score.cachedInfo());
             }
 
-            // we need this as long as MCPE-143063 hasn't been fixed.
-            // the checks after 'add' are there to prevent removing scores that
-            // are going to be removed anyway / don't need to be removed
+            
+            
+            
             if (add && exists && !(objectiveUpdate || objectiveAdd) && !score.onlyScoreValueChanged()) {
                 removeScores.add(score.cachedInfo());
             }
@@ -179,7 +179,7 @@ public final class SidebarDisplaySlot extends DisplaySlot {
 
     @Override
     public void addScore(ScoreReference reference) {
-        // we handle them a bit different: we sort the scores, and we add them ourselves
+        
     }
 
     @Override
@@ -193,8 +193,8 @@ public final class SidebarDisplaySlot extends DisplaySlot {
     }
 
     public void setTeamFor(Team team, Set<String> entities) {
-        // we only have to worry about scores that are currently displayed,
-        // because the constructor of the display score fetches the team
+        
+        
         for (var score : displayScores) {
             if (entities.contains(score.name())) {
                 score.team(team);

@@ -86,11 +86,11 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
             correctedMovement, boundingBox, vehicle.isOnGround(), this.stepHeight, true, vehicle.canWalkOnLava()
         );
 
-        // Non-zero values indicate a collision on that axis
+        
         Vector3d moveDiff = motion.toDouble().sub(correctedMovement);
 
         boundingBox.translate(correctedMovement);
-        context.loadSurroundingBlocks(); // Context must be reloaded after vehicle is moved
+        context.loadSurroundingBlocks(); 
 
         boolean verticalCollision = moveDiff.getY() != 0;
         vehicle.setOnGround(verticalCollision && motion.getY() < 0);
@@ -103,7 +103,7 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
                 motion = Vector3f.from(motion.getX(), -motion.getY(), motion.getZ());
                 bounced = true;
 
-                // Slow horizontal movement
+                
                 float absY = Math.abs(motion.getY());
                 if (absY < 0.1f) {
                     float mul = 0.4f + absY * 0.2f;
@@ -115,7 +115,7 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
             }
         }
 
-        // Set motion to 0 if a movement multiplier was used, else set to 0 on each axis with a collision
+        
         if (movementMultiplier != null) {
             motion = Vector3f.ZERO;
         } else {
@@ -126,11 +126,11 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
             );
         }
 
-        // Send the new position to the bedrock client and java server
+        
         moveVehicle(context.centerPos(), lastRotation);
         vehicle.setMotion(motion);
 
-        // This got ran twice in Boat entity for certain reason?
+        
         applyBlockCollisionEffects(context);
         applyBlockCollisionEffects(context);
     }
@@ -258,7 +258,7 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
 
     private float getGroundFriction(final VehicleContext context) {
         BoundingBox boatShape = getBoundingBox().clone();
-        // 0.001 high box extending downwards from the boat
+        
         boatShape.setMiddleY(boatShape.getMin(Axis.Y) - 0.0005);
         boatShape.setSizeY(0.001);
 

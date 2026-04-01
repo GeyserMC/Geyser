@@ -22,13 +22,12 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.bedrock.camera;
+package org.geysermc.geyser.api.bedrock.camera
 
 /**
- * Represents a camera shake instruction. Can be sent in {@link CameraData#shakeCamera(float, float, CameraShake)}
+ * Represents a camera shake instruction. Can be sent in [CameraData.shakeCamera]
  */
-public enum CameraShake {
+enum class CameraShake {
     POSITIONAL,
     ROTATIONAL
 }

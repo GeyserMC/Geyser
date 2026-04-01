@@ -29,9 +29,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.util.MinecraftKey;
 
-/**
- * Lists vanilla item tags.
- */
+
 @SuppressWarnings("unused")
 public final class ItemTag {
     public static final Tag<Item> WOOL = create("wool");

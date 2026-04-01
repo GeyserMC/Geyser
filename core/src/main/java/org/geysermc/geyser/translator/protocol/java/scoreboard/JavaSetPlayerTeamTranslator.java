@@ -93,8 +93,8 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
         }
 
 
-        // ScoreboardUpdater will handle it for us if the packets per second
-        // (for score and team packets) is higher than the first threshold
+        
+        
         if (pps < ScoreboardUpdater.FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
             scoreboard.onUpdate();
         }

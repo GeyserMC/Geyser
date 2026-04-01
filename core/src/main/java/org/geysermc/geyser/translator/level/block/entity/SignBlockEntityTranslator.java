@@ -39,14 +39,9 @@ import java.util.List;
 
 @BlockEntity(type = BlockEntityType.SIGN)
 public class SignBlockEntityTranslator extends BlockEntityTranslator {
-    /**
-     * Maps a color stored in a sign's Color tag to its ARGB value.
-     *
-     * @param javaColor The dye color stored in the sign's Color tag.
-     * @return Java Edition's integer matching the color specified
-     */
+    
     private int getBedrockSignColor(String javaColor) {
-        //TODO create a DyeColor class and combine with FireworkColor???
+        
         int dyeColor = switch (javaColor) {
             case "white" -> 16383998;
             case "orange" -> 16351261;
@@ -63,9 +58,9 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             case "brown" -> 8606770;
             case "green" -> 6192150;
             case "red" -> 11546150;
-            default -> 0; // The proper Java color is 1908001, but this does not render well with glow text.
+            default -> 0; 
         };
-        // Add the transparency of the color, too.
+        
         return dyeColor | (255 << 24);
     }
 
@@ -94,17 +89,17 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             while (it.hasNext()) {
                 String signLine = it.next();
 
-                // Check the character width on the sign to ensure there is no overflow that is usually hidden
-                // to Java Edition clients but will appear to Bedrock clients
+                
+                
                 int signWidth = 0;
                 StringBuilder finalSignLine = new StringBuilder();
-                boolean previousCharacterWasFormatting = false; // Color changes do not count for maximum width
+                boolean previousCharacterWasFormatting = false; 
                 for (char c : signLine.toCharArray()) {
                     if (c == ChatColor.ESCAPE) {
-                        // Don't count this character
+                        
                         previousCharacterWasFormatting = true;
                     } else if (previousCharacterWasFormatting) {
-                        // Don't count this character either
+                        
                         previousCharacterWasFormatting = false;
                     } else {
                         signWidth += SignUtils.getCharacterWidth(c);
@@ -113,7 +108,7 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
                     if (signWidth <= signWidthMax()) {
                         finalSignLine.append(c);
                     } else {
-                        // Adding the character would make Bedrock move to the next line - Java doesn't do that, so we do not want to
+                        
                         break;
                     }
                 }
@@ -125,21 +120,21 @@ public class SignBlockEntityTranslator extends BlockEntityTranslator {
             }
         }
 
-        // Trim extra newlines - this makes editing difficult if preserved because the cursor starts at the bottom,
-        // Which can easily go over the screen
+        
+        
         while (!signText.isEmpty() && signText.charAt(signText.length() - 1) == '\n') {
             signText.deleteCharAt(signText.length() - 1);
         }
 
         builder.putString("Text", signText.toString());
 
-        // Java Edition 1.14 added the ability to change the text color of the whole sign using dye
+        
         String color = javaNbt.getString("color", null);
         if (color != null) {
             builder.putInt("SignTextColor", getBedrockSignColor(color));
         }
 
-        // Glowing text
+        
         boolean isGlowing = javaNbt.getBoolean("has_glowing_text");
         builder.putBoolean("IgnoreLighting", isGlowing);
         return builder.build();

@@ -27,8 +27,6 @@ package org.geysermc.geyser.registry.type;
 
 import org.geysermc.geyser.item.type.Item;
 
-/**
- * The return data of a successful registration of a custom item.
- */
+
 public record NonVanillaItemRegistration(Item javaItem, ItemMapping mapping) {
 }

@@ -22,73 +22,72 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.extension;
+package org.geysermc.geyser.api.extension
 
 /**
  * This is the Geyser extension logger
  */
-public interface ExtensionLogger {
+interface ExtensionLogger {
     /**
      * Get the logger prefix
-     *
+     * 
      * @return the logger prefix
      */
-    String prefix();
+    fun prefix(): String?
 
     /**
      * Logs a severe message to console
-     *
+     * 
      * @param message the message to log
      */
-    void severe(String message);
+    fun severe(message: String?)
 
     /**
      * Logs a severe message and an exception to console
-     *
+     * 
      * @param message the message to log
      * @param error the error to throw
      */
-    void severe(String message, Throwable error);
+    fun severe(message: String?, error: Throwable?)
 
     /**
      * Logs an error message to console
-     *
+     * 
      * @param message the message to log
      */
-    void error(String message);
+    fun error(message: String?)
 
     /**
      * Logs an error message and an exception to console
-     *
+     * 
      * @param message the message to log
      * @param error the error to throw
      */
-    void error(String message, Throwable error);
+    fun error(message: String?, error: Throwable?)
 
     /**
      * Logs a warning message to console
-     *
+     * 
      * @param message the message to log
      */
-    void warning(String message);
+    fun warning(message: String?)
 
     /**
      * Logs an info message to console
-     *
+     * 
      * @param message the message to log
      */
-    void info(String message);
+    fun info(message: String?)
 
     /**
      * Logs a debug message to console
-     *
+     * 
      * @param message the message to log
      */
-    void debug(String message);
+    fun debug(message: String?)
 
     /**
      * If debug is enabled for this logger
      */
-    boolean isDebug();
+    val isDebug: Boolean
 }

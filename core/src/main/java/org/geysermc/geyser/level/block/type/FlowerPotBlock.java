@@ -64,11 +64,11 @@ public class FlowerPotBlock extends Block implements BedrockChunkWantsBlockEntit
     public NbtMap createTag(GeyserSession session, Vector3i position, BlockState blockState) {
         NbtMapBuilder tagBuilder = BlockEntityTranslator.getConstantBedrockTag("FlowerPot", position.getX(), position.getY(), position.getZ())
                 .putByte("isMovable", (byte) 1);
-        // Get the Java name of the plant inside. e.g. minecraft:oak_sapling
+        
         if (this.flower != Blocks.AIR) {
-            // Get the Bedrock CompoundTag of the block.
-            // This is where we need to store the *Java* name because Bedrock has six minecraft:sapling blocks with different block states.
-            // TODO flattening might make this nicer in the future!
+            
+            
+            
             NbtMap plant = session.getBlockMappings().getFlowerPotBlocks().get(this.flower);
             if (plant != null) {
                 tagBuilder.putCompound("PlantBlock", plant.toBuilder().build());

@@ -57,18 +57,12 @@ import java.util.concurrent.TimeUnit;
 @Getter @Setter
 public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
 
-    /**
-     * Saves the parrot currently on the player's left shoulder; otherwise null
-     */
+    
     private @Nullable ParrotEntity leftParrot;
-    /**
-     * Saves the parrot currently on the player's right shoulder; otherwise null
-     */
+    
     private @Nullable ParrotEntity rightParrot;
 
-    /**
-     * Whether this player is currently listed.
-     */
+    
     private boolean listed = false;
 
     public PlayerEntity(EntitySpawnContext context, GameProfile profile) {
@@ -92,8 +86,8 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     protected void initializeMetadata() {
         super.initializeMetadata();
 
-        // Since 1.20.60, the nametag does not show properly if this is not set :/
-        // The nametag does disappear properly when the player is invisible though.
+        
+        
         dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
     }
 
@@ -101,21 +95,21 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     public void despawnEntity() {
         super.despawnEntity();
 
-        // Remove the entries if limited entries are desired
-        // While we do not explicitly list players, the skin loading code would
-        // send the player list entry after fetching the skin sent by the Java server.
+        
+        
+        
         if (PlayerListUtils.shouldLimitPlayerListEntries(session)) {
             PlayerListPacket packet = new PlayerListPacket();
             packet.getEntries().add(new PlayerListPacket.Entry(getTabListUuid()));
             packet.setAction(PlayerListPacket.Action.REMOVE);
             session.sendUpstreamPacket(packet);
 
-            // To ensure waypoints still remain, if any were added while the
-            // player had a valid player list entry
+            
+            
             session.getWaypointCache().unlistPlayer(this);
         }
 
-        // Since we re-use player entities: Clear flags, held item, etc
+        
         this.resetMetadata();
         this.nametag = username;
 
@@ -123,12 +117,12 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     }
 
     public void resetMetadata() {
-        // Reset all metadata to their default values
-        // This is used when a player respawns
+        
+        
         this.flags.clear();
         this.initializeMetadata();
 
-        // Explicitly reset all metadata not handled by initializeMetadata
+        
         setParrot(OptionalInt.empty(), true);
         setParrot(OptionalInt.empty(), false);
     }
@@ -163,10 +157,10 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     }
 
     public void setAbsorptionHearts(FloatEntityMetadata entityMetadata) {
-        // Extra hearts - is not metadata but an attribute on Bedrock
+        
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(geyserId);
-        // Setting to a higher maximum since plugins/datapacks can probably extend the Bedrock soft limit
+        
         attributesPacket.setAttributes(Collections.singletonList(
                 GeyserAttributeType.ABSORPTION.getAttribute(entityMetadata.getPrimitiveValue())));
         session.sendUpstreamPacket(attributesPacket);
@@ -180,22 +174,19 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         setParrot(entityMetadata.getValue(), false);
     }
 
-    /**
-     * Sets the parrot occupying the shoulder. Bedrock Edition requires a full entity whereas Java Edition just
-     * spawns it from the NBT data provided
-     */
+    
     protected void setParrot(OptionalInt variant, boolean isLeft) {
         if (variant.isPresent()) {
             if ((isLeft && leftParrot != null) || (!isLeft && rightParrot != null)) {
-                // No need to update a parrot's data when it already exists
+                
                 return;
             }
-            // The parrot is a separate entity in Bedrock, but part of the player entity in Java
+            
             EntitySpawnContext context = EntitySpawnContext.inherited(session, EntityDefinitions.PARROT, this, position);
             ParrotEntity parrot = new ParrotEntity(context);
             parrot.spawnEntity();
             parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, variant.getAsInt());
-            // Different position whether the parrot is left or right
+            
             float offset = isLeft ? 0.4f : -0.4f;
             parrot.getDirtyMetadata().put(EntityDataTypes.SEAT_OFFSET, Vector3f.from(offset, -0.22, -0.1));
             parrot.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
@@ -203,8 +194,8 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             EntityLinkData.Type type = isLeft ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
             linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.geyserId(), type, false, false, 0f));
-            // Delay, or else spawned-in players won't get the link
-            // TODO: Find a better solution.
+            
+            
             session.scheduleInEventLoop(() -> session.sendUpstreamPacket(linkPacket), 500, TimeUnit.MILLISECONDS);
             if (isLeft) {
                 leftParrot = parrot;
@@ -231,10 +222,10 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
 
     @Override
     protected void setNametag(@Nullable String nametag, boolean applyTeamStyling) {
-        // when applyTeamStyling, LivingEntity will call scoreboard code. After that
-        // setNametag is called again with applyTeamStyling on false
+        
+        
         if (nametag == null && !applyTeamStyling) {
-            // nametag = null means reset, so reset it back to username
+            
             nametag = username;
         }
         super.setNametag(nametag, applyTeamStyling);
@@ -244,14 +235,12 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         this.username = username;
     }
 
-    /**
-     * @return the UUID that should be used when dealing with Bedrock's tab list.
-     */
+    
     public UUID getTabListUuid() {
         return uuid();
     }
 
-    // From 1.21.8 code, should be correct since some pose should be prioritized.
+    
     public Pose getDesiredPose() {
         if (this.getBedPosition() != null) {
             return Pose.SLEEPING;

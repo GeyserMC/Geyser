@@ -73,17 +73,15 @@ import static org.geysermc.geyser.util.InventoryUtils.LAST_RECIPE_NET_ID;
 
 public class RecipeUtil {
 
-    /**
-     * Required to use the specified cartography table recipes
-     */
+    
     public static final List<RecipeData> CARTOGRAPHY_RECIPES = List.of(
-            MultiRecipeData.of(UUID.fromString("8b36268c-1829-483c-a0f1-993b7156a8f2"), ++LAST_RECIPE_NET_ID), // Map extending
-            MultiRecipeData.of(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), ++LAST_RECIPE_NET_ID), // Map cloning
-            MultiRecipeData.of(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), ++LAST_RECIPE_NET_ID), // Map upgrading
-            MultiRecipeData.of(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), ++LAST_RECIPE_NET_ID) // Map locking
+            MultiRecipeData.of(UUID.fromString("8b36268c-1829-483c-a0f1-993b7156a8f2"), ++LAST_RECIPE_NET_ID), 
+            MultiRecipeData.of(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), ++LAST_RECIPE_NET_ID), 
+            MultiRecipeData.of(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), ++LAST_RECIPE_NET_ID), 
+            MultiRecipeData.of(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), ++LAST_RECIPE_NET_ID) 
     );
 
-    // Arrays are usually an issue in maps, but because it's referencing the tag array that is unchanged, it actually works out for us.
+    
     private static final ThreadLocal<IntObjectPair<Map<int[], List<ItemDescriptorWithCount>>>> TAG_TO_ITEM_DESCRIPTOR_CACHE = ThreadLocal.withInitial(() -> IntObjectMutablePair.of(0, new Object2ObjectOpenHashMap<>()));
 
     public static List<ItemDescriptorWithCount> translateToInput(GeyserSession session, SlotDisplay slotDisplay) {
@@ -95,8 +93,8 @@ public class RecipeUtil {
                 return translateToInput(session, composite.contents().get(0));
             }
 
-            // Try and see if the contents match a tag.
-            // ViaVersion maps pre-1.21.2 ingredient lists to CompositeSlotDisplays.
+            
+            
             int[] items = new int[composite.contents().size()];
             List<SlotDisplay> contents = composite.contents();
             for (int i = 0; i < contents.size(); i++) {
@@ -113,12 +111,12 @@ public class RecipeUtil {
                     id = -1;
                 }
                 if (id == -1) {
-                    // We couldn't guarantee a "normal" item from this stack.
+                    
                     return fallbackCompositeMapping(session, composite);
                 }
                 items[i] = id;
             }
-            // For searching in the tag map.
+            
             Arrays.sort(items);
 
             List<ItemDescriptorWithCount> tagDescriptor = lookupBedrockTag(session, items);
@@ -129,7 +127,7 @@ public class RecipeUtil {
             return fallbackCompositeMapping(session, composite);
         }
         if (slotDisplay instanceof WithRemainderSlotDisplay remainder) {
-            // Don't need to worry about what will stay in the crafting table after crafting for the purposes of sending recipes to Bedrock
+            
             return translateToInput(session, remainder.input());
         }
         if (slotDisplay instanceof ItemSlotDisplay itemSlot) {
@@ -141,14 +139,14 @@ public class RecipeUtil {
         }
         if (slotDisplay instanceof TagSlotDisplay tagSlot) {
             Key tag = tagSlot.tag();
-            int[] items = session.getTagCache().getRaw(new Tag<>(JavaRegistries.ITEM, tag)); // I don't like this...
+            int[] items = session.getTagCache().getRaw(new Tag<>(JavaRegistries.ITEM, tag)); 
             if (items == null || items.length == 0) {
                 return Collections.singletonList(ItemDescriptorWithCount.EMPTY);
             } else if (items.length == 1) {
                 return Collections.singletonList(fromItem(session, items[0]));
             } else {
-                // Cache is implemented as, presumably, an item tag will be used multiple times in succession
-                // (E.G. a chest with planks tags)
+                
+                
                 if (TAG_TO_ITEM_DESCRIPTOR_CACHE.get().firstInt() != session.protocolVersion()) {
                     TAG_TO_ITEM_DESCRIPTOR_CACHE.get().first(session.protocolVersion()).second().clear();
                 }
@@ -158,15 +156,15 @@ public class RecipeUtil {
                         return tagDescriptor;
                     }
 
-                    // In the future, we can probably search through and use subsets of tags as well.
-                    // I.E. if a Bedrock tag contains [stone stone_brick] and the Java tag uses [stone stone_brick bricks]
-                    // we can still use that Bedrock tag alongside plain item descriptors for "bricks".
+                    
+                    
+                    
 
                     Set<ItemDescriptorWithCount> itemDescriptors = new HashSet<>();
                     for (int item : key) {
                         itemDescriptors.add(fromItem(session, item));
                     }
-                    return List.copyOf(itemDescriptors); // This, or a list from the start with contains -> add?
+                    return List.copyOf(itemDescriptors); 
                 });
             }
         }
@@ -195,12 +193,10 @@ public class RecipeUtil {
             return ItemDescriptorWithCount.EMPTY;
         }
         ItemMapping mapping = session.getItemMappings().getMapping(item);
-        return new ItemDescriptorWithCount(new DefaultDescriptor(mapping.getBedrockDefinition(), mapping.getBedrockData()), 1); // Need to check count
+        return new ItemDescriptorWithCount(new DefaultDescriptor(mapping.getBedrockDefinition(), mapping.getBedrockData()), 1); 
     }
 
-    /**
-     * Checks to see if this list of items matches with one of this Bedrock version's tags.
-     */
+    
     @Nullable
     private static List<ItemDescriptorWithCount> lookupBedrockTag(GeyserSession session, int[] items) {
         var bedrockTags = Registries.TAGS.forVersion(session.getUpstream().getProtocolVersion());
@@ -214,9 +210,7 @@ public class RecipeUtil {
         }
     }
 
-    /**
-     * Converts CompositeSlotDisplay contents to a list of basic ItemDescriptorWithCounts.
-     */
+    
     private static List<ItemDescriptorWithCount> fallbackCompositeMapping(GeyserSession session, CompositeSlotDisplay composite) {
         return composite.contents().stream()
                 .map(subDisplay -> translateToInput(session, subDisplay))
@@ -228,14 +222,14 @@ public class RecipeUtil {
     public static Pair<List<List<ItemDescriptorWithCount>>, ItemData> combinations(GeyserSession session, SlotDisplay result, List<SlotDisplay> ingredients) {
         Pair<Item, ItemData> pair = translateToOutput(session, result);
         if (pair == null || !pair.right().isValid()) {
-            // Likely modded item Bedrock will complain about
-            // Implementation note: ItemData#isValid() may return true for air because count might be > 0 and the air definition may not be ItemDefinition.AIR
+            
+            
             return null;
         }
 
         ItemData output = pair.right();
         if (!(pair.left() instanceof BedrockRequiresTagItem)) {
-            // Strip NBT - tools won't appear in the recipe book otherwise
+            
             output = output.toBuilder().tag(null).build();
         }
 
@@ -254,18 +248,18 @@ public class RecipeUtil {
             complexInputs |= translated.size() > 1;
         }
         if (empty) {
-            // Crashes Bedrock 1.19.70 otherwise
-            // Fixes https://github.com/GeyserMC/Geyser/issues/3549
+            
+            
             return null;
         }
 
         if (complexInputs) {
             long size = 1;
-            // See how big a cartesian product will get without creating one (Guava throws an error; not really ideal)
+            
             for (List<ItemDescriptorWithCount> list : inputs) {
                 size *= list.size();
                 if (size > 500) {
-                    // Too much. No.
+                    
                     complexInputs = false;
                     break;
                 }
@@ -277,7 +271,7 @@ public class RecipeUtil {
 
         int totalSimpleRecipes = inputs.stream().mapToInt(List::size).max().orElse(1);
 
-        // Sort inputs to create "uniform" simple recipes, if possible
+        
         inputs = inputs.stream()
                 .map(descriptors -> descriptors.stream()
                         .sorted(ItemDescriptorWithCountComparator.INSTANCE)
@@ -306,7 +300,7 @@ public class RecipeUtil {
         public int compare(ItemDescriptorWithCount o1, ItemDescriptorWithCount o2) {
             String tag1 = null, tag2 = null;
 
-            // Collect item tags first
+            
             if (o1.getDescriptor() instanceof ItemTagDescriptor itemTagDescriptor) {
                 tag1 = itemTagDescriptor.getItemTag();
             }
@@ -317,14 +311,14 @@ public class RecipeUtil {
 
             if (tag1 != null || tag2 != null) {
                 if (tag1 != null && tag2 != null) {
-                    return tag1.compareTo(tag2); // Just sort based on their string id
+                    return tag1.compareTo(tag2); 
                 }
 
                 if (tag1 != null) {
                     return -1;
                 }
 
-                return 1; // the second is an item tag; which should be r
+                return 1; 
             }
 
             if (o1.getDescriptor() instanceof DefaultDescriptor defaultDescriptor1 && o2.getDescriptor() instanceof DefaultDescriptor defaultDescriptor2) {

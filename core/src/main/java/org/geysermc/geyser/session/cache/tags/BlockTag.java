@@ -29,9 +29,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.util.MinecraftKey;
 
-/**
- * Lists vanilla block tags.
- */
+
 @SuppressWarnings("unused")
 public final class BlockTag {
     public static final Tag<Block> WOOL = create("wool");

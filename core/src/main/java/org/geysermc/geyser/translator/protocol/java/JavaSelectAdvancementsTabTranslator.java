@@ -30,9 +30,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-/**
- * Indicates that the client should open a particular advancement tab
- */
+
 @Translator(packet = ClientboundSelectAdvancementsTabPacket.class)
 public class JavaSelectAdvancementsTabTranslator extends PacketTranslator<ClientboundSelectAdvancementsTabPacket> {
 

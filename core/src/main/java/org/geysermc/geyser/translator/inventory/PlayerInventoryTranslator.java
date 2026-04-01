@@ -90,18 +90,18 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
         InventoryContentPacket inventoryContentPacket = new InventoryContentPacket();
         inventoryContentPacket.setContainerId(ContainerId.INVENTORY);
         ItemData[] contents = new ItemData[36];
-        // Inventory
+        
         for (int i = 9; i < 36; i++) {
             contents[i] = inventory.getItem(i).getItemData(session);
         }
-        // Hotbar
+        
         for (int i = 36; i < 45; i++) {
             contents[i - 36] = inventory.getItem(i).getItemData(session);
         }
         inventoryContentPacket.setContents(Arrays.asList(contents));
         session.sendUpstreamPacket(inventoryContentPacket);
 
-        // Armor
+        
         InventoryContentPacket armorContentPacket = new InventoryContentPacket();
         armorContentPacket.setContainerId(ContainerId.ARMOR);
         contents = new ItemData[4];
@@ -115,20 +115,16 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
         armorContentPacket.setContents(Arrays.asList(contents));
         session.sendUpstreamPacket(armorContentPacket);
 
-        // Offhand
+        
         InventoryContentPacket offhandPacket = new InventoryContentPacket();
         offhandPacket.setContainerId(ContainerId.OFFHAND);
         offhandPacket.setContents(Collections.singletonList(inventory.getItem(45).getItemData(session)));
         session.sendUpstreamPacket(offhandPacket);
     }
 
-    /**
-     * Update the crafting grid for the player to hide/show the barriers in the creative inventory
-     * @param session Connection of the player
-     * @param inventory Inventory of the player
-     */
+    
     public static void updateCraftingGrid(GeyserSession session, PlayerInventory inventory) {
-        // Crafting grid
+        
         for (int i = 1; i < 5; i++) {
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             slotPacket.setContainerId(ContainerId.UI);
@@ -150,7 +146,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
         ItemData bedrockItem = javaItem.getItemData(session);
 
         if (slot == 5) {
-            // Check for custom skull
+            
             if (javaItem.is(Items.PLAYER_HEAD) && javaItem.hasNonBaseComponents()) {
                 FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
             } else {
@@ -191,11 +187,11 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
             case HOTBAR_AND_INVENTORY:
             case HOTBAR:
             case INVENTORY:
-                // Inventory
+                
                 if (slotnum >= 9 && slotnum <= 35) {
                     return slotnum;
                 }
-                // Hotbar
+                
                 if (slotnum >= 0 && slotnum <= 8) {
                     return slotnum + 36;
                 }
@@ -268,25 +264,25 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                         return rejectRequest(request, false);
                     }
 
-                    // Might be a bundle action... let's check.
-                    // If we're in creative mode, instead of replacing logic (more hassle for updates),
-                    // let's just reuse as much logic as possible!!
+                    
+                    
+                    
                     ItemStackResponse bundleResponse = BundleInventoryTranslator.handleBundle(session, this, inventory, request, true);
                     if (bundleResponse != null) {
-                        // We can simplify a lot of logic because we aren't expecting multi-slot interactions.
+                        
                         return bundleResponse;
                     }
 
                     int sourceSlot = bedrockSlotToJava(transferAction.getSource());
                     int destSlot = bedrockSlotToJava(transferAction.getDestination());
                     if (destSlot == 5) {
-                        // only set the head if the destination is the head slot
+                        
                         GeyserItemStack javaItem = inventory.getItem(sourceSlot);
                         if (javaItem.is(Items.PLAYER_HEAD) && javaItem.hasNonBaseComponents()) {
                             FakeHeadProvider.setHead(session, session.getPlayerEntity(), javaItem.getComponent(DataComponentTypes.PROFILE));
                         }
                     } else if (sourceSlot == 5) {
-                        // we are probably removing the head, so restore the original skin
+                        
                         FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
                     }
 
@@ -398,7 +394,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                     sourceItem.sub(dropAction.getCount());
                 }
                 case DESTROY -> {
-                    // Only called when a creative client wants to destroy an item... I think - Camotoy
+                    
                     DestroyAction destroyAction = (DestroyAction) action;
                     if (!checkNetId(session, inventory, destroyAction.getSource())) {
                         return rejectRequest(request);
@@ -408,13 +404,13 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                     }
 
                     if (!isCursor(destroyAction.getSource())) {
-                        // Item exists; let's remove it from the inventory
+                        
                         int javaSlot = bedrockSlotToJava(destroyAction.getSource());
                         GeyserItemStack existingItem = inventory.getItem(javaSlot);
                         existingItem.sub(destroyAction.getCount());
                         affectedSlots.add(javaSlot);
                     } else {
-                        // Just sync up the item on our end, since the server doesn't care what's in our cursor
+                        
                         playerInv.getCursor().sub(destroyAction.getCount());
                     }
                 }
@@ -424,7 +420,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                 }
             }
         }
-        // Manually call iterator to prevent Integer boxing
+        
         IntIterator it = affectedSlots.iterator();
         while (it.hasNext()) {
             int slot = it.nextInt();
@@ -453,7 +449,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                     if (creativeId < 0 || creativeId >= creativeItems.size()) {
                         return rejectRequest(request);
                     }
-                    // Reference the creative items list we send to the client to know what it's asking of us
+                    
                     CreativeItemData creativeItem = creativeItems.get(creativeId);
                     javaCreativeItem = ItemTranslator.translateToJava(session, creativeItem.getItem());
                     break;
@@ -515,7 +511,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                     break;
                 }
                 case DROP: {
-                    // Can be replicated as of 1.18.2 Bedrock on mobile by clicking from the creative menu to outside it
+                    
                     if (craftState != CraftState.DEPRECATED) {
                         return rejectRequest(request);
                     }
@@ -529,7 +525,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                     if (dropAction.getCount() == javaCreativeItem.getAmount()) {
                         dropStack = javaCreativeItem;
                     } else {
-                        // Specify custom count
+                        
                         dropStack = new ItemStack(javaCreativeItem.getId(), dropAction.getCount(), javaCreativeItem.getDataComponentsPatch());
                     }
                     ServerboundSetCreativeModeSlotPacket creativeDropPacket = new ServerboundSetCreativeModeSlotPacket((short)-1, dropStack);
@@ -540,16 +536,16 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                     return rejectRequest(request);
             }
         }
-        // Manually call iterator to prevent Integer boxing
+        
         IntIterator it = affectedSlots.iterator();
         while (it.hasNext()) {
             int slot = it.nextInt();
             sendCreativeAction(session, inventory, slot);
         }
-        // On the bundle check:
-        // We can also accept the request, but sending a bad request indicates to Geyser to refresh the inventory
-        // and we need to refresh the inventory to send the bundle ID/inventory to the client.
-        // It's not great, but I don't want to create a container class for request responses
+        
+        
+        
+        
         return bundle ? rejectRequest(request, false) : acceptRequest(request, makeContainerEntries(session, inventory, affectedSlots));
     }
 

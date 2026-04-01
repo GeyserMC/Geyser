@@ -82,8 +82,8 @@ public class FrogEntity extends AnimalEntity implements VariantIntHolder {
         return ItemTag.FROG_FOOD;
     }
 
-    // Ordered by bedrock id
-    // TODO: are these ordered correctly?
+    
+    
     public enum BuiltInVariant implements BuiltIn {
         TEMPERATE,
         COLD,

@@ -66,7 +66,7 @@ public class CompassItem extends Item {
         LodestoneTracker tracker = components.get(DataComponentTypes.LODESTONE_TRACKER);
         if (tracker != null) {
             int trackId = session.getLodestoneCache().store(tracker);
-            // Set the bedrock tracking id - will return 0 if invalid
+            
             builder.putInt("trackingHandle", trackId);
         }
     }
@@ -81,7 +81,7 @@ public class CompassItem extends Item {
     @Override
     public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
         if (mapping.getBedrockIdentifier().equals("minecraft:lodestone_compass")) {
-            // Revert the entry back to the compass
+            
             mapping = mappings.getStoredItems().compass();
         }
 

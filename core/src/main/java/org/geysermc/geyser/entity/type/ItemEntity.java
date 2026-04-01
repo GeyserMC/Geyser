@@ -91,9 +91,9 @@ public class ItemEntity extends ThrowableEntity {
             this.item = item;
             spawnEntity();
         } else if (item.equals(this.item, false, true, true)) {
-            // Don't bother respawning the entity if items are equal
+            
             if (this.item.getCount() != item.getCount()) {
-                // Just item count updated; let's make this easy
+                
                 this.item = item;
                 EntityEventPacket packet = new EntityEventPacket();
                 packet.setRuntimeEntityId(geyserId);
@@ -111,8 +111,8 @@ public class ItemEntity extends ThrowableEntity {
     @Override
     protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         float offset = definition.offset();
-        if (waterLevel.join() == 0) { // Item is in a full block of water
-            // Move the item entity down so it doesn't float above the water
+        if (waterLevel.join() == 0) { 
+            
             offset = -definition.offset();
         }
         setOffset(offset);
@@ -126,8 +126,8 @@ public class ItemEntity extends ThrowableEntity {
     @Override
     protected float getGravity() {
         if (getFlag(EntityFlag.HAS_GRAVITY) && !isOnGround() && !isInWater()) {
-            // Gravity can change if the item is in water/lava, but
-            // the server calculates the motion & position for us
+            
+            
             return 0.04f;
         }
         return 0;

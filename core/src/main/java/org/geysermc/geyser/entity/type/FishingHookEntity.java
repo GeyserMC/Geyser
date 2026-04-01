@@ -60,9 +60,9 @@ public class FishingHookEntity extends ThrowableEntity {
 
         this.boundingBox = new BoundingBox(0.125, 0.125, 0.125, 0.25, 0.25, 0.25);
 
-        // In Java, the splash sound depends on the entity's velocity, but in Bedrock the volume doesn't change.
-        // This splash can be confused with the sound from catching a fish. This silences the splash from Bedrock,
-        // so that it can be handled by moveAbsoluteImmediate.
+        
+        
+        
         setBoundingBoxHeight(128);
 
         this.bedrockOwnerId = owner.geyserId();
@@ -107,7 +107,7 @@ public class FishingHookEntity extends ThrowableEntity {
             BlockCollision blockCollision = BlockUtils.getCollision(blockID);
             if (blockCollision != null) {
                 if (blockCollision.checkIntersection(iter.getX(), iter.getY(), iter.getZ(), boundingBox)) {
-                    // TODO Push bounding box out of collision to improve movement
+                    
                     collided = true;
                 }
             }
@@ -171,9 +171,7 @@ public class FishingHookEntity extends ThrowableEntity {
         return 0;
     }
 
-    /**
-     * @return true if this entity is currently in air.
-     */
+    
     protected boolean isInAir() {
         int block = session.getGeyser().getWorldManager().getBlockAt(session, position.toInt());
         return block == Block.JAVA_AIR_ID;

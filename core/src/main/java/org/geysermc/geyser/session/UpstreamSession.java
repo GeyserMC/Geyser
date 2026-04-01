@@ -61,9 +61,7 @@ public class UpstreamSession {
         this.session.disconnect(reason);
     }
 
-    /**
-     * Queue a packet that must be delayed until after login.
-     */
+    
     public void queuePostStartGamePacket(BedrockPacket packet) {
         postStartGamePackets.add(packet);
     }
@@ -85,7 +83,7 @@ public class UpstreamSession {
     }
 
     public InetSocketAddress getAddress() {
-        // Will always be an InetSocketAddress. See ProxyChannel#remoteAddress
+        
         return (InetSocketAddress) ((GeyserBedrockPeer) session.getPeer()).getRealAddress();
     }
 
@@ -93,20 +91,12 @@ public class UpstreamSession {
         ((GeyserBedrockPeer) session.getPeer()).setProxiedAddress(address);
     }
 
-    /**
-     * Gets the session's protocol version.
-     *
-     * @return the session's protocol version.
-     */
+    
     public int getProtocolVersion() {
         return this.session.getCodec().getProtocolVersion();
     }
 
-    /**
-     * Gets the codec helper for this session.
-     *
-     * @return the codec helper for this session
-     */
+    
     public BedrockCodecHelper getCodecHelper() {
         return this.session.getPeer().getCodecHelper();
     }

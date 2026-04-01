@@ -53,17 +53,17 @@ public final class VersionCheckUtils {
 
     public static void checkForOutdatedFloodgate(GeyserLogger logger) {
         try {
-            // This class was removed in Floodgate 2.1.0-SNAPSHOT - if it still exists, Floodgate will not work
-            // with this version of Geyser
+            
+            
             Class.forName("org.geysermc.floodgate.util.TimeSyncerHolder");
             logger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", Constants.FLOODGATE_DOWNLOAD_LOCATION));
         } catch (ClassNotFoundException ignored) {
-            // Nothing to worry about; we want this exception
+            
         }
     }
 
     public static void checkForOutdatedJava(GeyserLogger logger) {
-        // Taken from Paper
+        
         String javaVersion = System.getProperty("java.version");
         Matcher matcher = Pattern.compile("(?:1\\.)?(\\d+)").matcher(javaVersion);
         if (!matcher.find()) {
@@ -98,21 +98,21 @@ public final class VersionCheckUtils {
                 int protocolVersion = bedrock.get("id").getAsInt();
                 if (GameProtocol.getBedrockCodec(protocolVersion) != null) {
                     LATEST_BEDROCK_RELEASE = OptionalInt.empty();
-                    // We support the latest version! No need to print a message.
+                    
                     return;
                 }
 
                 LATEST_BEDROCK_RELEASE = OptionalInt.of(protocolVersion);
                 final String newBedrockVersion = bedrock.get("name").getAsString();
 
-                // Delayed for two reasons: save unnecessary processing, and wait to load locale if this is on join.
+                
                 GeyserCommandSource sender = recipient.get();
 
-                // Overarching component is green - geyser.version.new component cannot be green or else the link blue is overshadowed
+                
                 Component message = Component.text().color(NamedTextColor.GREEN)
                         .append(Component.text(GeyserLocale.getPlayerLocaleString("geyser.version.new", sender.locale(), newBedrockVersion))
                                 .replaceText(TextReplacementConfig.builder()
-                                        .match("\\{1\\}") // Replace "Download here: {1}" so we can use fancy text component yesyes
+                                        .match("\\{1\\}") 
                                         .replacement(Component.text()
                                                 .content(Constants.GEYSER_DOWNLOAD_LOCATION)
                                                 .color(NamedTextColor.BLUE)

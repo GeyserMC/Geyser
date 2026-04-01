@@ -65,16 +65,16 @@ public class CameraDefinitions {
 
     public static NamedDefinition getByFunctionality(boolean audio, boolean effects) {
         if (!audio && !effects) {
-            return getById(1); // FREE
+            return getById(1); 
         }
         if (audio) {
             if (effects) {
-                return getById(6); // FREE_AUDIO_EFFECTS
+                return getById(6); 
             } else {
-                return getById(4); // FREE_AUDIO
+                return getById(4); 
             }
         } else {
-            return getById(5); // FREE_EFFECTS
+            return getById(5); 
         }
     }
 

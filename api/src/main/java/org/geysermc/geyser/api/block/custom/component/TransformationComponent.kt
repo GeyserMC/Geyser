@@ -22,8 +22,7 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.block.custom.component;
+package org.geysermc.geyser.api.block.custom.component
 
 /**
  * This class is used to store the transformation component of a block
@@ -38,22 +37,30 @@ package org.geysermc.geyser.api.block.custom.component;
  * @param ty The translation on the y axis
  * @param tz The translation on the z axis
  */
-public record TransformationComponent(int rx, int ry, int rz, float sx, float sy, float sz, float tx, float ty, float tz) {
-
+@kotlin.jvm.JvmRecord
+data class TransformationComponent(
+    @kotlin.jvm.JvmField val rx: Int,
+    @kotlin.jvm.JvmField val ry: Int,
+    @kotlin.jvm.JvmField val rz: Int,
+    @kotlin.jvm.JvmField val sx: Float,
+    @kotlin.jvm.JvmField val sy: Float,
+    @kotlin.jvm.JvmField val sz: Float,
+    @kotlin.jvm.JvmField val tx: Float,
+    @kotlin.jvm.JvmField val ty: Float,
+    @kotlin.jvm.JvmField val tz: Float
+) {
     /**
      * Constructs a new TransformationComponent with the rotation values and assumes default scale and translation
-     *
+     * 
      * @param rx The rotation on the x axis
      * @param ry The rotation on the y axis
      * @param rz The rotation on the z axis
      */
-    public TransformationComponent(int rx, int ry, int rz) {
-        this(rx, ry, rz, 1, 1, 1, 0, 0, 0);
-    }
+    constructor(rx: Int, ry: Int, rz: Int) : this(rx, ry, rz, 1f, 1f, 1f, 0f, 0f, 0f)
 
     /**
      * Constructs a new TransformationComponent with the rotation and scale values and assumes default translation
-     *
+     * 
      * @param rx The rotation on the x axis
      * @param ry The rotation on the y axis
      * @param rz The rotation on the z axis
@@ -61,7 +68,5 @@ public record TransformationComponent(int rx, int ry, int rz, float sx, float sy
      * @param sy The scale on the y axis
      * @param sz The scale on the z axis
      */
-    public TransformationComponent(int rx, int ry, int rz, float sx, float sy, float sz) {
-        this(rx, ry, rz, sx, sy, sz, 0, 0, 0);
-    }
+    constructor(rx: Int, ry: Int, rz: Int, sx: Float, sy: Float, sz: Float) : this(rx, ry, rz, sx, sy, sz, 0f, 0f, 0f)
 }

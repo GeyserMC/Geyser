@@ -43,14 +43,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.BiConsumer;
 
-/**
- * Represents data for an entity. This includes properties such as height and width, as well as the list of entity
- * metadata translators needed to translate the properties sent from the server. The translators are structured in such
- * a way that inserting a new one (for example in version updates) is convenient.
- *
- * @param identifier the Bedrock identifier of this entity
- * @param <T> the entity type this definition represents
- */
+
 public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, EntityType entityType, String identifier,
                                                  float width, float height, float offset, GeyserEntityProperties registeredProperties, List<EntityMetadataTranslator<? super T, ?, ?>> translators) {
 
@@ -66,7 +59,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
     public <M> void translateMetadata(T entity, EntityMetadata<M, ? extends MetadataType<M>> metadata) {
         EntityMetadataTranslator<? super T, M, EntityMetadata<M, ? extends MetadataType<M>>> translator = (EntityMetadataTranslator<? super T, M, EntityMetadata<M, ? extends MetadataType<M>>>) this.translators.get(metadata.getId());
         if (translator == null) {
-            // This can safely happen; it means we don't translate this entity metadata
+            
             return;
         }
 
@@ -108,9 +101,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             this.translators = translators;
         }
 
-        /**
-         * Sets the height and width as one value
-         */
+        
         public Builder<T> heightAndWidth(float value) {
             height = value;
             width = value;
@@ -122,9 +113,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             return this;
         }
 
-        /**
-         * Resets the identifier as well
-         */
+        
         public Builder<T> type(EntityType type) {
             this.type = type;
             identifier = null;
@@ -153,10 +142,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
             return build(true);
         }
 
-        /**
-         * @param register whether to register this entity in the Registries for entity types. Generally this should be
-         *                 set to false if we're not expecting this entity to spawn from the network.
-         */
+        
         public EntityDefinition<T> build(boolean register) {
             if (identifier == null && type != null) {
                 identifier = "minecraft:" + type.name().toLowerCase(Locale.ROOT);

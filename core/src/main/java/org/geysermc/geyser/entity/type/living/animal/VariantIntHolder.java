@@ -25,11 +25,7 @@
 
 package org.geysermc.geyser.entity.type.living.animal;
 
-/**
- * Extension to {@link VariantHolder} to make it easier to implement on mobs that use bedrock's metadata system to set their variants, which are quite common.
- *
- * @see VariantHolder
- */
+
 public interface VariantIntHolder extends VariantHolder<VariantIntHolder.BuiltIn> {
 
     @Override
@@ -37,16 +33,10 @@ public interface VariantIntHolder extends VariantHolder<VariantIntHolder.BuiltIn
         setBedrockVariantId(variant.ordinal());
     }
 
-    /**
-     * Should set the variant on bedrock's metadata. The bedrock ID has already been checked and is always valid.
-     */
+    
     void setBedrockVariantId(int bedrockId);
 
-    /**
-     * The enum constants should be ordered in the order of their bedrock network ID.
-     *
-     * @see org.geysermc.geyser.entity.type.living.animal.VariantHolder.BuiltIn
-     */
+    
     interface BuiltIn extends VariantHolder.BuiltIn {
 
         int ordinal();

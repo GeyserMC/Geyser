@@ -38,24 +38,16 @@ import static org.geysermc.geyser.command.GeyserPermission.Result.Meta;
 @AllArgsConstructor
 public class GeyserPermission implements PredicatePermission<GeyserCommandSource> {
 
-    /**
-     * True if this permission requires the command source to be a bedrock player
-     */
+    
     private final boolean bedrockOnly;
 
-    /**
-     * True if this permission requires the command source to be any player
-     */
+    
     private final boolean playerOnly;
 
-    /**
-     * The permission node that the command source must have
-     */
+    
     private final String permission;
 
-    /**
-     * The command manager to delegate permission checks to
-     */
+    
     private final CommandManager<GeyserCommandSource> manager;
 
     @Override
@@ -64,10 +56,10 @@ public class GeyserPermission implements PredicatePermission<GeyserCommandSource
             if (source.connection() == null) {
                 return new Result(Meta.NOT_BEDROCK);
             }
-            // connection is present -> it is a player -> playerOnly is irrelevant
+            
         } else if (playerOnly) {
-            if (source.isConsole()) {
-                return new Result(Meta.NOT_PLAYER); // must be a player but is console
+            if (source.isConsole) {
+                return new Result(Meta.NOT_PLAYER); 
             }
         }
 
@@ -82,9 +74,7 @@ public class GeyserPermission implements PredicatePermission<GeyserCommandSource
         return CloudKey.cloudKey(permission);
     }
 
-    /**
-     * Basic implementation of cloud's {@link PermissionResult} that delegates to the more informative {@link Meta}.
-     */
+    
     public final class Result implements PermissionResult {
 
         private final Meta meta;
@@ -107,29 +97,19 @@ public class GeyserPermission implements PredicatePermission<GeyserCommandSource
             return GeyserPermission.this;
         }
 
-        /**
-         * More detailed explanation of whether the permission check passed.
-         */
+        
         public enum Meta {
 
-            /**
-             * The source must be a bedrock player, but is not.
-             */
+            
             NOT_BEDROCK,
 
-            /**
-             * The source must be a player, but is not.
-             */
+            
             NOT_PLAYER,
 
-            /**
-             * The source does not have a required permission node.
-             */
+            
             NO_PERMISSION,
 
-            /**
-             * The source meets all requirements.
-             */
+            
             ALLOWED
         }
     }

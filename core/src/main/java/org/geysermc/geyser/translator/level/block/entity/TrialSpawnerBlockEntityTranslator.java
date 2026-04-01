@@ -35,7 +35,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 
 @BlockEntity(type = BlockEntityType.TRIAL_SPAWNER)
 public class TrialSpawnerBlockEntityTranslator extends BlockEntityTranslator {
-    // Note that it would appear block entity updates don't include the NBT, but we do need it on chunk load.
+    
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         if (javaNbt == null) {
@@ -51,7 +51,7 @@ public class TrialSpawnerBlockEntityTranslator extends BlockEntityTranslator {
         if (definition != null) {
             spawnData.putString("TypeId", definition.identifier());
         }
-        spawnData.putInt("Weight", entityData.getInt("Size", 1)); // ??? presumably since these are the only other two extra attributes
+        spawnData.putInt("Weight", entityData.getInt("Size", 1)); 
         bedrockNbt.putCompound("spawn_data", spawnData.build());
     }
 }

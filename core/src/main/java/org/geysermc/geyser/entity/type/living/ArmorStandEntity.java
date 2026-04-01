@@ -50,38 +50,20 @@ import java.util.Optional;
 
 public class ArmorStandEntity extends LivingEntity {
 
-    // These are used to store the state of the armour stand for use when handling invisibility
+    
     @Getter
     private boolean isMarker = false;
     private boolean isInvisible = false;
     @Getter
     private boolean isSmall = false;
 
-    /**
-     * On Java Edition, armor stands always show their name. Invisibility hides the name on Bedrock.
-     * By having a second entity, we can allow an invisible entity with the name tag.
-     * (This lets armor on armor stands still show)
-     */
+    
     private ArmorStandEntity secondEntity = null;
-    /**
-     * Whether this is the primary armor stand that holds the armor and not the name tag.
-     */
+    
     private boolean primaryEntity = true;
-    /**
-     * Whether the entity's position must be updated to included the offset.
-     * <p>
-     * This should be true when the Java server marks the armor stand as invisible, but we shrink the entity
-     * to allow the nametag to appear. Basically:
-     * - Is visible: this is irrelevant (false)
-     * - Has armor, no name: false
-     * - Has armor, has name: false, with a second entity
-     * - No armor, no name: false
-     * - No armor, yes name: true
-     */
+    
     private boolean positionRequiresOffset = false;
-    /**
-     * Whether we should update the position of this armor stand after metadata updates.
-     */
+    
     private boolean positionUpdateRequired = false;
 
     public ArmorStandEntity(EntitySpawnContext context) {
@@ -90,7 +72,7 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void spawnEntity() {
-        // Apply the offset if we're the second entity
+        
         setOffset(getYOffset());
         super.spawnEntity();
     }
@@ -113,14 +95,14 @@ public class ArmorStandEntity extends LivingEntity {
         if (secondEntity != null) {
             secondEntity.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
         }
-        // Fake the height to be above where it is so the nametag appears in the right location
+        
         setOffset(getYOffset());
         super.moveAbsoluteRaw(position, yaw, yaw, yaw, isOnGround, teleported);
     }
 
     @Override
     public void updateNametag(@Nullable Team team) {
-        // unlike all other LivingEntities, armor stands are not affected by team nametag visibility
+        
         super.updateNametag(team, true);
     }
 
@@ -133,16 +115,16 @@ public class ArmorStandEntity extends LivingEntity {
     public void setArmorStandFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
         boolean offsetChanged = false;
-        // isSmall
+        
         boolean newIsSmall = (xd & 0x01) == 0x01;
         if (newIsSmall != isSmall) {
             isSmall = newIsSmall;
             offsetChanged = true;
-            // Update the passenger offset as the armor stand's height has changed
+            
             updatePassengerOffsets();
         }
 
-        // setMarker
+        
         boolean oldIsMarker = isMarker;
         isMarker = (xd & 0x10) == 0x10;
         if (oldIsMarker != isMarker) {
@@ -167,11 +149,11 @@ public class ArmorStandEntity extends LivingEntity {
             updateSecondEntityStatus(false);
         }
 
-        // The following values don't do anything on normal Bedrock.
-        // But if given a resource pack, then we can use these values to control armor stand visual properties
-        setFlag(EntityFlag.ANGRY, (xd & 0x04) != 0x04); // Has arms
-        setFlag(EntityFlag.ADMIRING, (xd & 0x08) == 0x08); // Has no baseplate
-        setFlag(EntityFlag.BABY, isSmall); // Is small (for setting head scale)
+        
+        
+        setFlag(EntityFlag.ANGRY, (xd & 0x04) != 0x04); 
+        setFlag(EntityFlag.ADMIRING, (xd & 0x08) == 0x08); 
+        setFlag(EntityFlag.BABY, isSmall); 
     }
 
     public void setHeadRotation(EntityMetadata<Vector3f, ?> entityMetadata) {
@@ -198,30 +180,20 @@ public class ArmorStandEntity extends LivingEntity {
         onRotationUpdate(EntityDataTypes.HURT_DIRECTION, EntityFlag.IS_PREGNANT, EntityFlag.SHEARED, EntityFlag.STALKING, entityMetadata.getValue());
     }
 
-    /**
-     * Updates rotation on the armor stand by hijacking other unused Bedrock entity data/flags.
-     * Do note: as of recent Bedrock versions there is a custom entity data system that can be replaced with this,
-     * but at this time there is no need to implement this.
-     *
-     * @param dataLeech the entity data to "leech" off of that stores a compressed version of the rotation
-     * @param negativeXToggle the flag to set true if the X value of rotation is negative
-     * @param negativeYToggle the flag to set true if the Y value of rotation is negative
-     * @param negativeZToggle the flag to set true if the Z value of rotation is negative
-     * @param rotation the Java rotation value
-     */
+    
     private void onRotationUpdate(EntityDataType<Integer> dataLeech, EntityFlag negativeXToggle, EntityFlag negativeYToggle, EntityFlag negativeZToggle, Vector3f rotation) {
-        // Indicate that rotation should be checked
+        
         setFlag(EntityFlag.BRIBED, true);
 
         int rotationX = MathUtils.wrapDegreesToInt(rotation.getX());
         int rotationY = MathUtils.wrapDegreesToInt(rotation.getY());
         int rotationZ = MathUtils.wrapDegreesToInt(rotation.getZ());
-        // The top bit acts like binary and determines if each rotation goes above 100
-        // We don't do this for the negative values out of concerns of the number being too big
+        
+        
         int topBit = (Math.abs(rotationX) >= 100 ? 4 : 0) + (Math.abs(rotationY) >= 100 ? 2 : 0) + (Math.abs(rotationZ) >= 100 ? 1 : 0);
         int value = (topBit * 1000000) + ((Math.abs(rotationX) % 100) * 10000) + ((Math.abs(rotationY) % 100) * 100) + (Math.abs(rotationZ) % 100);
         dirtyMetadata.put(dataLeech, value);
-        // Set the entity flags if a value is negative
+        
         setFlag(negativeXToggle, rotationX < 0);
         setFlag(negativeYToggle, rotationY < 0);
         setFlag(negativeZToggle, rotationZ < 0);
@@ -241,7 +213,7 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     protected void setInvisible(boolean value) {
-        // Check if the armour stand is invisible and store accordingly
+        
         if (primaryEntity) {
             isInvisible = value;
             updateSecondEntityStatus(false);
@@ -251,7 +223,7 @@ public class ArmorStandEntity extends LivingEntity {
     @Override
     public InteractionResult interactAt(Hand hand) {
         if (!isMarker && !session.getPlayerInventory().getItemInHand(hand).is(Items.NAME_TAG)) {
-            // Java Edition returns SUCCESS if in spectator mode, but this is overridden with an earlier check on the client
+            
             return InteractionResult.CONSUME;
         } else {
             return InteractionResult.PASS;
@@ -300,16 +272,12 @@ public class ArmorStandEntity extends LivingEntity {
         updateSecondEntityStatus(false);
     }
 
-    /**
-     * Determine if we need to load or unload the second entity.
-     *
-     * @param sendMetadata whether to send a metadata update after a change.
-     */
+    
     private void updateSecondEntityStatus(boolean sendMetadata) {
-        // A secondary entity always has to have the offset applied, so it remains invisible and the nametag shows.
+        
         if (!primaryEntity) return;
         if (!isInvisible) {
-            // The armor stand isn't invisible. We good.
+            
             setFlag(EntityFlag.INVISIBLE, false);
             setScale(getScale());
             updateOffsetRequirement(false);
@@ -325,43 +293,43 @@ public class ArmorStandEntity extends LivingEntity {
         }
         boolean isNametagEmpty = nametag.isEmpty();
         if (!isNametagEmpty && hasAnyEquipment()) {
-            // Reset scale of the proper armor stand
+            
             setScale(getScale());
-            // Set the proper armor stand to invisible to show armor
+            
             setFlag(EntityFlag.INVISIBLE, true);
-            // Update the position of the armor stand
+            
             updateOffsetRequirement(false);
 
             if (secondEntity == null) {
-                // Create the second entity. It doesn't need to worry about the items, but it does need to worry about
-                // the metadata as it will hold the name tag.
+                
+                
                 secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, position));
                 secondEntity.primaryEntity = false;
             }
-            // Copy metadata
+            
             secondEntity.isSmall = isSmall;
             secondEntity.isMarker = isMarker;
-            secondEntity.positionRequiresOffset = true; // Offset should always be applied
+            secondEntity.positionRequiresOffset = true; 
             secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
             secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, customNameVisible ? (byte) 1 : (byte) 0);
             secondEntity.flags.putAll(this.flags);
-            // Guarantee this copy is NOT invisible
+            
             secondEntity.setFlag(EntityFlag.INVISIBLE, false);
-            // Scale to 0 to show nametag
+            
             secondEntity.setScale(0f);
-            // No bounding box as we don't want to interact with this entity
+            
             secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
             secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
-            if (!secondEntity.valid) { // Spawn the entity once
+            if (!secondEntity.valid) { 
                 secondEntity.spawnEntity();
             }
         } else if (isNametagEmpty) {
-            // We can just make an invisible entity
-            // Reset scale of the proper armor stand
+            
+            
             setScale(getScale());
-            // Set the proper armor stand to invisible to show armor
+            
             setFlag(EntityFlag.INVISIBLE, true);
-            // Update offset
+            
             updateOffsetRequirement(false);
 
             if (secondEntity != null) {
@@ -369,11 +337,11 @@ public class ArmorStandEntity extends LivingEntity {
                 secondEntity = null;
             }
         } else {
-            // Nametag is not empty and there is no armor
-            // We don't need to make a new entity
+            
+            
             setFlag(EntityFlag.INVISIBLE, false);
             setScale(0f);
-            // As the above is applied, we need an offset
+            
             updateOffsetRequirement(!isMarker);
 
             if (secondEntity != null) {
@@ -394,20 +362,18 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public float getBoundingBoxWidth() {
-        // For consistency with getBoundingBoxHeight()
+        
         return super.getBoundingBoxWidth() * getScale();
     }
 
     @Override
     public float getBoundingBoxHeight() {
-        // This is required so that EntityUtils#updateMountOffset() calculates the correct offset for small
-        // armor stands. The bounding box height is not changed as the SCALE entity data handles that for us.
+        
+        
         return super.getBoundingBoxHeight() * getScale();
     }
 
-    /**
-     * @return the y offset required to position the name tag correctly
-     */
+    
     public float getYOffset() {
         if (!positionRequiresOffset || isMarker || secondEntity != null) {
             return 0;
@@ -415,21 +381,17 @@ public class ArmorStandEntity extends LivingEntity {
         return definition.height() * getScale();
     }
 
-    /**
-     * @return the scale according to Java
-     */
+    
     private float getScale() {
         return isSmall ? 0.5f : 1f;
     }
 
-    /**
-     * Set the offset to a new value; if it changed, update the position, too.
-     */
+    
     private void updateOffsetRequirement(boolean newValue) {
         if (newValue != positionRequiresOffset) {
             this.positionRequiresOffset = newValue;
             this.positionUpdateRequired = true;
-            // Update the passenger offset as the armor stand's y offset has changed
+            
             updatePassengerOffsets();
         }
     }

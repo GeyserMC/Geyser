@@ -39,7 +39,7 @@ import java.util.Set;
 
 @Translator(packet = ClientboundSelectKnownPacks.class)
 public class JavaSelectKnownPacksTranslator extends PacketTranslator<ClientboundSelectKnownPacks> {
-    // todo: dump from client?
+    
     private static final Set<String> KNOWN_PACK_IDS = Set.of("core", "trade_rebalance", "redstone_experiments", "minecart_improvements");
 
     @Override
@@ -47,11 +47,11 @@ public class JavaSelectKnownPacksTranslator extends PacketTranslator<Clientbound
         List<KnownPack> knownPacks = new ArrayList<>(1);
         for (KnownPack pack : packet.getKnownPacks()) {
             if ("minecraft".equals(pack.getNamespace()) && GameProtocol.getJavaMinecraftVersion().equals(pack.getVersion())) {
-                // Implementation note: these won't always necessarily be equal.
-                // 1.20.5 versus 1.20.6 for example - same protocol version. A vanilla server for either version will gracefully accept either.
-                // If the versions mismatch, the registry will be sent over the network, though.
-                // For vanilla compliancy, to minimize network traffic, and for potential future behavior,
-                // We'll implement how the Java client does it.
+                
+                
+                
+                
+                
                 if (KNOWN_PACK_IDS.contains(pack.getId())) {
                     knownPacks.add(pack);
                 }

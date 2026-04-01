@@ -32,32 +32,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/**
- * A marker annotation to make sure implementations of {@link GeyserProvided} are actually our implementations. Implement as follows:
- *
- * <pre>
- *     {@code
- *     @GeyserProvided
- *     public interface MyGeyserApi {}
- *     @GeyserCoreProvided
- *     public class MyGeyserApiImpl implements MyGeyserApi {}
- *     }
- * </pre>
- *
- * <p>Then, verify an implementation of {@code MyGeyserApi} is our implementation:</p>
- *
- * <pre>
- *     {@code
- *       boolean isApiProvided = AnnotationUtils.hasAnnotationRecursive(clazz, GeyserProvided.class);
- *       boolean isCoreImpl = AnnotationUtils.hasAnnotationRecursive(clazz, GeyserCoreProvided.class);
- *       if (isApiProvided && !isCoreImpl) {
- *          throw new IllegalArgumentException("some message");
- *       }
- *     }
- * </pre>
- *
- * <p>The error message given should contain clear details on what the developer should be doing instead.</p>
- */
+
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface GeyserCoreProvided {

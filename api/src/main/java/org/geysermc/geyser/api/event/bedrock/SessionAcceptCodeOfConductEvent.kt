@@ -22,54 +22,48 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.event.bedrock
 
-package org.geysermc.geyser.api.event.bedrock;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
-import org.geysermc.geyser.api.event.java.ServerCodeOfConductEvent;
+import org.geysermc.geyser.api.connection.GeyserConnection
+import org.geysermc.geyser.api.event.connection.ConnectionEvent
 
 /**
  * Fired when a player accepts a code of conduct sent by the Java server. API users can listen to this event
  * to store the acceptance in a cache, and tell Geyser not to do so.
- *
- * <p>Java clients cache acceptance locally, but bedrock clients don't. Normally Geyser uses a simple JSON file to implement this,
- * but an alternative solution may be preferred when using multiple Geyser instances. Such a solution can be implemented through this event and {@link ServerCodeOfConductEvent}.</p>
- *
+ * 
+ * 
+ * Java clients cache acceptance locally, but bedrock clients don't. Normally Geyser uses a simple JSON file to implement this,
+ * but an alternative solution may be preferred when using multiple Geyser instances. Such a solution can be implemented through this event and [ServerCodeOfConductEvent].
+ * 
  * @see ServerCodeOfConductEvent
+ * 
  * @since 2.9.0
  */
-public class SessionAcceptCodeOfConductEvent extends ConnectionEvent {
-    private final String codeOfConduct;
-    private boolean skipSaving = false;
-
-    public SessionAcceptCodeOfConductEvent(@NonNull GeyserConnection connection, String codeOfConduct) {
-        super(connection);
-        this.codeOfConduct = codeOfConduct;
-    }
+class SessionAcceptCodeOfConductEvent(connection: GeyserConnection, private val codeOfConduct: String?) :
+    ConnectionEvent(connection) {
+    private var skipSaving = false
 
     /**
      * @return the code of conduct sent by the server
      * @since 2.9.0
      */
-    public String codeOfConduct() {
-        return codeOfConduct;
+    fun codeOfConduct(): String? {
+        return codeOfConduct
     }
 
     /**
-     * @return {@code true} if Geyser should not save the acceptance of the code of conduct in its own cache (through a JSON file), because it was saved elsewhere
+     * @return `true` if Geyser should not save the acceptance of the code of conduct in its own cache (through a JSON file), because it was saved elsewhere
      * @since 2.9.0
      */
-    public boolean shouldSkipSaving() {
-        return skipSaving;
+    fun shouldSkipSaving(): Boolean {
+        return skipSaving
     }
 
     /**
-     * Sets {@link SessionAcceptCodeOfConductEvent#shouldSkipSaving()} to {@code true}.
+     * Sets [SessionAcceptCodeOfConductEvent.shouldSkipSaving] to `true`.
      * @since 2.9.0
      */
-    public void skipSaving() {
-        this.skipSaving = true;
+    fun skipSaving() {
+        this.skipSaving = true
     }
 }

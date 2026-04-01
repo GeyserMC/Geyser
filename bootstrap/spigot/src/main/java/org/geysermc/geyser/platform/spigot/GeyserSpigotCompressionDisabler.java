@@ -31,13 +31,7 @@ import io.netty.channel.ChannelPromise;
 import org.bukkit.Bukkit;
 import org.geysermc.geyser.GeyserImpl;
 
-/**
- * Disables the compression packet (and the compression handlers from being added to the pipeline) for Geyser clients
- * that won't be receiving the data over the network.
- * <p>
- * As of 1.8 - 1.17.1, compression is enabled in the Netty pipeline by adding a listener after a packet is written.
- * If we simply "cancel" or don't forward the packet, then the listener is never called.
- */
+
 public class GeyserSpigotCompressionDisabler extends ChannelOutboundHandlerAdapter {
     static final boolean ENABLED;
 
@@ -72,11 +66,11 @@ public class GeyserSpigotCompressionDisabler extends ChannelOutboundHandlerAdapt
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         Class<?> msgClass = msg.getClass();
-        // Don't let any compression packet get through
+        
         if (!COMPRESSION_PACKET_CLASS.isAssignableFrom(msgClass)) {
             if (LOGIN_SUCCESS_PACKET_CLASS.isAssignableFrom(msgClass)) {
                 if (PROTOCOL_SUPPORT_INSTALLED) {
-                    // ProtocolSupport must send the compression packet, so let's remove what it did before it does damage
+                    
                     if (ctx.pipeline().get("compress") != null) {
                         ctx.pipeline().remove("compress");
                     }
@@ -84,23 +78,23 @@ public class GeyserSpigotCompressionDisabler extends ChannelOutboundHandlerAdapt
                         ctx.pipeline().remove("decompress");
                     }
                 }
-                // We're past the point that a compression packet can be sent, so we can safely yeet ourselves away
+                
                 ctx.channel().pipeline().remove(this);
             }
             super.write(ctx, msg, promise);
         } else if (PROTOCOL_SUPPORT_INSTALLED) {
-            // We must indicate it "succeeded" or ProtocolSupport will time us out
+            
             promise.setSuccess();
         }
     }
 
     private static Class<?> findCompressionPacket() throws ClassNotFoundException {
         try {
-            // Mojmaps
+            
             return Class.forName("net.minecraft.network.protocol.login.ClientboundLoginCompressionPacket");
         } catch (ClassNotFoundException e) {
             try {
-                // Spigot mappings
+                
                 return Class.forName("net.minecraft.network.protocol.login.PacketLoginOutSetCompression");
             } catch (ClassNotFoundException ex) {
                 String prefix = Bukkit.getServer().getClass().getPackage().getName().replace("org.bukkit.craftbukkit", "net.minecraft.server");
@@ -111,11 +105,11 @@ public class GeyserSpigotCompressionDisabler extends ChannelOutboundHandlerAdapt
 
     private static Class<?> findLoginSuccessPacket() throws ClassNotFoundException {
         try {
-            // Mojmaps
+            
             return Class.forName("net.minecraft.network.protocol.login.ClientboundLoginFinishedPacket");
         } catch (ClassNotFoundException e) {
             try {
-                // Spigot mappings
+                
                 return Class.forName("net.minecraft.network.protocol.login.PacketLoginOutSuccess");
             } catch (ClassNotFoundException ex) {
                 String prefix = Bukkit.getServer().getClass().getPackage().getName().replace("org.bukkit.craftbukkit", "net.minecraft.server");

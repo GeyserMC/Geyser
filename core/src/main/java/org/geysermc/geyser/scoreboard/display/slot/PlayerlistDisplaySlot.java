@@ -54,12 +54,12 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
         boolean objectiveUpdate = updateType == UpdateType.UPDATE;
         boolean objectiveNothing = updateType == UpdateType.NOTHING;
 
-        // if 'add' the scores aren't present, if 'update' the objective is re-added so the scores don't have to be
-        // manually removed, if 'remove' the scores are removed anyway
+        
+        
         if (objectiveNothing) {
             var removedScoresCopy = new ArrayList<>(removedScores);
             for (var removedScore : removedScoresCopy) {
-                //todo idk if this if-statement is needed
+                
                 if (removedScore.cachedInfo() != null) {
                     removeScores.add(removedScore.cachedInfo());
                 }
@@ -73,15 +73,15 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
             for (var score : displayScores.values()) {
                 if (score.referenceRemoved()) {
                     ScoreInfo cachedInfo = score.cachedInfo();
-                    // cachedInfo can be null here when ScoreboardUpdater is being used and a score is added and
-                    // removed before a single update cycle is performed
+                    
+                    
                     if (cachedInfo != null) {
                         removeScores.add(cachedInfo);
                     }
                     continue;
                 }
 
-                //todo does an animated title exist on tab?
+                
                 boolean add = objectiveAdd || objectiveUpdate;
                 boolean exists = score.exists();
 
@@ -94,9 +94,9 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
                     addScores.add(score.cachedInfo());
                 }
 
-                // we need this as long as MCPE-143063 hasn't been fixed.
-                // the checks after 'add' are there to prevent removing scores that
-                // are going to be removed anyway / don't need to be removed
+                
+                
+                
                 if (add && exists && objectiveNothing) {
                     removeScores.add(score.cachedInfo());
                 }
@@ -116,8 +116,8 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
 
     @Override
     public void addScore(ScoreReference reference) {
-        // while it breaks a lot of stuff in Java, scoreboard do work fine with multiple players having
-        // the same username
+        
+        
         var players = session.getEntityCache().getPlayersByName(reference.name());
         var selfPlayer = session.getPlayerEntity();
         if (reference.name().equals(selfPlayer.getUsername())) {

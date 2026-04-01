@@ -49,7 +49,7 @@ public class JavaResetScorePacket extends PacketTranslator<ClientboundResetScore
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
 
         if (packet.getObjective() == null) {
-            // No objective name means all scores are reset for that player (/scoreboard players reset PLAYERNAME)
+            
             scoreboard.resetPlayerScores(packet.getOwner());
         } else {
             Objective objective = scoreboard.getObjective(packet.getObjective());
@@ -64,8 +64,8 @@ public class JavaResetScorePacket extends PacketTranslator<ClientboundResetScore
             objective.removeScore(packet.getOwner());
         }
 
-        // ScoreboardUpdater will handle it for us if the packets per second
-        // (for score and team packets) is higher than the first threshold
+        
+        
         if (pps < ScoreboardUpdater.FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD) {
             scoreboard.onUpdate();
         }

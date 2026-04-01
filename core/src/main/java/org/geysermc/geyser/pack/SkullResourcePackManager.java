@@ -79,7 +79,7 @@ public class SkullResourcePackManager {
         Path packPath = cachePath.resolve("player_skulls.mcpack");
         File packFile = packPath.toFile();
         if (BlockRegistries.CUSTOM_SKULLS.get().isEmpty() || !GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
-            packFile.delete(); // No need to keep resource pack
+            packFile.delete(); 
             return null;
         }
         if (packFile.exists() && canReusePack(packFile)) {
@@ -87,7 +87,7 @@ public class SkullResourcePackManager {
             return packPath;
         }
 
-        // We need to create the resource pack from scratch
+        
         GeyserImpl.getInstance().getLogger().info("Creating skull resource pack.");
         packFile.delete();
         try (ZipOutputStream zipOS = new ZipOutputStream(Files.newOutputStream(packPath, StandardOpenOption.WRITE, StandardOpenOption.CREATE))) {
@@ -119,19 +119,19 @@ public class SkullResourcePackManager {
         }
 
         BufferedImage image = SkinProvider.requestImage(skinUrl, false);
-        // Resize skins to 48x16 to save on space and memory
+        
         BufferedImage skullTexture = new BufferedImage(48, 16, image.getType());
-        // Reorder skin parts to fit into the space
-        // Right, Front, Left, Back, Top, Bottom - head
-        // Right, Front, Left, Back, Top, Bottom - hat
+        
+        
+        
         Graphics g = skullTexture.createGraphics();
-        // Right, Front, Left, Back of the head
+        
         g.drawImage(image, 0, 0, 32, 8, 0, 8, 32, 16, null);
-        // Right, Front, Left, Back of the hat
+        
         g.drawImage(image, 0, 8, 32, 16, 32, 8, 64, 16, null);
-        // Top and bottom of the head
+        
         g.drawImage(image, 32, 0, 48, 8, 8, 0, 24, 8, null);
-        // Top and bottom of the hat
+        
         g.drawImage(image, 32, 8, 48, 16, 40, 0, 56, 8, null);
         g.dispose();
         image.flush();
@@ -142,7 +142,7 @@ public class SkullResourcePackManager {
     }
 
     public static void cleanSkullSkinCache() {
-        // No need to clean up if skin cache does not exist
+        
         if (!Files.exists(SKULL_SKIN_CACHE_PATH)) {
             return;
         }
@@ -256,7 +256,7 @@ public class SkullResourcePackManager {
             textures.append(texture);
         }
         if (textures.length() != 0) {
-            // Remove trailing comma
+            
             textures.delete(textures.length() - 2, textures.length());
         }
         return template.replace("${texture_data}", textures);

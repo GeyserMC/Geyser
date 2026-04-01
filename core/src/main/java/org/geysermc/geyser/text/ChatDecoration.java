@@ -41,14 +41,14 @@ public record ChatDecoration(String translationKey, List<Parameter> parameters, 
 
     @Override
     public NbtMap style() {
-        // Should not ever be called.
+        
         throw new UnsupportedOperationException();
     }
 
     public static ChatType readChatType(RegistryEntryContext context) {
-        // Note: The ID is NOT ALWAYS THE SAME! ViaVersion as of 1.19 adds two registry entries that do NOT match vanilla.
-        // (This note has been passed around through several classes and iterations. It stays as a warning
-        // to anyone that dares to try and hardcode registry IDs.)
+        
+        
+        
         NbtMap tag = context.data();
         NbtMap chat = tag.getCompound("chat", null);
         if (chat != null) {

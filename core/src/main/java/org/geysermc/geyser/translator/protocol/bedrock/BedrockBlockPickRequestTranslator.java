@@ -44,9 +44,9 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
         Vector3i vector = packet.getBlockPosition();
         BlockState blockToPick = session.getGeyser().getWorldManager().blockAt(session, vector.getX(), vector.getY(), vector.getZ());
         
-        // Block is air - chunk caching is probably off
+        
         if (blockToPick.is(Blocks.AIR)) {
-            // Check for an item frame since the client thinks that's a block when it's an entity in Java
+            
             ItemFrameEntity entity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
 
             if (entity != null) {
@@ -55,7 +55,7 @@ public class BedrockBlockPickRequestTranslator extends PacketTranslator<BlockPic
             return;
         }
 
-        boolean addExtraData = packet.isAddUserData() && blockToPick.block().hasBlockEntity(); // Holding down CTRL
+        boolean addExtraData = packet.isAddUserData() && blockToPick.block().hasBlockEntity(); 
         session.sendDownstreamGamePacket(new ServerboundPickItemFromBlockPacket(vector, addExtraData));
     }
 }

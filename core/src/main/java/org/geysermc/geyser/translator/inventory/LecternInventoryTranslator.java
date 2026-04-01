@@ -60,7 +60,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
     public boolean prepareInventory(GeyserSession session, LecternContainer container) {
         super.prepareInventory(session, container);
         if (container.isBookInPlayerInventory()) {
-            // See JavaOpenBookTranslator; this isn't a lectern but a book in the player inventory
+            
             updateBook(session, container, container.getItem(0));
         }
         return true;
@@ -68,15 +68,15 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public void openInventory(GeyserSession session, LecternContainer container) {
-        // Hacky, but we're dealing with LECTERNS! It cannot not be hacky.
-        // We have to ensure we received the book from the Java server already.
-        // dropping lectern book is the fun workaround when we have to enter the gui server-side only to drop the book.
+        
+        
+        
         if (container.getBlockEntityTag() != null && !session.isDroppingLecternBook()) {
             super.openInventory(session, container);
         }
     }
 
-    // Lecterns don't require a delay before opening.
+    
     @Override
     public boolean requiresOpeningDelay(GeyserSession session, LecternContainer container) {
         return false;
@@ -84,18 +84,18 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public void closeInventory(GeyserSession session, LecternContainer container, boolean force) {
-        // Of course, sending a simple ContainerClosePacket, or even breaking the block doesn't work to close a lectern.
-        // Heck, the latter crashes the client xd
-        // BDS just sends an empty base lectern tag... that kicks out the client. Fine. Let's do that!
+        
+        
+        
         Vector3i position = container.getHolderPosition();
         BlockEntityUtils.updateBlockEntity(session, LecternBlock.getBaseLecternTag(position, false), position);
 
-        // Closing lecterns isn't followed up by a ContainerClosePacket, so this wouldn't ever be reset.
+        
         session.setPendingOrCurrentBedrockInventoryId(-1);
         session.setClosingInventory(false);
 
-        super.closeInventory(session, container, force); // Removes the fake blocks if need be
-        // Now: Restore the correct lectern block state, if it actually exists
+        super.closeInventory(session, container, force); 
+        
         if (container.isUsingRealBlock()) {
             Runnable closeLecternRunnable = () -> {
                 boolean hasBook = session.getGeyser().getWorldManager().blockAt(session, position).getValue(Properties.HAS_BOOK, false);
@@ -103,7 +103,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
             };
 
             if (force) {
-                // Without a delay, an inventory close request can *occasionally* be ignored as we're restoring the book too quickly
+                
                 session.scheduleInEventLoop(closeLecternRunnable, 100, TimeUnit.MILLISECONDS);
             } else {
                 closeLecternRunnable.run();
@@ -113,9 +113,9 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public void updateProperty(GeyserSession session, LecternContainer container, int key, int value) {
-        if (key == 0) { // Lectern page update
+        if (key == 0) { 
             container.setCurrentBedrockPage(value / 2);
-            // Null means we didn't get a book to work with yet
+            
             if (container.getBlockEntityTag() != null) {
                 container.setBlockEntityTag(container.getBlockEntityTag().toBuilder().putInt("page", container.getCurrentBedrockPage()).build());
                 BlockEntityUtils.updateBlockEntity(session, container.getBlockEntityTag(), container.getHolderPosition());
@@ -131,10 +131,10 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
             int oldBookHash = container.getCurrentBookHash();
             updateBook(session, container, itemStack);
 
-            // Only open the inventory here if we:
-            // 1. were not dropping the book; in which case we also closed the inventory already;
-            // 2. have a valid lectern block entity tag;
-            // 3. didn't open the inventory already
+            
+            
+            
+            
             if (!wasDropping && container.getBlockEntityTag() != null && oldBookHash == 0) {
                 openInventory(session, container);
             }
@@ -154,14 +154,12 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
         return null;
     }
 
-    /**
-     * Translate the data of the book in the lectern into a block entity tag.
-     */
+    
     private void updateBook(GeyserSession session, LecternContainer container, GeyserItemStack book) {
         if (session.isDroppingLecternBook()) {
             InventoryHolder<?> holder = session.getInventoryHolder();
             if (holder != null && !container.isBookInPlayerInventory()) {
-                // We have to enter the inventory GUI to eject the book
+                
                 ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(container.getJavaId(), 3);
                 session.sendDownstreamGamePacket(packet);
                 InventoryUtils.closeInventory(session, container.getJavaId(), false);
@@ -188,7 +186,7 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
                 ItemData itemData = book.getItemData(session);
                 blockEntityTag = LecternBlock.createLecternTag(position, BedrockItemBuilder.createItemNbt(itemData).build(), currentPage, pages);
             } else {
-                // There is *a* book here, but... no book component?.
+                
                 blockEntityTag = LecternBlock.getBaseLecternTag(position, true);
                 currentPage = 0;
             }

@@ -22,10 +22,10 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.pack.option
 
-package org.geysermc.geyser.api.pack.option;
-
-import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.GeyserApi
+import org.geysermc.geyser.api.pack.option.PriorityOption.Companion.priority
 
 /**
  * Allows specifying a pack priority that decides the order on how packs are sent to the client.
@@ -34,26 +34,28 @@ import org.geysermc.geyser.api.GeyserApi;
  * Specifically, the pack with the higher priority will override the pack changes of the lower priority.
  * @since 2.6.2
  */
-public interface PriorityOption extends ResourcePackOption<Integer> {
-
-    PriorityOption HIGHEST = PriorityOption.priority(100);
-    PriorityOption HIGH = PriorityOption.priority(50);
-    PriorityOption NORMAL = PriorityOption.priority(0);
-    PriorityOption LOW = PriorityOption.priority(-50);
-    PriorityOption LOWEST = PriorityOption.priority(-100);
-
-    /**
-     * Constructs a priority option based on a value between 0 and 10.
-     * The higher the number, the higher will this pack appear in the resource pack stack.
-     *
-     * @param priority an integer that is above 0, but smaller than 10
-     * @return the priority option
-     * @since 2.6.2
-     */
-    static PriorityOption priority(int priority) {
-        if (priority < -100 || priority > 100) {
-            throw new IllegalArgumentException("Priority must be between -100 and 100 inclusive!");
+interface PriorityOption : ResourcePackOption<Int?> {
+    companion object {
+        /**
+         * Constructs a priority option based on a value between 0 and 10.
+         * The higher the number, the higher will this pack appear in the resource pack stack.
+         * 
+         * @param priority an integer that is above 0, but smaller than 10
+         * @return the priority option
+         * @since 2.6.2
+         */
+        fun priority(priority: Int): PriorityOption {
+            require(!(priority < -100 || priority > 100)) { "Priority must be between -100 and 100 inclusive!" }
+            return GeyserApi.Companion.api()
+                .provider<PriorityOption, PriorityOption?>(PriorityOption::class.java, priority)
         }
-        return GeyserApi.api().provider(PriorityOption.class, priority);
+
+        val HIGHEST: PriorityOption = priority(100)
+        val HIGH: PriorityOption = priority(50)
+        @kotlin.jvm.JvmField
+        val NORMAL: PriorityOption = priority(0)
+        @kotlin.jvm.JvmField
+        val LOW: PriorityOption = priority(-50)
+        val LOWEST: PriorityOption = priority(-100)
     }
 }

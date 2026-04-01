@@ -22,80 +22,80 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.block.custom.component
 
-package org.geysermc.geyser.api.block.custom.component;
-
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.GeyserApi
 
 /**
  * This class is used to store data for a material instance.
  */
-public interface MaterialInstance {
+interface MaterialInstance {
     /**
      * Gets the texture of the block
-     *
+     * 
      * @return The texture of the block.
      */
-    @Nullable String texture();
+    fun texture(): String?
 
     /**
      * Gets the render method of the block
-     *
+     * 
      * @return The render method of the block.
      */
-    @Nullable String renderMethod();
+    fun renderMethod(): String?
 
     /**
      * Gets the tint method of the block
-     *
+     * 
      * @return The tint method of the block.
      */
-    @Nullable String tintMethod();
+    fun tintMethod(): String?
 
     /**
      * Gets if the block should be dimmed on certain faces
      * 
      * @return If the block should be dimmed on certain faces.
      */
-    boolean faceDimming();
+    fun faceDimming(): Boolean
 
     /**
      * Gets if the block should have ambient occlusion
      * 
      * @return If the block should have ambient occlusion.
      */
-    boolean ambientOcclusion();
+    fun ambientOcclusion(): Boolean
 
     /**
      * Gets if the block is isotropic
-     *
+     * 
      * @return If the block is isotropic.
      */
-    boolean isotropic();
-
-    /**
-     * Creates a builder for MaterialInstance.
-     *
-     * @return a builder for MaterialInstance
-     */
-    static MaterialInstance.Builder builder() {
-        return GeyserApi.api().provider(MaterialInstance.Builder.class);
-    }
+    fun isotropic(): Boolean
 
     interface Builder {
-        Builder texture(@Nullable String texture);
+        fun texture(texture: String?): Builder?
 
-        Builder renderMethod(@Nullable String renderMethod);
+        fun renderMethod(renderMethod: String?): Builder?
 
-        Builder tintMethod(@Nullable String tintMethod);
+        fun tintMethod(tintMethod: String?): Builder?
 
-        Builder faceDimming(boolean faceDimming);
+        fun faceDimming(faceDimming: Boolean): Builder?
 
-        Builder ambientOcclusion(boolean ambientOcclusion);
+        fun ambientOcclusion(ambientOcclusion: Boolean): Builder?
 
-        Builder isotropic(boolean isotropic);
+        fun isotropic(isotropic: Boolean): Builder?
 
-        MaterialInstance build();
+        fun build(): MaterialInstance?
+    }
+
+    companion object {
+        /**
+         * Creates a builder for MaterialInstance.
+         * 
+         * @return a builder for MaterialInstance
+         */
+        fun builder(): Builder {
+            return GeyserApi.Companion.api().provider<Builder, Builder?>(Builder::class.java)
+        }
     }
 }

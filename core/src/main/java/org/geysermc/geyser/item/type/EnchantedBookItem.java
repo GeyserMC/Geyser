@@ -57,7 +57,7 @@ public class EnchantedBookItem extends Item {
 
         List<NbtMap> bedrockEnchants = new ArrayList<>();
         ItemEnchantments enchantments = components.get(DataComponentTypes.STORED_ENCHANTMENTS);
-        if (enchantments != null) { // TODO don't duplicate code?
+        if (enchantments != null) { 
             for (Map.Entry<Integer, Integer> enchantment : enchantments.getEnchantments().entrySet()) {
                 NbtMap bedrockTag = remapEnchantment(session, enchantment.getKey(), enchantment.getValue(), builder);
                 if (bedrockTag != null) {

@@ -35,27 +35,18 @@ import org.geysermc.geyser.util.CooldownUtils;
 public class PreferencesCache {
     private final GeyserSession session;
 
-    /**
-     * True if the client prefers being shown their coordinates, regardless if they're being shown or not.
-     * This will be true everytime the client joins the server because neither the client nor server store the preference permanently.
-     */
+    
     @Setter
     private boolean prefersShowCoordinates = true;
 
-    /**
-     * If the client's preference will be ignored, this will return false.
-     */
+    
     private boolean allowShowCoordinates;
 
-    /**
-     * If the session wants custom skulls to be shown.
-     */
+    
     @Setter
     private boolean prefersCustomSkulls;
 
-    /**
-     * Which CooldownType the client prefers. Initially set to the config default.
-     */
+    
     @Setter
     private CooldownUtils.CooldownType cooldownPreference;
 
@@ -66,22 +57,13 @@ public class PreferencesCache {
         cooldownPreference = session.getGeyser().config().gameplay().cooldownType();
     }
 
-    /**
-     * Tell the client to hide or show the coordinates.
-     * <p>
-     * If {@link #prefersShowCoordinates} is true, coordinates will be shown, unless either of the following conditions apply: <br>
-     * <br>
-     * {@link GeyserSession#isReducedDebugInfo()} is enabled
-     * {@link GeyserConfig.GameplayConfig#showCoordinates()} is disabled
-     */
+    
     public void updateShowCoordinates() {
         allowShowCoordinates = !session.isReducedDebugInfo() && session.getGeyser().config().gameplay().showCoordinates();
         session.sendGameRule("showcoordinates", allowShowCoordinates && prefersShowCoordinates);
     }
 
-    /**
-     * @return true if the session prefers custom skulls, and the config allows them.
-     */
+    
     public boolean showCustomSkulls() {
         return prefersCustomSkulls && session.getGeyser().config().gameplay().maxVisibleCustomSkulls() != 0;
     }

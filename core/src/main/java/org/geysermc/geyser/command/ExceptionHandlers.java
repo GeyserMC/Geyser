@@ -45,10 +45,7 @@ import org.incendo.cloud.exception.handling.ExceptionController;
 import java.lang.reflect.Type;
 import java.util.function.BiConsumer;
 
-/**
- * Geyser's exception handlers for command execution with Cloud.
- * Overrides Cloud's defaults so that messages can be customized to our liking: localization, etc.
- */
+
 final class ExceptionHandlers {
 
     final static String PERMISSION_FAIL_LANG_KEY = "geyser.command.permission_fail";
@@ -59,26 +56,22 @@ final class ExceptionHandlers {
         this.controller = controller;
     }
 
-    /**
-     * Clears the existing handlers that are registered to the given command manager, and repopulates them.
-     *
-     * @param manager the manager whose exception handlers will be modified
-     */
+    
     static void register(CommandManager<GeyserCommandSource> manager) {
         new ExceptionHandlers(manager.exceptionController()).register();
     }
 
     private void register() {
-        // Yeet the default exception handlers that cloud provides so that we can perform localization.
+        
         controller.clearHandlers();
 
         registerExceptionHandler(InvalidSyntaxException.class,
             (ctx, e) -> ctx.sender().sendLocaleString("geyser.command.invalid_syntax", e.correctSyntax()));
 
         registerExceptionHandler(InvalidCommandSenderException.class, (ctx, e) -> {
-            // We currently don't use cloud sender type requirements anywhere.
-            // This can be implemented better in the future if necessary.
-            Type type = e.requiredSenderTypes().iterator().next(); // just grab the first
+            
+            
+            Type type = e.requiredSenderTypes().iterator().next(); 
             String typeString = GenericTypeReflector.getTypeName(type);
             ctx.sender().sendLocaleString("geyser.command.invalid_sender", e.commandSender().getClass().getSimpleName(), typeString);
         });
@@ -87,7 +80,7 @@ final class ExceptionHandlers {
 
         registerExceptionHandler(NoSuchCommandException.class,
             (ctx, e) -> {
-                // Let backend server receive & handle the command
+                
                 if (CommandRegistry.STANDALONE_COMMAND_MANAGER && ctx.sender() instanceof GeyserSession session) {
                     session.sendCommandPacket(ctx.rawInput().input());
                 } else {
@@ -112,13 +105,13 @@ final class ExceptionHandlers {
     private static void handleNoPermission(CommandContext<GeyserCommandSource> context, NoPermissionException exception) {
         GeyserCommandSource source = context.sender();
 
-        // Let backend server receive & handle the command
+        
         if (CommandRegistry.STANDALONE_COMMAND_MANAGER && source instanceof GeyserSession session) {
             session.sendCommandPacket(context.rawInput().input());
             return;
         }
 
-        // custom handling if the source can't use the command because of additional requirements
+        
         if (exception.permissionResult() instanceof GeyserPermission.Result result) {
             if (result.meta() == GeyserPermission.Result.Meta.NOT_BEDROCK) {
                 source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.command.bedrock_only", source.locale()));
@@ -135,12 +128,12 @@ final class ExceptionHandlers {
             }
         }
 
-        // Result.NO_PERMISSION or generic permission failure
+        
         source.sendLocaleString(PERMISSION_FAIL_LANG_KEY);
     }
 
     private static void handleUnexpectedThrowable(GeyserCommandSource source, Throwable throwable) {
-        source.sendMessage(MinecraftLocale.getLocaleString("command.failed", source.locale())); // java edition translation key
+        source.sendMessage(MinecraftLocale.getLocaleString("command.failed", source.locale())); 
         GeyserImpl.getInstance().getLogger().error("Exception while executing command handler", throwable);
     }
 }

@@ -44,8 +44,8 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
     public void translate(GeyserSession session, ClientboundBlockUpdatePacket packet) {
         Vector3i pos = packet.getEntry().getPosition();
         WorldManager worldManager = session.getGeyser().getWorldManager();
-        // Platforms where Geyser has direct server access don't allow us to detect actual block changes,
-        // hence why those platforms deal with sounds for block placements differently
+        
+        
         boolean updatePlacement = !worldManager.hasOwnChunkCache() &&
                 !session.getErosionHandler().isActive() && worldManager.getBlockAt(session, pos) != packet.getEntry().getBlock();
         session.getWorldCache().updateServerCorrectBlockState(pos, packet.getEntry().getBlock());
@@ -66,8 +66,8 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
             return;
         }
 
-        // We need to check if the identifier is the same, else a packet with the sound of what the
-        // player has in their hand is played, despite if the block is being placed or not
+        
+        
         boolean contains = false;
         Item item = BlockState.of(packet.getEntry().getBlock()).block().asItem();
         if (item == session.getLastBlockPlaced()) {
@@ -80,7 +80,7 @@ public class JavaBlockUpdateTranslator extends PacketTranslator<ClientboundBlock
             return;
         }
 
-        // This is not sent from the server, so we need to send it this way
+        
         LevelSoundEventPacket placeBlockSoundPacket = new LevelSoundEventPacket();
         placeBlockSoundPacket.setSound(SoundEvent.PLACE);
         placeBlockSoundPacket.setPosition(lastPlacePos.toFloat());

@@ -32,10 +32,7 @@ import org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
-/**
- * A wrapper around the {@link SessionDisconnectEvent} that allows
- * Geyser to access the underlying component when replacing disconnect messages.
- */
+
 @Getter
 public class SessionDisconnectEventImpl extends SessionDisconnectEvent {
 

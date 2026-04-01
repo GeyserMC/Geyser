@@ -49,7 +49,7 @@ public class ExtensionsCommand extends GeyserCommand {
     public void execute(CommandContext<GeyserCommandSource> context) {
         GeyserCommandSource source = context.sender();
 
-        // TODO: Pagination
+        
         int page = 1;
         int maxPage = 1;
         String header = GeyserLocale.getPlayerLocaleString("geyser.commands.extensions.header", source.locale(), page, maxPage);

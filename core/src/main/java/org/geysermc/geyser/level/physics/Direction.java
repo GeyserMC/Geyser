@@ -105,7 +105,7 @@ public enum Direction {
         int id = idExtractor.applyAsInt(source);
         if (id < 0 || id >= VALUES.length) {
             GeyserImpl.getInstance().getLogger().warning("Received invalid direction from " + source + " (ID was " + id + ")");
-            return DOWN; // Default to DOWN when receiving an invalid ID
+            return DOWN; 
         }
         return Direction.VALUES[id];
     }

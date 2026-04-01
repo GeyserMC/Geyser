@@ -34,31 +34,7 @@ import org.geysermc.geyser.registry.mappings.components.DataComponentReader;
 import org.geysermc.geyser.registry.mappings.util.MappingsUtil;
 import org.geysermc.geyser.registry.mappings.util.NodeReader;
 
-/**
- * For some reason, Minecraft Java uses
- *
- * <pre>
- *     {@code
- *     {
- *       "minecraft:enchantable: {
- *         "value": 4
- *       }
- *     }
- *     }
- * </pre>
- *
- * instead of
- *
- * <pre>
- *     {@code
- *     {
- *         "minecraft:enchantable": 4
- *     }
- *     }
- * </pre>
- *
- * This reader allows both styles.
- */
+
 public class EnchantableReader extends DataComponentReader<Integer> {
 
     public EnchantableReader() {

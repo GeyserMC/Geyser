@@ -32,47 +32,25 @@ import org.geysermc.geyser.registry.type.UtilMappings;
 import java.util.List;
 import java.util.function.Supplier;
 
-/**
- * Holds common {@link RegistryLoader}s or utility methods surrounding them.
- */
+
 public final class RegistryLoaders {
-    /**
-     * The {@link RegistryLoader} responsible for loading NBT.
-     */
+    
     public static final NbtRegistryLoader NBT = new NbtRegistryLoader();
 
-    /**
-     * The {@link RegistryLoader} responsible for loading biome data.
-     */
+    
     public static final BiomeLoader BIOME_LOADER = new BiomeLoader();
 
-    /**
-     * The {@link RegistryLoader} responsible for loading resource packs.
-     */
+    
     public static final ResourcePackLoader RESOURCE_PACKS = new ResourcePackLoader();
 
     public static final UtilMappings.Loader<List<Key>> UTIL_MAPPINGS_KEYS = new UtilMappings.Loader<>();
 
-    /**
-     * Wraps the surrounding {@link Supplier} in a {@link RegistryLoader} which does
-     * not take in any input value.
-     *
-     * @param supplier the supplier
-     * @param <V> the value
-     * @return a RegistryLoader wrapping the given Supplier
-     */
+    
     public static <V> RegistryLoader<Object, V> empty(@NonNull Supplier<V> supplier) {
         return input -> supplier.get();
     }
 
-    /**
-     * Returns a {@link RegistryLoader} which has not taken
-     * in any input value.
-     *
-     * @param <I> the input
-     * @param <V> the value
-     * @return a RegistryLoader that is yet to contain a value.
-     */
+    
     public static <I, V> RegistryLoader<I, V> uninitialized() {
         return input -> null;
     }

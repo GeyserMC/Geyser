@@ -47,10 +47,7 @@ public class LecternContainer extends Container {
         super(session, title, id, size, containerType);
     }
 
-    /**
-     * This is used ONLY once to set the book of a fake lectern in {@link JavaOpenBookTranslator}.
-     * See {@link LecternContainer#setItem(int, GeyserItemStack, GeyserSession)} as for why this is separate.
-     */
+    
     public void setVirtualLecternBook(GeyserItemStack book, GeyserSession session) {
         this.isBookInPlayerInventory = true;
         super.setItem(0, book, session);

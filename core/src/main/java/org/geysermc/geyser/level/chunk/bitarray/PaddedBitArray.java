@@ -32,19 +32,13 @@ import java.util.Arrays;
 
 public class PaddedBitArray implements BitArray {
 
-    /**
-     * Array used to store data
-     */
+    
     private final int[] words;
 
-    /**
-     * Palette version information
-     */
+    
     private final BitArrayVersion version;
 
-    /**
-     * Number of entries in this palette (<b>not</b> the length of the words array that internally backs this palette)
-     */
+    
     private final int size;
 
     PaddedBitArray(BitArrayVersion version, int size, int[] words) {

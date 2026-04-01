@@ -47,72 +47,32 @@ public class SimpleDeferredRegistry<V> extends DeferredRegistry<V, SimpleRegistr
         super(input, registryInitializer, deferredLoader);
     }
 
-    /**
-     * Creates a new deferred registry.
-     *
-     * @param registryLoader the registry loader
-     * @param deferredLoader the deferred loader
-     * @param <I> the input type
-     * @return the new deferred registry
-     */
+    
     public static <I, V> SimpleDeferredRegistry<V> create(Function<RegistryLoader<I, V>, SimpleRegistry<V>> registryLoader, RegistryLoader<I, V> deferredLoader) {
         return new SimpleDeferredRegistry<>(registryLoader, deferredLoader);
     }
 
-    /**
-     * Creates a new deferred registry.
-     *
-     * @param registryLoader the registry loader
-     * @param deferredLoader the deferred loader
-     * @param <I> the input type
-     * @return the new deferred registry
-     */
+    
     public static <I, V> SimpleDeferredRegistry<V> create(Function<RegistryLoader<I, V>, SimpleRegistry<V>> registryLoader, Supplier<RegistryLoader<I, V>> deferredLoader) {
         return new SimpleDeferredRegistry<>(registryLoader, deferredLoader);
     }
 
-    /**
-     * Creates a new deferred registry.
-     *
-     * @param registryInitializer the registry initializer
-     * @param deferredLoader the deferred loader
-     * @param <I> the input type
-     * @return the new deferred registry
-     */
+    
     public static <I, V> SimpleDeferredRegistry<V> create(I input, RegistryInitializer<V, SimpleRegistry<V>> registryInitializer, RegistryLoader<I, V> deferredLoader) {
         return new SimpleDeferredRegistry<>(input, registryInitializer, deferredLoader);
     }
 
-    /**
-     * Creates a new deferred registry.
-     *
-     * @param registryInitializer the registry initializer
-     * @param deferredLoader the deferred loader
-     * @param <I> the input type
-     * @return the new deferred registry
-     */
+    
     public static <I, V> SimpleDeferredRegistry<V> create(I input, RegistryInitializer<V, SimpleRegistry<V>> registryInitializer, Supplier<RegistryLoader<I, V>> deferredLoader) {
         return new SimpleDeferredRegistry<>(input, registryInitializer, deferredLoader);
     }
 
-    /**
-     * Creates a new deferred registry.
-     *
-     * @param deferredLoader the deferred loader
-     * @param <I> the input type
-     * @return the new deferred registry
-     */
+    
     public static <I, V> SimpleDeferredRegistry<V> create(I input, RegistryLoader<I, V> deferredLoader) {
         return create(input, SimpleRegistry::create, deferredLoader);
     }
 
-    /**
-     * Creates a new deferred registry.
-     *
-     * @param deferredLoader the deferred loader
-     * @param <I> the input type
-     * @return the new deferred registry
-     */
+    
     public static <I, V> SimpleDeferredRegistry<V> create(I input, Supplier<RegistryLoader<I, V>> deferredLoader) {
         return create(input, SimpleRegistry::create, deferredLoader);
     }

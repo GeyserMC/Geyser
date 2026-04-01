@@ -99,6 +99,6 @@ public enum PaintingType {
         for (PaintingType paintingName : VALUES) {
             if (paintingName.name().toLowerCase(Locale.ROOT).equals(key.value())) return paintingName;
         }
-        return KEBAB; // We use kebab as default. Yummy!
+        return KEBAB; 
     }
 }

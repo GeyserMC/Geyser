@@ -22,26 +22,21 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.pack
 
-package org.geysermc.geyser.api.pack;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.nio.file.Path;
+import java.nio.file.Path
 
 /**
  * Represents a pack codec that creates a resource
  * pack from a path on the filesystem.
  * @since 2.1.1
  */
-public abstract class PathPackCodec extends PackCodec {
-
+abstract class PathPackCodec : PackCodec() {
     /**
      * Gets the path of the resource pack.
-     *
+     * 
      * @return the path of the resource pack
      * @since 2.1.1
      */
-    @NonNull
-    public abstract Path path();
+    abstract fun path(): Path
 }

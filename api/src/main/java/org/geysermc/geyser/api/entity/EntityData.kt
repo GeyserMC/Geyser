@@ -22,66 +22,52 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.entity
 
-package org.geysermc.geyser.api.entity;
-
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.entity.type.GeyserEntity;
-import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
-
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import org.checkerframework.checker.index.qual.NonNegative
+import org.geysermc.geyser.api.connection.GeyserConnection
+import org.geysermc.geyser.api.entity.type.GeyserEntity
+import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity
+import java.util.*
+import java.util.concurrent.CompletableFuture
 
 /**
  * This class holds all the methods that relate to entities.
- * Can be accessed through {@link GeyserConnection#entities()}.
+ * Can be accessed through [GeyserConnection.entities].
  */
-public interface EntityData {
-
+interface EntityData {
     /**
-     * Returns a {@link GeyserEntity} to e.g. make them play an emote.
-     *
+     * Returns a [GeyserEntity] to e.g. make them play an emote.
+     * 
      * @param javaId the Java entity ID to look up
-     * @return a {@link GeyserEntity} if present in this connection's entity tracker
+     * @return a [GeyserEntity] if present in this connection's entity tracker
      */
-    @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
+    fun entityByJavaId(javaId: @NonNegative Int): CompletableFuture<GeyserEntity?>
 
     /**
      * (Un)locks the client's movement inputs, so that they cannot move.
      * To ensure that movement is only unlocked when all locks are released, you must supply
      * a UUID with this method, and use the same UUID to unlock the camera.
-     *
+     * 
      * @param lock whether to lock the movement
      * @param owner the owner of the lock
      * @return if the movement is locked after this method call
      */
-    boolean lockMovement(boolean lock, @NonNull UUID owner);
+    fun lockMovement(lock: Boolean, owner: UUID): Boolean
 
     /**
      * Returns whether the client's movement is currently locked.
-     *
+     * 
      * @return whether the movement is locked
      */
-    boolean isMovementLocked();
+    val isMovementLocked: Boolean
 
-    /**
-     * @deprecated use {@link GeyserConnection#requestOffhandSwap()} instead
-     */
-    @Deprecated(since = "2.9.3")
-    void switchHands();
+    @Deprecated("use {@link GeyserConnection#requestOffhandSwap()} instead")
+    fun switchHands()
 
-    /**
-     * @deprecated Use {@link GeyserConnection#showEmote(GeyserPlayerEntity, String)} instead.
-     */
-    @Deprecated(since = "2.9.3")
-    void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
+    @Deprecated("Use {@link GeyserConnection#showEmote(GeyserPlayerEntity, String)} instead.")
+    fun showEmote(emoter: GeyserPlayerEntity, emoteId: String)
 
-    /**
-     * @deprecated Use {@link GeyserConnection#playerEntity} instead.
-     */
-    @Deprecated(since = "2.9.3")
-    @NonNull GeyserPlayerEntity playerEntity();
+    @Deprecated("Use {@link GeyserConnection#playerEntity} instead.")
+    fun playerEntity(): GeyserPlayerEntity
 }

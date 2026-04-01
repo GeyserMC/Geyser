@@ -68,8 +68,8 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
 
     @Override
     public void updateBedrockMetadata() {
-        // Make sure they are not shaking when riding another entity
-        // Needs to copy the parent state
+        
+        
         if (getFlag(EntityFlag.RIDING)) {
             boolean parentShaking = false;
             if (vehicle instanceof StriderEntity) {
@@ -83,7 +83,7 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
             setFlag(EntityFlag.SHAKING, isShaking());
         }
 
-        // Update the passengers if we have any
+        
         for (Entity passenger : passengers) {
             if (passenger != null) {
                 passenger.updateBedrockMetadata();
@@ -108,7 +108,7 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!canEat(itemInHand) && getFlag(EntityFlag.SADDLED) && passengers.isEmpty() && !session.isSneaking()) {
-            // Mount Strider
+            
             return InteractiveTag.RIDE_STRIDER;
         } else {
             InteractiveTag tag = super.testMobInteraction(hand, itemInHand);
@@ -125,7 +125,7 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!canEat(itemInHand) && getFlag(EntityFlag.SADDLED) && passengers.isEmpty() && !session.isSneaking()) {
-            // Mount Strider
+            
             return InteractionResult.SUCCESS;
         } else {
             InteractionResult superResult = super.mobInteract(hand, itemInHand);
@@ -153,7 +153,7 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
             if (session.getPlayerInventory().isHolding(Items.WARPED_FUNGUS_ON_A_STICK)) {
                 vehicleComponent.tickBoost();
             }
-        } else { // getHand() for session player seems to always return air
+        } else { 
             if (player.isHolding(Items.WARPED_FUNGUS_ON_A_STICK)) {
                 vehicleComponent.tickBoost();
             }

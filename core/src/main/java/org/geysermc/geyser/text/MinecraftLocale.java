@@ -48,7 +48,7 @@ public class MinecraftLocale {
 
     public static final Map<String, Map<String, String>> LOCALE_MAPPINGS = new HashMap<>();
 
-    // Check instance availability to avoid exception during testing
+    
     private static final boolean IN_INSTANCE = GeyserImpl.getInstance() != null;
 
     private static final Path LOCALE_FOLDER = (IN_INSTANCE) ? GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("locales") : null;
@@ -56,7 +56,7 @@ public class MinecraftLocale {
     static {
         if (IN_INSTANCE) {
             try {
-                // Create the locales folder
+                
                 Files.createDirectories(LOCALE_FOLDER);
                 Files.createDirectories(LOCALE_FOLDER.resolve("overrides"));
             } catch (IOException exception) {
@@ -76,11 +76,7 @@ public class MinecraftLocale {
                 }));
     }
 
-    /**
-     * Downloads a locale from Mojang if it's not already loaded
-     *
-     * @param locale Locale to download and load
-     */
+    
     public static void downloadAndLoadLocale(String locale) {
         locale = locale.toLowerCase(Locale.ROOT);
 
@@ -90,11 +86,11 @@ public class MinecraftLocale {
         }
 
         if (locale.equals("nb_no")) {
-            // Different locale code - https://minecraft.wiki/w/Language
+            
             locale = "no_no";
         }
 
-        // Check the locale isn't already loaded
+        
         if (!AssetUtils.isAssetKnown("minecraft/lang/" + locale + ".json") && !locale.equals("en_us")) {
             if (loadLocale(locale)) {
                 GeyserImpl.getInstance().getLogger().debug("Loaded locale locally while not being in asset map: " + locale);
@@ -112,18 +108,14 @@ public class MinecraftLocale {
         }
     }
 
-    /**
-     * Downloads the specified locale if it's not already downloaded
-     *
-     * @param locale Locale to download
-     */
+    
     private static void downloadLocale(String locale) {
         if (locale.equals("en_us")) {
             return;
         }
         Path localeFile = getPath(locale);
 
-        // Check if we have already downloaded the locale file
+        
         if (Files.exists(localeFile)) {
             String curHash = byteArrayToHexString(FileUtils.calculateSHA1(localeFile));
             String targetHash = AssetUtils.getAsset("minecraft/lang/" + locale + ".json").getHash();
@@ -137,7 +129,7 @@ public class MinecraftLocale {
         }
 
         try {
-            // Get the hash and download the locale
+            
             String hash = AssetUtils.getAsset("minecraft/lang/" + locale + ".json").getHash();
             WebUtils.downloadFile("https://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile.toString());
         } catch (Exception e) {
@@ -149,20 +141,16 @@ public class MinecraftLocale {
         return LOCALE_FOLDER.resolve(locale + ".json");
     }
 
-    /**
-     * Loads a locale already downloaded, if the file doesn't exist it just logs a warning
-     *
-     * @param locale Bedrock locale to load
-     */
+    
     private static boolean loadLocale(String locale) {
         String lowercaseLocale = locale.toLowerCase(Locale.ROOT);
 
-        // Need to grab this before we change the locale - downloaded/override locales are stored under the Java locale name
+        
         Path localeFile = getPath(lowercaseLocale);
         Path localeOverride = getPath("overrides/" + lowercaseLocale);
 
         if (lowercaseLocale.equals("no_no")) {
-            // Store this locale under the Bedrock locale, so we don't need to do this check over and over
+            
             lowercaseLocale = "nb_no";
         }
 
@@ -171,7 +159,7 @@ public class MinecraftLocale {
             langMap.putAll(parseLangFile(localeFile, lowercaseLocale));
         }
 
-        // Load the locale overwrites
+        
         if (Files.exists(localeOverride) && Files.isReadable(localeOverride)) {
             langMap.putAll(parseLangFile(localeOverride, lowercaseLocale));
         }
@@ -184,20 +172,14 @@ public class MinecraftLocale {
         }
     }
 
-    /**
-     * Load and parse a json lang file.
-     *
-     * @param localeFile Path of locale file
-     * @param locale Locale to load
-     * @return a Map of the loaded translations
-     */
+    
     public static Map<String, String> parseLangFile(Path localeFile, String locale) {
-        // Read the localefile
+        
         try (InputStream localeStream = Files.newInputStream(localeFile, StandardOpenOption.READ)) {
-            // Parse the file as json
+            
             JsonObject localeObj = JsonUtils.fromJson(localeStream);
 
-            // Parse all the locale fields
+            
             Map<String, String> langMap = new HashMap<>();
             for (Map.Entry<String, JsonElement> entry : localeObj.entrySet()) {
                 langMap.put(entry.getKey(), entry.getValue().getAsString());
@@ -210,19 +192,13 @@ public class MinecraftLocale {
         }
     }
 
-    /**
-     * Translate the given language string into the given locale, or falls back to the default locale
-     *
-     * @param messageText Language string to translate
-     * @param locale Locale to translate to
-     * @return Translated string or the original message if it was not found in the given locale
-     */
+    
     public static String getLocaleString(String messageText, String locale) {
         Map<String, String> localeStrings = LOCALE_MAPPINGS.get(locale.toLowerCase(Locale.ROOT));
         if (localeStrings == null) {
             localeStrings = LOCALE_MAPPINGS.get(GeyserLocale.getDefaultLocale());
             if (localeStrings == null) {
-                // Don't cause a NPE if the locale is STILL missing
+                
                 GeyserImpl.getInstance().getLogger().debug("MISSING DEFAULT LOCALE: " + GeyserLocale.getDefaultLocale());
                 return messageText;
             }
@@ -231,13 +207,7 @@ public class MinecraftLocale {
         return localeStrings.getOrDefault(messageText, messageText);
     }
 
-    /**
-     * Translate the given language string into the given locale, or returns null.
-     *
-     * @param messageText Language string to translate
-     * @param locale Locale to translate to
-     * @return Translated string or null if it was not found in the given locale
-     */
+    
     public static @Nullable String getLocaleStringIfPresent(String messageText, String locale) {
         Map<String, String> localeStrings = LOCALE_MAPPINGS.get(locale.toLowerCase(Locale.ROOT));
         if (localeStrings != null) {
@@ -247,22 +217,12 @@ public class MinecraftLocale {
         return null;
     }
 
-    /**
-     * Checks if a locale has been loaded.
-     *
-     * @param locale Locale to check
-     * @return true if the locale has been loaded
-     */
+    
     public static boolean isLocaleLoaded(String locale) {
         return LOCALE_MAPPINGS.containsKey(locale.toLowerCase(Locale.ROOT));
     }
 
-    /**
-     * Convert a byte array into a hex string
-     *
-     * @param b Byte array to convert
-     * @return The hex representation of the given byte array
-     */
+    
     private static String byteArrayToHexString(byte[] b) {
         StringBuilder result = new StringBuilder();
         for (byte value : b) {

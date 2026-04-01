@@ -62,9 +62,9 @@ public interface DialogAction {
             return Optional.of(new DynamicCustom(MinecraftKey.key(map.getString("id")), map.getCompound("additions")));
         }
 
-        // Unknown or unsupported type
-        // Currently unsupported types are: suggest_command, change_page, copy_to_clipboard
-        // open_file is not supported by Java in dialogs
+        
+        
+        
         return Optional.empty();
     }
 
@@ -131,7 +131,7 @@ public interface DialogAction {
         }
     }
 
-    // TODO tag can be any kind of NBT tag, not just a map
+    
     record Custom(Key id, @Nullable NbtMap tag) implements DialogAction {
 
         public static final Key TYPE = MinecraftKey.key("custom");
@@ -147,9 +147,9 @@ public interface DialogAction {
         public static final Key TYPE = MinecraftKey.key("dynamic/run_command");
 
         private static DynamicRunCommand read(String command) {
-            // Inspired by StringTemplate in mojmap
-            // Reads commands with 'macros', variables that are replaced with inputs, in a format like this:
-            // /say hey everyone, $(your_name) is super cool!
+            
+            
+            
 
             int length = command.length();
             int lastVariable = 0;
@@ -169,7 +169,7 @@ public interface DialogAction {
                     lastVariable = variableEnd + 1;
                     nextVariable = command.indexOf('$', lastVariable);
                 } else {
-                    // If this $ was just an $ without a (, so no variable, which can occur in e.g. text components, just go to the next one
+                    
                     nextVariable = command.indexOf('$', nextVariable + 1);
                 }
             }
@@ -177,7 +177,7 @@ public interface DialogAction {
             if (lastVariable == 0) {
                 throw new IllegalArgumentException("No variables in command template");
             } else {
-                // Append the remaining segment if there is one
+                
                 if (lastVariable != length) {
                     segments.add(command.substring(lastVariable));
                 }
@@ -196,7 +196,7 @@ public interface DialogAction {
                 command.append(segments.get(i)).append(parsedVariables.get(i));
             }
 
-            // Append the remaining segment if there is one
+            
             if (segments.size() > variables.size()) {
                 command.append(segments.get(segments.size() - 1));
             }
@@ -212,7 +212,7 @@ public interface DialogAction {
         @Override
         public void run(GeyserSession session, ParsedInputs inputs) {
             NbtMapBuilder map = inputs.asNbtMap().toBuilder();
-            map.putAll(additions); // Can be optional on Java. We just read an empty map when it doesn't exist.
+            map.putAll(additions); 
             session.sendDownstreamPacket(new ServerboundCustomClickActionPacket(id, map.build()));
         }
     }

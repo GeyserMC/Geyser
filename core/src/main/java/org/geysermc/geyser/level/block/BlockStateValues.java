@@ -32,46 +32,29 @@ import org.geysermc.geyser.level.block.type.PistonBlock;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 
-/**
- * Used for block entities if the Java block state contains Bedrock block information.
- */
+
 public final class BlockStateValues {
     public static final int NUM_FLUID_LEVELS = 9;
 
-    /**
-     * Checks if a block sticks to other blocks
-     * (Slime and honey blocks)
-     *
-     * @param state The block state
-     * @return True if the block sticks to adjacent blocks
-     */
+    
     public static boolean isBlockSticky(BlockState state) {
         Block block = state.block();
         return block == Blocks.SLIME_BLOCK || block == Blocks.HONEY_BLOCK;
     }
 
-    /**
-     * Check if two blocks are attached to each other.
-     *
-     * @param stateA The block state of block a
-     * @param stateB The block state of block b
-     * @return True if the blocks are attached to each other
-     */
+    
     public static boolean isBlockAttached(BlockState stateA, BlockState stateB) {
         boolean aSticky = isBlockSticky(stateA);
         boolean bSticky = isBlockSticky(stateB);
         if (aSticky && bSticky) {
-            // Only matching sticky blocks are attached together
-            // Honey + Honey & Slime + Slime
+            
+            
             return stateA.block() == stateB.block();
         }
         return aSticky || bSticky;
     }
 
-    /**
-     * @param state The block state of the block
-     * @return true if a piston can break the block
-     */
+    
     public static boolean canPistonDestroyBlock(BlockState state)  {
         return state.block().pushReaction() == PistonBehavior.DESTROY;
     }
@@ -81,30 +64,25 @@ public final class BlockStateValues {
         if (block == Blocks.AIR) {
             return true;
         }
-        if (block == Blocks.OBSIDIAN || block == Blocks.CRYING_OBSIDIAN || block == Blocks.RESPAWN_ANCHOR || block == Blocks.REINFORCED_DEEPSLATE) { // Hardcoded as of 1.20.5
+        if (block == Blocks.OBSIDIAN || block == Blocks.CRYING_OBSIDIAN || block == Blocks.RESPAWN_ANCHOR || block == Blocks.REINFORCED_DEEPSLATE) { 
             return false;
         }
-        // Pistons can only be moved if they aren't extended
+        
         if (block instanceof PistonBlock) {
             return !state.getValue(Properties.EXTENDED);
         }
-        // Bedrock, End portal frames, etc. can't be moved
+        
         if (block.destroyTime() == -1.0f) {
             return false;
         }
         return switch (block.pushReaction()) {
             case BLOCK, DESTROY -> false;
-            case PUSH_ONLY -> isPushing; // Glazed terracotta can only be pushed
-            default -> !block.hasBlockEntity(); // Pistons can't move block entities
+            case PUSH_ONLY -> isPushing; 
+            default -> !block.hasBlockEntity(); 
         };
     }
 
-    /**
-     * Get the type of fluid from the block state, including waterlogged blocks.
-     *
-     * @param state BlockState of the block
-     * @return The type of fluid
-     */
+    
     public static Fluid getFluid(int state) {
         BlockState blockState = BlockState.of(state);
         if (blockState.is(Blocks.WATER) || BlockRegistries.WATERLOGGED.get().get(state)) {
@@ -118,12 +96,7 @@ public final class BlockStateValues {
         return Fluid.EMPTY;
     }
 
-    /**
-     * Get the level of water from the block state.
-     *
-     * @param state BlockState of the block
-     * @return The water level or -1 if the block isn't water
-     */
+    
     public static int getWaterLevel(int state) {
         BlockState blockState = BlockState.of(state);
         if (!blockState.is(Blocks.WATER)) {
@@ -132,14 +105,7 @@ public final class BlockStateValues {
         return blockState.getValue(Properties.LEVEL);
     }
 
-    /**
-     * Get the height of water from the block state
-     * This is used in FishingHookEntity to create splash sounds when the hook hits the water. In addition,
-     * CollisionManager uses this to determine if the player's eyes are in water.
-     *
-     * @param state BlockState of the block
-     * @return The water height or -1 if the block does not contain water
-     */
+    
     public static double getWaterHeight(int state) {
         int waterLevel = BlockStateValues.getWaterLevel(state);
         if (BlockRegistries.WATERLOGGED.get().get(state)) {
@@ -147,7 +113,7 @@ public final class BlockStateValues {
         }
         if (waterLevel >= 0) {
             double waterHeight = 1 - (waterLevel + 1) / ((double) NUM_FLUID_LEVELS);
-            // Falling water is a full block
+            
             if (waterLevel >= 8) {
                 waterHeight = 1;
             }
@@ -156,12 +122,7 @@ public final class BlockStateValues {
         return -1;
     }
 
-    /**
-     * Get the level of lava from the block state.
-     *
-     * @param state BlockState of the block
-     * @return The lava level or -1 if the block isn't lava
-     */
+    
     public static int getLavaLevel(int state) {
         BlockState blockState = BlockState.of(state);
         if (!blockState.is(Blocks.LAVA)) {
@@ -170,17 +131,12 @@ public final class BlockStateValues {
         return blockState.getValue(Properties.LEVEL);
     }
 
-    /**
-     * Get the height of lava from the block state
-     *
-     * @param state BlockState of the block
-     * @return The lava height or -1 if the block does not contain lava
-     */
+    
     public static double getLavaHeight(int state) {
         int lavaLevel = BlockStateValues.getLavaLevel(state);
         if (lavaLevel >= 0) {
             double lavaHeight = 1 - (lavaLevel + 1) / ((double) NUM_FLUID_LEVELS);
-            // Falling lava is a full block
+            
             if (lavaLevel >= 8) {
                 lavaHeight = 1;
             }
@@ -189,13 +145,7 @@ public final class BlockStateValues {
         return -1;
     }
 
-    /**
-     * Get the slipperiness of a block.
-     * This is used in ItemEntity to calculate the friction on an item as it slides across the ground
-     *
-     * @param state BlockState of the block
-     * @return The block's slipperiness
-     */
+    
     public static float getSlipperiness(BlockState state) {
         Block block = state.block();
         if (block == Blocks.SLIME_BLOCK) {

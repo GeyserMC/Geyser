@@ -37,7 +37,7 @@ public class JavaStopSoundTranslator extends PacketTranslator<ClientboundStopSou
 
     @Override
     public void translate(GeyserSession session, ClientboundStopSoundPacket packet) {
-        // Runs if all sounds are stopped
+        
         if (packet.getSound() == null) {
             StopSoundPacket stopPacket = new StopSoundPacket();
             stopPacket.setStoppingAllSound(true);

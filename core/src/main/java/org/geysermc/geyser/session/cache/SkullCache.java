@@ -74,7 +74,7 @@ public class SkullCache {
         this.maxVisibleSkulls = session.getGeyser().config().gameplay().maxVisibleCustomSkulls();
         this.cullingEnabled = this.maxVisibleSkulls != -1;
 
-        // Normal skulls are not rendered beyond 64 blocks
+        
         int distance = Math.min(session.getGeyser().config().gameplay().customSkullRenderDistance(), 64);
         this.skullRenderDistanceSquared = distance * distance;
     }
@@ -118,15 +118,15 @@ public class SkullCache {
             }
             skull.distanceSquared = position.distanceSquared(lastPlayerPosition.getX(), lastPlayerPosition.getY(), lastPlayerPosition.getZ());
             if (skull.distanceSquared < skullRenderDistanceSquared) {
-                // Keep list in order
+                
                 int i = Collections.binarySearch(inRangeSkulls, skull, Comparator.comparingInt(Skull::getDistanceSquared));
-                if (i < 0) { // skull.distanceSquared is a new distance value
+                if (i < 0) { 
                     i = -i - 1;
                 }
                 inRangeSkulls.add(i, skull);
 
                 if (i < maxVisibleSkulls) {
-                    // Reassign entity from the farthest skull to this one
+                    
                     if (inRangeSkulls.size() > maxVisibleSkulls) {
                         freeSkullEntity(inRangeSkulls.get(maxVisibleSkulls));
                     }
@@ -154,7 +154,7 @@ public class SkullCache {
 
     public void updateVisibleSkulls() {
         if (cullingEnabled) {
-            // No need to recheck skull visibility for small movements
+            
             if (lastPlayerPosition != null && session.getPlayerEntity().position().distanceSquared(lastPlayerPosition) < 4) {
                 return;
             }
@@ -190,7 +190,7 @@ public class SkullCache {
             return;
         }
         if (!cullingEnabled || totalSkullEntities < maxVisibleSkulls) {
-            // Create a new entity
+            
             skull.entity = new SkullPlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, UUID.randomUUID(), EntityDefinitions.PLAYER));
             skull.entity.spawnEntity();
             skull.entity.updateSkull(skull);
@@ -213,7 +213,7 @@ public class SkullCache {
         if (cullingEnabled) {
             inRangeSkulls.remove(skull);
             if (hadEntity && inRangeSkulls.size() >= maxVisibleSkulls) {
-                // Reassign entity to the closest skull without an entity
+                
                 assignSkullEntity(inRangeSkulls.get(maxVisibleSkulls - 1));
             }
         }

@@ -123,20 +123,18 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Predicate;
 
-/**
- * Registers the provider data from the provider.
- */
+
 public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, ProviderSupplier>, Map<Class<?>, ProviderSupplier>> {
 
     @Override
     public Map<Class<?>, ProviderSupplier> load(Map<Class<?>, ProviderSupplier> providers) {
-        // misc
+        
         providers.put(Identifier.class, args -> IdentifierImpl.of((String) args[0], (String) args[1]));
         providers.put(Holders.Builder.class, args -> new HoldersImpl.Builder());
-        // commands
+        
         providers.put(Command.Builder.class, args -> new GeyserExtensionCommand.Builder<>((Extension) args[0]));
 
-        // custom blocks
+        
         providers.put(CustomBlockComponents.Builder.class, args -> new GeyserCustomBlockComponents.Builder());
         providers.put(CustomBlockData.Builder.class, args -> new GeyserCustomBlockData.Builder());
         providers.put(JavaBlockState.Builder.class, args -> new GeyserJavaBlockState.Builder());
@@ -144,29 +142,29 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(MaterialInstance.Builder.class, args -> new GeyserMaterialInstance.Builder());
         providers.put(GeometryComponent.Builder.class, args -> new GeyserGeometryComponent.Builder());
 
-        // misc
+        
         providers.put(EventRegistrar.class, args -> new GeyserEventRegistrar(args[0]));
 
-        // packs
+        
         providers.put(PathPackCodec.class, args -> new GeyserPathPackCodec((Path) args[0]));
         providers.put(UrlPackCodec.class, args -> new GeyserUrlPackCodec((String) args[0]));
         providers.put(PriorityOption.class, args -> new GeyserPriorityOption((int) args[0]));
         providers.put(SubpackOption.class, args -> new GeyserSubpackOption((String) args[0]));
         providers.put(UrlFallbackOption.class, args -> new GeyserUrlFallbackOption((Boolean) args[0]));
 
-        // items
+        
         providers.put(CustomItemData.Builder.class, args -> new GeyserCustomItemData.Builder());
         providers.put(CustomItemOptions.Builder.class, args -> new GeyserCustomItemOptions.Builder());
         providers.put(NonVanillaCustomItemData.Builder.class, args -> new GeyserNonVanillaCustomItemData.Builder());
 
-        // items v2
+        
         providers.put(CustomItemDefinition.Builder.class, args -> new GeyserCustomItemDefinition.Builder((Identifier) args[0], (Identifier) args[1]));
         providers.put(NonVanillaCustomItemDefinition.Builder.class, args -> new GeyserNonVanillaCustomItemDefinition.Builder((Identifier) args[0], (Identifier) args[1], (int) args[2]));
         providers.put(CustomItemBedrockOptions.Builder.class, args -> new GeyserCustomItemBedrockOptions.Builder());
 
         providers.put(ItemDataComponent.class, args -> dataComponentProvider((Identifier) args[0], (Predicate<?>) args[1], (Boolean) args[2]));
 
-        // item components
+        
         providers.put(JavaAttackRange.Builder.class, args -> new JavaAttackRangeImpl.Builder());
         providers.put(JavaConsumable.Builder.class, args -> new JavaConsumableImpl.Builder());
         providers.put(JavaEquippable.Builder.class, args -> new JavaEquippableImpl.Builder());
@@ -181,12 +179,12 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(JavaUseCooldown.Builder.class, args -> new JavaUseCooldownImpl.Builder());
         providers.put(JavaUseEffects.Builder.class, args -> new JavaUseEffectsImpl.Builder());
 
-        // geyser components
+        
         providers.put(GeyserChargeable.Builder.class, args -> new GeyserChargeableImpl.Builder());
         providers.put(GeyserBlockPlacer.Builder.class, args -> new GeyserBlockPlacerImpl.Builder());
         providers.put(GeyserThrowableComponent.Builder.class, args -> new GeyserThrowableComponentImpl.Builder());
 
-        // predicates
+        
         providers.put(DimensionPredicate.class, args -> new GeyserDimensionPredicate((Identifier) args[0], false));
         providers.put(ChargedProjectile.class, args -> new GeyserChargedProjectile((ChargedProjectile.ChargeType) args[0], (int) args[1]));
         providers.put(CustomModelDataPredicate.FlagPredicate.class, args -> new GeyserCustomModelDataPredicate.GeyserFlagPredicate((int) args[0], false));
@@ -196,7 +194,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(CustomModelDataPredicate.StringPredicate.class, args -> new GeyserCustomModelDataPredicate.GeyserStringPredicate((String) args[0], (int) args[1], false));
         providers.put(RangeDispatchPredicate.class, ProviderRegistryLoader::createRangeDispatchPredicate);
 
-        // cameras
+        
         providers.put(CameraFade.Builder.class, args -> new GeyserCameraFade.Builder());
         providers.put(CameraPosition.Builder.class, args -> new GeyserCameraPosition.Builder());
 
@@ -208,7 +206,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
     }
 
     private static Object createRangeDispatchPredicate(Object... args) {
-        // Enforcing a few things here :)
+        
         var property = (RangeDispatchPredicate.Property) args[0];
         int length = args.length;
         switch (property) {
@@ -216,7 +214,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
                 return new GeyserRangeDispatchPredicate(GeyserRangeDispatchPredicate.GeyserRangeDispatchProperty.BUNDLE_FULLNESS, (double) args[1]);
             }
             case DAMAGE -> {
-                // One with, one without normalization
+                
                 if (length == 2) {
                     return new GeyserRangeDispatchPredicate(GeyserRangeDispatchPredicate.GeyserRangeDispatchProperty.DAMAGE, (int) args[1]);
                 } else if (length == 3) {
@@ -224,7 +222,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
                 }
             }
             case COUNT -> {
-                // One with, one without normalization
+                
                 if (length == 2) {
                     return new GeyserRangeDispatchPredicate(GeyserRangeDispatchPredicate.GeyserRangeDispatchProperty.COUNT, (int) args[1]);
                 } else if (length == 3) {
@@ -237,7 +235,7 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
                     index = (int) args[2];
                 }
 
-                // Threshold is passed as either integer or float in API
+                
                 double threshold;
                 if (args[1] instanceof Integer i) {
                     threshold = i.doubleValue();

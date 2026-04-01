@@ -56,8 +56,8 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                 GameProfile profile = entry.getProfile();
 
                 if (profile == null) {
-                    // Should never be null for the ADD_PLAYER case
-                    // 1.21.11 client NPEs here
+                    
+                    
                     GeyserImpl.getInstance().getLogger().debug("Received a null profile in a player info update packet!");
                     continue;
                 }
@@ -67,12 +67,12 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
 
                 PlayerEntity playerEntity;
                 if (self) {
-                    // Entity is ourself!
+                    
                     playerEntity = session.getPlayerEntity();
                     playerEntity.setUsername(profile.getName());
                     playerEntity.setSkin(profile, () -> GeyserImpl.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));
                 } else {
-                    // It's a new player
+                    
                     playerEntity = new PlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, id, EntityDefinitions.PLAYER), profile);
                     session.getEntityCache().addPlayerEntity(playerEntity);
                 }
@@ -97,7 +97,7 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                         session.getWaypointCache().listPlayer(entity);
                     }
                 } else {
-                    // No need to unlist players that were never listed
+                    
                     if (entity.isListed()) {
                         toRemove.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
                         session.getWaypointCache().unlistPlayer(entity);

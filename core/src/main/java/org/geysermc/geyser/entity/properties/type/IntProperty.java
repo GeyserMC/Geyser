@@ -49,7 +49,7 @@ public record IntProperty(
                 .formatted(identifier, defaultValue, min, max));
         }
         if (min < -1000000 || max > 1000000) {
-            // https://learn.microsoft.com/en-us/minecraft/creator/documents/introductiontoentityproperties?view=minecraft-bedrock-stable#a-note-on-large-integer-entity-property-values
+            
             GeyserImpl.getInstance().getLogger().warning("Using int entity properties with min / max values larger than +- 1 million is not recommended!");
         }
     }

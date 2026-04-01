@@ -68,7 +68,7 @@ public class CodeOfConductManager {
             GeyserImpl.getInstance().getLogger().debug("codeofconducts.json not found, not loading");
         }
 
-        // Save file now and every 5 minutes after
+        
         GeyserImpl.getInstance().getScheduledThread().scheduleAtFixedRate(this::save, 0L, 5L, TimeUnit.MINUTES);
     }
 
@@ -87,7 +87,7 @@ public class CodeOfConductManager {
         }
     }
 
-    // Fixes https://github.com/GeyserMC/Geyser/issues/6139
+    
     public static void trySave() {
         if (loaded == null) {
             return;

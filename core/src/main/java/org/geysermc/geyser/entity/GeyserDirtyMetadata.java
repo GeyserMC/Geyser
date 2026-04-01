@@ -31,9 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 
 import java.util.Map;
 
-/**
- * A wrapper for temporarily storing entity metadata that will be sent to Bedrock.
- */
+
 public final class GeyserDirtyMetadata {
     private final Map<EntityDataType<?>, Object> metadata = new Object2ObjectLinkedOpenHashMap<>();
 
@@ -41,9 +39,7 @@ public final class GeyserDirtyMetadata {
         metadata.put(entityData, value);
     }
 
-    /**
-     * Applies the contents of the dirty metadata into the input and clears the contents of our map.
-     */
+    
     public void apply(EntityDataMap map) {
         map.putAll(metadata);
         metadata.clear();
@@ -53,9 +49,7 @@ public final class GeyserDirtyMetadata {
         return !metadata.isEmpty();
     }
 
-    /**
-     * Intended for testing purposes only
-     */
+    
     public <T> T get(EntityDataType<T> entityData) {
         //noinspection unchecked
         return (T) metadata.get(entityData);

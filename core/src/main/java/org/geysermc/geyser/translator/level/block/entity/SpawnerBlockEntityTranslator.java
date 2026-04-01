@@ -44,14 +44,14 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
         if (javaNbt == null) {
             return super.getBlockEntityTag(session, type, x, y, z, javaNbt, blockState);
         }
-        // Sending an empty EntityIdentifier to empty the spawner is ignored by the client, so we send a whole new spawner!
-        // Fixes https://github.com/GeyserMC/Geyser/issues/4214
+        
+        
         NbtMap spawnData = javaNbt.getCompound("SpawnData");
         if (spawnData != null) {
             NbtMap entityTag = spawnData.getCompound("entity");
             if (entityTag.isEmpty()) {
                 Vector3i position = Vector3i.from(x, y, z);
-                // Set to air and back to reset the spawner - "just" updating the spawner doesn't work
+                
                 UpdateBlockPacket emptyBlockPacket = new UpdateBlockPacket();
                 emptyBlockPacket.setDataLayer(0);
                 emptyBlockPacket.setBlockPosition(position);
@@ -73,7 +73,7 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         Object current;
 
-        // TODO use primitive get and put methods
+        
         if ((current = javaNbt.get("MaxNearbyEntities")) != null) {
             bedrockNbt.put("MaxNearbyEntities", current);
         }
@@ -115,7 +115,7 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
         NbtMap entityTag = spawnData.getCompound("entity");
         String entityId = entityTag.getString("id");
         if (entityId != null) {
-            // As of 1.19.3, spawners can be empty
+            
             builder.put("EntityIdentifier", entityId);
 
             EntityDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);

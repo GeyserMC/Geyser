@@ -39,12 +39,12 @@ public class JavaStartConfigurationTranslator extends PacketTranslator<Clientbou
     public void translate(GeyserSession session, ClientboundStartConfigurationPacket packet) {
         var erosionHandler = session.getErosionHandler();
         if (erosionHandler.isActive()) {
-            // Set new handler before closing
+            
             session.setErosionHandler(new GeyserboundHandshakePacketHandler(session));
             erosionHandler.close();
         }
 
-        // Reset code of conduct being accepted
+        
         session.hasAcceptedCodeOfConduct(false);
 
         ChunkUtils.sendEmptyChunks(session, session.getPlayerEntity().position().toInt(), session.getServerRenderDistance(), false);

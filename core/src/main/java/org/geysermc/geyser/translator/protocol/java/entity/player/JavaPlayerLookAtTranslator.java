@@ -39,7 +39,7 @@ public class JavaPlayerLookAtTranslator extends PacketTranslator<ClientboundPlay
         Vector3f targetPosition = targetPosition(session, packet);
         Vector3f originPosition = switch (packet.getOrigin()) {
             case FEET -> session.getPlayerEntity().position();
-            // FIXME should be entity#eyeHeight, not bounding box height
+            
             case EYES -> session.getPlayerEntity().position().add(0, session.getPlayerEntity().getBoundingBoxHeight(), 0);
         };
 
@@ -51,7 +51,7 @@ public class JavaPlayerLookAtTranslator extends PacketTranslator<ClientboundPlay
         float pitch = MathUtils.wrapDegrees(-Math.toDegrees(Math.atan2(yDelta, sqrt)));
         float yaw = MathUtils.wrapDegrees(Math.toDegrees(Math.atan2(zDelta, xDelta)) - 90.0);
 
-        // headYaw is also set to yaw in this packet
+        
         session.getPlayerEntity().updateOwnRotation(yaw, pitch, yaw);
     }
 
@@ -62,7 +62,7 @@ public class JavaPlayerLookAtTranslator extends PacketTranslator<ClientboundPlay
             if (target != null) {
                 return switch (packet.getTargetEntityOrigin()) {
                     case FEET -> target.position();
-                    // FIXME should be entity#eyeHeight, not bounding box height
+                    
                     case EYES -> target.position().add(0, target.getBoundingBoxHeight(), 0);
                 };
             }

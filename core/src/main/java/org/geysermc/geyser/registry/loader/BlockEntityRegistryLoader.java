@@ -36,14 +36,12 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
-/**
- * Loads block entities from the given classpath.
- */
+
 public class BlockEntityRegistryLoader implements RegistryLoader<String, Map<BlockEntityType, BlockEntityTranslator>> {
 
     @Override
     public Map<BlockEntityType, BlockEntityTranslator> load(String input) {
-        // Overridden so one translator can be applied to multiple block entity types
+        
         Object2ObjectMap<BlockEntityType, BlockEntityTranslator> entries = new Object2ObjectOpenHashMap<>();
         entries.defaultReturnValue(new EmptyBlockEntityTranslator());
         for (Class<?> clazz : AnnotationUtils.getGeneratedClassesForAnnotation(input)) {

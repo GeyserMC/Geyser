@@ -37,16 +37,7 @@ import org.geysermc.geyser.translator.collision.CollisionRemapper;
 @EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "glass_pane$|iron_bars$", usesParams = true, passDefaultBoxes = true)
 public class GlassPaneAndIronBarsCollision extends BlockCollision {
-    /**
-     * 1 = north
-     * 2 = east
-     * 3 = south
-     * 4 = west
-     * 5 = north, east
-     * 6 = east, south
-     * 7 = south, west
-     * 8 = west, north
-     */
+    
     private int facing;
 
     public GlassPaneAndIronBarsCollision(BlockState state, BoundingBox[] defaultBoxes) {
@@ -72,21 +63,21 @@ public class GlassPaneAndIronBarsCollision extends BlockCollision {
 
     @Override
     protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision, double ulpX, double ulpZ) {
-        // Check for glass pane/iron bars bug (pane/iron bars is 0.5 blocks thick on Bedrock but 0.5625 on Java when only 1 side is connected).
-        // Also, we want to flip the direction since the direction here is indicating the block side the glass is connected to.
-        if (this.facing == 2 || this.facing == 6 || this.facing == 5) { // East
+        
+        
+        if (this.facing == 2 || this.facing == 6 || this.facing == 5) { 
             blockCollision.pushOutOfBoundingBox(playerCollision, Direction.WEST, 0.0625 + ulpX);
         }
 
-        if (this.facing == 1 || this.facing == 5 || this.facing == 8) { // North.
+        if (this.facing == 1 || this.facing == 5 || this.facing == 8) { 
             blockCollision.pushOutOfBoundingBox(playerCollision, Direction.SOUTH, 0.0625 + ulpZ);
         }
 
-        if (this.facing == 3 || this.facing == 6 || this.facing == 7) { // South
+        if (this.facing == 3 || this.facing == 6 || this.facing == 7) { 
             blockCollision.pushOutOfBoundingBox(playerCollision, Direction.NORTH, 0.0625 + ulpZ);
         }
 
-        if (this.facing == 4 || this.facing == 7 || this.facing == 8) { // West
+        if (this.facing == 4 || this.facing == 7 || this.facing == 8) { 
             blockCollision.pushOutOfBoundingBox(playerCollision, Direction.EAST, 0.0625 + ulpX);
         }
     }

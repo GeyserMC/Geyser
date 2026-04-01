@@ -65,38 +65,25 @@ public class CollisionManager {
     @Getter
     private final BoundingBox playerBoundingBox;
 
-    /**
-     * Whether the player is inside scaffolding
-     */
+    
     @Setter
     private boolean touchingScaffolding;
 
-    /**
-     * Whether the player is on top of scaffolding
-     */
+    
     @Setter
     private boolean onScaffolding;
 
     @Setter
     private float scale = 1;
 
-    /**
-     * Additional space where blocks are checked, which is helpful for fixing NoCheatPlus's Passable check.
-     * This check doesn't allow players right up against the block, so they must be pushed slightly away.
-     */
+    
     public static final double COLLISION_TOLERANCE = 0.00001;
-    /**
-     * Trims Y coordinates when jumping to prevent rounding issues being sent to the server.
-     * The locale used is necessary so other regions don't use <code>,</code> as their decimal separator.
-     */
+    
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("#.#####", new DecimalFormatSymbols(Locale.ENGLISH));
 
     private static final double PLAYER_STEP_UP = 0.6;
 
-    /**
-     * The maximum squared distance between a Bedrock players' movement and our predicted movement before
-     * the player is teleported to the correct position
-     */
+    
     private static final double INCORRECT_MOVEMENT_THRESHOLD = 0.08;
 
     public CollisionManager(GeyserSession session) {
@@ -104,18 +91,12 @@ public class CollisionManager {
         this.playerBoundingBox = new BoundingBox(0, 0, 0, 0.6, 1.8, 0.6);
     }
 
-    /**
-     * Updates the stored bounding box
-     * @param position The new position of the player
-     */
+    
     public void updatePlayerBoundingBox(Vector3f position) {
         updatePlayerBoundingBox(position.toDouble());
     }
 
-    /**
-     * Updates the stored bounding box
-     * @param position The new position of the player
-     */
+    
     public void updatePlayerBoundingBox(Vector3d position) {
         updatePlayerBoundingBox();
 
@@ -124,31 +105,23 @@ public class CollisionManager {
         playerBoundingBox.setMiddleZ(position.getZ());
     }
 
-    /**
-     * Updates the height of the stored bounding box
-     */
+    
     public void updatePlayerBoundingBox() {
-        // According to the Minecraft Wiki, when sneaking:
-        // - In Bedrock Edition, the height becomes 1.65 blocks, allowing movement through spaces as small as 1.75 (2 - 1⁄4) blocks high.
-        // - In Java Edition, the height becomes 1.5 blocks.
-        // Other instances have the player's bounding box become as small as 0.6 or 0.2.
+        
+        
+        
+        
         double playerHeight = session.getPlayerEntity().getBoundingBoxHeight();
         playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2.0) + (playerHeight / 2.0));
         playerBoundingBox.setSizeY(playerHeight);
         playerBoundingBox.setSizeX(session.getPlayerEntity().getBoundingBoxWidth());
         playerBoundingBox.setSizeZ(session.getPlayerEntity().getBoundingBoxWidth());
 
-        // We also need to account for bounding box scaling.
+        
         playerBoundingBox.scale(scale, scale, scale);
     }
 
-    /**
-     * Gets the bounding box to use for player movement.
-     * <p>
-     * This will return either the bounding box of a {@link ClientVehicle}, or the player's own bounding box.
-     *
-     * @return the bounding box to use for movement calculations
-     */
+    
     public BoundingBox getActiveBoundingBox() {
         if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.shouldSimulateMovement()) {
             return clientVehicle.getVehicleComponent().getBoundingBox();
@@ -157,28 +130,20 @@ public class CollisionManager {
         return playerBoundingBox;
     }
 
-    /**
-     * Adjust the Bedrock position before sending to the Java server to account for inaccuracies in movement between
-     * the two versions. Will also send corrected movement packets back to Bedrock if they collide with pistons.
-     *
-     * @param bedrockPosition the current Bedrock position of the client
-     * @param onGround whether the Bedrock player is on the ground
-     * @param teleported whether the Bedrock player has teleported to a new position. If true, movement correction is skipped.
-     * @return the position to send to the Java server, or null to cancel sending the packet
-     */
+    
     public @Nullable CollisionResult adjustBedrockPosition(Vector3f bedrockPosition, boolean onGround, boolean teleported) {
         PistonCache pistonCache = session.getPistonCache();
-        // Bedrock clients tend to fall off of honey blocks, so we need to teleport them to the new position
+        
         if (pistonCache.isPlayerAttachedToHoney()) {
             return null;
         }
-        // We need to parse the float as a string since casting a float to a double causes us to
-        // lose precision and thus, causes players to get stuck when walking near walls
+        
+        
         double javaY = Double.parseDouble(Float.toString(bedrockPosition.getY())) - EntityDefinitions.PLAYER.offset();
 
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY, Double.parseDouble(Float.toString(bedrockPosition.getZ())));
 
-        // Don't correct position if controlling a vehicle
+        
         if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.shouldSimulateMovement()) {
             playerBoundingBox.setMiddleX(position.getX());
             playerBoundingBox.setMiddleY(position.getY() + playerBoundingBox.getSizeY() / 2);
@@ -192,20 +157,20 @@ public class CollisionManager {
         Vector3d adjustedMovement = correctPlayerMovement(movement, false, teleported);
         playerBoundingBox.translate(adjustedMovement.getX(), adjustedMovement.getY(), adjustedMovement.getZ());
         playerBoundingBox.translate(pistonCache.getPlayerMotion().getX(), pistonCache.getPlayerMotion().getY(), pistonCache.getPlayerMotion().getZ());
-        // Correct player position
+        
         correctPlayerPosition();
 
-        // The server can't complain about our movement if we never send it
-        // TODO get rid of this and handle teleports smoothly
+        
+        
         if (pistonCache.isPlayerCollided()) {
             return null;
         }
 
         boolean newOnGround = adjustedMovement.getY() != movement.getY() && movement.getY() < 0 || onGround;
-        // Send corrected position to Bedrock if they differ by too much to prevent de-syncs
+        
         if (onGround != newOnGround || movement.distanceSquared(adjustedMovement) > INCORRECT_MOVEMENT_THRESHOLD) {
             PlayerEntity playerEntity = session.getPlayerEntity();
-            // Client will dismount if on a vehicle
+            
             if (playerEntity.getVehicle() == null && pistonCache.getPlayerMotion().equals(Vector3f.ZERO) && !pistonCache.isPlayerSlimeCollision()) {
                 recalculatePosition();
                 return null;
@@ -215,7 +180,7 @@ public class CollisionManager {
         position = playerBoundingBox.getBottomCenter();
 
         if (!newOnGround) {
-            // Trim the position to prevent rounding errors that make Java think we are clipping into a block
+            
             position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
         }
 
@@ -235,14 +200,14 @@ public class CollisionManager {
     public BlockPositionIterator collidableBlocksIterator(BoundingBox box) {
         Vector3d position = Vector3d.from(box.getMiddleX(), box.getMiddleY() - (box.getSizeY() / 2), box.getMiddleZ());
 
-        // Expand volume by 1 in each direction to include moving blocks
+        
         double pistonExpand = session.getPistonCache().getPistons().isEmpty() ? 0 : 1;
 
-        // Loop through all blocks that could collide
+        
         int minCollisionX = (int) Math.floor(position.getX() - ((box.getSizeX() / 2) + COLLISION_TOLERANCE + pistonExpand));
         int maxCollisionX = (int) Math.floor(position.getX() + (box.getSizeX() / 2) + COLLISION_TOLERANCE + pistonExpand);
 
-        // Y extends 0.5 blocks down because of fence hitboxes
+        
         int minCollisionY = (int) Math.floor(position.getY() - 0.5 - COLLISION_TOLERANCE - pistonExpand / 2.0);
         int maxCollisionY = (int) Math.floor(position.getY() + box.getSizeY() + pistonExpand);
 
@@ -256,25 +221,22 @@ public class CollisionManager {
         return collidableBlocksIterator(playerBoundingBox);
     }
 
-    /**
-     * Silently compensate for movement problems due to collision and floating points errors on bedrock.
-     * See {@link BlockCollision#correctPosition(GeyserSession, int, int, int, BoundingBox)} for more info
-     */
+    
     public void correctPlayerPosition() {
-        // These may be set to true by the correctPosition method in ScaffoldingCollision
+        
         touchingScaffolding = false;
         onScaffolding = false;
 
-        // Used when correction code needs to be run before the main correction
+        
         BlockPositionIterator iter = session.getCollisionManager().playerCollidableBlocksIterator();
         int[] blocks = session.getGeyser().getWorldManager().getBlocksAt(session, iter);
 
-        // Main correction code
+        
         for (iter.reset(); iter.hasNext(); iter.next()) {
             final int blockId = blocks[iter.getIteration()];
 
-            // These block have different offset between BE and JE so we ignore them because if we "correct" the position
-            // it will lead to complication and more inaccurate movement.
+            
+            
             if (session.getBlockMappings().getCollisionIgnoredBlocks().contains(blockId)) {
                 continue;
             }
@@ -289,9 +251,9 @@ public class CollisionManager {
     }
 
     public Vector3d correctPlayerMovement(Vector3d movement, boolean checkWorld, boolean teleported) {
-        // On the teleported check: see https://github.com/GeyserMC/Geyser/issues/2540
-        // As of this commit we don't know how it happens but we don't need to check movement here anyway in that case
-        if (teleported || (!checkWorld && session.getPistonCache().getPistons().isEmpty())) { // There is nothing to check
+        
+        
+        if (teleported || (!checkWorld && session.getPistonCache().getPistons().isEmpty())) { 
             return movement;
         }
         return correctMovement(movement, playerBoundingBox, session.getPlayerEntity().isOnGround(), PLAYER_STEP_UP, checkWorld, false);
@@ -314,7 +276,7 @@ public class CollisionManager {
             BoundingBox stretchedBoundingBox = boundingBox.clone();
             stretchedBoundingBox.extend(horizontalMovement);
             double maxStepUp = correctMovementForCollisions(Vector3d.from(0, stepUp, 0), stretchedBoundingBox, checkWorld, walkOnLava).getY();
-            if (maxStepUp < stepUp) { // The player collided with a block above them
+            if (maxStepUp < stepUp) { 
                 BoundingBox stepUpBoundingBox = boundingBox.clone();
                 stepUpBoundingBox.translate(0, maxStepUp, 0);
 
@@ -328,7 +290,7 @@ public class CollisionManager {
                 BoundingBox stepUpBoundingBox = boundingBox.clone();
                 stepUpBoundingBox.translate(stepUpMovement.getX(), stepUpMovement.getY(), stepUpMovement.getZ());
 
-                // Apply the player's remaining vertical movement
+                
                 double verticalMovement = correctMovementForCollisions(Vector3d.from(0, movement.getY() - stepUpMovement.getY(), 0), stepUpBoundingBox, checkWorld, walkOnLava).getY();
 
                 stepUpMovement = stepUpMovement.up(verticalMovement);
@@ -347,7 +309,7 @@ public class CollisionManager {
         double movementY = movement.getY();
         double movementZ = movement.getZ();
 
-        // Position might change slightly due to floating point error
+        
         double originalX = boundingBox.getMiddleX();
         double originalY = boundingBox.getMiddleY();
         double originalZ = boundingBox.getMiddleZ();
@@ -401,9 +363,7 @@ public class CollisionManager {
         return offset;
     }
 
-    /**
-     * @return the block collision appropriate for entities that can walk on lava (Strider)
-     */
+    
     public BlockCollision getCollisionLavaWalking(int blockId, int blockY, BoundingBox boundingBox) {
         if (BlockStateValues.getLavaLevel(blockId) == 0 && FLUID_COLLISION.isBelow(blockY, boundingBox)) {
             return FLUID_COLLISION;
@@ -411,17 +371,13 @@ public class CollisionManager {
         return BlockUtils.getCollision(blockId);
     }
 
-    /**
-     * @return if the player is currently in a water block
-     */
+    
     public boolean isPlayerInWater() {
         BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getPlayerEntity().position().toInt());
         return state.is(Blocks.WATER) && state.getValue(Properties.LEVEL) == 0;
     }
 
-    /**
-     * @return if the player is currently touching water
-     */
+    
     public boolean isPlayerTouchingWater() {
         BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getPlayerEntity().position().toInt());
         return state.is(Blocks.WATER);
@@ -432,19 +388,14 @@ public class CollisionManager {
         double eyeY = playerBoundingBox.getMiddleY() - playerBoundingBox.getSizeY() / 2d + session.getEyeHeight();
         double eyeZ = playerBoundingBox.getMiddleZ();
 
-        eyeY -= 1 / ((double) BlockStateValues.NUM_FLUID_LEVELS); // Subtract the height of one water layer
+        eyeY -= 1 / ((double) BlockStateValues.NUM_FLUID_LEVELS); 
         int blockID = session.getGeyser().getWorldManager().getBlockAt(session, GenericMath.floor(eyeX), GenericMath.floor(eyeY), GenericMath.floor(eyeZ));
         double waterHeight = BlockStateValues.getWaterHeight(blockID);
 
         return waterHeight != -1 && eyeY < (Math.floor(eyeY) + waterHeight);
     }
 
-    /**
-     * Updates scaffolding entity flags
-     * Scaffolding needs to be checked per-move since it's a flag in Bedrock but Java does it client-side
-     *
-     * @param updateMetadata whether we should update metadata if something changed
-     */
+    
     public void updateScaffoldingFlags(boolean updateMetadata) {
         SessionPlayerEntity entity = session.getPlayerEntity();
         entity.setInsideScaffolding(touchingScaffolding);

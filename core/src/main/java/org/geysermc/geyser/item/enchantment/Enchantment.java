@@ -37,10 +37,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @param description only populated if {@link #bedrockEnchantment()} is null.
- * @param anvilCost also as a rarity multiplier
- */
+
 public record Enchantment(Set<EnchantmentComponent> effects,
                           GeyserHolderSet<Item> supportedItems,
                           int maxLevel,
@@ -76,6 +73,6 @@ public record Enchantment(Set<EnchantmentComponent> effects,
                 case "minecraft:prevent_armor_change" -> components.add(EnchantmentComponent.PREVENT_ARMOR_CHANGE);
             }
         }
-        return Set.copyOf(components); // Also ensures any empty sets are consolidated
+        return Set.copyOf(components); 
     }
 }

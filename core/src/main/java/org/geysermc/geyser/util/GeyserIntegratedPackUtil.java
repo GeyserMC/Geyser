@@ -83,11 +83,7 @@ public interface GeyserIntegratedPackUtil {
         }
     }
 
-    /**
-     * Pre-processes a resource pack about to be registered
-     * @param pack the pack to check
-     * @throws ResourcePackException if duplicate was discovered
-     */
+    
     default void preProcessPack(GeyserResourcePack pack) {
         if (!PACK_ENABLED.get()) {
             return;
@@ -121,7 +117,7 @@ public interface GeyserIntegratedPackUtil {
     }
 
     default void handleOptionalPack(ResourcePack pack) {
-        // Gracefully handle optional pack presence to avoid issues
+        
         if (pack.codec() instanceof UrlPackCodec) {
             GeyserImpl.getInstance().getLogger().warning("Detected GeyserOptionalPack sent via the UrlPackCodec! Please migrate to sending the " +
                 "GeyserIntegratedPack instead - it will be required in the future for advanced features to work correctly!");
@@ -138,7 +134,7 @@ public interface GeyserIntegratedPackUtil {
     default String warnMessageLocation(PackCodec codec) {
         if (codec instanceof PathPackCodec pathPackCodec) {
             try {
-                // try to create nicer /packs/xyz.mcpack path if possible
+                
                 return "(found in: %s)".formatted(GeyserImpl.getInstance().getBootstrap().getConfigFolder().relativize(pathPackCodec.path()));
             } catch (Exception e) {
                 return "(found in: %s)".formatted(pathPackCodec.path());

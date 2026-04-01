@@ -55,11 +55,11 @@ public class PandaEntity extends AnimalEntity {
         setFlag(EntityFlag.EATING, count > 0);
         dirtyMetadata.put(EntityDataTypes.EATING_COUNTER, count);
         if (count != 0) {
-            // Particles and sound
+            
             EntityEventPacket packet = new EntityEventPacket();
             packet.setRuntimeEntityId(geyserId);
             packet.setType(EntityEventType.EATING_ITEM);
-            // As of 1.20.5 - pandas can eat cake
+            
             packet.setData(session.getItemMappings().getMapping(getMainHandItem()).getBedrockDefinition().getRuntimeId() << 16);
             session.sendUpstreamPacket(packet);
         }
@@ -80,7 +80,7 @@ public class PandaEntity extends AnimalEntity {
         setFlag(EntityFlag.SNEEZING, (xd & 0x02) == 0x02);
         setFlag(EntityFlag.ROLLING, (xd & 0x04) == 0x04);
         setFlag(EntityFlag.SITTING, (xd & 0x08) == 0x08);
-        // Required to put these both for sitting to actually show
+        
         dirtyMetadata.put(EntityDataTypes.SITTING_AMOUNT, (xd & 0x08) == 0x08 ? 1f : 0f);
         dirtyMetadata.put(EntityDataTypes.SITTING_AMOUNT_PREVIOUS, (xd & 0x08) == 0x08 ? 1f : 0f);
         setFlag(EntityFlag.LAYING_DOWN, (xd & 0x10) == 0x10);
@@ -105,11 +105,11 @@ public class PandaEntity extends AnimalEntity {
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (mainGene == Gene.WORRIED && session.isThunder()) {
-            // Huh!
+            
             return InteractionResult.PASS;
         } else if (getFlag(EntityFlag.LAYING_DOWN)) {
-            // Stop the panda from laying down
-            // TODO laying up is client-side?
+            
+            
             return InteractionResult.SUCCESS;
         } else if (canEat(itemInHand)) {
             if (getFlag(EntityFlag.BABY)) {
@@ -125,21 +125,18 @@ public class PandaEntity extends AnimalEntity {
         return false;
     }
 
-    /**
-     * Update the panda's appearance, and take into consideration the recessive brown and weak traits that only show up
-     * when both main and hidden genes match
-     */
+    
     private void updateAppearance() {
         if (mainGene.isRecessive) {
             if (mainGene == hiddenGene) {
-                // Main and hidden genes match; this is what the panda looks like.
+                
                 dirtyMetadata.put(EntityDataTypes.VARIANT, mainGene.ordinal());
             } else {
-                // Genes have no effect on appearance
+                
                 dirtyMetadata.put(EntityDataTypes.VARIANT, Gene.NORMAL.ordinal());
             }
         } else {
-            // No need to worry about hidden gene
+            
             dirtyMetadata.put(EntityDataTypes.VARIANT, mainGene.ordinal());
         }
     }

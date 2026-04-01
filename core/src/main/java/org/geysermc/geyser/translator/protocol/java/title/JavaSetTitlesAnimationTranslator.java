@@ -40,8 +40,8 @@ public class JavaSetTitlesAnimationTranslator extends PacketTranslator<Clientbou
         int stayTime = packet.getStay();
         int fadeOutTime = packet.getFadeOut();
         session.getWorldCache().setTitleTimes(fadeInTime, stayTime, fadeOutTime);
-        // We need a tick rate multiplier as otherwise the timings are incorrect on different tick rates because
-        // bedrock can only run at 20 TPS (50ms = 1 tick)
+        
+        
         int tickrateMultiplier = Math.round(session.getMillisecondsPerTick()) / 50;
         SetTitlePacket titlePacket = new SetTitlePacket();
         titlePacket.setType(SetTitlePacket.Type.TIMES);

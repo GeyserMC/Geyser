@@ -53,7 +53,7 @@ public class BossBar {
         updateBossBar();
     }
 
-    //TODO: There is a player unique entity ID - if this didn't exist before, we may be able to get rid of our hack
+    
 
     public void updateBossBar() {
         BossEventPacket bossEventPacket = new BossEventPacket();
@@ -107,10 +107,7 @@ public class BossBar {
         removeBossEntity();
     }
 
-    /**
-     * Bedrock still needs an entity to display the BossBar.<br>
-     * Just like 1.8 but it doesn't care about which entity
-     */
+    
     private void addBossEntity() {
         AddEntityPacket addEntityPacket = new AddEntityPacket();
         addEntityPacket.setUniqueEntityId(entityId);

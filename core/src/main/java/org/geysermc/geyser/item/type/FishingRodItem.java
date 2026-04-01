@@ -40,7 +40,7 @@ public class FishingRodItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
-        // Fix damage inconsistency
+        
         builder.getDamage().ifPresent(damage -> builder.setDamage(getBedrockDamage(damage)));
     }
 

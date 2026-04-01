@@ -36,9 +36,7 @@ public interface BitArray {
 
     int size();
 
-    /**
-     * Overridden if the bit array implementation does not require size.
-     */
+    
     default void writeSizeToNetwork(ByteBuf buffer, int size) {
         VarInts.writeInt(buffer, size);
     }

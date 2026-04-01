@@ -54,7 +54,7 @@ public class BellCollision extends BlockCollision {
             return;
         }
 
-        // Check for bell collision bug (bell on Java is 0.1875 block higher than Bedrock)
+        
         blockCollision.pushOutOfBoundingBox(playerCollision, Direction.UP, MAX_PUSH_DISTANCE);
     }
 }

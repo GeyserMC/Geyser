@@ -37,22 +37,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.OptionalInt;
 
-/**
- * An intermediary class made to allow easy access to work-in-progress NBT, such as lore and display.
- */
+
 public final class BedrockItemBuilder {
 
     public static final NbtMap EMPTY_ITEM = BedrockItemBuilder.createItemNbt("", 0, 0).build();
 
-    // All Bedrock-style
+    
     @Nullable
     private String customName;
     @Nullable
     private List<String> lore;
     private OptionalInt damage = OptionalInt.empty();
-    /**
-     * Miscellaneous NBT that will be put into the final item.
-     */
+    
     @Nullable
     private NbtMapBuilder builder;
 
@@ -96,7 +92,7 @@ public final class BedrockItemBuilder {
         return builder;
     }
 
-    // NBT convenience methods. Returns NbtMapBuilder since that's what's used the most
+    
 
     public NbtMapBuilder putByte(String name, byte value) {
         return getOrCreateNbt().putByte(name, value);
@@ -126,9 +122,7 @@ public final class BedrockItemBuilder {
         return getOrCreateNbt().putCompound(name, value);
     }
 
-    /**
-     * @return null if no NBT is needed on this item.
-     */
+    
     @Nullable
     public NbtMap build() {
         boolean validLore = lore != null && !lore.isEmpty();
@@ -151,9 +145,7 @@ public final class BedrockItemBuilder {
         return builder.build();
     }
 
-    /**
-     * Creates item NBT to nest within NBT with name, count, damage, and tag set.
-     */
+    
     public static NbtMapBuilder createItemNbt(ItemData data) {
         NbtMapBuilder builder = BedrockItemBuilder.createItemNbt(data.getDefinition().getIdentifier(), data.getCount(), data.getDamage());
         if (data.getTag() != null) {
@@ -162,16 +154,12 @@ public final class BedrockItemBuilder {
         return builder;
     }
 
-    /**
-     * Creates item NBT to nest within NBT with name, count, and damage set.
-     */
+    
     public static NbtMapBuilder createItemNbt(ItemMapping mapping, int count, int damage) {
         return createItemNbt(mapping.getBedrockIdentifier(), count, damage);
     }
 
-    /**
-     * Creates item NBT to nest within NBT with name, count, and damage set.
-     */
+    
     public static NbtMapBuilder createItemNbt(String bedrockIdentifier, int count, int damage) {
         NbtMapBuilder builder = NbtMap.builder();
         builder.putString("Name", bedrockIdentifier);

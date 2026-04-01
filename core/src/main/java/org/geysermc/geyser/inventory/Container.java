@@ -34,17 +34,13 @@ import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.jetbrains.annotations.Range;
 
-/**
- * Combination of {@link Inventory} and {@link PlayerInventory}
- */
+
 @Getter
 public class Container extends Inventory {
     protected final PlayerInventory playerInventory;
     private final int containerSize;
 
-    /**
-     * Whether we are using a real block when opening this inventory.
-     */
+    
     private boolean isUsingRealBlock = false;
 
     public Container(GeyserSession session, String title, int id, int size, @Nullable ContainerType containerType) {
@@ -81,12 +77,7 @@ public class Container extends Inventory {
         return this.containerSize;
     }
 
-    /**
-     * Will be overwritten for droppers.
-     *
-     * @param usingRealBlock whether this container is using a real container or not
-     * @param block the Java block, if real
-     */
+    
     public void setUsingRealBlock(boolean usingRealBlock, Block block) {
         isUsingRealBlock = usingRealBlock;
     }
@@ -99,14 +90,7 @@ public class Container extends Inventory {
         return title;
     }
 
-    /**
-     * The prefix to add to the title if the integrated pack is active.
-     * It is used within the GeyserIntegratedPack to apply specific changes.
-     * <p>
-     * <b>This prefix should always consist of (invalid) color codes only.</b>
-     * Color codes prevent the client from cropping the title text for being too long.
-     * @return a prefix for the title
-     */
+    
     public static String getIntegratedPackTitlePrefix(@Nullable ContainerType containerType) {
         if (containerType == null) {
             return "";

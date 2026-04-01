@@ -63,20 +63,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MessageTranslator {
-    // These are used for handling the translations of the messages
-    // Custom instead of TranslatableComponentRenderer#usingTranslationSource so we don't need to worry about finding a Locale class
+    
+    
     private static final TranslatableComponentRenderer<String> RENDERER = new MinecraftTranslationRegistry();
 
-    // Possible TODO: replace the legacy hover event serializer with an empty one since we have no use for hover events
+    
     private static final GsonComponentSerializer GSON_SERIALIZER;
 
     private static final LegacyComponentSerializer BEDROCK_SERIALIZER;
     private static final String BEDROCK_COLORS;
 
-    // Legacy formatting character
+    
     private static final String BASE = "\u00a7";
 
-    // Reset character
+    
     private static final String RESET = BASE + "r";
     private static final Pattern RESET_PATTERN = Pattern.compile("(" + RESET + "){2,}");
     private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
@@ -84,32 +84,32 @@ public class MessageTranslator {
     static {
         GSON_SERIALIZER = DefaultComponentSerializer.get()
                 .toBuilder()
-                // Use a custom legacy hover event deserializer since we don't use any of this data anyway, and
-                // fixes issues where legacy hover events throw deserialization errors
+                
+                
                 .legacyHoverEventSerializer(new DummyLegacyHoverEventSerializer())
                 .build();
-        // Tell MCProtocolLib to use this serializer, too.
+        
         DefaultComponentSerializer.set(GSON_SERIALIZER);
 
-        // Customize the formatting characters of our legacy serializer for bedrock edition
+        
         List<CharacterAndFormat> formats = new ArrayList<>(CharacterAndFormat.defaults());
-        // The following two do not yet exist on Bedrock - https://bugs.mojang.com/browse/MCPE-41729
+        
         formats.remove(CharacterAndFormat.STRIKETHROUGH);
         formats.remove(CharacterAndFormat.UNDERLINED);
 
-        formats.add(CharacterAndFormat.characterAndFormat('g', TextColor.color(221, 214, 5))); // Minecoin Gold
-        // Add the new characters implemented in 1.19.80
-        formats.add(CharacterAndFormat.characterAndFormat('h', TextColor.color(227, 212, 209))); // Quartz
-        formats.add(CharacterAndFormat.characterAndFormat('i', TextColor.color(206, 202, 202))); // Iron
-        formats.add(CharacterAndFormat.characterAndFormat('j', TextColor.color(68, 58, 59))); // Netherite
-        formats.add(CharacterAndFormat.characterAndFormat('m', TextColor.color(151, 22, 7))); // Redstone
-        formats.add(CharacterAndFormat.characterAndFormat('n', TextColor.color(180, 104, 77))); // Copper
-        formats.add(CharacterAndFormat.characterAndFormat('p', TextColor.color(222, 177, 45))); // Gold
-        formats.add(CharacterAndFormat.characterAndFormat('q', TextColor.color(17, 160, 54))); // Emerald
-        formats.add(CharacterAndFormat.characterAndFormat('s', TextColor.color(44, 186, 168))); // Diamond
-        formats.add(CharacterAndFormat.characterAndFormat('t', TextColor.color(33, 73, 123))); // Lapis
-        formats.add(CharacterAndFormat.characterAndFormat('u', TextColor.color(154, 92, 198))); // Amethyst
-        formats.add(CharacterAndFormat.characterAndFormat('v', TextColor.color(235, 114, 20))); // Resin
+        formats.add(CharacterAndFormat.characterAndFormat('g', TextColor.color(221, 214, 5))); 
+        
+        formats.add(CharacterAndFormat.characterAndFormat('h', TextColor.color(227, 212, 209))); 
+        formats.add(CharacterAndFormat.characterAndFormat('i', TextColor.color(206, 202, 202))); 
+        formats.add(CharacterAndFormat.characterAndFormat('j', TextColor.color(68, 58, 59))); 
+        formats.add(CharacterAndFormat.characterAndFormat('m', TextColor.color(151, 22, 7))); 
+        formats.add(CharacterAndFormat.characterAndFormat('n', TextColor.color(180, 104, 77))); 
+        formats.add(CharacterAndFormat.characterAndFormat('p', TextColor.color(222, 177, 45))); 
+        formats.add(CharacterAndFormat.characterAndFormat('q', TextColor.color(17, 160, 54))); 
+        formats.add(CharacterAndFormat.characterAndFormat('s', TextColor.color(44, 186, 168))); 
+        formats.add(CharacterAndFormat.characterAndFormat('t', TextColor.color(33, 73, 123))); 
+        formats.add(CharacterAndFormat.characterAndFormat('u', TextColor.color(154, 92, 198))); 
+        formats.add(CharacterAndFormat.characterAndFormat('v', TextColor.color(235, 114, 20))); 
 
         ComponentFlattener flattener = ComponentFlattener.basic().toBuilder()
             .nestingLimit(30)
@@ -120,14 +120,14 @@ public class MessageTranslator {
                 int argPosition = 0;
                 int lastIdx = 0;
                 while (matcher.find()) {
-                    // append prior
+                    
                     if (lastIdx < matcher.start()) {
                         consumer.accept(Component.text(translated.substring(lastIdx, matcher.start())));
                     }
                     lastIdx = matcher.end();
 
                     final @Nullable String argIdx = matcher.group(1);
-                    // calculate argument position
+                    
                     if (argIdx != null) {
                         try {
                             final int idx = Integer.parseInt(argIdx) - 1;
@@ -135,7 +135,7 @@ public class MessageTranslator {
                                 consumer.accept(args.get(idx).asComponent());
                             }
                         } catch (final NumberFormatException ex) {
-                            // ignore, drop the format placeholder
+                            
                         }
                     } else {
                         final int idx = argPosition++;
@@ -145,7 +145,7 @@ public class MessageTranslator {
                     }
                 }
 
-                // append tail
+                
                 if (lastIdx < translated.length()) {
                     consumer.accept(Component.text(translated.substring(lastIdx)));
                 }
@@ -157,7 +157,7 @@ public class MessageTranslator {
                 .flattener(flattener)
                 .build();
 
-        // cache all the legacy character codes
+        
         StringBuilder colorBuilder = new StringBuilder();
         for (CharacterAndFormat format : formats) {
             if (format.format() instanceof TextColor) {
@@ -167,46 +167,24 @@ public class MessageTranslator {
         BEDROCK_COLORS = colorBuilder.toString();
     }
 
-    /**
-     * Convert a Java message to the legacy format ready for bedrock. Unlike
-     * {@link #convertMessageRaw(Component, String)} this adds a leading color reset. In Bedrock
-     * some places have build-in colors.
-     *
-     * @param message Java message
-     * @param locale Locale to use for translation strings
-     * @return Parsed and formatted message for bedrock
-     */
+    
     public static String convertMessage(Component message, String locale) {
         return convertMessage(message, locale, true);
     }
 
-    /**
-     * Convert a Java message to the legacy format ready for bedrock, for use in item tooltips
-     * (a gray color is applied).
-     *
-     * @param message Java message
-     * @param locale Locale to use for translation strings
-     * @return Parsed and formatted message for bedrock, in gray color
-     */
+    
     public static String convertMessageForTooltip(Component message, String locale) {
         return RESET + ChatColor.GRAY + convertMessageRaw(message, locale);
     }
 
-    /**
-     * Convert a Java message to the legacy format ready for bedrock. Unlike {@link #convertMessage(Component, String)}
-     * this version does not add a leading color reset. In Bedrock some places have build-in colors.
-     *
-     * @param message Java message
-     * @param locale Locale to use for translation strings
-     * @return Parsed and formatted message for bedrock
-     */
+    
     public static String convertMessageRaw(Component message, String locale) {
         return convertMessage(message, locale, false);
     }
 
     private static String convertMessage(Component message, String locale, boolean addLeadingResetFormat) {
         try {
-            // Translate any components that require it
+            
             message = RENDERER.render(message, locale);
 
             String legacy = BEDROCK_SERIALIZER.serialize(message);
@@ -217,8 +195,8 @@ public class MessageTranslator {
             for (int i = 0; i < legacyChars.length; i++) {
                 char legacyChar = legacyChars[i];
                 if (legacyChar != ChatColor.ESCAPE || i >= legacyChars.length - 1) {
-                    // No special formatting for Bedrock needed
-                    // Or, we're at the end of the string
+                    
+                    
                     finalLegacy.append(legacyChar);
                     lastFormatReset = false;
                     continue;
@@ -226,7 +204,7 @@ public class MessageTranslator {
 
                 char next = legacyChars[++i];
                 if (BEDROCK_COLORS.indexOf(next) != -1) {
-                    // Unlike Java Edition, the ChatFormatting is not reset when a ChatColor is added
+                    
                     if (!lastFormatReset) {
                         finalLegacy.append(RESET);
                     }
@@ -237,14 +215,14 @@ public class MessageTranslator {
 
             String finalLegacyString = finalLegacy.toString();
 
-            // Remove duplicate resets and trailing resets
+            
             finalLegacyString = RESET_PATTERN.matcher(finalLegacyString).replaceAll(RESET);
             if (finalLegacyString.endsWith(RESET)) {
                 finalLegacyString = finalLegacyString.substring(0, finalLegacyString.length() - 2);
             }
 
-            // If the message contains \n then go through and re-set the color after each by caching the last color
-            // Bedrock is dumb and resets the color after a newline
+            
+            
             if (finalLegacyString.contains("\n")) {
                 StringBuilder output = new StringBuilder();
 
@@ -255,7 +233,7 @@ public class MessageTranslator {
                     output.append(c);
 
                     if (c == ChatColor.ESCAPE) {
-                        // If the string ends with a formatting character, remove and skip
+                        
                         if (i >= finalLegacyString.length() - 1) {
                             output = output.deleteCharAt(output.length() - 1);
                             continue;
@@ -288,29 +266,17 @@ public class MessageTranslator {
         return convertMessage(GSON_SERIALIZER.deserialize(message), locale);
     }
 
-    /**
-     * Convenience method for locale getting.
-     */
+    
     public static String convertMessage(GeyserSession session, Component message) {
         return convertMessage(message, session.locale());
     }
 
-    /**
-     * DO NOT USE THIS METHOD unless where you're calling from does not have a (reliable) way of getting the
-     * context's locale.
-     */
+    
     public static String convertMessage(Component message) {
         return convertMessage(message, GeyserLocale.getDefaultLocale());
     }
 
-    /**
-     * Verifies the message is valid JSON in case it's plaintext. Works around GsonComponentSerializer not using lenient mode.
-     * See <a href="https://wiki.vg/Chat">here</a> for messages sent in lenient mode, and for a description on leniency.
-     *
-     * @param message Potentially lenient JSON message
-     * @param locale Locale to use for translation strings
-     * @return Bedrock formatted message
-     */
+    
     public static String convertMessageLenient(String message, String locale) {
         if (message == null) {
             return "";
@@ -322,10 +288,10 @@ public class MessageTranslator {
         try {
             return convertJsonMessage(message, locale);
         } catch (Exception ignored) {
-            // Use the default legacy serializer since message is java-legacy
+            
             String convertedMessage = convertMessage(LegacyComponentSerializer.legacySection().deserialize(message), locale);
 
-            // We have to do this since Adventure strips the starting reset character
+            
             if (message.startsWith(RESET) && !convertedMessage.startsWith(RESET)) {
                 convertedMessage = RESET + convertedMessage;
             }
@@ -338,13 +304,7 @@ public class MessageTranslator {
         return convertMessageLenient(message, GeyserLocale.getDefaultLocale());
     }
 
-    /**
-     * Convert a Java message to plain text
-     *
-     * @param message Message to convert
-     * @param locale Locale to use for translation strings
-     * @return The plain text of the message
-     */
+    
     public static String convertToPlainText(Component message, String locale) {
         if (message == null) {
             return "";
@@ -352,12 +312,7 @@ public class MessageTranslator {
         return PlainTextComponentSerializer.plainText().serialize(RENDERER.render(message, locale));
     }
 
-    /**
-     * Convert legacy format message to plain text
-     *
-     * @param message Message to convert
-     * @return The plain text of the message
-     */
+    
     public static String convertIncomingToPlainText(String message) {
         GeyserImpl instance = GeyserImpl.getInstance();
         if (instance == null || instance.config().gameplay().blockLegacyCodes()) {
@@ -377,23 +332,17 @@ public class MessageTranslator {
         return message;
     }
 
-    /**
-     * Convert JSON and legacy format message to plain text
-     *
-     * @param message Message to convert
-     * @param locale Locale to use for translation strings
-     * @return The plain text of the message
-     */
+    
     public static String convertToPlainTextLenient(String message, String locale) {
         if (message == null) {
             return "";
         }
         Component messageComponent = null;
         if (message.startsWith("{") && message.endsWith("}")) {
-            // Message is a JSON object
+            
             try {
                 messageComponent = GSON_SERIALIZER.deserialize(message);
-                // Translate any components that require it
+                
                 messageComponent = RENDERER.render(messageComponent, locale);
             } catch (Exception ignored) {
             }
@@ -415,7 +364,7 @@ public class MessageTranslator {
             String xuid = "";
             GeyserSession playerSession = GeyserImpl.getInstance().connectionByUuid(senderUuid);
 
-            // Prefer looking up xuid using the session to catch linked players
+            
             if (playerSession != null) {
                 xuid = playerSession.getAuthData().xuid();
             } else if (senderUuid.version() == 0) {
@@ -430,8 +379,8 @@ public class MessageTranslator {
         ChatType chatType = chatTypeHolder.getOrCompute(session.getRegistryCache().registry(JavaRegistries.CHAT_TYPE)::byId);
         if (chatType != null && chatType.chat() != null) {
             var chat = chatType.chat();
-            // As of 1.19 - do this to apply all the styling for signed messages
-            // Though, Bedrock cannot care about the signed stuff.
+            
+            
             TranslatableComponent.Builder withDecoration = Component.translatable()
                     .key(chat.translationKey())
                     .style(ChatDecoration.getStyle(chat));
@@ -459,13 +408,7 @@ public class MessageTranslator {
         session.sendUpstreamPacket(textPacket);
     }
 
-    /**
-     * Checks if the given message is over 256 characters (Java edition server chat limit) and sends a message to the user if it is
-     *
-     * @param message Message to check
-     * @param session {@link GeyserSession} for the user
-     * @return True if the message is too long, false if not
-     */
+    
     public static boolean isTooLong(String message, GeyserSession session) {
         if (message.length() > 256) {
             session.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.chat.too_long", session.locale(), message.length()));
@@ -475,9 +418,7 @@ public class MessageTranslator {
         return false;
     }
 
-    /**
-     * Normalizes whitespaces - a thing a vanilla client apparently does with commands and chat messages.
-     */
+    
     public static String normalizeSpace(String string) {
         if (string == null || string.isEmpty()) {
             return string;
@@ -497,7 +438,7 @@ public class MessageTranslator {
                 whitespacesCount++;
             } else {
                 startWhitespaces = false;
-                // Replace non-breaking spaces with regular spaces for normalization
+                
                 newChars[count++] = (actualChar == '\u00A0' ? ' ' : actualChar);
                 whitespacesCount = 0;
             }
@@ -508,9 +449,7 @@ public class MessageTranslator {
         return new String(newChars, 0, count - (whitespacesCount > 0 ? 1 : 0)).trim();
     }
 
-    /**
-     * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
-     */
+    
     public static String deserializeDescription(GeyserSession session, NbtMap tag) {
         Object description = tag.get("description");
         Component parsed = componentFromNbtTag(description);
@@ -627,6 +566,6 @@ public class MessageTranslator {
     }
 
     public static void init() {
-        // no-op
+        
     }
 }

@@ -54,13 +54,7 @@ public class ChatColor {
     public static final String ITALIC = ESCAPE + "o";
     public static final String RESET = ESCAPE + "r";
 
-    /**
-     * Convert chat colour codes to terminal colours
-     *
-     * @param string The text to replace colours for
-     *
-     * @return A string ready for terminal printing
-     */
+    
     public static String toANSI(String string) {
         string = string.replace(BOLD, (char) 0x1b + "[1m");
         string = string.replace(OBFUSCATED, (char) 0x1b + "[5m");
@@ -88,8 +82,8 @@ public class ChatColor {
     }
 
     public static String colorDisplayOrder(int index) {
-        // https://bugs.mojang.com/browse/MCPE-41729
-        // strikethrough and underlined do not exist on Bedrock
+        
+        
         return switch (index) {
             case 0 -> BLACK;
             case 1 -> DARK_BLUE;
@@ -114,8 +108,8 @@ public class ChatColor {
     }
 
     public static String chatColorFor(TeamColor teamColor) {
-        // https://bugs.mojang.com/browse/MCPE-41729
-        // strikethrough and underlined do not exist on Bedrock
+        
+        
         return switch (teamColor) {
             case BLACK -> BLACK;
             case DARK_BLUE -> DARK_BLUE;

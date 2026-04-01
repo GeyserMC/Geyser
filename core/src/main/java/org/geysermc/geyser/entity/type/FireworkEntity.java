@@ -56,8 +56,8 @@ public class FireworkEntity extends Entity {
             return;
         }
 
-        // TODO this looked the same, so I'm going to assume it is and (keep below comment if true)
-        // Translate using item methods to get firework NBT for Bedrock
+        
+        
         BedrockItemBuilder builder = new BedrockItemBuilder();
         TooltipOptions tooltip = TooltipOptions.fromComponents(components);
         Items.FIREWORK_ROCKET.translateComponentsToBedrock(session, components, tooltip, builder);
@@ -70,10 +70,10 @@ public class FireworkEntity extends Entity {
 
         OptionalInt optional = entityMetadata.getValue();
         if (optional.isPresent() && optional.getAsInt() == session.getPlayerEntity().getEntityId()) {
-            // If we don't send this, the bedrock client will always stop boosting after 20 ticks
-            // However this is not the case for Java as the player will stop boosting after entity despawn.
-            // So we let player boost for a really long time and then only stop them when the entity despawn.
-            // Also doing this allow player to boost simply by having a fireworks rocket attached to them
+            
+            
+            
+            
             // and not necessary have to use a rocket (as some plugin do this to boost player)
             // You can't really send Integer.MAX_VALUE since Bedrock client doesn't seem to like way too large number very much (as of 1.21.73).
             sendElytraBoost(1000000);

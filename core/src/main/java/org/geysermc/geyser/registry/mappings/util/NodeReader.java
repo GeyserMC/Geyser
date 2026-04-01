@@ -49,7 +49,7 @@ public interface NodeReader<T> {
 
     NodeReader<Integer> INT = node -> {
         double i = node.getAsDouble();
-        if (i == (int) i) { // Make sure the number is round
+        if (i == (int) i) { 
             return (int) i;
         }
         throw new InvalidCustomMappingsFileException("expected node to be an integer");
@@ -68,7 +68,7 @@ public interface NodeReader<T> {
     NodeReader<Float> FLOAT = DOUBLE.andThen(Double::floatValue);
 
     NodeReader<Boolean> BOOLEAN = node -> {
-        // Not directly using getAsBoolean here since that doesn't convert integers and doesn't throw an error when the string is not "true" or "false"
+        
         if (node.isString()) {
             String s = node.getAsString();
             if (s.equals("true")) {
@@ -158,9 +158,7 @@ public interface NodeReader<T> {
         return DOUBLE.validate(d -> d >= min && d <= max, "number must be in range [" + min + ", " + max + "]");
     }
 
-    /**
-     * {@link NodeReader#read(JsonPrimitive, String, String...)} is preferably used as that properly formats the error when one is thrown.
-     */
+    
     T read(JsonPrimitive node) throws InvalidCustomMappingsFileException;
 
     default T read(JsonPrimitive node, String task, String... context) throws InvalidCustomMappingsFileException {

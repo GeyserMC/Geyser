@@ -36,22 +36,17 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 
-/**
- * Translates the Crafter. Most important thing to know about this class is that
- * the result slot comes after the 3x3 grid AND the inventory. This means that the total size of the Crafter (10)
- * cannot be used to calculate the inventory slot indices. The Translator and the Updater must then
- * override any methods that use the size for such calculations
- */
+
 public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator<CrafterContainer> {
 
     public static final int JAVA_RESULT_SLOT = 45;
     public static final int BEDROCK_RESULT_SLOT = 50;
     public static final int GRID_SIZE = 9;
 
-    // Properties
-    private static final int SLOT_ENABLED = 0; // enabled slot value
-    private static final int TRIGGERED_KEY = 9; // key of triggered state
-    private static final int TRIGGERED = 1; // triggered value
+    
+    private static final int SLOT_ENABLED = 0; 
+    private static final int TRIGGERED_KEY = 9; 
+    private static final int TRIGGERED = 1; 
 
     public CrafterInventoryTranslator() {
         super(10, Blocks.CRAFTER, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.CRAFTER, CrafterInventoryUpdater.INSTANCE);
@@ -59,16 +54,16 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public void updateProperty(GeyserSession session, CrafterContainer container, int key, int value) {
-        // the slot bits and triggered state are sent here rather than in a BlockEntityDataPacket. Yippee.
+        
         if (key == TRIGGERED_KEY) {
             container.setTriggered(value == TRIGGERED);
         } else {
-            // enabling and disabling slots of the 3x3 grid
+            
             container.setSlot(key, value == SLOT_ENABLED);
         }
 
-        // Unfortunately this will be called 10 times when a Crafter is opened
-        // Kind of unavoidable because it must be invoked anytime an individual property is updated
+        
+        
         updateBlockEntity(session, container);
     }
 
@@ -94,12 +89,12 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
             return BEDROCK_RESULT_SLOT;
         }
 
-        // grid slots 0-8
+        
         if (slot < GRID_SIZE) {
             return slot;
         }
 
-        // inventory and hotbar
+        
         final int tmp = slot - GRID_SIZE;
         if (tmp < 27) {
             return tmp + 9;
@@ -114,12 +109,12 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
             return new BedrockContainerSlot(ContainerSlotType.CRAFTER_BLOCK_CONTAINER, BEDROCK_RESULT_SLOT);
         }
 
-        // grid slots 0-8
+        
         if (javaSlot < GRID_SIZE) {
             return new BedrockContainerSlot(ContainerSlotType.LEVEL_ENTITY, javaSlot);
         }
 
-        // inventory and hotbar
+        
         final int tmp = javaSlot - GRID_SIZE;
         if (tmp < 27) {
             return new BedrockContainerSlot(ContainerSlotType.INVENTORY, tmp + 9);
@@ -138,7 +133,7 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
 
     @Override
     public CrafterContainer createInventory(GeyserSession session, String name, int windowId, ContainerType containerType) {
-        // Java sends the triggered and slot bits incrementally through properties, which we store here
+        
         return new CrafterContainer(session, name, windowId, this.size, containerType);
     }
 
@@ -154,7 +149,7 @@ public class CrafterInventoryTranslator extends AbstractBlockInventoryTranslator
          */
 
         NbtMapBuilder tag = NbtMap.builder();
-        // just send some large amount since we don't know, and it'll be resent as 0 when java updates as not triggered
+        
         tag.putInt("crafting_ticks_remaining", container.isTriggered() ? 10_000 : 0);
         tag.putShort("disabled_slots", container.getDisabledSlotsMask());
 

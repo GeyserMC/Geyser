@@ -167,7 +167,7 @@ public class BasicPlayerlistScoreboardTests {
             assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
-                // session player name is Tim203
+                
                 packet.setInfos(List.of(new ScoreInfo(1, "0", 2, ScoreInfo.ScorerType.PLAYER, 1)));
                 return packet;
             });
@@ -194,7 +194,7 @@ public class BasicPlayerlistScoreboardTests {
             assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.SET);
-                // session player name is Tim203
+                
                 packet.setInfos(List.of(new ScoreInfo(3, "2", 1, ScoreInfo.ScorerType.PLAYER, 1)));
                 return packet;
             });

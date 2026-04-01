@@ -34,9 +34,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
-/**
- * The class that all block entities (on both Java and Bedrock) should translate with
- */
+
 public abstract class BlockEntityTranslator {
     protected BlockEntityTranslator() {
     }
@@ -46,8 +44,8 @@ public abstract class BlockEntityTranslator {
     public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, BlockState blockState) {
         NbtMapBuilder tagBuilder = getConstantBedrockTag(type, x, y, z);
         if (javaNbt != null || this instanceof RequiresBlockState) {
-            // Always process tags if the block state is part of the tag.
-            // See: banner base colors.
+            
+            
             translateTag(session, tagBuilder, javaNbt, blockState);
         }
         return tagBuilder.build();

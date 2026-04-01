@@ -52,7 +52,7 @@ public class BeeEntity extends AnimalEntity {
 
     public void setBeeFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
-        // Bee is performing sting attack; trigger animation
+        
         if ((xd & 0x02) == 0x02) {
             EntityEventPacket packet = new EntityEventPacket();
             packet.setRuntimeEntityId(geyserId);
@@ -60,15 +60,15 @@ public class BeeEntity extends AnimalEntity {
             packet.setData(0);
             session.sendUpstreamPacket(packet);
         }
-        // If the bee has stung
+        
         dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, (xd & 0x04) == 0x04 ? 1 : 0);
-        // If the bee has nectar or not
+        
         NECTAR_PROPERTY.apply(propertyManager, (xd & 0x08) == 0x08);
         updateBedrockEntityProperties();
     }
 
     public void setAngerTime(LongEntityMetadata entityMetadata) {
-        // Converting "anger time" to a boolean
+        
         long time = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.ANGRY, time > 0 && time - session.getWorldTicks() > 0);
     }

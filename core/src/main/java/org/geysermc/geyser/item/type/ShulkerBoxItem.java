@@ -61,7 +61,7 @@ public class ShulkerBoxItem extends BlockItem {
 
         List<ItemStack> contents = components.get(DataComponentTypes.CONTAINER);
         if (contents == null || contents.isEmpty()) {
-            // Empty shulker box
+            
             return;
         }
         List<NbtMap> itemsList = new ArrayList<>();
@@ -77,14 +77,14 @@ public class ShulkerBoxItem extends BlockItem {
             DataComponents boxComponents = item.getDataComponentsPatch();
 
             if (boxComponents != null) {
-                // Check for custom items - components should never be null as we've checked for air already
+                
                 boxComponents = Objects.requireNonNull(GeyserItemStack.from(session, item).getAllComponents());
                 ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(session, item.getAmount(), boxComponents, boxMapping);
                 if (customItemDefinition != null) {
                     bedrockIdentifier = customItemDefinition.getIdentifier();
                     bedrockData = 0;
                 } else {
-                    // Manual checks for potions/tipped arrows
+                    
                     if (boxMapping.getJavaItem() instanceof PotionItem || boxMapping.getJavaItem() instanceof ArrowItem) {
                         PotionContents potionContents = boxComponents.get(DataComponentTypes.POTION_CONTENTS);
                         if (potionContents != null) {
@@ -97,15 +97,15 @@ public class ShulkerBoxItem extends BlockItem {
                 }
             }
 
-            NbtMapBuilder boxItemNbt = BedrockItemBuilder.createItemNbt(bedrockIdentifier, item.getAmount(), bedrockData); // Final item tag to add to the list
+            NbtMapBuilder boxItemNbt = BedrockItemBuilder.createItemNbt(bedrockIdentifier, item.getAmount(), bedrockData); 
             boxItemNbt.putByte("Slot", (byte) slot);
-            boxItemNbt.putByte("WasPickedUp", (byte) 0); // ??? TODO might not be needed
+            boxItemNbt.putByte("WasPickedUp", (byte) 0); 
 
-            // Only the display name is what we have interest in, so just translate that if relevant
+            
             if (boxComponents != null) {
                 String customName = ItemTranslator.getCustomName(session, boxComponents, boxMapping, '7', false, true);
                 if (customName != null) {
-                    // Fix count display (e.g., x16) with incorrect color due to some items with colored names
+                    
                     if (customName.contains("" + ChatColor.ESCAPE)) {
                         customName += ChatColor.RESET + ChatColor.GRAY;
                     }

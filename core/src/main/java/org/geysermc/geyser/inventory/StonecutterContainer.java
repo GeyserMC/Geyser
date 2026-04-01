@@ -34,9 +34,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 @Setter
 @Getter
 public class StonecutterContainer extends Container {
-    /**
-     * The button that has currently been pressed Java-side
-     */
+    
     private int stonecutterButton = -1;
 
     public StonecutterContainer(GeyserSession session, String title, int id, int size, ContainerType containerType) {
@@ -46,7 +44,7 @@ public class StonecutterContainer extends Container {
     @Override
     public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
         if (slot == 0 && !newItem.isSameItem(items[slot])) {
-            // The pressed stonecutter button output resets whenever the input item changes
+            
             this.stonecutterButton = -1;
         }
         super.setItem(slot, newItem, session);

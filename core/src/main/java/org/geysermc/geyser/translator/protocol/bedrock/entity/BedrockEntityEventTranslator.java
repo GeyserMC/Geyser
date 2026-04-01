@@ -41,12 +41,12 @@ public class BedrockEntityEventTranslator extends PacketTranslator<EntityEventPa
     public void translate(GeyserSession session, EntityEventPacket packet) {
         switch (packet.getType()) {
             case EATING_ITEM -> {
-                // Resend the packet so we get the eating sounds
+                
                 session.sendUpstreamPacket(packet);
                 return;
             }
             case COMPLETE_TRADE -> {
-                // Not sent as of 1.18.10
+                
                 ServerboundSelectTradePacket selectTradePacket = new ServerboundSelectTradePacket(packet.getData());
                 session.sendDownstreamGamePacket(selectTradePacket);
 

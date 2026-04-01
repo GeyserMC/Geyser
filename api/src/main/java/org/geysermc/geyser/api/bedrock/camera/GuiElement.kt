@@ -22,39 +22,42 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.bedrock.camera;
+package org.geysermc.geyser.api.bedrock.camera
 
 /**
  * Represent GUI elements on the players HUD display.
- * These can be hidden using {@link CameraData#hideElement(GuiElement...)},
- * and one can reset their visibility using {@link CameraData#resetElement(GuiElement...)}.
+ * These can be hidden using [CameraData.hideElement],
+ * and one can reset their visibility using [CameraData.resetElement].
  */
-public class GuiElement {
-    public static final GuiElement PAPER_DOLL = new GuiElement(0);
-    public static final GuiElement ARMOR = new GuiElement(1);
-    public static final GuiElement TOOL_TIPS = new GuiElement(2);
-    public static final GuiElement TOUCH_CONTROLS = new GuiElement(3);
-    public static final GuiElement CROSSHAIR = new GuiElement(4);
-    public static final GuiElement HOTBAR = new GuiElement(5);
-    public static final GuiElement HEALTH = new GuiElement(6);
-    public static final GuiElement PROGRESS_BAR = new GuiElement(7);
-    public static final GuiElement FOOD_BAR = new GuiElement(8);
-    public static final GuiElement AIR_BUBBLES_BAR = new GuiElement(9);
-    public static final GuiElement VEHICLE_HEALTH = new GuiElement(10);
-    public static final GuiElement EFFECTS_BAR = new GuiElement(11);
-    public static final GuiElement ITEM_TEXT_POPUP = new GuiElement(12);
-
-    private GuiElement(int id) {
-        this.id = id;
-    }
-
-    private final int id;
-
+class GuiElement private constructor(private val id: Int) {
     /**
      * Internal use only; don't depend on these values being consistent.
      */
-    public int id() {
-        return this.id;
+    fun id(): Int {
+        return this.id
+    }
+
+    companion object {
+        @kotlin.jvm.JvmField
+        val PAPER_DOLL: GuiElement = GuiElement(0)
+        @kotlin.jvm.JvmField
+        val ARMOR: GuiElement = GuiElement(1)
+        @kotlin.jvm.JvmField
+        val TOOL_TIPS: GuiElement = GuiElement(2)
+        val TOUCH_CONTROLS: GuiElement = GuiElement(3)
+        val CROSSHAIR: GuiElement = GuiElement(4)
+        val HOTBAR: GuiElement = GuiElement(5)
+        @kotlin.jvm.JvmField
+        val HEALTH: GuiElement = GuiElement(6)
+        @kotlin.jvm.JvmField
+        val PROGRESS_BAR: GuiElement = GuiElement(7)
+        @kotlin.jvm.JvmField
+        val FOOD_BAR: GuiElement = GuiElement(8)
+        @kotlin.jvm.JvmField
+        val AIR_BUBBLES_BAR: GuiElement = GuiElement(9)
+        @kotlin.jvm.JvmField
+        val VEHICLE_HEALTH: GuiElement = GuiElement(10)
+        val EFFECTS_BAR: GuiElement = GuiElement(11)
+        val ITEM_TEXT_POPUP: GuiElement = GuiElement(12)
     }
 }

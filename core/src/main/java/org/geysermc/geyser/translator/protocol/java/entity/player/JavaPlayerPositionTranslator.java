@@ -74,7 +74,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             entity.setHeadYaw(packet.getYRot());
 
             RespawnPacket respawnPacket = new RespawnPacket();
-            respawnPacket.setRuntimeEntityId(0); // Bedrock server behavior
+            respawnPacket.setRuntimeEntityId(0); 
             respawnPacket.setPosition(entity.bedrockPosition());
             respawnPacket.setState(RespawnPacket.State.SERVER_READY);
             session.sendUpstreamPacket(respawnPacket);
@@ -88,18 +88,18 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             movePlayerPacket.setMode(MovePlayerPacket.Mode.RESPAWN);
             session.sendUpstreamPacket(movePlayerPacket);
 
-            // Fixes incorrect rotation upon login
-            // Yes, even that's not respected by Bedrock. Try it out in singleplayer!
-            // Log out and back in - and you're looking elsewhere :)
+            
+            
+            
             entity.updateOwnRotation(entity.getYaw(), entity.getPitch(), entity.getHeadYaw());
             session.setSpawned(true);
-            // DataComponentHashers.testHashing(session); // TODO remove me
+            
 
-            // Make sure the player moves away from (0, 32767, 0) before accepting movement packets
+            
             session.setUnconfirmedTeleport(new TeleportCache(entity.position(), packet.getXRot(), packet.getYRot(), packet.getId()));
 
             if (session.getServerRenderDistance() > 32 && !session.isEmulatePost1_13Logic()) {
-                // See DimensionUtils for an explanation
+                
                 ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
                 chunkRadiusUpdatedPacket.setRadius(session.getServerRenderDistance());
                 session.sendUpstreamPacket(chunkRadiusUpdatedPacket);
@@ -138,7 +138,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         if (deltaMovement.distanceSquared(Vector3f.ZERO) > 1.0E-8F) {
             entity.setMotion(deltaMovement);
 
-            // Our motion got reset by the teleport but the deltaMovement is not 0 so send a motion packet to fix that.
+            
             SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
             entityMotionPacket.setRuntimeEntityId(entity.geyserId());
             entityMotionPacket.setMotion(entity.getMotion());
@@ -147,7 +147,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             type = TeleportCache.TeleportType.KEEP_VELOCITY;
         }
 
-        // Bedrock ignores teleports that are extremely close to the player's original position and orientation, so check if we need to cache the teleport
+        
         if (lastPlayerPosition.distanceSquared(teleportDestination) < 0.001 && Math.abs(newPitch - lastPlayerPitch) < 5 && Math.abs(newYaw - lastPlayerYaw) < 5) {
             session.setUnconfirmedTeleport(null);
         } else {
@@ -158,10 +158,10 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
     }
 
     private void acceptTeleport(GeyserSession session, Vector3d position, float yaw, float pitch, int id) {
-        // Confirm the teleport when we receive it to match Java edition
+        
         ServerboundAcceptTeleportationPacket teleportConfirmPacket = new ServerboundAcceptTeleportationPacket(id);
         session.sendDownstreamGamePacket(teleportConfirmPacket);
-        // Servers (especially ones like Hypixel) expect exact coordinates given back to them.
+        
         ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(false, false, position.getX(), position.getY(), position.getZ(), yaw, pitch);
         session.sendDownstreamGamePacket(positionPacket);
     }

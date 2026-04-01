@@ -62,29 +62,29 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         PlayerSpawnInfo spawnInfo = packet.getCommonPlayerSpawnInfo();
         JavaDimension newDimension = session.getRegistryCache().registry(JavaRegistries.DIMENSION_TYPE).byId(spawnInfo.getDimension());
 
-        // If the player is already initialized and a join game packet is sent, they
-        // are swapping servers
+        
+        
         if (session.isSpawned()) {
             int fakeDim = DimensionUtils.getTemporaryDimension(session.getBedrockDimension().bedrockId(), newDimension.bedrockId());
             if (fakeDim != newDimension.bedrockId()) {
-                // The player's current dimension and new dimension are the same
-                // We want a dimension switch to clear old chunks out, so switch to a dimension that isn't the one we're currently in.
-                // Another dimension switch will be required to switch back
+                
+                
+                
                 DimensionUtils.fastSwitchDimension(session, fakeDim);
             }
 
-            // Remove all bossbars
+            
             session.getEntityCache().removeAllBossBars();
-            // Remove extra hearts, hunger, etc.
+            
             entity.resetAttributes();
             entity.resetMetadata();
 
-            // Reset inventories; just in case. Might resolve some issues where inventories get stuck?
+            
             session.setInventoryHolder(null);
             session.setPendingOrCurrentBedrockInventoryId(-1);
             session.setClosingInventory(false);
 
-            // Clear waypoints
+            
             session.getWaypointCache().clear();
         }
 
@@ -95,11 +95,11 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         boolean needsSpawnPacket = !session.isSentSpawnPacket();
         if (needsSpawnPacket) {
-            // The player has yet to spawn so let's do that using some of the information in this Java packet
+            
             DimensionUtils.setBedrockDimension(session, newDimension.bedrockId());
             session.connect();
 
-            // It is now safe to send these packets
+            
             session.getUpstream().sendPostStartGamePackets();
         } else {
             SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
@@ -111,7 +111,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         entity.updateBedrockMetadata();
 
-        // Send if client should show respawn screen
+        
         GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
         gamerulePacket.getGameRules().add(new GameRuleData<>("doimmediaterespawn", !packet.isEnableRespawnScreen()));
         session.sendUpstreamPacket(gamerulePacket);
@@ -120,8 +120,8 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
 
         session.setServerRenderDistance(packet.getViewDistance());
 
-        // send this again now that we know the server render distance
-        // as the bedrock client isn't required to send a render distance
+        
+        
         session.sendJavaClientSettings();
 
         Key register = MinecraftKey.key("register");
@@ -133,7 +133,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         if (session.getBedrockDimension().bedrockId() != newDimension.bedrockId()) {
             DimensionUtils.switchDimension(session, newDimension);
         } else if (BedrockDimension.isCustomBedrockNetherId() && newDimension.isNetherLike()) {
-            // If the player is spawning into the "fake" nether, send them some fog
+            
             session.camera().sendFog(DimensionUtils.BEDROCK_FOG_HELL);
         }
 

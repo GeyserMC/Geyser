@@ -31,9 +31,7 @@ import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 public class FireballEntity extends ThrowableEntity {
     private final Vector3f acceleration;
 
-    /**
-     * The number of ticks to advance movement before sending to Bedrock
-     */
+    
     protected int futureTicks = 3;
 
     public FireballEntity(EntitySpawnContext context) {
@@ -56,7 +54,7 @@ public class FireballEntity extends ThrowableEntity {
 
     @Override
     protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        // Advance the position by a few ticks before sending it to Bedrock
+        
         Vector3f lastMotion = motion;
         Vector3f newPosition = position;
         for (int i = 0; i < futureTicks; i++) {

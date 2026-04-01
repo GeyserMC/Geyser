@@ -39,9 +39,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Used when block IDs need to be translated to the latest version
- */
+
 public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorldManager {
 
     private final Int2IntMap oldToNewBlockId;
@@ -56,7 +54,7 @@ public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorl
         Objects.requireNonNull(protocolList, "protocolList cannot be null");
         for (int oldBlockId : allBlockStates) {
             int newBlockId = oldBlockId;
-            // protocolList should *not* be null; we checked for that before initializing this class
+            
             for (int i = protocolList.size() - 1; i >= 0; i--) {
                 MappingData mappingData = protocolList.get(i).protocol().getMappingData();
                 if (mappingData != null) {

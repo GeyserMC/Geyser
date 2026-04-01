@@ -58,14 +58,7 @@ public final class FloodgateSkinUploader {
     private final WebSocketClient client;
     private volatile boolean closed;
 
-    /**
-     * Queue skins in case the global api is temporarily unavailable, so that players will have their skin when the
-     * global api comes back online.
-     * However, we only start queueing skins if the websocket has been opened before, which is why this is nullable.
-     * Some servers block access to external sites such as our global api, in which case the skin upload queue would
-     * grow without the skins having a chance to be actually uploaded.
-     * We'll lose player skins if the server started while the global api was offline, but that's worth the trade-off.
-     */
+    
     private @MonotonicNonNull Deque<String> skinQueue = null;
 
     @Getter private int id;
@@ -122,8 +115,8 @@ public final class FloodgateSkinUploader {
                             subscribersCount = node.get("subscribers_count").getAsInt();
                             break;
                         case SKIN_UPLOADED:
-                            // if Geyser is the only subscriber we have send it to the server manually
-                            // otherwise it's handled by the Floodgate plugin subscribers
+                            
+                            
                             if (subscribersCount != 1) {
                                 break;
                             }
@@ -157,7 +150,7 @@ public final class FloodgateSkinUploader {
                             }
                             break;
                         case NEWS_ADDED:
-                            //todo
+                            
                     }
                 } catch (Exception e) {
                     logger.error("Error while receiving a message", e);
@@ -169,23 +162,23 @@ public final class FloodgateSkinUploader {
                 if (reason != null && !reason.isEmpty()) {
                     try {
                         JsonObject node = JsonUtils.parseJson(reason);
-                        // info means that the uploader itself did nothing wrong
+                        
                         if (node.has("info")) {
                             String info = node.get("info").getAsString();
                             logger.debug("Got disconnected from the skin uploader: " + info);
                         }
-                        // error means that the uploader did something wrong
+                        
                         if (node.has("error")) {
                             String error = node.get("error").getAsString();
                             logger.info("Got disconnected from the skin uploader: " + error);
                         }
                     } catch (JsonSyntaxException ignored) {
-                        // ignore invalid json
+                        
                     } catch (Exception e) {
                         logger.error("Error while handling onClose", e);
                     }
                 }
-                // try to reconnect (which will make a new id and verify token) after a few seconds
+                
                 reconnectLater(geyser);
             }
 
@@ -233,7 +226,7 @@ public final class FloodgateSkinUploader {
 
         if (skinQueue != null) {
             synchronized (skinQueue) {
-                // Only keep the most recent skins if we hit the limit, as it's more likely that they're still online
+                
                 if (skinQueue.size() >= MAX_QUEUED_ENTRIES) {
                     skinQueue.removeFirst();
                 }
@@ -243,14 +236,14 @@ public final class FloodgateSkinUploader {
     }
 
     private void reconnectLater(GeyserImpl geyser) {
-        // we can only reconnect when the thread pool is open
+        
         if (geyser.getScheduledThread().isShutdown() || closed) {
             logger.info("The skin uploader has been closed");
             return;
         }
 
         long additionalTime = ThreadLocalRandom.current().nextInt(7);
-        // we don't have to check the result. onClose will handle that for us
+        
         geyser.getScheduledThread()
                 .schedule(client::reconnect, 8 + additionalTime, TimeUnit.SECONDS);
     }

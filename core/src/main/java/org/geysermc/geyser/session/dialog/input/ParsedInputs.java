@@ -71,7 +71,7 @@ public class ParsedInputs {
                 builder.label("§c" + error);
                 builder.label("§c" + GeyserLocale.getPlayerLocaleString("geyser.dialogs.input_adjust", holder.session().locale()));
             }
-            // Can't be a Geyser update without eclipse dealing with generics
+            
             ((DialogInput) entry.getKey()).addComponent(builder, Optional.of(entry.getValue()));
         }
     }
@@ -82,7 +82,7 @@ public class ParsedInputs {
                 return ((DialogInput) entry.getKey()).asSubstitution(entry.getValue());
             }
         }
-        return ""; // Java defaults to empty strings when a key was not in the inputs
+        return ""; 
     }
 
     public NbtMap asNbtMap() {

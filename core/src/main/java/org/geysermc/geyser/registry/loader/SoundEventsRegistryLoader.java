@@ -38,9 +38,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.event.LevelEvent;
 
 import java.util.Map;
 
-/**
- * Loads sound effects from the given resource path.
- */
+
 public class SoundEventsRegistryLoader extends EffectRegistryLoader<Map<LevelEvent, LevelEventTranslator>> {
 
     @Override

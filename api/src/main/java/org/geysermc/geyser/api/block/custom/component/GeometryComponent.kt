@@ -22,48 +22,45 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.block.custom.component
 
-package org.geysermc.geyser.api.block.custom.component;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.GeyserApi;
-
-import java.util.Map;
+import org.geysermc.geyser.api.GeyserApi
 
 /**
  * This class is used to store data for a geometry component.
  */
-public interface GeometryComponent {
-    
+interface GeometryComponent {
     /**
      * Gets the identifier of the geometry
-     *
+     * 
      * @return The identifier of the geometry.
      */
-    @NonNull String identifier();
+    fun identifier(): String
 
     /**
      * Gets the bone visibility of the geometry
-     *
+     * 
      * @return The bone visibility of the geometry.
      */
-    @Nullable Map<String, String> boneVisibility();
-
-    /**
-     * Creates a builder for GeometryComponent
-     *
-     * @return a builder for GeometryComponent.
-     */
-    static GeometryComponent.Builder builder() {
-        return GeyserApi.api().provider(GeometryComponent.Builder.class);
-    }
+    fun boneVisibility(): MutableMap<String?, String?>?
 
     interface Builder {
-        Builder identifier(@NonNull String identifier);
+        fun identifier(identifier: String): Builder?
 
-        Builder boneVisibility(@Nullable Map<String, String> boneVisibility);
+        fun boneVisibility(boneVisibility: MutableMap<String?, String?>?): Builder?
 
-        GeometryComponent build();
+        fun build(): GeometryComponent?
+    }
+
+    companion object {
+        /**
+         * Creates a builder for GeometryComponent
+         * 
+         * @return a builder for GeometryComponent.
+         */
+        @kotlin.jvm.JvmStatic
+        fun builder(): Builder {
+            return GeyserApi.Companion.api().provider<Builder, Builder?>(Builder::class.java)
+        }
     }
 }

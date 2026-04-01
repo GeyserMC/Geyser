@@ -63,19 +63,13 @@ public class WebUtils {
 
     private static final Path REMOTE_PACK_CACHE = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
 
-    /**
-     * Makes a web request to the given URL and returns the body as a string
-     *
-     * @param reqURL URL to fetch
-     * @return body content or
-     * @throws IOException / a wrapped UnknownHostException for nicer errors.
-     */
+    
     public static String getBody(String reqURL) throws IOException {
         try {
             URL url = new URL(reqURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
-            con.setRequestProperty("User-Agent", getUserAgent()); // Otherwise Java 8 fails on checking updates
+            con.setRequestProperty("User-Agent", getUserAgent()); 
             con.setConnectTimeout(10000);
             con.setReadTimeout(10000);
             checkResponseCode(con);
@@ -85,12 +79,7 @@ public class WebUtils {
         }
     }
 
-    /**
-     * Makes a web request to the given URL and returns the body as a {@link JsonObject}.
-     *
-     * @param reqURL URL to fetch
-     * @return the response as JSON
-     */
+    
     public static JsonObject getJson(String reqURL) throws IOException {
         HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
         con.setRequestProperty("User-Agent", getUserAgent());
@@ -104,22 +93,12 @@ public class WebUtils {
         }
     }
 
-    /**
-     * Downloads a file from the given URL and saves it to disk
-     *
-     * @param reqURL File to fetch
-     * @param fileLocation Location to save on disk
-     */
+    
     public static void downloadFile(String reqURL, String fileLocation) {
         downloadFile(reqURL, Paths.get(fileLocation));
     }
 
-    /**
-     * Downloads a file from the given URL and saves it to disk
-     *
-     * @param reqURL File to fetch
-     * @param path Location to save on disk as a path
-     */
+    
     public static void downloadFile(String reqURL, Path path) {
         try {
             HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
@@ -132,14 +111,7 @@ public class WebUtils {
         }
     }
 
-    /**
-     * Checks a remote pack URL to see if it is valid
-     * If it is, it will download the pack file and return a path to it
-     *
-     * @param url The URL to check
-     * @param force If true, the pack will be downloaded even if it is cached to a separate location.
-     * @return Path to the downloaded pack file, or null if it was unable to be loaded
-     */
+    
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static @NonNull Path downloadRemotePack(String url, boolean force) throws IOException {
         GeyserLogger logger = GeyserImpl.getInstance().getLogger();
@@ -148,7 +120,7 @@ public class WebUtils {
 
             con.setConnectTimeout(10000);
             con.setReadTimeout(10000);
-            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION);
+            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().platformType().platformName + "/" + GeyserImpl.VERSION);
             con.setInstanceFollowRedirects(true);
 
             int responseCode = con.getResponseCode();
@@ -168,13 +140,13 @@ public class WebUtils {
                     "Bedrock Edition only supports the application/zip content type.", url, type));
             }
 
-            // Ensure remote pack cache dir exists
+            
             Files.createDirectories(REMOTE_PACK_CACHE);
 
             Path packMetadata = REMOTE_PACK_CACHE.resolve(url.hashCode() + ".metadata");
             Path downloadLocation;
 
-            // If we downloaded this pack before, reuse it if the ETag matches.
+            
             if (Files.exists(packMetadata) && !force) {
                 try {
                     List<String> metadata = Files.readAllLines(packMetadata, StandardCharsets.UTF_8);
@@ -205,7 +177,7 @@ public class WebUtils {
             downloadLocation = REMOTE_PACK_CACHE.resolve(url.hashCode() + "_" + System.currentTimeMillis() + ".zip");
             Files.copy(con.getInputStream(), downloadLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            // This needs to match as the client fails to download the pack otherwise
+            
             long downloadSize = Files.size(downloadLocation);
             if (downloadSize != size) {
                 Files.delete(downloadLocation);
@@ -217,16 +189,16 @@ public class WebUtils {
                 boolean shouldDeleteEnclosing = false;
                 var originalZip = downloadLocation;
                 try (ZipFile zip = new ZipFile(downloadLocation.toFile())) {
-                    // This can (or should???) contain a zip
+                    
                     if (zip.stream().allMatch(name -> name.getName().endsWith(".zip"))) {
-                        // Unzip the pack, as that's what we're after
+                        
                         downloadLocation = REMOTE_PACK_CACHE.resolve(url.hashCode() + "_" + System.currentTimeMillis() + "_unzipped.zip");
                         Files.copy(zip.getInputStream(zip.entries().nextElement()), downloadLocation, StandardCopyOption.REPLACE_EXISTING);
                         shouldDeleteEnclosing = true;
                     }
                 } finally {
                     if (shouldDeleteEnclosing) {
-                        // We don't need the original zip anymore
+                        
                         Files.delete(originalZip);
                     }
                 }
@@ -264,14 +236,7 @@ public class WebUtils {
     }
 
 
-    /**
-     * Post a string to the given URL
-     *
-     * @param reqURL URL to post to
-     * @param postContent String data to post
-     * @return String returned by the server
-     * @throws IOException If the request fails
-     */
+    
     public static String post(String reqURL, String postContent) throws IOException {
         URL url = new URL(reqURL);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -287,36 +252,25 @@ public class WebUtils {
         return connectionToString(con);
     }
 
-    /**
-     * Gets the string output from the passed {@link HttpURLConnection},
-     * or logs the error message.
-     */
+    
     private static String connectionToString(HttpURLConnection con) throws IOException {
         checkResponseCode(con);
         return inputStreamToString(con.getInputStream(), con::disconnect);
     }
 
-    /**
-     * Throws an exception if there is an error stream to avoid further issues
-     */
+    
     private static void checkResponseCode(HttpURLConnection con) throws IOException {
-        // Send the request (we dont use this but its required for getErrorStream() to work)
+        
         con.getResponseCode();
 
-        // Read the error message if there is one if not just read normally
+        
         InputStream errorStream = con.getErrorStream();
         if (errorStream != null) {
             throw new IOException(inputStreamToString(errorStream, null));
         }
     }
 
-    /**
-     * Get the string output from the passed {@link InputStream}
-     *
-     * @param stream The input stream to get the string from
-     * @return The body of the returned page
-     * @throws IOException If the request fails
-     */
+    
     private static String inputStreamToString(InputStream stream, @Nullable Runnable onFinish) throws IOException {
         StringBuilder content = new StringBuilder();
         try (BufferedReader in = new BufferedReader(new InputStreamReader(stream))) {
@@ -335,14 +289,7 @@ public class WebUtils {
         return content.toString();
     }
 
-    /**
-     * Post fields to a URL as a form
-     *
-     * @param reqURL URL to post to
-     * @param fields Form data to post
-     * @return String returned by the server
-     * @throws IOException If the request fails
-     */
+    
     public static String postForm(String reqURL, Map<String, String> fields) throws IOException {
         URL url = new URL(reqURL);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -352,7 +299,7 @@ public class WebUtils {
         con.setDoOutput(true);
 
         try (OutputStream out = con.getOutputStream()) {
-            // Write the form data to the output
+            
             for (Map.Entry<String, String> field : fields.entrySet()) {
                 out.write((field.getKey() + "=" + URLEncoder.encode(field.getValue(), StandardCharsets.UTF_8) + "&").getBytes(StandardCharsets.UTF_8));
             }
@@ -361,43 +308,32 @@ public class WebUtils {
         return connectionToString(con);
     }
 
-    /**
-     * Find a SRV record for the given address
-     *
-     * @param geyser Geyser instance
-     * @param remoteAddress Address to find the SRV record for
-     * @return The SRV record or null if not found
-     */
+    
     public static String @Nullable [] findSrvRecord(GeyserImpl geyser, String remoteAddress) {
         try {
-            // Searches for a server address and a port from a SRV record of the specified host name
+            
             InitialDirContext ctx = new InitialDirContext();
             Attribute attr = ctx.getAttributes("dns:///_minecraft._tcp." + remoteAddress, new String[]{"SRV"}).get("SRV");
-            // size > 0 = SRV entry found
+            
             if (attr != null && attr.size() > 0) {
                 return ((String) attr.get(0)).split(" ");
             }
-        } catch (Exception | NoClassDefFoundError ex) { // Check for a NoClassDefFoundError to prevent Android crashes
+        } catch (Exception | NoClassDefFoundError ex) { 
             if (geyser.config().debugMode()) {
                 geyser.getLogger().debug("Exception while trying to find an SRV record for the remote host.");
-                ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
+                ex.printStackTrace(); 
             }
         }
         return null;
     }
 
-    /**
-     * Get a stream of lines from the given URL
-     *
-     * @param reqURL URL to fetch
-     * @return Stream of lines from the URL or an empty stream if the request fails
-     */
+    
     public static Stream<String> getLineStream(String reqURL) {
         try {
             URL url = new URL(reqURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
             con.setRequestMethod("GET");
-            con.setRequestProperty("User-Agent", getUserAgent()); // Otherwise Java 8 fails on checking updates
+            con.setRequestProperty("User-Agent", getUserAgent()); 
             con.setConnectTimeout(10000);
             con.setReadTimeout(10000);
 
@@ -409,7 +345,7 @@ public class WebUtils {
     }
 
     public static String getUserAgent() {
-        return "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION;
+        return "Geyser-" + GeyserImpl.getInstance().platformType().platformName + "/" + GeyserImpl.VERSION;
     }
 
     public static String toHttps(String url) {

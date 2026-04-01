@@ -44,7 +44,7 @@ import java.util.UUID;
 @BlockEntity(type = BlockEntityType.VAULT)
 public class VaultBlockEntityTranslator extends BlockEntityTranslator {
 
-    // Bedrock 1.21 does not send the position nor ID in the tag.
+    
     @Override
     public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, BlockState blockState) {
         NbtMapBuilder builder = NbtMap.builder();
@@ -74,8 +74,8 @@ public class VaultBlockEntityTranslator extends BlockEntityTranslator {
         }
         bedrockNbt.putList("connected_players", NbtType.LONG, bedrockPlayers);
 
-        // Fill this in, since as of Java 1.21, Bedrock always seems to include it, but Java assumes the default
-        // if it is not sent over the network
+        
+        
         bedrockNbt.putFloat("connected_particle_range", (float) sharedData.getDouble("connected_particles_range", 4.5d));
     }
 }

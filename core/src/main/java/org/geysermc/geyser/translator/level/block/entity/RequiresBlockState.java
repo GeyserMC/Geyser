@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.translator.level.block.entity;
 
-/**
- * Implemented in block entities if their Java block state is required for additional values in Bedrock
- */
+
 public interface RequiresBlockState {
 }

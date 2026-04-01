@@ -35,34 +35,14 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-/**
- * Converts {@link GeyserCommandSource}s to the server's command sender type (and back) in a lenient manner.
- *
- * @param senderType class of the server command sender type
- * @param playerLookup function for looking up a player command sender by UUID
- * @param consoleProvider supplier of the console command sender
- * @param commandSourceLookup supplier of the platform implementation of the {@link GeyserCommandSource}
- * @param <S> server command sender type
- */
+
 public record CommandSourceConverter<S>(Class<S> senderType,
                                            Function<UUID, S> playerLookup,
                                            Supplier<S> consoleProvider,
                                            Function<S, GeyserCommandSource> commandSourceLookup
 ) implements SenderMapper<S, GeyserCommandSource> {
 
-    /**
-     * Creates a new CommandSourceConverter for a server platform
-     * in which the player type is not a command sender type, and must be mapped.
-     *
-     * @param senderType class of the command sender type
-     * @param playerLookup function for looking up a player by UUID
-     * @param senderLookup function for converting a player to a command sender
-     * @param consoleProvider supplier of the console command sender
-     * @param commandSourceLookup supplier of the platform implementation of {@link GeyserCommandSource}
-     * @return a new CommandSourceConverter
-     * @param <P> server player type
-     * @param <S> server command sender type
-     */
+    
     public static <P, S> CommandSourceConverter<S> layered(Class<S> senderType,
                                                            Function<UUID, P> playerLookup,
                                                            Function<P, S> senderLookup,
@@ -87,11 +67,11 @@ public record CommandSourceConverter<S>(Class<S> senderType,
     public @NonNull S reverse(GeyserCommandSource source) throws IllegalArgumentException {
         Object handle = source.handle();
         if (senderType.isInstance(handle)) {
-            return senderType.cast(handle); // one of the server platform implementations
+            return senderType.cast(handle); 
         }
 
-        if (source.isConsole()) {
-            return consoleProvider.get(); // one of the loggers
+        if (source.isConsole) {
+            return consoleProvider.get(); 
         }
 
         if (!(source instanceof GeyserSession)) {
@@ -102,7 +82,7 @@ public record CommandSourceConverter<S>(Class<S> senderType,
             }
         }
 
-        // Ideally lookup should only be necessary for GeyserSession
+        
         UUID uuid = source.playerUuid();
         if (uuid != null) {
             return playerLookup.apply(uuid);

@@ -46,9 +46,9 @@ public class JavaSetHealthTranslator extends PacketTranslator<ClientboundSetHeal
 
         float oldHealth = entity.getHealth();
         if (oldHealth <= 0f && Math.ceil(packet.getHealth()) > 0f) {
-            // Needed as of 1.18.30 (tested with a totem of undying on SPIGOT 1.12.2
-            // This shouldn't be triggered on a proper respawn because JavaSetHealthTranslator sets the health back to 20
-            // https://github.com/GeyserMC/Geyser/issues/2957
+            
+            
+            
             RespawnPacket respawnPacket = new RespawnPacket();
             respawnPacket.setRuntimeEntityId(0);
             respawnPacket.setPosition(entity.bedrockPosition());

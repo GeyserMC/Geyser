@@ -72,7 +72,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 logger.debug(packet.toString());
                 logger.debug(inventory.toString());
             }
-            // 1.19.0 behavior: the state ID will not be set due to exception
+            
             return;
         }
 
@@ -88,22 +88,20 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
         holder.inventory().setItem(slot, newItem, session);
         holder.updateSlot(slot);
 
-        // Intentional behavior here below the cursor; Minecraft 1.18.1 also does this.
+        
         int stateId = packet.getStateId();
         session.setEmulatePost1_16Logic(stateId > 0 || stateId != inventory.getStateId());
         inventory.setStateId(stateId);
     }
 
-    /**
-     * Checks for a changed output slot in the crafting grid, and ensures Bedrock sees the recipe.
-     */
+    
     private static void updateCraftingGrid(int slot, ItemStack item, InventoryHolder<? extends Inventory> holder) {
-        // Check if it's the crafting grid result slot.
+        
         if (slot != 0) {
             return;
         }
 
-        // Check if there is any crafting grid.
+        
         int gridSize = holder.translator().getGridSize();
         if (gridSize == -1) {
             return;
@@ -111,7 +109,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
         GeyserSession session = holder.session();
 
-        // Only process the most recent crafting grid result, and cancel the previous one.
+        
         if (session.getContainerOutputFuture() != null) {
             session.getContainerOutputFuture().cancel(false);
         }
@@ -150,7 +148,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
             if (InventoryUtils.getValidRecipe(session, item, holder.inventory()::getItem, gridDimensions, firstRow,
                     height, firstCol, width) != null) {
-                // Recipe is already present on the client; don't send packet
+                
                 return;
             }
 
@@ -203,7 +201,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
         }
         GeyserSession session = holder.session();
 
-        // Only process the most recent output result, and cancel the previous one.
+        
         if (session.getContainerOutputFuture() != null) {
             session.getContainerOutputFuture().cancel(false);
         }
@@ -216,7 +214,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
         session.setContainerOutputFuture(session.scheduleInEventLoop(() -> {
             GeyserItemStack template = inventory.getItem(SmithingInventoryTranslator.TEMPLATE);
             if (!template.is(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE)) {
-                // Technically we should probably also do this for custom items, but last I checked Bedrock doesn't even support that.
+                
                 return;
             }
 
@@ -229,7 +227,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 && InventoryUtils.acceptsAsInput(session, recipe.base(), input)
                 && InventoryUtils.acceptsAsInput(session, recipe.addition(), material)
                 && InventoryUtils.acceptsAsInput(session, recipe.template(), template)) {
-                    // The client already recognizes this item.
+                    
                     return;
                 }
             }
@@ -248,7 +246,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             craftPacket.getCraftingData().add(geyserRecipe.asRecipeData(session).get(0));
             session.sendUpstreamPacket(craftPacket);
 
-            // Just set one of the slots to air, then right back to its proper item.
+            
             InventorySlotPacket slotPacket = new InventorySlotPacket();
             slotPacket.setContainerId(ContainerId.UI);
             slotPacket.setSlot(holder.translator().javaSlotToBedrock(SmithingInventoryTranslator.MATERIAL));

@@ -63,8 +63,8 @@ public class NautilusVehicleComponent extends VehicleComponent<AbstractNautilusE
         float jumpStrength = player.getVehicleJumpStrength();
         player.setVehicleJumpStrength(0);
 
-        // We don't check for dash cooldown here since we already send a vehicle jump packet beforehand, which the server can send us back
-        // the metadata that set dash cooldown before we can handle the input vector.
+        
+        
         if (jumpStrength > 0) {
             final Vector3f viewVector = MathUtils.calculateViewVector(player.getPitch(), player.getYaw());
 

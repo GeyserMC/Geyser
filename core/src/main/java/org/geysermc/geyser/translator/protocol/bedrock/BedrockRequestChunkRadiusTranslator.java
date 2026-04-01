@@ -30,9 +30,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-/**
- * Sent when the client updates its desired render distance.
- */
+
 @Translator(packet = RequestChunkRadiusPacket.class)
 public class BedrockRequestChunkRadiusTranslator extends PacketTranslator<RequestChunkRadiusPacket> {
 

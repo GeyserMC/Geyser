@@ -118,15 +118,15 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                // This is technically the same 1.21.111 palette; there have been no changes
+                
                 .put(ObjectIntPair.of("1_21_130", Bedrock_v898.CODEC.getProtocolVersion()), tag -> tag)
-                // 26.0 also doesn't have any changes, so we re-use the same file
+                
                 .put(ObjectIntPair.of("1_21_130", Bedrock_v924.CODEC.getProtocolVersion()), tag -> tag)
                 .put(ObjectIntPair.of("1_26_10", Bedrock_v944.CODEC.getProtocolVersion()), tag -> tag)
             .build();
 
-        // We can keep this strong as nothing should be garbage collected
-        // Safe to intern since Cloudburst NBT is immutable
+        
+        
         //noinspection UnstableApiUsage
         Interner<NbtMap> statesInterner = Interners.newStrongInterner();
 
@@ -141,10 +141,10 @@ public final class BlockRegistryPopulator {
                 vanillaBlockStates = new ArrayList<>(blockPalette.getList("blocks", NbtType.COMPOUND));
                 for (int i = 0; i < vanillaBlockStates.size(); i++) {
                     NbtMapBuilder builder = vanillaBlockStates.get(i).toBuilder();
-                    builder.remove("version"); // Remove all nbt tags which are not needed for differentiating states
-                    builder.remove("name_hash"); // Quick workaround - was added in 1.19.20
-                    builder.remove("network_id"); // Added in 1.19.80
-                    builder.remove("block_id"); // Added in 1.20.60
+                    builder.remove("version"); 
+                    builder.remove("name_hash"); 
+                    builder.remove("network_id"); 
+                    builder.remove("block_id"); 
                     //noinspection UnstableApiUsage
                     builder.putCompound("states", statesInterner.intern((NbtMap) builder.remove("states")));
                     vanillaBlockStates.set(i, builder.build());
@@ -168,12 +168,12 @@ public final class BlockRegistryPopulator {
                 blockStates.addAll(customBlockStates);
                 GeyserImpl.getInstance().getLogger().debug("Added " + customBlockStates.size() + " custom block states to v" + protocolVersion + " palette.");
 
-                // The palette is sorted by the FNV1 64-bit hash of the name
+                
                 blockStates.sort((a, b) -> Long.compareUnsigned(fnv164(a.getString("name")), fnv164(b.getString("name"))));
             }
 
-            // New since 1.16.100 - find the block runtime ID by the order given to us in the block palette,
-            // as we no longer send a block palette
+            
+            
             Object2ObjectMap<NbtMap, GeyserBedrockBlock> blockStateOrderedMap = new Object2ObjectOpenHashMap<>(blockStates.size());
             GeyserBedrockBlock[] bedrockRuntimeMap = new GeyserBedrockBlock[blockStates.size()];
             for (int i = 0; i < blockStates.size(); i++) {
@@ -222,7 +222,7 @@ public final class BlockRegistryPopulator {
             var javaToBedrockIdentifiers = new Int2ObjectOpenHashMap<String>();
             Block lastBlockSeen = null;
 
-            // Stream isn't ideal.
+            
             List<Block> javaPottable = BlockRegistries.JAVA_BLOCKS.get()
                     .parallelStream()
                     .flatMap(block -> {
@@ -312,9 +312,9 @@ public final class BlockRegistryPopulator {
                     BlockRegistries.WATERLOGGED.get().set(javaRuntimeId);
                 }
 
-                // Get the tag needed for non-empty flower pots
+                
                 if (javaPottable.contains(block)) {
-                    // Specifically NOT putIfAbsent - mangrove propagule breaks otherwise
+                    
                     flowerPotBlocks.put(block, blockStates.get(bedrockDefinition.getRuntimeId()));
                 }
 
@@ -356,7 +356,7 @@ public final class BlockRegistryPopulator {
 
             Map<JavaBlockState, CustomBlockState> nonVanillaStateOverrides = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get();
             if (!nonVanillaStateOverrides.isEmpty()) {
-                // First ensure all non vanilla runtime IDs at minimum are air in case they aren't consecutive
+                
                 Arrays.fill(javaToVanillaBedrockBlocks, MIN_CUSTOM_RUNTIME_ID, javaToVanillaBedrockBlocks.length, airDefinition);
                 Arrays.fill(javaToBedrockBlocks, MIN_CUSTOM_RUNTIME_ID, javaToBedrockBlocks.length, airDefinition);
 
@@ -376,7 +376,7 @@ public final class BlockRegistryPopulator {
                         BlockRegistries.WATERLOGGED.register(set -> set.set(stateRuntimeId));
                     }
 
-                    javaToVanillaBedrockBlocks[stateRuntimeId] = bedrockDefinition; // TODO: Check this?
+                    javaToVanillaBedrockBlocks[stateRuntimeId] = bedrockDefinition; 
                     javaToBedrockBlocks[stateRuntimeId] = bedrockDefinition;
                     javaToBedrockIdentifiers.put(entry.getKey().stateGroupId(), entry.getValue().block().identifier());
                 }
@@ -384,7 +384,7 @@ public final class BlockRegistryPopulator {
 
             javaToBedrockIdentifiers.trim();
 
-            // Loop around again to find all item frame runtime IDs
+            
             Object2ObjectMaps.fastForEach(blockStateOrderedMap, entry -> {
                 String name = entry.getKey().getString("name");
                 if (name.equals("minecraft:frame") || name.equals("minecraft:glow_frame")) {

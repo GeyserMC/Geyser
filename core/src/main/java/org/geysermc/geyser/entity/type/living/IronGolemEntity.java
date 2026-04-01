@@ -38,12 +38,12 @@ public class IronGolemEntity extends GolemEntity {
 
     public IronGolemEntity(EntitySpawnContext context) {
         super(context);
-        // Indicate that we should show cracks through a resource pack
+        
         setFlag(EntityFlag.BRIBED, true);
-        // Required, or else the overlay is black
+        
         dirtyMetadata.put(EntityDataTypes.COLOR_2, (byte) 0);
-        // Default max health. Ensures correct cracked texture is used
-        // Bug reproducible in 1.19.0 JE vanilla/fabric when spawning a new iron golem
+        
+        
         maxHealth = 100f;
     }
 
@@ -52,7 +52,7 @@ public class IronGolemEntity extends GolemEntity {
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (itemInHand.is(Items.IRON_INGOT)) {
             if (health < maxHealth) {
-                // Healing the iron golem
+                
                 return InteractionResult.SUCCESS;
             } else {
                 return InteractionResult.PASS;

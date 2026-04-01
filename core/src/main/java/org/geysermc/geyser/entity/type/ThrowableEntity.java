@@ -34,9 +34,7 @@ import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
-/**
- * Used as a class for any object-like entity that moves as a projectile
- */
+
 public class ThrowableEntity extends Entity implements Tickable {
 
     protected Vector3f lastJavaPosition;
@@ -46,10 +44,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         this.lastJavaPosition = position;
     }
 
-    /**
-     * Updates the position for the Bedrock client.
-     * Java clients assume the next positions of moving items. Bedrock needs to be explicitly told positions
-     */
+    
     @Override
     public void tick() {
         if (removedInVoid() || vehicle != null) {
@@ -112,11 +107,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         }
     }
 
-    /**
-     * Get the gravity of this entity type. Used for applying gravity while the entity is in motion.
-     *
-     * @return the amount of gravity to apply to this entity while in motion.
-     */
+    
     protected float getGravity() {
         if (getFlag(EntityFlag.HAS_GRAVITY)) {
             switch (definition.entityType()) {
@@ -138,9 +129,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         return 0;
     }
 
-    /**
-     * @return the drag that should be multiplied to the entity's motion
-     */
+    
     protected float getDrag() {
         if (isInWater()) {
             return 0.8f;
@@ -164,9 +153,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         return 1;
     }
 
-    /**
-     * @return true if this entity is currently in water.
-     */
+    
     protected boolean isInWater() {
         int block = session.getGeyser().getWorldManager().getBlockAt(session, position.toInt());
         return BlockStateValues.getWaterLevel(block) != -1;
@@ -195,11 +182,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         lastJavaPosition = position;
     }
 
-    /**
-     * Removes the entity if it is 64 blocks below the world.
-     *
-     * @return true if the entity was removed
-     */
+    
     public boolean removedInVoid() {
         if (position.getY() < session.getDimensionType().minY() - 64) {
             session.getEntityCache().removeEntity(this);

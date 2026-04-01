@@ -56,7 +56,7 @@ public class DolphinEntity extends AgeableWaterEntity {
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!itemInHand.isEmpty() && itemInHand.is(session, ItemTag.FISHES)) {
-            // Feed
+            
             return InteractionResult.SUCCESS;
         }
         return super.mobInteract(hand, itemInHand);

@@ -55,8 +55,8 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
             return;
         }
         BlockEntityTranslator translator = BlockEntityUtils.getBlockEntityTranslator(type);
-        // The Java block state is used in BlockEntityTranslator.translateTag() to make up for some inconsistencies
-        // between Java block states and Bedrock block entity data
+        
+        
         BlockState blockState = session.getGeyser().getWorldManager().blockAt(session, packet.getPosition());
 
         if (blockState.block().blockEntityType() != type) {
@@ -66,7 +66,7 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
         Vector3i position = packet.getPosition();
         BlockEntityUtils.updateBlockEntity(session, translator.getBlockEntityTag(session, type, position.getX(), position.getY(), position.getZ(),
                 packet.getNbt(), blockState), packet.getPosition());
-        // Check for custom skulls.
+        
         boolean hasCustomHeadBlock = false;
         if (session.getPreferencesCache().showCustomSkulls() && packet.getNbt() != null && packet.getNbt().containsKey("profile")) {
             BlockDefinition blockDefinition = SkullBlockEntityTranslator.translateSkull(session, packet.getNbt(), position, blockState);
@@ -86,8 +86,8 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
                     packet.getNbt(), blockState), packet.getPosition());
         }
 
-        // If block entity is command block, OP permission level is appropriate, player is in creative mode and the NBT is not empty
-        // TODO 1.18 re-test
+        
+        
         if (type == BlockEntityType.COMMAND_BLOCK && session.getOpPermissionLevel() >= 2 &&
                 session.getGameMode() == GameMode.CREATIVE && packet.getNbt() != null && packet.getNbt().size() > 5) {
             ContainerOpenPacket openPacket = new ContainerOpenPacket();
@@ -98,8 +98,8 @@ public class JavaBlockEntityDataTranslator extends PacketTranslator<ClientboundB
             session.sendUpstreamPacket(openPacket);
         }
 
-        // When a Java client is trying to load a structure, it expects the server to send it the size of the structure.
-        // On 1.20.4, the server does so here - we can pass that through to Bedrock, so we're properly selecting the area.
+        
+        
         if (type == BlockEntityType.STRUCTURE_BLOCK && session.getGameMode() == GameMode.CREATIVE
                 && packet.getPosition().equals(session.getStructureBlockCache().getCurrentStructureBlock())
                 && packet.getNbt() != null && packet.getNbt().size() > 5

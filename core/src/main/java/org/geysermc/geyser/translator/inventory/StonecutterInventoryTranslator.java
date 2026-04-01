@@ -58,10 +58,10 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
 
     @Override
     protected ItemStackResponse translateSpecialRequest(GeyserSession session, StonecutterContainer container, ItemStackRequest request) {
-        // Guarded by shouldHandleRequestFirst
+        
         CraftRecipeAction data = (CraftRecipeAction) request.getActions()[0];
 
-        // Look up all possible options of cutting from this ID
+        
         GeyserStonecutterData craftingData = session.getStonecutterRecipes().get(data.getRecipeNetworkId());
         if (craftingData == null) {
             return rejectRequest(request);
@@ -70,28 +70,28 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
         ItemStack javaOutput = craftingData.output();
         int button = craftingData.buttonId();
 
-        // If we've already pressed the button with this item, no need to press it again!
+        
         if (container.getStonecutterButton() != button) {
-            // Getting the index of the item in the Java stonecutter list
+            
             ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(container.getJavaId(), button);
             session.sendDownstreamGamePacket(packet);
             container.setStonecutterButton(button);
         }
 
         if (container.getItem(1).getJavaId() != javaOutput.getId()) {
-            // We don't know there is an output here, so we tell ourselves that there is
+            
             container.setItem(1, GeyserItemStack.from(session, javaOutput), session);
         }
 
-        // The client might send multiple ItemStackRequests for one shift click,
-        // so check if input is empty, meaning we already sent one
+        
+        
         GeyserItemStack input = container.getItem(0);
         if (input.isEmpty()) {
             return rejectRequest(request, false);
         }
 
-        // support for quick move on the output.
-        // CRAFT_RECIPE is always at index 0 so we do instanceof checks for obvious reasons
+        
+        
         if (data.getNumberOfRequestedCrafts() > 1) {
             for (ItemStackRequestAction action : request.getActions()) {
                 if (action instanceof TransferItemStackRequestAction transfer) {
@@ -102,18 +102,18 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
                             || destContainer == ContainerSlotType.HOTBAR_AND_INVENTORY
                             || destContainer == ContainerSlotType.INVENTORY) {
 
-                            // shift click of the result into the inventory
+                            
                             ClickPlan plan = new ClickPlan(session, this, container);
                             plan.add(Click.LEFT_SHIFT, 1);
                             plan.execute(true);
 
-                            // slot 0 = stonecutter input, special logic here as getGridSize is non existent! yay!
-                            // from my testing, this seems to cause ClickPlan#reduceCraftingGrid to return early which is
-                            // why we have to handle this logic ourselves...
-                            // to do, check in to the mental asylum
-                            container.setItem(0, GeyserItemStack.EMPTY, session); // assume that all input was used. server will resync
+                            
+                            
+                            
+                            
+                            container.setItem(0, GeyserItemStack.EMPTY, session); 
 
-                            // we need to ALWAYS update slot 0 as well so that the client knows the new input count
+                            
                             IntSet reportedSlots = plan.getAffectedSlots();
                             reportedSlots.add(0);
 
@@ -124,7 +124,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
             }
         }
         
-        // translate the request normally as it's a plain single craft. no shift-click transfer actions found
+        
         return translateRequest(session, container, request);
     }
 

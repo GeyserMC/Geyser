@@ -85,17 +85,11 @@ import org.cloudburstmc.protocol.bedrock.packet.SubChunkRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
 import org.cloudburstmc.protocol.common.util.VarInts;
 
-/**
- * Processes the Bedrock codec to remove or modify unused or unsafe packets and fields.
- *
- * TODO: Keep serializers up-to-date!
- */
+
 @SuppressWarnings("deprecation")
 class CodecProcessor {
     
-    /**
-     * Generic serializer that throws an exception when trying to serialize or deserialize a packet, leading to client disconnection.
-     */
+    
     @SuppressWarnings("rawtypes")
     private static final BedrockPacketSerializer ILLEGAL_SERIALIZER = new BedrockPacketSerializer<>() {
         @Override
@@ -109,9 +103,7 @@ class CodecProcessor {
         }
     };
 
-    /**
-     * Generic serializer that does nothing when trying to serialize or deserialize a packet.
-     */
+    
     @SuppressWarnings("rawtypes")
     private static final BedrockPacketSerializer IGNORED_SERIALIZER = new BedrockPacketSerializer<>() {
         @Override
@@ -122,9 +114,7 @@ class CodecProcessor {
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BedrockPacket packet) {
         }
     };
-    /**
-     * Serializer that throws an exception when trying to deserialize InventoryContentPacket since server-auth inventory is used.
-     */
+    
     private static final BedrockPacketSerializer<InventoryContentPacket> INVENTORY_CONTENT_SERIALIZER_V748 = new InventoryContentSerializer_v748() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
@@ -156,81 +146,63 @@ class CodecProcessor {
         }
     };
 
-    /**
-     * Serializer that does nothing when trying to deserialize BossEventPacket since it is not used from the client.
-     */
+    
     private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER_486 = new BossEventSerializer_v486() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BossEventPacket packet) {
         }
     };
 
-    /**
-     * Serializer that does nothing when trying to deserialize BossEventPacket since it is not used from the client.
-     */
+    
     private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER_776 = new BossEventSerializer_v776() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BossEventPacket packet) {
         }
     };
 
-    /**
-     * Serializer that does nothing when trying to deserialize MobArmorEquipmentPacket since it is not used from the client.
-     */
+    
     private static final BedrockPacketSerializer<MobArmorEquipmentPacket> MOB_ARMOR_EQUIPMENT_SERIALIZER = new MobArmorEquipmentSerializer_v712() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobArmorEquipmentPacket packet) {
         }
     };
 
-    /**
-     * Serializer that does nothing when trying to deserialize PlayerHotbarPacket since it is not used from the client.
-     */
+    
     private static final BedrockPacketSerializer<PlayerHotbarPacket> PLAYER_HOTBAR_SERIALIZER = new PlayerHotbarSerializer_v291() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, PlayerHotbarPacket packet) {
         }
     };
 
-    /**
-     * Serializer that does nothing when trying to deserialize PlayerSkinPacket since it is not used from the client.
-     */
+    
     private static final BedrockPacketSerializer<PlayerSkinPacket> PLAYER_SKIN_SERIALIZER = new PlayerSkinSerializer_v390() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, PlayerSkinPacket packet) {
         }
     };
 
-    /**
-     * Serializer that does nothing when trying to deserialize SetEntityDataPacket since it is not used from the client.
-     */
+    
     private static final BedrockPacketSerializer<SetEntityDataPacket> SET_ENTITY_DATA_SERIALIZER = new SetEntityDataSerializer_v557() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, SetEntityDataPacket packet) {
         }
     };
 
-    /**
-     * Serializer that does nothing when trying to deserialize SetEntityMotionPacket since it is not used from the client.
-     */
+    
     private static final BedrockPacketSerializer<SetEntityMotionPacket> SET_ENTITY_MOTION_SERIALIZER = new SetEntityMotionSerializer_v662() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, SetEntityMotionPacket packet) {
         }
     };
 
-    /**
-     * Serializer that does nothing when trying to deserialize SetEntityLinkPacket since it is not used from the client.
-     */
+    
     private static final BedrockPacketSerializer<SetEntityLinkPacket> SET_ENTITY_LINK_SERIALIZER = new SetEntityLinkSerializer_v291() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, SetEntityLinkPacket packet) {
         }
     };
 
-    /**
-     * Serializer that skips over the item when trying to deserialize MobEquipmentPacket since only the slot info is used.
-     */
+    
     private static final BedrockPacketSerializer<MobEquipmentPacket> MOB_EQUIPMENT_SERIALIZER = new MobEquipmentSerializer_v291() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobEquipmentPacket packet) {
@@ -252,34 +224,34 @@ class CodecProcessor {
         }
 
         BedrockCodec.Builder codecBuilder = codec.toBuilder()
-            // Illegal unused serverbound EDU packets
+            
             .updateSerializer(PhotoTransferPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(LabTablePacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(CodeBuilderSourcePacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(CreatePhotoPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(NpcRequestPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(PhotoInfoRequestPacket.class, ILLEGAL_SERIALIZER)
-            // Illegal unused serverbound packets that are deprecated
+            
             .updateSerializer(ClientCheatAbilityPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(CraftingEventPacket.class, ILLEGAL_SERIALIZER)
-            // Illegal unusued serverbound packets that relate to unused features
+            
             .updateSerializer(ClientCacheBlobStatusPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(SubClientLoginPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(SubChunkRequestPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(GameTestRequestPacket.class, ILLEGAL_SERIALIZER)
-            // Ignored serverbound packets
+            
             .updateSerializer(ClientToServerHandshakePacket.class, IGNORED_SERIALIZER)
             .updateSerializer(EntityFallPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(MapCreateLockedCopyPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(MapInfoRequestPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SettingsCommandPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(AnvilDamagePacket.class, IGNORED_SERIALIZER)
-            // Illegal when serverbound due to Geyser specific setup
+            
             .updateSerializer(InventoryContentPacket.class, INVENTORY_CONTENT_SERIALIZER_V748)
             .updateSerializer(InventorySlotPacket.class, INVENTORY_SLOT_SERIALIZER_V748)
             .updateSerializer(MovePlayerPacket.class, MOVE_PLAYER_SERIALIZER)
             .updateSerializer(MoveEntityAbsolutePacket.class, MOVE_ENTITY_SERIALIZER)
-            // Ignored only when serverbound
+            
             .updateSerializer(BossEventPacket.class, bossEventSerializer)
             .updateSerializer(MobArmorEquipmentPacket.class, MOB_ARMOR_EQUIPMENT_SERIALIZER)
             .updateSerializer(PlayerHotbarPacket.class, PLAYER_HOTBAR_SERIALIZER)
@@ -287,18 +259,18 @@ class CodecProcessor {
             .updateSerializer(SetEntityDataPacket.class, SET_ENTITY_DATA_SERIALIZER)
             .updateSerializer(SetEntityMotionPacket.class, SET_ENTITY_MOTION_SERIALIZER)
             .updateSerializer(SetEntityLinkPacket.class, SET_ENTITY_LINK_SERIALIZER)
-            // Valid serverbound packets where reading of some fields can be skipped
+            
             .updateSerializer(MobEquipmentPacket.class, MOB_EQUIPMENT_SERIALIZER)
-            // Illegal bidirectional packets
+            
             .updateSerializer(DebugInfoPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(EditorNetworkPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(ScriptMessagePacket.class, ILLEGAL_SERIALIZER)
-            // Ignored bidirectional packets
+            
             .updateSerializer(ClientCacheStatusPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SimpleEventPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER);
 
-            // These packets have been removed post 1.21.80.
+            
             if (codec.getProtocolVersion() < 800) {
                 codecBuilder
                     .updateSerializer(RiderJumpPacket.class, ILLEGAL_SERIALIZER)
@@ -313,24 +285,20 @@ class CodecProcessor {
             return codecBuilder.build();
     }
 
-    /**
-     * Fake reading an item from the buffer to improve performance.
-     * 
-     * @param buffer
-     */
+    
     private static void fakeItemRead(ByteBuf buffer) {
-        int id = VarInts.readInt(buffer); // Runtime ID
-        if (id == 0) { // nothing more to read
+        int id = VarInts.readInt(buffer); 
+        if (id == 0) { 
             return;
         }
-        buffer.skipBytes(2); // count
-        VarInts.readUnsignedInt(buffer); // damage
+        buffer.skipBytes(2); 
+        VarInts.readUnsignedInt(buffer); 
         boolean hasNetId = buffer.readBoolean();
         if (hasNetId) {
             VarInts.readInt(buffer);
         }
 
-        VarInts.readInt(buffer); // Block runtime ID
+        VarInts.readInt(buffer); 
         int streamSize = VarInts.readUnsignedInt(buffer);
         buffer.skipBytes(streamSize);
     }

@@ -81,7 +81,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
         @NonNull private String permission = "";
         @Nullable private TriState permissionDefault;
         @Nullable private List<String> aliases;
-        private boolean suggestedOpOnly = false; // deprecated for removal
+        private boolean suggestedOpOnly = false; 
         private boolean playerOnly = false;
         private boolean bedrockOnly = false;
         @Nullable private CommandExecutor<T> executor;
@@ -127,18 +127,18 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
             return this;
         }
 
-        @SuppressWarnings("removal") // this is our doing
+        @SuppressWarnings("removal") 
         @Override
         public Builder<T> suggestedOpOnly(boolean suggestedOpOnly) {
             this.suggestedOpOnly = suggestedOpOnly;
             if (suggestedOpOnly) {
-                // the most amount of legacy/deprecated behaviour I'm willing to support
+                
                 this.permissionDefault = TriState.NOT_SET;
             }
             return this;
         }
 
-        @SuppressWarnings("removal") // this is our doing
+        @SuppressWarnings("removal") 
         @Override
         public Builder<T> executableOnConsole(boolean executableOnConsole) {
             this.playerOnly = !executableOnConsole;
@@ -166,7 +166,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
         @NonNull
         @Override
         public GeyserExtensionCommand build() {
-            // These are captured in the anonymous lambda below and shouldn't change even if the builder does
+            
             final Class<? extends T> sourceType = this.sourceType;
             final boolean suggestedOpOnly = this.suggestedOpOnly;
             final CommandExecutor<T> executor = this.executor;
@@ -181,9 +181,9 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
                 throw new IllegalArgumentException("Command executor was not defined for command " + name + " in extension " + extension.name());
             }
 
-            // if the source type is a GeyserConnection then it is inherently bedrockOnly
+            
             final boolean bedrockOnly = this.bedrockOnly || GeyserConnection.class.isAssignableFrom(sourceType);
-            // a similar check would exist for executableOnConsole, but there is not a logger type exposed in the api
+            
 
             GeyserExtensionCommand command = new GeyserExtensionCommand(extension, name, description, permission, permissionDefault, playerOnly, bedrockOnly) {
 
@@ -196,7 +196,7 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
 
                 @Override
                 protected org.incendo.cloud.Command.Builder.Applicable<GeyserCommandSource> meta() {
-                    // We don't want to localize the extension command description
+                    
                     return builder -> builder.commandDescription(CommandDescription.commandDescription(description));
                 }
 
@@ -217,13 +217,13 @@ public abstract class GeyserExtensionCommand extends GeyserCommand {
                         return;
                     }
 
-                    // currently, the only subclass of CommandSource exposed in the api is GeyserConnection.
-                    // when this command was registered, we enabled bedrockOnly if the sourceType was a GeyserConnection.
-                    // as a result, the permission checker should handle that case and this method shouldn't even be reached.
+                    
+                    
+                    
                     source.sendMessage("You must be a " + sourceType.getSimpleName() + " to run this command.");
                 }
 
-                @SuppressWarnings("removal") // this is our doing
+                @SuppressWarnings("removal") 
                 @Override
                 public boolean isSuggestedOpOnly() {
                     return suggestedOpOnly;

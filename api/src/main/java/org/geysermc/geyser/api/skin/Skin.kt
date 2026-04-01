@@ -22,18 +22,16 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.skin;
+package org.geysermc.geyser.api.skin
 
 /**
  * Represents a skin.
- *
+ * 
  * @param textureUrl The URL/ID of the skin texture
  * @param skinData The raw skin image data in ARGB
  * @param failed If the skin failed to load, this is for things like fallback skins
  */
-public record Skin(String textureUrl, byte[] skinData, boolean failed) {
-    public Skin(String textureUrl, byte[] skinData) {
-        this(textureUrl, skinData, false);
-    }
+@kotlin.jvm.JvmRecord
+data class Skin(@kotlin.jvm.JvmField val textureUrl: String?, @kotlin.jvm.JvmField val skinData: ByteArray?, val failed: Boolean) {
+    constructor(textureUrl: String?, skinData: ByteArray?) : this(textureUrl, skinData, false)
 }

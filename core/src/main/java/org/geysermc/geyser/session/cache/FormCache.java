@@ -46,10 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @RequiredArgsConstructor
 public class FormCache {
-    /**
-     * The magnitude of this doesn't actually matter, but it must be negative so that
-     * BedrockNetworkStackLatencyTranslator can detect the hack.
-     */
+    
     private static final long MAGIC_FORM_IMAGE_HACK_TIMESTAMP = -1234567890L;
 
     private final FormDefinitions formDefinitions = FormDefinitions.instance();
@@ -58,10 +55,10 @@ public class FormCache {
     private final GeyserSession session;
 
     public boolean hasFormOpen() {
-        // If forms is empty it implies that there are no forms to show
-        // so technically this returns "has forms to show" or "has open"
-        // Forms are only queued in specific circumstances, such as waiting on
-        // previous inventories to close
+        
+        
+        
+        
         return !forms.isEmpty();
     }
 
@@ -87,14 +84,14 @@ public class FormCache {
         formRequestPacket.setFormData(jsonData);
         session.sendUpstreamPacket(formRequestPacket);
 
-        // Hack to fix the (url) image loading bug
+        
         if (form instanceof SimpleForm) {
-            // Two delays:
-            // First, 500ms, before we send the network stack latency packet
+            
+            
             session.scheduleInEventLoop(() -> session.sendNetworkLatencyStackPacket(MAGIC_FORM_IMAGE_HACK_TIMESTAMP, false, () -> {
-                    // Then, wait 500ms after we receive the response, then update attributes to get the image to show
+                    
                     session.scheduleInEventLoop(() -> {
-                        // Hack to fix the url image loading bug
+                        
                         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
                         attributesPacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
 
@@ -133,10 +130,10 @@ public class FormCache {
 
     public void closeForms() {
         if (!this.forms.isEmpty()) {
-            // Copy them to ensure any response handler's sent form isn't instantly cleared
+            
             Int2ObjectMap<Form> copy = new Int2ObjectOpenHashMap<>(this.forms);
             this.forms.clear();
-            // Now close it
+            
             session.sendUpstreamPacket(new ClientboundCloseFormPacket());
 
             for (Form form : copy.values()) {

@@ -30,32 +30,23 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.util.DimensionUtils;
 
-/**
- * Represents the information we store from the current Java dimension
- * @param piglinSafe Whether piglins and hoglins are safe from conversion in this dimension.
- *      This controls if they have the shaking effect applied in the dimension.
- * @param ultrawarm If this dimension is ultrawarm.
- *      Used when calculating movement in lava for client-side vehicles.
- * @param bedrockId the Bedrock dimension ID of this dimension.
- * As a Java dimension can be null in some login cases (e.g. GeyserConnect), make sure the player
- * is logged in before utilizing this field.
- */
+
 public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ultrawarm, int bedrockId, boolean isNetherLike) {
 
     public static JavaDimension read(RegistryEntryContext entry) {
         NbtMap dimension = entry.data();
         int minY = dimension.getInt("min_y");
         int height = dimension.getInt("height");
-        // Logical height can be ignored probably - seems to be for artificial limits like the Nether.
+        
 
-        // Set if piglins/hoglins should shake
+        
         boolean piglinSafe = dimension.getBoolean("piglin_safe");
-        // Entities in lava move faster in ultrawarm dimensions
+        
         boolean ultrawarm = dimension.getBoolean("ultrawarm");
 
         boolean isNetherLike;
-        // Cache the Bedrock version of this dimension, and base it off the ID - THE ID CAN CHANGE!!!
-        // https://github.com/GeyserMC/Geyser/issues/4837
+        
+        
         int bedrockId;
         Key id = entry.id();
         if ("minecraft".equals(id.namespace())) {
@@ -63,7 +54,7 @@ public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ul
             bedrockId = DimensionUtils.javaToBedrock(identifier);
             isNetherLike = BedrockDimension.NETHER_IDENTIFIER.equals(identifier);
         } else {
-            // Effects should give is a clue on how this (custom) dimension is supposed to look like
+            
             String effects = dimension.getString("effects");
             bedrockId = DimensionUtils.javaToBedrock(effects);
             isNetherLike = BedrockDimension.NETHER_IDENTIFIER.equals(effects);

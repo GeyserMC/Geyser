@@ -50,10 +50,7 @@ import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.zip.ZipFile;
 
-/**
- * Implementation note: try to design processes to fail softly if the client jar can't be downloaded,
- * either if Mojang is down or internet access to Mojang is spotty.
- */
+
 public final class AssetUtils {
     private static final String CLIENT_JAR_HASH_FILE = "client_jar.hash";
 
@@ -62,9 +59,7 @@ public final class AssetUtils {
     private static VersionDownload CLIENT_JAR_INFO;
 
     private static final Queue<ClientJarTask> CLIENT_JAR_TASKS = new ArrayDeque<>();
-    /**
-     * Download the client jar even if the hash is correct
-     */
+    
     private static boolean FORCE_DOWNLOAD_JAR = false;
 
     public static Asset getAsset(String name) {
@@ -75,28 +70,21 @@ public final class AssetUtils {
         return ASSET_MAP.containsKey(name);
     }
 
-    /**
-     * Add task to be ran after the client jar is downloaded or found to be cached.
-     *
-     * @param required if set to true, the client jar will always be downloaded, even if a pre-existing hash is matched.
-     *                 This means an asset or texture is missing.
-     */
+    
     public static void addTask(boolean required, ClientJarTask task) {
         CLIENT_JAR_TASKS.add(task);
         FORCE_DOWNLOAD_JAR |= required;
     }
 
-    /**
-     * Fetch the latest versions asset cache from Mojang so we can grab the locale files later
-     */
+    
     public static CompletableFuture<Void> generateAssetCache() {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                // Get the version manifest from Mojang
+                
                 VersionManifest versionManifest = GeyserImpl.GSON.fromJson(
                         WebUtils.getBody("https://launchermeta.mojang.com/mc/game/version_manifest.json"), VersionManifest.class);
 
-                // Get the url for the latest version of the games manifest
+                
                 String latestInfoURL = "";
                 for (Version version : versionManifest.getVersions()) {
                     if (version.getId().equals(GameProtocol.getJavaMinecraftVersion())) {
@@ -105,26 +93,26 @@ public final class AssetUtils {
                     }
                 }
 
-                // Make sure we definitely got a version
+                
                 if (latestInfoURL.isEmpty()) {
                     throw new Exception(GeyserLocale.getLocaleStringLog("geyser.locale.fail.latest_version"));
                 }
 
-                // Get the individual version manifest
+                
                 VersionInfo versionInfo = GeyserImpl.GSON.fromJson(WebUtils.getBody(latestInfoURL), VersionInfo.class);
 
-                // Get the client jar for use when downloading the en_us locale
-                GeyserImpl.getInstance().getLogger().debug(versionInfo.getDownloads()); // Was previously a Jackson call for writeValueToString
+                
+                GeyserImpl.getInstance().getLogger().debug(versionInfo.getDownloads()); 
                 CLIENT_JAR_INFO = versionInfo.getDownloads().get("client");
-                GeyserImpl.getInstance().getLogger().debug(CLIENT_JAR_INFO); // Was previously a Jackson call for writeValueToString
+                GeyserImpl.getInstance().getLogger().debug(CLIENT_JAR_INFO); 
 
-                // Get the assets list
+                
                 JsonObject assets = ((JsonObject) new JsonParser().parse(WebUtils.getBody(versionInfo.getAssetIndex().getUrl()))).getAsJsonObject("objects");
 
-                // Put each asset into an array for use later
+                
                 for (Map.Entry<String, JsonElement> entry : assets.entrySet()) {
                     if (!entry.getKey().startsWith("minecraft/lang/")) {
-                        // No need to cache non-language assets as we don't use them
+                        
                         continue;
                     }
 
@@ -141,12 +129,12 @@ public final class AssetUtils {
 
     public static void downloadAndRunClientJarTasks() {
         if (CLIENT_JAR_INFO == null) {
-            // Likely failed to download
+            
             GeyserImpl.getInstance().getLogger().debug("Skipping en_US hash check as client jar is null.");
             return;
         }
 
-        if (!FORCE_DOWNLOAD_JAR) { // Don't bother checking the hash if we need to download new files anyway.
+        if (!FORCE_DOWNLOAD_JAR) { 
             String curHash = null;
             try {
                 File hashFile = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve(CLIENT_JAR_HASH_FILE).toFile();
@@ -158,7 +146,7 @@ public final class AssetUtils {
             } catch (IOException ignored) { }
             String targetHash = CLIENT_JAR_INFO.getSha1();
             if (targetHash.equals(curHash)) {
-                // Just run all tasks - no new download required
+                
                 ClientJarTask task;
                 while ((task = CLIENT_JAR_TASKS.poll()) != null) {
                     task.whenDone.run();
@@ -168,14 +156,14 @@ public final class AssetUtils {
         }
 
         try {
-            // Let the user know we are downloading the JAR
+            
             GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.locale.download.en_us"));
             GeyserImpl.getInstance().getLogger().debug("Download URL: " + CLIENT_JAR_INFO.getUrl());
 
             Path tmpFilePath = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("tmp_locale.jar");
             WebUtils.downloadFile(CLIENT_JAR_INFO.getUrl(), tmpFilePath.toString());
 
-            // Load in the JAR as a zip and extract the files
+            
             try (ZipFile localeJar = new ZipFile(tmpFilePath.toString())) {
                 ClientJarTask task;
                 while ((task = CLIENT_JAR_TASKS.poll()) != null) {
@@ -186,12 +174,12 @@ public final class AssetUtils {
                 }
             }
 
-            // Store the latest jar hash
+            
             Path cache = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache");
             Files.createDirectories(cache);
             FileUtils.writeFile(cache.resolve(CLIENT_JAR_HASH_FILE).toString(), CLIENT_JAR_INFO.getSha1().toCharArray());
 
-            // Delete the nolonger needed client/server jar
+            
             Files.delete(tmpFilePath);
 
             GeyserImpl.getInstance().getLogger().info(GeyserLocale.getLocaleStringLog("geyser.locale.download.en_us.done"));
@@ -203,22 +191,19 @@ public final class AssetUtils {
     public static void saveFile(Path location, InputStream fileStream) throws IOException {
         try (OutputStream outStream = Files.newOutputStream(location)) {
 
-            // Write the file to the locale dir
+            
             byte[] buf = new byte[fileStream.available()];
             int length;
             while ((length = fileStream.read(buf)) != -1) {
                 outStream.write(buf, 0, length);
             }
 
-            // Flush all changes to disk and cleanup
+            
             outStream.flush();
         }
     }
 
-    /**
-     * A process that requires we download the client jar.
-     * Designed to accommodate Geyser updates that require more assets from the jar.
-     */
+    
     public record ClientJarTask(String asset, InputStreamConsumer ifNewDownload, Runnable whenDone) {
     }
 

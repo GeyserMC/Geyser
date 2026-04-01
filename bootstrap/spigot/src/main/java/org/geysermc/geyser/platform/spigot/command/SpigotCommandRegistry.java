@@ -46,7 +46,7 @@ public class SpigotCommandRegistry extends CommandRegistry {
 
         CommandMap commandMap = null;
         try {
-            // Paper-only
+            
             Server.class.getMethod("getCommandMap");
             commandMap = Bukkit.getServer().getCommandMap();
         } catch (NoSuchMethodException e) {
@@ -64,7 +64,7 @@ public class SpigotCommandRegistry extends CommandRegistry {
     @NonNull
     @Override
     public String description(@NonNull String command, @NonNull String locale) {
-        // check if the command is /geyser or an extension command so that we can localize the description
+        
         String description = super.description(command, locale);
         if (!description.isBlank()) {
             return description;

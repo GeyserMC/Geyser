@@ -35,7 +35,7 @@ public class FurnaceBlock extends Block {
 
     @Override
     protected BlockState setDefaultState(BlockState firstState) {
-        // Both furnace minecart states look north.
+        
         return firstState.withValue(Properties.HORIZONTAL_FACING, Direction.NORTH);
     }
 }

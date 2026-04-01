@@ -22,35 +22,36 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.pack.option
 
-package org.geysermc.geyser.api.pack.option;
-
-import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.pack.PathPackCodec;
-import org.geysermc.geyser.api.pack.UrlPackCodec;
+import org.geysermc.geyser.api.GeyserApi
+import org.geysermc.geyser.api.pack.PathPackCodec
+import org.geysermc.geyser.api.pack.UrlPackCodec
+import org.geysermc.geyser.api.pack.option.UrlFallbackOption.Companion.fallback
 
 /**
- * Can be used for resource packs created with the {@link UrlPackCodec}.
+ * Can be used for resource packs created with the [UrlPackCodec].
  * When a Bedrock client is unable to download a resource pack from a URL, Geyser will, by default,
- * serve the resource pack over raknet (as packs are served with the {@link PathPackCodec}).
+ * serve the resource pack over raknet (as packs are served with the [PathPackCodec]).
  * This option can be used to disable that behavior, and disconnect the player instead.
- * By default, the {@link UrlFallbackOption#TRUE} option is set.
+ * By default, the [UrlFallbackOption.TRUE] option is set.
  * @since 2.6.2
  */
-public interface UrlFallbackOption extends ResourcePackOption<Boolean> {
+interface UrlFallbackOption : ResourcePackOption<Boolean?> {
+    companion object {
+        /**
+         * Whether to fall back to serving packs over the raknet connection
+         * 
+         * @param fallback whether to fall back
+         * @return a UrlFallbackOption with the specified behavior
+         * @since 2.6.2
+         */
+        fun fallback(fallback: Boolean): UrlFallbackOption {
+            return GeyserApi.Companion.api()
+                .provider<UrlFallbackOption, UrlFallbackOption?>(UrlFallbackOption::class.java, fallback)
+        }
 
-    UrlFallbackOption TRUE = fallback(true);
-    UrlFallbackOption FALSE = fallback(false);
-
-    /**
-     * Whether to fall back to serving packs over the raknet connection
-     *
-     * @param fallback whether to fall back
-     * @return a UrlFallbackOption with the specified behavior
-     * @since 2.6.2
-     */
-    static UrlFallbackOption fallback(boolean fallback) {
-        return GeyserApi.api().provider(UrlFallbackOption.class, fallback);
+        val TRUE: UrlFallbackOption = fallback(true)
+        val FALSE: UrlFallbackOption = fallback(false)
     }
-
 }

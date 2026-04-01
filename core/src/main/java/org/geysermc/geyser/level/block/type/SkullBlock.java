@@ -41,7 +41,7 @@ public class SkullBlock extends Block {
     @Override
     protected void sendBlockUpdatePacket(GeyserSession session, BlockState state, BlockDefinition definition, Vector3i position) {
         if (this.type == Type.PLAYER) {
-            // The changed block was a player skull so check if a custom block was defined for this skull
+            
             SkullCache.Skull skull = session.getSkullCache().updateSkull(position, state);
             if (skull != null && skull.getBlockDefinition() != null) {
                 definition = skull.getBlockDefinition();
@@ -52,16 +52,14 @@ public class SkullBlock extends Block {
 
     @Override
     protected void checkForEmptySkull(GeyserSession session, BlockState state, Vector3i position) {
-        // It's not an empty skull.
+        
     }
 
     public Type skullType() {
         return type;
     }
 
-    /**
-     * Enum order matches Java.
-     */
+    
     public enum Type {
         SKELETON(0),
         WITHER_SKELETON(1),

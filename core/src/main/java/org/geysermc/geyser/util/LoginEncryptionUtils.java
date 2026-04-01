@@ -72,7 +72,7 @@ public class LoginEncryptionUtils {
                 return;
             }
 
-            // Should always be present, but hey, why not make it safe :D
+            
             Long rawIssuedAt = (Long) result.rawIdentityClaims().get("iat");
             long issuedAt = rawIssuedAt != null ? rawIssuedAt : -1;
 
@@ -116,7 +116,7 @@ public class LoginEncryptionUtils {
             try {
                 startEncryptionHandshake(session, identityPublicKey);
             } catch (Throwable e) {
-                // An error can be thrown on older Java 8 versions about an invalid key
+                
                 if (geyser.config().debugMode()) {
                     e.printStackTrace();
                 }
@@ -151,11 +151,11 @@ public class LoginEncryptionUtils {
 
     public static void buildAndShowLoginWindow(GeyserSession session) {
         if (session.isLoggedIn()) {
-            // Can happen if a window is cancelled during dimension switch
+            
             return;
         }
 
-        // Set DoDaylightCycle to false so the time doesn't accelerate while we're here
+        
         session.setDaylightCycle(false);
 
         session.sendForm(
@@ -176,9 +176,7 @@ public class LoginEncryptionUtils {
                         }));
     }
 
-    /**
-     * Build a window that explains the user's credentials will be saved to the system.
-     */
+    
     public static void buildAndShowConsentWindow(GeyserSession session) {
         String locale = session.locale();
 
@@ -223,9 +221,7 @@ public class LoginEncryptionUtils {
         };
     }
 
-    /**
-     * Shows the code that a user must input into their browser
-     */
+    
     public static void buildAndShowMicrosoftCodeWindow(GeyserSession session, MsaDeviceCode msCode) {
         String locale = session.locale();
 
@@ -268,7 +264,7 @@ public class LoginEncryptionUtils {
             int nextIndex = key.indexOf('\n', previousIndex);
             int endIndex = nextIndex == -1 ? key.length() : nextIndex;
 
-            // if there is more to this line than just a new line char
+            
             if (endIndex - previousIndex > 1) {
                 String substring = key.substring(previousIndex, endIndex);
                 if (key.charAt(previousIndex) != '%') {

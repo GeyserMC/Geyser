@@ -22,17 +22,15 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.network;
-
-import java.util.Locale;
+package org.geysermc.geyser.api.network
 
 /**
  * The authentication types that a Java server can be on connection.
  */
-public enum AuthType {
+enum class AuthType {
     OFFLINE,
     ONLINE,
+
     /**
      * The internal name for connecting to an online mode server without needing a Java account. The presence of this
      * authentication type does not necessarily mean the Floodgate plugin is installed; it only means that this
@@ -40,22 +38,24 @@ public enum AuthType {
      */
     FLOODGATE;
 
-    private static final AuthType[] VALUES = values();
+    companion object {
+        private val VALUES: Array<AuthType> = AuthType.entries.toTypedArray()
 
-    /**
-     * Convert the AuthType string (from config) to the enum, ONLINE on fail
-     *
-     * @param name AuthType string
-     *
-     * @return The converted AuthType
-     */
-    public static AuthType getByName(String name) {
-        String upperCase = name.toUpperCase(Locale.ROOT);
-        for (AuthType type : VALUES) {
-            if (type.name().equals(upperCase)) {
-                return type;
+        /**
+         * Convert the AuthType string (from config) to the enum, ONLINE on fail
+         * 
+         * @param name AuthType string
+         * 
+         * @return The converted AuthType
+         */
+        fun getByName(name: String): AuthType {
+            val upperCase: String = name.uppercase()
+            for (type in VALUES) {
+                if (type.name == upperCase) {
+                    return type
+                }
             }
+            return AuthType.ONLINE
         }
-        return ONLINE;
     }
 }

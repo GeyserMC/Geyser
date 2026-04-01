@@ -69,15 +69,10 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-/**
- * Loads {@link ResourcePack}s within a {@link Path} directory, firing the {@link GeyserDefineResourcePacksEventImpl}.
- */
+
 public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, ResourcePackHolder>> {
 
-    /**
-     * Used to keep track of remote resource packs that the client rejected.
-     * If a client rejects such a pack, it falls back to the old method, and Geyser serves a cached variant.
-     */
+    
     private static final Cache<String, UrlPackCodec> CACHED_FAILED_PACKS = CacheBuilder.newBuilder()
             .expireAfterWrite(15, TimeUnit.MINUTES)
             .build();
@@ -86,9 +81,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
 
     private static final boolean SHOW_RESOURCE_PACK_LENGTH_WARNING = Boolean.parseBoolean(System.getProperty("Geyser.ShowResourcePackLengthWarning", "true"));
 
-    /**
-     * Loop through the packs directory and locate valid resource pack files
-     */
+    
     @Override
     public Map<UUID, ResourcePackHolder> load(Path directory) {
         Map<UUID, ResourcePackHolder> packMap = new Object2ObjectOpenHashMap<>();
@@ -104,17 +97,17 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
         List<Path> resourcePacks;
         try (Stream<Path> stream = Files.list(directory)) {
             resourcePacks = stream.filter(PACK_MATCHER::matches)
-                    .collect(Collectors.toCollection(ArrayList::new)); // toList() does not guarantee mutability
+                    .collect(Collectors.toCollection(ArrayList::new)); 
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().error("Could not list packs directory", e);
 
-            // Ensure the event is fired even if there was an issue reading
-            // from our own resource pack directory. External projects may have
-            // resource packs located at different locations.
+            
+            
+            
             resourcePacks = new ArrayList<>();
         }
 
-        // Add custom skull pack
+        
         Path skullResourcePack = SkullResourcePackManager.createResourcePack();
         if (skullResourcePack != null) {
             resourcePacks.add(skullResourcePack);
@@ -126,7 +119,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
 
         GeyserDefineResourcePacksEventImpl defineEvent = new GeyserDefineResourcePacksEventImpl(packMap);
 
-        for (Path path : event.resourcePacks()) {
+        for (Path path : event.resourcePacks) {
             try {
                 defineEvent.register(readPack(path).build());
             } catch (Exception e) {
@@ -135,24 +128,17 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             }
         }
 
-        // Load all remote resource packs from the config before firing the new event
+        
         loadRemotePacks(defineEvent);
         GeyserImpl.getInstance().eventBus().fire(defineEvent);
 
-        // After loading the new resource packs: let's clean up the old url packs
+        
         cleanupRemotePacks();
 
         return defineEvent.getPacks();
     }
 
-    /**
-     * Reads a resource pack builder at the given file. Also searches for a file in the same directory, with the same name
-     * but suffixed by ".key", containing the content key. If such file does not exist, no content key is stored.
-     *
-     * @param path the file to read from, in ZIP format
-     * @return a {@link ResourcePack.Builder} representation
-     * @throws IllegalArgumentException if the pack manifest was invalid or there was any processing exception
-     */
+    
     public static GeyserResourcePack.Builder readPack(Path path) throws IllegalArgumentException {
         if (!PACK_MATCHER.matches(path)) {
             throw new IllegalArgumentException("Resource pack " + path.getFileName() + " must be a .zip or .mcpack file!");
@@ -162,8 +148,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
         String contentKey;
 
         try {
-            // Check if a file exists with the same name as the resource pack suffixed by .key,
-            // and set this as content key. (e.g. test.zip, key file would be test.zip.key)
+            
+            
             Path keyFile = path.resolveSibling(path.getFileName().toString() + ".key");
             contentKey = Files.exists(keyFile) ? Files.readString(keyFile, StandardCharsets.UTF_8) : "";
         } catch (IOException e) {
@@ -226,7 +212,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
 
     private void loadRemotePacks(GeyserDefineResourcePacksEventImpl event) {
         GeyserImpl instance = GeyserImpl.getInstance();
-        // Unable to make this a static variable, as the test would fail
+        
         final Path cachedDirectory = instance.getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
 
         if (!Files.exists(cachedDirectory)) {
@@ -285,7 +271,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
                 throw new CompletionException(e);
             }
 
-            // Check if the pack is a .zip or .mcpack file
+            
             if (!PACK_MATCHER.matches(path)) {
                 throw new IllegalArgumentException("Invalid pack format from url %s! Not a .zip or .mcpack file.".formatted(url));
             }
@@ -296,8 +282,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
                         throw new IllegalArgumentException("The pack at the url " + url + " does not contain a manifest file!");
                     }
 
-                    // Check if a "manifest.json" or "pack_manifest.json" file is located directly in the zip... does not work otherwise.
-                    // (something like MyZip.zip/manifest.json) will not, but will if it's a subfolder (MyPack.zip/MyPack/manifest.json)
+                    
+                    
                     if (zip.getEntry("manifest.json") != null || zip.getEntry("pack_manifest.json") != null) {
                         if (GeyserImpl.getInstance().getLogger().isDebug()) {
                             GeyserImpl.getInstance().getLogger().info("The remote resource pack from " + url + " contains a manifest.json file at the root of the zip file. " +
@@ -328,7 +314,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
         }
 
         int count = 0;
-        final long expireTime = (((long) 1000 * 60 * 60)); // one hour
+        final long expireTime = (((long) 1000 * 60 * 60)); 
         for (File cachedPack : Objects.requireNonNull(cacheFolder.listFiles())) {
             if (cachedPack.lastModified() < System.currentTimeMillis() - expireTime) {
                 //noinspection ResultOfMethodCallIgnored

@@ -85,7 +85,7 @@ public class CustomSkull {
         customBlockData = new GeyserCustomBlockData.Builder()
                 .name("player_skull_" + skinHash)
                 .components(components)
-                .intProperty(BITS_A_PROPERTY, IntStream.rangeClosed(0, 6).boxed().toList()) // This gives us exactly 21 block states
+                .intProperty(BITS_A_PROPERTY, IntStream.rangeClosed(0, 6).boxed().toList()) 
                 .intProperty(BITS_B_PROPERTY, IntStream.rangeClosed(0, 2).boxed().toList())
                 .permutations(permutations)
                 .build();
@@ -93,10 +93,10 @@ public class CustomSkull {
 
     public CustomBlockState getWallBlockState(int wallDirection) {
         wallDirection = switch (wallDirection) {
-            case 0 -> 2; // South
-            case 90 -> 3; // West
-            case 180 -> 0; // North
-            case 270 -> 1; // East
+            case 0 -> 2; 
+            case 90 -> 3; 
+            case 180 -> 0; 
+            case 270 -> 1; 
             default -> throw new IllegalArgumentException("Unknown skull wall direction: " + wallDirection);
         };
 

@@ -22,137 +22,138 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.item.custom
 
-package org.geysermc.geyser.api.item.custom;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.GeyserApi;
-
-import java.util.OptionalInt;
-import java.util.Set;
+import org.geysermc.geyser.api.GeyserApi
+import java.util.*
 
 /**
  * This is used to store data for a custom item.
- *
- * @deprecated use the new {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition}
+ * 
  */
-@Deprecated
-public interface CustomItemData {
+@Deprecated("use the new {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition}")
+interface CustomItemData {
     /**
      * Gets the item's name.
-     *
+     * 
      * @return the item's name
      */
-    @NonNull String name();
+    fun name(): String
 
     /**
      * Gets the custom item options of the item.
-     *
+     * 
      * @return the custom item options of the item.
      */
-    CustomItemOptions customItemOptions();
+    fun customItemOptions(): CustomItemOptions?
 
     /**
      * Gets the item's display name. By default, this is the item's name.
-     *
+     * 
      * @return the item's display name
      */
-    @NonNull String displayName();
+    fun displayName(): String
 
     /**
      * Gets the item's icon. By default, this is the item's name.
-     *
+     * 
      * @return the item's icon
      */
-    @NonNull String icon();
+    fun icon(): String
 
     /**
      * Gets if the item is allowed to be put into the offhand.
-     *
+     * 
      * @return true if the item is allowed to be used in the offhand, false otherwise
      */
-    boolean allowOffhand();
+    fun allowOffhand(): Boolean
 
     /**
      * Gets if the item should be displayed as handheld, like a tool.
-     *
+     * 
      * @return true if the item should be displayed as handheld, false otherwise
      */
-    boolean displayHandheld();
+    fun displayHandheld(): Boolean
 
     /**
      * Gets the item's creative category, or tab id.
-     *
+     * 
      * @return the item's creative category
      */
-    @NonNull OptionalInt creativeCategory();
+    fun creativeCategory(): OptionalInt
 
     /**
      * Gets the item's creative group.
-     *
+     * 
      * @return the item's creative group
      */
-    @Nullable String creativeGroup();
+    fun creativeGroup(): String?
 
     /**
      * Gets the item's texture size. This is to resize the item if the texture is not 16x16.
-     *
-     * @deprecated setting the texture size is deprecated; use attachables instead
+     * 
      * @return the item's texture size
      */
-    @Deprecated
-    int textureSize();
+    @Deprecated(
+        """setting the texture size is deprecated; use attachables instead
+      """
+    )
+    fun textureSize(): Int
 
     /**
      * Gets the item's render offsets. If it is null, the item will be rendered normally, with no offsets.
-     *
-     * @deprecated render offsets have been deprecated; attachables should be used instead
+     * 
      * @return the item's render offsets
      */
-    @Deprecated
-    @Nullable CustomRenderOffsets renderOffsets();
+    @Deprecated(
+        """render offsets have been deprecated; attachables should be used instead
+      """
+    )
+    fun renderOffsets(): CustomRenderOffsets?
 
     /**
      * Gets the item's set of tags that can be used in Molang.
      * Equivalent to "tag:some_tag"
-     *
+     * 
      * @return the item's tags, if they exist
      */
-    @NonNull Set<String> tags();
-
-    static CustomItemData.Builder builder() {
-        return GeyserApi.api().provider(CustomItemData.Builder.class);
-    }
+    fun tags(): MutableSet<String?>
 
     interface Builder {
         /**
          * Will also set the display name and icon to the provided parameter, if it is currently not set.
          */
-        Builder name(@NonNull String name);
+        fun name(name: String): Builder?
 
-        Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);
+        fun customItemOptions(customItemOptions: CustomItemOptions): Builder?
 
-        Builder displayName(@NonNull String displayName);
+        fun displayName(displayName: String): Builder?
 
-        Builder icon(@NonNull String icon);
+        fun icon(icon: String): Builder?
 
-        Builder allowOffhand(boolean allowOffhand);
+        fun allowOffhand(allowOffhand: Boolean): Builder?
 
-        Builder displayHandheld(boolean displayHandheld);
+        fun displayHandheld(displayHandheld: Boolean): Builder?
 
-        Builder creativeCategory(int creativeCategory);
+        fun creativeCategory(creativeCategory: Int): Builder?
 
-        Builder creativeGroup(@Nullable String creativeGroup);
+        fun creativeGroup(creativeGroup: String?): Builder?
 
-        @Deprecated
-        Builder textureSize(int textureSize);
+        @Deprecated("")
+        fun textureSize(textureSize: Int): Builder?
 
-        @Deprecated
-        Builder renderOffsets(@Nullable CustomRenderOffsets renderOffsets);
+        @Deprecated("")
+        fun renderOffsets(renderOffsets: CustomRenderOffsets?): Builder?
 
-        Builder tags(@Nullable Set<String> tags);
+        fun tags(tags: MutableSet<String?>?): Builder?
 
-        CustomItemData build();
+        fun build(): CustomItemData?
+    }
+
+    companion object {
+        @kotlin.jvm.JvmStatic
+        fun builder(): Builder {
+            return GeyserApi.Companion.api().provider<Builder, Builder?>(Builder::class.java)
+        }
     }
 }

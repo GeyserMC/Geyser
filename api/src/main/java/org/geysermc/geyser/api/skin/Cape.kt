@@ -22,19 +22,17 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.skin;
+package org.geysermc.geyser.api.skin
 
 /**
  * Represents a cape.
- *
+ * 
  * @param textureUrl The URL of the cape texture
  * @param capeId The ID of the cape
  * @param capeData The raw cape image data in ARGB format
  * @param failed If the cape failed to load, this is for things like fallback capes
  */
-public record Cape(String textureUrl, String capeId, byte[] capeData, boolean failed) {
-    public Cape(String textureUrl, String capeId, byte[] capeData) {
-        this(textureUrl, capeId, capeData, false);
-    }
+@kotlin.jvm.JvmRecord
+data class Cape(val textureUrl: String?, @kotlin.jvm.JvmField val capeId: String?, @kotlin.jvm.JvmField val capeData: ByteArray?, @kotlin.jvm.JvmField val failed: Boolean) {
+    constructor(textureUrl: String?, capeId: String?, capeData: ByteArray?) : this(textureUrl, capeId, capeData, false)
 }

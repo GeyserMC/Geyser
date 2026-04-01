@@ -50,26 +50,26 @@ public class BedrockSetLocalPlayerAsInitializedTranslator extends PacketTranslat
                             if (session.getGeyser().authChainFor(session.bedrockUsername()) == null) {
                                 LoginEncryptionUtils.buildAndShowConsentWindow(session);
                             } else {
-                                // If the auth chain is not null and we're here, then it expired
-                                // and the expiration form has been cached
+                                
+                                
                                 session.getFormCache().resendAllForms();
                             }
                         } else {
                             LoginEncryptionUtils.buildAndShowLoginWindow(session);
                         }
                     }
-                    // else we were able to log the user in
+                    
                 }
                 if (session.isLoggedIn()) {
-                    // Sigh - as of Bedrock 1.18
+                    
                     session.getEntityCache().updateBossBars();
 
-                    // Double sigh - https://github.com/GeyserMC/Geyser/issues/2677 - as of Bedrock 1.18
+                    
                     if (session.getInventoryHolder() != null) {
                         InventoryUtils.openPendingInventory(session);
                     }
 
-                    // What am I to expect - as of Bedrock 1.18
+                    
                     session.getFormCache().resendAllForms();
 
                     GeyserImpl.getInstance().eventBus().fire(new SessionJoinEvent(session));

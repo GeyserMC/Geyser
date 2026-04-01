@@ -22,65 +22,49 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.event.downstream
 
-package org.geysermc.geyser.api.event.downstream;
+import org.geysermc.event.Cancellable
+import org.geysermc.geyser.api.connection.GeyserConnection
+import org.geysermc.geyser.api.event.connection.ConnectionEvent
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.event.Cancellable;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
-
-import java.util.Set;
-
-
-/**
- * @deprecated please use {@link org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent}.
- */
-@Deprecated(forRemoval = true)
-public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancellable {
-    private final Set<? extends CommandInfo> commands;
-    private boolean cancelled;
-
-    public ServerDefineCommandsEvent(@NonNull GeyserConnection connection, @NonNull Set<? extends CommandInfo> commands) {
-        super(connection);
-        this.commands = commands;
-    }
+@Deprecated("please use {@link org.geysermc.geyser.api.event.java.ServerDefineCommandsEvent}.")
+class ServerDefineCommandsEvent(connection: GeyserConnection, private val commands: MutableSet<out CommandInfo?>) :
+    ConnectionEvent(connection), Cancellable {
+    private var cancelled = false
 
     /**
      * A collection of commands sent from the server. Any element in this collection can be removed, but no element can
      * be added.
-     *
+     * 
      * @return a collection of the commands sent over
      */
-    @NonNull
-    public Set<? extends CommandInfo> commands() {
-        return this.commands;
+    fun commands(): MutableSet<out CommandInfo?> {
+        return this.commands
     }
 
-    @Override
-    public boolean isCancelled() {
-        return this.cancelled;
+    override fun isCancelled(): Boolean {
+        return this.cancelled
     }
 
-    @Override
-    public void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
+    override fun setCancelled(cancelled: Boolean) {
+        this.cancelled = cancelled
     }
 
-    @Deprecated(forRemoval = true)
-    public interface CommandInfo {
+    @Deprecated("")
+    interface CommandInfo {
         /**
          * Gets the name of the command.
-         *
+         * 
          * @return the name of the command
          */
-        String name();
+        fun name(): String?
 
         /**
          * Gets the description of the command.
-         *
+         * 
          * @return the description of the command
          */
-        String description();
+        fun description(): String?
     }
 }

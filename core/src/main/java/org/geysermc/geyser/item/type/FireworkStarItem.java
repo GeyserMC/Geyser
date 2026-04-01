@@ -50,9 +50,9 @@ public class FireworkStarItem extends Item {
             builder.putCompound("FireworksItem", newExplosion);
             int[] colors = explosion.getColors();
             if (colors.length != 0) {
-                // Determine the custom color, if any.
-                // Mostly replicates Java's own rendering code, as Java determines the final firework star color client-side
-                // while Bedrock determines it server-side.
+                
+                
+                
                 int finalColor;
                 if (colors.length == 1) {
                     finalColor = colors[0];

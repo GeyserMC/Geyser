@@ -45,13 +45,7 @@ import java.util.Locale;
 
 public final class SoundUtils {
 
-    /**
-     * Maps a sound name to a sound event, null if one
-     * does not exist.
-     *
-     * @param sound the sound name
-     * @return a sound event from the given sound
-     */
+    
     public static @Nullable SoundEvent toSoundEvent(String sound) {
         try {
             return SoundEvent.valueOf(sound.toUpperCase(Locale.ROOT).replace(".", "_"));
@@ -60,17 +54,12 @@ public final class SoundUtils {
         }
     }
 
-    /**
-     * Translates a Java Custom or Builtin Sound to its Bedrock equivalent
-     *
-     * @param javaIdentifier the sound to translate
-     * @return a Bedrock sound
-     */
+    
     public static String translatePlaySound(String javaIdentifier) {
         String soundIdentifier = removeMinecraftNamespace(javaIdentifier);
         SoundMapping soundMapping = Registries.SOUNDS.get(soundIdentifier);
         if (soundMapping == null || soundMapping.playsound() == null) {
-            // no mapping
+            
             GeyserImpl.getInstance().getLogger().debug("[PlaySound] Defaulting to sound server gave us for " + javaIdentifier);
             return soundIdentifier;
         }
@@ -78,7 +67,7 @@ public final class SoundUtils {
     }
 
     private static String removeMinecraftNamespace(String identifier) {
-        // Drop any minecraft namespace if applicable
+        
         if (identifier.startsWith("minecraft:")) {
             return identifier.substring("minecraft:".length());
         }
@@ -94,14 +83,7 @@ public final class SoundUtils {
         session.sendUpstreamPacket(playSoundPacket);
     }
 
-    /**
-     * Translates and plays a Java Builtin Sound for a Bedrock client
-     *
-     * @param session the Bedrock client session.
-     * @param javaSound the builtin sound to play
-     * @param position the position
-     * @param pitch the pitch
-     */
+    
     public static void playSound(GeyserSession session, Sound javaSound, Vector3f position, float volume, float pitch) {
         String soundIdentifier = removeMinecraftNamespace(javaSound.getName());
 
@@ -113,7 +95,7 @@ public final class SoundUtils {
         }
 
         if (soundMapping.playsound() != null) {
-            // We always prefer the PlaySound mapping because we can control volume and pitch
+            
             playSound(session, soundMapping.playsound(), position, volume, pitch * soundMapping.pitchAdjust());
             return;
         }
@@ -142,9 +124,9 @@ public final class SoundUtils {
         soundPacket.setPosition(position);
         soundPacket.setIdentifier(soundMapping.identifier());
         if (sound == SoundEvent.NOTE) {
-            // Minecraft Wiki: 2^(x/12) = Java pitch where x is -12 to 12
-            // Java sends the note value as above starting with -12 and ending at 12
-            // Bedrock has a number for each type of note, then proceeds up the scale by adding to that number
+            
+            
+            
             soundPacket.setExtraData(soundMapping.extraData() + (int) (Math.round((Math.log10(pitch) / Math.log10(2)) * 12)) + 12);
         } else if (sound == SoundEvent.PLACE && soundMapping.extraData() == -1) {
             if (!soundMapping.identifier().equals(":")) {
@@ -158,7 +140,7 @@ public final class SoundUtils {
             soundPacket.setExtraData(soundMapping.extraData());
         }
 
-        soundPacket.setBabySound(false); // might need to adjust this in the future
+        soundPacket.setBabySound(false); 
         soundPacket.setRelativeVolumeDisabled(false);
         session.sendUpstreamPacket(soundPacket);
     }

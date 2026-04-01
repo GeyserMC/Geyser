@@ -40,7 +40,7 @@ public class DecoratedPotBlockEntityTranslator extends BlockEntityTranslator {
             return;
         }
 
-        // exact same format
+        
         bedrockNbt.putList("sherds", NbtType.STRING, javaNbt.getList("sherds", NbtType.STRING));
     }
 }

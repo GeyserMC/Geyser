@@ -64,10 +64,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator<Con
                 .javaId();
     }
 
-    /**
-     * Additional checks to verify that we can re-use the block inventory holder.
-     * Mirrors {@link BlockInventoryHolder#canReuseContainer(GeyserSession, Container, Container)}
-     */
+    
     @Override
     public boolean canReuseInventory(GeyserSession session, @NonNull Inventory newInventory, @NonNull Inventory oldInventory) {
         if (!super.canReuseInventory(session, newInventory, oldInventory) ||
@@ -77,17 +74,17 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator<Con
             return false;
         }
 
-        // While we could reuse real blocks for virtual inventories,
-        // it can result in unpleasant visual artifacts with specific plugins.
-        // Specifically - a few plugins send multiple ClientboundOpenScreen packets
-        // with different titles; where Geyser needs to re-open the menu fully in order to get
-        // the correct title to appear. The additional delay added by using virtual blocks masks
-        // the quick closing of the first packet.
+        
+        
+        
+        
+        
+        
         if (previous.isUsingRealBlock()) {
             return false;
         }
 
-        // Check if we'd be using the same virtual inventory position.
+        
         Vector3i position = InventoryUtils.findAvailableWorldSpace(session);
         if (Objects.equals(position, previous.getHolderPosition())) {
             return true;
@@ -171,8 +168,8 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator<Con
 
     @Override
     public void closeInventory(GeyserSession session, Container container, boolean force) {
-        // No need to reset a block since we didn't change any blocks
-        // But send a container close packet because we aren't destroying the original.
+        
+        
         if (container.isDisplayed()) {
             ContainerClosePacket packet = new ContainerClosePacket();
             packet.setId((byte) container.getBedrockId());
@@ -201,7 +198,7 @@ public class DoubleChestInventoryTranslator extends ChestInventoryTranslator<Con
     }
 
     private boolean canUseRealBlock(GeyserSession session, Container container) {
-        // See BlockInventoryHolder - same concept there except we're also dealing with a specific block state
+        
         if (session.getLastInteractionPlayerPosition().distance(session.getPlayerEntity().position()) < 2) {
             BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getLastInteractionBlockPosition());
             if (!BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.get().containsKey(state.javaId())) {

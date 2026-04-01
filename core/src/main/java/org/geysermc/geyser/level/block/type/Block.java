@@ -58,9 +58,7 @@ public class Block {
     public static final int JAVA_AIR_ID = 0;
 
     private final Key javaIdentifier;
-    /**
-     * Can you harvest this with your hand.
-     */
+    
     private final boolean requiresCorrectToolForDrops;
     private final @Nullable BlockEntityType blockEntityType;
     private final float destroyTime;
@@ -68,9 +66,7 @@ public class Block {
     protected Item item = null;
     private int javaId = -1;
 
-    /**
-     * Used for switching a given block state to different states.
-     */
+    
     private final Property<?>[] propertyKeys;
     private final BlockState defaultState;
 
@@ -82,7 +78,7 @@ public class Block {
         this.pushReaction = builder.pushReaction;
 
         BlockState firstState = builder.build(this).get(0);
-        this.propertyKeys = builder.propertyKeys; // Ensure this is not null before iterating over states
+        this.propertyKeys = builder.propertyKeys; 
         this.defaultState = setDefaultState(firstState);
     }
 
@@ -115,7 +111,7 @@ public class Block {
 
     protected void checkForEmptySkull(GeyserSession session, BlockState state, Vector3i position) {
         if (!(state.block() instanceof SkullBlock)) {
-            // Skull is gone
+            
             session.getSkullCache().removeSkull(position);
         }
     }
@@ -127,10 +123,7 @@ public class Block {
         return this.item;
     }
 
-    /**
-     * Should only be ran on block creation. Can be overridden.
-     * @param firstState the first state created from this block
-     */
+    
     protected BlockState setDefaultState(BlockState firstState) {
         return firstState;
     }
@@ -208,13 +201,11 @@ public class Block {
         private PistonBehavior pushReaction = PistonBehavior.NORMAL;
         private float destroyTime;
 
-        // We'll use this field after building
+        
         private Property<?>[] propertyKeys = null;
         private @Nullable Integer javaId = null;
 
-        /**
-         * For states that we're just tracking for mirroring Java states.
-         */
+        
         public Builder enumState(BasicEnumProperty property) {
             states.put(property, property.values());
             return this;
@@ -227,7 +218,7 @@ public class Block {
         }
 
         public Builder booleanState(Property<Boolean> property) {
-            states.put(property, List.of(Boolean.TRUE, Boolean.FALSE)); // Make this list a static constant if it'll survive past initialization
+            states.put(property, List.of(Boolean.TRUE, Boolean.FALSE)); 
             return this;
         }
 
@@ -235,11 +226,11 @@ public class Block {
             int low = property.low();
             int high = property.high();
             IntList list = new IntArrayList();
-            // There is a state for every number between the low and high.
+            
             for (int i = low; i <= high; i++) {
                 list.add(i);
             }
-            states.put(property, List.copyOf(list)); // Boxing reasons for that copy I guess.
+            states.put(property, List.copyOf(list)); 
             return this;
         }
 
@@ -281,7 +272,7 @@ public class Block {
 
                 return List.of(state);
             } else if (states.size() == 1) {
-                // We can optimize because we don't need to worry about combinations
+                
                 Map.Entry<Property<?>, List<Comparable<?>>> property = this.states.entrySet().stream().findFirst().orElseThrow();
                 List<BlockState> states = new ArrayList<>(property.getValue().size());
                 property.getValue().forEach(value -> {
@@ -292,20 +283,20 @@ public class Block {
                 this.propertyKeys = new Property[]{property.getKey()};
                 return states;
             } else {
-                // Think of this stream as another list containing, at the start, one empty list.
-                // It's two collections. Not a stream from the empty list.
+                
+                
                 Stream<List<Comparable<?>>> stream = Stream.of(Collections.emptyList());
                 for (var values : this.states.values()) {
-                    // OK, so here's how I understand this works. Because this was staring at vanilla Java code trying
-                    // to figure out exactly how it works so we don't have any discrepencies.
-                    // For each existing pair in the list, a new list is created, adding one of the new values.
-                    // Property up [true/false] would exist as true and false
-                    // Both entries will get duplicated, adding down, true and false.
+                    
+                    
+                    
+                    
+                    
                     stream = stream.flatMap(aPreviousPropertiesList ->
-                            // So the above is a list. It may be empty if this is the first property,
-                            // or it may be populated if this is not the first property.
-                            // We're about to create a new stream, each with a new list,
-                            // for every previous property
+                            
+                            
+                            
+                            
                             values.stream().map(value -> {
                                 var newProperties = new ArrayList<>(aPreviousPropertiesList);
                                 newProperties.add(value);
@@ -314,12 +305,12 @@ public class Block {
                 }
 
                 List<BlockState> states = new ArrayList<>();
-                // Now we have a list of Pair<Property, Value>s. Each list is a block state!
-                // If we have two boolean properties: up [true/false] and down [true/false],
-                // We'll see [up=true,down=true], [up=false,down=true], [up=true,down=false], [up=false,down=false]
+                
+                
+                
                 List<List<Comparable<?>>> result = stream.toList();
-                // Ensure each block state shares the same key array. Creating a keySet here shouldn't be an issue since
-                // this states map should be removed after build.
+                
+                
                 Property<?>[] keys = this.states.keySet().toArray(new Property<?>[0]);
                 result.forEach(properties -> {
                     Comparable<?>[] values = properties.toArray(new Comparable<?>[0]);

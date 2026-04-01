@@ -40,10 +40,10 @@ public class BedrockSetPlayerInventoryOptionsTranslator extends PacketTranslator
 
     @Override
     public void translate(GeyserSession session, SetPlayerInventoryOptionsPacket packet) {
-        // Sent by 1.20.50+ - we can pass it through to the java server
+        
 
-        // This should ensure that we never send these packets when the player inventory is opened while in creative
-        // Java edition can't craft in the 2x2 grid in creative, and subsequently doesn't have a recipe book
+        
+        
         if (session.getGameMode() == GameMode.CREATIVE && session.getPlayerInventoryHolder() == session.getInventoryHolder()) {
             return;
         }
@@ -51,7 +51,7 @@ public class BedrockSetPlayerInventoryOptionsTranslator extends PacketTranslator
         boolean filtered = packet.isFiltering();
         boolean bookOpen = isBookOpen(packet.getLeftTab(), packet.getRightTab());
 
-        // Hardcoded to crafting; bedrock does not have any furnace recipe books
+        
         session.sendDownstreamPacket(new ServerboundRecipeBookChangeSettingsPacket(CraftingBookStateType.CRAFTING, bookOpen, filtered));
     }
 

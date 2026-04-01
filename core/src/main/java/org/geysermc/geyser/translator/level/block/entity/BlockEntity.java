@@ -33,9 +33,6 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface BlockEntity {
 
-    /**
-     * The Java block entity type
-     * @return the type of the block entity
-     */
+    
     BlockEntityType[] type();
 }

@@ -62,7 +62,7 @@ public class GeyserMockContextScoreboard {
     }
 
     private static void createSessionSpy(GeyserMockContext context) {
-        // GeyserSession has so many dependencies, it's easier to just mock it
+        
         var session = context.mock(GeyserSession.class);
 
         when(session.getGeyser()).thenReturn(context.mockOrSpy(GeyserImpl.class));
@@ -74,7 +74,7 @@ public class GeyserMockContextScoreboard {
             return null;
         }).when(session).sendUpstreamPacket(any());
 
-        // SessionPlayerEntity loads stuff in like blocks, which is not what we want
+        
         var playerEntity = context.mock(SessionPlayerEntity.class);
         when(playerEntity.geyserId()).thenReturn(1L);
         when(playerEntity.getUsername()).thenReturn("Tim203");
@@ -89,7 +89,7 @@ public class GeyserMockContextScoreboard {
         var waypointCache = context.spy(new WaypointCache(session));
         when(session.getWaypointCache()).thenReturn(waypointCache);
 
-        // disable global scoreboard updater
+        
         when(worldCache.increaseAndGetScoreboardPacketsPerSecond()).thenReturn(0);
     }
 
@@ -120,7 +120,7 @@ public class GeyserMockContextScoreboard {
 
         var entityCache = context.mockOrSpy(EntityCache.class);
         entityCache.addPlayerEntity(playerEntity);
-        // called when the player spawns
+        
         entityCache.spawnEntity(playerEntity);
 
         return playerEntity;

@@ -70,12 +70,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * Stores any information sent via Java registries. May not contain all data in a given registry - we'll strip what's
- * unneeded.
- *
- * <p>Crafted as of 1.20.5 for easy "add new registry" functionality in the future.</p>
- */
+
 public final class RegistryCache implements JavaRegistryProvider {
     private static final Map<JavaRegistryKey<?>, Map<Key, NbtMap>> DEFAULTS;
     @VisibleForTesting
@@ -105,10 +100,10 @@ public final class RegistryCache implements JavaRegistryProvider {
         register(JavaRegistries.CHICKEN_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
         register(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT, ZombieNautilusEntity.VARIANT_READER);
 
-        // Load from MCProtocolLib's classloader
+        
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();
         Map<JavaRegistryKey<?>, Map<Key, NbtMap>> defaults = new HashMap<>();
-        // Don't create a keySet - no need to create the cached object in HashMap if we don't use it again
+        
         READERS.forEach((key, $) -> {
             List<NbtMap> rawValues = tag.getCompound(key.registryKey().asString()).getList("value", NbtType.COMPOUND);
             Map<Key, NbtMap> values = new HashMap<>();
@@ -116,7 +111,7 @@ public final class RegistryCache implements JavaRegistryProvider {
                 Key name = MinecraftKey.key(value.getString("name"));
                 values.put(name, value.getCompound("element"));
             }
-            // Can make these maps immutable and as efficient as possible after initialization
+            
             defaults.put(key, Map.copyOf(values));
         });
 
@@ -134,11 +129,9 @@ public final class RegistryCache implements JavaRegistryProvider {
         }
     }
 
-    /**
-     * Loads a registry in, if we are tracking it.
-     */
+    
     public void load(ClientboundRegistryDataPacket packet) {
-        // Java generic mess - we're sure we're putting the current readers for the correct registry types in the READERS map, so we use raw objects here to let it compile
+        
         JavaRegistryKey registryKey = JavaRegistries.fromKey(packet.getRegistry());
         if (registryKey != null) {
             RegistryReader reader = READERS.get(registryKey);
@@ -168,10 +161,10 @@ public final class RegistryCache implements JavaRegistryProvider {
                                          RegistryReader<T> reader, List<RegistryEntry> entries) {
         Map<Key, NbtMap> localRegistry = null;
 
-        // Clear each local cache every time a new registry entry is given to us
-        // (e.g. proxy server switches, reconfiguring)
+        
+        
 
-        // Store each of the entries resource location IDs and their respective network ID, used for the key -> ID map in RegistryEntryContext
+        
         Object2IntMap<Key> entryIdMap = new Object2IntOpenHashMap<>();
         for (int i = 0; i < entries.size(); i++) {
             entryIdMap.put(entries.get(i).getId(), i);
@@ -180,19 +173,19 @@ public final class RegistryCache implements JavaRegistryProvider {
         List<RegistryEntryData<T>> builder = new ArrayList<>(entries.size());
         for (int i = 0; i < entries.size(); i++) {
             RegistryEntry entry = entries.get(i);
-            // If the data is null, that's the server telling us we need to use our default values.
+            
             if (entry.getData() == null) {
-                if (localRegistry == null) { // Lazy initialize
+                if (localRegistry == null) { 
                     localRegistry = DEFAULTS.get(registryKey);
                 }
                 entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
             }
 
             RegistryEntryContext context = new RegistryEntryContext(entry, entryIdMap, Optional.of(session));
-            // This is what Geyser wants to keep as a value for this registry.
+            
             T cacheEntry = reader.read(context);
             if (cacheEntry == null) {
-                // Registry readers should never return null, rather return a default value
+                
                 throw new IllegalStateException("Registry reader returned null for an entry!");
             }
             builder.add(i, new RegistryEntryData<>(i, entry.getId(), cacheEntry));
@@ -200,11 +193,7 @@ public final class RegistryCache implements JavaRegistryProvider {
         registry.reset(builder);
     }
 
-    /**
-     * @param registryKey the Java registry key, listed in {@link JavaRegistries}
-     * @param reader converts the RegistryEntry NBT into an object. Should never return null, rather return a default value!
-     * @param <T> the class that represents these entries.
-     */
+    
     private static <T> void register(JavaRegistryKey<T> registryKey, RegistryReader<T> reader) {
         if (READERS.containsKey(registryKey)) {
             throw new IllegalStateException("Tried to register registry reader for " + registryKey + " twice!");
@@ -213,7 +202,7 @@ public final class RegistryCache implements JavaRegistryProvider {
     }
 
     public static void init() {
-        // no-op
+        
     }
 
     @FunctionalInterface

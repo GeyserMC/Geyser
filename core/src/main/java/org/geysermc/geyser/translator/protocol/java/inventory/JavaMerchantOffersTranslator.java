@@ -67,19 +67,19 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
             return;
         }
 
-        // No previous inventory was closed -> no need of queuing the merchant inventory
+        
         if (!holder.pending()) {
             openMerchant(session, packet, merchantInventory);
             return;
         }
 
-        // The inventory is declared as pending due to previous closing inventory -> leads to an incorrect order of execution
-        // Handled in BedrockContainerCloseTranslator
+        
+        
         merchantInventory.setPendingOffersPacket(packet);
     }
 
     public static void openMerchant(GeyserSession session, ClientboundMerchantOffersPacket packet, MerchantContainer merchantInventory) {
-        // Retrieve the fake villager involved in the trade, and update its metadata to match with the window information
+        
         merchantInventory.setVillagerTrades(packet.getOffers());
         merchantInventory.setTradeExperience(packet.getVillagerXp());
 
@@ -88,14 +88,14 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
             villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, packet.getVillagerLevel() - 1);
             villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 4);
         } else {
-            // Don't show trade level for wandering traders
+            
             villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, 0);
             villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 0);
         }
         villager.getDirtyMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, packet.getVillagerXp());
         villager.updateBedrockMetadata();
 
-        // Construct the packet that opens the trading window
+        
         UpdateTradePacket updateTradePacket = new UpdateTradePacket();
         updateTradePacket.setTradeTier(packet.getVillagerLevel() - 1);
         updateTradePacket.setContainerId((short) packet.getContainerId());
@@ -120,14 +120,14 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
             recipe.putFloat("priceMultiplierB", 0.0f);
             recipe.put("sell", getItemTag(session, trade.getResult()));
 
-            // The buy count before demand and special price adjustments
-            // The first input CAN be null as of Java 1.19.0/Bedrock 1.19.10
-            // Replicable item: https://gist.github.com/Camotoy/3f3f23d1f80981d1b4472bdb23bba698 from https://github.com/GeyserMC/Geyser/issues/3171
+            
+            
+            
             recipe.putInt("buyCountA", trade.getItemCostA() != null ? Math.max(trade.getItemCostA().count(), 0) : 0);
             recipe.putInt("buyCountB", trade.getItemCostB() != null ? Math.max(trade.getItemCostB().count(), 0) : 0);
 
-            recipe.putInt("demand", trade.getDemand()); // Seems to have no effect
-            recipe.putInt("tier", packet.getVillagerLevel() > 0 ? packet.getVillagerLevel() - 1 : 0); // -1 crashes client
+            recipe.putInt("demand", trade.getDemand()); 
+            recipe.putInt("tier", packet.getVillagerLevel() > 0 ? packet.getVillagerLevel() - 1 : 0); 
             recipe.put("buyA", getItemTag(session, toItemStack(trade.getItemCostA()), trade.getSpecialPriceDiff(), trade.getDemand(), trade.getPriceMultiplier()));
             recipe.put("buyB", getItemTag(session, toItemStack(trade.getItemCostB())));
             recipe.putInt("uses", trade.getUses());
@@ -173,19 +173,19 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
     }
 
     private static NbtMap getItemTag(GeyserSession session, ItemStack stack) {
-        if (InventoryUtils.isEmpty(stack)) { // Negative item counts appear as air on Java
+        if (InventoryUtils.isEmpty(stack)) { 
             return NbtMap.EMPTY;
         }
         return getItemTag(session, stack, session.getItemMappings().getMapping(stack), stack.getAmount());
     }
 
     private static NbtMap getItemTag(GeyserSession session, ItemStack stack, int specialPrice, int demand, float priceMultiplier) {
-        if (InventoryUtils.isEmpty(stack)) { // Negative item counts appear as air on Java
+        if (InventoryUtils.isEmpty(stack)) { 
             return NbtMap.EMPTY;
         }
         ItemMapping mapping = session.getItemMappings().getMapping(stack);
 
-        // Bedrock expects all price adjustments to be applied to the item's count
+        
         int count = stack.getAmount() + ((int) Math.max(Math.floor(stack.getAmount() * demand * priceMultiplier), 0)) + specialPrice;
         count = MathUtils.constrain(count, 1, Registries.JAVA_ITEMS.get().get(stack.getId()).defaultMaxStackSize());
 
@@ -205,8 +205,8 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
             builder.put("tag", tag);
         }
 
-        // Implementation note: previously we added a block tag to fix some blocks (black concrete?) that wouldn't stack
-        // after buying. This no longer seems to be an issue as of Bedrock 1.18.30, and including it breaks sugar canes.
+        
+        
 
         return builder.build();
     }

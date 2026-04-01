@@ -34,9 +34,7 @@ import org.geysermc.geyser.registry.type.ItemMapping;
 
 import java.util.Map;
 
-/**
- * A class to have easy access to specific item mappings per-version.
- */
+
 @Getter
 @Accessors(fluent = true)
 public class StoredItemMappings {

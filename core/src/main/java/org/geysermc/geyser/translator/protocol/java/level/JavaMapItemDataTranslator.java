@@ -48,9 +48,9 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
         mapItemDataPacket.setUniqueMapId(packet.getMapId());
         mapItemDataPacket.setDimensionId(DimensionUtils.javaToBedrock(session));
         mapItemDataPacket.setLocked(packet.isLocked());
-        mapItemDataPacket.setOrigin(Vector3i.ZERO); // Required since 1.19.20
+        mapItemDataPacket.setOrigin(Vector3i.ZERO); 
         mapItemDataPacket.setScale(packet.getScale());
-        // Required as of 1.19.50
+        
         mapItemDataPacket.getTrackedEntityIds().add(packet.getMapId());
 
         MapData data = packet.getData();
@@ -60,7 +60,7 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
             mapItemDataPacket.setWidth(data.getColumns());
             mapItemDataPacket.setHeight(data.getRows());
 
-            // Every int entry is an ARGB color
+            
             int[] colors = new int[data.getData().length];
 
             int idx = 0;
@@ -71,7 +71,7 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
             mapItemDataPacket.setColors(colors);
         }
 
-        // Bedrock needs an entity id to display an icon
+        
         int id = 0;
         for (MapIcon icon : packet.getIcons()) {
             BedrockMapIcon bedrockMapIcon = BedrockMapIcon.fromType(icon.getIconType());
@@ -81,7 +81,7 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
             id++;
         }
 
-        // Client will ignore if sent too early
+        
         if (session.isSentSpawnPacket()) {
             session.sendUpstreamPacket(mapItemDataPacket);
         } else {

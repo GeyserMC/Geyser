@@ -46,12 +46,10 @@ public class EndermanEntity extends MonsterEntity {
         dirtyMetadata.put(EntityDataTypes.CARRY_BLOCK_STATE, bedrockBlockId);
     }
 
-    /**
-     * Controls the screaming sound
-     */
+    
     public void setScreaming(BooleanEntityMetadata entityMetadata) {
-        //TODO see if Bedrock controls this differently
-        // Java Edition this controls which ambient sound is used
+        
+        
         if (entityMetadata.getPrimitiveValue()) {
             LevelSoundEventPacket packet = new LevelSoundEventPacket();
             packet.setSound(SoundEvent.STARE);
@@ -63,7 +61,7 @@ public class EndermanEntity extends MonsterEntity {
     }
 
     public void setAngry(BooleanEntityMetadata entityMetadata) {
-        // "Is staring/provoked" - controls visuals
+        
         setFlag(EntityFlag.ANGRY, entityMetadata.getPrimitiveValue());
     }
 }

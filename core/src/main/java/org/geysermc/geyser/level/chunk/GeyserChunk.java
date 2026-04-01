@@ -27,9 +27,7 @@ package org.geysermc.geyser.level.chunk;
 
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.DataPalette;
 
-/**
- * Acts as a lightweight chunk class that doesn't store biomes, heightmaps or block entities.
- */
+
 public record GeyserChunk(DataPalette[] sections) {
 
     public static GeyserChunk from(DataPalette[] sections) {

@@ -35,9 +35,7 @@ import org.geysermc.geyser.translator.protocol.Translator;
 @Translator(packet = SetDifficultyPacket.class)
 public class BedrockSetDifficultyTranslator extends PacketTranslator<SetDifficultyPacket> {
 
-    /**
-     * Sets the Java server's difficulty via the Bedrock client's "world" menu (given sufficient permissions).
-     */
+    
     @Override
     public void translate(GeyserSession session, SetDifficultyPacket packet) {
         if (session.getOpPermissionLevel() >= 2 && session.hasPermission(Permissions.SERVER_SETTINGS)) {

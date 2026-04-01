@@ -98,7 +98,7 @@ public class SquidEntity extends AgeableWaterEntity implements Tickable {
 
     @Override
     public void setYaw(float yaw) {
-        // Let the Java server control yaw when the squid is out of water
+        
         if (!inWater.join()) {
             this.yaw = yaw;
         }

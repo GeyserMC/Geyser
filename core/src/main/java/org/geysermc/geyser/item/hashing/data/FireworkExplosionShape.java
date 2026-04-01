@@ -27,7 +27,7 @@ package org.geysermc.geyser.item.hashing.data;
 
 import java.util.Locale;
 
-// Ordered and named by Java ID
+
 public enum FireworkExplosionShape {
     SMALL_BALL,
     LARGE_BALL,

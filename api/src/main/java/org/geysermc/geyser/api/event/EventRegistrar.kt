@@ -22,26 +22,25 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.event
 
-package org.geysermc.geyser.api.event;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.GeyserApi
 
 /**
  * Represents an owner for an event that allows it
- * to be registered through an {@link EventBus}.
+ * to be registered through an [EventBus].
  */
-public interface EventRegistrar {
-
-    /**
-     * Creates an {@link EventRegistrar} instance.
-     *
-     * @param object the object to wrap around
-     * @return an event registrar instance
-     */
-    @NonNull
-    static EventRegistrar of(@NonNull Object object) {
-        return GeyserApi.api().provider(EventRegistrar.class, object);
+interface EventRegistrar {
+    companion object {
+        /**
+         * Creates an [EventRegistrar] instance.
+         * 
+         * @param object the object to wrap around
+         * @return an event registrar instance
+         */
+        fun of(`object`: Any): EventRegistrar {
+            return GeyserApi.Companion.api()
+                .provider<EventRegistrar, EventRegistrar?>(EventRegistrar::class.java, `object`)
+        }
     }
 }

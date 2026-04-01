@@ -59,13 +59,13 @@ public class GeyserSpigotPingPassthrough implements IGeyserPingPassthrough {
                 event.getMaxPlayers(),
                 event.getNumPlayers()
             );
-        } catch (Exception | LinkageError e) { // LinkageError in the event that method/constructor signatures change
+        } catch (Exception | LinkageError e) { 
             logger.debug("Error while getting Bukkit ping passthrough: " + e);
             return null;
         }
     }
 
-    // These methods are unimplemented on spigot api by default so we add stubs so plugins don't complain
+    
     private static class GeyserPingEvent extends ServerListPingEvent {
 
         public GeyserPingEvent(InetAddress address, String motd, int numPlayers, int maxPlayers) {

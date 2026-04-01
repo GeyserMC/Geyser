@@ -48,15 +48,10 @@ public class PistonCache {
     @Getter(AccessLevel.PRIVATE)
     private final GeyserSession session;
 
-    /**
-     * Maps the position of a piston to its block entity
-     */
+    
     private final Map<Vector3i, PistonBlockEntity> pistons = new Object2ObjectOpenHashMap<>();
 
-    /**
-     * Maps the position of a moving block to the piston moving it
-     * Positions in this map represent the starting position of the block
-     */
+    
     private final Map<Vector3i, PistonBlockEntity> movingBlocksMap = new Object2ObjectOpenHashMap<>();
 
     private Vector3d playerDisplacement = Vector3d.ZERO;
@@ -64,25 +59,15 @@ public class PistonCache {
     @Setter
     private Vector3f playerMotion = Vector3f.ZERO;
 
-    /**
-     * Stores whether a player has/will collide with any moving blocks.
-     */
+    
     @Setter
     private boolean playerCollided = false;
 
-    /**
-     * Stores whether a player has/will collide with any slime blocks.
-     * This is used to prevent movement from being corrected when players
-     * are about to hit a slime block.
-     */
+    
     @Setter
     private boolean playerSlimeCollision = false;
 
-    /**
-     * Stores whether a player is standing on a honey block.
-     * This is used to ignore movement from Bedrock to prevent them from
-     * falling off.
-     */
+    
     @Setter
     private boolean playerAttachedToHoney = false;
 
@@ -96,7 +81,7 @@ public class PistonCache {
             pistons.values().forEach(PistonBlockEntity::updateMovement);
             sendPlayerMovement();
             sendPlayerMotion();
-            // Update blocks after movement, so that players don't get stuck inside blocks
+            
             pistons.values().forEach(PistonBlockEntity::updateBlocks);
 
             pistons.entrySet().removeIf((entry) -> entry.getValue().canBeRemoved());
@@ -152,20 +137,15 @@ public class PistonCache {
         }
     }
 
-    /**
-     * Add to the player's displacement and move the player's bounding box
-     * The total displacement is capped to a range of -0.51 to 0.51 per tick
-     *
-     * @param displacement The displacement to apply to the player's bounding box
-     */
+    
     public void displacePlayer(Vector3d displacement) {
         Vector3d totalDisplacement = playerDisplacement.add(displacement);
-        // Clamp to range -0.51 to 0.51
+        
         totalDisplacement = totalDisplacement.max(-0.51d, -0.51d, -0.51d).min(0.51d, 0.51d, 0.51d);
 
         Vector3d delta = totalDisplacement.sub(playerDisplacement);
 
-        // Check if the piston is pushing a player into collision
+        
         if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.shouldSimulateMovement()) {
             delta = clientVehicle.getVehicleComponent().correctMovement(delta);
             clientVehicle.getVehicleComponent().moveRelative(delta);
@@ -177,13 +157,7 @@ public class PistonCache {
         playerDisplacement = totalDisplacement;
     }
 
-    /**
-     * @param blockPos The block position to test
-     * @param boundingBox The bounding box that moves
-     * @param axis The axis to apply the offset
-     * @param offset The current maximum distance the bounding box can travel
-     * @return The new maximum distance the bounding box can travel without colliding with the tested moving block
-     */
+    
     public double computeCollisionOffset(Vector3i blockPos, BoundingBox boundingBox, Axis axis, double offset) {
         PistonBlockEntity piston = movingBlocksMap.get(blockPos);
         if (piston != null) {

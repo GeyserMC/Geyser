@@ -44,7 +44,7 @@ public class JavaEntityPositionSyncTranslator extends PacketTranslator<Clientbou
         Vector3d pos = packet.getPosition();
 
         if (entity instanceof ClientVehicle clientVehicle) {
-            // Ignore if player is controlling
+            
             if (clientVehicle.shouldSimulateMovement()) {
                 return;
             }

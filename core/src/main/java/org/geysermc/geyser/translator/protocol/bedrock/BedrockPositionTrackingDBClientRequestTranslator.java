@@ -44,10 +44,10 @@ public class BedrockPositionTrackingDBClientRequestTranslator extends PacketTran
         PositionTrackingDBServerBroadcastPacket broadcastPacket = new PositionTrackingDBServerBroadcastPacket();
         broadcastPacket.setTrackingId(packet.getTrackingId());
 
-        // Fetch the stored lodestone
+        
         LodestoneCache.LodestonePos pos = session.getLodestoneCache().getPos(packet.getTrackingId());
 
-        // If we don't have data for that ID tell the client its not found
+        
         if (pos == null) {
             broadcastPacket.setAction(PositionTrackingDBServerBroadcastPacket.Action.NOT_FOUND);
             session.sendUpstreamPacket(broadcastPacket);
@@ -56,15 +56,15 @@ public class BedrockPositionTrackingDBClientRequestTranslator extends PacketTran
 
         broadcastPacket.setAction(PositionTrackingDBServerBroadcastPacket.Action.UPDATE);
 
-        // Build the NBT data for the update
+        
         NbtMapBuilder builder = NbtMap.builder();
         builder.putInt("dim", DimensionUtils.javaToBedrock(pos.dimension().asString()));
         builder.putString("id", "0x" + String.format("%08X", packet.getTrackingId()));
 
-        builder.putByte("version", (byte) 1); // Not sure what this is for
-        builder.putByte("status", (byte) 0); // Not sure what this is for
+        builder.putByte("version", (byte) 1); 
+        builder.putByte("status", (byte) 0); 
 
-        // Build the position for the update
+        
         builder.putList("pos", NbtType.INT, pos.x(), pos.y(), pos.z());
         broadcastPacket.setTag(builder.build());
 

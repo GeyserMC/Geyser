@@ -33,9 +33,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.With;
 
-/**
- * Represents Geyser's own serialized item information before being processed per-version
- */
+
 @ToString
 @EqualsAndHashCode
 @Getter

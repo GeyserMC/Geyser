@@ -22,33 +22,27 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.pack.exception
 
-package org.geysermc.geyser.api.pack.exception;
-
-import java.io.Serial;
+import java.io.Serial
 
 /**
  * Used to indicate an exception that occurred while handling resource pack registration,
  * or during resource pack option validation.
  * @since 2.6.2
  */
-public class ResourcePackException extends IllegalArgumentException {
-
-    @Serial
-    private static final long serialVersionUID = 1L;
-
+class ResourcePackException : IllegalArgumentException {
     /**
-     * The {@link Cause} of this exception.
+     * The [Cause] of this exception.
      */
-    private final Cause cause;
+    private val cause: Cause?
 
     /**
      * @param cause the cause of this exception
      * @since 2.6.2
      */
-    public ResourcePackException(Cause cause) {
-        super(cause.message());
-        this.cause = cause;
+    constructor(cause: Cause) : super(cause.message()) {
+        this.cause = cause
     }
 
     /**
@@ -56,42 +50,46 @@ public class ResourcePackException extends IllegalArgumentException {
      * @param message an additional, more in-depth message about the issue.
      * @since 2.6.2
      */
-    public ResourcePackException(Cause cause, String message) {
-        super(message);
-        this.cause = cause;
+    constructor(cause: Cause?, message: String?) : super(message) {
+        this.cause = cause
     }
 
     /**
      * @return the cause of this exception
      * @since 2.6.2
      */
-    public Cause cause() {
-        return cause;
+    fun cause(): Cause? {
+        return cause
     }
 
     /**
      * Represents different causes with explanatory messages stating which issue occurred.
      * @since 2.6.2
      */
-    public enum Cause {
+    enum class Cause(message: String) {
         DUPLICATE("A resource pack with this UUID was already registered!"),
         INVALID_PACK("This resource pack is not a valid Bedrock edition resource pack!"),
         INVALID_PACK_OPTION("Attempted to register an invalid resource pack option!"),
         PACK_NOT_FOUND("No resource pack was found!"),
         UNKNOWN_IMPLEMENTATION("Use the resource pack codecs to create resource packs.");
 
-        private final String message;
+        private val message: String?
 
         /**
          * @return the message of this cause
          * @since 2.6.2
          */
-        public String message() {
-            return message;
+        fun message(): String? {
+            return message
         }
 
-        Cause(String message) {
-            this.message = message;
+        init {
+            this.message = message
         }
+    }
+
+    companion object {
+        @Serial
+        private const val serialVersionUID = 1L
     }
 }

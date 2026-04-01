@@ -40,7 +40,7 @@ public class JavaChangeDifficultyTranslator extends PacketTranslator<Clientbound
         Difficulty difficulty = packet.getDifficulty();
         session.getWorldCache().setDifficulty(difficulty);
 
-        // Peaceful difficulty allows always eating food - hence, we just do not send it to Bedrock.
+        
         if (difficulty == Difficulty.PEACEFUL) {
             difficulty = Difficulty.EASY;
         }

@@ -46,7 +46,7 @@ public final class ScoreReference {
     public ScoreReference(
         Scoreboard scoreboard, String name, int score, Component displayName, NumberFormat format) {
         this.name = name;
-        // hidden is a sidebar exclusive feature
+        
         this.hidden = name.startsWith("#");
 
         updateProperties(scoreboard, score, displayName, format);
@@ -74,7 +74,7 @@ public final class ScoreReference {
             }
             return;
         }
-        // simplified from (this.displayName != null && displayName == null) || (this.displayName == null && displayName != null)
+        
         if (this.displayName != null || displayName != null) {
             this.displayName = MessageTranslator.convertMessage(displayName, scoreboard.session().locale());
             markChanged();

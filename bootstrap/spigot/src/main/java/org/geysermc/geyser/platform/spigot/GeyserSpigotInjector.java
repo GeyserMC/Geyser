@@ -50,13 +50,9 @@ import java.net.InetAddress;
 import java.util.List;
 
 public class GeyserSpigotInjector extends GeyserInjector {
-    /**
-     * Used to determine if ViaVersion is setup to a state where Geyser players will fail at joining if injection is enabled
-     */
+    
     private final boolean isViaVersion;
-    /**
-     * Used to uninject ourselves on shutdown.
-     */
+    
     private List<ChannelFuture> allServerChannels;
 
     public GeyserSpigotInjector(boolean isViaVersion) {
@@ -69,18 +65,18 @@ public class GeyserSpigotInjector extends GeyserInjector {
         Class<?> serverClazz;
         try {
             serverClazz = Class.forName("net.minecraft.server.MinecraftServer");
-            // We're using 1.17+
+            
         } catch (ClassNotFoundException e) {
-            // We're using pre-1.17
+            
             String prefix = Bukkit.getServer().getClass().getPackage().getName().replace("org.bukkit.craftbukkit", "net.minecraft.server");
             serverClazz = Class.forName(prefix + ".MinecraftServer");
         }
         Method getServer = serverClazz.getDeclaredMethod("getServer");
         Object server = getServer.invoke(null);
         Object connection = null;
-        // Find the class that manages network IO
+        
         for (Method m : serverClazz.getDeclaredMethods()) {
-            // First is Spigot-mapped name, second is Mojang-mapped name which is implemented as future-proofing
+            
             if (m.getReturnType().getSimpleName().equals("ServerConnection") || m.getReturnType().getSimpleName().equals("ServerConnectionListener")) {
                 if (m.getParameterTypes().length == 0) {
                     connection = m.invoke(server);
@@ -91,7 +87,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
             throw new RuntimeException("Unable to find ServerConnection class!");
         }
 
-        // Find the channel that Minecraft uses to listen to connections
+        
         ChannelFuture listeningChannel = null;
         for (Field field : connection.getClass().getDeclaredFields()) {
             if (field.getType() != List.class) {
@@ -111,9 +107,9 @@ public class GeyserSpigotInjector extends GeyserInjector {
             throw new RuntimeException("Unable to find listening channel!");
         }
 
-        // Making this a function prevents childHandler from being treated as a non-final variable
+        
         ChannelInitializer<Channel> childHandler = getChildHandler(bootstrap, listeningChannel);
-        // This method is what initializes the connection in Java Edition, after Netty is all set.
+        
         Method initChannel = childHandler.getClass().getDeclaredMethod("initChannel", Channel.class);
         initChannel.setAccessible(true);
 
@@ -132,13 +128,13 @@ public class GeyserSpigotInjector extends GeyserInjector {
                         }
                     }
                 })
-                // Set to MAX_PRIORITY as MultithreadEventLoopGroup#newDefaultThreadFactory which DefaultEventLoopGroup implements does by default
+                
                 .group(new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser Spigot connection thread", Thread.MAX_PRIORITY)))
                 .localAddress(LocalAddress.ANY))
                 .bind()
                 .syncUninterruptibly();
-        // We don't need to add to the list, but plugins like ProtocolSupport and ProtocolLib that add to the main pipeline
-        // will work when we add to the list.
+        
+        
         allServerChannels.add(channelFuture);
         this.localChannel = channelFuture;
         this.serverSocketAddress = channelFuture.channel().localAddress();
@@ -156,7 +152,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
                 Field childHandlerField = handler.getClass().getDeclaredField("childHandler");
                 childHandlerField.setAccessible(true);
                 childHandler = (ChannelInitializer<Channel>) childHandlerField.get(handler);
-                // ViaVersion non-Paper-injector workaround so we aren't double-injecting
+                
                 if (isViaVersion && childHandler instanceof BukkitChannelInitializer) {
                     childHandler = ((BukkitChannelInitializer) childHandler).original();
                 }
@@ -174,11 +170,7 @@ public class GeyserSpigotInjector extends GeyserInjector {
         return childHandler;
     }
 
-    /**
-     * Work around an odd bug where the first connection might not initialize all channel handlers on the main pipeline -
-     * send a dummy status request down that acts as the first connection, then.
-     * For the future, if someone wants to properly fix this - as of December 28, 2021, it happens on 1.16.5/1.17.1/1.18.1 EXCEPT Spigot 1.16.5
-     */
+    
     private void workAroundWeirdBug(GeyserBootstrap bootstrap) {
         MinecraftProtocol protocol = new MinecraftProtocol();
         LocalSession session = new LocalSession(this.serverSocketAddress, InetAddress.getLoopbackAddress().getHostAddress(), protocol, Runnable::run);

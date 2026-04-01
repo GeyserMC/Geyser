@@ -36,7 +36,7 @@ public class BasePiglinEntity extends MonsterEntity {
 
     public BasePiglinEntity(EntitySpawnContext context) {
         super(context);
-        // Both TARGET_EID and BLOCK are needed for melee attack animation
+        
         dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(1));
         setFlag(EntityFlag.SHAKING, isShaking());
     }
@@ -49,7 +49,7 @@ public class BasePiglinEntity extends MonsterEntity {
     }
 
     public void setImmuneToZombification(BooleanEntityMetadata entityMetadata) {
-        // Apply shaking effect if not in the nether and zombification is possible
+        
         this.isImmuneToZombification = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.SHAKING, isShaking());
     }

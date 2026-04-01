@@ -69,7 +69,7 @@ public class Item {
     protected final Key javaIdentifier;
     private int javaId = -1;
     private final int attackDamage;
-    private DataComponents baseComponents; // unmodifiable
+    private DataComponents baseComponents; 
 
     public Item(String javaIdentifier, Builder builder) {
         this.javaIdentifier = MinecraftKey.key(javaIdentifier);
@@ -79,7 +79,7 @@ public class Item {
         this.attackDamage = builder.attackDamage;
     }
 
-    // TODO maybe deprecate?
+    
     public String javaIdentifier() {
         return javaIdentifier.asString();
     }
@@ -112,12 +112,7 @@ public class Item {
         return session.getTagCache().is(set, JavaRegistries.ITEM, javaId);
     }
 
-    /**
-     * Returns an unmodifiable {@link DataComponents} view containing known data components.
-     * Optionally, additional components can be provided to replace (or add to)
-     * the items' base components.
-     * To add data components, use {@link GeyserItemStack#getOrCreateComponents()}.
-     */
+    
     @NonNull
     @UnmodifiableView
     public DataComponents gatherComponents(@Nullable ComponentCache componentCache, @Nullable DataComponents others) {
@@ -125,21 +120,17 @@ public class Item {
             return baseComponents;
         }
 
-        // Start with the base components that always exist
+        
         DataComponents components = baseComponents.clone();
-        // Add all additional components; these can override base components!
-        // e.g. custom stack size
+        
+        
         components.getDataComponents().putAll(others.getDataComponents());
 
-        // Return an unmodified map of the merged components
+        
         return new DataComponents(ImmutableMap.copyOf(components.getDataComponents()));
     }
 
-    /**
-     * Returns this items value (or null) for a specific {@link DataComponentType}.
-     * Prefer using {@link GeyserItemStack#getComponent(DataComponentType)}
-     * to also query additional components that would override the default ones.
-     */
+    
     @Nullable
     public <T> T getComponent(@Nullable ComponentCache componentCache, @NonNull DataComponentType<T> type) {
         return baseComponents.get(type);
@@ -153,7 +144,7 @@ public class Item {
 
     public ItemData.Builder translateToBedrock(GeyserSession session, int count, DataComponents components, ItemMapping mapping, ItemMappings mappings) {
         if (this == Items.AIR || count <= 0) {
-            // Return, essentially, air
+            
             return ItemData.builder();
         }
 
@@ -171,9 +162,7 @@ public class Item {
         return mappings.getMapping(javaId);
     }
 
-    /**
-     * Takes components from Java Edition and map them into Bedrock.
-     */
+    
     public void translateComponentsToBedrock(GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         if (session == null) {
             return;
@@ -208,48 +197,39 @@ public class Item {
         }
 
         Integer repairCost = components.get(DataComponentTypes.REPAIR_COST);
-        // Java sets repair cost to 0 on all items via default components, that trips up Bedrock crafting.
-        // See https://github.com/GeyserMC/Geyser/issues/5220 for more details
+        
+        
         if (repairCost != null && repairCost != 0) {
             builder.putInt("RepairCost", repairCost);
         }
 
-        // If the tag exists, it's unbreakable; the value is just weather to show the tooltip. As of Java 1.21
+        
         if (components.getDataComponents().containsKey(DataComponentTypes.UNBREAKABLE)) {
             builder.putByte("Unbreakable", (byte) 1);
         }
 
-        // Prevents the client from trying to stack items with untranslated components
-        // Relies on correct hash code implementation, and some luck
-        // However, we should only set a hash when the components differ from the default ones,
-        // otherwise Bedrock can't stack these when crafting items since it's predicted recipe output
-        // does not contain the GeyserHash. See https://github.com/GeyserMC/Geyser/issues/5220 for more details
+        
+        
+        
+        
+        
         if (!baseComponents.equals(components)) {
-            builder.putInt("GeyserHash", components.hashCode()); // TODO: don't rely on this
+            builder.putInt("GeyserHash", components.hashCode()); 
         }
     }
 
-    /**
-     * Takes NBT from Bedrock Edition and converts any value that Java parses differently. <br>
-     * Do note that this method is, these days, only called in three places (as of 2023/~1.19):
-     * <ul>
-     *     <li>Extra recipe loading</li>
-     *     <li>Creative menu</li>
-     *     <li>Stonecutters</li>
-     * </ul>
-     * Therefore, if translation cannot be achieved for a certain item, it is not necessarily bad.
-     */
+    
     public void translateNbtToJava(GeyserSession session, @NonNull NbtMap bedrockTag, @NonNull DataComponents components, ItemMapping mapping) {
-        // TODO see if any items from the creative menu need this
-//        CompoundTag displayTag = tag.get("display");
-//        if (displayTag != null) {
-//            if (displayTag.contains("Name")) {
-//                StringTag nameTag = displayTag.get("Name");
-//                displayTag.put(new StringTag("Name", MessageTranslator.convertToJavaMessage(nameTag.getValue())));
-//            }
+        
+
+
+
+
+
+
 //
-//            if (displayTag.contains("Lore")) {
-//                ListTag loreTag = displayTag.get("Lore");
+
+
 //                List<Tag> lore = new ArrayList<>();
 //                for (Tag subTag : loreTag.getValue()) {
 //                    if (!(subTag instanceof StringTag)) continue;
@@ -294,10 +274,7 @@ public class Item {
         }
     }
 
-    /**
-     * Override if the Bedrock equivalent of an item uses damage for extra data, and should not be tracked
-     * when translating an item.
-     */
+    
     public boolean ignoreDamage() {
         return false;
     }
@@ -308,7 +285,7 @@ public class Item {
         return GeyserItemStack.of(session, this.javaId, count, components);
     }
 
-    public void setJavaId(int javaId) { // TODO like this?
+    public void setJavaId(int javaId) { 
         if (this.javaId != -1) {
             throw new RuntimeException("Item ID has already been set!");
         }
@@ -326,9 +303,7 @@ public class Item {
                 '}';
     }
 
-    /**
-     * @return the block associated with this item, or air if nothing
-     */
+    
     @NonNull
     public static Item byBlock(Block block) {
         return BLOCK_TO_ITEM.getOrDefault(block, Items.AIR);

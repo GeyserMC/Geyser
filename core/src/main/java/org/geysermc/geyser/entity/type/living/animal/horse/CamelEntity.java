@@ -57,7 +57,7 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
 
         dirtyMetadata.put(EntityDataTypes.CONTAINER_TYPE, (byte) ContainerType.HORSE.getId());
 
-        // Always tamed, but not indicated in horse flags
+        
         setFlag(EntityFlag.TAMED, true);
     }
 
@@ -66,22 +66,22 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
         setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
         setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
 
-        // HorseFlags
-        // Bred 0x10
-        // Eating 0x20
-        // Open mouth 0x80
+        
+        
+        
+        
         int horseFlags = 0x0;
         horseFlags = (xd & 0x40) == 0x40 ? horseFlags | 0x80 : horseFlags;
 
-        // Only set eating when we don't have mouth open so a player interaction doesn't trigger the eating animation
+        
         horseFlags = (xd & 0x10) == 0x10 && (xd & 0x40) != 0x40 ? horseFlags | 0x20 : horseFlags;
 
-        // Set the flags into the horse flags
+        
         dirtyMetadata.put(EntityDataTypes.HORSE_FLAGS, horseFlags);
 
-        // Send the eating particles
-        // We use the wheat metadata as static particles since Java
-        // doesn't send over what item was used to feed the horse
+        
+        
+        
         if ((xd & 0x40) == 0x40) {
             EntityEventPacket entityEventPacket = new EntityEventPacket();
             entityEventPacket.setRuntimeEntityId(geyserId);
@@ -90,8 +90,8 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
             session.sendUpstreamPacket(entityEventPacket);
         }
 
-        // Shows the dash meter
-        // setFlag(EntityFlag.CAN_DASH, saddled);
+        
+        
     }
 
     @Override
@@ -116,20 +116,20 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
     }
 
     public void setDashing(BooleanEntityMetadata entityMetadata) {
-        // Java sends true to show dash animation and start the dash cooldown,
-        // false ends the dash animation, not the cooldown.
-        // Bedrock shows dash animation if HAS_DASH_COOLDOWN is set and the camel is above ground
+        
+        
+        
         if (entityMetadata.getPrimitiveValue()) {
             setFlag(EntityFlag.HAS_DASH_COOLDOWN, true);
             vehicleComponent.startDashCooldown();
-        } else if (!this.shouldSimulateMovement()) { // Don't remove dash cooldown prematurely if client is controlling
+        } else if (!this.shouldSimulateMovement()) { 
             setFlag(EntityFlag.HAS_DASH_COOLDOWN, false);
         }
     }
 
     public void setLastPoseTick(LongEntityMetadata entityMetadata) {
-        // Tick is based on world time. If negative, the camel is sitting.
-        // Must be compared to world time to know if the camel is fully standing/sitting or transitioning.
+        
+        
         vehicleComponent.setLastPoseTick(entityMetadata.getPrimitiveValue());
     }
 

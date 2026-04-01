@@ -22,36 +22,31 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.event.lifecycle
 
-package org.geysermc.geyser.api.event.lifecycle;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.event.Event;
-import org.geysermc.geyser.api.command.Command;
-
-import java.util.Map;
+import org.geysermc.event.Event
+import org.geysermc.geyser.api.command.Command
 
 /**
  * Called when commands are defined within Geyser.
- * <p>
- * This event allows you to register new commands using the {@link #register(Command)}
+ * 
+ * 
+ * This event allows you to register new commands using the [.register]
  * method and retrieve the default commands defined.
  */
-public interface GeyserDefineCommandsEvent extends Event {
-
+interface GeyserDefineCommandsEvent : Event {
     /**
-     * Registers the given {@link Command} into the Geyser
+     * Registers the given [Command] into the Geyser
      * command manager.
-     *
+     * 
      * @param command the command to register
      */
-    void register(@NonNull Command command);
+    fun register(command: Command)
 
     /**
-     * Gets all the registered built-in {@link Command}s.
-     *
+     * Gets all the registered built-in [Command]s.
+     * 
      * @return all the registered built-in commands as an unmodifiable map
      */
-    @NonNull
-    Map<String, Command> commands();
+    fun commands(): MutableMap<String?, Command?>
 }

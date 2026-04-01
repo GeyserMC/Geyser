@@ -40,7 +40,7 @@ public class WolfArmorItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
-        // Note that this is handled as of 1.21 in the ItemColors class.
+        
         translateDyedColor(components, builder);
     }
 }

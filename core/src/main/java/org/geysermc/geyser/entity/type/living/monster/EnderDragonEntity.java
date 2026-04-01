@@ -48,10 +48,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class EnderDragonEntity extends MobEntity implements Tickable {
-    /**
-     * The Ender Dragon has multiple hit boxes, which
-     * are each its own invisible entity
-     */
+    
     private EnderDragonPartEntity head;
     private EnderDragonPartEntity neck;
     private EnderDragonPartEntity body;
@@ -61,24 +58,17 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
 
     private EnderDragonPartEntity[] allParts;
 
-    /**
-     * A circular buffer that stores a history of
-     * y and yaw values.
-     */
+    
     private final Segment[] segmentHistory = new Segment[19];
     private int latestSegment = -1;
 
     private int phase;
-    /**
-     * The number of ticks since the beginning of the phase
-     */
+    
     private int phaseTicks;
 
     private int ticksTillNextGrowl = 100;
 
-    /**
-     * Used to determine when the wing flap sound should be played
-     */
+    
     private float wingPosition;
     private float lastWingPosition;
 
@@ -95,7 +85,7 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
     @Override
     public void setHealth(FloatEntityMetadata entityMetadata) {
         super.setHealth(entityMetadata);
-        if (phase == 9 && this.health <= 0) { // Dying phase
+        if (phase == 9 && this.health <= 0) { 
             EntityEventPacket entityEventPacket = new EntityEventPacket();
             entityEventPacket.setType(EntityEventType.ENDER_DRAGON_DEATH);
             entityEventPacket.setRuntimeEntityId(geyserId);
@@ -140,8 +130,8 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
 
     @Override
     public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
-        // Bedrock is EXTREMELY sensitive to the Ender Dragon's health - if it is dead once, it is dead for the rest of its life
-        // Ensure that the first spawn packet sent has health data so this cannot happen until it actually should
+        
+        
         addEntityPacket.getAttributes().add(createHealthAttribute());
     }
 
@@ -173,18 +163,16 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
         return false;
     }
 
-    /**
-     * Updates the positions of the Ender Dragon's multiple bounding boxes
-     */
+    
     private void updateBoundingBoxes() {
         Vector3f facingDir = Vector3f.createDirectionDeg(0, getHeadYaw());
         Segment baseSegment = getSegment(5);
-        // Used to angle the head, neck, and tail when the dragon flies up/down
+        
         float pitch = (float) Math.toRadians(10 * (baseSegment.getY() - getSegment(10).getY()));
         float pitchXZ = (float) Math.cos(pitch);
         float pitchY = (float) Math.sin(pitch);
 
-        // Lowers the head when the dragon sits/hovers
+        
         float headDuck;
         if (isHovering() || isSitting()) {
             headDuck = -1f;
@@ -198,27 +186,25 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
 
         Vector3f wingPos = Vector3f.createDirectionDeg(0, 90f - getHeadYaw()).mul(4.5f).up(2f);
         rightWing.setPosition(wingPos);
-        leftWing.setPosition(wingPos.mul(-1, 1, -1)); // Mirror horizontally
+        leftWing.setPosition(wingPos.mul(-1, 1, -1)); 
 
         Vector3f tailBase = facingDir.mul(1.5f);
         for (int i = 0; i < tail.length; i++) {
             float distance = (i + 1) * 2f;
-            // Curls the tail when the dragon turns
+            
             Segment targetSegment = getSegment(12 + 2 * i);
             float angle = getHeadYaw() + targetSegment.yaw - baseSegment.yaw;
 
             float tailYOffset = targetSegment.y - baseSegment.y - (distance + 1.5f) * pitchY + 1.5f;
             tail[i].setPosition(Vector3f.createDirectionDeg(0, angle).mul(distance).add(tailBase).mul(-pitchXZ, 1, pitchXZ).up(tailYOffset));
         }
-        // Send updated positions
+        
         for (EnderDragonPartEntity part : allParts) {
              part.moveAbsoluteRaw(part.position().add(position), 0, 0, 0, false, false);
         }
     }
 
-    /**
-     * Handles the particles and sounds of the Ender Dragon
-     */
+    
     private void effectTick() {
         Random random = ThreadLocalRandom.current();
         if (!silent) {
@@ -249,23 +235,23 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
             }
 
             phaseTicks++;
-            if (phase == 3) { // Landing Phase
+            if (phase == 3) { 
                 float headHeight = head.getBoundingBoxHeight();
                 Vector3f headCenter = head.position().up(headHeight * 0.5f);
 
                 for (int i = 0; i < 8; i++) {
                     Vector3f particlePos = headCenter.add(random.nextGaussian() / 2f, random.nextGaussian() / 2f, random.nextGaussian() / 2f);
-                    // This is missing velocity information
+                    
                     LevelEventPacket particlePacket = new LevelEventPacket();
                     particlePacket.setType(ParticleType.DRAGON_BREATH);
                     particlePacket.setPosition(particlePos);
                     session.sendUpstreamPacket(particlePacket);
                 }
-            } else if (phase == 5) { // Sitting Flaming Phase
+            } else if (phase == 5) { 
                 if (phaseTicks % 2 == 0 && phaseTicks < 10) {
-                    // Performing breath attack
-                    // Entity event DRAGON_FLAMING seems to create particles from the origin of the dragon,
-                    // so we need to manually spawn particles
+                    
+                    
+                    
                     for (int i = 0; i < 8; i++) {
                         SpawnParticleEffectPacket spawnParticleEffectPacket = new SpawnParticleEffectPacket();
                         spawnParticleEffectPacket.setDimensionId(DimensionUtils.javaToBedrock(session));
@@ -275,10 +261,10 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
                         session.sendUpstreamPacket(spawnParticleEffectPacket);
                     }
                 }
-            } else if (phase == 7) { // Sitting Attacking Phase
+            } else if (phase == 7) { 
                 playGrowlSound();
-            } else if (phase == 9) { // Dying Phase
-                // Send explosion particles as the dragon move towards the end portal
+            } else if (phase == 9) { 
+                
                 if (phaseTicks % 10 == 0) {
                     float xOffset = 8f * (random.nextFloat() - 0.5f);
                     float yOffset = 4f * (random.nextFloat() - 0.5f) + 2f;
@@ -311,22 +297,14 @@ public class EnderDragonEntity extends MobEntity implements Tickable {
         return phase == 5 || phase == 6 || phase == 7;
     }
 
-    /**
-     * Store the current yaw and y into the circular buffer
-     */
+    
     private void pushSegment() {
         latestSegment = (latestSegment + 1) % segmentHistory.length;
         segmentHistory[latestSegment].yaw = getHeadYaw();
         segmentHistory[latestSegment].y = position.getY();
     }
 
-    /**
-     * Gets the previous yaw and y
-     * Used to curl the tail and pitch the head and tail up/down
-     *
-     * @param index Number of ticks in the past
-     * @return Segment with the yaw and y
-     */
+    
     private Segment getSegment(int index) {
         index = (latestSegment - index) % segmentHistory.length;
         if (index < 0) {

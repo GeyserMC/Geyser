@@ -34,7 +34,7 @@ public record JavaFoodPropertiesImpl(
     boolean canAlwaysEat
 ) implements JavaFoodProperties {
 
-    @SuppressWarnings("ConstantValue") // must enforce api
+    @SuppressWarnings("ConstantValue") 
     public static class Builder implements JavaFoodProperties.Builder {
         private int nutrition;
         private float saturation;

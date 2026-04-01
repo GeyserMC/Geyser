@@ -109,7 +109,7 @@ public class DataComponentHashers {
         registerMap(DataComponentTypes.USE_EFFECTS, builder -> builder
             .optional("can_sprint", MinecraftHasher.BOOL, UseEffects::canSprint, false)
             .optional("interact_vibrations", MinecraftHasher.BOOL, UseEffects::interactVibrations, true)
-            .optional("speed_multiplier", MinecraftHasher.FLOAT, UseEffects::speedMultiplier, 0.2F)); // TODO test 1.21.11
+            .optional("speed_multiplier", MinecraftHasher.FLOAT, UseEffects::speedMultiplier, 0.2F)); 
 
         register(DataComponentTypes.CUSTOM_NAME, ComponentHasher.COMPONENT);
         register(DataComponentTypes.MINIMUM_ATTACK_CHARGE, MinecraftHasher.FLOAT);
@@ -121,8 +121,8 @@ public class DataComponentHashers {
         register(DataComponentTypes.ENCHANTMENTS, RegistryHasher.ITEM_ENCHANTMENTS);
 
         register(DataComponentTypes.CAN_PLACE_ON, RegistryHasher.ADVENTURE_MODE_PREDICATE);
-        register(DataComponentTypes.CAN_BREAK, RegistryHasher.ADVENTURE_MODE_PREDICATE); // TODO needs tests
-        register(DataComponentTypes.ATTRIBUTE_MODIFIERS, RegistryHasher.ATTRIBUTE_MODIFIER_ENTRY.list().cast(ItemAttributeModifiers::getModifiers)); // TODO needs tests
+        register(DataComponentTypes.CAN_BREAK, RegistryHasher.ADVENTURE_MODE_PREDICATE); 
+        register(DataComponentTypes.ATTRIBUTE_MODIFIERS, RegistryHasher.ATTRIBUTE_MODIFIER_ENTRY.list().cast(ItemAttributeModifiers::getModifiers)); 
 
         registerMap(DataComponentTypes.CUSTOM_MODEL_DATA, builder -> builder
             .optionalList("floats", MinecraftHasher.FLOAT, CustomModelData::floats)
@@ -169,17 +169,17 @@ public class DataComponentHashers {
             .optional("deals_knockback", MinecraftHasher.BOOL, PiercingWeapon::dealsKnockback, true)
             .optional("dismounts", MinecraftHasher.BOOL, PiercingWeapon::dealsKnockback, false)
             .optionalNullable("sound", RegistryHasher.SOUND_EVENT, PiercingWeapon::sound)
-            .optionalNullable("hit_sound", RegistryHasher.SOUND_EVENT, PiercingWeapon::hitSound)); // TODO test 1.21.11
+            .optionalNullable("hit_sound", RegistryHasher.SOUND_EVENT, PiercingWeapon::hitSound)); 
         registerMap(DataComponentTypes.ATTACK_RANGE, builder -> builder
             .optional("min_reach", MinecraftHasher.FLOAT, AttackRange::minRange, 0.0F)
             .optional("max_reach", MinecraftHasher.FLOAT, AttackRange::maxRange, 3.0F)
             .optional("min_creative_reach", MinecraftHasher.FLOAT, AttackRange::minCreativeRange, 0.0F)
             .optional("max_creative_reach", MinecraftHasher.FLOAT, AttackRange::maxCreativeRange, 5.0F)
             .optional("hitbox_margin", MinecraftHasher.FLOAT, AttackRange::hitboxMargin, 0.3F)
-            .optional("mob_factor", MinecraftHasher.FLOAT, AttackRange::mobFactor, 1.0F)); // TODO test 1.21.11
+            .optional("mob_factor", MinecraftHasher.FLOAT, AttackRange::mobFactor, 1.0F)); 
         registerMap(DataComponentTypes.SWING_ANIMATION, builder -> builder
             .optional("type", RegistryHasher.SWING_ANIMATION_TYPE, SwingAnimation::type, SwingAnimation.Type.WHACK)
-            .optional("duration", MinecraftHasher.INT, SwingAnimation::duration, 6)); // TODO test 1.21.11
+            .optional("duration", MinecraftHasher.INT, SwingAnimation::duration, 6)); 
         registerMap(DataComponentTypes.ENCHANTABLE, builder -> builder
             .accept("value", MinecraftHasher.INT, Function.identity()));
         registerMap(DataComponentTypes.EQUIPPABLE, builder -> builder
@@ -209,7 +209,7 @@ public class DataComponentHashers {
             .optional("item_damage", RegistryHasher.BLOCKS_ATTACKS_ITEM_DAMAGE_FUNCTION, BlocksAttacks::itemDamage, new BlocksAttacks.ItemDamageFunction(1.0F, 0.0F, 1.0F))
             .optionalNullable("bypassed_by", MinecraftHasher.TAG, BlocksAttacks::bypassedBy)
             .optionalNullable("block_sound", RegistryHasher.SOUND_EVENT, BlocksAttacks::blockSound)
-            .optionalNullable("disabled_sound", RegistryHasher.SOUND_EVENT, BlocksAttacks::disableSound)); // TODO needs tests
+            .optionalNullable("disabled_sound", RegistryHasher.SOUND_EVENT, BlocksAttacks::disableSound)); 
         registerMap(DataComponentTypes.KINETIC_WEAPON, builder -> builder
             .optional("contact_cooldown_ticks", MinecraftHasher.INT, KineticWeapon::contactCooldownTicks, 10)
             .optional("delay_ticks", MinecraftHasher.INT, KineticWeapon::contactCooldownTicks, 0)
@@ -219,7 +219,7 @@ public class DataComponentHashers {
             .optional("forward_movement", MinecraftHasher.FLOAT, KineticWeapon::forwardMovement, 0.0F)
             .optional("damage_multiplier", MinecraftHasher.FLOAT, KineticWeapon::damageMultiplier, 1.0F)
             .optionalNullable("sound", RegistryHasher.SOUND_EVENT, KineticWeapon::sound)
-            .optionalNullable("hit_sound", RegistryHasher.SOUND_EVENT, KineticWeapon::hitSound)); // TODO test 1.21.11
+            .optionalNullable("hit_sound", RegistryHasher.SOUND_EVENT, KineticWeapon::hitSound)); 
         register(DataComponentTypes.STORED_ENCHANTMENTS, RegistryHasher.ITEM_ENCHANTMENTS);
 
         registerInt(DataComponentTypes.DYED_COLOR);
@@ -228,7 +228,7 @@ public class DataComponentHashers {
         register(DataComponentTypes.MAP_DECORATIONS, MinecraftHasher.NBT_MAP);
 
         register(DataComponentTypes.CHARGED_PROJECTILES, RegistryHasher.ITEM_STACK.list());
-        register(DataComponentTypes.BUNDLE_CONTENTS, RegistryHasher.ITEM_STACK.list()); // TODO test data component removal
+        register(DataComponentTypes.BUNDLE_CONTENTS, RegistryHasher.ITEM_STACK.list()); 
 
         registerMap(DataComponentTypes.POTION_CONTENTS, builder -> builder
             .optional("potion", RegistryHasher.POTION, PotionContents::getPotionId, -1)
@@ -304,10 +304,10 @@ public class DataComponentHashers {
         register(DataComponentTypes.PIG_VARIANT, RegistryHasher.PIG_VARIANT);
         register(DataComponentTypes.COW_VARIANT, RegistryHasher.COW_VARIANT);
         register(DataComponentTypes.CHICKEN_VARIANT, RegistryHasher.eitherHolderHasher(JavaRegistries.CHICKEN_VARIANT));
-        register(DataComponentTypes.ZOMBIE_NAUTILUS_VARIANT, RegistryHasher.eitherHolderHasher(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT)); // TODO test 1.21.11
+        register(DataComponentTypes.ZOMBIE_NAUTILUS_VARIANT, RegistryHasher.eitherHolderHasher(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT)); 
         register(DataComponentTypes.FROG_VARIANT, RegistryHasher.FROG_VARIANT);
         register(DataComponentTypes.HORSE_VARIANT, RegistryHasher.HORSE_VARIANT);
-        register(DataComponentTypes.PAINTING_VARIANT, RegistryHasher.PAINTING_VARIANT.cast(Holder::id)); // This can and will throw when a direct holder was received, which is still possible due to a bug in 1.21.6.
+        register(DataComponentTypes.PAINTING_VARIANT, RegistryHasher.PAINTING_VARIANT.cast(Holder::id)); 
         register(DataComponentTypes.LLAMA_VARIANT, RegistryHasher.LLAMA_VARIANT);
         register(DataComponentTypes.AXOLOTL_VARIANT, RegistryHasher.AXOLOTL_VARIANT);
         register(DataComponentTypes.CAT_VARIANT, RegistryHasher.CAT_VARIANT);
@@ -377,9 +377,9 @@ public class DataComponentHashers {
         return new HashedStack(stack.getId(), stack.getAmount(), hashedAdditions, removals);
     }
 
-    // TODO better testing
+    
     public static void testHashing(GeyserSession session) {
-        // Hashed values generated by vanilla Java
+        
 
         NbtMap customData = NbtMap.builder()
             .putString("hello", "g'day")
@@ -414,7 +414,7 @@ public class DataComponentHashers {
 
         testHash(session, DataComponentTypes.ENCHANTMENTS, new ItemEnchantments(Map.of(
             0, 1
-        )), 0); // TODO identifier lookup
+        )), 0); 
 
         testHash(session, DataComponentTypes.ATTRIBUTE_MODIFIERS, new ItemAttributeModifiers(
             List.of(
@@ -563,7 +563,7 @@ public class DataComponentHashers {
             List.of(new MobEffectInstance(Effect.SPEED, new MobEffectDetails(29, 1004, false, true, true, null))),
             "testing"), 2007296036);
 
-        // TODO testing trim, instrument, trim material, jukebox playable requires registries
+        
 
         testHash(session, DataComponentTypes.LODESTONE_TRACKER,
             new LodestoneTracker(new GlobalPos(MinecraftKey.key("overworld"), Vector3i.from(5, 6, 7)), true), 63561894);

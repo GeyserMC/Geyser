@@ -33,9 +33,7 @@ import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.updater.ContainerInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
 
-/**
- * Implemented on top of any block that does not have special properties implemented
- */
+
 public class HopperInventoryTranslator extends AbstractBlockInventoryTranslator<Container> {
     public HopperInventoryTranslator() {
         super(5, Blocks.HOPPER, ContainerType.HOPPER, ContainerInventoryUpdater.INSTANCE);

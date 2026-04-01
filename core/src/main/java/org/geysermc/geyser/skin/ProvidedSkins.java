@@ -85,7 +85,7 @@ public final class ProvidedSkins {
                     (stream) -> AssetUtils.saveFile(location, stream),
                     () -> {
                         try {
-                            // TODO lazy initialize?
+                            
                             BufferedImage image;
                             try (InputStream stream = Files.newInputStream(location)) {
                                 image = ImageIO.read(stream);
@@ -103,7 +103,7 @@ public final class ProvidedSkins {
         }
 
         public Skin getData() {
-            // Fall back to the default skin if we can't load our skins, or it's not loaded yet.
+            
             return Objects.requireNonNullElse(data, SkinProvider.EMPTY_SKIN);
         }
 
@@ -113,7 +113,7 @@ public final class ProvidedSkins {
     }
 
     public static void init() {
-        // no-op
+        
     }
 
     static {
@@ -121,7 +121,7 @@ public final class ProvidedSkins {
                 .resolve("cache")
                 .resolve("default_player_skins");
         folder.toFile().mkdirs();
-        // Two directories since there are two skins for each model: one slim, one wide
+        
         folder.resolve("slim").toFile().mkdir();
         folder.resolve("wide").toFile().mkdir();
     }

@@ -58,7 +58,7 @@ public class PiglinEntity extends BasePiglinEntity {
     public void setChargingCrossbow(BooleanEntityMetadata entityMetadata) {
         boolean charging = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.CHARGING, charging);
-        dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, charging ? (byte) 64 : (byte) 0); // TODO: gradually increase
+        dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, charging ? (byte) 64 : (byte) 0); 
     }
 
     public void setDancing(BooleanEntityMetadata entityMetadata) {
@@ -69,7 +69,7 @@ public class PiglinEntity extends BasePiglinEntity {
     public void setHand(GeyserItemStack stack) {
         boolean toCrossbow = stack != null && stack.is(Items.CROSSBOW);
 
-        if (toCrossbow ^ getMainHandItem().is(Items.CROSSBOW)) { // If switching to/from crossbow
+        if (toCrossbow ^ getMainHandItem().is(Items.CROSSBOW)) { 
             dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(toCrossbow ? 0 : 1));
             dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, (byte) 0);
             setFlag(EntityFlag.CHARGED, false);
@@ -112,7 +112,7 @@ public class PiglinEntity extends BasePiglinEntity {
 
     @Override
     public void updateOffHand() {
-        // Check if the Piglin is holding Gold and set the ADMIRING flag accordingly so its pose updates
+        
         setFlag(EntityFlag.ADMIRING, getOffHandItem().is(session, ItemTag.PIGLIN_LOVED));
         super.updateBedrockMetadata();
 

@@ -31,24 +31,15 @@ import org.geysermc.geyser.GeyserBootstrap;
 
 import java.net.SocketAddress;
 
-/**
- * Used to inject Geyser clients directly into the server, bypassing the need to implement a complete TCP connection,
- * by creating a local channel.
- */
+
 public abstract class GeyserInjector {
-    /**
-     * The local channel we can use to inject ourselves into the server without creating a TCP connection.
-     */
+    
     protected ChannelFuture localChannel;
-    /**
-     * The LocalAddress to use to connect to the server without connecting over TCP.
-     */
+    
     @Getter
     protected SocketAddress serverSocketAddress;
 
-    /**
-     * @param bootstrap the bootstrap of the Geyser instance.
-     */
+    
     public void initializeLocalChannel(GeyserBootstrap bootstrap) {
         if (!bootstrap.config().advanced().java().useDirectConnection()) {
             bootstrap.getGeyserLogger().debug("Disabling direct injection!");
@@ -65,14 +56,12 @@ public abstract class GeyserInjector {
             bootstrap.getGeyserLogger().debug("Local injection succeeded!");
         } catch (Exception e) {
             e.printStackTrace();
-            // If the injector partially worked, undo it
+            
             shutdown();
         }
     }
 
-    /**
-     * The method to implement that is called by {@link #initializeLocalChannel(GeyserBootstrap)} wrapped around a try/catch.
-     */
+    
     protected abstract void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception;
 
     public void shutdown() {

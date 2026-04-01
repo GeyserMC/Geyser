@@ -54,7 +54,7 @@ public class NumberRangeInput extends DialogInput<Float> {
 
     @Override
     public void addComponent(CustomForm.Builder builder, Optional<Float> restored) {
-        // Note: Java uses live labels which change as you change the slider, showing the value. This is what the "label_format" key is for. This is not supported on bedrock.
+        
         builder.slider(label, start, end, step, restored.orElse(initial));
     }
 

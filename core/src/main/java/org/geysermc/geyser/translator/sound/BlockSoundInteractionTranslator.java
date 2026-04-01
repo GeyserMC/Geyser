@@ -35,20 +35,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 
 import java.util.Map;
 
-/**
- * Sound interaction handler for when a block is right-clicked.
- */
+
 public interface BlockSoundInteractionTranslator extends SoundInteractionTranslator<BlockState> {
-    /**
-     * Handles the block interaction when a player
-     * right-clicks a block.
-     *
-     * @param session the session interacting with the block
-     * @param position the position of the block
-     * @param state the state of the block
-     */
+    
     static void handleBlockInteraction(GeyserSession session, Vector3f position, BlockState state) {
-        // If we need to get the hand identifier, only get it once and save it to a variable
+        
         String handIdentifier = null;
 
         for (Map.Entry<SoundTranslator, SoundInteractionTranslator<?>> interactionEntry : Registries.SOUND_TRANSLATORS.get().entrySet()) {
@@ -91,26 +82,24 @@ public interface BlockSoundInteractionTranslator extends SoundInteractionTransla
         }
     }
 
-    /**
-     * Determines if the adventure gamemode would prevent this item from actually succeeding
-     */
+    
     static boolean canInteract(GeyserSession session, GeyserItemStack itemInHand, String blockIdentifier) {
         if (session.getGameMode() != GameMode.ADVENTURE) {
-            // There are no restrictions on the item
+            
             return true;
         }
 
         var canPlaceOn = itemInHand.getComponent(DataComponentTypes.CAN_PLACE_ON);
         if (canPlaceOn == null || canPlaceOn.getPredicates().isEmpty()) {
-            // Component doesn't exist - no restrictions apply.
+            
             return true;
         }
 
         for (var blockPredicate : canPlaceOn.getPredicates()) {
-            // I don't want to deal with this right now. TODO
+            
         }
 
-        // The block in world is not present in the CanPlaceOn tag on the item
+        
         return false;
     }
 }

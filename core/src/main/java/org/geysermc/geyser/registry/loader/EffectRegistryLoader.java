@@ -32,11 +32,7 @@ import org.geysermc.geyser.GeyserImpl;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-/**
- * An abstract registry loader for loading effects from a resource path.
- *
- * @param <T> the value
- */
+
 public abstract class EffectRegistryLoader<T> implements RegistryLoader<String, T> {
 
     public JsonObject loadFile(String input) {

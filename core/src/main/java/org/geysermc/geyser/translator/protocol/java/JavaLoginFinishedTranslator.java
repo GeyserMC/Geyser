@@ -38,9 +38,7 @@ import org.geysermc.mcprotocollib.protocol.data.ProtocolState;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket;
 import org.geysermc.mcprotocollib.protocol.packet.login.clientbound.ClientboundLoginFinishedPacket;
 
-/**
- * Triggers protocol change LOGIN -> CONFIGURATION
- */
+
 @Translator(packet = ClientboundLoginFinishedPacket.class)
 public class JavaLoginFinishedTranslator extends PacketTranslator<ClientboundLoginFinishedPacket> {
 
@@ -49,35 +47,35 @@ public class JavaLoginFinishedTranslator extends PacketTranslator<ClientboundLog
         PlayerEntity playerEntity = session.getPlayerEntity();
         AuthType remoteAuthType = session.remoteServer().authType();
 
-        // Required, or else Floodgate players break with Spigot chunk caching
+        
         GameProfile profile = packet.getProfile();
         playerEntity.setUsername(profile.getName());
         playerEntity.uuid(profile.getId());
 
         session.getGeyser().getSessionManager().addSession(playerEntity.uuid(), session);
 
-        // Check if they are not using a linked account
+        
         if (remoteAuthType == AuthType.OFFLINE || playerEntity.uuid().getMostSignificantBits() == 0) {
             SkinManager.handleBedrockSkin(playerEntity, session.getClientData());
         }
 
         if (session.getGeyser().getSkinUploader() != null) {
-            // We'll send the skin upload a bit after the handshake packet (aka this packet),
-            // because otherwise the global server returns the data too fast.
-            // We upload it after we know for sure that the target server
-            // is ready to handle the result of the global server.
+            
+            
+            
+            
             session.getGeyser().getSkinUploader().uploadSkin(session);
         }
 
-        // We no longer need these variables; they're just taking up space in memory now
+        
         session.setCertChainData(null);
         session.setToken(null);
         session.getClientData().setOriginalString(null);
 
-        // Reset code of conduct accepted state, mirrors Java Edition
+        
         session.hasAcceptedCodeOfConduct(false);
 
-        // configuration phase stuff that the vanilla client replies with after receiving the GameProfilePacket
+        
         session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(Key.key("brand"), PluginMessageUtils.getGeyserBrandData()), ProtocolState.CONFIGURATION);
         session.sendJavaClientSettings();
     }

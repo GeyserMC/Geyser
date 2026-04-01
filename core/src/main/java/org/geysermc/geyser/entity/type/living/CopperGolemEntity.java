@@ -88,8 +88,8 @@ public class CopperGolemEntity extends GolemEntity {
         } else if (itemInHand.is(Items.HONEYCOMB)) {
             return InteractiveTag.WAX_ON;
         } else if (itemInHand.is(session, ItemTag.AXES)) {
-            // There is no way of knowing if the copper golem is waxed or not,
-            // so just always send a scrape tag :(
+            
+            
             return InteractiveTag.SCRAPE;
         }
 
@@ -113,7 +113,7 @@ public class CopperGolemEntity extends GolemEntity {
     public void setSaddle(GeyserItemStack stack) {
         super.setSaddle(stack);
 
-        // Equipment on Java, entity property on bedrock
+        
         HAS_FLOWER_PROPERTY.apply(propertyManager, stack.is(Items.POPPY));
         updateBedrockEntityProperties();
     }

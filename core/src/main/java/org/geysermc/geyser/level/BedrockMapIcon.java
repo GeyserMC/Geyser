@@ -34,7 +34,7 @@ public enum BedrockMapIcon {
     ICON_ITEM_FRAME(MapIconType.GREEN_ARROW, 7),
     ICON_RED_ARROW(MapIconType.RED_ARROW, 2),
     ICON_BLUE_ARROW(MapIconType.BLUE_ARROW, 3),
-    ICON_WHITE_CROSS(MapIconType.WHITE_CROSS, 4, 0, 0, 0), // Doesn't exist on Bedrock, replaced with a black cross
+    ICON_WHITE_CROSS(MapIconType.WHITE_CROSS, 4, 0, 0, 0), 
     ICON_RED_POINTER(MapIconType.RED_POINTER, 5),
     ICON_WHITE_CIRCLE(MapIconType.WHITE_CIRCLE, 6),
     ICON_SMALL_WHITE_CIRCLE(MapIconType.SMALL_WHITE_CIRCLE, 13),
@@ -90,12 +90,7 @@ public enum BedrockMapIcon {
         this.blue = blue;
     }
 
-    /**
-     * Get the BedrockMapIcon for the Java MapIconType
-     *
-     * @param iconType A MapIconType
-     * @return The mapping for a BedrockMapIcon
-     */
+    
     public static @Nullable BedrockMapIcon fromType(MapIconType iconType) {
         for (BedrockMapIcon icon : VALUES) {
             if (icon.iconType.equals(iconType)) {
@@ -106,11 +101,7 @@ public enum BedrockMapIcon {
         return null;
     }
 
-    /**
-     * Get the ARGB value of a BedrockMapIcon
-     *
-     * @return ARGB as an int
-     */
+    
     public int toARGB() {
         final int alpha = 255;
 

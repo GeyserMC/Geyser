@@ -31,38 +31,29 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 
-/**
- * Manages updating the current writable book.
- * <p>
- * Java sends book updates less frequently than Bedrock, and this can cause issues with servers that rate limit
- * book packets. Because of this, we need to ensure packets are only send every second or so at maximum.
- */
+
 public class BookEditCache {
     private final GeyserSession session;
     @Setter
     private ServerboundEditBookPacket packet;
-    /**
-     * Stores the last time a book update packet was sent to the server.
-     */
+    
     private long lastBookUpdate;
 
     public BookEditCache(GeyserSession session) {
         this.session = session;
     }
 
-    /**
-     * Check to see if there is a book edit update to send, and if so, send it.
-     */
+    
     public void checkForSend() {
         if (packet == null) {
-            // No new packet has to be sent
+            
             return;
         }
-        // Prevent kicks due to rate limiting - specifically on Spigot servers
+        
         if ((System.currentTimeMillis() - lastBookUpdate) < 1000) {
             return;
         }
-        // Don't send the update if the player is not holding a book, shouldn't happen if we catch all interactions
+        
         GeyserItemStack itemStack = session.getPlayerInventory().getItemInHand();
         if (itemStack == null || !itemStack.is(Items.WRITABLE_BOOK)) {
             packet = null;

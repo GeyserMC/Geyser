@@ -60,7 +60,7 @@ public class TurtleEntity extends AnimalEntity {
 
     @Override
     protected float getBabySize() {
-        // 0.3f is Java scale, plus Bedrock difference
+        
         return 0.3f * 0.5f;
     }
 

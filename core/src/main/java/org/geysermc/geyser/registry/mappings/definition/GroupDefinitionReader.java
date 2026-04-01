@@ -41,19 +41,19 @@ public class GroupDefinitionReader implements ItemDefinitionReader {
                                BiConsumer<Identifier, CustomItemDefinition> consumer) throws InvalidCustomMappingsFileException {
         String context = "group item definition";
 
-        // Read model of group if it's present, or default to the model of the parent group, if that's present
-        // If the parent group model is not present (or there is no parent group), and this group also doesn't have a model, then it is expected the definitions supply their model themselves
+        
+        
         Identifier groupModel = MappingsUtil.readOrDefault(data, "model", NodeReader.IDENTIFIER, parentModel, context);
 
-        // The method above should have already thrown a properly formatted error if data is not a JSON object
+        
         JsonElement definitions = data.getAsJsonObject().get("definitions");
 
-        // TODO could we make a definition node reader?
+        
         if (definitions == null || !definitions.isJsonArray()) {
             throw new InvalidCustomMappingsFileException("reading item definitions in group", "group has no definitions key, or it wasn't an array", context);
         } else {
             for (JsonElement definition : definitions.getAsJsonArray()) {
-                // Recursively read all the entries in the group - they can be more groups or definitions
+                
                 ItemDefinitionReaders.readDefinition(definition, vanillaItem, groupModel, consumer);
             }
         }

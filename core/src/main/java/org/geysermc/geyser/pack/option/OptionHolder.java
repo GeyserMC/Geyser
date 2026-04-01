@@ -43,9 +43,9 @@ public class OptionHolder extends HashMap<ResourcePackOption.Type, ResourcePackO
         super();
     }
 
-    // Used when adding resource packs initially to ensure that a priority option is always set
-    // It is however NOT used for session-options, as then the "normal" prio might override
-    // the resource pack option
+    
+    
+    
     public OptionHolder(PriorityOption option) {
         super();
         put(option.type(), option);
@@ -53,10 +53,10 @@ public class OptionHolder extends HashMap<ResourcePackOption.Type, ResourcePackO
 
     public void validateAndAdd(ResourcePack pack, ResourcePackOption<?>... options) {
         for (ResourcePackOption<?> option : options) {
-            // Validate before adding
+            
             option.validate(pack);
 
-            // Ensure that we do not have duplicate types.
+            
             if (super.containsKey(option.type())) {
                 super.replace(option.type(), option);
             } else {
@@ -72,7 +72,7 @@ public class OptionHolder extends HashMap<ResourcePackOption.Type, ResourcePackO
                                         @NonNull T defaultValue) {
         ResourcePackOption<?> option;
 
-        // First: the session's options, if they exist
+        
         if (sessionPackOptions != null) {
             option = sessionPackOptions.get(type);
             if (option != null) {
@@ -80,13 +80,13 @@ public class OptionHolder extends HashMap<ResourcePackOption.Type, ResourcePackO
             }
         }
 
-        // Second: check the resource pack options
+        
         option = resourcePackOptions.get(type);
         if (option != null) {
             return (T) option.value();
         }
 
-        // Finally: return default
+        
         return defaultValue;
     }
 
@@ -94,7 +94,7 @@ public class OptionHolder extends HashMap<ResourcePackOption.Type, ResourcePackO
                                                      @Nullable OptionHolder sessionPackOptions,
                                                      @NonNull OptionHolder resourcePackOptions) {
 
-        // First: the session-specific options, if these exist
+        
         if (sessionPackOptions != null) {
             ResourcePackOption<?> option = sessionPackOptions.get(type);
             if (option != null) {
@@ -102,8 +102,8 @@ public class OptionHolder extends HashMap<ResourcePackOption.Type, ResourcePackO
             }
         }
 
-        // Second: check the default holder for the option, if it exists;
-        // Or return null if the option isn't set.
+        
+        
         return resourcePackOptions.get(type);
     }
 
@@ -111,25 +111,20 @@ public class OptionHolder extends HashMap<ResourcePackOption.Type, ResourcePackO
         super.remove(option.type());
     }
 
-    /**
-     * @return the options of this holder in an immutable collection
-     */
+    
     public Collection<ResourcePackOption<?>> immutableValues() {
         return Collections.unmodifiableCollection(values());
     }
 
-    /**
-     * @return the options of this option holder, with fallbacks to options of a {@link GeyserResourcePack}
-     * if they're not already overridden here
-     */
+    
     public Collection<ResourcePackOption<?>> immutableValues(OptionHolder defaultValues) {
-        // Create a map to hold the combined values
+        
         Map<ResourcePackOption.Type, ResourcePackOption<?>> combinedOptions = new HashMap<>(this);
 
-        // Add options from the pack if not already overridden by this OptionHolder
+        
         defaultValues.forEach(combinedOptions::putIfAbsent);
 
-        // Return an immutable collection of the combined options
+        
         return Collections.unmodifiableCollection(combinedOptions.values());
     }
 }

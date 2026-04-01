@@ -22,64 +22,61 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.network;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
+package org.geysermc.geyser.api.network
 
 /**
  * The listener that handles connections from Minecraft:
  * Bedrock Edition.
  */
-public interface BedrockListener {
-
+interface BedrockListener {
     /**
      * Gets the address used for listening for Bedrock
      * connections from.
-     *
+     * 
      * @return the listening address
      */
-    @NonNull
-    String address();
+    fun address(): String
 
     /**
      * Gets the port used for listening for Bedrock
      * connections from.
-     *
+     * 
      * @return the listening port
      */
-    int port();
+    fun port(): Int
 
     /**
      * Gets the broadcast port that's sent to Bedrock clients with the motd.
      * This is the port that Bedrock clients will connect with. It usually does not differ from the listening port.
-     *
+     * 
      * @return the broadcast port
      */
-    int broadcastPort();
+    fun broadcastPort(): Int
 
     /**
      * Gets the primary MOTD shown to Bedrock players if a ping passthrough setting is not enabled.
-     * <p>
+     * 
+     * 
      * This is the first line that will be displayed.
-     *
+     * 
      * @return the primary MOTD shown to Bedrock players.
      */
-    String primaryMotd();
+    fun primaryMotd(): String?
 
     /**
      * Gets the secondary MOTD shown to Bedrock players if a ping passthrough setting is not enabled.
-     * <p>
+     * 
+     * 
      * This is the second line that will be displayed.
-     *
+     * 
      * @return the secondary MOTD shown to Bedrock players.
      */
-    String secondaryMotd();
+    fun secondaryMotd(): String?
 
     /**
      * Gets the server name that is sent to Bedrock clients.
-     *
+     * 
      * @return the server sent to Bedrock clients
      */
-    String serverName();
+    fun serverName(): String?
 }

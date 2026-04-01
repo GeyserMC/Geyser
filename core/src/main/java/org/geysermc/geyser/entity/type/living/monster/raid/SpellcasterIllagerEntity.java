@@ -38,16 +38,16 @@ public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
 
     public SpellcasterIllagerEntity(EntitySpawnContext context) {
         super(context);
-        // OptionalPack usage
+        
         setFlag(EntityFlag.BRIBED, this.definition == EntityDefinitions.ILLUSIONER);
     }
 
     public void setSpellType(ByteEntityMetadata entityMetadata) {
         int spellType = entityMetadata.getPrimitiveValue();
-        // Summon vex, attack, or wololo
+        
         setFlag(EntityFlag.CASTING, spellType == 1 || spellType == 2 || spellType == 3);
         int rgbData = switch (spellType) {
-            // Set the spell color based on Java values
+            
             case 1 -> SUMMON_VEX_PARTICLE_COLOR;
             case 2 -> ATTACK_PARTICLE_COLOR;
             case 3 -> WOLOLO_PARTICLE_COLOR;

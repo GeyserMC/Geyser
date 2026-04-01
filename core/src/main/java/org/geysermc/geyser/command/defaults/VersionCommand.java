@@ -76,8 +76,8 @@ public class VersionCommand extends GeyserCommand {
         source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.version", source.locale(),
                 GeyserImpl.NAME, GeyserImpl.VERSION, SUPPORTED_JAVA_RANGE, SUPPORTED_BEDROCK_RANGE));
 
-        // Disable update checking in dev mode and for players in Geyser Standalone
-        if (!GeyserImpl.getInstance().isProductionEnvironment() || (!source.isConsole() && geyser.platformType() == PlatformType.STANDALONE)) {
+        
+        if (!GeyserImpl.getInstance().isProductionEnvironment() || (!source.isConsole && geyser.platformType() == PlatformType.STANDALONE)) {
             return;
         }
 

@@ -37,7 +37,7 @@ public class ShulkerEntity extends GolemEntity {
 
     public ShulkerEntity(EntitySpawnContext context) {
         super(context);
-        // Indicate that invisibility should be fixed through the resource pack
+        
         setFlag(EntityFlag.BRIBED, true);
     }
 
@@ -49,14 +49,14 @@ public class ShulkerEntity extends GolemEntity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        // As of 1.19.4, it seems Java no longer sends the shulker color if it's the default color on initial spawn
-        // We still need the special case for 16 color in setShulkerColor though as it will send it for an entity metadata update
+        
+        
         dirtyMetadata.put(EntityDataTypes.VARIANT, 16);
 
         setFlag(EntityFlag.COLLIDABLE, true);
 
-        // This is vanilla behaviour yes (BDS does this), without this as of 1.21.93 entity became fully invisible.
-        // Doing this allow the invisible parity support inside GeyserOptionalPack to works again.
+        
+        
         setFlag(EntityFlag.RENDER_WHEN_INVISIBLE, true);
     }
 
@@ -73,10 +73,10 @@ public class ShulkerEntity extends GolemEntity {
     public void setShulkerColor(ByteEntityMetadata entityMetadata) {
         byte color = entityMetadata.getPrimitiveValue();
         if (color == 16) {
-            // 16 is default on both editions
+            
             dirtyMetadata.put(EntityDataTypes.VARIANT, 16);
         } else {
-            // Every other shulker color is offset 15 in bedrock edition
+            
             dirtyMetadata.put(EntityDataTypes.VARIANT, Math.abs(color - 15));
         }
     }

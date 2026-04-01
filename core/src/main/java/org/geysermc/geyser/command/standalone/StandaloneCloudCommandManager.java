@@ -49,31 +49,25 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
 
     private final GeyserImpl geyser;
 
-    /**
-     * The checkers we use to test if a command source has a permission
-     */
+    
     private final List<PermissionChecker> permissionCheckers = new ArrayList<>();
 
-    /**
-     * Any permissions that all connections have
-     */
+    
     private final Set<String> basePermissions = new ObjectOpenHashSet<>();
 
-    /**
-     * Any permissions that all connections do not have
-     */
+    
     private final Set<String> baseDeniedPermissions = new ObjectOpenHashSet<>();
 
     public StandaloneCloudCommandManager(GeyserImpl geyser) {
         super(ExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler());
-        // simpleCoordinator: execute commands immediately on the calling thread.
-        // nullCommandRegistrationHandler: cloud is not responsible for handling our CommandRegistry, which is fairly decoupled.
+        
+        
         this.geyser = geyser;
 
-        // allow any extensions to customize permissions
+        
         geyser.getEventBus().fire((GeyserRegisterPermissionCheckersEvent) permissionCheckers::add);
 
-        // must still implement a basic permission system
+        
         try {
             File permissionsFile = geyser.getBootstrap().getConfigFolder().resolve("permissions.yml").toFile();
             FileUtils.fileOrCopiedFromResource(permissionsFile, "permissions.yml", geyser.getBootstrap());
@@ -85,10 +79,7 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
         }
     }
 
-    /**
-     * Fire a {@link GeyserRegisterPermissionsEvent} to determine any additions or removals to the base list of
-     * permissions. This should be called after any event listeners have been registered, such as that of {@link CommandRegistry}.
-     */
+    
     public void fireRegisterPermissionsEvent() {
         geyser.getEventBus().fire((GeyserRegisterPermissionsEvent) (permission, def) -> {
             Objects.requireNonNull(permission, "permission");
@@ -101,7 +92,7 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
             GeyserImpl.getInstance().getLogger().debug("Registering permission %s with permission default %s", permission, def);
 
             if (def == TriState.TRUE) {
-                // The last caller gets to override earlier set defaults
+                
                 baseDeniedPermissions.remove(permission);
                 basePermissions.add(permission);
             } else {
@@ -113,15 +104,15 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
 
     @Override
     public boolean hasPermission(@NonNull GeyserCommandSource sender, @NonNull String permission) {
-        // Note: the two GeyserCommandSources on Geyser-Standalone are GeyserLogger and GeyserSession
-        // GeyserLogger#hasPermission always returns true
-        // GeyserSession#hasPermission delegates to this method,
-        // which is why this method doesn't just call GeyserCommandSource#hasPermission
-        if (sender.isConsole()) {
+        
+        
+        
+        
+        if (sender.isConsole) {
             return true;
         }
 
-        // An empty or blank permission is treated as a lack of permission requirement
+        
         if (permission.isBlank()) {
             return true;
         }
@@ -131,15 +122,15 @@ public class StandaloneCloudCommandManager extends CommandManager<GeyserCommandS
             if (result != null) {
                 return result;
             }
-            // undefined - try the next checker to see if it has a defined value
+            
         }
 
         if (baseDeniedPermissions.contains(permission)) {
             return false;
         }
 
-        // fallback to our list of default permissions
-        // note that a PermissionChecker may in fact override any values set here by returning FALSE
+        
+        
         return basePermissions.contains(permission);
     }
 }

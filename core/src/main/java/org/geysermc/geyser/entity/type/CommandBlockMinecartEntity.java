@@ -43,16 +43,14 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        // Required, or else the GUI will not open
+        
         dirtyMetadata.put(EntityDataTypes.CONTAINER_TYPE, (byte) 16);
         dirtyMetadata.put(EntityDataTypes.CONTAINER_SIZE, 1);
-        // Required, or else the client does not bother to send a packet back with the new information
+        
         dirtyMetadata.put(EntityDataTypes.COMMAND_BLOCK_ENABLED, true);
     }
 
-    /**
-     * By default, the command block shown is purple on Bedrock, which does not match Java Edition's orange.
-     */
+    
     @Override
     public void updateDefaultBlockMetadata() {
         dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getCommandBlock());
@@ -71,7 +69,7 @@ public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
     @Override
     public InteractionResult interact(Hand hand) {
         if (session.canUseCommandBlocks()) {
-            // Client-side GUI required
+            
             ContainerOpenPacket openPacket = new ContainerOpenPacket();
             openPacket.setBlockPosition(Vector3i.ZERO);
             openPacket.setId((byte) 1);

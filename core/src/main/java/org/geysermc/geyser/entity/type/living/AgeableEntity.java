@@ -38,7 +38,7 @@ public class AgeableEntity extends CreatureEntity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        // Required as of 1.19.3 Java
+        
         setScale(getAdultSize());
     }
 
@@ -51,16 +51,12 @@ public class AgeableEntity extends CreatureEntity {
         setBoundingBoxWidth(definition.width() * (isBaby ? getBabySize() : getAdultSize()));
     }
 
-    /**
-     * The scale that should be used when this entity is not a baby.
-     */
+    
     protected float getAdultSize() {
         return 1f;
     }
 
-    /**
-     * The scale that should be used when this entity is a baby.
-     */
+    
     protected float getBabySize() {
         return 0.55f;
     }

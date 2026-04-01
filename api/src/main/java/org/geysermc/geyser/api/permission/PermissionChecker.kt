@@ -22,28 +22,23 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.permission
 
-package org.geysermc.geyser.api.permission;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.command.CommandSource;
-import org.geysermc.geyser.api.util.TriState;
+import org.geysermc.geyser.api.command.CommandSource
+import org.geysermc.geyser.api.util.TriState
 
 /**
- * Something capable of checking if a {@link CommandSource} has a permission
+ * Something capable of checking if a [CommandSource] has a permission
  */
-@FunctionalInterface
-public interface PermissionChecker {
-
+fun interface PermissionChecker {
     /**
      * Checks if the given source has a permission
-     *
-     * @param source the {@link CommandSource} whose permissions should be queried
+     * 
+     * @param source the [CommandSource] whose permissions should be queried
      * @param permission the permission node to check
-     * @return a {@link TriState} as the value of the node. {@link TriState#NOT_SET} generally means that the permission
-     *         node itself was not found, and the source does not have such permission.
-     *         {@link TriState#TRUE} and {@link TriState#FALSE} represent explicitly set values.
+     * @return a [TriState] as the value of the node. [TriState.NOT_SET] generally means that the permission
+     * node itself was not found, and the source does not have such permission.
+     * [TriState.TRUE] and [TriState.FALSE] represent explicitly set values.
      */
-    @NonNull
-    TriState hasPermission(@NonNull CommandSource source, @NonNull String permission);
+    fun hasPermission(source: CommandSource, permission: String): TriState
 }

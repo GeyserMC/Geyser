@@ -34,16 +34,13 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * This class is used for mapping a translation key with the already loaded Java locale data
- * Used in MessageTranslator.java as part of the KyoriPowered/Adventure library
- */
+
 public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<String> {
     private final Pattern stringReplacement = Pattern.compile("%s");
     private final Pattern positionalStringReplacement = Pattern.compile("%([0-9]+)\\$s");
     private final Pattern escapeBraces = Pattern.compile("\\{+['{]+\\{+|\\{+");
 
-    // Exists to maintain compatibility with Velocity's older Adventure version
+    
     @Override
     public @Nullable MessageFormat translate(@NonNull String key, @NonNull String locale) {
         return this.translate(key, null, locale);
@@ -51,23 +48,23 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
 
     @Override
     protected @Nullable MessageFormat translate(@NonNull String key, @Nullable String fallback, @NonNull String locale) {
-        // Get the locale string
+        
         String localeString = MinecraftLocale.getLocaleStringIfPresent(key, locale);
         if (localeString == null) {
             if (fallback != null) {
-                // Fallback strings will still have their params inserted
+                
                 localeString = fallback;
             } else {
-                // The original translation will be translated
-                // Can be tested with 1.19.4: {"translate":"%s","with":[{"text":"weeeeeee"}]}
+                
+                
                 return null;
             }
         }
 
-        // replace single quote instances which get lost in MessageFormat otherwise
+        
         localeString = localeString.replace("'", "''");
 
-        // Escape all left curly brackets with single quote - fixes https://github.com/GeyserMC/Geyser/issues/4662
+        
         Pattern p = escapeBraces;
         Matcher m = p.matcher(localeString);
         StringBuilder sb = new StringBuilder();
@@ -76,7 +73,7 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
         }
         m.appendTail(sb);
 
-        // Replace the `%s` with numbered inserts `{0}`
+        
         p = stringReplacement;
         m = p.matcher(sb.toString());
         sb = new StringBuilder();
@@ -86,7 +83,7 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
         }
         m.appendTail(sb);
 
-        // Replace the `%x$s` with numbered inserts `{x}`
+        
         p = positionalStringReplacement;
         m = p.matcher(sb.toString());
         sb = new StringBuilder();
@@ -96,7 +93,7 @@ public class MinecraftTranslationRegistry extends TranslatableComponentRenderer<
         }
         m.appendTail(sb);
 
-        // Locale shouldn't need to be specific - dates for example will not be handled
+        
         return new MessageFormat(sb.toString(), Locale.ROOT);
     }
 }

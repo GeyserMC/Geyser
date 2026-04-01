@@ -59,13 +59,11 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.Clientbound
 import java.util.*;
 import java.util.function.Supplier;
 
-@SuppressWarnings("removal") // We know. This is our doing.
+@SuppressWarnings("removal") 
 @Translator(packet = ClientboundCommandsPacket.class)
 public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommandsPacket> {
 
-    /**
-     * Wait until the registries load before getting all the block names.
-     */
+    
     private static final Supplier<String[]> ALL_BLOCK_NAMES = Suppliers.memoize(() -> BlockRegistries.JAVA_BLOCKS.get().stream().map(block -> block.javaIdentifier().toString()).toArray(String[]::new));
     private static final String[] ALL_EFFECT_IDENTIFIERS = EntityUtils.getAllEffectIdentifiers();
     private static final String[] ATTRIBUTES = AttributeType.Builtin.BUILTIN.values().stream().map(type -> type.getIdentifier().asString()).toList().toArray(new String[0]);
@@ -88,9 +86,9 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             if (a == b) return true;
             if (a == null || b == null) return false;
             if ("help".equals(a.name()) && !"help".equals(b.name())) {
-                // Merging this causes Bedrock to fallback to its own help command
-                // Tested on Paper 1.20.4 with Essentials and Bedrock 1.21
-                // https://github.com/GeyserMC/Geyser/issues/2573
+                
+                
+                
                 return false;
             }
             if (!a.description().equals(b.description())) return false;
@@ -122,11 +120,11 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
 
     @Override
     public void translate(GeyserSession session, ClientboundCommandsPacket packet) {
-        // Don't send command suggestions if they are disabled
+        
         if (!session.getGeyser().config().gameplay().commandSuggestions()) {
             session.getGeyser().getLogger().debug("Not sending translated command suggestions as they are disabled.");
 
-            // Send a mostly empty packet so Bedrock doesn't override /help with its own, built-in help command.
+            
             AvailableCommandsPacket emptyPacket = new AvailableCommandsPacket();
             emptyPacket.getCommands().add(createFakeHelpCommand());
             session.sendUpstreamPacket(emptyPacket);
@@ -141,37 +139,37 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         Map<BedrockCommandInfo, Set<String>> commands = new Object2ObjectOpenCustomHashMap<>(PARAM_STRATEGY);
         Int2ObjectMap<List<CommandNode>> commandArgs = new Int2ObjectOpenHashMap<>();
 
-        // Get the first node, it should be a root node
+        
         CommandNode rootNode = nodes[packet.getFirstNodeIndex()];
 
         List<String> knownCommands = new ArrayList<>();
         List<String> restrictedCommands = new ArrayList<>();
-        // Loop through the root nodes to get all commands
+        
         for (int nodeIndex : rootNode.getChildIndices()) {
             CommandNode node = nodes[nodeIndex];
 
-            // Make sure we don't have duplicated commands (happens if there is more than 1 root node)
+            
             if (!commandNodes.add(nodeIndex) || !knownAliases.add(node.getName().toLowerCase(Locale.ROOT))) continue;
 
-            // Get and update the commandArgs list with the found arguments
+            
             if (node.getChildIndices().length >= 1) {
                 for (int childIndex : node.getChildIndices()) {
                     commandArgs.computeIfAbsent(nodeIndex, ($) -> new ArrayList<>()).add(nodes[childIndex]);
                 }
             }
 
-            // Get and parse all params
+            
             CommandOverloadData[] params = getParams(session, nodes[nodeIndex], nodes);
 
-            // Insert the alias name into the command list
+            
             String name = node.getName().toLowerCase(Locale.ROOT);
             String description = registry.description(name, session.locale());
             BedrockCommandInfo info = new BedrockCommandInfo(name, description, params);
             commands.computeIfAbsent(info, $ -> new HashSet<>()).add(name);
 
-            // Add the command to the command lists
+            
             knownCommands.add(name);
-            if (node.isAllowsRestricted()) { // Name is a bit confusing - this is what we want
+            if (node.isAllowsRestricted()) { 
                 restrictedCommands.add(name);
             }
         }
@@ -193,41 +191,41 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return;
         }
 
-        // The command flags, set to NOT_CHEAT so known commands can be used while achievements are enabled.
+        
         Set<CommandData.Flag> flags = Set.of(CommandData.Flag.NOT_CHEAT);
 
         boolean helpAdded = false;
 
-        // Loop through all the found commands
+        
         for (Map.Entry<BedrockCommandInfo, Set<String>> entry : commands.entrySet()) {
-            String commandName = entry.getValue().iterator().next(); // We know this has a value
+            String commandName = entry.getValue().iterator().next(); 
 
             LinkedHashMap<String, Set<CommandEnumConstraint>> values = new LinkedHashMap<>();
-            // Is this right?
+            
             for (String s : entry.getValue()) {
                 values.put(s, EnumSet.of(CommandEnumConstraint.ALLOW_ALIASES));
             }
 
-            // Create a basic alias
+            
             CommandEnumData aliases = new CommandEnumData(commandName + "Aliases", values, false);
 
-            // Fetch command description
+            
             String description = entry.getKey().description();
 
-            // Command suggestion list is illegible if a command description contains line breaks
+            
             int lineBreak = description.indexOf('\n');
             if (lineBreak >= 0) {
                 description = description.substring(0, lineBreak);
             }
 
-            // Since 1.21.130, the maximum description length is 1000 characters
-            // https://www.minecraft.net/en-us/article/minecraft-1-21-130-bedrock-changelog
-            // As issues are still experienced at that length, truncate descriptions at 950 characters
+            
+            
+            
             if (description.length() > 950) {
                 description = description.substring(0, 947) + "...";
             }
 
-            // Build the completed command and add it to the final list
+            
             CommandData data = new CommandData(commandName, description, flags, CommandPermission.ANY, aliases, Collections.emptyList(), entry.getKey().paramData());
             commandData.add(data);
 
@@ -237,7 +235,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         }
 
         if (!helpAdded) {
-            // https://github.com/GeyserMC/Geyser/issues/2573 if Brigadier does not send the help command.
+            
             commandData.add(createFakeHelpCommand());
         }
 
@@ -245,26 +243,19 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             session.getGeyser().commandRegistry().export(session, commandData, knownAliases);
         }
 
-        // Add our commands to the AvailableCommandsPacket for the bedrock client
+        
         AvailableCommandsPacket availableCommandsPacket = new AvailableCommandsPacket();
         availableCommandsPacket.getCommands().addAll(commandData);
 
         session.getGeyser().getLogger().debug("Sending command packet of " + commandData.size() + " commands");
 
-        // Finally, send the commands to the client
+        
         session.sendUpstreamPacket(availableCommandsPacket);
     }
 
-    /**
-     * Build the command parameter array for the given command
-     *
-     * @param session the session
-     * @param commandNode The command to build the parameters for
-     * @param allNodes    Every command node
-     * @return An array of parameter option arrays
-     */
+    
     private static CommandOverloadData[] getParams(GeyserSession session, CommandNode commandNode, CommandNode[] allNodes) {
-        // Check if the command is an alias and redirect it
+        
         if (commandNode.getRedirectIndex().isPresent()) {
             int redirectIndex = commandNode.getRedirectIndex().getAsInt();
             GeyserImpl.getInstance().getLogger().debug("Redirecting command " + commandNode.getName() + " to " + allNodes[redirectIndex].getName());
@@ -272,7 +263,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         }
 
         if (commandNode.getChildIndices().length >= 1) {
-            // Create the root param node and build all the children
+            
             ParamInfo rootParam = new ParamInfo(commandNode, null);
             rootParam.buildChildren(new CommandBuilderContext(session), allNodes);
 
@@ -284,13 +275,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         return new CommandOverloadData[0];
     }
 
-    /**
-     * Convert Java edition command types to Bedrock edition
-     *
-     * @param context the session's command context
-     * @param node Command type to convert
-     * @return Bedrock parameter data type
-     */
+    
     private static Object mapCommandType(CommandBuilderContext context, CommandNode node) {
         CommandParser parser = node.getParser();
         if (parser == null) {
@@ -304,10 +289,10 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case BLOCK_POS -> CommandParam.BLOCK_POSITION;
             case COLUMN_POS, VEC3 -> CommandParam.POSITION;
             case MESSAGE -> CommandParam.MESSAGE;
-            case NBT_COMPOUND_TAG, NBT_TAG, NBT_PATH -> CommandParam.JSON; //TODO NBT was removed
+            case NBT_COMPOUND_TAG, NBT_TAG, NBT_PATH -> CommandParam.JSON; 
             case RESOURCE_LOCATION, FUNCTION -> CommandParam.FILE_PATH;
             case BOOL -> ENUM_BOOLEAN;
-            case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
+            case OPERATION -> CommandParam.OPERATOR; 
             case BLOCK_STATE -> ALL_BLOCK_NAMES.get();
             case ITEM_STACK -> context.getItemNames();
             case COLOR -> VALID_COLORS;
@@ -315,7 +300,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case RESOURCE -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), false);
             case RESOURCE_OR_TAG -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), true);
             case DIMENSION -> context.session.getLevels();
-            case TEAM -> context.getTeams(); // Note: as of Java 1.19.3, objectives are currently parsed from the server
+            case TEAM -> context.getTeams(); 
             default -> CommandParam.STRING;
         };
     }
@@ -336,18 +321,14 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         return new CommandData("help", "", Set.of(CommandData.Flag.NOT_CHEAT), CommandPermission.ANY, aliases, Collections.emptyList(), new CommandOverloadData[0]);
     }
 
-    /**
-     * Stores the command description and parameter data for best optimizing the Bedrock commands packet.
-     */
+    
     private record BedrockCommandInfo(String name, String description, CommandOverloadData[] paramData) implements
             org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent.CommandInfo,
             ServerDefineCommandsEvent.CommandInfo
     {
     }
 
-    /**
-     * Stores command completions so we don't have to rebuild the same values multiple times.
-     */
+    
     @MonotonicNonNull
     private static class CommandBuilderContext {
         private final GeyserSession session;
@@ -418,30 +399,20 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         private final CommandParamData paramData;
         private final List<ParamInfo> children;
 
-        /**
-         * Create a new parameter info object
-         *
-         * @param paramNode CommandNode the parameter is for
-         * @param paramData The existing parameters for the command
-         */
+        
         public ParamInfo(CommandNode paramNode, CommandParamData paramData) {
             this.paramNode = paramNode;
             this.paramData = paramData;
             this.children = new ArrayList<>();
         }
 
-        /**
-         * Build the array of all the child parameters (recursive)
-         *
-         * @param context the session's command builder context
-         * @param allNodes Every command node
-         */
+        
         public void buildChildren(CommandBuilderContext context, CommandNode[] allNodes) {
             for (int paramID : paramNode.getChildIndices()) {
                 CommandNode paramNode = allNodes[paramID];
 
                 if (paramNode == this.paramNode) {
-                    // Fixes a StackOverflowError when an argument has itself as a child
+                    
                     continue;
                 }
 
@@ -449,18 +420,18 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     boolean foundCompatible = false;
                     for (int i = 0; i < children.size(); i++) {
                         ParamInfo enumParamInfo = children.get(i);
-                        // Check to make sure all descending nodes of this command are compatible - otherwise, create a new overload
+                        
                         if (isCompatible(allNodes, enumParamInfo.getParamNode(), paramNode)) {
                             foundCompatible = true;
-                            // TODO: Check this
-                            // Extend the current list of enum values
-                            // String[] enumOptions = Arrays.copyOf(enumParamInfo.getParamData().getEnumData().getValues(), enumParamInfo.getParamData().getEnumData().getValues().size() + 1);
-                            // enumOptions[enumOptions.length - 1] = paramNode.getName();
+                            
+                            
+                            
+                            
 
                             Map<String, Set<CommandEnumConstraint>> values = new LinkedHashMap<>(enumParamInfo.getParamData().getEnumData().getValues());
                             values.put(paramNode.getName(), Set.of());
 
-                            // Re-create the command using the updated values
+                            
                             CommandEnumData enumData = new CommandEnumData(enumParamInfo.getParamData().getEnumData().getName(), values, false);
                             CommandParamData commandParamData = new CommandParamData();
                             commandParamData.setName(enumParamInfo.getParamData().getName());
@@ -473,14 +444,14 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     }
 
                     if (!foundCompatible) {
-                        // Create a new subcommand with this exact type
+                        
                         LinkedHashMap<String, Set<CommandEnumConstraint>> map = new LinkedHashMap<>();
                         map.put(paramNode.getName(), Set.of());
                         CommandEnumData enumData = new CommandEnumData(paramNode.getName(), map, false);
 
-                        // On setting optional:
-                        // isExecutable is defined as a node "constitutes a valid command."
-                        // Therefore, any children of the parameter must simply be optional.
+                        
+                        
+                        
                         CommandParamData commandParamData = new CommandParamData();
                         commandParamData.setName(paramNode.getName());
                         commandParamData.setOptional(this.paramNode.isExecutable());
@@ -489,13 +460,13 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                         children.add(new ParamInfo(paramNode, commandParamData));
                     }
                 } else {
-                    // Put the non-enum param into the list
+                    
                     Object mappedType = mapCommandType(context, paramNode);
                     CommandEnumData enumData = null;
                     CommandParam type = null;
                     boolean optional = this.paramNode.isExecutable();
                     if (mappedType instanceof CommandEnumData) {
-                        // Likely to specify isSoft, to be possibly updated later.
+                        
                         enumData = (CommandEnumData) mappedType;
                     } else if (mappedType instanceof String[]) {
                         LinkedHashMap<String, Set<CommandEnumConstraint>> map = new LinkedHashMap<>();
@@ -506,15 +477,15 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                         enumData = new CommandEnumData(getEnumDataName(paramNode).toLowerCase(Locale.ROOT), map, false);
                     } else {
                         type = (CommandParam) mappedType;
-                        // Bedrock throws a fit if an optional message comes after a string or target
-                        // Example vanilla commands: ban-ip, ban, and kick
+                        
+                        
                         if (optional && type == CommandParam.MESSAGE && paramData != null && (paramData.getType() == CommandParam.STRING || paramData.getType() == CommandParam.TARGET)) {
                             optional = false;
                         }
                     }
-                    // IF enumData != null:
-                    // In game, this will show up like <paramNode.getName(): enumData.getName()>
-                    // So if paramNode.getName() == "value" and enumData.getName() == "bool": <value: bool>
+                    
+                    
+                    
                     CommandParamData commandParamData = new CommandParamData();
                     commandParamData.setName(paramNode.getName());
                     commandParamData.setOptional(optional);
@@ -525,15 +496,13 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                 }
             }
 
-            // Recursively build all child options
+            
             for (ParamInfo child : children) {
                 child.buildChildren(context, allNodes);
             }
         }
 
-        /**
-         * Mitigates <a href="https://github.com/GeyserMC/Geyser/issues/3411">issue 3411</a>. Not a perfect solution.
-         */
+        
         private static String getEnumDataName(CommandNode node) {
             if (node.getProperties() instanceof ResourceProperties properties) {
                 Key registryKey = properties.getRegistryKey();
@@ -542,41 +511,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return node.getParser().name();
         }
 
-        /**
-         * Comparing CommandNode type a and b, determine if they are in the same overload.
-         * <p>
-         * Take the <code>gamerule</code> command, and let's present three "subcommands" you can perform:
-         *
-         * <ul>
-         *     <li><code>gamerule doDaylightCycle true</code></li>
-         *     <li><code>gamerule announceAdvancements false</code></li>
-         *     <li><code>gamerule randomTickSpeed 3</code></li>
-         * </ul>
-         *
-         * While all three of them are indeed part of the same command, the command setting randomTickSpeed parses an int,
-         * while the others use boolean. In Bedrock, this should be presented as a separate overload to indicate that this
-         * does something a little different.
-         * <p>
-         * Therefore, this function will return <code>true</code> if the first two are compared, as they use the same
-         * parsers. If the third is compared with either of the others, this function will return <code>false</code>.
-         * <p>
-         * Here's an example of how the above would be presented to Bedrock (as of 1.16.200). Notice how the top two <code>CommandParamData</code>
-         * classes of each array are identical in type, but the following class is different:
-         * <pre>
-         *     overloads=[
-         *         [
-         *            CommandParamData(name=doDaylightCycle, optional=false, enumData=CommandEnumData(name=announceAdvancements, values=[announceAdvancements, doDaylightCycle], isSoft=false), type=STRING, postfix=null, options=[])
-         *            CommandParamData(name=value, optional=false, enumData=CommandEnumData(name=value, values=[true, false], isSoft=false), type=null, postfix=null, options=[])
-         *         ]
-         *         [
-         *            CommandParamData(name=randomTickSpeed, optional=false, enumData=CommandEnumData(name=randomTickSpeed, values=[randomTickSpeed], isSoft=false), type=STRING, postfix=null, options=[])
-         *            CommandParamData(name=value, optional=false, enumData=null, type=INT, postfix=null, options=[])
-         *         ]
-         *     ]
-         * </pre>
-         *
-         * @return if these two can be merged into one overload.
-         */
+        
         private boolean isCompatible(CommandNode[] allNodes, CommandNode a, CommandNode b) {
             if (a == b) return true;
             if (a.getParser() != b.getParser()) return false;
@@ -585,7 +520,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             for (int i = 0; i < a.getChildIndices().length; i++) {
                 boolean hasSimilarity = false;
                 CommandNode a1 = allNodes[a.getChildIndices()[i]];
-                // Search "b" until we find a child that matches this one
+                
                 for (int j = 0; j < b.getChildIndices().length; j++) {
                     if (isCompatible(allNodes, a1, allNodes[b.getChildIndices()[j]])) {
                         hasSimilarity = true;
@@ -600,19 +535,15 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return true;
         }
 
-        /**
-         * Get the tree of every parameter node (recursive)
-         *
-         * @return List of parameter options arrays for the command
-         */
+        
         public List<CommandOverloadData> getTree() {
             List<CommandOverloadData> treeParamData = new ArrayList<>();
 
             for (ParamInfo child : children) {
-                // Get the tree from the child
+                
                 List<CommandOverloadData> childTree = child.getTree();
 
-                // Un-pack the tree append the child node to it and push into the list
+                
                 for (CommandOverloadData subChildData : childTree) {
                     CommandParamData[] subChild = subChildData.getOverloads();
                     CommandParamData[] tmpTree = new CommandParamData[subChild.length + 1];
@@ -622,7 +553,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                     treeParamData.add(new CommandOverloadData(false, tmpTree));
                 }
 
-                // If we have no more child parameters just the child
+                
                 if (childTree.size() == 0) {
                     treeParamData.add(new CommandOverloadData(false, new CommandParamData[] { child.getParamData() }));
                 }

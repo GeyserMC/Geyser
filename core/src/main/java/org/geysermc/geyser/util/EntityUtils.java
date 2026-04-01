@@ -57,14 +57,10 @@ import java.util.Locale;
 import java.util.UUID;
 
 public final class EntityUtils {
-    /**
-     * A constant array of the two hands that a player can interact with an entity.
-     */
+    
     public static final Hand[] HANDS = Hand.values();
 
-    /**
-     * @return a new String array of all known effect identifiers
-     */
+    
     public static String[] getAllEffectIdentifiers() {
         String[] identifiers = new String[Effect.VALUES.length];
         for (int i = 0; i < Effect.VALUES.length; i++) {
@@ -143,13 +139,11 @@ public final class EntityUtils {
         return 0f;
     }
 
-    /**
-     * Adjust an entity's height if they have mounted/dismounted an entity.
-     */
+    
     public static void updateMountOffset(Entity passenger, Entity mount, boolean rider, boolean riding, int index, int passengers) {
         passenger.setFlag(EntityFlag.RIDING, riding);
         if (riding) {
-            // Without the Y offset, Bedrock players will find themselves in the floor when mounting
+            
             float mountedHeightOffset = getMountedHeightOffset(mount);
             float heightOffset = getHeightOffset(passenger);
 
@@ -211,7 +205,7 @@ public final class EntityUtils {
             if (mount instanceof ChestBoatEntity) {
                 xOffset = 0.15F;
             } else if (mount instanceof BoatEntity) {
-                // Without the X offset, more than one entity on a boat is stacked on top of each other
+                
                 if (passengers > 1) {
                     xOffset = rider ? 0.2f : -0.6f;
                     if (passenger instanceof AnimalEntity) {
@@ -255,7 +249,7 @@ public final class EntityUtils {
 
     public static void updateRiderRotationLock(Entity passenger, Entity mount, boolean isRiding) {
         if (isRiding && mount instanceof BoatEntity) {
-            // Head rotation is locked while riding in a boat
+            
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
             passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, true);
@@ -268,31 +262,24 @@ public final class EntityUtils {
         }
     }
 
-    /**
-     * Determine if an action would result in a successful bucketing of the given entity.
-     */
+    
     public static boolean attemptToBucket(GeyserItemStack itemInHand) {
         return itemInHand.is(Items.WATER_BUCKET);
     }
 
-    /**
-     * Attempt to determine the result of saddling the given entity.
-     */
+    
     public static InteractionResult attemptToSaddle(Entity entityToSaddle, GeyserItemStack itemInHand) {
         if (itemInHand.is(Items.SADDLE)) {
             if (!entityToSaddle.getFlag(EntityFlag.SADDLED) && !entityToSaddle.getFlag(EntityFlag.BABY)) {
-                // Saddle
+                
                 return InteractionResult.SUCCESS;
             }
         }
         return InteractionResult.PASS;
     }
 
-    /**
-     * Convert Java GameMode to Bedrock GameType
-     * Needed to account for ordinal differences (spectator is 3 in Java, 6 in Bedrock)
-     */
-    @SuppressWarnings("deprecation") // Must use survival_viewer due to limitations on Bedrock's spectator gamemode
+    
+    @SuppressWarnings("deprecation") 
     public static GameType toBedrockGamemode(GameMode gamemode) {
         return switch (gamemode) {
             case CREATIVE -> GameType.CREATIVE;
@@ -303,8 +290,8 @@ public final class EntityUtils {
     }
 
     private static String translatedEntityName(@NonNull String namespace, @NonNull String name, @NonNull GeyserSession session) {
-        // MinecraftLocale would otherwise invoke getBootstrap (which doesn't exist) and create some folders,
-        // so use the default fallback value as used in Minecraft Java
+        
+        
         if (EnvironmentUtils.IS_UNIT_TESTING) {
             return "entity." + namespace + "." + name;
         }
@@ -317,13 +304,13 @@ public final class EntityUtils {
 
     public static String translatedEntityName(@Nullable EntityType type, @NonNull GeyserSession session) {
         if (type == EntityType.PLAYER) {
-            return "Player"; // the player's name is always shown instead
+            return "Player"; 
         }
-        // default fallback value as used in Minecraft Java
+        
         if (type == null) {
             return "entity.unregistered_sadface";
         }
-        // this works at least with all 1.20.5 entities, except the killer bunny since that's not an entity type.
+        
         String typeName = type.name().toLowerCase(Locale.ROOT);
         return translatedEntityName("minecraft", typeName, session);
     }
@@ -337,10 +324,10 @@ public final class EntityUtils {
         return holderSet.contains(session, entity);
     }
 
-    // From ViaVersion! thank u!!
+    
     public static UUID uuidFromIntArray(int[] uuid) {
         if (uuid != null && uuid.length == 4) {
-            // thank u viaversion
+            
             return new UUID((long) uuid[0] << 32 | ((long) uuid[1] & 0xFFFFFFFFL),
                 (long) uuid[2] << 32 | ((long) uuid[3] & 0xFFFFFFFFL));
         }

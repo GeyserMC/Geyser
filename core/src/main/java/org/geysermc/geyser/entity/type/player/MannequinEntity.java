@@ -48,6 +48,6 @@ public class MannequinEntity extends AvatarEntity {
     }
 
     public void setDescription(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // TODO
+        
     }
 }

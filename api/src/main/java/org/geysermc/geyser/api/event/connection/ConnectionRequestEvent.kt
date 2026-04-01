@@ -22,89 +22,64 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.event.connection
 
-package org.geysermc.geyser.api.event.connection;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.event.Cancellable;
-import org.geysermc.event.Event;
-
-import java.net.InetSocketAddress;
+import org.geysermc.event.Cancellable
+import org.geysermc.event.Event
+import java.net.InetSocketAddress
 
 /**
  * Called whenever a client attempts to connect to the server, before the connection is accepted.
  */
-public final class ConnectionRequestEvent implements Event, Cancellable {
-
-    private boolean cancelled;
-    private final InetSocketAddress ip;
-    private final InetSocketAddress proxyIp;
-
-    public ConnectionRequestEvent(@NonNull InetSocketAddress ip, @Nullable InetSocketAddress proxyIp) {
-        this.ip = ip;
-        this.proxyIp = proxyIp;
-    }
+class ConnectionRequestEvent(
+    /**
+     * The IP address of the client attempting to connect
+     * 
+     * @return the IP address of the client attempting to connect
+     */
+    @get:Deprecated("Use {@link #inetSocketAddress()} instead") val inetSocketAddress: InetSocketAddress,
+    /**
+     * The IP address of the proxy handling the connection. It will return null if there is no proxy.
+     * 
+     * @return the IP address of the proxy handling the connection
+     */
+    @get:Deprecated("Use {@link #proxyIp()} instead") val proxyIp: InetSocketAddress?
+) : Event, Cancellable {
+    private var cancelled = false
 
     /**
      * The IP address of the client attempting to connect
-     *
+     * 
      * @return the IP address of the client attempting to connect
-     * @deprecated Use {@link #inetSocketAddress()} instead
      */
-    @NonNull @Deprecated(forRemoval = true)
-    public InetSocketAddress getInetSocketAddress() {
-        return ip;
+    fun inetSocketAddress(): InetSocketAddress {
+        return this.inetSocketAddress
     }
 
     /**
      * The IP address of the proxy handling the connection. It will return null if there is no proxy.
-     *
-     * @return the IP address of the proxy handling the connection
-     * @deprecated Use {@link #proxyIp()} instead
-     */
-    @Nullable @Deprecated(forRemoval = true)
-    public InetSocketAddress getProxyIp() {
-        return proxyIp;
-    }
-
-    /**
-     * The IP address of the client attempting to connect
-     *
-     * @return the IP address of the client attempting to connect
-     */
-    @NonNull
-    public InetSocketAddress inetSocketAddress() {
-        return ip;
-    }
-
-    /**
-     * The IP address of the proxy handling the connection. It will return null if there is no proxy.
-     *
+     * 
      * @return the IP address of the proxy handling the connection
      */
-    @Nullable
-    public InetSocketAddress proxyIp() {
-        return proxyIp;
+    fun proxyIp(): InetSocketAddress? {
+        return proxyIp
     }
 
     /**
      * The cancel status of this event. If this event is cancelled, the connection will be rejected.
-     *
+     * 
      * @return the cancel status of this event
      */
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
+    override fun isCancelled(): Boolean {
+        return cancelled
     }
 
     /**
      * Sets the cancel status of this event. If this event is canceled, the connection will be rejected.
-     *
+     * 
      * @param cancelled the cancel status of this event.
      */
-    @Override
-    public void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
+    override fun setCancelled(cancelled: Boolean) {
+        this.cancelled = cancelled
     }
 }

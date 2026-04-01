@@ -31,9 +31,7 @@ import org.geysermc.geyser.api.util.TriState;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Permissions related to Geyser
- */
+
 public final class Permissions {
     private static final Map<String, TriState> PERMISSIONS = new HashMap<>();
 

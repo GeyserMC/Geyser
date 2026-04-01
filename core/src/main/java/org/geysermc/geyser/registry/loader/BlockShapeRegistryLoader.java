@@ -45,7 +45,7 @@ public class BlockShapeRegistryLoader implements RegistryLoader<String, List<Bou
 
     @Override
     public List<BoundingBox[]> load(String input) {
-        // Load shape mappings file
+        
         int[] indices;
         List<BoundingBox[]> unmappedCollisionList;
         try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(input)) {
@@ -90,7 +90,7 @@ public class BlockShapeRegistryLoader implements RegistryLoader<String, List<Bou
                     boxProperties.get(5));
             }
 
-            // Sorting by lowest Y first fixes some bugs
+            
             Arrays.sort(boundingBoxes, Comparator.comparingDouble(BoundingBox::getMiddleY));
             collisions.add(boundingBoxes);
         }

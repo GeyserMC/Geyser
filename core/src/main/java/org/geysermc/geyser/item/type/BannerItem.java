@@ -54,17 +54,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BannerItem extends BlockItem {
-    /**
-     * Holds what a Java ominous banner pattern looks like.
-     * <p>
-     * Translating the patterns over to Bedrock does not work effectively, but Bedrock has a dedicated type for
-     * ominous banners that we set instead. This variable is used to detect Java ominous banner patterns, and apply
-     * the correct ominous banner pattern if Bedrock pulls the item from creative.
-     */
+    
     private static final List<Pair<BannerPattern, DyeColor>> OMINOUS_BANNER_PATTERN;
 
     static {
-        // Construct what an ominous banner is supposed to look like
+        
         OMINOUS_BANNER_PATTERN = List.of(
                 Pair.of(BannerPattern.RHOMBUS, DyeColor.CYAN),
                 Pair.of(BannerPattern.STRIPE_BOTTOM, DyeColor.LIGHT_GRAY),
@@ -97,8 +91,8 @@ public class BannerItem extends BlockItem {
     }
 
     public static boolean isOminous(List<NbtMap> blockEntityPatterns) {
-        // Cannot do a simple NBT equals check here because the IDs may not be full resource locations
-        // ViaVersion's fault, 1.20.4 -> 1.20.5, but it works on Java so we need to support it.
+        
+        
         if (OMINOUS_BANNER_PATTERN.size() != blockEntityPatterns.size()) {
             return false;
         }
@@ -109,7 +103,7 @@ public class BannerItem extends BlockItem {
             if (color != pair.right()) {
                 return false;
             }
-            Key id = MinecraftKey.key(patternLayer.getString("pattern")); // Ouch
+            Key id = MinecraftKey.key(patternLayer.getString("pattern")); 
             BannerPattern bannerPattern = BannerPattern.getByJavaIdentifier(id);
             if (bannerPattern != pair.left()) {
                 return false;
@@ -118,12 +112,7 @@ public class BannerItem extends BlockItem {
         return true;
     }
 
-    /**
-     * Convert a list of patterns from Java nbt to Bedrock nbt
-     *
-     * @param patterns The patterns to convert
-     * @return The new converted patterns
-     */
+    
     public static NbtList<NbtMap> convertBannerPattern(List<NbtMap> patterns) {
         List<NbtMap> tagsList = new ArrayList<>();
         for (NbtMap patternTag : patterns) {
@@ -136,12 +125,10 @@ public class BannerItem extends BlockItem {
         return new NbtList<>(NbtType.COMPOUND, tagsList);
     }
 
-    /**
-     * Converts a Java item component for banners into Bedrock item NBT.
-     */
+    
     static void convertBannerPattern(GeyserSession session, List<BannerPatternLayer> patterns, BedrockItemBuilder builder) {
         if (isOminous(session, patterns)) {
-            // Remove the current patterns and set the ominous banner type
+            
             builder.putInt("Type", 1);
         } else {
             List<NbtMap> patternList = new ArrayList<>(patterns.size());
@@ -159,14 +146,9 @@ public class BannerItem extends BlockItem {
         }
     }
 
-    /**
-     * Convert the Java edition banner pattern nbt to Bedrock edition, null if the pattern doesn't exist
-     *
-     * @param pattern Java edition pattern nbt
-     * @return The Bedrock edition format pattern nbt
-     */
+    
     private static NbtMap getBedrockBannerPattern(NbtMap pattern) {
-        // ViaVersion 1.20.4 -> 1.20.5 can send without the namespace
+        
         BannerPattern bannerPattern = BannerPattern.getByJavaIdentifier(MinecraftKey.key(pattern.getString("pattern")));
         DyeColor dyeColor = DyeColor.getByJavaIdentifier(pattern.getString("color"));
         if (bannerPattern == null || dyeColor == null) {
@@ -179,12 +161,7 @@ public class BannerItem extends BlockItem {
                 .build();
     }
 
-    /**
-     * Convert the Bedrock edition banner pattern nbt to Java edition
-     *
-     * @param pattern Bedrock edition pattern nbt
-     * @return The Java edition format pattern layer
-     */
+    
     public static BannerPatternLayer getJavaBannerPattern(GeyserSession session, NbtMap pattern) {
         JavaRegistry<BannerPattern> registry = session.getRegistryCache().registry(JavaRegistries.BANNER_PATTERN);
         BannerPattern bannerPattern = BannerPattern.getByBedrockIdentifier(pattern.getString("Pattern"));

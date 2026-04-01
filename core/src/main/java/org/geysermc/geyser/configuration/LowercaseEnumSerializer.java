@@ -34,10 +34,7 @@ import java.lang.reflect.Type;
 import java.util.Locale;
 import java.util.function.Predicate;
 
-/**
- * Ensures enum values are written to lowercase. {@link Scalars#ENUM} will read enum values
- * in any case.
- */
+
 final class LowercaseEnumSerializer extends ScalarSerializer<Enum<?>> {
     LowercaseEnumSerializer() {
         super(new TypeToken<Enum<?>>() {});

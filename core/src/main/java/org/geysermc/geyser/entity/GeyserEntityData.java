@@ -69,7 +69,7 @@ public class GeyserEntityData implements EntityData {
         EmotePacket packet = new EmotePacket();
         packet.setRuntimeEntityId(entity.geyserId());
         packet.setXuid("");
-        packet.setPlatformId(""); // BDS sends empty
+        packet.setPlatformId(""); 
         packet.setEmoteId(emoteId);
         session.sendUpstreamPacket(packet);
     }

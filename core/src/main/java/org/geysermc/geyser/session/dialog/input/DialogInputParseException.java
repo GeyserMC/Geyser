@@ -29,7 +29,7 @@ import lombok.Getter;
 
 public class DialogInputParseException extends Exception {
 
-    // Exceptions don't work with generics, so we have to do a bit of unsafe casting and assume the object is of the input type :(
+    
     @Getter
     private final Object partial;
     @Getter

@@ -58,18 +58,11 @@ import java.util.UUID;
 
 public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksEvent implements GeyserIntegratedPackUtil {
 
-    /**
-     * The packs for this Session. A {@link ResourcePackHolder} may contain resource pack options registered
-     * during the {@link org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent}.
-     */
+    
     @Getter
     private final Map<UUID, ResourcePackHolder> packs;
 
-    /**
-     * The additional, per-session options for the resource packs of this session.
-     * These options are prioritized over the "default" options registered
-     * in the {@link org.geysermc.geyser.api.event.lifecycle.GeyserDefineResourcePacksEvent}
-     */
+    
     private final Map<UUID, OptionHolder> sessionPackOptionOverrides;
 
     private final GeyserSession session;
@@ -137,7 +130,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
         OptionHolder optionHolder = sessionPackOptionOverrides.get(uuid);
         if (optionHolder == null) {
-            // No need to create a new session option holder
+            
             return packHolder.optionHolder().immutableValues();
         }
 
@@ -156,7 +149,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
         @Nullable OptionHolder additionalOptions = sessionPackOptionOverrides.get(uuid);
         OptionHolder defaultHolder = packHolder.optionHolder();
-        Objects.requireNonNull(defaultHolder); // should never be null
+        Objects.requireNonNull(defaultHolder); 
 
         return OptionHolder.optionByType(type, additionalOptions, defaultHolder);
     }
@@ -191,15 +184,15 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         return packs.containsKey(INTEGRATED_PACK_UUID);
     }
 
-    // Methods used internally for e.g. ordered packs, or resource pack entries
+    
 
     public List<ResourcePackStackPacket.Entry> orderedPacks() {
         return packs.values().stream()
-            // Map each ResourcePack to a pair of (GeyserResourcePack, Priority)
+            
             .map(holder -> new AbstractMap.SimpleEntry<>(holder.pack(), priority(holder.pack())))
-            // Sort by priority in descending order
+            
             .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-            // Map the sorted entries to ResourcePackStackPacket.Entry
+            
             .map(entry -> {
                 ResourcePackManifest.Header header = entry.getKey().manifest().header();
                 return new ResourcePackStackPacket.Entry(
@@ -233,12 +226,12 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         return entries;
     }
 
-    // Helper methods to get the options for a ResourcePack
+    
 
     public <T> T value(UUID uuid, ResourcePackOption.Type type, T defaultValue) {
         OptionHolder holder = sessionPackOptionOverrides.get(uuid);
         OptionHolder defaultHolder = packs.get(uuid).optionHolder();
-        Objects.requireNonNull(defaultHolder); // should never be null
+        Objects.requireNonNull(defaultHolder); 
 
         return OptionHolder.valueOrFallback(type, holder, defaultHolder, defaultValue);
     }

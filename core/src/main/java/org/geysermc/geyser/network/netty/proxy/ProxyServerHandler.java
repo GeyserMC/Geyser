@@ -53,8 +53,8 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
         InetSocketAddress presentAddress = GeyserImpl.getInstance().getGeyserServer().getProxiedAddresses().get(packet.sender());
 
         if (presentAddress == null && detectedVersion == -1) {
-            // We haven't received a header from given address before and we couldn't detect a
-            // PROXY header, ignore.
+            
+            
             return;
         }
 
@@ -62,7 +62,7 @@ public class ProxyServerHandler extends SimpleChannelInboundHandler<DatagramPack
             final HAProxyMessage decoded;
             try {
                 if ((decoded = ProxyProtocolDecoder.decode(content, detectedVersion)) == null) {
-                    // PROXY header was not present in the packet, ignore.
+                    
                     return;
                 }
             } catch (HAProxyProtocolException e) {

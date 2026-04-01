@@ -68,7 +68,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
         Function<Vector3f, BedrockPacket> particleCreateFunction = createParticle(session, packet.getParticle());
         if (particleCreateFunction != null) {
             if (packet.getAmount() == 0) {
-                // 0 means don't apply the offset
+                
                 Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
                 session.sendUpstreamPacket(particleCreateFunction.apply(position));
             } else {
@@ -84,17 +84,12 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                 }
             }
         } else {
-            // Null is only returned when no particle of this type is found
+            
             session.getGeyser().getLogger().debug("Unhandled particle packet: " + packet);
         }
     }
 
-    /**
-     * @param session the Bedrock client session.
-     * @param particle the Java particle to translate to a Bedrock equivalent.
-     * @return a function to create a packet with a specified particle, in the event we need to spawn multiple particles
-     * with different offsets.
-     */
+    
     public static @Nullable Function<Vector3f, BedrockPacket> createParticle(GeyserSession session, Particle particle) {
         switch (particle.getType()) {
             case BLOCK -> {
@@ -111,8 +106,8 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                 int blockState = session.getBlockMappings().getBedrockBlockId(((BlockParticleData) particle.getData()).getBlockState());
                 return (position) -> {
                     LevelEventPacket packet = new LevelEventPacket();
-                    // In fact, FallingDustParticle should have data like DustParticle,
-                    // but in MCProtocol, its data is BlockState(1).
+                    
+                    
                     packet.setType(ParticleType.FALLING_DUST);
                     packet.setData(blockState);
                     packet.setPosition(position);
@@ -131,7 +126,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                     return packet;
                 };
             }
-            case DUST, DUST_COLOR_TRANSITION -> { //TODO
+            case DUST, DUST_COLOR_TRANSITION -> { 
                 DustParticleData data = (DustParticleData) particle.getData();
                 int rgbData = data.getColor();
                 return (position) -> {
@@ -167,7 +162,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                     packet.setTag(
                             NbtMap.builder()
                                     .putCompound("origin", buildVec3PositionTag(position))
-                                    .putCompound("target", buildVec3PositionTag(target)) // There is a way to target an entity but that takes an attachPos instead of a y offset
+                                    .putCompound("target", buildVec3PositionTag(target)) 
                                     .putFloat("speed", 20f)
                                     .putFloat("timeToLive", data.getArrivalTicks() / 20f)
                                     .build()
@@ -204,7 +199,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
             }
             default -> {
                 ParticleMapping particleMapping = Registries.PARTICLES.get(particle.getType());
-                if (particleMapping == null) { //TODO ensure no particle can be null
+                if (particleMapping == null) { 
                     return null;
                 }
 

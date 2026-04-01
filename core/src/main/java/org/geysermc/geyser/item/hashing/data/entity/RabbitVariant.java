@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.item.hashing.data.entity;
 
-// Named by Java ID
+
 public enum RabbitVariant {
     BROWN(0),
     WHITE(1),

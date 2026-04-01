@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser;
 
-// The constants are replaced before compilation
+
 public class BuildData {
     public static final String GIT_VERSION = "{{ gitVersion }}";
     public static final String VERSION = "{{ version }}";

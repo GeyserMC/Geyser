@@ -68,7 +68,7 @@ public class PigEntity extends TemperatureVariantAnimal implements Tickable, Cli
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!canEat(itemInHand) && getFlag(EntityFlag.SADDLED) && passengers.isEmpty() && !session.isSneaking()) {
-            // Mount
+            
             return InteractiveTag.MOUNT;
         } else {
             InteractiveTag superTag = super.testMobInteraction(hand, itemInHand);
@@ -85,7 +85,7 @@ public class PigEntity extends TemperatureVariantAnimal implements Tickable, Cli
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!canEat(itemInHand) && getFlag(EntityFlag.SADDLED) && passengers.isEmpty() && !session.isSneaking()) {
-            // Mount
+            
             return InteractionResult.SUCCESS;
         } else {
             InteractionResult superResult = super.mobInteract(hand, itemInHand);
@@ -113,7 +113,7 @@ public class PigEntity extends TemperatureVariantAnimal implements Tickable, Cli
             if (session.getPlayerInventory().isHolding(Items.CARROT_ON_A_STICK)) {
                 vehicleComponent.tickBoost();
             }
-        } else { // getHand() for session player seems to always return air
+        } else { 
             if (player.isHolding(Items.CARROT_ON_A_STICK)) {
                 vehicleComponent.tickBoost();
             }

@@ -41,11 +41,11 @@ public class BiomeIdentifierRegistryLoader implements RegistryLoader<String, Obj
 
     @Override
     public Object2IntMap<String> load(String input) {
-        // As of Bedrock Edition 1.17.10 with the experimental toggle, any unmapped biome identifier sent to the client
-        // crashes the client. Therefore, we need to have a list of all valid Bedrock biome IDs with which we can use from.
-        // The server sends the corresponding Java network IDs, so we don't need to worry about that now.
+        
+        
+        
 
-        // Reference variable for Gson to read off of
+        
         Type biomeEntriesType = new TypeToken<Map<String, BiomeEntry>>() { }.getType();
         Map<String, BiomeEntry> biomeEntries;
 
@@ -57,7 +57,7 @@ public class BiomeIdentifierRegistryLoader implements RegistryLoader<String, Obj
 
         Object2IntMap<String> biomes = new Object2IntOpenHashMap<>();
         for (Map.Entry<String, BiomeEntry> biome : biomeEntries.entrySet()) {
-            // Java Edition identifier -> Bedrock integer ID
+            
             biomes.put(biome.getKey(), biome.getValue().bedrockId);
         }
 
@@ -65,9 +65,7 @@ public class BiomeIdentifierRegistryLoader implements RegistryLoader<String, Obj
     }
 
     private static class BiomeEntry {
-        /**
-         * The Bedrock network ID for this biome.
-         */
+        
         @SerializedName("bedrock_id")
         private int bedrockId;
     }

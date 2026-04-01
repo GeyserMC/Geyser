@@ -86,7 +86,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
         Path parentFile = path.getParent();
 
-        // Extension folders used to be created by name; this changes them to the ID
+        
         Path oldDataFolder = parentFile.resolve(description.name());
         Path dataFolder = parentFile.resolve(description.id());
 
@@ -115,7 +115,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             final Extension extension = loader.load();
             return this.setup(extension, description, dataFolder, new GeyserExtensionEventBus(GeyserImpl.getInstance().eventBus(), extension));
         } catch (Throwable e) {
-            // if the extension failed to load, remove its classloader and close it.
+            
             this.classLoaders.remove(description.id()).close();
             throw e;
         }
@@ -177,17 +177,17 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
             Path updateDirectory = extensionsDirectory.resolve("update");
             if (Files.isDirectory(updateDirectory)) {
-                // Step 1: Collect the extension files that currently exist so they can be replaced
+                
                 Map<String, List<Path>> extensionFiles = new HashMap<>();
                 this.processExtensionsFolder(extensionsDirectory, (path, description) -> {
                     extensionFiles.computeIfAbsent(description.id(), k -> new ArrayList<>()).add(path);
                 }, (path, e) -> {
-                    // this file will throw again when we actually try to load extensions, and it will be handled there
+                    
                 });
 
-                // Step 2: Move the updated/new extensions
+                
                 this.processExtensionsFolder(updateDirectory, (path, description) -> {
-                    // Remove the old extension files with the same ID if it exists
+                    
                     List<Path> oldExtensionFiles = extensionFiles.get(description.id());
                     if (oldExtensionFiles != null) {
                         for (Path oldExtensionFile : oldExtensionFiles) {
@@ -195,14 +195,14 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                         }
                     }
 
-                    // Overwrite the extension with the new jar
+                    
                     Files.move(path, extensionsDirectory.resolve(path.getFileName()), StandardCopyOption.REPLACE_EXISTING);
                 }, (path, e) -> {
                     logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.update.failed", path.getFileName()), e);
                 });
             }
 
-            // Step 3: Order the extensions to allow dependencies to load in the correct order
+            
             this.processExtensionsFolder(extensionsDirectory, (path, description) -> {
                 String id = description.id();
                 descriptions.put(id, description);
@@ -212,10 +212,10 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                 logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
             });
 
-            // The graph to back out loading order (Funny I just learnt these too)
+            
             Map<String, List<String>> loadOrderGraph = new HashMap<>();
 
-            // Looks like the graph needs to be prepopulated otherwise issues happen
+            
             for (String id : descriptions.keySet()) {
                 loadOrderGraph.putIfAbsent(id, new ArrayList<>());
             }
@@ -223,12 +223,12 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             for (GeyserExtensionDescription description : descriptions.values()) {
                 for (Map.Entry<String, GeyserExtensionDescription.Dependency> dependency : description.dependencies().entrySet()) {
                     String from = null;
-                    String to = null; // Java complains if this isn't initialised, but not from, so, both null.
+                    String to = null; 
 
-                    // Check if the extension is even loaded
+                    
                     if (!descriptions.containsKey(dependency.getKey())) {
-                        if (dependency.getValue().isRequired()) { // Only disable the extension if this dependency is required
-                            // The extension we are checking is missing 1 or more dependencies
+                        if (dependency.getValue().isRequired()) { 
+                            
                             logger.error(
                                 GeyserLocale.getLocaleStringLog(
                                     "geyser.extensions.load.failed_dependency_missing",
@@ -237,7 +237,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                                 )
                             );
 
-                            descriptions.remove(description.id()); // Prevents it from being loaded later
+                            descriptions.remove(description.id()); 
                         }
 
                         continue;
@@ -256,12 +256,12 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                             )
                         );
 
-                        descriptions.remove(description.id()); // Prevents it from being loaded later
+                        descriptions.remove(description.id()); 
 
                         continue;
                     }
 
-                    // Determine which way they should go in the graph
+                    
                     switch (dependency.getValue().getLoad()) {
                         case BEFORE -> {
                             from = dependency.getKey();
@@ -281,7 +281,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
             List<String> visiting = new ArrayList<>();
             List<String> loadOrder = new ArrayList<>();
 
-            AtomicReference<Consumer<String>> sortMethod = new AtomicReference<>(); // yay, lambdas. This doesn't feel to suited to be a method
+            AtomicReference<Consumer<String>> sortMethod = new AtomicReference<>(); 
             sortMethod.set((node) -> {
                 if (visiting.contains(node)) {
                     logger.error(
@@ -309,15 +309,15 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
             for (String ext : descriptions.keySet()) {
                 if (!visited.contains(ext)) {
-                    // Time to sort the graph to get a load order, this reveals any cycles we may have
+                    
                     sortMethod.get().accept(ext);
                 }
             }
-            Collections.reverse(loadOrder); // This is inverted due to how the graph is created
+            Collections.reverse(loadOrder); 
 
-            // Step 4: Load the extensions
+            
             for (String id : loadOrder) {
-                // Grab path and description found from before, since we want a custom load order now
+                
                 Path path = extensionPaths.get(id);
                 GeyserExtensionDescription description = descriptions.get(id);
 
@@ -327,7 +327,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                     return;
                 }
 
-                // Check whether an extensions' requested api version is compatible
+                
                 ApiVersion.Compatibility compatibility = GeyserApi.api().geyserApiVersion().supportsRequestedVersion(
                     description.humanApiVersion(),
                     description.majorApiVersion(),
@@ -335,7 +335,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                 );
 
                 if (compatibility != ApiVersion.Compatibility.COMPATIBLE) {
-                    // Workaround for the switch to the Geyser API version instead of the Base API version in extensions
+                    
                     if (compatibility == ApiVersion.Compatibility.HUMAN_DIFFER && description.humanApiVersion() == 1) {
                         logger.warning("The extension %s requested the Base API version %s, which is deprecated in favor of specifying the Geyser API version. Please update the extension, or contact its developer."
                             .formatted(name, description.apiVersion()));
@@ -354,7 +354,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                 }
             }
 
-            // Step 5: Register the extensions
+            
             for (GeyserExtensionContainer container : loadedExtensions.values()) {
                 this.extensionContainers.put(container.extension(), container);
                 this.register(container.extension(), extensionManager);
@@ -364,14 +364,7 @@ public class GeyserExtensionLoader extends ExtensionLoader {
         }
     }
 
-    /**
-     * Process extension jars in a folder and call the accept or reject consumer based on the result
-     *
-     * @param directory the directory to process
-     * @param accept the consumer to call when an extension is accepted
-     * @param reject the consumer to call when an extension is rejected
-     * @throws IOException if an I/O error occurs
-     */
+    
     private void processExtensionsFolder(Path directory, ThrowingBiConsumer<Path, GeyserExtensionDescription> accept, BiConsumer<Path, Throwable> reject) throws IOException {
         List<Path> extensionPaths = Files.list(directory).toList();
         Pattern extensionFilter = this.extensionFilter();
@@ -380,13 +373,13 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                 return;
             }
 
-            // Only look at files that meet the extension filter
+            
             if (!extensionFilter.matcher(path.getFileName().toString()).matches()) {
                 return;
             }
 
             try {
-                // Try load the description, so we know it's a valid extension
+                
                 GeyserExtensionDescription description = this.extensionDescription(path);
 
                 accept.acceptThrows(path, description);

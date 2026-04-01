@@ -58,8 +58,8 @@ public class IoHandlerWrapper implements IoHandler {
 
         @Override
         public boolean canBlock() {
-            // https://github.com/netty/netty/blob/7ac5e2ba20030caad0d0e648e86f31e9f0461105/transport/src/main/java/io/netty/channel/local/LocalIoHandler.java#L63
-            // will block the other IoHandler.
+            
+            
             return false;
         }
 

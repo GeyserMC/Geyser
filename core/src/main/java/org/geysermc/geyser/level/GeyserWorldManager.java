@@ -48,7 +48,7 @@ public class GeyserWorldManager extends WorldManager {
         } else if (session.isClosed()) {
             throw new ErosionCancellationException();
         }
-        CompletableFuture<Integer> future = new CompletableFuture<>(); // Boxes
+        CompletableFuture<Integer> future = new CompletableFuture<>(); 
         erosionHandler.setPendingLookup(future);
         erosionHandler.sendPacket(new BackendboundBlockRequestPacket(0, Vector3i.from(x, y, z)));
         return future.join();
@@ -62,7 +62,7 @@ public class GeyserWorldManager extends WorldManager {
         } else if (session.isClosed()) {
             return CompletableFuture.failedFuture(new ErosionCancellationException());
         }
-        CompletableFuture<Integer> future = new CompletableFuture<>(); // Boxes
+        CompletableFuture<Integer> future = new CompletableFuture<>(); 
         int transactionId = erosionHandler.getNextTransactionId();
         erosionHandler.getAsyncPendingLookups().put(transactionId, future);
         erosionHandler.sendPacket(new BackendboundBlockRequestPacket(transactionId, Vector3i.from(x, y, z)));
@@ -85,7 +85,7 @@ public class GeyserWorldManager extends WorldManager {
 
     @Override
     public boolean hasOwnChunkCache() {
-        // This implementation can only fetch data from the session chunk cache
+        
         return false;
     }
 

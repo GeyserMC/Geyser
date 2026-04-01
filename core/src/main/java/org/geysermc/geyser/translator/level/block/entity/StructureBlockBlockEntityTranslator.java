@@ -44,7 +44,7 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
         if (javaNbt == null) {
             return super.getBlockEntityTag(session, type, x, y, z, javaNbt, blockState);
         }
-        // Sending a structure with size 0 doesn't clear the outline. Hence, we have to force it by replacing the block :/
+        
         int xStructureSize = javaNbt.getInt("sizeX");
         int yStructureSize = javaNbt.getInt("sizeY");
         int zStructureSize = javaNbt.getInt("sizeZ");
@@ -55,7 +55,7 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
             Vector3i position = Vector3i.from(x, y, z);
             String mode = javaNbt.getString("mode");
             
-            // Set to air and back to reset the structure block
+            
             UpdateBlockPacket emptyBlockPacket = new UpdateBlockPacket();
             emptyBlockPacket.setDataLayer(0);
             emptyBlockPacket.setBlockPosition(position);
@@ -75,7 +75,7 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         if (javaNbt.size() < 5) {
-            return; // These values aren't here
+            return; 
         }
 
         bedrockNbt.putString("structureName", javaNbt.getString("name"));
@@ -85,13 +85,13 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
             case "LOAD" -> 2;
             case "CORNER" -> 3;
             case "DATA" -> 4;
-            default -> 1; // SAVE
+            default -> 1; 
         };
 
         bedrockNbt.putInt("data", bedrockData);
-        bedrockNbt.putString("dataField", ""); // ??? possibly related to Java's "metadata"
+        bedrockNbt.putString("dataField", ""); 
 
-        // Mirror behaves different in Java and Bedrock - it requires modifying the position in space as well
+        
         String mirror = javaNbt.getString("mirror");
         StructureMirror bedrockMirror = switch (mirror) {
             case "FRONT_BACK" -> StructureMirror.X;
@@ -118,7 +118,7 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
         int yStructureSize = javaNbt.getInt("sizeY");
         int zStructureSize = javaNbt.getInt("sizeZ");
 
-        // The "positions" are also offsets on Java
+        
         int posX = javaNbt.getInt("posX");
         int posY = javaNbt.getInt("posY");
         int posZ = javaNbt.getInt("posZ");
@@ -134,8 +134,8 @@ public class StructureBlockBlockEntityTranslator extends BlockEntityTranslator {
         bedrockNbt.putInt("yStructureSize", yStructureSize);
         bedrockNbt.putInt("zStructureSize", zStructureSize);
 
-        bedrockNbt.putFloat("integrity", javaNbt.getFloat("integrity")); // Is 1.0f by default on Java but 100.0f on Bedrock
+        bedrockNbt.putFloat("integrity", javaNbt.getFloat("integrity")); 
 
-        // Java's "showair" is unrepresented
+        
     }
 }

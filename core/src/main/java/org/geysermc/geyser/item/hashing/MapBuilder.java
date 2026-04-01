@@ -31,67 +31,33 @@ import org.cloudburstmc.nbt.NbtMap;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-/**
- * {@link MapBuilder}s can be used to define map-like structures to encode a {@link Type} using a {@link MapHasher}.
- *
- * @param <Type> the type to encode.
- */
+
 @FunctionalInterface
 public interface MapBuilder<Type> extends UnaryOperator<MapHasher<Type>> {
 
-    /**
-     * Casts this map builder to a {@link Casted}. This cast is done unsafely, only use this if you are sure the object being encoded is of the type being cast to!
-     *
-     * @param <Casted> the type to cast to.
-     */
+    
     default <Casted> MapBuilder<Casted> cast() {
         return builder -> builder.accept(this, casted -> (Type) casted);
     }
 
-    /**
-     * Returns a map builder that doesn't contain anything.
-     *
-     * @param <Type> the type to encode.
-     */
+    
     static <Type> MapBuilder<Type> unit() {
         return builder -> builder;
     }
 
-    /**
-     * Delegates to {@link MapBuilder#dispatch(String, MinecraftHasher, Function, Function)}, uses {@code "type"} as the {@code typeKey}.
-     *
-     * @see MapBuilder#dispatch(String, MinecraftHasher, Function, Function)
-     */
+    
     static <Type, Dispatched> MapBuilder<Dispatched> dispatch(MinecraftHasher<Type> typeHasher, Function<Dispatched, Type> typeExtractor, Function<Type, MapBuilder<Dispatched>> hashDispatch) {
         return dispatch("type", typeHasher, typeExtractor, hashDispatch);
     }
 
-    /**
-     * Creates a map builder that dispatches a {@link Type} from a {@link Dispatched} using {@code typeExtractor}, puts this as the {@code typeKey} key in the map using the given {@code typeHasher},
-     * and uses a {@link MapBuilder} provided by {@code mapDispatch} to build the rest of the map.
-     *
-     * <p>This can be used to create map builders that build an abstract type or interface into a map with different keys depending on the type.</p>
-     *
-     * @param typeKey the key to store the {@link Type} in.
-     * @param typeHasher the hasher used to encode the {@link Type}.
-     * @param typeExtractor the function that extracts a {@link Type} from a {@link Dispatched}.
-     * @param mapDispatch the function that provides a {@link MapBuilder} based on a {@link Type}.
-     * @param <Type> the type of the {@code typeKey}.
-     * @param <Dispatched> the type of the new map builder.
-     */
+    
     static <Type, Dispatched> MapBuilder<Dispatched> dispatch(String typeKey, MinecraftHasher<Type> typeHasher, Function<Dispatched, Type> typeExtractor, Function<Type, MapBuilder<Dispatched>> mapDispatch) {
         return builder -> builder
             .accept(typeKey, typeHasher, typeExtractor)
             .accept(typeExtractor, mapDispatch);
     }
 
-    /**
-     * Returns a function that creates a map builder from an NBT map. The builder simply adds all keys from the NBT map.
-     *
-     * <p>Can be used with {@link MapHasher#accept(Function, Function)} to inline an NBT map into a map builder, together with other keys.</p>
-     *
-     * @param <Type> the type to encode.
-     */
+    
     static <Type> Function<NbtMap, MapBuilder<Type>> inlineNbtMap() {
         return map -> builder -> {
             for (String key : map.keySet()) {

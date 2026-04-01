@@ -72,7 +72,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         if (packet.getType() == EntityType.PLAYER) {
             PlayerEntity entity;
             if (packet.getUuid().equals(session.getPlayerEntity().uuid())) {
-                // Server is sending a fake version of the current player
+                
                 entity = new PlayerEntity(context, session.getPlayerEntity().getUsername(), session.getPlayerEntity().getTextures());
             } else {
                 entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
@@ -92,8 +92,8 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             }
 
             entity.sendPlayer();
-            // only load skin if we're not in a test environment.
-            // Otherwise, it tries to load various resources
+            
+            
             if (!EnvironmentUtils.IS_UNIT_TESTING) {
                 SkinManager.requestAndHandleSkinAndCape(entity, session, null);
             }
@@ -104,10 +104,10 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         if (packet.getType() == EntityType.FALLING_BLOCK) {
             entity = new FallingBlockEntity(context, ((FallingBlockData) packet.getData()).getId());
         } else if (packet.getType() == EntityType.FISHING_BOBBER) {
-            // Fishing bobbers need the owner for the line
+            
             int ownerEntityId = ((ProjectileData) packet.getData()).getOwnerId();
             Entity owner = session.getEntityCache().getEntityByJavaId(ownerEntityId);
-            // Java clients only spawn fishing hooks with a player as its owner
+            
             if (owner instanceof PlayerEntity) {
                 entity = new FishingHookEntity(context, (PlayerEntity) owner);
             } else {
@@ -116,7 +116,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         } else {
             entity = definition.factory().create(context);
 
-            // This is done over entity metadata in modern versions, but is still sent over network in the spawn packet
+            
             if (entity instanceof HangingEntity hanging) {
                 hanging.setDirection((Direction) packet.getData());
             }

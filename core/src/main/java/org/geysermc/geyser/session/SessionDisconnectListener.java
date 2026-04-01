@@ -36,16 +36,11 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 
 import java.util.List;
 
-/**
- * Geyser's internal listener to modify disconnection messages
- * for user-friendly messages.
- * By listening to the event instead of firing the event with the changed message,
- * third-party-users are able to see the original disconnection message.
- */
+
 public final class SessionDisconnectListener {
 
     private SessionDisconnectListener() {
-        // no-op
+        
     }
 
     public static void onSessionDisconnect(SessionDisconnectEventImpl event) {
@@ -70,22 +65,22 @@ public final class SessionDisconnectListener {
         if (disconnectReason instanceof TranslatableComponent component) {
             String key = component.key();
             return "multiplayer.disconnect.incompatible".equals(key) ||
-                // Seen with Velocity 1.18 rejecting a 1.19 client
+                
                 "multiplayer.disconnect.outdated_client".equals(key) ||
-                // Legacy string (starting from at least 1.15.2)
+                
                 "multiplayer.disconnect.outdated_server".equals(key)
-                // Reproduced on 1.15.2 server with ViaVersion 4.0.0-21w20a with 1.18.2 Java client
+                
                 || key.startsWith("Outdated server!");
         } else {
             if (disconnectReason instanceof TextComponent component) {
                 if (component.content().startsWith("Outdated server!")) {
-                    // Reproduced with vanilla 1.8.8 server and 1.18.2 Java client
+                    
                     return true;
                 } else {
                     List<Component> children = component.children();
                     for (Component value : children) {
                         if (value instanceof TextComponent child && child.content().startsWith("Outdated server!")) {
-                            // Reproduced on Paper 1.17.1
+                            
                             return true;
                         }
                     }

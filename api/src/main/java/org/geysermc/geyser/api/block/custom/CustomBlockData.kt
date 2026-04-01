@@ -22,122 +22,118 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.block.custom
 
-package org.geysermc.geyser.api.block.custom;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
-import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
-import org.geysermc.geyser.api.util.CreativeCategory;
-
-import java.util.List;
-import java.util.Map;
+import org.geysermc.geyser.api.GeyserApi
+import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents
+import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty
+import org.geysermc.geyser.api.util.CreativeCategory
 
 /**
  * This class is used to store data for a custom block.
  */
-public interface CustomBlockData {
+interface CustomBlockData {
     /**
      * Gets the name of the custom block
-     *
+     * 
      * @return The name of the custom block.
      */
-    @NonNull String name();
+    fun name(): String
 
     /**
      * Gets the identifier of the custom block
-     *
+     * 
      * @return The identifier of the custom block.
      */
-    @NonNull String identifier();
+    fun identifier(): String
 
     /**
      * Gets if the custom block is included in the creative inventory
      * 
      * @return If the custom block is included in the creative inventory.
      */
-    boolean includedInCreativeInventory();
+    fun includedInCreativeInventory(): Boolean
 
     /**
      * Gets the block's creative category, or tab id.
-     *
+     * 
      * @return the block's creative category
      */
-    @Nullable CreativeCategory creativeCategory();
+    fun creativeCategory(): CreativeCategory?
 
     /**
      * Gets the block's creative group.
-     *
+     * 
      * @return the block's creative group
      */
-    @Nullable String creativeGroup();
+    fun creativeGroup(): String?
 
     /**
      * Gets the components of the custom block
-     *
+     * 
      * @return The components of the custom block.
      */
-    @Nullable CustomBlockComponents components();
+    fun components(): CustomBlockComponents?
 
     /**
      * Gets the custom block's map of block property names to CustomBlockProperty
      * objects
-     *
+     * 
      * @return The custom block's map of block property names to CustomBlockProperty objects.
      */
-    @NonNull Map<String, CustomBlockProperty<?>> properties();
+    fun properties(): MutableMap<String?, CustomBlockProperty<*>?>
 
     /**
      * Gets the list of the custom block's permutations
-     *
+     * 
      * @return The permutations of the custom block.
      */
-    @NonNull List<CustomBlockPermutation> permutations();
+    fun permutations(): MutableList<CustomBlockPermutation?>
 
     /**
      * Gets the custom block's default block state
-     *
+     * 
      * @return The default block state of the custom block.
      */
-    @NonNull CustomBlockState defaultBlockState();
+    fun defaultBlockState(): CustomBlockState
 
     /**
      * Gets a builder for a custom block state
-     *
+     * 
      * @return The builder for a custom block state.
      */
-    CustomBlockState.@NonNull Builder blockStateBuilder();
-
-    /**
-     * Create a Builder for CustomBlockData
-     *
-     * @return A CustomBlockData Builder
-     */
-    static CustomBlockData.Builder builder() {
-        return GeyserApi.api().provider(CustomBlockData.Builder.class);
-    }
+    fun blockStateBuilder(): CustomBlockState.Builder
 
     interface Builder {
-        Builder name(@NonNull String name);
+        fun name(name: String): Builder?
 
-        Builder includedInCreativeInventory(boolean includedInCreativeInventory);
+        fun includedInCreativeInventory(includedInCreativeInventory: Boolean): Builder?
 
-        Builder creativeCategory(@Nullable CreativeCategory creativeCategory);
+        fun creativeCategory(creativeCategory: CreativeCategory?): Builder?
 
-        Builder creativeGroup(@Nullable String creativeGroup);
+        fun creativeGroup(creativeGroup: String?): Builder?
 
-        Builder components(@NonNull CustomBlockComponents components);
+        fun components(components: CustomBlockComponents): Builder?
 
-        Builder booleanProperty(@NonNull String propertyName);
+        fun booleanProperty(propertyName: String): Builder?
 
-        Builder intProperty(@NonNull String propertyName, List<Integer> values);
+        fun intProperty(propertyName: String, values: MutableList<Int?>?): Builder?
 
-        Builder stringProperty(@NonNull String propertyName, List<String> values);
+        fun stringProperty(propertyName: String, values: MutableList<String?>?): Builder?
 
-        Builder permutations(@NonNull List<CustomBlockPermutation> permutations);
+        fun permutations(permutations: MutableList<CustomBlockPermutation?>): Builder?
 
-        CustomBlockData build();
+        fun build(): CustomBlockData?
+    }
+
+    companion object {
+        /**
+         * Create a Builder for CustomBlockData
+         * 
+         * @return A CustomBlockData Builder
+         */
+        fun builder(): Builder {
+            return GeyserApi.Companion.api().provider<Builder, Builder?>(Builder::class.java)
+        }
     }
 }

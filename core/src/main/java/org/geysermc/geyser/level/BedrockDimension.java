@@ -27,11 +27,7 @@ package org.geysermc.geyser.level;
 
 import lombok.ToString;
 
-/**
- * A data structure to represent what Bedrock believes are the height requirements for a specific dimension.
- * As of 1.18.30, biome count is representative of the height of the world, and out-of-bounds chunks can crash
- * the client.
- */
+
 @ToString
 public class BedrockDimension {
 
@@ -39,7 +35,7 @@ public class BedrockDimension {
     public static final int DEFAULT_NETHER_ID = 1;
     public static final int END_ID = 2;
 
-    // Changes if the above-bedrock Nether building workaround is applied
+    
     public static int BEDROCK_NETHER_ID = DEFAULT_NETHER_ID;
 
     public static final BedrockDimension OVERWORLD = new BedrockDimension(-64, 384, true, OVERWORLD_ID);
@@ -57,12 +53,7 @@ public class BedrockDimension {
     private final boolean doUpperHeightWarn;
     private final int bedrockId;
 
-    /**
-     * @param minY The minimum height Bedrock Edition will accept.
-     * @param height The maximum chunk height Bedrock Edition will accept, from the lowest point to the highest.
-     * @param doUpperHeightWarn whether to warn in the console if the Java dimension height exceeds Bedrock's.
-     * @param bedrockId the Bedrock dimension ID of this dimension.
-     */
+    
     public BedrockDimension(int minY, int height, boolean doUpperHeightWarn, int bedrockId) {
         this.minY = minY;
         this.height = height;
@@ -70,14 +61,9 @@ public class BedrockDimension {
         this.bedrockId = bedrockId;
     }
 
-    /**
-     * The Nether dimension in Bedrock does not permit building above Y128 - the Bedrock above the dimension.
-     * This workaround sets the Nether as the End dimension to ignore this limit.
-     *
-     * @param isAboveNetherBedrockBuilding true if we should apply The End workaround
-     */
+    
     public static void changeBedrockNetherId(boolean isAboveNetherBedrockBuilding) {
-        // Change dimension ID to the End to allow for building above Bedrock
+        
         BEDROCK_NETHER_ID = isAboveNetherBedrockBuilding ? END_ID : DEFAULT_NETHER_ID;
     }
 

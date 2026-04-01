@@ -46,9 +46,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
 public class MobEntity extends LivingEntity implements Leashable {
-    /**
-     * If another mob is holding this mob by a leash, this variable tracks their Bedrock entity ID.
-     */
+    
     private long leashHolderBedrockId;
 
     public MobEntity(EntitySpawnContext context) {
@@ -75,7 +73,7 @@ public class MobEntity extends LivingEntity implements Leashable {
     @Override
     protected final InteractiveTag testInteraction(Hand hand) {
         if (!isAlive()) {
-            // dead lol
+            
             return InteractiveTag.NONE;
         } else if (leashHolderBedrockId == session.getPlayerEntity().geyserId()) {
             return InteractiveTag.REMOVE_LEASH;
@@ -96,7 +94,7 @@ public class MobEntity extends LivingEntity implements Leashable {
     @Override
     public final InteractionResult interact(Hand hand) {
         if (!isAlive()) {
-            // dead lol
+            
             return InteractionResult.PASS;
         } else {
             GeyserItemStack itemInHand = session.getPlayerInventory().getItemInHand(hand);
@@ -140,7 +138,7 @@ public class MobEntity extends LivingEntity implements Leashable {
             }
         } else {
             if (itemInHand.asItem() instanceof SpawnEggItem) {
-                // Using the spawn egg on this entity to create a child
+                
                 return InteractionResult.CONSUME;
             }
         }
@@ -168,9 +166,7 @@ public class MobEntity extends LivingEntity implements Leashable {
         return leashHolderBedrockId;
     }
 
-    /**
-     * Returns if the entity is hostile. Used to determine if it can be leashed.
-     */
+    
     protected boolean isEnemy() {
         return false;
     }

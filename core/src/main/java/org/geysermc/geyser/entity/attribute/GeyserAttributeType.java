@@ -34,7 +34,7 @@ import org.cloudburstmc.protocol.bedrock.data.AttributeData;
 @AllArgsConstructor
 public enum GeyserAttributeType {
 
-    // Universal Attributes
+    
     FOLLOW_RANGE("minecraft:follow_range", "minecraft:follow_range", 0f, 2048f, 32f),
     KNOCKBACK_RESISTANCE("minecraft:knockback_resistance", "minecraft:knockback_resistance", 0f, 1f, 0f),
     MOVEMENT_SPEED("minecraft:movement_speed", "minecraft:movement", 0f, 1024f, 0.1f),
@@ -43,7 +43,7 @@ public enum GeyserAttributeType {
     HORSE_JUMP_STRENGTH("minecraft:jump_strength", "minecraft:horse.jump_strength", 0.0f, 2.0f, 0.7f),
     LUCK("minecraft:luck", "minecraft:luck", -1024f, 1024f, 0f),
 
-    // Java Attributes
+    
     ARMOR("minecraft:armor", null, 0f, 30f, 0f),
     ARMOR_TOUGHNESS("minecraft:armor_toughness", null, 0F, 20f, 0f),
     ATTACK_KNOCKBACK("minecraft:attack_knockback", null, 1.5f, Float.MAX_VALUE, 0f),
@@ -55,7 +55,7 @@ public enum GeyserAttributeType {
     BLOCK_BREAK_SPEED("minecraft:block_break_speed", null, 0f, 1024f, 1f),
     SUBMERGED_MINING_SPEED("minecraft:submerged_mining_speed", null, 0f, 20f, 0.2f),
 
-    // Bedrock Attributes
+    
     ABSORPTION(null, "minecraft:absorption", 0f, 1024f, 0f),
     EXHAUSTION(null, "minecraft:player.exhaustion", 0f, 20f, 0f),
     EXPERIENCE(null, "minecraft:player.experience", 0f, 1f, 0f),
@@ -83,7 +83,7 @@ public enum GeyserAttributeType {
         if (bedrockIdentifier == null) {
             return null;
         }
-        // Minimum, maximum, and default values are hardcoded on Java Edition, whereas controlled by the server on Bedrock
+        
         return new AttributeData(bedrockIdentifier, minimum, maximum, value, defaultValue);
     }
 }

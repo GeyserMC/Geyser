@@ -73,19 +73,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * The entity class specifically for a {@link GeyserSession}'s player.
- */
+
 public class SessionPlayerEntity extends PlayerEntity {
-    /**
-     * Used to fix some inconsistencies, especially in respawning.
-     */
+    
     @Getter
     protected final Map<GeyserAttributeType, AttributeData> attributes = new Object2ObjectOpenHashMap<>();
 
-    /**
-     * Java-only attributes
-     */
+    
     @Getter
     private double blockInteractionRange = GeyserAttributeType.BLOCK_INTERACTION_RANGE.getDefaultValue();
     @Getter
@@ -95,19 +89,13 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Getter
     private double submergedMiningSpeed = GeyserAttributeType.SUBMERGED_MINING_SPEED.getDefaultValue();
 
-    /**
-     * Used in PlayerInputTranslator for movement checks.
-     */
+    
     @Getter
     private boolean isRidingInFront;
-    /**
-     * Used when emulating client-side vehicles
-     */
+    
     @Getter
     private Vector2f vehicleInput = Vector2f.ZERO;
-    /**
-     * Used when emulating client-side vehicles
-     */
+    
     @Getter
     private int vehicleJumpStrength;
 
@@ -116,24 +104,18 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Getter @Setter
     private boolean insideScaffolding = false;
 
-    /**
-     * The client last tick end velocity, used for calculating player onGround.
-     */
+    
     @Getter @Setter
     private Vector3f lastTickEndVelocity = Vector3f.ZERO;
 
-    /**
-     * The client claimed interact rotation, intended for touch (pocket) user.
-     */
+    
     @Getter @Setter
     private Vector2f bedrockInteractRotation = Vector2f.ZERO;
 
     @Getter @Setter
     private float javaYaw;
 
-    /**
-     * If the player is colliding on the vertical axis or not according to the client.
-     */
+    
     @Getter @Setter
     private boolean collidingVertically;
 
@@ -147,18 +129,18 @@ public class SessionPlayerEntity extends PlayerEntity {
     protected void initializeMetadata() {
         super.initializeMetadata();
 
-        // This allows player to be slowly push towards the closet space when stuck inside block instead of instantly moved out.
+        
         setFlag(EntityFlag.PUSH_TOWARDS_CLOSEST_SPACE, true);
     }
 
     @Override
     protected void setClientSideSilent() {
-        // Do nothing, since we want the session player to hear their own footstep sounds for example.
+        
     }
 
     @Override
     public void spawnEntity() {
-        // Already logged in
+        
     }
 
     @Override
@@ -175,7 +157,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     public void setPosition(Vector3f position) {
-        if (valid) { // Don't update during session init
+        if (valid) { 
             session.getCollisionManager().updatePlayerBoundingBox(position);
 
             if (session.isNoClip() && position.getY() >= session.getBedrockDimension().minY() - 5) {
@@ -185,13 +167,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         this.position = position;
     }
 
-    /**
-     * Special method used only when updating the session player's rotation.
-     * For some reason, Mode#NORMAL ignored rotation. Yay.
-     * @param yaw the new yaw
-     * @param pitch the new pitch
-     * @param headYaw the head yaw
-     */
+    
     public void updateOwnRotation(float yaw, float pitch, float headYaw) {
         setYaw(yaw);
         setPitch(pitch);
@@ -207,22 +183,16 @@ public class SessionPlayerEntity extends PlayerEntity {
 
         session.sendUpstreamPacket(movePlayerPacket);
 
-        // We're just setting rotation, player shouldn't lose motion, send motion packet to account for that.
+        
         SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
         entityMotionPacket.setRuntimeEntityId(geyserId);
         entityMotionPacket.setMotion(motion);
         session.sendUpstreamPacket(entityMotionPacket);
     }
 
-    /**
-     * Set the player's position without applying an offset or moving the bounding box
-     * This is used in BedrockMovePlayer which receives the player's position
-     * with the offset pre-applied
-     *
-     * @param position the new position of the Bedrock player
-     */
+    
     public void setPositionFromBedrockPos(Vector3f position) {
-        // Special handling: position while sleeping
+        
         if (bedPosition != null && getFlag(EntityFlag.SLEEPING)) {
             this.position = position.down(0.2f);
         } else if (this.vehicle != null) {
@@ -231,19 +201,16 @@ public class SessionPlayerEntity extends PlayerEntity {
             this.position = position.down(offset);
         }
 
-        // Player is "above" the void so they're not supposed to no clip.
+        
         if (session.isNoClip() && position.getY() - EntityDefinitions.PLAYER.offset() >= session.getBedrockDimension().minY() - 5) {
             session.setNoClip(false);
         }
     }
 
-    /**
-     * Sending any updated flags (sprinting, onFire, etc.) to the client while in spectator is not needed
-     * Also "fixes" <a href="https://github.com/GeyserMC/Geyser/issues/3318">issue 3318</a>
-     */
+    
     @Override
     public void setFlags(ByteEntityMetadata entityMetadata) {
-        // TODO: proper fix, BDS somehow does it? https://paste.gg/p/anonymous/3adfb7612f1540be80fa03a2281f93dc (BDS 1.20.13)
+        
         if (!this.session.getGameMode().equals(GameMode.SPECTATOR)) {
             super.setFlags(entityMetadata);
         }
@@ -266,10 +233,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         session.getCollisionManager().updatePlayerBoundingBox();
     }
 
-    /**
-     * Since 1.19.40, the client must be re-informed of its bounding box on respawn
-     * See <a href="https://github.com/GeyserMC/Geyser/issues/3370">issue 3370</a>
-     */
+    
     public void updateBoundingBox() {
         dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
         dirtyMetadata.put(EntityDataTypes.WIDTH, getBoundingBoxWidth());
@@ -279,7 +243,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public boolean setBoundingBoxHeight(float height) {
         if (super.setBoundingBoxHeight(height)) {
-            if (valid) { // Don't update during session init
+            if (valid) { 
                 session.getCollisionManager().updatePlayerBoundingBox();
             }
             return true;
@@ -316,9 +280,9 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     protected void setAirSupply(int amount) {
-        // Seemingly required to be sent as of Bedrock 1.21. Otherwise, bubbles will appear as empty
-        // Also, this changes how the air bubble graphics/sounds are presented. Breathing on means sound effects and
-        // the bubbles visually pop
+        
+        
+        
         setFlag(EntityFlag.BREATHING, amount >= this.lastAirSupply);
         this.lastAirSupply = amount;
         super.setAirSupply(amount);
@@ -332,7 +296,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     public AttributeData createHealthAttribute() {
-        // Max health must be divisible by two in bedrock
+        
         if ((maxHealth % 2) == 1) {
             maxHealth += 1;
         }
@@ -341,7 +305,7 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     protected boolean hasShield(boolean offhand) {
-        // Must be overridden to point to the player's inventory cache
+        
         if (offhand) {
             return session.getPlayerInventory().getOffhand().is(Items.SHIELD);
         } else {
@@ -382,10 +346,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         return attributeData;
     }
 
-    /**
-     * This will ONLY include attributes that have a Bedrock equivalent!!!
-     * see {@link LivingEntity#updateAttribute(Attribute, List)}
-     */
+    
     public float attributeOrDefault(GeyserAttributeType type) {
         var attribute = this.attributes.get(type);
         if (attribute == null) {
@@ -412,8 +373,8 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     public void setAbsorptionHearts(FloatEntityMetadata entityMetadata) {
-        // The bedrock client can glitch when sending a health and absorption attribute in the same tick
-        // This can happen when switching servers. Resending the absorption attribute fixes the issue
+        
+        
         attributes.put(GeyserAttributeType.ABSORPTION, GeyserAttributeType.ABSORPTION.getAttribute(entityMetadata.getPrimitiveValue()));
         super.setAbsorptionHearts(entityMetadata);
     }
@@ -422,10 +383,10 @@ public class SessionPlayerEntity extends PlayerEntity {
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
         super.setLivingEntityFlags(entityMetadata);
 
-        // Forcefully update flags since we're not tracking thing like using item properly.
-        // For eg: when player start using item client-sided (and the USING_ITEM flag is false on geyser side)
-        // If the server disagree with the player using item state, it will send a metadata set USING_ITEM flag to false
-        // But since it never got set to true, nothing changed, causing the client to not receive the USING_ITEM flag they're supposed to.
+        
+        
+        
+        
         this.forceFlagUpdate();
     }
 
@@ -433,10 +394,10 @@ public class SessionPlayerEntity extends PlayerEntity {
     public void resetMetadata() {
         super.resetMetadata();
 
-        // Reset air
+        
         this.resetAir();
 
-        // Absorption is metadata in java edition
+        
         attributes.remove(GeyserAttributeType.ABSORPTION);
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(geyserId);
@@ -480,14 +441,14 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     @Override
     public void setVehicle(Entity entity) {
-        // For boats, we send width = 0.6 and height = 1.6 since there is otherwise a problem with player "clipping" into the boat when standing on it or running into it.
-        // Having a wide bounding box fixed that, however, it is technically incorrect and creates certain problems
-        // when you're actually riding the boat (https://github.com/GeyserMC/Geyser/issues/3106), since the box is way too big
-        // the boat's motion stops right before the block is hit and doesn't let the actual bounding clip collide into the block,
-        // causing the issues. So to fix this, everytime player enter a boat we send the java bounding box and only send the
-        // definition box when player is not riding the boat.
+        
+        
+        
+        
+        
+        
         if (entity instanceof BoatEntity) {
-            // These bounding box values are based off 1.21.7
+            
             entity.setBoundingBoxWidth(1.375F);
             entity.setBoundingBoxHeight(0.5625F);
             entity.updateBedrockMetadata();
@@ -497,16 +458,14 @@ public class SessionPlayerEntity extends PlayerEntity {
             this.vehicle.updateBedrockMetadata();
         }
 
-        // Bedrock player can dismount by pressing jump while Java cannot, so we need to prevent player from jumping to match vanilla behaviour.
+        
         this.session.setLockInput(InputLocksFlag.JUMP, entity != null && entity.doesJumpDismount());
         this.session.updateInputLocks();
 
         super.setVehicle(entity);
     }
   
-    /**
-     * Used to calculate player jumping velocity for ground status calculation.
-     */
+    
     public float getJumpVelocity() {
         float velocity = 0.42F;
 
@@ -539,7 +498,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     public boolean canStartGliding() {
-        // You can't start gliding when levitation is applied
+        
         if (session.getEffectCache().getEntityEffects().contains(Effect.LEVITATION)) {
             return false;
         }
@@ -552,9 +511,9 @@ public class SessionPlayerEntity extends PlayerEntity {
             return false;
         }
 
-        // Unfortunately gliding is still client-side, so we cannot force the client to glide even
-        // if we wanted to. However, we still need to check that gliding is possible even with, say,
-        // an elytra that does not have the glider component.
+        
+        
+        
         for (Map.Entry<EquipmentSlot, GeyserItemStack> entry : session.getPlayerInventory().getEquipment().entrySet()) {
             if (entry.getValue().getComponent(DataComponentTypes.GLIDER) != null) {
                 Equippable equippable = entry.getValue().getComponent(DataComponentTypes.EQUIPPABLE);
@@ -563,7 +522,7 @@ public class SessionPlayerEntity extends PlayerEntity {
                 }
             }
 
-            // Bedrock will NOT allow flight when not wearing an elytra; even if it doesn't have a glider component
+            
             if (entry.getKey() == EquipmentSlot.CHESTPLATE && !entry.getValue().is(Items.ELYTRA)) {
                 return false;
             }

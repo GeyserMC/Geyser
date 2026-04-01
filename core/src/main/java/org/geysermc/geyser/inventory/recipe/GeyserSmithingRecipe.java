@@ -72,7 +72,7 @@ public record GeyserSmithingRecipe(int id,
         for (ItemDescriptorWithCount template : templates) {
             for (ItemDescriptorWithCount base : bases) {
                 for (ItemDescriptorWithCount addition : additions) {
-                    // Note: vanilla inputs use aux value of Short.MAX_VALUE
+                    
                     recipeData.add(SmithingTransformRecipeData.of(id + "_" + i, template, base, addition,
                             output.right(), "smithing_table", netId + i));
                     i++;

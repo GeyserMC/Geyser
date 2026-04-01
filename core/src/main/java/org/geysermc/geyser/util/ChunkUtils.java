@@ -100,8 +100,8 @@ public class ChunkUtils {
         if (chunkPos == null || !chunkPos.equals(newChunkPos)) {
             NetworkChunkPublisherUpdatePacket chunkPublisherUpdatePacket = new NetworkChunkPublisherUpdatePacket();
             chunkPublisherUpdatePacket.setPosition(position);
-            // Mitigates chunks not loading on 1.17.1 Paper and 1.19.3 Fabric. As of Bedrock 1.19.60.
-            // https://github.com/GeyserMC/Geyser/issues/3490
+            
+            
             chunkPublisherUpdatePacket.setRadius(squareToCircle(session.getServerRenderDistance()) << 4);
             session.sendUpstreamPacket(chunkPublisherUpdatePacket);
 
@@ -109,50 +109,34 @@ public class ChunkUtils {
         }
     }
 
-    /**
-     * Converts a Java render distance number to the equivalent in Bedrock.
-     */
+    
     public static int squareToCircle(int renderDistance) {
         return GenericMath.ceil((renderDistance + 1) * MathUtils.SQRT_OF_TWO);
     }
 
-    /**
-     * Sends a block update to the Bedrock client. If the platform is not Spigot, this also
-     * adds that block to the cache.
-     * @param session the Bedrock session to send/register the block to
-     * @param blockState the Java block state of the block
-     * @param position the position of the block
-     */
+    
     public static void updateBlock(GeyserSession session, int blockState, Vector3i position) {
         updateBlockClientSide(session, BlockState.of(blockState), position);
         session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState);
     }
 
-    /**
-     * Sends a block update to the Bedrock client. If the platform does not have an integrated world manager, this also
-     * adds that block to the cache.
-     * @param session the Bedrock session to send/register the block to
-     * @param blockState the Java block state of the block
-     * @param position the position of the block
-     */
+    
     public static void updateBlock(GeyserSession session, BlockState blockState, Vector3i position) {
         updateBlockClientSide(session, blockState, position);
         session.getChunkCache().updateBlock(position.getX(), position.getY(), position.getZ(), blockState.javaId());
     }
 
-    /**
-     * Updates a block, but client-side only.
-     */
+    
     public static void updateBlockClientSide(GeyserSession session, BlockState blockState, Vector3i position) {
-        // Checks for item frames so they aren't tripped up and removed
+        
         ItemFrameEntity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, position);
         if (itemFrameEntity != null) {
-            if (blockState.is(Blocks.AIR)) { // Item frame is still present and no block overrides that; refresh it
+            if (blockState.is(Blocks.AIR)) { 
                 itemFrameEntity.updateBlock(true);
-                // Still update the chunk cache with the new block if updateBlock is called
+                
                 return;
             }
-            // Otherwise, let's still store our reference to the item frame, but let the new block take precedence for now
+            
         }
 
         blockState.block().updateBlock(session, blockState, position);
@@ -166,16 +150,16 @@ public class ChunkUtils {
             int biomeLength = EMPTY_BIOME_DATA.length;
             int totalLength = biomeLength + subChunkCount;
             byte[] data = new byte[totalLength];
-            // Copy biome data
+            
             System.arraycopy(EMPTY_BIOME_DATA, 0, data, 0, biomeLength);
-            // Marker byte (carry previous biome forward)
-            // The byte written here is a header that says to carry on the biome data from the previous chunk
+            
+            
             byte marker = (byte) ((127 << 1) | 1);
-            // Fill marker bytes
+            
             for (int i = 0; i < subChunkCount - 1; i++) {
                 data[biomeLength + i] = marker;
             }
-            data[totalLength - 1] = 0; // Border blocks - Edu edition only
+            data[totalLength - 1] = 0; 
             return data;
         });
 
@@ -208,10 +192,7 @@ public class ChunkUtils {
         }
     }
 
-    /**
-     * Process the minimum and maximum heights for this dimension, and processes the world coordinate scale.
-     * This must be done after the player has switched dimensions so we know what their dimension is
-     */
+    
     public static void loadDimension(GeyserSession session) {
         JavaDimension dimension = session.getDimensionType();
         int minY = dimension.minY();
@@ -219,9 +200,9 @@ public class ChunkUtils {
         int maxY = minY + height;
 
         BedrockDimension bedrockDimension = session.getBedrockDimension();
-        // Yell in the console if the world height is too height in the current scenario
-        // The constraints change depending on if the player is in the overworld or not, and if experimental height is enabled
-        // (Ignore this for the Nether. We can't change that at the moment without the workaround. :/ )
+        
+        
+        
         if (SHOW_CHUNK_HEIGHT_WARNING_LOGS && (minY < bedrockDimension.minY() || (bedrockDimension.doUpperHeightWarn() && maxY > bedrockDimension.maxY()))) {
             session.getGeyser().getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.translator.chunk.out_of_bounds",
                     String.valueOf(bedrockDimension.minY()),

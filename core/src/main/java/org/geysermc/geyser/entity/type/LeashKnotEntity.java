@@ -32,13 +32,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 public class LeashKnotEntity extends Entity {
 
     public LeashKnotEntity(EntitySpawnContext context) {
-        // Position is incorrect by default
+        
         super(context.position(context.position().add(0.5f, 0.25f, 0.5f)));
     }
 
     @Override
     public InteractionResult interact(Hand hand) {
-        // Un-leashing the knot
+        
         return InteractionResult.SUCCESS;
     }
 }

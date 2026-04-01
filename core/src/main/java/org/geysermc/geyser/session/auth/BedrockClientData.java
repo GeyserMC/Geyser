@@ -158,9 +158,7 @@ public final class BedrockClientData {
         }
     }
 
-    /**
-     * Creates a JSON parser that reads the incoming enum ordinal and converts it to the enum constant.
-     */
+    
     private static final class IntToEnumTypeFactory implements TypeAdapterFactory {
         @Override
         public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> type) {

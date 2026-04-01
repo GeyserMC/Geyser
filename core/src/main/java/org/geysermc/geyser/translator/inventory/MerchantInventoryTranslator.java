@@ -125,7 +125,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
     @Override
     public void openInventory(GeyserSession session, MerchantContainer container) {
         //Handled in JavaMerchantOffersTranslator
-        //TODO: send a blank inventory here in case the villager doesn't send a TradeList packet
+        
     }
 
     @Override
@@ -137,18 +137,18 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
 
     @Override
     public ItemStackResponse translateCraftingRequest(GeyserSession session, MerchantContainer container, ItemStackRequest request) {
-        // Behavior as of 1.18.10.
-        // We set the net ID to the trade index + 1. This doesn't appear to cause issues and means we don't have to
-        // store a map of net ID to trade index on our end.
+        
+        
+        
         int tradeChoice = ((CraftRecipeAction) request.getActions()[0]).getRecipeNetworkId() - 1;
         return handleTrade(session, container, request, tradeChoice);
     }
 
     @Override
     public ItemStackResponse translateAutoCraftingRequest(GeyserSession session, MerchantContainer container, ItemStackRequest request) {
-        // 1.18.10 update - seems impossible to call without consoles/controller input
-        // We set the net ID to the trade index + 1. This doesn't appear to cause issues and means we don't have to
-        // store a map of net ID to trade index on our end.
+        
+        
+        
         int tradeChoice = ((AutoCraftRecipeAction) request.getActions()[0]).getRecipeNetworkId() - 1;
         return handleTrade(session, container, request, tradeChoice);
     }
@@ -158,26 +158,26 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
         session.sendDownstreamGamePacket(packet);
 
         if (session.isEmulatePost1_13Logic()) {
-            // 1.18 Java cooperates nicer than older versions
+            
             container.onTradeSelected(session, tradeChoice);
             return translateRequest(session, container, request);
         } else {
-            // 1.18 servers works fine without a workaround, but ViaVersion needs to work around 1.13 servers,
-            // so we need to work around that with the delay. Specifically they force a window refresh after a
-            // trade packet has been sent.
+            
+            
+            
             session.scheduleInEventLoop(() -> {
                 if (session.getOpenInventory() instanceof MerchantContainer merchantInventory) {
                     merchantInventory.onTradeSelected(session, tradeChoice);
-                    // Ignore output since we don't want to send a delayed response packet back to the client
+                    
                     translateRequest(session, container, request);
 
-                    // Resync items once more
+                    
                     updateInventory(session, container);
                     InventoryUtils.updateCursor(session);
                 }
             }, 100, TimeUnit.MILLISECONDS);
 
-            // Revert this request, for now
+            
             return rejectRequest(request);
         }
     }

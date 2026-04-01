@@ -22,45 +22,35 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.event.bedrock
 
-package org.geysermc.geyser.api.event.bedrock;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.event.Cancellable;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
+import org.geysermc.event.Cancellable
+import org.geysermc.geyser.api.connection.GeyserConnection
+import org.geysermc.geyser.api.event.connection.ConnectionEvent
 
 /**
  * Called whenever a Bedrock player performs an emote on their end, before it is broadcasted to the rest of the server.
  */
-public final class ClientEmoteEvent extends ConnectionEvent implements Cancellable {
-    private final String emoteId;
-    private boolean cancelled;
-
-    public ClientEmoteEvent(@NonNull GeyserConnection connection, @NonNull String emoteId) {
-        super(connection);
-        this.emoteId = emoteId;
-    }
+class ClientEmoteEvent(connection: GeyserConnection, private val emoteId: String) : ConnectionEvent(connection),
+    Cancellable {
+    private var cancelled = false
 
     /**
      * @return the emote ID that the Bedrock player is attempting to perform.
      */
-    @NonNull
-    public String emoteId() {
-        return emoteId;
+    fun emoteId(): String {
+        return emoteId
     }
 
     /**
      * @return the cancel status of this event. A Bedrock player will still play this emote on its end even if this
      * event is cancelled, but other Bedrock players will not see.
      */
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
+    override fun isCancelled(): Boolean {
+        return cancelled
     }
 
-    @Override
-    public void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
+    override fun setCancelled(cancelled: Boolean) {
+        this.cancelled = cancelled
     }
 }

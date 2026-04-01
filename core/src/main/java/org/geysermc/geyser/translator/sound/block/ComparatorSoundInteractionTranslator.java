@@ -41,7 +41,7 @@ public class ComparatorSoundInteractionTranslator implements BlockSoundInteracti
     public void translate(GeyserSession session, Vector3f position, BlockState state) {
         LevelEventPacket levelEventPacket = new LevelEventPacket();
         levelEventPacket.setPosition(position);
-        levelEventPacket.setType(LevelEvent.SOUND_CLICK); //TODO: New ID?
+        levelEventPacket.setType(LevelEvent.SOUND_CLICK); 
         levelEventPacket.setData(state.getValue(Properties.MODE_COMPARATOR).equals("compare") ? 500 : 550);
         session.sendUpstreamPacket(levelEventPacket);
     }

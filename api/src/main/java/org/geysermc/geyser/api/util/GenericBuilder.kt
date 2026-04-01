@@ -22,23 +22,21 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.util
 
-package org.geysermc.geyser.api.util;
-
-import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.ApiStatus
 
 /**
  * An interface for builders.
- *
+ * 
  * @param <T> the type of the object built
  * @since 2.9.3
- */
+</T> */
 @ApiStatus.Internal
-public interface GenericBuilder<T> {
-
+interface GenericBuilder<T> {
     /**
      * Builds the object from the builder
      * @return the object
      */
-    T build();
+    fun build(): T?
 }

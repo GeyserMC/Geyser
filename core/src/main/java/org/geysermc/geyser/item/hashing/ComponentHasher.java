@@ -46,9 +46,7 @@ import org.geysermc.geyser.item.hashing.data.ObjectContentsType;
 
 import java.util.function.Supplier;
 
-/**
- * This interface contains various {@link MinecraftHasher}s used to encode properties of {@link Component}s. Usually, you'll only need {@link ComponentHasher#COMPONENT}.
- */
+
 public interface ComponentHasher {
 
     MinecraftHasher<Component> COMPONENT = MinecraftHasher.lazyInitialize(new Supplier<>() {
@@ -81,7 +79,7 @@ public interface ComponentHasher {
     };
 
     MinecraftHasher<TextDecoration.State> DECORATION_STATE = MinecraftHasher.BOOL.cast(state -> switch (state) {
-        case NOT_SET -> null; // Should never happen since we're using .optional() with NOT_SET as default value below
+        case NOT_SET -> null; 
         case FALSE -> false;
         case TRUE -> true;
     });
@@ -92,10 +90,10 @@ public interface ComponentHasher {
 
     MinecraftHasher<ClickEvent.Payload.Int> CLICK_EVENT_INT_PAYLOAD = MinecraftHasher.INT.cast(ClickEvent.Payload.Int::integer);
 
-    // Both dialog and custom click event types are not possible to hash within Geyser, because:
-    // - Dialog has no proper implementation within Adventure yet. Once it does, we'd probably only hash dialog holders with a resource location, because setting up
-    //   hashers for the full dialog structure can be a lot of work.
-    // - Custom uses BinaryTagHolder to store NBT data, which essentially only stores a string representation. This won't work with hashing, we need a NBT tag to hash.
+    
+    
+    
+    
     MinecraftHasher<ClickEvent> CLICK_EVENT = CLICK_EVENT_ACTION.dispatch("action", ClickEvent::action, action -> switch (action) {
         case OPEN_URL -> builder -> builder.accept("url", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
         case OPEN_FILE -> builder -> builder.accept("path", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
@@ -113,7 +111,7 @@ public interface ComponentHasher {
         } else if (action == HoverEvent.Action.SHOW_ITEM) {
             return builder -> builder
                 .accept("id", MinecraftHasher.KEY, event -> ((HoverEvent.ShowItem) event.value()).item())
-                .accept("count", MinecraftHasher.INT, event -> ((HoverEvent.ShowItem) event.value()).count()); // Data components are probably not possible
+                .accept("count", MinecraftHasher.INT, event -> ((HoverEvent.ShowItem) event.value()).count()); 
         }
         return builder -> builder
             .accept("id", MinecraftHasher.KEY, event -> ((HoverEvent.ShowEntity) event.value()).type())
@@ -148,7 +146,7 @@ public interface ComponentHasher {
 
     MinecraftHasher<TranslatableComponent> TRANSLATABLE_COMPONENT = component(builder -> builder
         .accept("translate", MinecraftHasher.STRING, TranslatableComponent::key)
-        .optionalNullable("fallback", MinecraftHasher.STRING, TranslatableComponent::fallback)); // Arguments are probably not possible
+        .optionalNullable("fallback", MinecraftHasher.STRING, TranslatableComponent::fallback)); 
 
     MinecraftHasher<KeybindComponent> KEYBIND_COMPONENT = component(builder -> builder
         .accept("keybind", MinecraftHasher.STRING, component -> component.keybind()));
@@ -164,7 +162,7 @@ public interface ComponentHasher {
     MinecraftHasher<NBTComponent<?, ?>> NBT_COMPONENT = component(builder -> builder
         .accept("nbt", MinecraftHasher.STRING, NBTComponent::nbtPath)
         .optional("interpret", MinecraftHasher.BOOL, NBTComponent::interpret, false)
-        .optionalNullable("separator", COMPONENT, NBTComponent::separator)); // TODO source key, needs kyori update?
+        .optionalNullable("separator", COMPONENT, NBTComponent::separator)); 
 
     MinecraftHasher<ObjectContentsType> OBJECT_CONTENTS_TYPE = MinecraftHasher.fromEnum(ObjectContentsType::getName);
 

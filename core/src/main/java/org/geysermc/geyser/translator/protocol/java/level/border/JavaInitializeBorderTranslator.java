@@ -43,7 +43,7 @@ public class JavaInitializeBorderTranslator extends PacketTranslator<Clientbound
         worldBorder.setWarningBlocks(packet.getWarningBlocks());
         worldBorder.setWarningDelay(packet.getWarningTime());
 
-        // See WorldBorder#lerpSizeBetween mojmap
+        
         if (packet.getLerpTime() > 0 && packet.getOldSize() != packet.getNewSize()) {
             worldBorder.createMoving(packet.getOldSize(), packet.getNewSize(), packet.getLerpTime());
         } else {

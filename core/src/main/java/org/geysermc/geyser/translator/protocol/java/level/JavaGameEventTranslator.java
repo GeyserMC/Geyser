@@ -51,14 +51,14 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
         PlayerEntity entity = session.getPlayerEntity();
 
         switch (packet.getNotification()) {
-            // Yes, START_RAIN and STOP_RAIN are swapped in terms of what they cause the client to do.
-            // This is how the Mojang mappings name them, so we go with it
-            // It seems Mojang's intent was that START_RAIN would set the rain strength to 0 so that it can then be incremeneted on a gradient by the server
-            // The inverse is true for STOP_RAIN
-            // This is indeed the behavior of the vanilla server
-            // However, it seems most server software (at least Spigot and Paper) did not go along with this
-            // As a result many developers use these packets for the opposite of what their names implies
-            // Behavior last verified with Java 1.19.4 and Bedrock 1.19.71
+            
+            
+            
+            
+            
+            
+            
+            
             case START_RAINING:
                 session.updateRain(0);
                 break;
@@ -66,12 +66,12 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 session.updateRain(1);
                 break;
             case RAIN_LEVEL_CHANGE:
-                // This is the rain strength on LevelEventType.START_RAINING, but can be any value on LevelEventType.STOP_RAINING
+                
                 float rainStrength = ((RainStrengthValue) packet.getValue()).getStrength();
                 session.updateRain(rainStrength);
                 break;
             case THUNDER_LEVEL_CHANGE:
-                // See above, same process
+                
                 float thunderStrength = ((ThunderStrengthValue) packet.getValue()).getStrength();
                 session.updateThunder(thunderStrength);
                 break;
@@ -86,7 +86,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 session.sendAdventureSettings();
 
                 if (session.getPlayerEntity().isOnGround() && gameMode == GameMode.SPECTATOR) {
-                    // Fix a bug where the player has glitched movement and thinks they are still on the ground
+                    
                     MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
                     movePlayerPacket.setRuntimeEntityId(entity.geyserId());
                     movePlayerPacket.setPosition(entity.bedrockPosition());
@@ -97,7 +97,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                     session.sendUpstreamPacket(movePlayerPacket);
                 }
 
-                // Update the crafting grid to add/remove barriers for creative inventory
+                
                 PlayerInventoryTranslator.updateCraftingGrid(session, session.getPlayerInventory());
                 break;
             case WIN_GAME:
@@ -115,8 +115,8 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 }
                 break;
             case GUARDIAN_ELDER_EFFECT:
-                // note: There is a ElderGuardianEffectValue that determines if a sound should be made or not,
-                // but that doesn't seem to be controllable on Bedrock Edition
+                
+                
                 EntityEventPacket eventPacket = new EntityEventPacket();
                 eventPacket.setType(EntityEventType.ELDER_GUARDIAN_CURSE);
                 eventPacket.setData(0);
@@ -130,7 +130,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 session.sendUpstreamPacket(gamerulePacket);
                 break;
             case NO_RESPAWN_BLOCK_AVAILABLE:
-                // Not sent as a proper message? Odd.
+                
                 session.sendMessage(MinecraftLocale.getLocaleString("block.minecraft.spawn.not_valid",
                         session.locale()));
                 break;
@@ -143,9 +143,9 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 session.sendUpstreamPacket(arrowSoundPacket);
                 break;
             default:
-                // DEMO_EVENT               - for JE game demo
-                // LEVEL_CHUNKS_LOAD_START  - ???
-                // PUFFER_FISH_STING        - doesn't exist on bedrock
+                
+                
+                
                 break;
         }
     }

@@ -41,14 +41,7 @@ public class PlayerListUtils {
 
     static final int MAX_PLAYER_LIST_PACKET_ENTRIES = 1000;
 
-    /**
-     * Sends a player list packet to the client with the given entries.
-     * If there are too many provided entries, multiple packets will be sent.
-     *
-     * @param session the Geyser session
-     * @param entries the list of player list packet entries to send
-     * @param action  the action to perform with the player list
-     */
+    
     public static void batchSendPlayerList(GeyserSession session, List<PlayerListPacket.Entry> entries, PlayerListPacket.Action action) {
         if (entries.size() > MAX_PLAYER_LIST_PACKET_ENTRIES) {
             int batches = entries.size() / MAX_PLAYER_LIST_PACKET_ENTRIES + (entries.size() % MAX_PLAYER_LIST_PACKET_ENTRIES > 0 ? 1 : 0);
@@ -83,11 +76,11 @@ public class PlayerListUtils {
     }
 
     public static PlayerListPacket.Entry buildEntryManually(GeyserSession session, UUID uuid, String username, long geyserId, SerializedSkin skin, Color color) {
-        // This attempts to find the XUID of the player so profile images show up for Xbox accounts
+        
         String xuid = "";
         GeyserSession playerSession = GeyserImpl.getInstance().connectionByUuid(uuid);
 
-        // Prefer looking up xuid using the session to catch linked players
+        
         if (playerSession != null) {
             xuid = playerSession.getAuthData().xuid();
         } else if (uuid.version() == 0) {
@@ -96,8 +89,8 @@ public class PlayerListUtils {
 
         PlayerListPacket.Entry entry;
 
-        // If we are building a PlayerListEntry for our own session we use our AuthData UUID instead of the Java UUID
-        // as Bedrock expects to get back its own provided UUID
+        
+        
         if (session.getPlayerEntity().uuid().equals(uuid)) {
             entry = new PlayerListPacket.Entry(session.getAuthData().uuid());
         } else {
@@ -129,10 +122,7 @@ public class PlayerListUtils {
         }
     }
 
-    /**
-     * Whether Geyser should limit the player list entries shown to the amount of players actually displayed / near the player
-     * Avoids client crashes when opening the chat on playstation consoles
-     */
+    
     public static boolean shouldLimitPlayerListEntries(GeyserSession session) {
         return HIDE_PLAYER_LIST_PS && session.platform() == BedrockPlatform.PS4;
     }

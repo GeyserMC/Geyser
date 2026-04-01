@@ -44,7 +44,7 @@ public class ChestedHorseEntity extends AbstractHorseEntity {
 
     @Override
     protected boolean testSaddle(@NonNull GeyserItemStack itemInHand) {
-        // Not checked here
+        
         return false;
     }
 
@@ -55,7 +55,7 @@ public class ChestedHorseEntity extends AbstractHorseEntity {
 
     @Override
     protected boolean additionalTestForInventoryOpen(@NonNull GeyserItemStack itemInHand) {
-        // Armor won't work on these
+        
         return false;
     }
 }

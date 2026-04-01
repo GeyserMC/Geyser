@@ -63,7 +63,7 @@ public class GeyserPistonListener implements Listener {
         this.worldManager = worldManager;
     }
 
-    // The handlers' parent class cannot be registered
+    
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPistonExtend(BlockPistonExtendEvent event) {
         onPistonAction(event);
@@ -100,18 +100,18 @@ public class GeyserPistonListener implements Listener {
             int dX = Math.abs(location.getBlockX() - player.getLocation().getBlockX()) >> 4;
             int dZ = Math.abs(location.getBlockZ() - player.getLocation().getBlockZ()) >> 4;
             if ((dX * dX + dZ * dZ) > session.getServerRenderDistance() * session.getServerRenderDistance()) {
-                // Ignore pistons outside the player's render distance
+                
                 continue;
             }
 
-            // Trying to grab the blocks from the world like other platforms would result in the moving piston block
-            // being returned instead.
+            
+            
             if (!blocksFilled) {
                 List<Block> blocks = isExtend ? ((BlockPistonExtendEvent) event).getBlocks() : ((BlockPistonRetractEvent) event).getBlocks();
                 for (Block block : blocks) {
                     Location attachedLocation = block.getLocation();
                     BlockState state = BlockState.of(worldManager.getBlockNetworkId(block));
-                    // Ignore blocks that will be destroyed
+                    
                     if (BlockStateValues.canPistonMoveBlock(state, isExtend)) {
                         attachedBlocks.put(getVector(attachedLocation), state);
                     }
@@ -120,7 +120,7 @@ public class GeyserPistonListener implements Listener {
             }
 
             int pistonBlockId = worldManager.getBlockNetworkId(event.getBlock());
-            // event.getDirection() is unreliable
+            
             Direction orientation = BlockState.of(pistonBlockId).getValue(Properties.FACING);
 
             session.executeInEventLoop(() -> {

@@ -37,11 +37,7 @@ public final class PluginMessageChannels {
             String.join("\0", SKIN, FORM, TRANSFER, PACKET)
                     .getBytes(StandardCharsets.UTF_8);
 
-    /**
-     * Get the prebuilt register data as a byte array
-     *
-     * @return the register data of the Floodgate channels
-     */
+    
     public static byte[] getFloodgateRegisterData() {
         return FLOODGATE_REGISTER_DATA;
     }

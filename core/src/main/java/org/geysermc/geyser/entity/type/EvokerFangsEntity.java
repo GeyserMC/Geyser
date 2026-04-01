@@ -37,15 +37,15 @@ public class EvokerFangsEntity extends Entity implements Tickable {
 
     public EvokerFangsEntity(EntitySpawnContext context) {
         super(context);
-        // As of 1.18.2 Bedrock, this line is required for the entity to be visible
-        // 22 is the starting number on Java Edition
+        
+        
         dirtyMetadata.put(EntityDataTypes.DATA_LIFETIME_TICKS, this.limitedLife);
     }
 
     @Override
     public void tick() {
         if (attackStarted) {
-            if (--this.limitedLife > 0 && this.limitedLife % 2 == 0) { // Matches Bedrock behavior
+            if (--this.limitedLife > 0 && this.limitedLife % 2 == 0) { 
                 dirtyMetadata.put(EntityDataTypes.DATA_LIFETIME_TICKS, this.limitedLife);
                 updateBedrockMetadata();
             }
@@ -55,7 +55,7 @@ public class EvokerFangsEntity extends Entity implements Tickable {
     public void setAttackStarted() {
         this.attackStarted = true;
         if (!silent) {
-            // Play the chomp sound
+            
             PlaySoundPacket packet = new PlaySoundPacket();
             packet.setPosition(this.bedrockPosition());
             packet.setSound("mob.evocation_fangs.attack");

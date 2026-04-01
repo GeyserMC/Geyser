@@ -43,12 +43,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.Serve
 
 public class BoatEntity extends Entity implements Tickable, Leashable, ClientVehicle {
 
-    /**
-     * Required when IS_BUOYANT is sent in order for boats to work in the water. <br>
-     *
-     * Taken from BDS 1.16.200, with the modification of <code>simulate_waves</code> since Java doesn't bob the boat up and down
-     * like Bedrock.
-     */
+    
     private static final String BUOYANCY_DATA = "{\"apply_gravity\":true,\"base_buoyancy\":1.0,\"big_wave_probability\":0.02999999932944775," +
             "\"big_wave_speed\":10.0,\"drag_down_on_buoyancy_removed\":0.0,\"liquid_blocks\":[\"minecraft:water\"," +
             "\"minecraft:flowing_water\"],\"simulate_waves\":false}";
@@ -61,20 +56,18 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
     private float paddleTimeRight;
     private boolean doTick;
 
-    /**
-     * Saved for using the "pick" functionality on a boat.
-     */
+    
     @Getter
     protected final BoatVariant variant;
 
     private long leashHolderBedrockId = -1;
 
-    // This is the best value, I can't really found any value that doesn't look choppy and laggy or that is not too slow, blame bedrock.
+    
     private final float ROWING_SPEED = 0.04f;
 
     public BoatEntity(EntitySpawnContext context, BoatVariant variant) {
         super(context);
-        // Initial rotation is incorrect
+        
         setYaw(yaw + 90);
         setPitch(0);
         setHeadYaw(headYaw + 90);
@@ -82,7 +75,7 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
 
         dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
 
-        // Required to be able to move on land 1.16.200+ or apply gravity not in the water 1.16.100+
+        
         dirtyMetadata.put(EntityDataTypes.IS_BUOYANT, true);
         dirtyMetadata.put(EntityDataTypes.BUOYANCY_DATA, BUOYANCY_DATA);;
     }
@@ -90,13 +83,13 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        // Without this flag you cant stand on boats
+        
         setFlag(EntityFlag.COLLIDABLE, true);
     }
 
     @Override
     public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        // We don't include the rotation (y) as it causes the boat to appear sideways
+        
         setPosition(position);
         setYaw(yaw + 90);
         setHeadYaw(yaw + 90);
@@ -173,16 +166,16 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         if (session.isSneaking()) {
             return InteractionResult.PASS;
         } else {
-            // TODO: the client also checks for "out of control" ticks
+            
             return InteractionResult.SUCCESS;
         }
     }
 
     @Override
     public void tick() {
-        // Java sends simply "true" and "false" (is_paddling_left), Bedrock keeps sending packets as you're rowing
+        
         if (session.getPlayerEntity().getVehicle() == this) {
-            // For packet timing accuracy, we'll send the packets here, as that's what Java Edition 1.21.3 does.
+            
             ServerboundPaddleBoatPacket steerPacket = new ServerboundPaddleBoatPacket(session.isSteeringLeft(), session.isSteeringRight());
             session.sendDownstreamGamePacket(steerPacket);
 
@@ -241,9 +234,7 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         return !session.isInClientPredictedVehicle() && !passengers.isEmpty() && this.session.getPlayerEntity() == passengers.get(0);
     }
 
-    /**
-     * Ordered by Bedrock ordinal
-     */
+    
     public enum BoatVariant {
         OAK,
         SPRUCE,

@@ -56,13 +56,10 @@ public final class CpuUtils {
         }
     }
 
-    /**
-     * Much of the code here was copied from the OSHI project. This is simply stripped down to only get the CPU model.
-     * <a href="https://github.com/oshi/oshi/">See here</a>
-     */
+    
     private static String getLinuxProcessorName() throws Exception {
         List<String> lines = Files.readAllLines(Paths.get("/proc/cpuinfo"), StandardCharsets.UTF_8);
-        Pattern whitespaceColonWhitespace = Pattern.compile("\\s+:\\s"); // From ParseUtil
+        Pattern whitespaceColonWhitespace = Pattern.compile("\\s+:\\s"); 
         for (String line : lines) {
             String[] splitLine = whitespaceColonWhitespace.split(line);
             if ("model name".equals(splitLine[0]) || "Processor".equals(splitLine[0])) {
@@ -73,9 +70,7 @@ public final class CpuUtils {
         return "unknown";
     }
 
-    /**
-     * <a href="https://stackoverflow.com/a/6327663">See here</a>
-     */
+    
     private static String getWindowsProcessorName() throws Exception {
         final String cpuNameCmd = "reg query \"HKLM\\HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0\" /v ProcessorNameString";
         final String regstrToken = "REG_SZ";
@@ -100,9 +95,7 @@ public final class CpuUtils {
         return result.substring(p + regstrToken.length()).trim();
     }
 
-    /**
-     * <a href="https://stackoverflow.com/a/62718963">See here</a>
-     */
+    
     private static String getMacProcessorName() throws Exception {
         Process process = Runtime.getRuntime().exec(new String[]{"sysctl", "-n", "machdep.cpu.brand_string"});
         process.waitFor();

@@ -30,9 +30,7 @@ import io.netty.channel.local.LocalChannel;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
-/**
- * Client -> server storing the spoofed remote address.
- */
+
 public class LocalChannelWithRemoteAddress extends LocalChannel {
     private SocketAddress spoofedAddress;
 

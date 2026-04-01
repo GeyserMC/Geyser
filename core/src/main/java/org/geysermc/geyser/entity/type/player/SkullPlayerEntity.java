@@ -42,10 +42,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-/**
- * A wrapper to handle skulls more effectively - skulls have to be treated as entities since there are no
- * custom player skulls in Bedrock.
- */
+
 public class SkullPlayerEntity extends AvatarEntity {
 
     @Getter
@@ -63,32 +60,32 @@ public class SkullPlayerEntity extends AvatarEntity {
 
     @Override
     protected void initializeMetadata() {
-        // Deliberately do not call super
-        // Set bounding box to almost nothing so the skull is able to be broken and not cause entity to cast a shadow
+        
+        
         dirtyMetadata.put(EntityDataTypes.SCALE, 1.08f);
         dirtyMetadata.put(EntityDataTypes.HEIGHT, 0.001f);
         dirtyMetadata.put(EntityDataTypes.WIDTH, 0.001f);
         setFlag(EntityFlag.CAN_SHOW_NAME, false);
-        setFlag(EntityFlag.INVISIBLE, true); // Until the skin is loaded
+        setFlag(EntityFlag.INVISIBLE, true); 
     }
 
     public void updateSkull(SkullCache.Skull skull) {
         skullPosition = skull.getPosition();
 
         if (!Objects.equals(skull.getSkinUrl(), skinUrl) || !Objects.equals(skullUUID, skull.getUuid())) {
-            // Make skull invisible as we change skins
+            
             setFlag(EntityFlag.INVISIBLE, true);
             updateBedrockMetadata();
 
             skinUrl = skull.getSkinUrl();
             skullUUID = skull.getUuid();
             SkullSkinManager.requestAndHandleSkin(this, session, (skin) -> session.scheduleInEventLoop(() -> {
-                // Delay to minimize split-second "player" pop-in
+                
                 setFlag(EntityFlag.INVISIBLE, false);
                 updateBedrockMetadata();
             }, 250, TimeUnit.MILLISECONDS));
         } else {
-            // Just a rotation/position change
+            
             setFlag(EntityFlag.INVISIBLE, false);
             updateBedrockMetadata();
         }

@@ -33,12 +33,7 @@ public enum UiProfile {
 
     private static final UiProfile[] VALUES = values();
 
-    /**
-     * Get the UiProfile instance from the identifier.
-     *
-     * @param id the UiProfile identifier
-     * @return The UiProfile or {@link #CLASSIC} if the UiProfile wasn't found
-     */
+    
     public static @NonNull UiProfile fromId(int id) {
         return VALUES.length > id ? VALUES[id] : VALUES[0];
     }

@@ -40,8 +40,8 @@ public class DyeableArmorItem extends ArmorItem {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
-        // Note that this is handled as of 1.20.5 in the ItemColors class.
-        // But horse leather armor and body leather armor are now both armor items. So it works!
+        
+        
         translateDyedColor(components, builder);
     }
 }

@@ -22,21 +22,19 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.entity.property.type
 
-package org.geysermc.geyser.api.entity.property.type;
-
-import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty
 
 /**
  * Represents a Java enum-backed enum property.
  * There are a few key limitations:
- * <ul>
- *     <li>There cannot be more than 16 values</li>
- *     <li>Enum names cannot be longer than 32 chars, must start with a letter, and may contain numbers and underscores</li>
- * </ul>
- *
+ * 
+ *  * There cannot be more than 16 values
+ *  * Enum names cannot be longer than 32 chars, must start with a letter, and may contain numbers and underscores
+ * 
+ * 
  * @param <E> the enum type
  * @since 2.9.0
- */
-public interface GeyserEnumEntityProperty<E extends Enum<E>> extends GeyserEntityProperty<E> {
-}
+</E> */
+interface GeyserEnumEntityProperty<E : Enum<E?>?> : GeyserEntityProperty<E?>

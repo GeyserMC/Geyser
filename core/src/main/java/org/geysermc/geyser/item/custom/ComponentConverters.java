@@ -59,25 +59,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-// Why is this coded so weirdly, you ask?
-// Why, it's because of two reasons!
-// First of all, Java generics are a bit limited :(
-// Second, the API module has its own set of component classes, because MCPL can't be used in there.
-// However, those component classes have the same names as the MCPL ones, which causes some issues when they both have to be used in the same file.
-// One can't be imported, and as such its full qualifier (e.g. org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable) would have to be used.
-// That would be a mess to code in, and as such this code here was carefully designed to only require one set of component classes by name (the MCPL ones).
+
+
+
+
+
+
+
 //
-// It is VERY IMPORTANT to note that for every component in the API, a converter to MCPL must be put here (there are some exceptions as noted in the Javadoc, better solutions are welcome).
-/**
- * This class is used to convert components from the API module to MCPL ones.
- *
- * <p>Most components convert over nicely, and it is very much preferred to have every API component have a converter in here. However, this is not always possible. At the moment, there is one exception:
- * <ul>
- *     <li>Non-vanilla data components (from {@link GeyserItemDataComponents}) don't have converters registered, for obvious reasons.
- *     They're used directly in the custom item registry populator. Eventually, some may have converters introduced as Mojang introduces such components in Java.</li>
- * </ul>
- * For both of these cases proper accommodations have been made in the {@link CustomItemRegistryPopulator}.
- */
+
+
 public class ComponentConverters {
     private static final Map<ItemDataComponent<?>, ResolvableComponentConverter<?>> converters = new HashMap<>();
 
@@ -129,8 +120,8 @@ public class ComponentConverters {
         });
 
         registerConverter(JavaItemDataComponents.REPAIRABLE, (itemMap, value, consumer) -> {
-            // Can't convert to MCPL HolderSet here, and custom item registry populator will just use the identifiers of the Holders
-            // and pass them to bedrock, if possible. This won't be perfect of course, since identifiers don't have to match bedrock ones
+            
+            
             consumer.accept(new ResolvableRepairable(value));
         });
 

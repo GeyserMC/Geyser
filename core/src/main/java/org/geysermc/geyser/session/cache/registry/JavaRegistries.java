@@ -57,9 +57,7 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * Stores {@link JavaRegistryKey} for Java registries that are used for loading of data-driven objects, tags, or both. Read {@link JavaRegistryKey} for more information on how to use one.
- */
+
 public class JavaRegistries {
     private static final List<JavaRegistryKey<?>> VALUES = new ArrayList<>();
 
@@ -74,7 +72,7 @@ public class JavaRegistries {
         try {
             return Optional.of(EntityType.valueOf(key.value().toUpperCase(Locale.ROOT)));
         } catch (IllegalArgumentException exception) {
-            return Optional.empty(); // Non-existent entity type
+            return Optional.empty(); 
         }
     });
 

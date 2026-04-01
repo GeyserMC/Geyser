@@ -41,45 +41,42 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Populates the recipe registry with some recipes that Java does not send, to ensure they show up as intended
- * in the recipe book.
- */
+
 public abstract class RecipeRegistryLoader implements RegistryLoader<String, Map<Object, List<GeyserRecipe>>> {
 
-//    @Override
-//    public Map<RecipeType, List<GeyserRecipe>> load(String input) {
-//        if (true) {
-//            return Collections.emptyMap();
-//        }
-//        Map<RecipeType, List<GeyserRecipe>> deserializedRecipes = new Object2ObjectOpenHashMap<>();
-//
-//        List<NbtMap> recipes;
-//        try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("mappings/recipes.nbt")) {
-//            try (NBTInputStream nbtStream = new NBTInputStream(new DataInputStream(stream))) {
-//                recipes = ((NbtMap) nbtStream.readTag()).getList("recipes", NbtType.COMPOUND);
-//            }
-//        } catch (Exception e) {
-//            throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.toolbox.fail.runtime_java"), e);
-//        }
-//
-//        MinecraftCodecHelper helper = MinecraftCodec.CODEC.getHelperFactory().get();
-//        for (NbtMap recipeCollection : recipes) {
-//            var pair = getRecipes(recipeCollection, helper);
-//            deserializedRecipes.put(pair.key(), pair.value());
-//        }
-//        return deserializedRecipes;
-//    }
 
-//    private static Pair<RecipeType, List<GeyserRecipe>> getRecipes(NbtMap recipes, MinecraftCodecHelper helper) {
-//        List<NbtMap> typedRecipes = recipes.getList("recipes", NbtType.COMPOUND);
-//        RecipeType recipeType = RecipeType.from(recipes.getInt("recipe_type", -1));
-//        if (recipeType == RecipeType.CRAFTING_SPECIAL_TIPPEDARROW) {
-//            return Pair.of(recipeType, getShapedRecipes(typedRecipes, helper));
-//        } else {
-//            return Pair.of(recipeType, getShapelessRecipes(typedRecipes, helper));
-//        }
-//    }
+
+
+
+
+
+//
+
+
+
+
+
+
+
+
+//
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     private static List<GeyserRecipe> getShapelessRecipes(List<NbtMap> recipes) {
         List<GeyserRecipe> deserializedRecipes = new ObjectArrayList<>(recipes.size());
@@ -101,7 +98,7 @@ public abstract class RecipeRegistryLoader implements RegistryLoader<String, Map
             ItemStack output = toItemStack(recipe.getCompound("output"));
             List<int[]> shape = recipe.getList("shape", NbtType.INT_ARRAY);
 
-            // In the recipes mapping, each recipe is mapped by a number
+            
             List<ItemStack> letterToRecipe = new ArrayList<>();
             for (NbtMap rawInput : recipe.getList("inputs", NbtType.COMPOUND)) {
                 letterToRecipe.add(toItemStack(rawInput));
@@ -109,7 +106,7 @@ public abstract class RecipeRegistryLoader implements RegistryLoader<String, Map
 
             Ingredient[] inputs = new Ingredient[shape.size() * shape.get(0).length];
             int i = 0;
-            // Create a linear array of items from the "cube" of the shape
+            
             for (int j = 0; i < shape.size() * shape.get(0).length; j++) {
                 for (int index : shape.get(j)) {
                     ItemStack stack = letterToRecipe.get(index);
@@ -121,11 +118,7 @@ public abstract class RecipeRegistryLoader implements RegistryLoader<String, Map
         return deserializedRecipes;
     }
 
-    /**
-     * Converts our serialized NBT into an ItemStack.
-     * id is the Java item ID as an integer, components is an optional String of the data components serialized
-     * as bytes in Base64 (so MCProtocolLib can parse the data).
-     */
+    
     private static ItemStack toItemStack(NbtMap nbt) {
         int id = nbt.getInt("id");
         int count = nbt.getInt("count", 1);

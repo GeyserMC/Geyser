@@ -57,7 +57,7 @@ import java.util.function.BiPredicate;
 
 public class CreativeItemRegistryPopulator {
     private static final List<BiPredicate<String, Integer>> JAVA_ONLY_ITEM_FILTER = List.of(
-            // Bedrock-only as its own item
+            
             (identifier, data) -> identifier.equals("minecraft:empty_map") && data == 2
     );
 
@@ -119,7 +119,7 @@ public class CreativeItemRegistryPopulator {
     static void populate(ItemRegistryPopulator.PaletteVersion palette, Map<String, ItemDefinition> definitions, Map<String, GeyserMappingItem> items, BiConsumer<ItemData.Builder, Integer> itemConsumer) {
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
-        // Load creative items
+        
         JsonArray creativeItemEntries;
         try (InputStream stream = bootstrap.getResourceOrThrow(String.format("bedrock/creative_items.%s.json", palette.version()))) {
             creativeItemEntries = JsonUtils.fromJson(stream).getAsJsonArray("items");
@@ -153,10 +153,10 @@ public class CreativeItemRegistryPopulator {
             }
         }
 
-        // Attempt to remove items that do not exist in Java (1.21.50 has 1.21.4 items, that don't exist on 1.21.2)
-        // we still add the lodestone compass - we're going to translate it.
+        
+        
         if (!items.containsKey(identifier) && !identifier.equals("minecraft:lodestone_compass")) {
-            // bedrock identifier not found, let's make sure it's not just different
+            
             boolean found = false;
             for (var mapping : items.values()) {
                 if (mapping.getBedrockIdentifier().equals(identifier)) {
@@ -165,12 +165,12 @@ public class CreativeItemRegistryPopulator {
                 }
             }
 
-            // TODO this is nice, but has the nasty side-effect of breaking creative categories.
-            // We would need to re-write those to fully remove new items / categories
-//            if (!found) {
-//                GeyserImpl.getInstance().getLogger().debug("Removing item that we don't yet translate: " + identifier);
-//                return null;
-//            }
+            
+            
+
+
+
+
         }
 
         JsonElement damageNode = itemNode.get("damage");
@@ -191,8 +191,8 @@ public class CreativeItemRegistryPopulator {
             try {
                 NbtMap stateTag = (NbtMap) NbtUtils.createReaderLE(bais).readTag();
 
-                // We remove these from the state definition map in
-                // BlockMappings, so we need to remove it from here
+                
+                
                 NbtMapBuilder builder = stateTag.toBuilder();
                 builder.remove("name_hash");
                 builder.remove("network_id");

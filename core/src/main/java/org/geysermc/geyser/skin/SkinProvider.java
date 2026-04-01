@@ -92,10 +92,7 @@ public class SkinProvider {
 
     private static final Map<UUID, SkinGeometry> cachedGeometry = new ConcurrentHashMap<>();
 
-    /**
-     * Citizens NPCs use UUID version 2, while legitimate Minecraft players use version 4, and
-     * offline mode players use version 3.
-     */
+    
     private static final Predicate<UUID> IS_NPC = uuid -> uuid.version() == 2;
 
     static final SkinGeometry SKULL_GEOMETRY;
@@ -104,7 +101,7 @@ public class SkinProvider {
     public static final SerializedSkin EMPTY_SERIALIZED_SKIN;
 
     static {
-        // Generate the empty texture to use as an emergency fallback
+        
         final int pink = -524040;
         final int black = -16777216;
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream(64 * 4 + 64 * 4);
@@ -116,10 +113,10 @@ public class SkinProvider {
                 } else {
                     rgba = x >= 32 ? black : pink;
                 }
-                outputStream.write((rgba >> 16) & 0xFF); // Red
-                outputStream.write((rgba >> 8) & 0xFF); // Green
-                outputStream.write(rgba & 0xFF); // Blue
-                outputStream.write((rgba >> 24) & 0xFF); // Alpha
+                outputStream.write((rgba >> 16) & 0xFF); 
+                outputStream.write((rgba >> 8) & 0xFF); 
+                outputStream.write(rgba & 0xFF); 
+                outputStream.write((rgba >> 24) & 0xFF); 
             }
         }
         EMPTY_SKIN = new Skin("geysermc:empty", outputStream.toByteArray(), true);
@@ -138,10 +135,10 @@ public class SkinProvider {
         EMPTY_SERIALIZED_SKIN = SerializedSkin.builder()
             .fullSkinId("emptyFullSkinId")
             .skinId("skinId")
-            .skinData(ImageData.of(EMPTY_SKIN.skinData()))
+            .skinData(ImageData.of(EMPTY_SKIN.skinData))
             .capeData(ImageData.EMPTY)
-            .geometryName(SkinGeometry.SLIM.geometryName())
-            .geometryData(SkinGeometry.SLIM.geometryData())
+            .geometryName(SkinGeometry.SLIM.geometryName)
+            .geometryData(SkinGeometry.SLIM.geometryData)
             .premium(true)
             .build();
     }
@@ -161,7 +158,7 @@ public class SkinProvider {
     }
 
     public static void registerCacheImageTask(GeyserImpl geyser) {
-        // Schedule Daily Image Expiry if we are caching them
+        
         if (geyser.config().advanced().cacheImages() > 0) {
             geyser.getScheduledThread().scheduleAtFixedRate(() -> {
                 File cacheFolder = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").toFile();
@@ -186,23 +183,19 @@ public class SkinProvider {
         }
     }
 
-    /**
-     * Search our cached database for an already existing, translated skin of this Java URL.
-     */
+    
     static Skin getCachedSkin(String skinUrl) {
         return CACHED_JAVA_SKINS.getIfPresent(skinUrl);
     }
 
-    /**
-     * If skin data fails to apply, or there is no skin data to apply, determine what skin we should give as a fallback.
-     */
+    
     public static SkinData determineFallbackSkinData(UUID uuid) {
         Skin skin = null;
         Cape cape = null;
         SkinGeometry geometry = SkinGeometry.WIDE;
 
         if (GeyserImpl.getInstance().config().java().authType() != AuthType.ONLINE) {
-            // Let's see if this player is a Bedrock player, and if so, let's pull their skin.
+            
             GeyserSession session = GeyserImpl.getInstance().connectionByUuid(uuid);
             if (session != null) {
                 String skinId = session.getClientData().getSkinId();
@@ -214,7 +207,7 @@ public class SkinProvider {
         }
 
         if (skin == null) {
-            // We don't have a skin for the player right now. Fall back to a default.
+            
             ProvidedSkins.ProvidedSkin providedSkin = ProvidedSkins.getDefaultPlayerSkin(uuid);
             skin = providedSkin.getData();
             geometry = providedSkin.isSlim() ? SkinGeometry.SLIM : SkinGeometry.WIDE;
@@ -227,9 +220,7 @@ public class SkinProvider {
         return new SkinData(skin, cape, geometry);
     }
 
-    /**
-     * Used as a fallback if an official Java cape doesn't exist for this user.
-     */
+    
     @NonNull
     private static Cape getCachedBedrockCape(UUID uuid) {
         GeyserSession session = GeyserImpl.getInstance().connectionByUuid(uuid);
@@ -254,7 +245,7 @@ public class SkinProvider {
     static CompletableFuture<SkinData> requestSkinData(AvatarEntity entity, GeyserSession session) {
         SkinManager.GameProfileData data = SkinManager.GameProfileData.from(entity);
         if (data == null) {
-            // This player likely does not have a textures property
+            
             return CompletableFuture.completedFuture(determineFallbackSkinData(entity.uuid()));
         }
 
@@ -265,15 +256,15 @@ public class SkinProvider {
                         Cape cape = skinAndCape.cape();
                         SkinGeometry geometry = data.isSlim() ? SkinGeometry.SLIM : SkinGeometry.WIDE;
 
-                        // Whether we should see if this player has a Bedrock skin we should check for on failure of
-                        // any skin property
+                        
+                        
                         boolean checkForBedrock = entity.uuid().version() != 4;
 
-                        if (cape.failed() && checkForBedrock) {
+                        if (cape.failed && checkForBedrock) {
                             cape = getCachedBedrockCape(entity.uuid());
                         }
 
-                        // Call event to allow extensions to modify the skin, cape and geo
+                        
                         boolean isBedrock = GeyserImpl.getInstance().connectionByUuid(entity.uuid()) != null;
                         SkinData skinData = new SkinData(skin, cape, geometry);
                         final EventSkinData eventSkinData = new EventSkinData(skinData);
@@ -285,17 +276,17 @@ public class SkinProvider {
 
                             @Override
                             public void skin(@NonNull Skin newSkin) {
-                                eventSkinData.skinData(new SkinData(Objects.requireNonNull(newSkin), eventSkinData.skinData().cape(), eventSkinData.skinData().geometry()));
+                                eventSkinData.skinData(new SkinData(Objects.requireNonNull(newSkin), eventSkinData.skinData().cape, eventSkinData.skinData().geometry));
                             }
 
                             @Override
                             public void cape(@NonNull Cape newCape) {
-                                eventSkinData.skinData(new SkinData(eventSkinData.skinData().skin(), Objects.requireNonNull(newCape), eventSkinData.skinData().geometry()));
+                                eventSkinData.skinData(new SkinData(eventSkinData.skinData().skin, Objects.requireNonNull(newCape), eventSkinData.skinData().geometry));
                             }
 
                             @Override
                             public void geometry(@NonNull SkinGeometry newGeometry) {
-                                eventSkinData.skinData(new SkinData(eventSkinData.skinData().skin(), eventSkinData.skinData().cape(), Objects.requireNonNull(newGeometry)));
+                                eventSkinData.skinData(new SkinData(eventSkinData.skinData().skin, eventSkinData.skinData().cape, Objects.requireNonNull(newGeometry)));
                             }
                         });
 
@@ -326,7 +317,7 @@ public class SkinProvider {
         if (textureUrl == null || textureUrl.isEmpty()) return CompletableFuture.completedFuture(EMPTY_SKIN);
         CompletableFuture<Skin> requestedSkin = requestedSkins.get(textureUrl);
         if (requestedSkin != null) {
-            // already requested
+            
             return requestedSkin;
         }
 
@@ -372,7 +363,7 @@ public class SkinProvider {
                     });
             requestedCapes.put(capeUrl, future);
         } else {
-            Cape cape = supplyCape(capeUrl); // blocking
+            Cape cape = supplyCape(capeUrl); 
             future = CompletableFuture.completedFuture(cape);
             CACHED_JAVA_CAPES.put(capeUrl, cape);
         }
@@ -381,7 +372,7 @@ public class SkinProvider {
 
     static void storeBedrockSkin(UUID playerID, String skinId, byte[] skinData) {
         Skin skin = new Skin(skinId, skinData);
-        CACHED_BEDROCK_SKINS.put(skin.textureUrl(), skin);
+        CACHED_BEDROCK_SKINS.put(skin.textureUrl, skin);
     }
 
     static void storeBedrockCape(String capeId, byte[] capeData) {
@@ -398,23 +389,23 @@ public class SkinProvider {
         try {
             byte[] skin = requestImageData(textureUrl, false);
             return new Skin(textureUrl, skin);
-        } catch (Exception ignored) {} // just ignore I guess
+        } catch (Exception ignored) {} 
 
-        return new Skin("empty", EMPTY_SKIN.skinData(), true);
+        return new Skin("empty", EMPTY_SKIN.skinData, true);
     }
 
     private static Cape supplyCape(String capeUrl) {
-        byte[] cape = EMPTY_CAPE.capeData();
+        byte[] cape = EMPTY_CAPE.capeData;
         try {
             cape = requestImageData(capeUrl, true);
         } catch (Exception ignored) {
-        } // just ignore I guess
+        } 
 
-        String[] urlSection = capeUrl.split("/"); // A real url is expected at this stage
+        String[] urlSection = capeUrl.split("/"); 
 
         return new Cape(
                 capeUrl,
-                urlSection[urlSection.length - 1], // get the texture id and use it as cape id
+                urlSection[urlSection.length - 1], 
                 cape,
                 cape.length == 0
         );
@@ -424,7 +415,7 @@ public class SkinProvider {
     public static BufferedImage requestImage(String imageUrl, boolean isCape) throws IOException {
         BufferedImage image = null;
 
-        // First see if we have a cached file. We also update the modification stamp so we know when the file was last used
+        
         File imageFile = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").resolve(UUID.nameUUIDFromBytes(imageUrl.getBytes()) + ".png").toFile();
         if (imageFile.exists()) {
             try {
@@ -434,12 +425,12 @@ public class SkinProvider {
             } catch (IOException ignored) {}
         }
 
-        // If no image we download it
+        
         if (image == null) {
             image = downloadImage(imageUrl);
             GeyserImpl.getInstance().getLogger().debug("Downloaded " + imageUrl);
 
-            // Write to cache if we are allowed
+            
             if (GeyserImpl.getInstance().config().advanced().cacheImages() > 0) {
                 imageFile.getParentFile().mkdirs();
                 try {
@@ -451,10 +442,10 @@ public class SkinProvider {
             }
         }
 
-        // if the requested image is a cape
+        
         if (isCape) {
             if (image.getWidth() > 64 || image.getHeight() > 32) {
-                // Prevent weirdly-scaled capes from being cut off
+                
                 BufferedImage newImage = new BufferedImage(128, 64, BufferedImage.TYPE_INT_ARGB);
                 Graphics g = newImage.createGraphics();
                 g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
@@ -462,7 +453,7 @@ public class SkinProvider {
                 image.flush();
                 image = scale(newImage, 64, 32);
             } else if (image.getWidth() < 64 || image.getHeight() < 32) {
-                // Bedrock doesn't like smaller-sized capes, either.
+                
                 BufferedImage newImage = new BufferedImage(64, 32, BufferedImage.TYPE_INT_ARGB);
                 Graphics g = newImage.createGraphics();
                 g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
@@ -471,14 +462,14 @@ public class SkinProvider {
                 image = newImage;
             }
         } else {
-            // Very rarely, skins can be larger than Minecraft's default.
-            // Bedrock will not render anything above a width of 128.
+            
+            
             if (image.getWidth() > 128) {
-                // On Height: Scale by the amount we divided width by, or simply cut down to 128
+                
                 image = scale(image, 128, image.getHeight() >= 256 ? (image.getHeight() / (image.getWidth() / 128)) : 128);
             }
 
-            // TODO remove alpha channel
+            
         }
 
         return image;
@@ -509,12 +500,7 @@ public class SkinProvider {
         return new UUID(mostSignificant, leastSignificant);
     }
 
-    /**
-     * Request a player's username from their UUID
-     *
-     * @param uuid the player's UUID
-     * @return a completable username of the player
-     */
+    
     public static CompletableFuture<@Nullable String> requestUsernameFromUUID(UUID uuid) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -534,12 +520,7 @@ public class SkinProvider {
         }, getExecutorService());
     }
 
-    /**
-     * Request a player's UUID from their username
-     *
-     * @param username the player's username
-     * @return a completable UUID of the player
-     */
+    
     public static CompletableFuture<@Nullable UUID> requestUUIDFromUsername(String username) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -559,12 +540,7 @@ public class SkinProvider {
         }, getExecutorService());
     }
 
-    /**
-     * Request textures from a player's UUID
-     *
-     * @param uuid the player's UUID
-     * @return a completable GameProfile with textures included
-     */
+    
     public static CompletableFuture<@Nullable String> requestTexturesFromUUID(UUID uuid) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -585,12 +561,7 @@ public class SkinProvider {
         }, getExecutorService());
     }
 
-    /**
-     * Request textures from a player's username
-     *
-     * @param username the player's username
-     * @return a completable GameProfile with textures included
-     */
+    
     public static CompletableFuture<@Nullable String> requestTexturesFromUsername(String username) {
         return requestUUIDFromUsername(username)
             .thenCompose(uuid -> {
@@ -625,26 +596,13 @@ public class SkinProvider {
         return resized;
     }
 
-    /**
-     * Get the RGBA int for a given index in some image data
-     *
-     * @param index Index to get
-     * @param data Image data to find in
-     * @return An int representing RGBA
-     */
+    
     private static int getRGBA(int index, byte[] data) {
         return (data[index] & 0xFF) << 16 | (data[index + 1] & 0xFF) << 8 |
                 data[index + 2] & 0xFF | (data[index + 3] & 0xFF) << 24;
     }
 
-    /**
-     * Convert a byte[] to a BufferedImage
-     *
-     * @param imageData The byte[] to convert
-     * @param imageWidth The width of the target image
-     * @param imageHeight The height of the target image
-     * @return The converted BufferedImage
-     */
+    
     public static BufferedImage imageDataToBufferedImage(byte[] imageData, int imageWidth, int imageHeight) {
         BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
         int index = 0;
@@ -658,12 +616,7 @@ public class SkinProvider {
         return image;
     }
 
-    /**
-     * Convert a BufferedImage to a byte[]
-     *
-     * @param image The BufferedImage to convert
-     * @return The converted byte[]
-     */
+    
     public static byte[] bufferedImageToImageData(BufferedImage image) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream(image.getWidth() * 4 + image.getHeight() * 4);
         for (int y = 0; y < image.getHeight(); y++) {

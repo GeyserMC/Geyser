@@ -39,7 +39,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
 
     @Override
     public void translate(GeyserSession session, EmotePacket packet) {
-        // For the future: could have a method that exposes which players will see the emote
+        
         ClientEmoteEvent event = new ClientEmoteEvent(session, packet.getEmoteId());
         if (!GeyserImpl.getInstance().config().gameplay().emotesEnabled()) {
             event.setCancelled(true);
@@ -62,22 +62,14 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
         }
     }
 
-    /**
-     * Play an emote by an emoter to the given session.
-     * This method must be called within the session's event loop.
-     *
-     * @param session the session to show the emote to
-     * @param emoterJavaId the java id of the emoter
-     * @param emoterXuid the xuid of the emoter
-     * @param emoteId the emote to play
-     */
+    
     private static void playEmote(GeyserSession session, int emoterJavaId, String emoterXuid, String emoteId) {
-        Entity emoter = session.getEntityCache().getEntityByJavaId(emoterJavaId); // Must be ran on same thread
+        Entity emoter = session.getEntityCache().getEntityByJavaId(emoterJavaId); 
         if (emoter instanceof PlayerEntity) {
             EmotePacket packet = new EmotePacket();
             packet.setRuntimeEntityId(emoter.geyserId());
             packet.setXuid(emoterXuid);
-            packet.setPlatformId(""); // BDS sends empty
+            packet.setPlatformId(""); 
             packet.setEmoteId(emoteId);
             session.sendUpstreamPacket(packet);
         }

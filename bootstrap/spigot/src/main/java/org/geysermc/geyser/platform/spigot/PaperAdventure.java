@@ -37,12 +37,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-/**
- * Utility class for converting our shaded Adventure into the Adventure bundled in Paper.
- * <p>
- * Code mostly taken from <a href="https://github.com/KyoriPowered/adventure-platform/blob/94d5821f2e755170f42bd8a5fe1d5bf6f66d04ad/platform-bukkit/src/main/java/net/kyori/adventure/platform/bukkit/PaperFacet.java#L46">here</a>
- * and the MinecraftReflection class.
- */
+
 public final class PaperAdventure {
     private static final MethodHandle NATIVE_GSON_COMPONENT_SERIALIZER_DESERIALIZE_METHOD_BOUND;
     private static final Method SEND_MESSAGE_COMPONENT;
@@ -52,7 +47,7 @@ public final class PaperAdventure {
 
         MethodHandle nativeGsonComponentSerializerDeserializeMethodBound = null;
 
-        // String.join because otherwise the class name will be relocated
+        
         final Class<?> nativeGsonComponentSerializerClass = findClass(String.join(".",
                 "net", "kyori", "adventure", "text", "serializer", "gson", "GsonComponentSerializer"));
         final Class<?> nativeGsonComponentSerializerImplClass = findClass(String.join(".",
@@ -136,11 +131,7 @@ public final class PaperAdventure {
         return SEND_MESSAGE_COMPONENT != null;
     }
 
-    /**
-     * Gets a class by the first name available.
-     *
-     * @return a class or {@code null} if not found
-     */
+    
     private static @Nullable Class<?> findClass(final String className) {
         try {
             return Class.forName(className);

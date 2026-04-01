@@ -22,24 +22,32 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.util;
+package org.geysermc.geyser.api.util
 
 /**
  * Represents the platform Geyser is running on.
  */
-public record PlatformType(String platformName) {
+@kotlin.jvm.JvmRecord
+data class PlatformType(@kotlin.jvm.JvmField val platformName: String?) {
+    companion object {
+        @Deprecated("")
+        val ANDROID: PlatformType = PlatformType("Android")
+        @kotlin.jvm.JvmField
+        val BUNGEECORD: PlatformType = PlatformType("BungeeCord")
+        @kotlin.jvm.JvmField
+        val FABRIC: PlatformType = PlatformType("Fabric")
+        @kotlin.jvm.JvmField
+        val NEOFORGE: PlatformType = PlatformType("NeoForge")
+        @kotlin.jvm.JvmField
+        val SPIGOT: PlatformType = PlatformType("Spigot")
 
-    @Deprecated
-    public static final PlatformType ANDROID = new PlatformType("Android");
-    public static final PlatformType BUNGEECORD = new PlatformType("BungeeCord");
-    public static final PlatformType FABRIC = new PlatformType("Fabric");
-    public static final PlatformType NEOFORGE = new PlatformType("NeoForge");
-    public static final PlatformType SPIGOT = new PlatformType("Spigot");
-
-    @Deprecated
-    public static final PlatformType SPONGE = new PlatformType("Sponge");
-    public static final PlatformType STANDALONE = new PlatformType("Standalone");
-    public static final PlatformType VELOCITY = new PlatformType("Velocity");
-    public static final PlatformType VIAPROXY = new PlatformType("ViaProxy");
+        @Deprecated("")
+        val SPONGE: PlatformType = PlatformType("Sponge")
+        @kotlin.jvm.JvmField
+        val STANDALONE: PlatformType = PlatformType("Standalone")
+        @kotlin.jvm.JvmField
+        val VELOCITY: PlatformType = PlatformType("Velocity")
+        @kotlin.jvm.JvmField
+        val VIAPROXY: PlatformType = PlatformType("ViaProxy")
+    }
 }

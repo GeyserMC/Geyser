@@ -44,15 +44,15 @@ public class JavaPlayerInfoRemoveTranslator extends PacketTranslator<Clientbound
         List<PlayerListPacket.Entry> entries = new ArrayList<>();
 
         for (UUID id : packet.getProfileIds()) {
-            // As the player entity is no longer present, we can remove the entry
+            
             PlayerEntity entity = session.getEntityCache().removePlayerEntity(id);
             if (entity != null) {
-                // Only unlist entities that are actually listed
+                
                 if (!entity.isListed()) {
                     continue;
                 }
-                // Just remove the entity's player list status
-                // Don't despawn the entity - the Java server will also take care of that.
+                
+                
                 entries.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
             }
         }

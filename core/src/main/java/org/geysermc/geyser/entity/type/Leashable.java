@@ -25,10 +25,7 @@
 
 package org.geysermc.geyser.entity.type;
 
-/**
- * I can haz lead
- * (The item, not the mineral)
- */
+
 public interface Leashable {
     void setLeashHolderBedrockId(long bedrockId);
 

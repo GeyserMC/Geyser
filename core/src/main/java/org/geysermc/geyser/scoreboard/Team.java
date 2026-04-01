@@ -70,9 +70,9 @@ public final class Team {
         this.managedEntities = new ObjectOpenHashSet<>();
         this.lastUpdate = LAST_UPDATE_DEFAULT;
 
-        // doesn't call entity update
+        
         updateProperties(name, prefix, suffix, visibility, color);
-        // calls entity update
+        
         addEntities(players);
         lastUpdate = LAST_UPDATE_DEFAULT;
     }
@@ -80,17 +80,17 @@ public final class Team {
     public void addEntities(String... names) {
         Set<String> added = new HashSet<>();
         for (String name : names) {
-            // go to next score if score is already present
+            
             if (!entities.add(name)) {
                 continue;
             }
             added.add(name);
             scoreboard.getPlayerToTeam().compute(name, (player, oldTeam) -> {
                 if (oldTeam != null) {
-                    // Remove old team from this map, and from the set of players of the old team.
-                    // Java 1.19.3 Mojmap: Scoreboard#addPlayerToTeam calls #removePlayerFromTeam
+                    
+                    
                     oldTeam.entities.remove(player);
-                    // also remove the managed entity if there is one
+                    
                     removeManagedEntity(player);
                 }
                 return this;
@@ -100,8 +100,8 @@ public final class Team {
         if (added.isEmpty()) {
             return;
         }
-        // we don't have to change our updateType,
-        // because the scores themselves need updating, not the team
+        
+        
         scoreboard.setTeamFor(this, added);
         addAddedEntities(added);
     }
@@ -123,19 +123,19 @@ public final class Team {
 
     public String displayName(String score) {
         String chatColor = ChatColor.chatColorFor(color);
-        // most sidebar plugins will use the reset color, because they don't want color
-        // skip the unneeded double reset color in that case
+        
+        
         if (ChatColor.RESET.equals(chatColor)) {
             chatColor = "";
         }
-        // also add reset because setting the color does not reset the formatting, unlike Java
+        
         return chatColor + prefix + ChatColor.RESET + chatColor + score + ChatColor.RESET + chatColor + suffix;
     }
 
     public boolean isVisibleFor(String entity) {
         return switch (nameTagVisibility) {
             case HIDE_FOR_OTHER_TEAMS -> {
-                // Player must be in a team in order for HIDE_FOR_OTHER_TEAMS to be triggered
+                
                 Team team = scoreboard.getTeamFor(entity);
                 yield team == null || team == this;
             }
@@ -146,7 +146,7 @@ public final class Team {
     }
 
     public void updateProperties(Component name, Component prefix, Component suffix, NameTagVisibility visibility, TeamColor color) {
-        // this shouldn't happen but hey!
+        
         if (lastUpdate == LAST_UPDATE_REMOVE) {
             return;
         }
@@ -160,15 +160,15 @@ public final class Team {
         this.name = MessageTranslator.convertMessageRaw(name, session().locale());
         this.prefix = MessageTranslator.convertMessageRaw(prefix, session().locale());
         this.suffix = MessageTranslator.convertMessageRaw(suffix, session().locale());
-        // matches vanilla behaviour, the visibility is not reset (to ALWAYS) if it is null.
-        // instead the visibility is not altered
+        
+        
         if (visibility != null) {
             this.nameTagVisibility = visibility;
         }
         this.color = color;
 
         if (lastUpdate == LAST_UPDATE_DEFAULT) {
-            // addEntities is called after the initial updateProperties, so no need to do any entity updates here
+            
             if (this.color != TeamColor.RESET || !this.prefix.isEmpty() || !this.suffix.isEmpty()) {
                 markChanged();
             }
@@ -185,8 +185,8 @@ public final class Team {
         }
 
         if (isVisibleFor(playerName()) != oldVisible) {
-            // if just the visibility changed, we only have to update the entities.
-            // We don't have to mark it as changed
+            
+            
             updateEntities();
         }
     }
@@ -206,7 +206,7 @@ public final class Team {
         lastUpdate = LAST_UPDATE_REMOVE;
 
         for (String name : entities()) {
-            // 1.19.3 Mojmap Scoreboard#removePlayerTeam(PlayerTeam)
+            
             scoreboard.getPlayerToTeam().remove(name);
         }
 
@@ -228,22 +228,22 @@ public final class Team {
     }
 
     public void onEntitySpawn(Entity entity) {
-        // I've basically ported addAddedEntities
+        
         if (entities.contains(entity.teamIdentifier())) {
             managedEntities.add(entity);
-            // onEntitySpawn includes all entities but players, so it cannot contain self
+            
             entity.updateNametag(this);
             entity.updateBedrockMetadata();
         }
     }
 
     public void onEntityRemove(Entity entity) {
-        // we don't have to update anything, since the player is removed.
+        
         managedEntities.remove(entity);
     }
 
     private void addAddedEntities(Set<String> names) {
-        // can't contain self if none are added
+        
         if (names.isEmpty()) {
             return;
         }
@@ -284,11 +284,7 @@ public final class Team {
         }
     }
 
-    /**
-     * Used internally to remove a managed entity without causing an update.
-     * This is fine because its only used when the entity is added to another team,
-     * which will fire the correct nametag updates etc.
-     */
+    
     private void removeManagedEntity(String name) {
         managedEntities.removeIf(entity -> name.equals(entity.teamIdentifier()));
     }

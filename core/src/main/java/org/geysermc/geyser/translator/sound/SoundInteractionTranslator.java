@@ -28,24 +28,9 @@ package org.geysermc.geyser.translator.sound;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.session.GeyserSession;
 
-/**
- * Handler for playing sounds when right-clicking
- * various objects. Due to Minecraft: Bedrock Edition
- * expecting interaction sounds to be played serverside
- * and Minecraft: Java Edition handling them clientside,
- * this had to be made to handle scenarios like that.
- *
- * @param <T> the value
- */
+
 public interface SoundInteractionTranslator<T> {
 
-    /**
-     * Handles the interaction when a player
-     * right-clicks a block.
-     *
-     * @param session the session interacting with the block
-     * @param position the position of the block
-     * @param value the value
-     */
+    
     void translate(GeyserSession session, Vector3f position, T value);
 }

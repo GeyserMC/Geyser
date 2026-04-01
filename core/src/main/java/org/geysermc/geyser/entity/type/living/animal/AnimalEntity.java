@@ -52,9 +52,7 @@ public abstract class AnimalEntity extends AgeableEntity {
         return itemStack.is(session, tag);
     }
 
-    /**
-     * @return the tag associated with this animal for eating food. Null for nothing or different behavior.
-     */
+    
     protected abstract @Nullable Tag<Item> getFoodTag();
 
     @NonNull
@@ -70,7 +68,7 @@ public abstract class AnimalEntity extends AgeableEntity {
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (canEat(itemInHand)) {
-            // FEED
+            
             if (getFlag(EntityFlag.BABY)) {
                 playEntityEvent(EntityEventType.BABY_ANIMAL_FEED);
                 return InteractionResult.SUCCESS;

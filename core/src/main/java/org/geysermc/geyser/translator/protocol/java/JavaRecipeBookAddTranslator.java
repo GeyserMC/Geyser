@@ -97,7 +97,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 javaToBedrockRecipeIds.put(contents.id(), List.copyOf(bedrockRecipeIds));
             } else if (display instanceof SmithingRecipeDisplay smithingRecipe) {
                 if (display.result() instanceof SmithingTrimDemoSlotDisplay) {
-                    // Skip these - Bedrock already knows about them from the TrimDataPacket
+                    
                     continue;
                 }
 
@@ -112,9 +112,9 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
         }
 
         if (!recipesPacket.getUnlockedRecipes().isEmpty()) {
-            // Sending an empty list here will crash the client as of 1.20.60
-            // This was definitely in the codebase the entire time and did not
-            // accidentally get refactored out during Java 1.21.3. :)
+            
+            
+            
             session.sendUpstreamPacket(craftingDataPacket);
             session.sendUpstreamPacket(recipesPacket);
         }

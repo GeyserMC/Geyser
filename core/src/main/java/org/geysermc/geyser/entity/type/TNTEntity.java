@@ -48,7 +48,7 @@ public class TNTEntity extends Entity implements Tickable {
     @Override
     public void tick() {
         if (currentTick == 0) {
-            // No need to update the fuse when there is none
+            
             return;
         }
 

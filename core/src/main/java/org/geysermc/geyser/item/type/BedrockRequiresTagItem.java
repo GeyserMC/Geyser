@@ -25,6 +25,6 @@
 
 package org.geysermc.geyser.item.type;
 
-// Whether this item should have its NBT data kept in the recipe book.
+
 public interface BedrockRequiresTagItem {
 }

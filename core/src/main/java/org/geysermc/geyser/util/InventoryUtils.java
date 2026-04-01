@@ -75,33 +75,21 @@ import java.util.Objects;
 import java.util.function.IntFunction;
 
 public class InventoryUtils {
-    /**
-     * Stores the last used recipe network ID. Since 1.16.200 (and for server-authoritative inventories),
-     * each recipe needs a unique network ID (or else in .200 the client crashes).
-     */
+    
     public static int LAST_RECIPE_NET_ID;
     
     public static final ItemStack REFRESH_ITEM = new ItemStack(1, 127, new DataComponents(new HashMap<>()));
 
-    /**
-     * An arbitrary, negative long used to delay the opening of virtual inventories until the client is
-     * likely ready for it. The {@link org.geysermc.geyser.translator.protocol.bedrock.BedrockNetworkStackLatencyTranslator}
-     * will then call {@link #openPendingInventory(GeyserSession)}, which would finish opening the inventory.
-     */
+    
     public static final long MAGIC_VIRTUAL_INVENTORY_HACK = -9876543210L;
 
-    /**
-     * The main entrypoint to open an inventory. It will mark inventories as pending when the client isn't ready to
-     * open the new inventory yet.
-     *
-     * @param holder the new inventory to open
-     */
+    
     public static void openInventory(InventoryHolder<?> holder) {
         holder.markCurrent();
         if (holder.shouldSetPending()) {
-            // Wait for close confirmation from client before opening the new inventory.
-            // Handled in BedrockContainerCloseTranslator
-            // or - client hasn't yet loaded in; wait until inventory is shown
+            
+            
+            
             holder.pending(true);
             GeyserImpl.getInstance().getLogger().debug(holder.session(), "Inventory (%s) set pending: closing inv? %s, pending inv id? %s",
                 debugInventory(holder), holder.session().isClosingInventory(), holder.session().getPendingOrCurrentBedrockInventoryId());
@@ -110,11 +98,7 @@ public class InventoryUtils {
         displayInventory(holder);
     }
 
-    /**
-     * Called when the Bedrock client is ready to open a pending inventory.
-     * Due to the nature of possible changes in the delayed time, this method also re-checks for changes that might have
-     * occurred in the time. For example, a queued virtual inventory might be "outdated", so we wouldn't open it.
-     */
+    
     public static void openPendingInventory(GeyserSession session) {
         InventoryHolder<?> holder = session.getInventoryHolder();
         if (holder == null) {
@@ -123,9 +107,9 @@ public class InventoryUtils {
             return;
         }
 
-        // Current inventory isn't null! Let's see if we need to open it.
+        
         if (holder.bedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
-            // Don't re-open an inventory that is already open
+            
             if (!holder.pending() && holder.inventory().isDisplayed()) {
                 GeyserImpl.getInstance().getLogger().debug("Container with id %s is not pending and already displayed!".formatted(holder.bedrockId()));
                 return;
@@ -143,10 +127,7 @@ public class InventoryUtils {
         }
     }
 
-    /**
-     * Prepares and displays the current inventory. If necessary, it will queue the opening of virtual inventories.
-     * @param holder the inventory to display
-     */
+    
     public static void displayInventory(InventoryHolder<?> holder) {
         if (holder.prepareInventory()) {
             holder.session().setPendingOrCurrentBedrockInventoryId(holder.bedrockId());
@@ -158,27 +139,20 @@ public class InventoryUtils {
                 openAndUpdateInventory(holder);
             }
         } else {
-            // Can occur if we e.g. did not find a spot to put a fake container in
+            
             holder.session().setPendingOrCurrentBedrockInventoryId(-1);
             sendJavaContainerClose(holder);
             holder.session().setInventoryHolder(null);
         }
     }
 
-    /**
-     * Opens and updates an inventory
-     */
+    
     public static void openAndUpdateInventory(InventoryHolder<?> holder) {
         holder.openInventory();
         holder.updateInventory();
     }
 
-    /**
-     * Closes the inventory that matches the java id.
-     * @param session the session to close the inventory for
-     * @param javaId the id of the inventory to close
-     * @param confirm whether to wait for the session to process the close before opening a new inventory.
-     */
+    
     public static void closeInventory(GeyserSession session, int javaId, boolean confirm) {
         InventoryHolder<?> holder = getInventory(session, javaId);
         closeInventory(session, holder, confirm);
@@ -200,11 +174,7 @@ public class InventoryUtils {
         session.setInventoryHolder(null);
     }
 
-    /**
-     * A util method to get an (open) inventory based on a Java id. This method should be used over
-     * {@link GeyserSession#getOpenInventory()} (or {@link GeyserSession#getInventoryHolder()}) to account for an edge-case where the Java server expects
-     * Geyser to have the player inventory open while we're using a virtual lectern for the {@link ClientboundOpenBookPacket}.
-     */
+    
     public static @Nullable InventoryHolder<?> getInventory(GeyserSession session, int javaId) {
         if (javaId == 0) {
             return session.getPlayerInventoryHolder();
@@ -224,12 +194,10 @@ public class InventoryUtils {
         }
     }
 
-    /**
-     * Finds a usable block space in the world to place a fake inventory block, and returns the position.
-     */
+    
     @Nullable
     public static Vector3i findAvailableWorldSpace(GeyserSession session) {
-        // Check if a fake block can be placed, either above the player or beneath.
+        
         BedrockDimension dimension = session.getBedrockDimension();
         int minY = dimension.minY(), maxY = minY + dimension.height();
         Vector3i flatPlayerPosition = session.getPlayerEntity().bedrockPosition().toInt();
@@ -249,7 +217,7 @@ public class InventoryUtils {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private static boolean canUseWorldSpace(GeyserSession session, Vector3i position) {
         BlockState state = session.getGeyser().getWorldManager().blockAt(session, position);
-        // Block entities require more data to be restored; so let's avoid using these positions
+        
         return state.block().blockEntityType() == null;
     }
 
@@ -282,26 +250,18 @@ public class InventoryUtils {
         }
     }
 
-    /**
-     * Checks to see if an item stack represents air or has no count.
-     */
+    
     @Contract("null -> true")
     public static boolean isEmpty(@Nullable ItemStack itemStack) {
         return itemStack == null || itemStack.getId() == Items.AIR_ID || itemStack.getAmount() <= 0;
     }
 
-    /**
-     * Returns a barrier block with custom name and lore to explain why
-     * part of the inventory is unusable.
-     *
-     * @param description the description
-     * @return the unusable space block
-     */
+    
     public static IntFunction<ItemData> createUnusableSpaceBlock(String description) {
         NbtMapBuilder root = NbtMap.builder();
         NbtMapBuilder display = NbtMap.builder();
 
-        // Not ideal to use log here but we dont get a session
+        
         display.putString("Name", ChatColor.RESET + GeyserLocale.getLocaleStringLog("geyser.inventory.unusable_item.name"));
         display.putList("Lore", NbtType.STRING, Collections.singletonList(ChatColor.RESET + ChatColor.DARK_PURPLE + description));
 
@@ -353,9 +313,7 @@ public class InventoryUtils {
         };
     }
 
-    /**
-     * Returns if the provided item stack would be accepted by the slot display.
-     */
+    
     public static boolean acceptsAsInput(GeyserSession session, SlotDisplay slotDisplay, GeyserItemStack itemStack) {
         if (slotDisplay instanceof EmptySlotDisplay) {
             return itemStack.isEmpty();
@@ -374,7 +332,7 @@ public class InventoryUtils {
         }
         if (slotDisplay instanceof ItemStackSlotDisplay itemStackSlotDisplay) {
             ItemStack other = itemStackSlotDisplay.itemStack();
-            // Amount check might be flimsy?
+            
             return itemStack.getJavaId() == other.getId() && itemStack.getAmount() >= other.getAmount()
                 && Objects.equals(itemStack.getComponents(), other.getDataComponentsPatch());
         }
@@ -385,15 +343,11 @@ public class InventoryUtils {
         return false;
     }
 
-    /**
-     * Test all known recipes to find a valid match
-     *
-     * @param output if not null, the recipe has to output this item
-     */
+    
     @Nullable
     public static GeyserRecipe getValidRecipe(final GeyserSession session, final @Nullable ItemStack output, final IntFunction<GeyserItemStack> inventoryGetter,
                                         final int gridDimensions, final int firstRow, final int height, final int firstCol, final int width) {
-        int nonAirCount = 0; // Used for shapeless recipes for amount of items needed in recipe
+        int nonAirCount = 0; 
         for (int row = firstRow; row < height + firstRow; row++) {
             for (int col = firstCol; col < width + firstCol; col++) {
                 if (!inventoryGetter.apply(col + (row * gridDimensions) + 1).isEmpty()) {
@@ -437,13 +391,13 @@ public class InventoryUtils {
                     continue;
                 }
                 if (nonAirCount != data.ingredients().size()) {
-                    // There is an amount of items on the crafting table that is not the same as the ingredient count so this is invalid
+                    
                     continue;
                 }
                 for (int i = 0; i < data.ingredients().size(); i++) {
                     SlotDisplay slotDisplay = data.ingredients().get(i);
                     boolean inventoryHasItem = false;
-                    // Iterate only over the crafting table to find this item
+                    
                     for (int row = firstRow; row < height + firstRow; row++) {
                         for (int col = firstCol; col < width + firstCol; col++) {
                             GeyserItemStack geyserItemStack = inventoryGetter.apply(col + (row * gridDimensions) + 1);

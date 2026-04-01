@@ -63,7 +63,7 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
     public AbstractHorseEntity(EntitySpawnContext context) {
         super(context);
 
-        // Specifies the size of the entity's inventory. Required to place slots in the entity.
+        
         dirtyMetadata.put(EntityDataTypes.CONTAINER_SIZE, getContainerBaseSize());
 
         setFlag(EntityFlag.WASD_CONTROLLED, true);
@@ -77,10 +77,10 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
     public void spawnEntity() {
         super.spawnEntity();
 
-        // Add horse jump strength attribute to allow donkeys and mules to jump, if they don't send the attribute themselves.
-        // Confirmed broken without this code by making a new donkey in vanilla 1.17.1
-        // The spawn packet does have an attributes section, but adding the jump strength property there causes the
-        // donkey to jump very high.
+        
+        
+        
+        
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(geyserId);
         attributesPacket.getAttributes().add(GeyserAttributeType.HORSE_JUMP_STRENGTH.getAttribute(0.5f, 2));
@@ -89,12 +89,12 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
 
     @Override
     public void updateSaddled(boolean saddled) {
-        // Shows the jump meter
+        
         setFlag(EntityFlag.CAN_POWER_JUMP, saddled);
         super.updateSaddled(saddled);
 
         if (this.passengers.contains(session.getPlayerEntity())) {
-            // We want to allow player to press jump again if pressing jump doesn't dismount the entity.
+            
             this.session.setLockInput(InputLocksFlag.JUMP, this.doesJumpDismount());
             this.session.updateInputLocks();
         }
@@ -121,22 +121,22 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
         setFlag(EntityFlag.EATING, (xd & 0x10) == 0x10);
         setFlag(EntityFlag.STANDING, (xd & 0x20) == 0x20);
 
-        // HorseFlags
-        // Bred 0x10
-        // Eating 0x20
-        // Open mouth 0x80
+        
+        
+        
+        
         int horseFlags = 0x0;
         horseFlags = (xd & 0x40) == 0x40 ? horseFlags | 0x80 : horseFlags;
 
-        // Only set eating when we don't have mouth open so a player interaction doesn't trigger the eating animation
+        
         horseFlags = (xd & 0x10) == 0x10 && (xd & 0x40) != 0x40 ? horseFlags | 0x20 : horseFlags;
 
-        // Set the flags into the horse flags
+        
         dirtyMetadata.put(EntityDataTypes.HORSE_FLAGS, horseFlags);
 
-        // Send the eating particles
-        // We use the wheat metadata as static particles since Java
-        // doesn't send over what item was used to feed the horse
+        
+        
+        
         if ((xd & 0x40) == 0x40) {
             EntityEventPacket entityEventPacket = new EntityEventPacket();
             entityEventPacket.setRuntimeEntityId(geyserId);
@@ -145,7 +145,7 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
             session.sendUpstreamPacket(entityEventPacket);
         }
 
-        // Set container type if tamed
+        
         dirtyMetadata.put(EntityDataTypes.CONTAINER_TYPE, tamed ? (byte) ContainerType.HORSE.getId() : (byte) 0);
     }
 
@@ -184,7 +184,7 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
             }
 
             if (!getFlag(EntityFlag.TAMED)) {
-                // Horse will become mad
+                
                 return InteractiveTag.NONE;
             }
 
@@ -193,7 +193,7 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
             }
 
             if (additionalTestForInventoryOpen(itemInHand) || !isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.is(Items.SADDLE)) {
-                // Will open the inventory to be saddled
+                
                 return InteractiveTag.OPEN_CONTAINER;
             }
         }
@@ -216,7 +216,7 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
         boolean isBaby = isBaby();
         if (!isBaby) {
             if (getFlag(EntityFlag.TAMED) && session.isSneaking()) {
-                // Will open the inventory
+                
                 return InteractionResult.SUCCESS;
             }
 
@@ -238,18 +238,18 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
             }
 
             if (!getFlag(EntityFlag.TAMED)) {
-                // Horse will become mad
+                
                 return InteractionResult.SUCCESS;
             }
 
             if (testForChest(itemInHand)) {
-                // TODO looks like chest is also handled client side
+                
                 return InteractionResult.SUCCESS;
             }
 
-            // Note: yes, this code triggers for llamas too. lol (as of Java Edition 1.18.1)
+            
             if (additionalTestForInventoryOpen(itemInHand) || (!isBaby && !getFlag(EntityFlag.SADDLED) && itemInHand.is(Items.SADDLE))) {
-                // Will open the inventory to be saddled
+                
                 return InteractionResult.SUCCESS;
             }
         }
@@ -257,8 +257,8 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
         if (isBaby) {
             return super.mobInteract(hand, itemInHand);
         } else {
-            // Attempt to mount
-            // TODO client-set flags sitting standing?
+            
+            
             return InteractionResult.SUCCESS;
         }
     }
@@ -272,7 +272,7 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
     }
 
     protected boolean additionalTestForInventoryOpen(@NonNull GeyserItemStack itemInHand) {
-        // TODO this doesn't seem right anymore... (as of Java 1.21.9)
+        
         return itemInHand.asItem().javaIdentifier().endsWith("_horse_armor");
     }
 
@@ -306,12 +306,12 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
         } else if (isBaby()) {
             return mobHorseInteract(hand, itemInHand);
         } else if (session.isSneaking()) {
-            // Opens inventory
+            
             return InteractionResult.SUCCESS;
         } else if (!passengers.isEmpty()) {
             return mobHorseInteract(hand, itemInHand);
         } else {
-            // The client tests for saddle but it doesn't matter for us at this point.
+            
             return InteractionResult.SUCCESS;
         }
     }

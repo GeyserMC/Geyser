@@ -77,150 +77,94 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Holds all the common registries in Geyser.
- */
+
 public final class Registries {
     private static boolean loaded = false;
 
-    /**
-     * A registry holding all the providers.
-     * This has to be initialized first to allow extensions to access providers during other registry events.
-     */
+    
     public static final SimpleMappedRegistry<Class<?>, ProviderSupplier> PROVIDERS = SimpleMappedRegistry.create(new IdentityHashMap<>(), ProviderRegistryLoader::new);
 
-    /**
-     * A registry holding a NbtMap of the known entity identifiers.
-     */
+    
     public static final SimpleDeferredRegistry<NbtMap> BEDROCK_ENTITY_IDENTIFIERS = SimpleDeferredRegistry.create("bedrock/entity_identifiers.dat", RegistryLoaders.NBT);
 
-    /**
-     * A registry containing all the Bedrock packet translators.
-     */
+    
     public static final PacketTranslatorRegistry<BedrockPacket> BEDROCK_PACKET_TRANSLATORS = PacketTranslatorRegistry.create();
 
-    /**
-     * A registry holding a NbtMap of all the known biomes.
-     * Remove once 1.21.80 is lowest supported version - replaced by {@link Registries#BIOMES}
-     */
+    
     public static final SimpleDeferredRegistry<NbtMap> BIOMES_NBT = SimpleDeferredRegistry.create("bedrock/biome_definitions.dat", RegistryLoaders.NBT);
 
-    /**
-     * A registry holding biome data for all known biomes.
-     */
+    
     public static final SimpleDeferredRegistry<BiomeDefinitions> BIOMES = SimpleDeferredRegistry.create("bedrock/stripped_biome_definitions.json", RegistryLoaders.BIOME_LOADER);
 
-    /**
-     * A mapped registry which stores Java biome identifiers and their Bedrock biome identifier.
-     */
+    
     public static final SimpleDeferredRegistry<Object2IntMap<String>> BIOME_IDENTIFIERS = SimpleDeferredRegistry.create("mappings/biomes.json", BiomeIdentifierRegistryLoader::new);
 
-    /**
-     * A mapped registry which stores a block entity identifier to its {@link BlockEntityTranslator}.
-     */
+    
     public static final SimpleMappedDeferredRegistry<BlockEntityType, BlockEntityTranslator> BLOCK_ENTITIES = SimpleMappedDeferredRegistry.create("org.geysermc.geyser.translator.level.block.entity.BlockEntity", BlockEntityRegistryLoader::new);
 
-    /**
-     * A map containing all entity types and their respective Geyser definitions
-     */
+    
     public static final SimpleMappedRegistry<EntityType, EntityDefinition<?>> ENTITY_DEFINITIONS = SimpleMappedRegistry.create(RegistryLoaders.empty(() -> new EnumMap<>(EntityType.class)));
 
-    /**
-     * A registry holding a list of all the known entity properties to be sent to the client after start game.
-     */
+    
     public static final SimpleRegistry<Set<NbtMap>> BEDROCK_ENTITY_PROPERTIES = SimpleRegistry.create(RegistryLoaders.empty(HashSet::new));
 
-    /**
-     * A map containing all Java entity identifiers and their respective Geyser definitions
-     */
+    
     public static final SimpleMappedRegistry<String, EntityDefinition<?>> JAVA_ENTITY_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
-    /**
-     * A registry containing all the Java packet translators.
-     */
+    
     public static final PacketTranslatorRegistry<Packet> JAVA_PACKET_TRANSLATORS = PacketTranslatorRegistry.create();
 
-    /**
-     * A registry containing all Java items ordered by their network ID.
-     */
+    
     public static final ListRegistry<Item> JAVA_ITEMS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
-    /**
-     * A registry containing item identifiers.
-     */
+    
     public static final SimpleMappedRegistry<String, Item> JAVA_ITEM_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     public static final ListRegistry<DataComponents> DEFAULT_DATA_COMPONENTS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
-    /**
-     * A versioned registry which holds {@link ItemMappings} for each version. These item mappings contain
-     * primarily Bedrock version-specific data.
-     */
+    
     public static final VersionedRegistry<ItemMappings> ITEMS = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
-    /**
-     * A mapped registry holding the {@link ParticleType} to a corresponding {@link ParticleMapping}, containing various pieces of
-     * data primarily for how Bedrock should handle the particle.
-     */
+    
     public static final SimpleMappedDeferredRegistry<ParticleType, ParticleMapping> PARTICLES = SimpleMappedDeferredRegistry.create("mappings/particles.json", ParticleTypesRegistryLoader::new);
 
-    /**
-     * A registry holding all the potion mixes.
-     */
+    
     public static final VersionedDeferredRegistry<Set<PotionMixData>> POTION_MIXES = VersionedDeferredRegistry.create(VersionedRegistry::create, PotionMixRegistryLoader::new);
 
-    /**
-     * A versioned registry holding all the recipes, with the net ID being the key, and {@link GeyserRecipe} as the value.
-     */
+    
     //public static final SimpleMappedDeferredRegistry<RecipeType, List<GeyserRecipe>> RECIPES = SimpleMappedDeferredRegistry.create("mappings/recipes.nbt", RecipeRegistryLoader::new);
 
-    /**
-     * A mapped registry holding {@link ResourcePackHolder}'s with the pack uuid as keys.
-     */
+    
     public static final SimpleMappedDeferredRegistry<UUID, ResourcePackHolder> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
 
-    /**
-     * A versioned registry holding most Bedrock tags, with the Java item list (sorted) being the key, and the tag name as the value.
-     */
+    
     public static final VersionedRegistry<Object2ObjectMap<int[], String>> TAGS = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
 
-    /**
-     * A mapped registry holding sound identifiers to their corresponding {@link SoundMapping}.
-     */
+    
     public static final SimpleMappedDeferredRegistry<String, SoundMapping> SOUNDS = SimpleMappedDeferredRegistry.create("mappings/sounds.json", SoundRegistryLoader::new);
 
-    /**
-     * A mapped registry holding {@link LevelEvent}s to their corresponding {@link LevelEventTranslator}.
-     */
+    
     public static final SimpleMappedDeferredRegistry<LevelEvent, LevelEventTranslator> SOUND_LEVEL_EVENTS = SimpleMappedDeferredRegistry.create("mappings/effects.json", SoundEventsRegistryLoader::new);
 
-    /**
-     * A mapped registry holding {@link SoundTranslator}s to their corresponding {@link SoundInteractionTranslator}.
-     */
+    
     public static final SimpleMappedDeferredRegistry<SoundTranslator, SoundInteractionTranslator<?>> SOUND_TRANSLATORS = SimpleMappedDeferredRegistry.create("org.geysermc.geyser.translator.sound.SoundTranslator", SoundTranslatorRegistryLoader::new);
 
-    /**
-     * A registry containing all of Java's "game master blocks" - blocks that can't be broken without operator permission level 2 or higher.
-     */
+    
     public static final ListDeferredRegistry<Key> GAME_MASTER_BLOCKS = ListDeferredRegistry.create(UtilMappings::gameMasterBlocks, RegistryLoaders.UTIL_MAPPINGS_KEYS);
 
-    /**
-     * A registry containing all block entities Java considers "dangerous" - these have a red warning in the item tooltip on Java.
-     */
+    
     public static final ListDeferredRegistry<Key> DANGEROUS_BLOCK_ENTITIES = ListDeferredRegistry.create(UtilMappings::dangerousBlockEntities, RegistryLoaders.UTIL_MAPPINGS_KEYS);
 
-    /**
-     * A registry containing all entities Java considers "dangerous" - spawn eggs of these entities have a red warning in the item tooltip on Java.
-     */
+    
     public static final ListDeferredRegistry<Key> DANGEROUS_ENTITIES = ListDeferredRegistry.create(UtilMappings::dangerousEntities, RegistryLoaders.UTIL_MAPPINGS_KEYS);
 
     public static void load() {
         if (loaded) return;
         loaded = true;
 
-        // the following registries are registries that are more complicated than initializing as an empty collection.
-        // They generally have in common that they either depend on loading a resource file directly or indirectly
-        // (by using the Items or Blocks class, which loads all the blocks)
+        
+        
+        
 
         BEDROCK_ENTITY_IDENTIFIERS.load();
         BIOMES_NBT.load();
@@ -228,7 +172,7 @@ public final class Registries {
         BIOME_IDENTIFIERS.load();
         BLOCK_ENTITIES.load();
         PARTICLES.load();
-        // load potion mixes later
+        
         //RECIPES.load();
         SOUNDS.load();
         SOUND_LEVEL_EVENTS.load();
@@ -245,10 +189,10 @@ public final class Registries {
         ItemRegistryPopulator.populate();
         TagRegistryPopulator.populate();
 
-        // potion mixes depend on other registries
+        
         POTION_MIXES.load();
 
-        // Remove unneeded client generation data from NbtMapBuilder
+        
         NbtMapBuilder biomesNbt = NbtMap.builder();
         for (Map.Entry<String, Object> entry : BIOMES_NBT.get().entrySet()) {
             String key = entry.getKey();

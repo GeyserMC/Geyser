@@ -35,31 +35,27 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundTakeItemEntityPacket;
 
-/**
- * This packet is called whenever a player picks up an item.
- * In Java, this is called for item entities, experience orbs and arrows
- * Bedrock uses it for arrows and item entities, but not experience orbs.
- */
+
 @Translator(packet = ClientboundTakeItemEntityPacket.class)
 public class JavaTakeItemEntityTranslator extends PacketTranslator<ClientboundTakeItemEntityPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundTakeItemEntityPacket packet) {
-        // Collected entity is the other entity
+        
         Entity collectedEntity = session.getEntityCache().getEntityByJavaId(packet.getCollectedEntityId());
         if (collectedEntity == null) return;
-        // Collector is the entity 'picking up' the item
+        
         Entity collectorEntity = session.getEntityCache().getEntityByJavaId(packet.getCollectorEntityId());
         if (collectorEntity == null) return;
         if (collectedEntity instanceof ExpOrbEntity) {
-            // Player just picked up an experience orb
+            
             LevelEventPacket xpPacket = new LevelEventPacket();
             xpPacket.setType(LevelEvent.SOUND_EXPERIENCE_ORB_PICKUP);
             xpPacket.setPosition(collectedEntity.bedrockPosition());
             xpPacket.setData(0);
             session.sendUpstreamPacket(xpPacket);
         } else {
-            // Item is being picked up (visual only)
+            
             TakeItemEntityPacket takeItemEntityPacket = new TakeItemEntityPacket();
             takeItemEntityPacket.setRuntimeEntityId(collectorEntity.geyserId());
             takeItemEntityPacket.setItemRuntimeEntityId(collectedEntity.geyserId());

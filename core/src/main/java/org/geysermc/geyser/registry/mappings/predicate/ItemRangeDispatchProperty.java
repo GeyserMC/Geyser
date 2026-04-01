@@ -62,8 +62,8 @@ public enum ItemRangeDispatchProperty implements PredicateReader<ItemPredicateCo
     private static double readThreshold(JsonElement element, String... context) throws InvalidCustomMappingsFileException {
         double threshold = MappingsUtil.readOrThrow(element, "threshold", NodeReader.DOUBLE, context);
         double scale = MappingsUtil.readOrDefault(element, "scale", NodeReader.DOUBLE, 1.0, context);
-        // Scale is a property from the Java resourcepack range dispatch predicates, and is applied to the property value. Since it's applied to the threshold here,
-        // we have to divide the threshold instead of multiply it.
+        
+        
         return threshold / scale;
     }
 

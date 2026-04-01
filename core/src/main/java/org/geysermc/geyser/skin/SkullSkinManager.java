@@ -41,12 +41,12 @@ public class SkullSkinManager extends SkinManager {
         skinId = skinId + "_skull";
         return SerializedSkin.builder()
             .skinId(skinId)
-            .skinResourcePatch(SkinProvider.SKULL_GEOMETRY.geometryName())
+            .skinResourcePatch(SkinProvider.SKULL_GEOMETRY.geometryName)
             .skinData(ImageData.of(skinData))
-            .capeData(ImageData.of(SkinProvider.EMPTY_CAPE.capeData()))
-            .geometryData(SkinProvider.SKULL_GEOMETRY.geometryData())
+            .capeData(ImageData.of(SkinProvider.EMPTY_CAPE.capeData))
+            .geometryData(SkinProvider.SKULL_GEOMETRY.geometryData)
             .premium(true)
-            .capeId(SkinProvider.EMPTY_CAPE.capeId())
+            .capeId(SkinProvider.EMPTY_CAPE.capeId)
             .fullSkinId(skinId)
             .geometryDataEngineVersion(session.getClientData().getGameVersion())
             .build();
@@ -54,8 +54,8 @@ public class SkullSkinManager extends SkinManager {
 
     public static void requestAndHandleSkin(SkullPlayerEntity entity, GeyserSession session, Consumer<Skin> skinConsumer) {
         BiConsumer<Skin, Throwable> applySkin = (skin, throwable) -> {
-            SerializedSkin serializedSkin = buildSkullEntryManually(session, skin.textureUrl(), skin.skinData());
-            // Since 1.21.130: PlayerSkinPacket only works if player entity is listed
+            SerializedSkin serializedSkin = buildSkullEntryManually(session, skin.textureUrl, skin.skinData);
+            
             PlayerListUtils.sendSkinUsingPlayerList(session, PlayerListUtils.forSkullPlayerEntity(entity, serializedSkin), entity, false);
 
             if (skinConsumer != null) {

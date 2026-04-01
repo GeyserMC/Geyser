@@ -52,7 +52,7 @@ public class MooshroomEntity extends CowEntity {
 
     @Override
     public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
-        // There are no variants for mooshroom cows, so far
+        
     }
 
     @NonNull
@@ -60,10 +60,10 @@ public class MooshroomEntity extends CowEntity {
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!isBaby()) {
             if (itemInHand.is(Items.BOWL)) {
-                // Stew
+                
                 return InteractiveTag.MOOSHROOM_MILK_STEW;
             } else if (isAlive() && itemInHand.is(Items.SHEARS)) {
-                // Shear items
+                
                 return InteractiveTag.MOOSHROOM_SHEAR;
             }
         }
@@ -75,13 +75,13 @@ public class MooshroomEntity extends CowEntity {
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         boolean isBaby = isBaby();
         if (!isBaby && itemInHand.is(Items.BOWL)) {
-            // Stew
+            
             return InteractionResult.SUCCESS;
         } else if (!isBaby && isAlive() && itemInHand.is(Items.SHEARS)) {
-            // Shear items
+            
             return InteractionResult.SUCCESS;
         } else if (isBrown && itemInHand.is(session, ItemTag.SMALL_FLOWERS)) {
-            // ?
+            
             return InteractionResult.SUCCESS;
         }
         return super.mobInteract(hand, itemInHand);

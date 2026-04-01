@@ -31,34 +31,29 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
-/**
- * Manages the sending of a cooldown indicator to the Bedrock player as there is no cooldown indicator in Bedrock.
- * Much of the work here is from the wonderful folks from <a href="https://github.com/ViaVersion/ViaRewind">ViaRewind</a>
- */
+
 public class CooldownUtils {
-    /**
-     * Sets the last hit time for use when ticking the attack cooldown
-     */
+    
     public static void setCooldownHitTime(GeyserSession session) {
         if (session.getPreferencesCache().getCooldownPreference() == CooldownType.DISABLED) {
             return;
         }
         if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) {
-            return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
+            return; 
         }
 
         session.setLastHitTime(System.currentTimeMillis());
     }
 
     public static void tickCooldown(GeyserSession session) {
-        if (session.getGameMode().equals(GameMode.SPECTATOR)) return; // No attack indicator in spectator
+        if (session.getGameMode().equals(GameMode.SPECTATOR)) return; 
 
         CooldownType sessionPreference = session.getPreferencesCache().getCooldownPreference();
         if (sessionPreference == CooldownType.DISABLED) return;
 
         if (session.getAttackSpeed() == 0.0 || session.getAttackSpeed() > 20) {
-            clearCooldown(session); // Let's clear in the off chance there is something already displayed
-            return; // 0.0 usually happens on login and causes issues with visuals; anything above 20 means a plugin like OldCombatMechanics is being used
+            clearCooldown(session); 
+            return; 
         }
 
         long time = System.currentTimeMillis() - session.getLastHitTime();
@@ -79,9 +74,9 @@ public class CooldownUtils {
         } else {
             SetTitlePacket titlePacket;
 
-            // They must be incorrect here for cooldown sake
+            
             if (!session.getWorldCache().isTitleTimesIncorrect()) {
-                // Set the times to stay a bit with no fade in nor out
+                
                 titlePacket = new SetTitlePacket();
                 titlePacket.setType(SetTitlePacket.Type.TIMES);
                 titlePacket.setStayTime(1000);
@@ -93,9 +88,9 @@ public class CooldownUtils {
                 session.getWorldCache().markTitleTimesAsIncorrect();
             }
 
-            // Actionbars don't need an empty title
+            
             if (sessionPreference == CooldownType.CROSSHAIR) {
-                // Needs to be sent or no subtitle packet is recognized by the client
+                
                 titlePacket = new SetTitlePacket();
                 titlePacket.setType(SetTitlePacket.Type.TITLE);
                 titlePacket.setText(" ");

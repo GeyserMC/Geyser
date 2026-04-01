@@ -52,8 +52,8 @@ public class BannerBlockEntityTranslator extends BlockEntityTranslator implement
         List<NbtMap> patterns = javaNbt.getList("patterns", NbtType.COMPOUND);
         if (!patterns.isEmpty()) {
             if (BannerItem.isOminous(patterns)) {
-                // This is an ominous banner; don't try to translate the raw patterns (it doesn't translate correctly)
-                // and tell the Bedrock client that this is an ominous banner
+                
+                
                 bedrockNbt.putInt("Type", 1);
             } else {
                 bedrockNbt.putList("Patterns", NbtType.COMPOUND, BannerItem.convertBannerPattern(patterns));

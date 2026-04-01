@@ -30,15 +30,8 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 
-/**
- * Implemented only if a block is a block entity in Bedrock and not Java Edition.
- */
+
 public interface BedrockChunkWantsBlockEntityTag extends RequiresBlockState {
-    /**
-     * Get the tag of the Bedrock-only block entity. Used during chunk loading.
-     * @param position Bedrock position of block.
-     * @param blockState Java BlockState of block.
-     * @return Bedrock tag
-     */
+    
     NbtMap createTag(GeyserSession session, Vector3i position, BlockState blockState);
 }

@@ -43,19 +43,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 
 import java.util.Collection;
 
-/**
- * This is only a separate class for testing purposes so we don't have to load in GeyserImpl in ItemTranslator.
- */
+
 public final class CustomItemTranslator {
 
-    /**
-     * Looks up whether a Java item is a custom Bedrock item on our end.
-     * @param session the session
-     * @param stackSize the stack size
-     * @param components ALL components of the item; not just the patch
-     * @param mapping the current Bedrock item mapping we have
-     * @return the custom item definition, or null
-     */
+    
     @Nullable
     public static ItemDefinition getCustomItem(GeyserSession session, int stackSize, DataComponents components, ItemMapping mapping) {
         if (components == null) {
@@ -74,7 +65,7 @@ public final class CustomItemTranslator {
         Collection<GeyserCustomMappingData> customItems = allCustomItems.get(itemModel);
 
         if (mapping.isContainsV1Mappings() && customItems.isEmpty()) {
-            // Try looking up vanilla model mappings too, as that's what v1 mappings target
+            
             customItems = allCustomItems.get(mapping.getJavaItem().getComponent(session.getComponentCache(), DataComponentTypes.ITEM_MODEL));
         }
 
@@ -84,9 +75,9 @@ public final class CustomItemTranslator {
 
         ItemPredicateContext context = GeyserItemPredicateContext.create(session, stackSize, components);
 
-        // Cache predicate values so they're not recalculated every time when there are multiple item definitions using the same predicates
-        // As with predicate conflict detection, this only works for common predicates that are backed using record classes in the API module, since they work with .equals().
-        // JSON mappings use only these common predicates, extensions may not.
+        
+        
+        
         Object2BooleanMap<MinecraftPredicate<? super ItemPredicateContext>> calculatedPredicates = new Object2BooleanOpenHashMap<>();
         for (GeyserCustomMappingData customMapping : customItems) {
             boolean needsOnlyOneMatch = customMapping.definition().predicateStrategy() == PredicateStrategy.OR;
@@ -100,7 +91,7 @@ public final class CustomItemTranslator {
                     }
                 } else {
                     allMatch = false;
-                    // If we need everything to match, that is no longer possible, so break
+                    
                     if (!needsOnlyOneMatch) {
                         break;
                     }

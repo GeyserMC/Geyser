@@ -65,11 +65,11 @@ public final class JsonUtils {
         try {
             new Gson().fromJson("{\"version\":[1,0,0],\"uuid\":\"eebb4ea8-a701-11eb-95ba-047d7bb283ba\"}", GeyserResourcePackManifest.Dependency.class);
         } catch (Throwable e) {
-            // 1.16.5 and 1.17.1 (at minimum) have an outdated Gson version that doesn't support records.
-            // Remove this workaround when all platforms support Gson 2.10+
-            // (Explicitly allow missing component values - the dependencies module for resource packs, for example, can be missing)
+            
+            
+            
             builder.registerTypeAdapterFactory(RecordTypeAdapterFactory.builder().allowMissingComponentValues().create())
-                // Since this is a record, the above will take precedence unless we explicitly declare it.
+                
                 .registerTypeAdapter(GeyserResourcePackManifest.Version.class, new GeyserResourcePackManifest.Version.VersionDeserializer());
         }
         return builder.create();

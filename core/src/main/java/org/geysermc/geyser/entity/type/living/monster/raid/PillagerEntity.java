@@ -42,7 +42,7 @@ public class PillagerEntity extends AbstractIllagerEntity {
     public void setChargingCrossbow(BooleanEntityMetadata entityMetadata) {
         boolean charging = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.CHARGING, charging);
-        dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, charging ? (byte) 64 : (byte) 0); // TODO: gradually increase
+        dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, charging ? (byte) 64 : (byte) 0); 
     }
 
     @Override
@@ -59,9 +59,7 @@ public class PillagerEntity extends AbstractIllagerEntity {
         super.updateOffHand();
     }
 
-    /**
-     * Check for a crossbow in either the mainhand or offhand. If one exists, indicate that the pillager should be posing
-     */
+    
     protected void updateCrossbow() {
         GeyserItemStack activeCrossbow = null;
         if (getMainHandItem().is(Items.CROSSBOW)) {

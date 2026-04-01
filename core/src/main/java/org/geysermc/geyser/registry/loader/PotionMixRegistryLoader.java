@@ -40,15 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-/**
- * Generates a collection of {@link PotionMixData} that enables the
- * Bedrock client to place brewing items into the brewing stand.
- * (Does not contain actual potion mixes.)
- * <p>
- * Designed to replicate Java Edition behavior.
- * (Ex: Bedrock cannot normally place glass bottles or fully upgraded
- * potions into the brewing stand, but Java can.)
- */
+
 public class PotionMixRegistryLoader implements RegistryLoader<Object, Int2ObjectMap<Set<PotionMixData>>> {
 
     @Override
@@ -74,7 +66,7 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Int2Objec
             ingredients.add(getNonNull(mappings, Items.GHAST_TEAR));
             ingredients.add(getNonNull(mappings, Items.TURTLE_HELMET));
             ingredients.add(getNonNull(mappings, Items.PHANTOM_MEMBRANE));
-            // 1.21
+            
             ingredients.add(getNonNull(mappings, Items.STONE));
             ingredients.add(getNonNull(mappings, Items.SLIME_BLOCK));
             ingredients.add(getNonNull(mappings, Items.COBWEB));
@@ -90,7 +82,7 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Int2Objec
 
             Set<PotionMixData> potionMixes = new HashSet<>();
 
-            // Add all types of potions as inputs
+            
             ItemMapping fillerIngredient = ingredients.get(0);
             for (ItemMapping entryInput : inputs) {
                 for (Potion potion : Potion.VALUES) {
@@ -102,8 +94,8 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Int2Objec
                 }
             }
 
-            // Add all brewing ingredients
-            // Also adds glass bottle as input
+            
+            
             for (ItemMapping ingredient : ingredients) {
                 potionMixes.add(new PotionMixData(
                         glassBottle.getBedrockDefinition().getRuntimeId(), glassBottle.getBedrockData(),

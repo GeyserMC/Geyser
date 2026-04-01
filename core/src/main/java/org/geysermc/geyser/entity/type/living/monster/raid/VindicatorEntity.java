@@ -40,7 +40,7 @@ public class VindicatorEntity extends AbstractIllagerEntity {
     @Override
     public void setMobFlags(ByteEntityMetadata entityMetadata) {
         super.setMobFlags(entityMetadata);
-        // Allow the axe to be shown if necessary
+        
         byte xd = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.ANGRY, (xd & 4) == 4);
     }

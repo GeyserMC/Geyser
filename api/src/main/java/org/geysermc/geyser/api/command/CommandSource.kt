@@ -22,75 +22,71 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.command
 
-package org.geysermc.geyser.api.command;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-
-import java.util.UUID;
+import org.geysermc.geyser.api.connection.GeyserConnection
+import java.util.*
 
 /**
  * Represents an instance capable of sending commands.
  */
-public interface CommandSource {
-
+interface CommandSource {
     /**
      * The name of the command source.
-     *
+     * 
      * @return the name of the command source
      */
-    String name();
+    fun name(): String?
 
     /**
      * Sends the given message to the command source
-     *
+     * 
      * @param message the message to send
      */
-    void sendMessage(@NonNull String message);
+    fun sendMessage(message: String)
 
     /**
      * Sends the given messages to the command source
-     *
+     * 
      * @param messages the messages to send
      */
-    default void sendMessage(String[] messages) {
-        for (String message : messages) {
-            sendMessage(message);
+    fun sendMessage(messages: Array<String>) {
+        for (message in messages) {
+            sendMessage(message)
         }
     }
 
     /**
      * If this source is the console.
-     *
+     * 
      * @return true if this source is the console
      */
-    boolean isConsole();
+    @kotlin.jvm.JvmField
+    val isConsole: Boolean
 
     /**
      * @return a Java UUID if this source represents a player, otherwise null
      */
-    @Nullable UUID playerUuid();
+    fun playerUuid(): UUID?
 
     /**
      * @return a GeyserConnection if this source represents a Bedrock player that is connected
      * to this Geyser instance, otherwise null
      */
-    @Nullable GeyserConnection connection();
+    fun connection(): GeyserConnection?
 
     /**
      * Returns the locale of the command source.
-     *
+     * 
      * @return the locale of the command source.
      */
-    String locale();
+    fun locale(): String?
 
     /**
      * Checks if this command source has the given permission
-     *
+     * 
      * @param permission The permission node to check
      * @return true if this command source has a permission
      */
-    boolean hasPermission(String permission);
+    fun hasPermission(permission: String?): Boolean
 }

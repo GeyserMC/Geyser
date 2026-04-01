@@ -34,21 +34,13 @@ import org.cloudburstmc.math.vector.Vector3i;
 @Getter
 public final class StructureBlockCache {
 
-    /**
-     * Stores the current structure's name to be able to detect changes in the loaded structure
-     */
+    
     private @Nullable String currentStructureName;
 
-    /**
-     * Stores the offset changes added by Geyser that ensure that structure bounds
-     * are the same for Java and Bedrock
-     */
+    
     private @Nullable Vector3i bedrockOffset;
 
-    /**
-     * Stores the current structure block position while we're waiting on the Java
-     * server to send the data we need.
-     */
+    
     private @Nullable Vector3i currentStructureBlock;
 
     public void clear() {

@@ -22,30 +22,30 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.event.lifecycle
 
-package org.geysermc.geyser.api.event.lifecycle;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.event.Event;
-import org.geysermc.geyser.api.util.TriState;
+import org.geysermc.event.Event
+import org.geysermc.geyser.api.util.TriState
 
 /**
  * Fired by anything that wishes to gather permission nodes and defaults.
- * <p>
+ * 
+ * 
  * This event is not guaranteed to be fired, as certain Geyser platforms do not have a native permission system.
  * It can be expected to fire on Geyser-Spigot, Geyser-NeoForge, Geyser-Standalone, and Geyser-ViaProxy
  * It may be fired by a 3rd party regardless of the platform.
  */
-public interface GeyserRegisterPermissionsEvent extends Event {
-
+interface GeyserRegisterPermissionsEvent : Event {
     /**
-     * Registers a permission node and its default value with the firer.<p>
-     * {@link TriState#TRUE} corresponds to all players having the permission by default.<br>
-     * {@link TriState#NOT_SET} corresponds to only server operators having the permission by default (if such a concept exists on the platform).<br>
-     * {@link TriState#FALSE} corresponds to no players having the permission by default.<br>
+     * Registers a permission node and its default value with the firer.
      *
+     *
+     * [TriState.TRUE] corresponds to all players having the permission by default.<br></br>
+     * [TriState.NOT_SET] corresponds to only server operators having the permission by default (if such a concept exists on the platform).<br></br>
+     * [TriState.FALSE] corresponds to no players having the permission by default.<br></br>
+     * 
      * @param permission the permission node to register
      * @param defaultValue the default value of the node
      */
-    void register(@NonNull String permission, @NonNull TriState defaultValue);
+    fun register(permission: String, defaultValue: TriState)
 }

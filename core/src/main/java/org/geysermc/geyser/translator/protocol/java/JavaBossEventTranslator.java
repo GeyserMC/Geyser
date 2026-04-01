@@ -56,7 +56,7 @@ public class JavaBossEventTranslator extends PacketTranslator<ClientboundBossEve
                 if (bossBar != null) bossBar.updateColor(packet.getColor().ordinal());
                 break;
             case UPDATE_FLAGS:
-                //todo
+                
         }
     }
 }

@@ -33,10 +33,7 @@ import org.geysermc.geyser.api.pack.option.SubpackOption;
 
 import java.util.Objects;
 
-/**
- * Can be used to specify which subpack from a resource pack a player should load.
- * Available subpacks can be seen in a resource pack manifest {@link ResourcePackManifest#subpacks()}
- */
+
 public record GeyserSubpackOption(String subpackName) implements SubpackOption {
 
     @Override
@@ -53,7 +50,7 @@ public record GeyserSubpackOption(String subpackName) implements SubpackOption {
     public void validate(@NonNull ResourcePack pack) {
         Objects.requireNonNull(pack);
 
-        // Allow empty subpack names - they're the same as "none"
+        
         if (subpackName.isEmpty()) {
             return;
         }

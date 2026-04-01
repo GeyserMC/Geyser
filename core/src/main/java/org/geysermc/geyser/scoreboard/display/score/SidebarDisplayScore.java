@@ -99,7 +99,7 @@ public final class SidebarDisplayScore extends DisplayScore {
             return this;
         }
         this.order = order;
-        // this guarantees an update
+        
         requestUpdate();
         return this;
     }
@@ -116,7 +116,7 @@ public final class SidebarDisplayScore extends DisplayScore {
             }
             return;
         }
-        // simplified from (this.team != null && team == null) || (this.team == null && team != null)
+        
         if (this.team != null || team != null) {
             this.team = team;
             requestUpdate();

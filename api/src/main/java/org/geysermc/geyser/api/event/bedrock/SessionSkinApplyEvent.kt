@@ -22,123 +22,113 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.event.bedrock
 
-package org.geysermc.geyser.api.event.bedrock;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.connection.ConnectionEvent;
-import org.geysermc.geyser.api.skin.Cape;
-import org.geysermc.geyser.api.skin.Skin;
-import org.geysermc.geyser.api.skin.SkinData;
-import org.geysermc.geyser.api.skin.SkinGeometry;
-
-import java.util.UUID;
+import org.geysermc.geyser.api.connection.GeyserConnection
+import org.geysermc.geyser.api.event.connection.ConnectionEvent
+import org.geysermc.geyser.api.skin.Cape
+import org.geysermc.geyser.api.skin.Skin
+import org.geysermc.geyser.api.skin.SkinData
+import org.geysermc.geyser.api.skin.SkinGeometry
+import java.util.*
 
 /**
  * Called when a skin is applied to a player.
- * <p>
+ * 
+ * 
  * Won't be called when a fake player is spawned for a player skull.
  */
-public abstract class SessionSkinApplyEvent extends ConnectionEvent {
-
-    private final String username;
-    private final UUID uuid;
-    private final boolean slim;
-    private final boolean bedrock;
-    private final SkinData originalSkinData;
-
-    public SessionSkinApplyEvent(@NonNull GeyserConnection connection, String username, UUID uuid, boolean slim, boolean bedrock, SkinData skinData) {
-        super(connection);
-        this.username = username;
-        this.uuid = uuid;
-        this.slim = slim;
-        this.bedrock = bedrock;
-        this.originalSkinData = skinData;
-    }
-
+abstract class SessionSkinApplyEvent(
+    connection: GeyserConnection,
+    private val username: String,
+    private val uuid: UUID,
+    private val slim: Boolean,
+    private val bedrock: Boolean,
+    private val originalSkinData: SkinData
+) : ConnectionEvent(connection) {
     /**
      * The username of the player.
-     *
+     * 
      * @return the username of the player
      */
-    public @NonNull String username() {
-        return username;
+    fun username(): String {
+        return username
     }
 
     /**
      * The UUID of the player.
-     *
+     * 
      * @return the UUID of the player
      */
-    public @NonNull UUID uuid() {
-        return uuid;
+    fun uuid(): UUID {
+        return uuid
     }
 
     /**
      * If the player is using a slim model.
-     *
+     * 
      * @return if the player is using a slim model
      */
-    public boolean slim() {
-        return slim;
+    fun slim(): Boolean {
+        return slim
     }
 
     /**
      * If the player is a Bedrock player.
-     *
+     * 
      * @return if the player is a Bedrock player
      */
-    public boolean bedrock() {
-        return bedrock;
+    fun bedrock(): Boolean {
+        return bedrock
     }
 
     /**
      * The original skin data of the player.
-     *
+     * 
      * @return the original skin data of the player
      */
-    public @NonNull SkinData originalSkin() {
-        return originalSkinData;
+    fun originalSkin(): SkinData {
+        return originalSkinData
     }
 
     /**
      * The skin data of the player.
-     *
+     * 
      * @return the current skin data of the player
      */
-    public abstract @NonNull SkinData skinData();
+    abstract fun skinData(): SkinData
 
     /**
      * Change the skin of the player.
-     *
+     * 
      * @param newSkin the new skin
      */
-    public abstract void skin(@NonNull Skin newSkin);
+    abstract fun skin(newSkin: Skin)
 
     /**
      * Change the cape of the player.
-     *
+     * 
      * @param newCape the new cape
      */
-    public abstract void cape(@NonNull Cape newCape);
+    abstract fun cape(newCape: Cape)
 
     /**
      * Change the geometry of the player.
-     *
+     * 
      * @param newGeometry the new geometry
      */
-    public abstract void geometry(@NonNull SkinGeometry newGeometry);
+    abstract fun geometry(newGeometry: SkinGeometry)
 
     /**
      * Change the geometry of the player.
-     * <p>
-     * Constructs a generic {@link SkinGeometry} object with the given data.
-     *
+     * 
+     * 
+     * Constructs a generic [SkinGeometry] object with the given data.
+     * 
      * @param geometryName the name of the geometry
      * @param geometryData the data of the geometry
      */
-    public void geometry(@NonNull String geometryName, @NonNull String geometryData) {
-        geometry(new SkinGeometry("{\"geometry\" :{\"default\" :\"" + geometryName + "\"}}", geometryData));
+    fun geometry(geometryName: String, geometryData: String) {
+        geometry(SkinGeometry("{\"geometry\" :{\"default\" :\"" + geometryName + "\"}}", geometryData))
     }
 }

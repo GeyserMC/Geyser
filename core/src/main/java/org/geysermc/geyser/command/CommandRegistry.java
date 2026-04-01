@@ -86,15 +86,7 @@ import java.util.Set;
 
 import static org.geysermc.geyser.command.GeyserCommand.DEFAULT_ROOT_COMMAND;
 
-/**
- * Registers all built-in and extension commands to the given Cloud CommandManager.
- * <p>
- * Fires {@link GeyserDefineCommandsEvent} upon construction.
- * <p>
- * Subscribes to {@link GeyserRegisterPermissionsEvent} upon construction.
- * A new instance of this class (that registers the same permissions) shouldn't be created until the previous
- * instance is unsubscribed from the event.
- */
+
 public class CommandRegistry implements EventRegistrar {
 
     private static final String GEYSER_ROOT_PERMISSION = "geyser.command";
@@ -106,56 +98,36 @@ public class CommandRegistry implements EventRegistrar {
     private final CommandManager<GeyserCommandSource> cloud;
     private final boolean applyRootPermission;
 
-    /**
-     * Map of Geyser subcommands to their Commands
-     */
+    
     private final Map<String, GeyserCommand> commands = new Object2ObjectOpenHashMap<>(13);
 
-    /**
-     * Map of Extensions to maps of their subcommands
-     */
+    
     private final Map<Extension, Map<String, GeyserCommand>> extensionCommands = new Object2ObjectOpenHashMap<>(0);
 
-    /**
-     * Map of root commands (that are for extensions) to Extensions
-     */
+    
     private final Map<String, Extension> extensionRootCommands = new Object2ObjectOpenHashMap<>(0);
 
-    /**
-     * Map containing only permissions that have been registered with a default value
-     */
+    
     protected final Map<String, TriState> permissionDefaults = new Object2ObjectOpenHashMap<>(13);
 
-    /**
-     * Creates a new CommandRegistry. Does apply a root permission. If undesired, use the other constructor.
-     */
+    
     public CommandRegistry(GeyserImpl geyser, CommandManager<GeyserCommandSource> cloud) {
         this(geyser, cloud, true);
     }
 
-    /**
-     * Creates a new CommandRegistry
-     *
-     * @param geyser the Geyser instance
-     * @param cloud the cloud command manager to register commands to
-     * @param applyRootPermission true if this registry should apply a permission to Geyser and Extension root commands.
-     *                            This currently exists because we want to retain the root command permission for Spigot,
-     *                            but don't want to add it yet to platforms like Velocity where we cannot natively
-     *                            specify a permission default. Doing so will break setups as players would suddenly not
-     *                            have the required permission to execute any Geyser commands.
-     */
+    
     public CommandRegistry(GeyserImpl geyser, CommandManager<GeyserCommandSource> cloud, boolean applyRootPermission) {
         this.geyser = geyser;
         this.cloud = cloud;
         this.applyRootPermission = applyRootPermission;
 
-        // register our custom exception handlers
+        
         ExceptionHandlers.register(cloud);
 
-        // begin command registration
+        
         HelpCommand help = new HelpCommand(DEFAULT_ROOT_COMMAND, "help", "geyser.commands.help.desc", "geyser.command.help", this.commands);
         registerBuiltInCommand(help);
-        buildRootCommand(GEYSER_ROOT_PERMISSION, help); // build root and delegate to help
+        buildRootCommand(GEYSER_ROOT_PERMISSION, help); 
 
         registerBuiltInCommand(new ListCommand(geyser, "list", "geyser.commands.list.desc", "geyser.command.list"));
         registerBuiltInCommand(new ReloadCommand(geyser, "reload", "geyser.commands.reload.desc", "geyser.command.reload"));
@@ -192,41 +164,37 @@ public class CommandRegistry implements EventRegistrar {
         };
         this.geyser.eventBus().fire(defineCommandsEvent);
 
-        // Stuff that needs to be done on a per-extension basis
+        
         for (Map.Entry<Extension, Map<String, GeyserCommand>> entry : this.extensionCommands.entrySet()) {
             Extension extension = entry.getKey();
 
-            // Register this extension's root command
+            
             extensionRootCommands.put(extension.rootCommand(), extension);
 
-            // Register help commands for all extensions with commands
+            
             String id = extension.description().id();
             HelpCommand extensionHelp = new HelpCommand(
                 extension.rootCommand(),
                 "help",
                 "geyser.commands.exthelp.desc",
                 "geyser.command.exthelp." + id,
-                entry.getValue()); // commands it provides help for
+                entry.getValue()); 
 
             registerExtensionCommand(extension, extensionHelp);
             buildRootCommand("geyser.extension." + id + ".command", extensionHelp);
         }
 
-        // Wait for the right moment (depends on the platform) to register permissions.
+        
         geyser.eventBus().subscribe(this, GeyserRegisterPermissionsEvent.class, this::onRegisterPermissions);
     }
 
-    /**
-     * @return an immutable view of the root commands registered to this command registry
-     */
+    
     @NonNull
     public Collection<String> rootCommands() {
         return cloud.rootCommands();
     }
 
-    /**
-     * For internal Geyser commands
-     */
+    
     private void registerBuiltInCommand(GeyserCommand command) {
         register(command, this.commands);
     }
@@ -255,7 +223,7 @@ public class CommandRegistry implements EventRegistrar {
         if (!permission.isBlank() && defaultValue != null) {
 
             TriState existingDefault = permissionDefaults.get(permission);
-            // Extensions might be using the same permission for two different commands
+            
             if (existingDefault != null && existingDefault != defaultValue) {
                 geyser.getLogger().debug("Overriding permission default %s:%s with %s".formatted(permission, existingDefault, defaultValue));
             }
@@ -264,14 +232,7 @@ public class CommandRegistry implements EventRegistrar {
         }
     }
 
-    /**
-     * Registers a root command to cloud that delegates to the given help command.
-     * The name of this root command is the root of the given help command.
-     *
-     * @param permission the permission of the root command. currently, it may or may not be
-     *                   applied depending on the platform. see below.
-     * @param help the help command to delegate to
-     */
+    
     private void buildRootCommand(String permission, HelpCommand help) {
         Builder<GeyserCommandSource> builder = cloud.commandBuilder(help.rootCommand());
 
@@ -283,10 +244,10 @@ public class CommandRegistry implements EventRegistrar {
         cloud.command(builder.handler(context -> {
             GeyserCommandSource source = context.sender();
             if (source.hasPermission(help.permission())) {
-                // Delegate to help if possible
+                
                 help.execute(source);
             } else if (STANDALONE_COMMAND_MANAGER && source instanceof GeyserSession session) {
-                // If we are on an appropriate platform, forward the command to the backend
+                
                 session.sendCommandPacket(context.rawInput().input());
             } else {
                 source.sendLocaleString(ExceptionHandlers.PERMISSION_FAIL_LANG_KEY);
@@ -301,17 +262,11 @@ public class CommandRegistry implements EventRegistrar {
     }
 
     public boolean hasPermission(GeyserCommandSource source, String permission) {
-        // Handle blank permissions ourselves, as cloud only handles empty ones
+        
         return permission.isBlank() || cloud.hasPermission(source, permission);
     }
 
-    /**
-     * Returns the description of the given command
-     *
-     * @param command the root command node
-     * @param locale the ideal locale that the description should be in
-     * @return a description if found, otherwise an empty string. The locale is not guaranteed.
-     */
+    
     @NonNull
     public String description(@NonNull String command, @NonNull String locale) {
         if (command.equals(DEFAULT_ROOT_COMMAND)) {
@@ -325,10 +280,7 @@ public class CommandRegistry implements EventRegistrar {
         return "";
     }
 
-    /**
-     * Dispatches a command into cloud and handles any thrown exceptions.
-     * This method may or may not be blocking, depending on the {@link ExecutionCoordinator} in use by cloud.
-     */
+    
     public void runCommand(@NonNull GeyserCommandSource source, @NonNull String command) {
         cloud.commandExecutor().executeCommand(source, command);
     }
@@ -340,12 +292,12 @@ public class CommandRegistry implements EventRegistrar {
     public void export(GeyserSession session, List<CommandData> bedrockCommands, Set<String> knownAliases) {
         cloud.commandTree().rootNodes().forEach(commandTree -> {
             var command = commandTree.command();
-            // Command null happens if you register an extension command with custom Cloud parameters...
+            
             if (command == null || session.hasPermission(command.commandPermission().permissionString())) {
                 var rootComponent = commandTree.component();
                 String name = rootComponent.name();
                 if (!knownAliases.add(name)) {
-                    // If the server already defined the command, let's not crash.
+                    
                     return;
                 }
 
@@ -372,7 +324,7 @@ public class CommandRegistry implements EventRegistrar {
     private List<List<CommandParamData>> createParamData(GeyserSession session, CommandNode<GeyserCommandSource> node) {
         var command = node.command();
         if (command != null && !session.hasPermission(command.commandPermission().permissionString())) {
-            // Triggers with subcommands like Geyser dump, stop, etc.
+            
             return Collections.emptyList();
         }
 
@@ -405,13 +357,13 @@ public class CommandRegistry implements EventRegistrar {
 
         var children = node.children();
         if (children.isEmpty()) {
-            List<CommandParamData> list = new ArrayList<>(); // Must be mutable; parents will be added to list.
+            List<CommandParamData> list = new ArrayList<>(); 
             list.add(data);
-            return Collections.singletonList(list); // Safe to do; will be consumed in an addAll call.
+            return Collections.singletonList(list); 
         }
         List<List<CommandParamData>> collectiveData = new ArrayList<>();
-        // If a node has multiple children, this will need to be represented
-        // by creating a new list/branch for each and cloning this node down each line.
+        
+        
         for (var child : children) {
             collectiveData.addAll(createParamData(session, child));
         }

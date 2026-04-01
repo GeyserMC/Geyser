@@ -32,17 +32,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-/**
- * A deferred registry is a registry that is not loaded until it is needed.
- * This is useful for registries that are not needed until after other parts
- * of the lifecycle have been completed.
- * <p>
- * This class is slightly different from other registries in that it acts as
- * a wrapper around another registry. This is to allow for any kind of registry
- * type to be deferred.
- *
- * @param <M> the value being held by the registry
- */
+
 class DeferredRegistry<M, R extends IRegistry<M>> implements IRegistry<M> {
     private final R backingRegistry;
     private final Supplier<M> loader;
@@ -73,12 +63,7 @@ class DeferredRegistry<M, R extends IRegistry<M>> implements IRegistry<M> {
         return this.backingRegistry;
     }
 
-    /**
-     * Gets the underlying value held by this registry.
-     *
-     * @return the underlying value held by this registry
-     * @throws IllegalStateException if this deferred registry has not been loaded yet
-     */
+    
     @Override
     public M get() {
         if (!this.loaded) {
@@ -93,12 +78,7 @@ class DeferredRegistry<M, R extends IRegistry<M>> implements IRegistry<M> {
         this.backingRegistry.set(mappings);
     }
 
-    /**
-     * Registers what is specified in the given {@link Consumer} into the underlying value.
-     *
-     * @param consumer the consumer
-     * @throws IllegalStateException if this deferred registry has not been loaded yet
-     */
+    
     @Override
     public void register(Consumer<M> consumer) {
         if (!this.loaded) {
@@ -108,36 +88,21 @@ class DeferredRegistry<M, R extends IRegistry<M>> implements IRegistry<M> {
         this.backingRegistry.register(consumer);
     }
 
-    /**
-     * Loads the registry.
-     */
+    
     public void load() {
         this.backingRegistry.set(this.loader.get());
         this.loaded = true;
     }
 
-    /**
-     * Whether this registry was loaded.
-     */
+    
     public boolean loaded() {
         return this.loaded;
     }
 
-    /**
-     * A registry initializer.
-     *
-     * @param <M> the registry type
-     */
+    
     public interface RegistryInitializer<M, R extends IRegistry<M>> {
 
-        /**
-         * Initializes the registry.
-         *
-         * @param input the input
-         * @param registryLoader the registry loader
-         * @param <I> the input type
-         * @return the initialized registry
-         */
+        
         <I> R initialize(I input, RegistryLoader<I, M> registryLoader);
     }
 }

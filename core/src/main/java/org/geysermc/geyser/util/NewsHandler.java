@@ -105,10 +105,10 @@ public class NewsHandler {
                 logger.info(news.getMessage());
                 break;
             case ON_OPERATOR_JOIN:
-                //todo doesn't work, it's called before we know the op level.
-//                if (session != null && session.getOpPermissionLevel() >= 2) {
-//                    session.sendMessage(ChatColor.GREEN + news.getMessage());
-//                }
+                
+
+
+
                 break;
             case BROADCAST_TO_OPERATORS:
                 for (GeyserSession player : GeyserImpl.getInstance().getSessionManager().getSessions().values()) {
@@ -163,7 +163,7 @@ public class NewsHandler {
                 schedule(delayMs > 0 ? delayMs : 0);
                 break;
             case CONFIG_SPECIFIC:
-                //todo implement
+                
                 break;
         }
 

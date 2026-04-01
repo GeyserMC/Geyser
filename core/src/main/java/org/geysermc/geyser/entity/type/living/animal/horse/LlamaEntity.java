@@ -37,16 +37,14 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
 public class LlamaEntity extends ChestedHorseEntity {
-    /**
-     * Used to calculate inventory size
-     */
+    
     @Getter
     private int strength = 1;
 
     public LlamaEntity(EntitySpawnContext context) {
         super(context);
 
-        dirtyMetadata.put(EntityDataTypes.CONTAINER_STRENGTH_MODIFIER, 3); // Presumably 3 slots for every 1 strength
+        dirtyMetadata.put(EntityDataTypes.CONTAINER_STRENGTH_MODIFIER, 3); 
     }
 
     public void setStrength(IntEntityMetadata entityMetadata) {

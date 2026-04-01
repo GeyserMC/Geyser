@@ -22,30 +22,26 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.pack;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
+package org.geysermc.geyser.api.pack
 
 /**
  * Represents a pack codec that creates a resource
  * pack from a URL.
- * <p>
+ * 
+ * 
  * Due to Bedrock limitations, the URL must:
- * <ul>
- *     <li>be a direct download link to a .zip or .mcpack resource pack</li>
- *     <li>use the application type `application/zip` and set a correct content length</li>
- * </ul>
+ * 
+ *  * be a direct download link to a .zip or .mcpack resource pack
+ *  * use the application type `application/zip` and set a correct content length
+ * 
  * @since 2.6.2
  */
-public abstract class UrlPackCodec extends PackCodec {
-
+abstract class UrlPackCodec : PackCodec() {
     /**
      * Gets the URL to the resource pack location.
-     *
+     * 
      * @return the URL of the resource pack
      * @since 2.6.2
      */
-    @NonNull
-    public abstract String url();
+    abstract fun url(): String
 }

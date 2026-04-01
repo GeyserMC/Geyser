@@ -61,9 +61,7 @@ import org.geysermc.geyser.registry.Registries;
 
 import static org.geysermc.geyser.item.type.Item.builder;
 
-/**
- * A list, in order, of all Java items.
- */
+
 @SuppressWarnings("unused")
 public final class Items {
     public static final Item AIR = register(new Item("air", builder()));

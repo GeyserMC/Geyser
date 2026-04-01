@@ -62,10 +62,7 @@ public class GeyserCameraData implements CameraData {
     private static final HudElement[] HUD_ELEMENT_VALUES = HudElement.values();
     private static final Set<HudElement> ALL_HUD_ELEMENTS = Set.of(HUD_ELEMENT_VALUES);
 
-    /**
-     * An array of elements to hide when the player is in spectator mode.
-     * Helps with tidying up the GUI; Java-style.
-     */
+    
     private static final GuiElement[] SPECTATOR_HIDDEN_ELEMENTS = {
         GuiElement.AIR_BUBBLES_BAR,
         GuiElement.ARMOR,
@@ -79,16 +76,12 @@ public class GeyserCameraData implements CameraData {
 
     private final GeyserSession session;
 
-    /**
-     * All fog effects that are currently applied to the client.
-     */
+    
     private final Set<String> appliedFog = new HashSet<>();
 
     private final Set<UUID> cameraLockOwners = new HashSet<>();
 
-    /**
-     * All currently hidden HUD elements
-     */
+    
     private final Set<GuiElement> hiddenHudElements = new HashSet<>();
 
     @Getter
@@ -111,7 +104,7 @@ public class GeyserCameraData implements CameraData {
         Objects.requireNonNull(perspective, "perspective cannot be null!");
 
         if (perspective == cameraPerspective) {
-            return; // nothing to do
+            return; 
         }
 
         this.cameraPerspective = perspective;
@@ -154,7 +147,7 @@ public class GeyserCameraData implements CameraData {
     @Override
     public void sendCameraPosition(@NonNull CameraPosition movement) {
         Objects.requireNonNull(movement, "movement cannot be null!");
-        this.cameraPerspective = CameraPerspective.FREE; // Movements only work with the free preset
+        this.cameraPerspective = CameraPerspective.FREE; 
         CameraSetInstruction setInstruction = new CameraSetInstruction();
 
         CameraEaseType easeType = movement.easeType();
@@ -177,7 +170,7 @@ public class GeyserCameraData implements CameraData {
         CameraInstructionPacket packet = new CameraInstructionPacket();
         packet.setSetInstruction(setInstruction);
 
-        // If present, also send the fade
+        
         CameraFade fade = movement.cameraFade();
         if (fade != null) {
             CameraFadeInstruction fadeInstruction = new CameraFadeInstruction();
@@ -208,7 +201,7 @@ public class GeyserCameraData implements CameraData {
     @Override
     public void stopCameraShake() {
         CameraShakePacket packet = new CameraShakePacket();
-        // CameraShakeAction.STOP removes all types regardless of the given type, but regardless it can't be null
+        
         packet.setShakeType(CameraShakeType.POSITIONAL);
         packet.setShakeAction(CameraShakeAction.STOP);
         session.sendUpstreamPacket(packet);
@@ -239,7 +232,7 @@ public class GeyserCameraData implements CameraData {
 
     @Override
     public @NonNull Set<String> fogEffects() {
-        // Use a copy so that sendFog/removeFog can be called while iterating the returned set (avoid CME)
+        
         return Set.copyOf(this.appliedFog);
     }
 
@@ -277,7 +270,7 @@ public class GeyserCameraData implements CameraData {
         if (session.isSentSpawnPacket()) {
             session.sendUpstreamPacket(packet);
         } else {
-            // Ensures hidden GUI elements properly hide when we spawn in the spectator gamemode
+            
             session.getUpstream().queuePostStartGamePacket(packet);
         }
     }
@@ -312,12 +305,7 @@ public class GeyserCameraData implements CameraData {
         return Collections.unmodifiableSet(hiddenHudElements);
     }
 
-    /**
-     * Deals with hiding hud elements while in spectator.
-     *
-     * @param currentlySpectator whether the player is currently in spectator mode
-     * @param newGameMode the new GameMode to switch to
-     */
+    
     public void handleGameModeChange(boolean currentlySpectator, GameMode newGameMode) {
         if (newGameMode == GameMode.SPECTATOR) {
             if (!currentlySpectator) {

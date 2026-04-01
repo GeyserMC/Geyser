@@ -54,7 +54,7 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
             setFlag(EntityFlag.ENCHANTED, false);
             setFlag(EntityFlag.LINGERING, false);
         } else {
-            // As of Java 1.19.3, the server/client doesn't seem to care of the item is actually a potion?
+            
             DataComponents components = itemStack.getDataComponentsPatch();
             if (components != null) {
                 PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);

@@ -58,7 +58,7 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
         if (fireworks == null) {
             return;
         }
-        // We still need to translate the explosion so this is still correct, and can be reverse translate in translateNbtToJava.
+        
         NbtMapBuilder fireworksNbt = NbtMap.builder();
         fireworksNbt.putByte("Flight", (byte) fireworks.getFlightDuration());
 
@@ -70,17 +70,17 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
             }
             fireworksNbt.putList("Explosions", NbtType.COMPOUND, explosionNbt);
         } else {
-            // This is the default firework
+            
             fireworksNbt.put("Explosions", NbtList.EMPTY);
         }
         builder.putCompound("Fireworks", fireworksNbt.build());
 
-        // If the tooltip is hidden, don't add any lore.
+        
         if (!tooltip.showInTooltip(DataComponentTypes.FIREWORKS)) {
             return;
         }
 
-        // Then we translate everything into lore since the explosion tag and everything is not visible anymore due to this being a data driven item.
+        
         List<String> lore = builder.getOrCreateLore();
         lore.add(withTranslation("§r", "item.fireworks.flight", " " + fireworks.getFlightDuration()));
 
@@ -180,9 +180,7 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
         return newExplosionData.build();
     }
 
-    /**
-     * The only thing that the Bedrock creative inventory has - as of 1.20.80 - is color.
-     */
+    
     static Fireworks.FireworkExplosion translateExplosionToJava(NbtMap explosion) {
         byte[] javaColors = explosion.getByteArray("FireworkColor", null);
         if (javaColors != null) {

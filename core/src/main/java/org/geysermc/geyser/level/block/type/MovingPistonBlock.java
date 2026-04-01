@@ -36,7 +36,7 @@ public class MovingPistonBlock extends Block {
 
     @Override
     protected void sendBlockUpdatePacket(GeyserSession session, BlockState state, BlockDefinition definition, Vector3i position) {
-        // Prevent moving_piston from being placed
-        // It's used for extending piston heads, but it isn't needed on Bedrock and causes pistons to flicker
+        
+        
     }
 }

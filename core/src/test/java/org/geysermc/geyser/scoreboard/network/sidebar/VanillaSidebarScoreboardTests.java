@@ -143,7 +143,7 @@ public class VanillaSidebarScoreboardTests {
 
     @Test
     void displayAndChangeScoreDisplayName() {
-        // this ensures that MCPE-143063 is properly handled
+        
         mockContextScoreboard(context -> {
            var setObjectiveTranslator = new JavaSetObjectiveTranslator();
            var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();
@@ -204,7 +204,7 @@ public class VanillaSidebarScoreboardTests {
 
     @Test
     void displayAndChangeScoreDisplayNameAndValue() {
-        // this ensures that MCPE-143063 is properly handled
+        
         mockContextScoreboard(context -> {
            var setObjectiveTranslator = new JavaSetObjectiveTranslator();
            var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();

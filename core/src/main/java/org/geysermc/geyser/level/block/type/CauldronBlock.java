@@ -40,7 +40,7 @@ public class CauldronBlock extends Block implements BedrockChunkWantsBlockEntity
 
     @Override
     public NbtMap createTag(GeyserSession session, Vector3i position, BlockState blockState) {
-        // As of 1.18.30: this is required to make rendering not look weird on chunk load (lava and snow cauldrons look dim)
+        
         return BlockEntityTranslator.getConstantBedrockTag("Cauldron", position.getX(), position.getY(), position.getZ())
                 .putByte("isMovable", (byte) 0)
                 .putShort("PotionId", (short) -1)

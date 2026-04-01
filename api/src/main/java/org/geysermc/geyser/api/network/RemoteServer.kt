@@ -22,56 +22,51 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.network;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
+package org.geysermc.geyser.api.network
 
 /**
  * Represents the Java server that Geyser is connecting to.
  */
-public interface RemoteServer {
-
+interface RemoteServer {
     /**
      * Gets the IP address of the remote server.
-     *
+     * 
      * @return the IP address of the remote server
      */
-    String address();
+    fun address(): String?
 
     /**
      * Gets the port of the remote server.
-     *
+     * 
      * @return the port of the remote server
      */
-    int port();
+    fun port(): Int
 
     /**
      * Gets the protocol version of the remote server.
-     *
+     * 
      * @return the protocol version of the remote server
      */
-    int protocolVersion();
+    fun protocolVersion(): Int
 
     /**
      * Gets the Minecraft version of the remote server.
-     *
+     * 
      * @return the Minecraft version of the remote server
      */
-    String minecraftVersion();
+    fun minecraftVersion(): String?
 
     /**
-     * Gets the {@link AuthType} required by the remote server.
-     *
+     * Gets the [AuthType] required by the remote server.
+     * 
      * @return the auth type required by the remote server
      */
-    @NonNull
-    AuthType authType();
+    fun authType(): AuthType
 
     /**
      * Gets if we should attempt to resolve the SRV record for this server.
-     *
+     * 
      * @return if we should attempt to resolve the SRV record for this server
      */
-    boolean resolveSrv();
+    fun resolveSrv(): Boolean
 }

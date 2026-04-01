@@ -31,9 +31,7 @@ import java.util.Optional;
 public final class EnumProperty<T extends Enum<T>> extends Property<T> {
     private final T[] values;
 
-    /**
-     * @param values all possible values of this enum.
-     */
+    
     private EnumProperty(String name, T[] values) {
         super(name);
         this.values = values;

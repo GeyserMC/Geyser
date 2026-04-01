@@ -40,10 +40,10 @@ public class EndGatewayBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         bedrockNbt.putInt("Age", (int) javaNbt.getLong("Age"));
-        // Java sometimes does not provide this tag, but Bedrock crashes if it doesn't exist
-        // Linked coordinates
+        
+        
         IntList tagsList = new IntArrayList();
-        // Yes, the axis letters are capitalized
+        
         NbtMap exitPortal = javaNbt.getCompound("ExitPortal");
         tagsList.add(exitPortal.getInt("X", 0));
         tagsList.add(exitPortal.getInt("Y", 0));

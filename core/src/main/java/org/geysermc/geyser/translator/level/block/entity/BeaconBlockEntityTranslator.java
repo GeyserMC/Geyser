@@ -36,7 +36,7 @@ public class BeaconBlockEntityTranslator extends BlockEntityTranslator {
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         int primary = javaNbt.getInt("primary");
-        // The effects here generally map one-to-one Java <-> Bedrock. Only the newer ones get more complicated
+        
         bedrockNbt.putInt("primary", primary == -1 ? 0 : primary);
         int secondary = javaNbt.getInt("secondary");
         bedrockNbt.putInt("secondary", secondary == -1 ? 0 : secondary);

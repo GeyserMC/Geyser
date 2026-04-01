@@ -37,9 +37,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType
 import java.util.Locale;
 import java.util.Map;
 
-/**
- * Loads particle types from the given resource path.
- */
+
 public class ParticleTypesRegistryLoader extends EffectRegistryLoader<Map<ParticleType, ParticleMapping>> {
 
     @Override
@@ -59,10 +57,10 @@ public class ParticleTypesRegistryLoader extends EffectRegistryLoader<Map<Partic
                 LevelEventType type = null;
                 if (eventType != null) {
                     try {
-                        // Check if we have a particle type mapping
+                        
                         type = org.cloudburstmc.protocol.bedrock.data.ParticleType.valueOf(eventType.getAsString().toUpperCase(Locale.ROOT));
                     } catch (IllegalArgumentException ex) {
-                        // No particle type; try level event
+                        
                         type = LevelEvent.valueOf(eventType.getAsString().toUpperCase(Locale.ROOT));
                     }
                 }

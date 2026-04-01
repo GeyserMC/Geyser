@@ -41,8 +41,8 @@ public final class PlayerlistDisplayScore extends DisplayScore {
 
     @Override
     public boolean shouldUpdate() {
-        // for player references the player's name is shown,
-        // so we only have to update when the score has changed
+        
+        
         return cachedInfo == null || cachedInfo.getScore() != reference.score();
     }
 

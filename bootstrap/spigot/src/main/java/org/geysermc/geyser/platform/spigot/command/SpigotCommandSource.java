@@ -44,7 +44,7 @@ public class SpigotCommandSource implements GeyserCommandSource {
 
     public SpigotCommandSource(CommandSender handle) {
         this.handle = handle;
-        // Ensure even Java players' languages are loaded
+        
         GeyserLocale.loadGeyserLocale(locale());
     }
 
@@ -66,7 +66,7 @@ public class SpigotCommandSource implements GeyserCommandSource {
             return;
         }
 
-        // CommandSender#sendMessage(BaseComponent[]) is Paper-only
+        
         handle.spigot().sendMessage(BungeeComponentSerializer.get().serialize(message));
     }
 
@@ -92,7 +92,7 @@ public class SpigotCommandSource implements GeyserCommandSource {
     @Override
     public String locale() {
         if (this.handle instanceof Player player) {
-            // getLocale() is deprecated on Paper, but not on Spigot
+            
             return player.getLocale();
         }
 
@@ -101,7 +101,7 @@ public class SpigotCommandSource implements GeyserCommandSource {
 
     @Override
     public boolean hasPermission(String permission) {
-        // Don't trust Spigot to handle blank permissions
+        
         return permission.isBlank() || handle.hasPermission(permission);
     }
 }

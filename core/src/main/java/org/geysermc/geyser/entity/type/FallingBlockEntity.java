@@ -41,7 +41,7 @@ public class FallingBlockEntity extends Entity {
     @Override
     public void setGravity(BooleanEntityMetadata entityMetadata) {
         super.setGravity(entityMetadata);
-        // Set the NO_AI flag based on the no gravity flag to prevent movement
+        
         setFlag(EntityFlag.NO_AI, entityMetadata.getPrimitiveValue());
     }
 }

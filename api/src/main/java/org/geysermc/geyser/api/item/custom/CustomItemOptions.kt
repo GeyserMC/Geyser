@@ -22,75 +22,74 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.item.custom
 
-package org.geysermc.geyser.api.item.custom;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.util.TriState;
-
-import java.util.OptionalInt;
+import org.geysermc.geyser.api.GeyserApi
+import org.geysermc.geyser.api.util.TriState
+import java.util.*
 
 /**
  * This class represents the different ways you can register custom items
- *
- * @deprecated use the new {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition}.
+ * 
  */
-@Deprecated
-public interface CustomItemOptions {
+@Deprecated("use the new {@link org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition}.")
+interface CustomItemOptions {
     /**
      * Gets if the item should be unbreakable.
-     *
+     * 
      * @return if the item should be unbreakable
      */
-    @NonNull TriState unbreakable();
+    fun unbreakable(): TriState
 
     /**
      * Gets the item's custom model data predicate.
-     *
+     * 
      * @return the item's custom model data
      */
-    @NonNull OptionalInt customModelData();
+    fun customModelData(): OptionalInt
 
     /**
      * Gets the item's damage predicate.
-     *
+     * 
      * @return the item's damage predicate
      */
-    @NonNull OptionalInt damagePredicate();
+    fun damagePredicate(): OptionalInt
 
     /**
      * Gets if this mapping should just translate to the default item.
      * This is used for the damage predicate of damaged 1 damage 0 that is required to allow the default item to exist.
-     *
+     * 
      * @return true if this mapping should just translate to the default item, false otherwise
      */
-    boolean defaultItem();
+    fun defaultItem(): Boolean
 
     /**
      * Checks if the item has at least one option set
-     *
+     * 
      * @return true if the item at least one options set
      */
-    default boolean hasCustomItemOptions() {
+    fun hasCustomItemOptions(): Boolean {
         return this.unbreakable() != TriState.NOT_SET ||
                 this.customModelData().isPresent() ||
-                this.damagePredicate().isPresent();
-    }
-
-    static CustomItemOptions.Builder builder() {
-        return GeyserApi.api().provider(CustomItemOptions.Builder.class);
+                this.damagePredicate().isPresent()
     }
 
     interface Builder {
-        Builder unbreakable(boolean unbreakable);
+        fun unbreakable(unbreakable: Boolean): Builder?
 
-        Builder customModelData(int customModelData);
+        fun customModelData(customModelData: Int): Builder?
 
-        Builder damagePredicate(int damagePredicate);
+        fun damagePredicate(damagePredicate: Int): Builder?
 
-        Builder defaultItem(boolean defaultItem);
+        fun defaultItem(defaultItem: Boolean): Builder?
 
-        CustomItemOptions build();
+        fun build(): CustomItemOptions?
+    }
+
+    companion object {
+        @kotlin.jvm.JvmStatic
+        fun builder(): Builder {
+            return GeyserApi.Companion.api().provider<Builder, Builder?>(Builder::class.java)
+        }
     }
 }

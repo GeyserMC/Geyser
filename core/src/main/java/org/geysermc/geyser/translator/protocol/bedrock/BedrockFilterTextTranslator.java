@@ -33,10 +33,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-/**
- * Used to send strings to the server and filter out unwanted words.
- * Java doesn't care, so we don't care, and we approve all strings.
- */
+
 @Translator(packet = FilterTextPacket.class)
 public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPacket> {
 
@@ -46,7 +43,7 @@ public class BedrockFilterTextTranslator extends PacketTranslator<FilterTextPack
 
         if (holder != null) {
             if (holder.inventory() instanceof CartographyContainer) {
-                // We don't want to be able to rename in the cartography table
+                
                 return;
             }
             if (holder.inventory() instanceof AnvilContainer anvilContainer) {

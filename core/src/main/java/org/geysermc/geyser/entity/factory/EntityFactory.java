@@ -28,9 +28,7 @@ package org.geysermc.geyser.entity.factory;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 
-/**
- * Represents a constructor to create an entity.
- */
+
 public interface EntityFactory<T extends Entity> {
 
     T create(EntitySpawnContext context);

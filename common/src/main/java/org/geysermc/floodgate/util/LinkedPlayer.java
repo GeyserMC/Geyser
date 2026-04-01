@@ -35,22 +35,13 @@ import java.util.UUID;
 @Getter
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public final class LinkedPlayer implements Cloneable {
-    /**
-     * The Java username of the linked player
-     */
+    
     private final String javaUsername;
-    /**
-     * The Java UUID of the linked player
-     */
+    
     private final UUID javaUniqueId;
-    /**
-     * The UUID of the Bedrock player
-     */
+    
     private final UUID bedrockId;
-    /**
-     * If the LinkedPlayer is sent from a different platform. For example the LinkedPlayer is from
-     * Bungee but the data has been sent to the Bukkit server.
-     */
+    
     private boolean fromDifferentPlatform = false;
 
     public static LinkedPlayer of(String javaUsername, UUID javaUniqueId, UUID bedrockId) {

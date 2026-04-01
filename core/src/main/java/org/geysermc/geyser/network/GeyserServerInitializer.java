@@ -43,7 +43,7 @@ import java.net.InetSocketAddress;
 public class GeyserServerInitializer extends BedrockServerInitializer {
     private final GeyserImpl geyser;
     private final boolean rakCookiesEnabled;
-    // There is a constructor that doesn't require inputting threads, but older Netty versions don't have it
+    
     @Getter
     private final DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser player thread"));
 
@@ -80,7 +80,7 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
 
             bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, session));
         } catch (Throwable e) {
-            // Error must be caught or it will be swallowed
+            
             this.geyser.getLogger().error("Error occurred while initializing player!", e);
             bedrockServerSession.disconnect(e.getMessage());
         }

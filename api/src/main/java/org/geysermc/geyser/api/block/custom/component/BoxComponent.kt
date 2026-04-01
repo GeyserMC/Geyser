@@ -22,8 +22,7 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.block.custom.component;
+package org.geysermc.geyser.api.block.custom.component
 
 /**
  * This class is used to store a box component for the selection and
@@ -36,34 +35,44 @@ package org.geysermc.geyser.api.block.custom.component;
  * @param sizeY The size Y of the box
  * @param sizeZ The size Z of the box
  */
-public record BoxComponent(float originX, float originY, float originZ, float sizeX, float sizeY, float sizeZ) {
-    private static final BoxComponent FULL_BOX = new BoxComponent(-8, 0, -8, 16, 16, 16);
-    private static final BoxComponent EMPTY_BOX = new BoxComponent(0, 0, 0, 0, 0, 0);
+@kotlin.jvm.JvmRecord
+data class BoxComponent(
+    @kotlin.jvm.JvmField val originX: Float,
+    @kotlin.jvm.JvmField val originY: Float,
+    @kotlin.jvm.JvmField val originZ: Float,
+    @kotlin.jvm.JvmField val sizeX: Float,
+    @kotlin.jvm.JvmField val sizeY: Float,
+    @kotlin.jvm.JvmField val sizeZ: Float
+) {
+    val isEmpty: Boolean
+        /**
+         * Gets if the box component is empty
+         * 
+         * @return If the box component is empty.
+         */
+        get() = sizeX == 0f && sizeY == 0f && sizeZ == 0f
 
-    /**
-     * Gets a full box component
-     *
-     * @return A full box component
-     */
-    public static BoxComponent fullBox() {
-        return FULL_BOX;
-    }
+    companion object {
+        private val FULL_BOX = BoxComponent(-8f, 0f, -8f, 16f, 16f, 16f)
+        private val EMPTY_BOX = BoxComponent(0f, 0f, 0f, 0f, 0f, 0f)
 
-    /**
-     * Gets an empty box component
-     *
-     * @return An empty box component
-     */
-    public static BoxComponent emptyBox() {
-        return EMPTY_BOX;
-    }
+        /**
+         * Gets a full box component
+         * 
+         * @return A full box component
+         */
+        fun fullBox(): BoxComponent {
+            return FULL_BOX
+        }
 
-    /**
-     * Gets if the box component is empty
-     *
-     * @return If the box component is empty.
-     */
-    public boolean isEmpty() {
-        return sizeX == 0 && sizeY == 0 && sizeZ == 0;
+        /**
+         * Gets an empty box component
+         * 
+         * @return An empty box component
+         */
+        @kotlin.jvm.JvmStatic
+        fun emptyBox(): BoxComponent {
+            return EMPTY_BOX
+        }
     }
 }

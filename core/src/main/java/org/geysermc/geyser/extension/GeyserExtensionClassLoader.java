@@ -82,14 +82,14 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
     protected Class<?> findClass(String name, boolean checkGlobal) throws ClassNotFoundException {
         Class<?> result = this.classes.get(name);
         if (result == null) {
-            // Try to find class in current extension
+            
             try {
                 result = super.findClass(name);
             } catch (ClassNotFoundException ignored) {
-                // If class is not found in current extension, check in the global class loader
-                // This is used for classes that are not in the extension, but are in other extensions
+                
+                
                 if (checkGlobal) {
-                    if (!warnedForExternalClassAccess && this.description.dependencies().isEmpty()) { // Don't warn when the extension has dependencies, it is probably using it's dependencies!
+                    if (!warnedForExternalClassAccess && this.description.dependencies().isEmpty()) { 
                         GeyserImpl.getInstance().getLogger().warning("Extension " + this.description.name() + " loads class " + name + " from an external source. " +
                                 "This can change at any time and break the extension, additionally to potentially causing unexpected behaviour!");
                         warnedForExternalClassAccess = true;
@@ -99,11 +99,11 @@ public class GeyserExtensionClassLoader extends URLClassLoader {
             }
 
             if (result != null) {
-                // If class is found, cache it
+                
                 this.loader.setClass(name, result);
                 this.classes.put(name, result);
             } else {
-                // If class is not found, throw exception
+                
                 throw new ClassNotFoundException(name);
             }
         }

@@ -50,7 +50,7 @@ public class SingletonBitArray implements BitArray {
 
     @Override
     public void writeSizeToNetwork(ByteBuf buffer, int size) {
-        // no-op - size is fixed
+        
     }
 
     @Override

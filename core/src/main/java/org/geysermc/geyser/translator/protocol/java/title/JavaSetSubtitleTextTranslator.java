@@ -38,7 +38,7 @@ public class JavaSetSubtitleTextTranslator extends PacketTranslator<ClientboundS
     @Override
     public void translate(GeyserSession session, ClientboundSetSubtitleTextPacket packet) {
         String text;
-        if (packet.getText() == null) { //TODO 1.17 can this happen?
+        if (packet.getText() == null) { 
             text = " ";
         } else {
             text = MessageTranslator.convertMessage(packet.getText(), session.locale());

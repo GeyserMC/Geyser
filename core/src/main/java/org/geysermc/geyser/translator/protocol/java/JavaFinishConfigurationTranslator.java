@@ -45,7 +45,7 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
 
     @Override
     public void translate(GeyserSession session, ClientboundFinishConfigurationPacket packet) {
-        // Clear the player list, as on Java the player list is cleared after transitioning from config to play phase
+        
         List<PlayerListPacket.Entry> entries = new ArrayList<>();
         session.getEntityCache().forEachPlayerEntity(otherPlayer -> {
             entries.add(new PlayerListPacket.Entry(otherPlayer.getTabListUuid()));
@@ -55,16 +55,16 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         }
         session.getEntityCache().removeAllPlayerEntities();
 
-        // Potion mixes are registered by default, as they are needed to be able to put ingredients into the brewing stand.
-        // (Also add it here so recipes get cleared on configuration - 1.21.3)
+        
+        
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
         craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
         craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
         if (session.isSentSpawnPacket()) {
             session.getUpstream().sendPacket(craftingDataPacket);
-            // TODO proper fix to check if we've been online - in online mode (with auth screen),
-            //  recipes are not yet known
+            
+            
             if (session.getStonecutterRecipes() != null) {
                 session.getLastRecipeNetId().set(InventoryUtils.LAST_RECIPE_NET_ID + 1);
                 session.getCraftingRecipes().clear();
@@ -76,13 +76,13 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
             session.getUpstream().queuePostStartGamePacket(craftingDataPacket);
         }
 
-        // while ClientboundLoginPacket holds the level, it doesn't hold the scoreboard.
-        // The ClientboundStartConfigurationPacket indirectly removes the old scoreboard,
-        // and this packet indirectly creates the new one.
-        // This makes this packet a good place to reset the scoreboard.
+        
+        
+        
+        
         session.getWorldCache().resetScoreboard();
 
-        // Resolve API components from non-vanilla registered items that required registry data to map to MCPL components
+        
         session.getComponentCache().resolveComponents();
     }
 }

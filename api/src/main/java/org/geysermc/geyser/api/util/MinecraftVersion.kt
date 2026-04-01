@@ -22,30 +22,27 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.util
 
-package org.geysermc.geyser.api.util;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.ApiStatus
 
 /**
  * Represents a Minecraft version.
  */
 @ApiStatus.NonExtendable
-public interface MinecraftVersion {
-
+interface MinecraftVersion {
     /**
      * Gets the Minecraft version as a String.
      * Example formats: "1.21", "1.21.1", "1.21.22"
-     *
+     * 
      * @return the version string
      */
-    @NonNull String versionString();
+    fun versionString(): String
 
     /**
      * Gets the protocol version of this Minecraft version.
-     *
+     * 
      * @return the protocol version
      */
-    int protocolVersion();
+    fun protocolVersion(): Int
 }

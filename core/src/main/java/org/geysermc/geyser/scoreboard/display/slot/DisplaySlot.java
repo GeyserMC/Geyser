@@ -41,10 +41,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
 public abstract class DisplaySlot {
     protected final GeyserSession session;
     protected final Objective objective;
-    /**
-     * Use this instead of objective name because one objective can be shared in multiple slots,
-     * but each slot has its own logic and might not contain all scores
-     */
+    
     protected final String objectiveId;
     protected final ScoreboardPosition slot;
     protected final TeamColor teamColor;
@@ -92,7 +89,7 @@ public abstract class DisplaySlot {
         packet.setDisplayName(objective.getDisplayName());
         packet.setCriteria("dummy");
         packet.setDisplaySlot(positionName);
-        packet.setSortOrder(1); // 0 = ascending, 1 = descending
+        packet.setSortOrder(1); 
         session.sendUpstreamPacket(packet);
     }
 

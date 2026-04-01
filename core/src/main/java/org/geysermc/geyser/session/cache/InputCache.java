@@ -57,7 +57,7 @@ public final class InputCache {
     }
 
     public void processInputs(SessionPlayerEntity entity, PlayerAuthInputPacket packet) {
-        // Input is sent to the server before packet positions, as of 1.21.2
+        
         Set<PlayerAuthInputData> bedrockInput = packet.getInputData();
         var oldInputPacket = this.inputPacket;
         this.inputMode = packet.getInputMode();
@@ -87,7 +87,7 @@ public final class InputCache {
             right = bedrockInput.contains(PlayerAuthInputData.RIGHT);
 
             if (isMobileAndClassicMovement) {
-                // These are the buttons in the corners of the touch area
+                
                 if (bedrockInput.contains(PlayerAuthInputData.UP_LEFT)) {
                     up = true;
                     left = true;
@@ -109,7 +109,7 @@ public final class InputCache {
                 }
             }
         } else {
-            // The above flags don't fire
+            
             Vector2f analogMovement = packet.getAnalogMoveVector();
             up = analogMovement.getY() > 0;
             down = analogMovement.getY() < 0;
@@ -124,16 +124,16 @@ public final class InputCache {
             .withBackward(down)
             .withLeft(left)
             .withRight(right)
-            // https://mojang.github.io/bedrock-protocol-docs/html/enums.html
-            // using the "raw" values allows us sending key presses even with locked input
-            // There appear to be cases where the raw value is not sent - e.g. sneaking with a shield on mobile (1.21.80)
-            // We also need to check for water auto jumping, since bedrock don't send jumping value in those cases.
+            
+            
+            
+            
             .withJump(bedrockInput.contains(PlayerAuthInputData.JUMP_CURRENT_RAW) || bedrockInput.contains(PlayerAuthInputData.JUMP_DOWN) || bedrockInput.contains(PlayerAuthInputData.AUTO_JUMPING_IN_WATER))
             .withShift(session.isShouldSendSneak() || sneaking)
             .withSprint(bedrockInput.contains(PlayerAuthInputData.SPRINT_DOWN));
 
-        // TODO - test whether we can rely on the Java server setting sneaking for us.
-        // 1.21.6+ only sends the shifting state in the input packet, and removed the START/STOP sneak command packet sending
+        
+        
         if (session.isSneaking() != sneaking) {
             if (sneaking) {
                 session.startSneaking(true);
@@ -142,7 +142,7 @@ public final class InputCache {
             }
         }
 
-        if (oldInputPacket != this.inputPacket) { // Simple equality check is fine since we're checking for an instance change.
+        if (oldInputPacket != this.inputPacket) { 
             session.sendDownstreamGamePacket(this.inputPacket);
         }
     }
@@ -156,7 +156,7 @@ public final class InputCache {
     }
 
     public boolean shouldSendPositionReminder() {
-        // NOTE: if we implement spectating entities, DO NOT TICK THIS LOGIC THEN.
+        
         return ++this.ticksSinceLastMovePacket >= 20;
     }
 
@@ -172,27 +172,27 @@ public final class InputCache {
      This method is designed to detect changes in sneaking to return the new sneaking state.
      */
     public boolean isSneaking(Set<PlayerAuthInputData> authInputData) {
-        // Flying doesn't send start / stop fly cases; might as well return early
+        
         if (session.isFlying()) {
-            // Of course e.g. mobile devices handle it differently with a descend case, while
-            // e.g. Win10 sends SNEAK_DOWN. Why? We'll never know.
+            
+            
             return authInputData.contains(PlayerAuthInputData.DESCEND) || authInputData.contains(PlayerAuthInputData.SNEAK_DOWN);
         }
 
         boolean sneaking = session.isSneaking();
-        // Looping through input data as e.g. stop/start sneaking can be sent in the same packet
-        // and then, the last sent instruction matters
+        
+        
         for (PlayerAuthInputData authInput : authInputData) {
             switch (authInput) {
                 case STOP_SNEAKING -> sneaking = false;
                 case START_SNEAKING -> sneaking = true;
-                // DESCEND_BLOCK is ONLY sent while mobile clients are descending scaffolding.
-                // PERSIST_SNEAK is ALWAYS sent by mobile clients.
-                // fixes https://github.com/GeyserMC/Geyser/issues/5384
+                
+                
+                
                 case PERSIST_SNEAK -> {
-                    // Ignoring start/stop sneaking while in scaffolding on purpose to ensure
-                    // that we don't spam both cases for every block we went down
-                    // Consoles would also send persist sneak; but don't send the descend_block flag
+                    
+                    
+                    
                     if (inputMode == InputMode.TOUCH && session.getPlayerEntity().isInsideScaffolding()) {
                         return authInputData.contains(PlayerAuthInputData.DESCEND_BLOCK) &&
                             authInputData.contains(PlayerAuthInputData.SNEAK_CURRENT_RAW);

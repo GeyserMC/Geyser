@@ -49,13 +49,13 @@ public class BrushableBlockEntityTranslator extends BlockEntityTranslator implem
         }
         byte hitDirection = javaNbt.getByte("hit_direction", (byte) -1);
         if (hitDirection == -1) {
-            // java server sends no direction when the item recedes back into the block (if player stops brushing)
+            
             return;
         }
 
         String id = itemTag.getString("id");
         if (Items.AIR.javaIdentifier().equals(id)) {
-            return; // server sends air when the block contains nothing
+            return; 
         }
 
         ItemMapping mapping = session.getItemMappings().getMapping(id);
@@ -67,12 +67,12 @@ public class BrushableBlockEntityTranslator extends BlockEntityTranslator implem
             .putByte("Count", (byte) itemTag.getInt("count"));
 
         bedrockNbt.putCompound("item", itemBuilder.build());
-        // controls which side the item protrudes from
+        
         bedrockNbt.putByte("brush_direction", hitDirection);
-        // controls how much the item protrudes
+        
         bedrockNbt.putInt("brush_count", blockState.getValue(Properties.DUSTED));
 
-        // The type of brushable block, not sure why bedrock requires this
+        
         String identifier = session.getBlockMappings().getJavaToBedrockIdentifiers().get(blockState.block().javaId());
         if (identifier == null) {
             identifier = blockState.block().javaIdentifier().value();

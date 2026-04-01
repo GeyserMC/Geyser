@@ -46,7 +46,7 @@ import java.util.Map;
 public class BiomeLoader implements RegistryLoader<String, BiomeDefinitions> {
     private final Gson GSON = new GsonBuilder()
         .registerTypeAdapter(Color.class, new ColorTypeAdapter())
-        .create(); // temporary
+        .create(); 
 
     @Override
     public BiomeDefinitions load(String input) {

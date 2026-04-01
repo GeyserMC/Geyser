@@ -22,27 +22,33 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.skin;
+package org.geysermc.geyser.api.skin
 
 /**
  * Represents geometry of a skin.
- *
+ * 
  * @param geometryName The name of the geometry (JSON)
  * @param geometryData The geometry data (JSON)
  */
-public record SkinGeometry(String geometryName, String geometryData) {
+@kotlin.jvm.JvmRecord
+data class SkinGeometry(@kotlin.jvm.JvmField val geometryName: String?, @kotlin.jvm.JvmField val geometryData: String?) {
+    companion object {
+        @kotlin.jvm.JvmField
+        var WIDE: SkinGeometry = getLegacy(false)
+        @kotlin.jvm.JvmField
+        var SLIM: SkinGeometry = getLegacy(true)
 
-    public static SkinGeometry WIDE = getLegacy(false);
-    public static SkinGeometry SLIM = getLegacy(true);
-
-    /**
-     * Generate generic geometry
-     *
-     * @param isSlim if true, it will be the slimmer alex model
-     * @return The generic geometry object
-     */
-    private static SkinGeometry getLegacy(boolean isSlim) {
-        return new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.custom" + (isSlim ? "Slim" : "") + "\"}}", "");
+        /**
+         * Generate generic geometry
+         * 
+         * @param isSlim if true, it will be the slimmer alex model
+         * @return The generic geometry object
+         */
+        private fun getLegacy(isSlim: Boolean): SkinGeometry {
+            return SkinGeometry(
+                "{\"geometry\" :{\"default\" :\"geometry.humanoid.custom" + (if (isSlim) "Slim" else "") + "\"}}",
+                ""
+            )
+        }
     }
 }

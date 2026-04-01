@@ -22,98 +22,87 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.extension;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.util.List;
+package org.geysermc.geyser.api.extension
 
 /**
- * Represents the description of an {@link Extension}.
+ * Represents the description of an [Extension].
  */
-public interface ExtensionDescription {
-
+interface ExtensionDescription {
     /**
      * Gets the extension's id.
-     *
+     * 
      * @return the extension's id
      */
-    @NonNull
-    String id();
+    fun id(): String
 
     /**
      * Gets the extension's name.
-     *
+     * 
      * @return the extension's name
      */
-    @NonNull
-    String name();
+    fun name(): String
 
     /**
      * Gets the extension's main class.
-     *
+     * 
      * @return the extension's main class
      */
-    @NonNull
-    String main();
+    fun main(): String
 
     /**
      * Represents the human api version that the extension requires.
-     * See the <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">Geyser version outline</a>)
+     * See the [Geyser version outline](https://github.com/geysermc/api/blob/master/geyser-versioning.md))
      * for more details on the Geyser API version.
-     *
+     * 
      * @return the extension's requested human api version
      */
-    int humanApiVersion();
+    fun humanApiVersion(): Int
 
     /**
      * Represents the major api version that the extension requires.
-     * See the <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">Geyser version outline</a>)
+     * See the [Geyser version outline](https://github.com/geysermc/api/blob/master/geyser-versioning.md))
      * for more details on the Geyser API version.
-     *
+     * 
      * @return the extension's requested major api version
      */
-    int majorApiVersion();
+    fun majorApiVersion(): Int
 
     /**
      * Represents the minor api version that the extension requires.
-     * See the <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">Geyser version outline</a>)
+     * See the [Geyser version outline](https://github.com/geysermc/api/blob/master/geyser-versioning.md))
      * for more details on the Geyser API version.
-     *
+     * 
      * @return the extension's requested minor api version
      */
-    int minorApiVersion();
+    fun minorApiVersion(): Int
 
     /**
      * No longer in use. Geyser is now using an adaption of the romantic versioning scheme.
-     * See <a href="https://github.com/geysermc/api/blob/master/geyser-versioning.md">here</a> for details.
+     * See [here](https://github.com/geysermc/api/blob/master/geyser-versioning.md) for details.
      */
-    @Deprecated(forRemoval = true)
-    default int patchApiVersion() {
-        return minorApiVersion();
+    @Deprecated("")
+    fun patchApiVersion(): Int {
+        return minorApiVersion()
     }
 
     /**
      * Returns the extension's requested Geyser Api version.
      */
-    default String apiVersion() {
-        return humanApiVersion() + "." + majorApiVersion() + "." + minorApiVersion();
+    fun apiVersion(): String {
+        return humanApiVersion().toString() + "." + majorApiVersion() + "." + minorApiVersion()
     }
 
     /**
      * Gets the extension's description.
-     *
+     * 
      * @return the extension's description
      */
-    @NonNull
-    String version();
+    fun version(): String
 
     /**
      * Gets the extension's authors.
-     *
+     * 
      * @return the extension's authors
      */
-    @NonNull
-    List<String> authors();
+    fun authors(): MutableList<String?>
 }

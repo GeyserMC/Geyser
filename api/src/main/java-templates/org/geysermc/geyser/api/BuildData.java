@@ -27,10 +27,7 @@ package org.geysermc.geyser.api;
 
 import org.geysermc.api.util.ApiVersion;
 
-/**
- * Not a public API. For internal use only. May change without notice.
- * This class is processed before compilation to insert build properties.
- */
+
 class BuildData {
     static final String VERSION = "{{ version }}";
     static final ApiVersion API_VERSION;

@@ -37,28 +37,18 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 
-/**
- * Provided as a base for any inventory that requires a block for opening it
- */
+
 public abstract class AbstractBlockInventoryTranslator<Type extends Container> extends BaseInventoryTranslator<Type> {
     private final InventoryHolder holder;
     private final InventoryUpdater updater;
 
-    /**
-     * @param javaBlock a Java block that is used as a temporary block
-     */
+    
     public AbstractBlockInventoryTranslator(int size, Block javaBlock, ContainerType containerType, InventoryUpdater updater,
                                             Block... additionalValidBlocks) {
         this(size, javaBlock.defaultBlockState(), containerType, updater, additionalValidBlocks);
     }
 
-    /**
-     * @param size the amount of slots that the inventory adds alongside the base inventory slots
-     * @param javaBlockState a Java block state that is used as a temporary block
-     * @param containerType the container type of this inventory
-     * @param updater updater
-     * @param additionalValidBlocks any other blocks that can safely use this inventory without a fake block
-     */
+    
     public AbstractBlockInventoryTranslator(int size, BlockState javaBlockState, ContainerType containerType, InventoryUpdater updater,
                                             Block... additionalValidBlocks) {
         super(size);
@@ -66,11 +56,7 @@ public abstract class AbstractBlockInventoryTranslator<Type extends Container> e
         this.updater = updater;
     }
 
-    /**
-     * @param size the amount of slots that the inventory adds alongside the base inventory slots
-     * @param holder the custom block holder
-     * @param updater updater
-     */
+    
     public AbstractBlockInventoryTranslator(int size, InventoryHolder holder, InventoryUpdater updater) {
         super(size);
         this.holder = holder;

@@ -45,41 +45,26 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
-/**
- * Item frames are an entity in Java but a block entity in Bedrock.
- */
+
 public class ItemFrameEntity extends HangingEntity {
-    /**
-     * Used for getting the Bedrock block position.
-     * Blocks deal with integers whereas entities deal with floats.
-     */
+    
     private final Vector3i bedrockPosition;
-    /**
-     * Specific block 'state' we are emulating in Bedrock.
-     */
+    
     private BlockDefinition blockDefinition;
-    /**
-     * Rotation of item in frame.
-     */
+    
     private float rotation = 0.0f;
-    /**
-     * Cached item frame's Bedrock compound tag.
-     */
+    
     private NbtMap cachedTag;
-    /**
-     * The item currently in the item frame. Used for block picking.
-     */
+    
     @Getter
     private ItemStack heldItem = null;
-    /**
-     * Determines if this entity needs to be updated on the client end.
-     */
+    
     private boolean changed = true;
 
     public ItemFrameEntity(EntitySpawnContext context) {
         super(context);
 
-        blockDefinition = buildBlockDefinition(Direction.SOUTH); // Default to SOUTH direction, like on Java - entity metadata should correct this when necessary
+        blockDefinition = buildBlockDefinition(Direction.SOUTH); 
         bedrockPosition = position().toInt();
 
         session.getItemFrameCache().put(bedrockPosition, this);
@@ -87,8 +72,8 @@ public class ItemFrameEntity extends HangingEntity {
 
     @Override
     protected void initializeMetadata() {
-        // lol nah don't do anything
-        // This isn't a real entity for Bedrock so it isn't going to do anything
+        
+        
     }
 
     @Override
@@ -114,7 +99,7 @@ public class ItemFrameEntity extends HangingEntity {
             builder.putByte("Count", (byte) itemData.getCount());
             NbtMap itemDataTag = itemData.getTag();
             if (itemDataTag != null) {
-                // Remove custom name that Geyser sets for items due to translating non-"custom_name" components
+                
                 String customName = ItemTranslator.getCustomName(session, heldItem.getDataComponentsPatch(),
                     session.getItemMappings().getMapping(heldItem), 'f', true, false);
                 if (customName == null) {
@@ -156,7 +141,7 @@ public class ItemFrameEntity extends HangingEntity {
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setBlockPosition(bedrockPosition);
-        updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir()); //TODO maybe set this to the world block or another item frame?
+        updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockAir()); 
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NEIGHBORS);
@@ -182,9 +167,7 @@ public class ItemFrameEntity extends HangingEntity {
         updateBlock(false);
     }
 
-    /**
-     * Updates the item frame as a block
-     */
+    
     public void updateBlock(boolean force) {
         if (!changed && !force) {
             // Don't send a block update packet - nothing changed
@@ -229,12 +212,7 @@ public class ItemFrameEntity extends HangingEntity {
         return session.getBlockMappings().getItemFrame(blockBuilder.build());
     }
 
-    /**
-     * Finds the Java entity ID of an item frame from its Bedrock position.
-     * @param position position of item frame in Bedrock.
-     * @param session GeyserConnection.
-     * @return Java entity ID or -1 if not found.
-     */
+    
     public static ItemFrameEntity getItemFrameEntity(GeyserSession session, Vector3i position) {
         return session.getItemFrameCache().get(position);
     }

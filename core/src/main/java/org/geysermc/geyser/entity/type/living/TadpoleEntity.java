@@ -51,7 +51,7 @@ public class TadpoleEntity extends AbstractFishEntity {
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (isFood(itemInHand)) {
-            //TODO particles
+            
             return InteractionResult.SUCCESS;
         }
         return super.mobInteract(hand, itemInHand);

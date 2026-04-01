@@ -59,9 +59,7 @@ public final class WorldCache {
     @Setter
     private Difficulty difficulty = Difficulty.EASY;
 
-    /**
-     * Whether our cooldown changed the title time, and the true title times need to be re-sent.
-     */
+    
     private boolean titleTimesNeedReset = false;
     private int trueTitleFadeInTime;
     private int trueTitleStayTime;
@@ -70,7 +68,7 @@ public final class WorldCache {
     private int currentSequence;
     private final Object2IntMap<Vector3i> unverifiedPredictions = new Object2IntOpenHashMap<>(1);
 
-    private final Map<Vector3i, String> activeRecords = new Object2ObjectOpenHashMap<>(1); // Assume the average player won't be listening to many records
+    private final Map<Vector3i, String> activeRecords = new Object2ObjectOpenHashMap<>(1); 
 
     @Getter
     @Setter
@@ -104,20 +102,16 @@ public final class WorldCache {
         titleTimesNeedReset = true;
     }
 
-    /**
-     * Store the true active title times.
-     */
+    
     public void setTitleTimes(int fadeInTime, int stayTime, int fadeOutTime) {
         trueTitleFadeInTime = fadeInTime;
         trueTitleStayTime = stayTime;
         trueTitleFadeOutTime = fadeOutTime;
-        // The translator will sync this for us
+        
         titleTimesNeedReset = false;
     }
 
-    /**
-     * If needed, ensure that the Bedrock client will use the correct timings for titles.
-     */
+    
     public void synchronizeCorrectTitleTimes() {
         if (titleTimesNeedReset) {
             forceSyncCorrectTitleTimes();
@@ -129,8 +123,8 @@ public final class WorldCache {
         titlePacket.setType(SetTitlePacket.Type.TIMES);
         titlePacket.setText("");
 
-        // We need a tick rate multiplier as otherwise the timings are incorrect on different tick rates because
-        // bedrock can only run at 20 TPS (50ms = 1 tick)
+        
+        
         int tickrateMultiplier = Math.round(session.getMillisecondsPerTick()) / 50;
         titlePacket.setFadeInTime(trueTitleFadeInTime * tickrateMultiplier);
         titlePacket.setStayTime(trueTitleStayTime * tickrateMultiplier);
@@ -142,9 +136,7 @@ public final class WorldCache {
         titleTimesNeedReset = false;
     }
 
-    /**
-     * Reset the true active title times to the (Java Edition 1.18.2) defaults.
-     */
+    
     public void resetTitleTimes(boolean clientSync) {
         trueTitleFadeInTime = 10;
         trueTitleStayTime = 70;
@@ -158,23 +150,18 @@ public final class WorldCache {
     /* Code to support the prediction structure introduced in Java Edition 1.19.0
     Blocks can be rolled back if invalid, but this requires some client-side information storage. */
 
-    /**
-     * This does not need to be called for all player action packets (as of 1.19.2) and can be set to 0 if blocks aren't
-     * changed in the action.
-     */
+    
     public int nextPredictionSequence() {
         return ++currentSequence;
     }
 
-    /**
-     * Stores a note that this position may need to be rolled back at a future point in time.
-     */
+    
     public void markPositionInSequence(Vector3i position) {
         if (session.isEmulatePost1_18Logic()) {
-            // Cheap hack
-            // On non-Bukkit platforms, ViaVersion will always confirm the sequence before the block is updated,
-            // meaning we'd send two block updates after (ChunkUtils.updateBlockClientSide in endPredictionsUpTo
-            // and the packet updating from the client)
+            
+            
+            
+            
             this.unverifiedPredictions.put(position, currentSequence);
         }
     }
@@ -184,7 +171,7 @@ public final class WorldCache {
             this.unverifiedPredictions.removeInt(position);
         }
 
-        // Hack to avoid looking up blockstates for the currently broken position each tick
+        
         Vector3i clientBreakPos = session.getBlockBreakHandler().getCurrentBlockPos();
         if (clientBreakPos != null && Objects.equals(clientBreakPos, position)) {
             session.getBlockBreakHandler().setUpdatedServerBlockStateId(blockState);
@@ -202,8 +189,8 @@ public final class WorldCache {
         while (it.hasNext()) {
             Object2IntMap.Entry<Vector3i> entry = it.next();
             if (entry.getIntValue() <= sequence) {
-                // This block may be out of sync with the server
-                // In 1.19.0 Java, you can verify this by trying to mine in spawn protection
+                
+                
                 Vector3i position = entry.getKey();
                 ChunkUtils.updateBlockClientSide(session, session.getGeyser().getWorldManager().blockAt(session, position), position);
                 it.remove();
@@ -215,8 +202,8 @@ public final class WorldCache {
         this.activeRecords.put(pos, bedrockPlaySound);
     }
 
-    // Implementation note: positions aren't removed unless the server calls, but this seems to match 1.21 Java
-    // client behavior.
+    
+    
     @Nullable
     public String removeActiveRecord(Vector3i pos) {
         return this.activeRecords.remove(pos);
@@ -224,7 +211,7 @@ public final class WorldCache {
 
     public void setCooldown(Key cooldownGroup, int ticks) {
         if (ticks == 0) {
-            // As of Java 1.21
+            
             this.activeCooldowns.removeInt(cooldownGroup.asString());
             return;
         }
@@ -243,8 +230,8 @@ public final class WorldCache {
     }
 
     public void tick() {
-        // Implementation note: technically we could empty the field during hasCooldown checks,
-        // but we don't want the cooldown field to balloon in size from overuse.
+        
+        
         if (!this.activeCooldowns.isEmpty()) {
             int ticks = session.getTicks();
             Iterator<Object2IntMap.Entry<String>> it = Object2IntMaps.fastIterator(this.activeCooldowns);

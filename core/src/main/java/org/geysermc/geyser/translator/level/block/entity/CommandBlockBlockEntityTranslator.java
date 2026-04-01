@@ -38,11 +38,11 @@ public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator imp
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         if (javaNbt == null || javaNbt.size() < 5) {
-            return; // These values aren't here
+            return; 
         }
-        // Java infers from the block state, but Bedrock needs it in the tag
+        
         bedrockNbt.putBoolean("conditionalMode", blockState.getValue(Properties.CONDITIONAL));
-        // Java and Bedrock values
+        
         bedrockNbt.putByte("conditionMet", javaNbt.getByte("conditionMet"));
         bedrockNbt.putByte("auto", javaNbt.getByte("auto"));
         bedrockNbt.putString("CustomName", MessageTranslator.convertMessageLenient(javaNbt.getString("CustomName"), session.locale()));
@@ -51,6 +51,6 @@ public class CommandBlockBlockEntityTranslator extends BlockEntityTranslator imp
         bedrockNbt.putInt("SuccessCount", javaNbt.getInt("SuccessCount"));
         bedrockNbt.putByte("TrackOutput", javaNbt.getByte("TrackOutput"));
         bedrockNbt.putByte("UpdateLastExecution", javaNbt.getByte("UpdateLastExecution"));
-        bedrockNbt.putLong("LastExecution", javaNbt.getLong("LastExecution")); // Note: may not be present? Was a null check before 1.20.5
+        bedrockNbt.putLong("LastExecution", javaNbt.getLong("LastExecution")); 
     }
 }

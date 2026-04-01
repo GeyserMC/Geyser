@@ -54,12 +54,12 @@ public class BelownameDisplaySlot extends DisplaySlot {
 
     @Override
     protected void render0(List<ScoreInfo> addScores, List<ScoreInfo> removeScores) {
-        // how belowname works is that if the player itself has belowname as a display slot,
-        // every player entity will show a score below their name.
-        // when the objective is added, updated or removed we thus have to update the belowname for every player
-        // when an individual score is updated (score or number format) we have to update the individual player
+        
+        
+        
+        
 
-        // remove is handled in #remove()
+        
         if (updateType == UpdateType.ADD) {
             session.getEntityCache().forEachPlayerEntity(this::playerRegistered);
             return;
@@ -74,10 +74,10 @@ public class BelownameDisplaySlot extends DisplaySlot {
 
         synchronized (displayScores) {
             for (var score : displayScores.values()) {
-                // we don't have to worry about a score not existing, because that's handled by both
-                // this method when an objective is added and addScore/playerRegistered.
-                // we only have to update them, if they have changed
-                // (or delete them, if the score no longer exists)
+                
+                
+                
+                
                 if (!score.shouldUpdate()) {
                     continue;
                 }
@@ -108,9 +108,9 @@ public class BelownameDisplaySlot extends DisplaySlot {
     public void playerRegistered(PlayerEntity player) {
         var reference = scoreFor(player.getUsername());
         setBelowNameText(player, reference);
-        // keep track of score when the player is active
+        
         if (reference != null) {
-            // we already set the text, so we only have to update once the score does
+            
             addDisplayScore(player, reference).markUpdated();
         }
     }
@@ -150,8 +150,8 @@ public class BelownameDisplaySlot extends DisplaySlot {
     private String calculateBelowNameText(ScoreReference reference) {
         String numberString;
         NumberFormat numberFormat = null;
-        // even if the player doesn't have a score, as long as belowname is on the client Java behaviour is
-        // to show them with a score of 0
+        
+        
         int score = 0;
         if (reference != null) {
             score = reference.score();

@@ -42,13 +42,13 @@ public class EnderCrystalEntity extends Entity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        // Bedrock 1.16.100+ - prevents the entity from appearing on fire itself when fire is underneath it
+        
         setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
     public void setBlockTarget(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
-        // Show beam
-        // Usually performed client-side on Bedrock except for Ender Dragon respawn event
+        
+        
         Optional<Vector3i> optionalPos = entityMetadata.getValue();
         if (optionalPos.isPresent()) {
             dirtyMetadata.put(EntityDataTypes.BLOCK_TARGET_POS, optionalPos.get());

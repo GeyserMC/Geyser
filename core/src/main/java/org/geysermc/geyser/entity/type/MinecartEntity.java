@@ -50,7 +50,7 @@ public class MinecartEntity extends Entity implements Tickable {
     private final List<MinecartStep> lerpSteps = new LinkedList<>();
     private final List<MinecartStep> currentLerpSteps = new LinkedList<>();
 
-    // NewMinecartBehavior
+    
     private MinecartStep lastCompletedStep = new MinecartStep(Vector3d.ZERO, Vector3d. ZERO, 0.0F, 0.0F, 0.0F);
     private float currentStepsTotalWeight = 0.0F;
     private int lerpDelay = 0;
@@ -59,7 +59,7 @@ public class MinecartEntity extends Entity implements Tickable {
     private int cachedStepDelay;
     private float cachedDelta;
 
-    // OldMinecartBehavior
+    
     private Vector3f lerpPosition;
     private int steps;
     protected boolean dirtyYaw, dirtyHeadYaw, dirtyPitch;
@@ -69,8 +69,8 @@ public class MinecartEntity extends Entity implements Tickable {
     }
 
     public void setCustomBlock(IntEntityMetadata entityMetadata) {
-        // Optional block state -> "0" is air, aka none
-        // Sets whether the custom block should be enabled
+        
+        
         dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) (entityMetadata.getPrimitiveValue() != 0 ? 1 : 0));
         dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(entityMetadata.getPrimitiveValue()));
     }

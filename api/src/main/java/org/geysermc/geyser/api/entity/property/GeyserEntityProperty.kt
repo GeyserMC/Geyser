@@ -22,44 +22,41 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.entity.property
 
-package org.geysermc.geyser.api.entity.property;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.util.Identifier
 
 /**
  * Represents a property that can be attached to an entity.
- * <p>
+ * 
+ * 
  * Entity properties are used to describe metadata about an entity, such as
  * integers, floats, booleans, or enums.
- * @see <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/introductiontoentityproperties?view=minecraft-bedrock-stable#number-of-entity-properties-per-entity-type">
- *     Official documentation for info</a>
- *
+ * @see [
+ * Official documentation for info](https://learn.microsoft.com/en-us/minecraft/creator/documents/introductiontoentityproperties?view=minecraft-bedrock-stable.number-of-entity-properties-per-entity-type)
+ * 
+ * 
  * @param <T> the type of value stored by this property
- *
+ * 
  * @since 2.9.0
- */
-public interface GeyserEntityProperty<T> {
-
+</T> */
+interface GeyserEntityProperty<T> {
     /**
      * Gets the unique name of this property.
      * Custom properties cannot use the vanilla namespace
      * to avoid collisions with vanilla entity properties.
-     *
+     * 
      * @return the property identifier
      * @since 2.9.0
      */
-    @NonNull
-    Identifier identifier();
+    fun identifier(): Identifier
 
     /**
      * Gets the default value of this property which
      * is set upon spawning entities.
-     *
+     * 
      * @return the default value of this property
      * @since 2.9.0
      */
-    @NonNull
-    T defaultValue();
+    fun defaultValue(): T
 }

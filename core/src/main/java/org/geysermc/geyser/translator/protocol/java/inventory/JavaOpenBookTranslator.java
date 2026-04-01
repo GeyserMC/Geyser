@@ -42,24 +42,20 @@ import java.util.Objects;
 @Translator(packet = ClientboundOpenBookPacket.class)
 public class JavaOpenBookTranslator extends PacketTranslator<ClientboundOpenBookPacket> {
 
-    /**
-     * Unlike other fake inventories that rely on placing blocks in the world;
-     * the virtual lectern workaround for books isn't triggered the same way.
-     * Specifically, we don't get a window id - hence, we just use our own!
-     */
+    
     private final static int FAKE_LECTERN_WINDOW_ID = -69;
 
     @Override
     public void translate(GeyserSession session, ClientboundOpenBookPacket packet) {
         GeyserItemStack stack = session.getPlayerInventory().getItemInHand();
 
-        // Don't spawn a fake lectern for books already opened "normally" by the client.
+        
         if (stack.getItemData(session).equals(session.getCurrentBook())) {
             session.setCurrentBook(null);
             return;
         }
 
-        // The item doesn't need to be a book; just needs to have either of these components.
+        
         if (stack.getComponent(DataComponentTypes.WRITABLE_BOOK_CONTENT) != null ||
             stack.getComponent(DataComponentTypes.WRITTEN_BOOK_CONTENT) != null) {
             InventoryHolder<?> openInventory = session.getInventoryHolder();

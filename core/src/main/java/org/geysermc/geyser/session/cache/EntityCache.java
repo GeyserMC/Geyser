@@ -43,18 +43,13 @@ import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 
-/**
- * Each session has its own EntityCache in the occasion that an entity packet is sent specifically
- * for that player (e.g. seeing vanished players from /vanish)
- */
+
 public class EntityCache {
     private final GeyserSession session;
 
     @Getter
     private final Long2ObjectMap<Entity> entities = new Long2ObjectOpenHashMap<>();
-    /**
-     * A list of all entities that must be ticked.
-     */
+    
     private final List<Tickable> tickableEntities = new ObjectArrayList<>();
     private final Int2LongMap entityIdTranslations = new Int2LongOpenHashMap();
     private final Map<UUID, PlayerEntity> playerEntities = new Object2ObjectOpenHashMap<>();
@@ -69,22 +64,22 @@ public class EntityCache {
 
     public void spawnEntity(Entity entity) {
         if (cacheEntity(entity)) {
-            // start tracking newly spawned entities. Doing this before the actual entity spawn can result in combining
-            // the otherwise sent metadata packet (in the case of team visibility, which sets the NAME metadata to
-            // empty) with the entity spawn packet (which also includes metadata). Resulting in 1 less packet sent.
+            
+            
+            
             session.getWorldCache().getScoreboard().entityRegistered(entity);
 
             entity.spawnEntity();
 
             if (entity instanceof Tickable) {
-                // Start ticking it
+                
                 tickableEntities.add((Tickable) entity);
             }
         }
     }
 
     public boolean cacheEntity(Entity entity) {
-        // Check to see if the entity exists, otherwise we can end up with duplicated mobs
+        
         if (!entityIdTranslations.containsKey(entity.getEntityId())) {
             entityIdTranslations.put(entity.getEntityId(), entity.geyserId());
             entities.put(entity.geyserId(), entity);
@@ -107,7 +102,7 @@ public class EntityCache {
         }
         entities.remove(entityIdTranslations.remove(entity.getEntityId()));
 
-        // don't track the entity anymore, now that it's removed
+        
         session.getWorldCache().getScoreboard().entityRemoved(entity);
 
         if (entity instanceof Tickable) {
@@ -137,14 +132,14 @@ public class EntityCache {
 
     public void addPlayerEntity(PlayerEntity entity) {
         synchronized (playerEntities) {
-            // putIfAbsent matches the behavior of playerInfoMap in Java as of 1.19.3
+            
             boolean exists = playerEntities.putIfAbsent(entity.uuid(), entity) != null;
             if (exists) {
                 return;
             }
         }
 
-        // notify scoreboard for new entity
+        
         var scoreboard = session.getWorldCache().getScoreboard();
         scoreboard.playerRegistered(entity);
     }
@@ -174,16 +169,13 @@ public class EntityCache {
         }
 
         if (player != null) {
-            // notify scoreboard
+            
             session.getWorldCache().getScoreboard().playerRemoved(player);
         }
         return player;
     }
 
-    /**
-     * Run a specific bit of code for each cached player entity.
-     * As usual with synchronized, try to minimize the amount of work you because you block the PlayerList collection.
-     */
+    
     public void forEachPlayerEntity(Consumer<PlayerEntity> player) {
         synchronized (playerEntities) {
             playerEntities.values().forEach(player);

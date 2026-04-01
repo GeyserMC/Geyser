@@ -46,7 +46,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 public class CatEntity extends TameableEntity implements VariantIntHolder {
 
-    private byte collarColor = 14; // Red - default
+    private byte collarColor = 14; 
 
     public CatEntity(EntitySpawnContext context) {
         super(context);
@@ -55,7 +55,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        // Default value (minecraft:black).
+        
         dirtyMetadata.put(EntityDataTypes.VARIANT, 1);
     }
 
@@ -100,7 +100,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
     }
 
     private void updateCollarColor() {
-        // Needed or else wild cats are a red color
+        
         if (getFlag(EntityFlag.TAMED)) {
             dirtyMetadata.put(EntityDataTypes.COLOR, collarColor);
         }
@@ -116,7 +116,7 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         boolean tamed = getFlag(EntityFlag.TAMED);
         if (tamed && ownerBedrockId == session.getPlayerEntity().geyserId()) {
-            // Toggle sitting
+            
             return getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
         } else {
             return !canEat(itemInHand) || health >= maxHealth && tamed ? InteractiveTag.NONE : InteractiveTag.FEED;
@@ -130,13 +130,13 @@ public class CatEntity extends TameableEntity implements VariantIntHolder {
         if (tamed && ownerBedrockId == session.getPlayerEntity().geyserId()) {
             return InteractionResult.SUCCESS;
         } else {
-            // Attempt to feed
+            
             return !canEat(itemInHand) || health >= maxHealth && tamed ? InteractionResult.PASS : InteractionResult.SUCCESS;
         }
     }
 
-    // Ordered by bedrock id
-    // TODO: are these ordered correctly?
+    
+    
     public enum BuiltInVariant implements BuiltIn {
         WHITE,
         BLACK,

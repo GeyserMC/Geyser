@@ -32,16 +32,14 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundPickItemFromEntityPacket;
 
-/**
- * Called when the Bedrock user uses the pick block button on an entity
- */
+
 @Translator(packet = EntityPickRequestPacket.class)
 public class BedrockEntityPickRequestTranslator extends PacketTranslator<EntityPickRequestPacket> {
 
     @Override
     public void translate(GeyserSession session, EntityPickRequestPacket packet) {
         if (!session.isInstabuild()) {
-            // As of Java Edition 1.19.3
+            
             return;
         }
         Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());

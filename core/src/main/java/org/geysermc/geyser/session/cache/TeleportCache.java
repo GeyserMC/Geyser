@@ -29,15 +29,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.math.vector.Vector3f;
 
-/**
- * Represents a teleport ID and corresponding coordinates that need to be confirmed. <br>
- *
- * The vanilla Java client, after getting a
- * {@link org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.player.ClientboundPlayerPositionPacket},
- * adjusts the player's positions and immediately sends a teleport back. However, we want to acknowledge that the
- * Bedrock player actually moves close to that point, so we store the teleport until we get a movement packet from
- * Bedrock that the teleport was successful.
- */
+
 @RequiredArgsConstructor
 @Data
 public class TeleportCache {
@@ -45,10 +37,8 @@ public class TeleportCache {
     private static final float ERROR_X_AND_Z = 0.1f;
     private static final float ERROR_Y = 0.1f;
 
-    /**
-     * How many move packets the teleport can be unconfirmed for before it gets resent to the client
-     */
-    private static final int RESEND_THRESHOLD = 20; // Make it one full second with auth input
+    
+    private static final int RESEND_THRESHOLD = 20; 
 
     public TeleportCache(Vector3f position, float pitch, float yaw, int teleportConfirmId) {
         this.position = position;

@@ -52,9 +52,9 @@ public class ZombieVillagerEntity extends ZombieEntity {
 
     public void setZombieVillagerData(EntityMetadata<VillagerData, ?> entityMetadata) {
         VillagerData villagerData = entityMetadata.getValue();
-        dirtyMetadata.put(EntityDataTypes.VARIANT, VillagerEntity.getBedrockProfession(villagerData.getProfession())); // Actually works properly with the OptionalPack
+        dirtyMetadata.put(EntityDataTypes.VARIANT, VillagerEntity.getBedrockProfession(villagerData.getProfession())); 
         dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, VillagerEntity.getBedrockRegion(villagerData.getType()));
-        // Used with the OptionalPack
+        
         dirtyMetadata.put(EntityDataTypes.TRADE_TIER, villagerData.getLevel() - 1);
     }
 
@@ -77,7 +77,7 @@ public class ZombieVillagerEntity extends ZombieEntity {
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (itemInHand.is(Items.GOLDEN_APPLE)) {
-            // The client doesn't know if the entity has weakness as that's not usually sent over the network
+            
             return InteractionResult.CONSUME;
         } else {
             return super.mobInteract(hand, itemInHand);

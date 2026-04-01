@@ -38,7 +38,7 @@ public class SpiderEntity extends MonsterEntity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        // Allow red eyes to show when invisible
+        
         setFlag(EntityFlag.RENDER_WHEN_INVISIBLE, true);
     }
 

@@ -34,15 +34,13 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 
-/**
- * Used to translate moving pages, or closing the inventory
- */
+
 @Translator(packet = LecternUpdatePacket.class)
 public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpdatePacket> {
 
     @Override
     public void translate(GeyserSession session, LecternUpdatePacket packet) {
-        // Bedrock wants to either move a page or exit
+        
         InventoryHolder<?> holder = session.getInventoryHolder();
         if (holder == null || !(holder.inventory() instanceof LecternContainer lecternContainer)) {
             session.getGeyser().getLogger().debug("Expected lectern but it wasn't open!");
@@ -50,25 +48,25 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
         }
 
         if (lecternContainer.getCurrentBedrockPage() == packet.getPage()) {
-            // The same page means Bedrock is closing the window
+            
             InventoryUtils.sendJavaContainerClose(holder);
             InventoryUtils.closeInventory(session, holder, false);
         } else {
-            // Each "page" Bedrock gives to us actually represents two pages (think opening a book and seeing two pages)
-            // Each "page" on Java is just one page (think a spiral notebook folded back to only show one page)
+            
+            
             int newJavaPage = (packet.getPage() * 2);
             int currentJavaPage = (lecternContainer.getCurrentBedrockPage() * 2);
 
-            // So, fun fact: We need to separately handle fake lecterns!
-            // Since those are not actually a real lectern... the Java server won't respond to our requests.
+            
+            
             if (!lecternContainer.isUsingRealBlock()) {
                 holder.updateProperty(0, newJavaPage);
                 return;
             }
 
-            // Send as many click button packets as we need to
-            // Java has the option to specify exact page numbers by adding 100 to the number, but buttonId variable
-            // is a byte when transmitted over the network and therefore this stops us at 128
+            
+            
+            
             if (newJavaPage > currentJavaPage) {
                 for (int i = currentJavaPage; i < newJavaPage; i++) {
                     ServerboundContainerButtonClickPacket clickButtonPacket = new ServerboundContainerButtonClickPacket(lecternContainer.getJavaId(), 2);

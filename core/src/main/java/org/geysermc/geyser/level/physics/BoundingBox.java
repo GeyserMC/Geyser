@@ -189,19 +189,9 @@ public class BoundingBox implements Cloneable {
         }
     }
 
-    /**
-     * Find the maximum offset of another bounding box in an axis that will not collide with this bounding box
-     *
-     * @param xOffset The x offset of this bounding box
-     * @param yOffset The y offset of this bounding box
-     * @param zOffset The z offset of this bounding box
-     * @param otherBoundingBox The bounding box that is moving
-     * @param axis The axis of movement
-     * @param offset The current max offset
-     * @return The new max offset
-     */
+    
     public double getMaxOffset(double xOffset, double yOffset, double zOffset, BoundingBox otherBoundingBox, Axis axis, double offset) {
-        // Make sure that the bounding box overlaps in the other axes
+        
         for (Axis a : Axis.VALUES) {
             if (a != axis && !checkOverlapInAxis(xOffset, yOffset, zOffset, otherBoundingBox, a)) {
                 return offset;
@@ -223,13 +213,7 @@ public class BoundingBox implements Cloneable {
         return offset;
     }
 
-    /**
-     * Get the distance required to move this bounding box to one of otherBoundingBox's sides
-     *
-     * @param otherBoundingBox The stationary bounding box
-     * @param side The side of otherBoundingBox to snap this bounding box to
-     * @return The distance to move in the direction of {@code side}
-     */
+    
     public double getIntersectionSize(BoundingBox otherBoundingBox, Direction side) {
         return switch (side) {
             case DOWN -> getMax().getY() - otherBoundingBox.getMin().getY();

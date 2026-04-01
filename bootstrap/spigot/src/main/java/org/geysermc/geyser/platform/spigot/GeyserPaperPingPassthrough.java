@@ -40,13 +40,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 
-/**
- * This class is used if possible, so listeners listening for PaperServerListPingEvent exclusively have their changes
- * applied.
- */
+
 public final class GeyserPaperPingPassthrough implements IGeyserPingPassthrough {
     private static final Constructor<PaperServerListPingEvent> EVENT_CONSTRUCTOR = ReflectedNames.paperServerListPingEventConstructor();
-    // https://jd.papermc.io/paper/1.19.2/com/destroystokyo/paper/event/server/PaperServerListPingEvent.html
+    
     private static final boolean CHAT_PREVIEWS = EVENT_CONSTRUCTOR.getParameters()[2].getType() == boolean.class;
     private static final Method MOTD_COMPONENT_GETTER = ReflectedNames.motdGetter();
 
@@ -73,7 +70,7 @@ public final class GeyserPaperPingPassthrough implements IGeyserPingPassthrough 
             }
             Bukkit.getPluginManager().callEvent(event);
             if (event.isCancelled()) {
-                // We have to send a ping, so not really sure what else to do here.
+                
                 return null;
             }
 
@@ -88,7 +85,7 @@ public final class GeyserPaperPingPassthrough implements IGeyserPingPassthrough 
                 GsonComponentSerializer.gson().serialize(LegacyComponentSerializer.legacySection().deserialize(event.getMotd())),
                 players
             );
-        } catch (Exception | LinkageError e) { // LinkageError in the event that method/constructor signatures change
+        } catch (Exception | LinkageError e) { 
             logger.debug("Error while getting Paper ping passthrough: " + e);
             return null;
         }

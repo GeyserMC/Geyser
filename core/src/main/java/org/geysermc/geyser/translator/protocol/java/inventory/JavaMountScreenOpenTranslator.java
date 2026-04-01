@@ -125,9 +125,9 @@ public class JavaMountScreenOpenTranslator extends PacketTranslator<ClientboundM
         NbtMapBuilder builder = NbtMap.builder();
         List<NbtMap> slots = new ArrayList<>();
 
-        // Since 1.20.5, the armor slot is not included in the container size,
-        // but everything is still indexed the same.
-        int slotCount = 2; // Don't depend on slot count sent from server
+        
+        
+        int slotCount = 2; 
 
         InventoryTranslator<Container> inventoryTranslator;
         if (entity instanceof LlamaEntity llamaEntity) {
@@ -146,7 +146,7 @@ public class JavaMountScreenOpenTranslator extends PacketTranslator<ClientboundM
             if (entity.getFlag(EntityFlag.CHESTED)) {
                 slotCount += 15;
             }
-            // The camel has an invisible armor slot and needs special handling, same as the donkey
+            
             inventoryTranslator = new DonkeyInventoryTranslator(slotCount);
             slots.add(SADDLE_SLOT);
         } else {
@@ -159,7 +159,7 @@ public class JavaMountScreenOpenTranslator extends PacketTranslator<ClientboundM
             }
         }
 
-        // Build the NbtMap that sets the icons for Bedrock (e.g. sets the saddle outline on the saddle slot)
+        
         builder.putList("slots", NbtType.COMPOUND, slots);
 
         updateEquipPacket.setTag(builder.build());

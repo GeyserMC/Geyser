@@ -28,7 +28,7 @@ package org.geysermc.geyser.registry.populator.conversion;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 
-// A variety of methods to help with re-mapping blocks and items to older versions.
+
 public class ConversionHelper {
 
     static NbtMap withName(NbtMap tag, String name) {

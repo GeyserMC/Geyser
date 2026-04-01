@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.item.hashing.data.entity;
 
-// Named by Java ID
+
 public enum TropicalFishPattern {
     KOB(Base.SMALL, 0),
     SUNSTREAK(Base.SMALL, 1),
@@ -46,7 +46,7 @@ public enum TropicalFishPattern {
         this.packedId = base.ordinal() | id << 8;
     }
 
-    // Ordered by Java ID
+    
     enum Base {
         SMALL,
         LARGE

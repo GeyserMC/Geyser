@@ -39,8 +39,8 @@ public class JavaContainerCloseTranslator extends PacketTranslator<ClientboundCo
 
     @Override
     public void translate(GeyserSession session, ClientboundContainerClosePacket packet) {
-        // Sometimes the server can request a window close of ID 0... when the window isn't even open
-        // Don't confirm in this instance
+        
+        
         InventoryHolder<? extends Inventory> holder = session.getInventoryHolder();
         boolean confirm = false;
         if (holder != null) {

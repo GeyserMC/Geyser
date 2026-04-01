@@ -44,11 +44,11 @@ public class ShelfBlockEntityTranslator extends BlockEntityTranslator {
 
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
-        // We can't translate align_items_to_bottom, I think :(
+        
 
-        // Bedrock determines shelf item position by list index, so we must produce
-        // a dense list with empty items for unoccupied slots.
-        // Verified with BDS 1.26.0.2
+        
+        
+        
         NbtMap[] items = new NbtMap[SLOT_COUNT];
         Arrays.fill(items, BedrockItemBuilder.EMPTY_ITEM);
 

@@ -22,233 +22,212 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.command
 
-package org.geysermc.geyser.api.command;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.GeyserApi;
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
-import org.geysermc.geyser.api.extension.Extension;
-import org.geysermc.geyser.api.util.TriState;
-
-import java.util.Collections;
-import java.util.List;
+import org.geysermc.geyser.api.GeyserApi
+import org.geysermc.geyser.api.connection.GeyserConnection
+import org.geysermc.geyser.api.extension.Extension
+import org.geysermc.geyser.api.util.TriState
 
 /**
  * Represents a command.
  */
-public interface Command {
-
+interface Command {
     /**
      * Gets the command name.
-     *
+     * 
      * @return the command name
      */
-    @NonNull
-    String name();
+    fun name(): String
 
     /**
      * Gets the command description.
-     *
+     * 
      * @return the command description
      */
-    @NonNull
-    String description();
+    fun description(): String
 
     /**
      * Gets the permission node associated with
      * this command.
-     *
+     * 
      * @return the permission node for this command if defined, otherwise an empty string
      */
-    @NonNull
-    String permission();
+    fun permission(): String
 
     /**
      * Gets the aliases for this command, as an unmodifiable list
-     *
+     * 
      * @return the aliases for this command as an unmodifiable list
      */
-    @NonNull
-    List<String> aliases();
+    fun aliases(): MutableList<String?>
 
-    /**
-     * Gets if this command is designed to be used only by server operators.
-     *
-     * @return if this command is designated to be used only by server operators.
-     * @deprecated this method is not guaranteed to provide meaningful or expected results.
-     */
-    @Deprecated(forRemoval = true)
-    default boolean isSuggestedOpOnly() {
-        return false;
-    }
+    @get:Deprecated("this method is not guaranteed to provide meaningful or expected results.")
+    val isSuggestedOpOnly: Boolean
+        /**
+         * Gets if this command is designed to be used only by server operators.
+         * 
+         * @return if this command is designated to be used only by server operators.
+         */
+        get() = false
 
-    /**
-     * @return true if this command is executable on console
-     * @deprecated use {@link #isPlayerOnly()} instead (inverted)
-     */
-    @Deprecated(forRemoval = true)
-    default boolean isExecutableOnConsole() {
-        return !isPlayerOnly();
-    }
+    @get:Deprecated("use {@link #isPlayerOnly()} instead (inverted)")
+    val isExecutableOnConsole: Boolean
+        /**
+         * @return true if this command is executable on console
+         */
+        get() = !this.isPlayerOnly
 
     /**
      * @return true if this command can only be used by players
      */
-    boolean isPlayerOnly();
+    val isPlayerOnly: Boolean
 
     /**
      * @return true if this command can only be used by Bedrock players
      */
-    boolean isBedrockOnly();
+    val isBedrockOnly: Boolean
 
-    /**
-     * @deprecated this method will always return an empty immutable list
-     */
-    @Deprecated(forRemoval = true)
-    @NonNull
-    default List<String> subCommands() {
-        return Collections.emptyList();
+    @Deprecated("this method will always return an empty immutable list")
+    fun subCommands(): MutableList<String?> {
+        return mutableListOf<String?>()
     }
 
-    /**
-     * Creates a new {@link Command.Builder} used to construct commands.
-     *
-     * @param extension the extension
-     * @param <T> the source type
-     * @return a new command builder used to construct commands
-     */
-    static <T extends CommandSource> Command.Builder<T> builder(@NonNull Extension extension) {
-        return GeyserApi.api().provider(Builder.class, extension);
-    }
-
-    interface Builder<T extends CommandSource> {
-
+    interface Builder<T : CommandSource?> {
         /**
          * Defines the source type to use for this command.
-         * <p>
+         * 
+         * 
          * Command source types can be anything that extend
-         * {@link CommandSource}, such as {@link GeyserConnection}.
+         * [CommandSource], such as [GeyserConnection].
          * This will guarantee that the source used in the executor
          * is an instance of this source.
-         *
+         * 
          * @param sourceType the source type
          * @return this builder
          */
-        Builder<T> source(@NonNull Class<? extends T> sourceType);
+        fun source(sourceType: Class<out T?>): Builder<T?>?
 
         /**
          * Sets the command name.
-         *
+         * 
          * @param name the command name
          * @return this builder
          */
-        Builder<T> name(@NonNull String name);
+        fun name(name: String): Builder<T?>?
 
         /**
          * Sets the command description.
-         *
+         * 
          * @param description the command description
          * @return this builder
          */
-        Builder<T> description(@NonNull String description);
+        fun description(description: String): Builder<T?>?
 
         /**
-         * Sets the permission node required to run this command. <br>
+         * Sets the permission node required to run this command. <br></br>
          * It will not be registered with any permission registries, such as an underlying server,
-         * or a permissions Extension (unlike {@link #permission(String, TriState)}).
-         *
+         * or a permissions Extension (unlike [.permission]).
+         * 
          * @param permission the permission node
          * @return this builder
          */
-        Builder<T> permission(@NonNull String permission);
+        fun permission(permission: String): Builder<T?>?
 
         /**
          * Sets the permission node and its default value. The usage of the default value is platform dependant
          * and may or may not be used. For example, it may be registered to an underlying server.
-         * <p>
-         * Extensions may instead listen for {@link GeyserRegisterPermissionsEvent} to register permissions,
+         * 
+         * 
+         * Extensions may instead listen for [GeyserRegisterPermissionsEvent] to register permissions,
          * especially if the same permission is required by multiple commands. Also see this event for TriState meanings.
-         *
+         * 
          * @param permission the permission node
          * @param defaultValue the node's default value
          * @return this builder
-         * @deprecated this method is experimental and may be removed in the future
          */
-        @Deprecated
-        Builder<T> permission(@NonNull String permission, @NonNull TriState defaultValue);
+        @Deprecated("this method is experimental and may be removed in the future")
+        fun permission(permission: String, defaultValue: TriState): Builder<T?>?
 
         /**
          * Sets the aliases.
-         *
+         * 
          * @param aliases the aliases
          * @return this builder
          */
-        Builder<T> aliases(@NonNull List<String> aliases);
+        fun aliases(aliases: MutableList<String?>): Builder<T?>?
 
         /**
          * Sets if this command is designed to be used only by server operators.
-         *
+         * 
          * @param suggestedOpOnly if this command is designed to be used only by server operators
          * @return this builder
-         * @deprecated this method is not guaranteed to produce meaningful or expected results
          */
-        @Deprecated(forRemoval = true)
-        Builder<T> suggestedOpOnly(boolean suggestedOpOnly);
+        @Deprecated("this method is not guaranteed to produce meaningful or expected results")
+        fun suggestedOpOnly(suggestedOpOnly: Boolean): Builder<T?>?
 
         /**
          * Sets if this command is executable on console.
-         *
+         * 
          * @param executableOnConsole if this command is executable on console
          * @return this builder
-         * @deprecated use {@link #isPlayerOnly()} instead (inverted)
          */
-        @Deprecated(forRemoval = true)
-        Builder<T> executableOnConsole(boolean executableOnConsole);
+        @Deprecated("use {@link #isPlayerOnly()} instead (inverted)")
+        fun executableOnConsole(executableOnConsole: Boolean): Builder<T?>?
 
         /**
          * Sets if this command can only be executed by players.
-         *
+         * 
          * @param playerOnly if this command is player only
          * @return this builder
          */
-        Builder<T> playerOnly(boolean playerOnly);
+        fun playerOnly(playerOnly: Boolean): Builder<T?>?
 
         /**
          * Sets if this command can only be executed by bedrock players.
-         *
+         * 
          * @param bedrockOnly if this command is bedrock only
          * @return this builder
          */
-        Builder<T> bedrockOnly(boolean bedrockOnly);
+        fun bedrockOnly(bedrockOnly: Boolean): Builder<T?>?
 
         /**
          * Sets the subcommands.
-         *
+         * 
          * @param subCommands the subcommands
          * @return this builder
-         * @deprecated this method has no effect
          */
-        @Deprecated(forRemoval = true)
-        default Builder<T> subCommands(@NonNull List<String> subCommands) {
-            return this;
+        @Deprecated("this method has no effect")
+        fun subCommands(subCommands: MutableList<String?>): Builder<T?> {
+            return this
         }
 
         /**
-         * Sets the {@link CommandExecutor} for this command.
-         *
+         * Sets the [CommandExecutor] for this command.
+         * 
          * @param executor the command executor
          * @return this builder
          */
-        Builder<T> executor(@NonNull CommandExecutor<T> executor);
+        fun executor(executor: CommandExecutor<T?>): Builder<T?>?
 
         /**
          * Builds the command.
-         *
+         * 
          * @return a new command from this builder
          */
-        @NonNull
-        Command build();
+        fun build(): Command
+    }
+
+    companion object {
+        /**
+         * Creates a new [Command.Builder] used to construct commands.
+         * 
+         * @param extension the extension
+         * @param <T> the source type
+         * @return a new command builder used to construct commands
+        </T> */
+        fun <T : CommandSource?> builder(extension: Extension): Builder<T?> {
+            return GeyserApi.Companion.api().provider<Builder<T?>, Builder<*>?>(Builder::class.java, extension)
+        }
     }
 }

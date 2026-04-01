@@ -55,8 +55,8 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
         InventoryTranslator<? extends Inventory> newTranslator;
         InventoryHolder<? extends Inventory> currentInventory = session.getInventoryHolder();
 
-        // Hack: ViaVersion translates the old (pre 1.20) smithing table to a anvil (does not work for Bedrock). We can detect this and translate it back to a smithing table.
-        // (Implementation note: used to be a furnace. Was changed sometime before 1.21.2)
+        
+        
         if (session.isOldSmithingTable() && packet.getType() == ContainerType.ANVIL && packet.getTitle().equals(SMITHING_TABLE_COMPONENT)) {
             newTranslator = OldSmithingTableTranslator.INSTANCE;
         } else {
@@ -67,7 +67,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
             session.closeForm();
         }
 
-        // No translator exists for this window type. Close all windows and return.
+        
         if (newTranslator == null) {
             if (currentInventory != null) {
                 InventoryUtils.closeInventory(session, currentInventory, true);
@@ -83,13 +83,13 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
         var newInventory = newTranslator.createInventory(session, name, packet.getContainerId(), packet.getType());
         InventoryHolder<? extends Inventory> newInventoryHolder = new InventoryHolder<>(session, newInventory, newTranslator);
         if (currentInventory != null) {
-            // Attempt to re-use existing open inventories, if possible.
-            // Pending inventories are also considered, as a Java server can re-request the same inventory.
+            
+            
             if (newTranslator.canReuseInventory(session, newInventory, currentInventory.inventory())) {
                 newInventoryHolder.inheritFromExisting(currentInventory);
                 GeyserImpl.getInstance().getLogger().debug(session, "Able to reuse current inventory. Is current pending? %s", currentInventory.pending());
 
-                // If the current inventory is still pending, it'll be updated once open
+                
                 if (newInventory.isDisplayed()) {
                     newInventoryHolder.updateInventory();
                 }

@@ -32,9 +32,7 @@ import java.security.Key;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-/**
- * Responsible for both encrypting and decrypting data
- */
+
 public interface FloodgateCipher {
     int VERSION = 0;
     byte[] IDENTIFIER = "^Floodgate^".getBytes(UTF_8);
@@ -54,50 +52,21 @@ public interface FloodgateCipher {
         return data.charAt(IDENTIFIER.length) - 0x3E;
     }
 
-    /**
-     * Initializes the instance by giving it the key it needs to encrypt or decrypt data
-     *
-     * @param key the key used to encrypt and decrypt data
-     */
+    
     void init(Key key);
 
-    /**
-     * Encrypts the given data using the Key provided in {@link #init(Key)}
-     *
-     * @param data the data to encrypt
-     * @return the encrypted data
-     * @throws Exception when the encryption failed
-     */
+    
     byte[] encrypt(byte[] data) throws Exception;
 
-    /**
-     * Encrypts data from a String.<br> This method internally calls {@link #encrypt(byte[])}
-     *
-     * @param data the data to encrypt
-     * @return the encrypted data
-     * @throws Exception when the encryption failed
-     */
+    
     default byte[] encryptFromString(String data) throws Exception {
         return encrypt(data.getBytes(UTF_8));
     }
 
-    /**
-     * Decrypts the given data using the Key provided in {@link #init(Key)}
-     *
-     * @param data the data to decrypt
-     * @return the decrypted data
-     * @throws Exception when the decrypting failed
-     */
+    
     byte[] decrypt(byte[] data) throws Exception;
 
-    /**
-     * Decrypts a byte[] and turn it into a String.<br> This method internally calls {@link
-     * #decrypt(byte[])} and converts the returned byte[] into a String.
-     *
-     * @param data the data to encrypt
-     * @return the decrypted data in a UTF-8 String
-     * @throws Exception when the decrypting failed
-     */
+    
     @SuppressWarnings("unused")
     default @Nullable String decryptToString(byte[] data) throws Exception {
         byte[] decrypted = decrypt(data);
@@ -107,26 +76,13 @@ public interface FloodgateCipher {
         return new String(decrypted, UTF_8);
     }
 
-    /**
-     * Decrypts a String.<br> This method internally calls {@link #decrypt(byte[])} by converting
-     * the UTF-8 String into a byte[]
-     *
-     * @param data the data to decrypt
-     * @return the decrypted data in a byte[]
-     * @throws Exception when the decrypting failed
-     */
+    
     @SuppressWarnings("unused")
     default byte[] decryptFromString(String data) throws Exception {
         return decrypt(data.getBytes(UTF_8));
     }
 
-    /**
-     * Checks if the header is valid. This method will throw an InvalidFormatException when the
-     * header is invalid.
-     *
-     * @param data the data to check
-     * @throws InvalidFormatException when the header is invalid
-     */
+    
     default void checkHeader(byte[] data) throws InvalidFormatException {
         if (data.length <= HEADER.length) {
             throw new InvalidFormatException(

@@ -34,9 +34,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 
-/**
- * A utility class for checking on the existence of classes, constructors, fields, methods
- */
+
 public final class ReflectedNames {
 
     static boolean checkPaperPingEvent() {
@@ -53,7 +51,7 @@ public final class ReflectedNames {
         return getConstructor(ServerListPingEvent.class, InetAddress.class, String.class, boolean.class, int.class, int.class) != null;
     }
 
-    // Ugly workaround that's necessary due to relocation of adventure components
+    
     static Method motdGetter() {
         try {
             return Bukkit.class.getMethod("motd");
@@ -66,8 +64,8 @@ public final class ReflectedNames {
     static Constructor<PaperServerListPingEvent> paperServerListPingEventConstructor() {
         var constructors = PaperServerListPingEvent.class.getConstructors();
         for (var constructor : constructors) {
-            // We want to get the constructor with the adventure component motd, but without referencing the
-            // component class as that's relocated
+            
+            
             if (constructor.getParameters()[1].getType() != String.class) {
                 return (Constructor<PaperServerListPingEvent>) constructor;
             }
@@ -76,9 +74,7 @@ public final class ReflectedNames {
         throw new IllegalStateException("Could not find component motd method!");
     }
 
-    /**
-     * @return if this class has a constructor with the specified arguments
-     */
+    
     @Nullable
     private static <T> Constructor<T> getConstructor(Class<T> clazz, Class<?>... args) {
         try {

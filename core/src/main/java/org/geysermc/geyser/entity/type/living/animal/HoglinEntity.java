@@ -44,7 +44,7 @@ public class HoglinEntity extends AnimalEntity {
     }
 
     public void setImmuneToZombification(BooleanEntityMetadata entityMetadata) {
-        // Apply shaking effect if not in the nether and zombification is possible
+        
         this.isImmuneToZombification = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.SHAKING, isShaking());
     }

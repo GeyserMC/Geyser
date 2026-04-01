@@ -48,17 +48,17 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
         session.sendUpstreamPacket(packet);
         session.setClosingInventory(false);
 
-        // 1.21.70: Bedrock can reject opening inventories - in those cases it replies with -1
+        
         InventoryHolder<? extends Inventory> holder = session.getInventoryHolder();
         if (bedrockId == -1 && holder != null) {
-            // 1.16.200 - window ID is always -1 sent from Bedrock for merchant containers
+            
             if (holder.translator() instanceof MerchantInventoryTranslator) {
                 bedrockId = (byte) holder.bedrockId();
             } else if (holder.bedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
-                // If virtual inventories are opened too quickly, they can be occasionally rejected
-                // We just try and queue a new one.
+                
+                
                 holder.inventory().setDisplayed(false);
-                // Before making another attempt to re-open, let's make sure we actually need this inventory open.
+                
                 if (holder.containerOpenAttempts() < 7) {
                     holder.incrementContainerOpenAttempts();
                     holder.pending(true);
@@ -72,7 +72,7 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
                     GeyserImpl.getInstance().getLogger().warning(session.bedrockUsername() + " exceeded 7 attempts to open a virtual inventory!");
                     GeyserImpl.getInstance().getLogger().debug(session, packet + " " + holder.inventory().getClass().getSimpleName());
 
-                    // Prevent inventory deadlocks by letting the code below close the inventory
+                    
                     bedrockId = (byte) holder.bedrockId();
                 }
             }
@@ -81,18 +81,18 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
         session.setPendingOrCurrentBedrockInventoryId(-1);
 
         if (holder != null) {
-            // Send close confirmation to Java edition if container closing is client-initiated
+            
             if (bedrockId == holder.bedrockId()) {
                 InventoryUtils.sendJavaContainerClose(holder);
                 InventoryUtils.closeInventory(session, holder, false);
                 return;
             }
 
-            // Try open a pending inventory
+            
             InventoryUtils.openPendingInventory(session);
         } else {
-            // We must wait until current inventory is closed to ensure the form displays
-            // and is not immediately closed by the client
+            
+            
             session.getFormCache().resendAllForms();
         }
     }

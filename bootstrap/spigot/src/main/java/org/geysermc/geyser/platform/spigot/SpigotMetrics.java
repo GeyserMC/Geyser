@@ -37,8 +37,8 @@ public final class SpigotMetrics implements MetricsPlatform {
     private final YamlConfiguration config;
 
     public SpigotMetrics(Plugin plugin) {
-        // https://github.com/Bastian/bstats-metrics/blob/master/bukkit/src/main/java/org/bstats/bukkit/Metrics.java
-        // Get the config file
+        
+        
         File bStatsFolder = new File(plugin.getDataFolder().getParentFile(), "bStats");
         File configFile = new File(bStatsFolder, "config.yml");
         config = YamlConfiguration.loadConfiguration(configFile);
@@ -50,7 +50,7 @@ public final class SpigotMetrics implements MetricsPlatform {
             config.addDefault("logSentData", false);
             config.addDefault("logResponseStatusText", false);
 
-            // Inform the server owners about bStats
+            
             config.options().header(
                 "bStats (https://bStats.org) collects some basic information for plugin authors, like how\n" +
                     "many people use their plugin and their total player count. It's recommended to keep bStats\n" +

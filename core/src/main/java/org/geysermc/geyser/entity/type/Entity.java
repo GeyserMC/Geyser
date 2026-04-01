@@ -95,10 +95,7 @@ public class Entity implements GeyserEntity {
     protected final long geyserId;
     @Accessors(fluent = true)
     protected UUID uuid;
-    /**
-     * Do not call this setter directly!
-     * This will bypass the scoreboard and setting the metadata
-     */
+    
     @Setter(AccessLevel.NONE)
     protected String nametag = "";
     protected boolean customNameVisible;
@@ -107,24 +104,17 @@ public class Entity implements GeyserEntity {
     protected Vector3f motion;
     protected float offset;
 
-    /**
-     * x = Yaw, y = Pitch, z = HeadYaw
-     * Java: Y = Yaw, X = Pitch
-     */
+    
     protected float yaw;
     protected float pitch;
     protected float headYaw;
 
-    /**
-     * Saves if the entity should be on the ground. Otherwise entities like parrots are flapping when rotating
-     */
+    
     protected boolean onGround;
 
     protected EntityDefinition<?> definition;
 
-    /**
-     * Indicates if the entity has been initialized and spawned
-     */
+    
     protected boolean valid;
 
     /* Metadata about this specific entity */
@@ -141,22 +131,14 @@ public class Entity implements GeyserEntity {
 
     protected List<Entity> passengers = Collections.emptyList();
     protected Entity vehicle;
-    /**
-     * A container to store temporary metadata before it's sent to Bedrock.
-     */
+    
     protected final GeyserDirtyMetadata dirtyMetadata = new GeyserDirtyMetadata();
-    /**
-     * The entity flags for the Bedrock entity.
-     * These must always be saved - if flags are updated and the other values aren't present, the Bedrock client will
-     * think they are set to false.
-     */
+    
     @Getter(AccessLevel.NONE)
     protected final EnumMap<EntityFlag, Boolean> flags = new EnumMap<>(EntityFlag.class);
-    /**
-     * Indicates if flags have been updated and need to be sent to the client.
-     */
+    
     @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.PROTECTED) // For players
+    @Setter(AccessLevel.PROTECTED) 
     private boolean flagsDirty = false;
 
     protected final GeyserEntityPropertyManager propertyManager;
@@ -182,9 +164,7 @@ public class Entity implements GeyserEntity {
         initializeMetadata();
     }
 
-    /**
-     * Called on entity spawn. Used to populate the entity metadata and flags with default values.
-     */
+    
     protected void initializeMetadata() {
         dirtyMetadata.put(EntityDataTypes.SCALE, 1f);
         dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
@@ -195,7 +175,7 @@ public class Entity implements GeyserEntity {
         setFlag(EntityFlag.CAN_SHOW_NAME, true);
         setFlag(EntityFlag.CAN_CLIMB, true);
         setFlag(EntityFlag.HIDDEN_WHEN_INVISIBLE, true);
-        // Let the Java server (or us) supply all sounds for an entity
+        
         setClientSideSilent();
     }
 
@@ -212,7 +192,7 @@ public class Entity implements GeyserEntity {
         addEntityPacket.setMotion(motion);
         addEntityPacket.setRotation(Vector2f.from(pitch, yaw));
         addEntityPacket.setHeadRotation(headYaw);
-        addEntityPacket.setBodyRotation(yaw); // TODO: This should be bodyYaw
+        addEntityPacket.setBodyRotation(yaw); 
         addEntityPacket.getMetadata().putFlags(flags);
         dirtyMetadata.apply(addEntityPacket.getMetadata());
         if (propertyManager != null) {
@@ -234,19 +214,15 @@ public class Entity implements GeyserEntity {
         }
     }
 
-    /**
-     * To be overridden in other entity classes, if additional things need to be done to the spawn entity packet.
-     */
+    
     public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
     }
 
-    /**
-     * Despawns the entity
-     */
+    
     public void despawnEntity() {
         if (!valid) return;
 
-        for (Entity passenger : passengers) { // Make sure all passengers on the despawned entity are updated
+        for (Entity passenger : passengers) { 
             if (passenger == null) continue;
             passenger.setVehicle(null);
             passenger.setFlag(EntityFlag.RIDING, false);
@@ -335,7 +311,7 @@ public class Entity implements GeyserEntity {
 
     public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         setPosition(position);
-        // Setters are intentional, so it can be overridden in places like AbstractArrowEntity
+        
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
@@ -357,45 +333,23 @@ public class Entity implements GeyserEntity {
         return position;
     }
 
-    /**
-     * Teleports an entity to a new location. Used in JavaTeleportEntityTranslator.
-     * @param position The new position of the entity.
-     * @param yaw The new yaw of the entity.
-     * @param pitch The new pitch of the entity.
-     * @param isOnGround Whether the entity is currently on the ground.
-     */
+    
     public void teleport(Vector3f position, float yaw, float pitch, boolean isOnGround) {
         // teleport will always set the headYaw to yaw
         moveAbsolute(position, yaw, pitch, yaw, isOnGround, false);
     }
 
-    /**
-     * Updates an entity's head position. Used in JavaRotateHeadTranslator.
-     * @param headYaw The new head rotation of the entity.
-     */
+    
     public void updateHeadLookRotation(float headYaw) {
         moveRelativeRaw(0, 0, 0, getYaw(), getPitch(), headYaw, isOnGround());
     }
 
-    /**
-     * Updates an entity's position and rotation. Used in JavaMoveEntityPosRotTranslator.
-     * @param moveX The new X offset of the current position.
-     * @param moveY The new Y offset of the current position.
-     * @param moveZ The new Z offset of the current position.
-     * @param yaw The new yaw of the entity.
-     * @param pitch The new pitch of the entity.
-     * @param isOnGround Whether the entity is currently on the ground.
-     */
+    
     public void updatePositionAndRotation(double moveX, double moveY, double moveZ, float yaw, float pitch, boolean isOnGround) {
         moveRelative(moveX, moveY, moveZ, yaw, pitch, getHeadYaw(), isOnGround);
     }
 
-    /**
-     * Updates an entity's rotation. Used in JavaMoveEntityRotTranslator.
-     * @param yaw The new yaw of the entity.
-     * @param pitch The new pitch of the entity.
-     * @param isOnGround Whether the entity is currently on the ground.
-     */
+    
     public void updateRotation(float yaw, float pitch, boolean isOnGround) {
         updatePositionAndRotation(0, 0, 0, yaw, pitch, isOnGround);
     }
@@ -405,9 +359,7 @@ public class Entity implements GeyserEntity {
         return value != null && value;
     }
 
-    /**
-     * Updates a flag value and determines if the flags would need synced with the Bedrock client.
-     */
+    
     public final void setFlag(EntityFlag flag, boolean value) {
         Boolean previous = this.flags.get(flag);
         if (previous == null || value != previous) {
@@ -416,9 +368,7 @@ public class Entity implements GeyserEntity {
         this.flags.put(flag, value);
     }
 
-    /**
-     * Sends the Bedrock metadata to the client
-     */
+    
     public void updateBedrockMetadata() {
         if (!isValid()) {
             return;
@@ -440,9 +390,7 @@ public class Entity implements GeyserEntity {
         }
     }
 
-    /**
-     * Sends the Bedrock entity properties to the client
-     */
+    
     public void updateBedrockEntityProperties() {
         if (!valid) {
             return;
@@ -467,18 +415,12 @@ public class Entity implements GeyserEntity {
         setInvisible((xd & 0x20) == 0x20);
     }
 
-    /**
-     * Set a boolean - whether the entity is invisible or visible
-     *
-     * @param value true if the entity is invisible
-     */
+    
     protected void setInvisible(boolean value) {
         setFlag(EntityFlag.INVISIBLE, value);
     }
 
-    /**
-     * Set a boolean - whether the entity is gliding
-     */
+    
     protected void setGliding(boolean value) {
         setFlag(EntityFlag.GLIDING, value);
     }
@@ -491,9 +433,7 @@ public class Entity implements GeyserEntity {
         setFlag(EntityFlag.SNEAKING, value);
     }
 
-    /**
-     * Set an int from 0 - this entity's maximum air - (air / maxAir) represents the percentage of bubbles left
-     */
+    
     public final void setAir(IntEntityMetadata entityMetadata) {
         setAirSupply(entityMetadata.getPrimitiveValue());
     }
@@ -620,9 +560,7 @@ public class Entity implements GeyserEntity {
         setFlag(EntityFlag.HAS_GRAVITY, !entityMetadata.getPrimitiveValue());
     }
 
-    /**
-     * Usually used for bounding box and not animation.
-     */
+    
     public void setPose(Pose pose) {
         setFlag(EntityFlag.SLEEPING, pose.equals(Pose.SLEEPING));
         // FALL_FLYING is instead set via setFlags
@@ -631,9 +569,7 @@ public class Entity implements GeyserEntity {
         setDimensionsFromPose(pose);
     }
 
-    /**
-     * Set the height and width of the entity's bounding box
-     */
+    
     protected void setDimensionsFromPose(Pose pose) {
         // No flexibility options for basic entities
         setBoundingBoxHeight(definition.height());

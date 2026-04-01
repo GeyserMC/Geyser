@@ -47,7 +47,7 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
     private static final int DIG_END = 120;
     private static final int DIG_START = DIG_END - 34;
 
-    private Pose pose = Pose.STANDING; // Needed to call setDimensions for DIGGING state
+    private Pose pose = Pose.STANDING; 
     private int digTicks;
 
     public SnifferEntity(EntitySpawnContext context) {
@@ -79,10 +79,10 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
     public void setSnifferState(ObjectEntityMetadata<SnifferState> entityMetadata) {
         SnifferState snifferState = entityMetadata.getValue();
 
-        // SnifferState.SCENTING and SnifferState.IDLING not used in bedrock
-        // The bedrock client does the scenting animation and sound on its own
+        
+        
         setFlag(EntityFlag.FEELING_HAPPY, snifferState == SnifferState.FEELING_HAPPY);
-        setFlag(EntityFlag.SCENTING, snifferState == SnifferState.SNIFFING); // SnifferState.SNIFFING -> EntityFlag.SCENTING
+        setFlag(EntityFlag.SCENTING, snifferState == SnifferState.SNIFFING); 
         setFlag(EntityFlag.SEARCHING, snifferState == SnifferState.SEARCHING);
         setFlag(EntityFlag.DIGGING, snifferState == SnifferState.DIGGING);
         setFlag(EntityFlag.RISING, snifferState == SnifferState.RISING);
@@ -92,8 +92,8 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
         if (getFlag(EntityFlag.DIGGING)) {
             digTicks = DIG_END;
         } else {
-            // Handles situations where the DIGGING state is exited earlier than expected,
-            // such as hitting the sniffer or joining the game while it is digging
+            
+            
             digTicks = 0;
         }
     }
@@ -101,10 +101,10 @@ public class SnifferEntity extends AnimalEntity implements Tickable {
     @Override
     public void tick() {
         super.tick();
-        // The java client renders digging particles on its own, but bedrock does not
+        
         if (digTicks > 0 && --digTicks < DIG_START && digTicks % 5 == 0) {
             Vector3f rot = Vector3f.createDirectionDeg(0, -getYaw()).mul(2.25f);
-            Vector3f pos = bedrockPosition().add(rot).up(0.2f).floor(); // Handle non-full blocks
+            Vector3f pos = bedrockPosition().add(rot).up(0.2f).floor(); 
             int blockId = session.getBlockMappings().getBedrockBlockId(session.getGeyser().getWorldManager().getBlockAt(session, pos.toInt().down()));
 
             LevelEventPacket levelEventPacket = new LevelEventPacket();

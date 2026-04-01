@@ -48,10 +48,7 @@ import org.geysermc.geyser.util.InventoryUtils;
 
 import java.util.function.IntFunction;
 
-/**
- * Translator for smithing tables for pre-1.20 servers.
- * This adapts ViaVersion's furnace ui to the 1.20+ smithing table; with the addition of a fake smithing template so Bedrock clients can use it.
- */
+
 public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator<Container> {
 
     public static final OldSmithingTableTranslator INSTANCE = new OldSmithingTableTranslator();
@@ -126,7 +123,7 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
                 }
             }
         }
-        // Allow everything else that doesn't involve the fake template
+        
         return super.translateRequest(session, container, request);
     }
 
@@ -138,8 +135,8 @@ public class OldSmithingTableTranslator extends AbstractBlockInventoryTranslator
     public void openInventory(GeyserSession session, Container container) {
         super.openInventory(session, container);
 
-        // pre-1.20 server has no concept of templates, but we are working with a 1.20 client
-        // put a fake netherite upgrade template in the template slot otherwise the client doesn't recognize a valid recipe
+        
+        
         InventorySlotPacket slotPacket = new InventorySlotPacket();
         slotPacket.setContainerId(ContainerId.UI);
         slotPacket.setSlot(53);

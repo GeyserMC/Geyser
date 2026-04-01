@@ -58,9 +58,9 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
                     logger.debug(inventory);
                 }
                 holder.updateInventory();
-                // 1.18.1 behavior: the previous items will be correctly set, but the state ID and carried item will not
-                // as this produces a stack trace on the client.
-                // If Java processes this correctly in the future, we can revert this behavior
+                
+                
+                
                 return;
             }
 
@@ -81,12 +81,12 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
         InventoryUtils.updateCursor(session);
 
         if (holder.translator() instanceof SmithingInventoryTranslator) {
-            // On 1.21.1, the recipe output is sometimes only updated here.
-            // This can be replicated with shift-clicking the last item into the smithing table.
-            // It seems that something in Via 5.1.1 causes 1.21.3 clients - even Java ones -
-            // to make the server send a slot update.
-            // That plus shift-clicking means that the state ID becomes outdated and forces
-            // a complete inventory update.
+            
+            
+            
+            
+            
+            
             JavaContainerSetSlotTranslator.updateSmithingTableOutput(SmithingInventoryTranslator.OUTPUT,
                 packet.getItems()[SmithingInventoryTranslator.OUTPUT], holder);
         }

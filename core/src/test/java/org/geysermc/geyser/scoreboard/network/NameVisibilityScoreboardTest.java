@@ -107,7 +107,7 @@ public class NameVisibilityScoreboardTest {
                     new String[]{"player1"}
                 )
             );
-            // only hidden if session player (Tim203) is in a team as well
+            
             assertNextPacket(context, () -> {
                 var packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(2);
@@ -116,7 +116,7 @@ public class NameVisibilityScoreboardTest {
             });
             assertNoNextPacket(context);
 
-            // create another team and add Tim203 to it
+            
             context.translate(
                 setPlayerTeamTranslator,
                 new ClientboundSetPlayerTeamPacket(
@@ -132,7 +132,7 @@ public class NameVisibilityScoreboardTest {
                     new String[]{"Tim203"}
                 )
             );
-            // Tim203 is now in another team, so it should be hidden
+            
             assertNextPacket(context, () -> {
                 var packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(2);
@@ -141,7 +141,7 @@ public class NameVisibilityScoreboardTest {
             });
             assertNoNextPacket(context);
 
-            // add Tim203 to same team as player1, score should be visible again
+            
             context.translate(
                 setPlayerTeamTranslator,
                 new ClientboundSetPlayerTeamPacket("team1", TeamAction.ADD_PLAYER, new String[]{"Tim203"})
@@ -177,7 +177,7 @@ public class NameVisibilityScoreboardTest {
                     new String[]{"player1"}
                 )
             );
-            // Tim203 is not in a team (let alone the same team), so should be visible
+            
             assertNextPacket(context, () -> {
                 var packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(2);
@@ -186,7 +186,7 @@ public class NameVisibilityScoreboardTest {
             });
             assertNoNextPacket(context);
 
-            // Tim203 is now in the same team as player1, so should be hidden
+            
             context.translate(
                 setPlayerTeamTranslator,
                 new ClientboundSetPlayerTeamPacket("team1", TeamAction.ADD_PLAYER, new String[]{"Tim203"})
@@ -199,7 +199,7 @@ public class NameVisibilityScoreboardTest {
             });
             assertNoNextPacket(context);
 
-            // create another team and add Tim203 to there, score should be visible again
+            
             context.translate(
                 setPlayerTeamTranslator,
                 new ClientboundSetPlayerTeamPacket(
@@ -253,7 +253,7 @@ public class NameVisibilityScoreboardTest {
                 return packet;
             });
 
-            // adding self to another team shouldn't make a difference
+            
             context.translate(
                 setPlayerTeamTranslator,
                 new ClientboundSetPlayerTeamPacket(
@@ -271,7 +271,7 @@ public class NameVisibilityScoreboardTest {
             );
             assertNoNextPacket(context);
 
-            // adding self to player1 team shouldn't matter
+            
             context.translate(
                 setPlayerTeamTranslator,
                 new ClientboundSetPlayerTeamPacket("team1", TeamAction.ADD_PLAYER, new String[]{"Tim203"})
@@ -289,17 +289,17 @@ public class NameVisibilityScoreboardTest {
             spawnPlayerSilently(context, "Tim203", 2);
             spawnArmorStand(context, 3);
 
-            // Set custom name for armor stand
+            
             ClientboundSetEntityDataPacket showNamePacket = new ClientboundSetEntityDataPacket(3,
                 new EntityMetadata[]{
-                    // custom name shown -> true
+                    
                     new BooleanEntityMetadata(3, MetadataTypes.BOOLEAN, true)
                 }
             );
 
             context.translate(setEntityMetadataTranslator, showNamePacket);
 
-            // We should be showing the generic type now, as no custom name is set
+            
             assertNextPacket(context, () -> {
                 var packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(3);
@@ -307,7 +307,7 @@ public class NameVisibilityScoreboardTest {
                 packet.getMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
                 packet.getMetadata().put(EntityDataTypes.SCALE, 1f);
 
-                // default things that would also be sent
+                
                 packet.getMetadata().putFlags(new EnumMap<>(
                     Map.of(
                         EntityFlag.INVISIBLE, false,
@@ -322,10 +322,10 @@ public class NameVisibilityScoreboardTest {
                 return packet;
             });
 
-            // Now: Send custom name, it should show up too
+            
             ClientboundSetEntityDataPacket customNamePacket = new ClientboundSetEntityDataPacket(3,
                 new EntityMetadata[]{
-                    // show custom name
+                    
                     new ObjectEntityMetadata<>(2, MetadataTypes.OPTIONAL_COMPONENT, Optional.of(Component.text("Custom Name")))
                 }
             );
@@ -340,8 +340,8 @@ public class NameVisibilityScoreboardTest {
                 return packet;
             });
 
-            // Now ensure that calls Team#refreshAllEntities is called; which would be the case for
-            // adding the session player into a team
+            
+            
 
             context.translate(
                 setPlayerTeamTranslator,
@@ -365,7 +365,7 @@ public class NameVisibilityScoreboardTest {
                 return packet;
             });
 
-            // Ensure we don't update the armor stand name; it shouldn't be reset
+            
             assertNoNextPacket(context);
         });
     }

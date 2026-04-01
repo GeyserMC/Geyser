@@ -53,9 +53,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Responsible for modifying a player's skin when wearing a player head
- */
+
 public class FakeHeadProvider {
     private static final LoadingCache<FakeHeadEntry, SkinData> MERGED_SKINS_LOADING_CACHE = CacheBuilder.newBuilder()
             .expireAfterAccess(1, TimeUnit.HOURS)
@@ -69,15 +67,15 @@ public class FakeHeadProvider {
                         throw new Exception("Couldn't load player's original skin");
                     }
 
-                    Skin skin = skinData.skin();
-                    Cape cape = skinData.cape();
-                    SkinGeometry geometry = skinData.geometry().geometryName().equals("{\"geometry\" :{\"default\" :\"geometry.humanoid.customSlim\"}}")
+                    Skin skin = skinData.skin;
+                    Cape cape = skinData.cape;
+                    SkinGeometry geometry = skinData.geometry.geometryName.equals("{\"geometry\" :{\"default\" :\"geometry.humanoid.customSlim\"}}")
                             ? SkinProvider.WEARING_CUSTOM_SKULL_SLIM : SkinProvider.WEARING_CUSTOM_SKULL;
 
                     Skin headSkin = SkinProvider.getOrDefault(
                             SkinProvider.requestSkin(fakeHeadEntry.getEntity().uuid(), fakeHeadEntry.getFakeHeadSkinUrl(), false), SkinProvider.EMPTY_SKIN, 5);
-                    BufferedImage originalSkinImage = SkinProvider.imageDataToBufferedImage(skin.skinData(), 64, skin.skinData().length / 4 / 64);
-                    BufferedImage headSkinImage = SkinProvider.imageDataToBufferedImage(headSkin.skinData(), 64, headSkin.skinData().length / 4 / 64);
+                    BufferedImage originalSkinImage = SkinProvider.imageDataToBufferedImage(skin.skinData, 64, skin.skinData.length / 4 / 64);
+                    BufferedImage headSkinImage = SkinProvider.imageDataToBufferedImage(headSkin.skinData, 64, headSkin.skinData.length / 4 / 64);
 
                     Graphics2D graphics2D = originalSkinImage.createGraphics();
                     graphics2D.setComposite(AlphaComposite.Clear);
@@ -86,13 +84,13 @@ public class FakeHeadProvider {
                     graphics2D.drawImage(headSkinImage, 0, 0, 64, 16, 0, 0, 64, 16, null);
                     graphics2D.dispose();
 
-                    // Make the skin key a combination of the current skin data and the new skin data
-                    // Don't tie it to a player - that player *can* change skins in-game
-                    String skinKey = "customPlayerHead_" + fakeHeadEntry.getFakeHeadSkinUrl() + "_" + skin.textureUrl();
+                    
+                    
+                    String skinKey = "customPlayerHead_" + fakeHeadEntry.getFakeHeadSkinUrl() + "_" + skin.textureUrl;
                     byte[] targetSkinData = SkinProvider.bufferedImageToImageData(originalSkinImage);
                     Skin mergedSkin = new Skin(skinKey, targetSkinData);
 
-                    // Avoiding memory leak
+                    
                     fakeHeadEntry.setEntity(null);
                     fakeHeadEntry.setSession(null);
 
@@ -107,7 +105,7 @@ public class FakeHeadProvider {
 
         ResolvableProfile current = session.getPlayerWithCustomHeads().get(entity.uuid());
         if (profile.equals(current)) {
-            // We already did this, no need to re-compute
+            
             return;
         }
 
@@ -165,7 +163,7 @@ public class FakeHeadProvider {
 
         @Override
         public boolean equals(Object o) {
-            // We don't care about the equality of the entity as that is not used for caching purposes
+            
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             FakeHeadEntry that = (FakeHeadEntry) o;

@@ -46,11 +46,11 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
         int newSlot = packet.getHotbarSlot();
         if (!session.isSpawned() || newSlot > 8 || packet.getContainerId() != ContainerId.INVENTORY
                 || session.getPlayerInventory().getHeldItemSlot() == newSlot) {
-            // For the last condition - Don't update the slot if the slot is the same - not Java Edition behavior and messes with plugins such as Grief Prevention
+            
             return;
         }
 
-        // Send book update before switching hotbar slot
+        
         session.getBookEditCache().checkForSend();
 
         GeyserItemStack oldItem = session.getPlayerInventory().getItemInHand();
@@ -62,19 +62,19 @@ public class BedrockMobEquipmentTranslator extends PacketTranslator<MobEquipment
         GeyserItemStack newItem = session.getPlayerInventory().getItemInHand();
 
         if (session.isSneaking() && newItem.is(Items.SHIELD)) {
-            // Activate shield since we are already sneaking
-            // (No need to send a release item packet - Java doesn't do this when swapping items)
-            // Required to do it a tick later or else it doesn't register
+            
+            
+            
             session.scheduleInEventLoop(() -> session.useItem(Hand.MAIN_HAND),
                     session.getNanosecondsPerTick(), TimeUnit.NANOSECONDS);
         }
 
         if (!oldItem.isSameItem(newItem)) {
-            // Java sends a cooldown indicator whenever you switch to a new item type
+            
             CooldownUtils.setCooldownHitTime(session);
         }
 
-        // Update the interactive tag, if an entity is present
+        
         if (session.getMouseoverEntity() != null) {
             session.getMouseoverEntity().updateInteractiveTag();
         }

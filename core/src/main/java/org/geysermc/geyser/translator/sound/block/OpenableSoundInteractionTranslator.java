@@ -61,7 +61,7 @@ public class OpenableSoundInteractionTranslator implements BlockSoundInteraction
             return open ? SoundEvent.TRAPDOOR_OPEN : SoundEvent.TRAPDOOR_CLOSE;
         }
         
-        // Fence Gate
+        
         return open ? SoundEvent.FENCE_GATE_OPEN : SoundEvent.FENCE_GATE_CLOSE;
     }
 }

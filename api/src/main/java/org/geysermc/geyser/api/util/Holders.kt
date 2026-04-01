@@ -22,106 +22,102 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.util
 
-package org.geysermc.geyser.api.util;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.common.returnsreceiver.qual.This;
-import org.geysermc.geyser.api.GeyserApi;
-import org.jetbrains.annotations.ApiStatus;
-
-import java.util.List;
+import org.checkerframework.common.returnsreceiver.qual.This
+import org.geysermc.geyser.api.GeyserApi
+import org.jetbrains.annotations.ApiStatus
+import java.util.function.Consumer
 
 /**
- * Similar to the {@code HolderSet}s in Minecraft, a Holders object can represent either a list of identifiers, or an identifier of a Minecraft registry tag.
+ * Similar to the `HolderSet`s in Minecraft, a Holders object can represent either a list of identifiers, or an identifier of a Minecraft registry tag.
  * What these identifiers represent depends on the context in which Holders are used.
  * @since 2.9.3
  */
 @ApiStatus.NonExtendable
-public interface Holders {
-
-    /**
-     * Creates a Holders object consisting of a single identifier.
-     *
-     * @param identifier the identifier the Holders object consists of
-     * @return a new Holders object
-     * @since 2.9.3
-     */
-    static @NonNull Holders of(Identifier identifier) {
-        return builder().with(identifier).build();
-    }
-
-    /**
-     * Creates a Holders object consisting of a list of identifiers.
-     *
-     * @param identifiers the identifiers the Holders object consists of
-     * @return a new Holders object
-     * @since 2.9.3
-     */
-    static @NonNull Holders of(List<Identifier> identifiers) {
-        Builder builder = builder();
-        identifiers.forEach(builder::with);
-        return builder.build();
-    }
-
-    /**
-     * Creates a Holders object consisting of a tag
-     *
-     * @param tag the tag the Holders object consists of
-     * @return a new Holders object
-     * @since 2.9.3
-     */
-    static @NonNull Holders ofTag(Identifier tag) {
-        return builder().tag(tag).build();
-    }
-
-    /**
-     * Creates a builder for a Holders object.
-     *
-     * @return a new builder
-     * @since 2.9.3
-     */
-    static @NonNull Builder builder() {
-        return GeyserApi.api().provider(Holders.Builder.class);
-    }
-
+interface Holders {
     /**
      * Builder for the Holders object
      * @since 2.9.3
      */
-    interface Builder extends GenericBuilder<Holders> {
-
+    interface Builder : GenericBuilder<Holders?> {
         /**
          * Adds a new identifier to the Holders object. This will throw when a tag has been set, since a Holders object can
          * consist of either a tag, or a list of identifiers, not both.
-         *
+         * 
          * @param identifier the identifier to add to the Holders object
          * @throws IllegalArgumentException when a tag has been set
          * @return this builder
          * @since 2.9.3
          */
-        @This
-        Builder with(@NonNull Identifier identifier);
+        fun with(identifier: Identifier): @This Builder?
 
         /**
          * Sets the tag of the Holders object. A Holders object can only consist of one tag. This will throw when at least one identifier has been
          * added, since a Holders object can consist of either a tag, or a list of identifiers, not both.
-         *
+         * 
          * @param tag the tag to set
          * @throws IllegalArgumentException when at least one identifier has already been added
          * @return this builder
          * @since 2.9.3
          */
-        @This
-        Builder tag(@NonNull Identifier tag);
+        fun tag(tag: Identifier): @This Builder?
 
         /**
          * Creates the Holders object.
-         *
+         * 
          * @return the new Holders object
          * @since 2.9.3
          */
-        @Override
-        Holders build();
+        override fun build(): Holders
+    }
+
+    companion object {
+        /**
+         * Creates a Holders object consisting of a single identifier.
+         * 
+         * @param identifier the identifier the Holders object consists of
+         * @return a new Holders object
+         * @since 2.9.3
+         */
+        @kotlin.jvm.JvmStatic
+        fun of(identifier: Identifier): Holders {
+            return builder().with(identifier)!!.build()
+        }
+
+        /**
+         * Creates a Holders object consisting of a list of identifiers.
+         * 
+         * @param identifiers the identifiers the Holders object consists of
+         * @return a new Holders object
+         * @since 2.9.3
+         */
+        fun of(identifiers: MutableList<Identifier?>): Holders {
+            val builder: Builder = builder()
+            identifiers.forEach(Consumer { identifier: Identifier? -> builder.with(identifier!!) })
+            return builder.build()
+        }
+
+        /**
+         * Creates a Holders object consisting of a tag
+         * 
+         * @param tag the tag the Holders object consists of
+         * @return a new Holders object
+         * @since 2.9.3
+         */
+        @kotlin.jvm.JvmStatic
+        fun ofTag(tag: Identifier): Holders {
+            return builder().tag(tag)!!.build()
+        }
+
+        /**
+         * Creates a builder for a Holders object.
+         * 
+         * @return a new builder
+         * @since 2.9.3
+         */
+        fun builder(): Builder {
+            return GeyserApi.Companion.api().provider<Builder, Builder?>(Builder::class.java)
+        }
     }
 }

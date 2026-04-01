@@ -74,7 +74,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
         null
     );
 
-    private byte collarColor = 14; // Red - default
+    private byte collarColor = 14; 
     private HolderSet repairableItems = null;
     private boolean isCurseOfBinding = false;
 
@@ -85,13 +85,13 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     @Override
     public void setTameableFlags(ByteEntityMetadata entityMetadata) {
         super.setTameableFlags(entityMetadata);
-        // Reset wolf color
+        
         if (getFlag(EntityFlag.ANGRY)) {
             dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
         } else if (getFlag(EntityFlag.TAMED)) {
             updateCollarColor();
 
-            // This fixes tail angle when taming
+            
             UpdateAttributesPacket packet = new UpdateAttributesPacket();
             packet.setRuntimeEntityId(geyserId);
             packet.setAttributes(Collections.singletonList(createHealthAttribute()));
@@ -109,13 +109,13 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     private void updateCollarColor() {
         dirtyMetadata.put(EntityDataTypes.COLOR, collarColor);
         if (ownerBedrockId == 0) {
-            // If a color is set and there is no owner entity ID, set one.
-            // Otherwise, the entire wolf is set to that color: https://user-images.githubusercontent.com/9083212/99209989-92691200-2792-11eb-911d-9a315c955be9.png
+            
+            
             dirtyMetadata.put(EntityDataTypes.OWNER_EID, session.getPlayerEntity().geyserId());
         }
     }
 
-    // 1.16+
+    
     public void setWolfAngerTime(LongEntityMetadata entityMetadata) {
         long time = entityMetadata.getPrimitiveValue();
         boolean angry = time > 0 && time - session.getWorldTicks() > 0;
@@ -158,12 +158,12 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
             return InteractiveTag.NONE;
         }
         if (itemInHand.is(Items.BONE) && !getFlag(EntityFlag.TAMED)) {
-            // Bone and untamed - can tame
+            
             return InteractiveTag.TAME;
         }
         if (getFlag(EntityFlag.TAMED) && ownerBedrockId == session.getPlayerEntity().geyserId()) {
             if (itemInHand.asItem() instanceof DyeItem dyeItem) {
-                // If this fails, as of Java Edition 1.18.1, you cannot toggle sit/stand
+                
                 if (dyeItem.dyeColor() != this.collarColor) {
                     return InteractiveTag.DYE;
                 } else {
@@ -181,7 +181,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
                     !getItemInSlot(EquipmentSlot.BODY).isEmpty() && getItemInSlot(EquipmentSlot.BODY).isDamaged()) {
                 return InteractiveTag.REPAIR_WOLF_ARMOR;
             }
-            // Tamed and owned by player - can sit/stand
+            
             return getFlag(EntityFlag.SITTING) ? InteractiveTag.STAND : InteractiveTag.SIT;
         }
         return super.testMobInteraction(hand, itemInHand);
@@ -192,14 +192,14 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (ownerBedrockId == session.getPlayerEntity().geyserId() || getFlag(EntityFlag.TAMED)
                 || itemInHand.is(Items.BONE) && !getFlag(EntityFlag.ANGRY)) {
-            // Sitting toggle or feeding; not angry
+            
             return InteractionResult.CONSUME;
         } else {
             return InteractionResult.PASS;
         }
     }
 
-    // Ordered by bedrock id
+    
     public enum BuiltInVariant implements BuiltIn {
         PALE,
         ASHEN,

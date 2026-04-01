@@ -34,9 +34,7 @@ import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
-/**
- * Chests have more block entity properties in Bedrock, which is solved by implementing the BedrockChunkWantsBlockEntityTag
- */
+
 @BlockEntity(type = { BlockEntityType.CHEST, BlockEntityType.TRAPPED_CHEST })
 public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
     @Override
@@ -48,16 +46,9 @@ public class DoubleChestBlockEntityTranslator extends BlockEntityTranslator impl
         }
     }
 
-    /**
-     * Add Bedrock block entity tags to a NbtMap based on Java properties
-     *
-     * @param builder the NbtMapBuilder to apply properties to
-     * @param state the BlockState of this double chest
-     * @param x the x position of this chest pair
-     * @param z the z position of this chest pair
-     */
+    
     public static void translateChestValue(NbtMapBuilder builder, BlockState state, int x, int z) {
-        // Calculate the position of the other chest based on the Java block state
+        
         Direction facing = state.getValue(Properties.HORIZONTAL_FACING);
         boolean isLeft = state.getValue(Properties.CHEST_TYPE) == ChestType.LEFT;
         switch (facing) {

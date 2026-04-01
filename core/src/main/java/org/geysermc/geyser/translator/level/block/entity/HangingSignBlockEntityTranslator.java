@@ -33,6 +33,6 @@ public class HangingSignBlockEntityTranslator extends SignBlockEntityTranslator 
 
     @Override
     public int signWidthMax() {
-        return SignUtils.HANGING_SIGN_WIDTH_MAX; // Smaller than that for BlockEntityType.SIGN
+        return SignUtils.HANGING_SIGN_WIDTH_MAX; 
     }
 }

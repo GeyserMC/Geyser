@@ -75,7 +75,7 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
                 }
             }
             case SWING_OFFHAND -> {
-                // Use the OptionalPack to trigger the animation
+                
                 AnimateEntityPacket offHandPacket = new AnimateEntityPacket();
                 offHandPacket.setAnimation("animation.player.attack.rotations.offhand");
                 offHandPacket.setNextState("default");
@@ -92,9 +92,9 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
             }
             case ENCHANTMENT_CRITICAL_HIT -> {
                 animatePacket.setData(15);
-                animatePacket.setAction(AnimatePacket.Action.MAGIC_CRITICAL_HIT); // Unsure if this does anything
+                animatePacket.setAction(AnimatePacket.Action.MAGIC_CRITICAL_HIT); 
 
-                // Spawn custom particle
+                
                 SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();
                 stringPacket.setIdentifier("geyseropt:enchanted_hit_multiple");
                 stringPacket.setDimensionId(DimensionUtils.javaToBedrock(session));
@@ -104,8 +104,8 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
                 session.sendUpstreamPacket(stringPacket);
             }
             case LEAVE_BED -> {
-                // Technically the client does a bunch more here, like figuring out the correct bed position
-                // However, we only adjust the pose - that way we stop applying the sleeping offset for the player position
+                
+                
                 session.getPlayerEntity().setPose(Pose.STANDING);
                 animatePacket.setAction(AnimatePacket.Action.WAKE_UP);
             }

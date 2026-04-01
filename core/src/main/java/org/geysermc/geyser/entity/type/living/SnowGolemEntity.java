@@ -43,7 +43,7 @@ public class SnowGolemEntity extends GolemEntity {
 
     public void setSnowGolemFlags(ByteEntityMetadata entityMetadata) {
         byte xd = entityMetadata.getPrimitiveValue();
-        // Handle the visibility of the pumpkin
+        
         setFlag(EntityFlag.SHEARED, (xd & 0x10) != 0x10);
     }
 
@@ -51,7 +51,7 @@ public class SnowGolemEntity extends GolemEntity {
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (itemInHand.is(Items.SHEARS) && isAlive() && !getFlag(EntityFlag.SHEARED)) {
-            // Shearing the snow golem
+            
             return InteractiveTag.SHEAR;
         }
         return InteractiveTag.NONE;
@@ -61,7 +61,7 @@ public class SnowGolemEntity extends GolemEntity {
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (itemInHand.is(Items.SHEARS) && isAlive() && !getFlag(EntityFlag.SHEARED)) {
-            // Shearing the snow golem
+            
             return InteractionResult.SUCCESS;
         }
         return InteractionResult.PASS;

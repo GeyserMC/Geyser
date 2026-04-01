@@ -44,7 +44,7 @@ import java.util.List;
 
 public class WrittenBookItem extends Item {
     public static final int MAXIMUM_PAGE_EDIT_LENGTH = 1024;
-    public static final int MAXIMUM_PAGE_COUNT = 100; // Java edition limit. Bedrock edition has a limit of 50 pages.
+    public static final int MAXIMUM_PAGE_COUNT = 100; 
     public static final int MAXIMUM_TITLE_LENGTH = 16;
 
     public WrittenBookItem(String javaIdentifier, Builder builder) {

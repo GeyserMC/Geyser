@@ -36,20 +36,12 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.LodestoneTra
 import java.util.Map;
 import java.util.WeakHashMap;
 
-/**
- * A temporary cache for lodestone information.
- * Bedrock requests the lodestone position information separately from the item.
- */
+
 public final class LodestoneCache {
-    /**
-     * A list of any GeyserItemStacks that are lodestones. Used mainly to minimize Bedrock's "pop-in" effect
-     * when a new item has been created; instead we can re-use already existing IDs
-     */
+    
     private final Map<GeyserItemStack, LodestonePos> activeLodestones = new WeakHashMap<>();
     private final Int2ObjectMap<LodestonePos> lodestones = new Int2ObjectOpenHashMap<>();
-    /**
-     * An ID to increment for each lodestone
-     */
+    
     private int id = 1;
 
     public void cacheInventoryItem(GeyserItemStack itemStack, LodestoneTracker tracker) {
@@ -71,7 +63,7 @@ public final class LodestoneCache {
 
         for (LodestonePos pos : this.lodestones.values()) {
             if (pos.equals(x, y, z, dim)) {
-                // Use this existing position instead
+                
                 this.activeLodestones.put(itemStack, pos);
                 return;
             }
@@ -83,7 +75,7 @@ public final class LodestoneCache {
     public int store(LodestoneTracker tracker) {
         GlobalPos position = tracker.getPos();
         if (position == null) {
-            // No coordinates; nothing to convert
+            
             return 0;
         }
 
@@ -94,19 +86,19 @@ public final class LodestoneCache {
 
         for (LodestonePos pos : this.activeLodestones.values()) {
             if (pos.equals(x, y, z, dim)) {
-                // No need to add this into the lodestones map as it should not be re-requested
+                
                 return pos.id;
             }
         }
 
         for (Int2ObjectMap.Entry<LodestonePos> entry : this.lodestones.int2ObjectEntrySet()) {
             if (entry.getValue().equals(x, y, z, dim)) {
-                // Use this existing position instead
+                
                 return entry.getIntKey();
             }
         }
 
-        // Start at 1 as 0 does not work
+        
         this.lodestones.put(id, new LodestonePos(id, x, y, z, dim));
         return id++;
     }
@@ -125,7 +117,7 @@ public final class LodestoneCache {
     }
 
     public void clear() {
-        // Just in case...
+        
         this.activeLodestones.clear();
         this.lodestones.clear();
     }

@@ -36,9 +36,7 @@ import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 
 import java.util.Arrays;
 
-/**
- * Read {@link CrafterInventoryTranslator} for context on the complete custom implementation here
- */
+
 public class CrafterInventoryUpdater extends InventoryUpdater {
 
     public static final CrafterInventoryUpdater INSTANCE = new CrafterInventoryUpdater();
@@ -48,7 +46,7 @@ public class CrafterInventoryUpdater extends InventoryUpdater {
         ItemData[] bedrockItems;
         InventoryContentPacket contentPacket;
 
-        // crafter grid - but excluding the result slot
+        
         bedrockItems = new ItemData[CrafterInventoryTranslator.GRID_SIZE];
         for (int i = 0; i < bedrockItems.length; i++) {
             bedrockItems[translator.javaSlotToBedrock(i)] = inventory.getItem(i).getItemData(session);
@@ -58,7 +56,7 @@ public class CrafterInventoryUpdater extends InventoryUpdater {
         contentPacket.setContents(Arrays.asList(bedrockItems));
         session.sendUpstreamPacket(contentPacket);
 
-        // inventory and hotbar
+        
         bedrockItems = new ItemData[36];
         for (int i = 0; i < 36; i++) {
             final int offset = i < 9 ? 27 : -9;
@@ -69,7 +67,7 @@ public class CrafterInventoryUpdater extends InventoryUpdater {
         contentPacket.setContents(Arrays.asList(bedrockItems));
         session.sendUpstreamPacket(contentPacket);
 
-        // Crafter result - it doesn't come after the grid, as explained elsewhere.
+        
         updateSlot(translator, session, inventory, CrafterInventoryTranslator.JAVA_RESULT_SLOT);
     }
 
@@ -77,8 +75,8 @@ public class CrafterInventoryUpdater extends InventoryUpdater {
     public boolean updateSlot(InventoryTranslator<?> translator, GeyserSession session, Inventory inventory, int javaSlot) {
         int containerId;
         if (javaSlot < CrafterInventoryTranslator.GRID_SIZE || javaSlot == CrafterInventoryTranslator.JAVA_RESULT_SLOT) {
-            // Parts of the Crafter UI
-            // It doesn't seem like BDS sends the result slot, but sending it as slot 50 does actually work (it doesn't seem to show otherwise)
+            
+            
             containerId = inventory.getBedrockId();
         } else {
             containerId = ContainerId.INVENTORY;

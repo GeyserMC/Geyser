@@ -44,13 +44,13 @@ public class BedrockServerSettingsRequestTranslator extends PacketTranslator<Ser
 
     @Override
     public void translate(GeyserSession session, ServerSettingsRequestPacket packet) {
-        // UUID is null when we're not logged in, which causes the hasPermission check to fail
+        
         if (!session.isLoggedIn()) {
             return;
         }
 
-        // Peaceful difficulty allows always eating food - hence, we just do not send it to Bedrock.
-        // However, in order for server settings to show it properly, let's revert while we are in the menu!
+        
+        
         if (session.getWorldCache().getDifficulty() == Difficulty.PEACEFUL) {
             SetDifficultyPacket setDifficultyPacket = new SetDifficultyPacket();
             setDifficultyPacket.setDifficulty(Difficulty.PEACEFUL.ordinal());
@@ -62,7 +62,7 @@ public class BedrockServerSettingsRequestTranslator extends PacketTranslator<Ser
 
         String jsonData = formDefinitions.codecFor(form).jsonData(form);
 
-        // Fixes https://bugs.mojang.com/browse/MCPE-94012 because of the delay
+        
         session.scheduleInEventLoop(() -> {
             ServerSettingsResponsePacket serverSettingsResponsePacket = new ServerSettingsResponsePacket();
             serverSettingsResponsePacket.setFormData(jsonData);

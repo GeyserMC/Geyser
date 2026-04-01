@@ -1,5 +1,0 @@
-main: org.geysermc.geyser.platform.bungeecord.GeyserBungeePlugin
-name: ${name}-BungeeCord
-author: ${author}
-website: ${url}
-version: ${version}

@@ -39,7 +39,7 @@ public class DoorBlock extends Block {
 
     @Override
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
-        // Needed to check whether we must force the client to update the door state.
+        
         String doubleBlockHalf = state.getValue(Properties.DOUBLE_BLOCK_HALF);
 
         Vector3i lastLowerDoor = session.getLastLowerDoorPosition();
@@ -47,9 +47,9 @@ public class DoorBlock extends Block {
 
         if (Objects.equals(lastLowerDoor, position) && doubleBlockHalf.equals("lower")) {
             BlockState oldBlockState = session.getGeyser().getWorldManager().blockAt(session, position);
-            // If these are the same, it means that we already updated the lower door block (manually in the workaround below),
-            // and we do not need to update the block in the cache/on the client side using the super.updateBlock() method again.
-            // Otherwise, we send the door updates twice which will cause visual glitches on the client side
+            
+            
+            
             if (oldBlockState == state) {
                 return;
             }
@@ -58,11 +58,11 @@ public class DoorBlock extends Block {
         super.updateBlock(session, state, position);
 
         if (doubleBlockHalf.equals("upper")) {
-            // Update the lower door block as Bedrock client doesn't like door to be closed from the top
-            // See https://github.com/GeyserMC/Geyser/issues/4358
+            
+            
             Vector3i belowDoorPosition = position.down(1);
             BlockState belowDoorBlockState = session.getGeyser().getWorldManager().blockAt(session, belowDoorPosition.getX(), belowDoorPosition.getY(), belowDoorPosition.getZ());
-            // better safe than sorry - withValue can throw
+            
             if (belowDoorBlockState.block() instanceof DoorBlock) {
                 belowDoorBlockState = belowDoorBlockState.withValue(Properties.OPEN, state.getValue(Properties.OPEN));
                 ChunkUtils.updateBlock(session, belowDoorBlockState, belowDoorPosition);

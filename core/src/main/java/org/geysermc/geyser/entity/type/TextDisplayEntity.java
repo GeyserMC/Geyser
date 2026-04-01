@@ -41,21 +41,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-// Note: 1.19.4 requires that the billboard is set to something in order to show, on Java Edition
+
 @Getter
 public class TextDisplayEntity extends DisplayBaseEntity {
 
-    /**
-     * The height offset per line of text in a text display entity when rendered
-     * as an armor stand nametag on Bedrock Edition. This value was empirically adjusted
-     * to match Java Edition's multi-line text centering behavior.
-     */
+    
     private static final float LINE_HEIGHT_OFFSET = 0.1414f;
 
-    /**
-     * On Java Edition, armor stands can have a custom name shown additionally to
-     * the text in the display. They are rendered separately, and can cross each other...
-     */
+    
     private @Nullable ArmorStandEntity secondEntity = null;
     private boolean isInvisible = false;
     private int lineCount;
@@ -67,7 +60,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        // Remove armor stand body / hitbox
+        
         this.dirtyMetadata.put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
         this.dirtyMetadata.put(EntityDataTypes.SCALE, 0f);
         this.dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
@@ -75,8 +68,8 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     @Override
     protected void setInvisible(boolean value) {
-        // we'll keep the text display armor stand always invisible; would reveal the armor stand otherwise
-        // but we would need to adjust the nametag
+        
+        
         isInvisible = value;
         this.updateNameTag();
     }
@@ -95,12 +88,12 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     @Override
     public void setNametagAlwaysShow(boolean value) {
-        // no-op
+        
     }
 
     @Override
     protected void setNameEntityData(String nametag) {
-        // no-op
+        
     }
 
     @Override
@@ -132,7 +125,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         int oldLineCount = this.lineCount;
         this.lineCount = calculateLineCount(entityMetadata.getValue());
 
-        // If the line count changed, update the position to account for the new offset
+        
         if (this.lineCount != oldLineCount) {
             setOffset(calculateLineOffset());
             moveAbsoluteRaw(position, yaw, pitch, headYaw, onGround, false);
@@ -148,9 +141,9 @@ public class TextDisplayEntity extends DisplayBaseEntity {
 
     @Override
     public void updateBedrockMetadata() {
-        // Bundle metadata updates to ensure they aren't ignored
+        
         if (secondEntity != null) {
-            if (!secondEntity.valid) { // Spawn the entity once
+            if (!secondEntity.valid) { 
                 secondEntity.spawnEntity();
             } else {
                 secondEntity.updateBedrockMetadata();
@@ -160,7 +153,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     public void updateNameTag() {
-        // Text displays are special: customNameVisible must be set for the custom name to ever show
+        
         if (this.nametag.isBlank() || isInvisible || !customNameVisible) {
             if (secondEntity != null) {
                 secondEntity.despawnEntity();
@@ -174,20 +167,14 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         }
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, this.nametag);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
-        // Scale to 0 to show nametag
+        
         secondEntity.setScale(0f);
-        // No bounding box as we don't want to interact with this entity
+        
         secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
     }
-    /**
-     * Calculates the Y offset needed to match Java Edition's text centering
-     * behavior for multi-line text displays.
-     * In Java Edition, multi-line text displays are centered vertically.
-     *
-     * @return the Y offset to apply based on the number of lines
-     */
+    
     public float calculateLineOffset() {
         if (lineCount == 0) {
             return 0;

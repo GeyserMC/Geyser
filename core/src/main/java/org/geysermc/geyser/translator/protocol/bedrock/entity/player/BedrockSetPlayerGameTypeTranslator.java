@@ -33,28 +33,23 @@ import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundChangeGameModePacket;
 
-/**
- * In vanilla Bedrock, if you have operator status, this sets the player's gamemode without confirmation from the server.
- * With operator status, the Gamemode change is sent to the Java server, if it is not present, the gamemode is not changed.
- */
+
 @Translator(packet = SetPlayerGameTypePacket.class)
 public class BedrockSetPlayerGameTypeTranslator extends PacketTranslator<SetPlayerGameTypePacket> {
 
-    /**
-     * Sets client game mode for the server via the Bedrock client's "world" menu (given sufficient permissions).
-     */
+    
     @Override
     public void translate(GeyserSession session, SetPlayerGameTypePacket packet) {
-        // Revert to current game mode first - gamemode sending will be done server-authorative
+        
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(session.getGameMode()).ordinal());
         session.sendUpstreamPacket(playerGameTypePacket);
 
-        // We will still inform the server that we want to change gamemodes, granted we have the permission to
+        
         if (session.getOpPermissionLevel() >= 2) {
             if (packet.getGamemode() != session.getGameMode().ordinal()) {
-                // Bedrock has more Gamemodes than Java, leading to cases 5 (for "default") and 6 (for "spectator") being sent
-                // https://github.com/CloudburstMC/Protocol/blob/3.0/bedrock-codec/src/main/java/org/cloudburstmc/protocol/bedrock/data/GameType.java
+                
+                
                 GameMode gameMode = switch (packet.getGamemode()) {
                     case 1 -> GameMode.CREATIVE;
                     case 2 -> GameMode.ADVENTURE;

@@ -53,9 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-/**
- * Loads collision data from the given resource path.
- */
+
 public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String, List<BlockCollision>> {
 
     @Override
@@ -68,7 +66,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
             annotationMap.put(clazz, new CollisionInfo(collisionRemapper, Pattern.compile(collisionRemapper.regex())));
         }
 
-        // Load collision mappings file
+        
         int[] indices;
         List<BoundingBox[]> collisionList;
         try (InputStream stream = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(input.value())) {
@@ -83,7 +81,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
         List<BlockState> blockStates = BlockRegistries.BLOCK_STATES.get();
         var collisions = new ObjectArrayList<BlockCollision>(blockStates.size());
 
-        // Map of unique collisions to its instance
+        
         Map<BlockCollision, BlockCollision> collisionInstances = new Object2ObjectOpenHashMap<>();
         for (int i = 0; i < blockStates.size(); i++) {
             BlockState state = blockStates.get(i);
@@ -95,7 +93,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
             BlockCollision newCollision = instantiateCollision(state, annotationMap, indices[i], collisionList);
 
             if (newCollision != null) {
-                // If there's an existing instance equal to this one, use that instead
+                
                 BlockCollision existingInstance = collisionInstances.get(newCollision);
                 if (existingInstance != null) {
                     newCollision = existingInstance;
@@ -121,7 +119,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
             if (collisionInfo.pattern.matcher(blockName).find()) {
                 try {
                     if (annotation.passDefaultBoxes()) {
-                        // Create an OtherCollision instance and get the bounding boxes
+                        
                         BoundingBox[] defaultBoxes = collisionList.get(collisionIndex);
                         return (BlockCollision) type.getDeclaredConstructor(BlockState.class, BoundingBox[].class).newInstance(state, defaultBoxes);
                     } else {
@@ -133,12 +131,12 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
             }
         }
 
-        // Unless some of the low IDs are changed, which is unlikely, the first item should always be empty collision
+        
         if (collisionIndex == 0) {
             return null;
         }
 
-        // Unless some of the low IDs are changed, which is unlikely, the second item should always be full collision
+        
         if (collisionIndex == 1) {
             return new SolidCollision(state);
         }
@@ -161,16 +159,14 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
                         boxProperties.get(5));
             }
 
-            // Sorting by lowest Y first fixes some bugs
+            
             Arrays.sort(boundingBoxes, Comparator.comparingDouble(BoundingBox::getMiddleY));
             collisions.add(boundingBoxes);
         }
         return collisions;
     }
 
-    /**
-     * Used to prevent patterns from being compiled more than needed
-     */
+    
     @AllArgsConstructor
     public static class CollisionInfo {
         private final CollisionRemapper collisionRemapper;

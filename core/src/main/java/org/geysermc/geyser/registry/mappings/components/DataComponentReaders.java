@@ -56,7 +56,7 @@ public class DataComponentReaders {
     private static final Map<Key, DataComponentReader<?>> READERS = new HashMap<>();
 
     public static void readDataComponent(CustomItemDefinition.Builder builder, String key, @NonNull JsonElement element, String baseContext) throws InvalidCustomMappingsFileException {
-        // Component removal
+        
         if (key.startsWith("!")) {
             builder.removeComponent(Identifier.of(key.substring(1)));
             return;

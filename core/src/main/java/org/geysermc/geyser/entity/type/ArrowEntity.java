@@ -38,11 +38,11 @@ public class ArrowEntity extends AbstractArrowEntity {
 
     public void setPotionEffectColor(IntEntityMetadata entityMetadata) {
         int potionColor = entityMetadata.getPrimitiveValue();
-        // -1 means no color
+        
         if (potionColor == -1) {
             dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) 0);
         } else {
-            // Strip out the alpha channel if it exists before sending to Bedrock
+            
             dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, Potion.toTippedArrowId(potionColor & 0xFFFFFF));
         }
     }

@@ -37,9 +37,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Loads sounds from the given input.
- */
+
 public class SoundRegistryLoader implements RegistryLoader<String, Map<String, SoundMapping>> {
     @Override
     public Map<String, SoundMapping> load(String input) {

@@ -38,10 +38,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEnt
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 public class CreeperEntity extends MonsterEntity {
-    /**
-     * Whether the creeper has been ignited and is using {@link #setIgnited(BooleanEntityMetadata)}.
-     * In this instance we ignore {@link #setSwelling(IntEntityMetadata)} since it's sending us -1 which confuses poor Bedrock.
-     */
+    
     private boolean ignitedByFlintAndSteel = false;
 
     public CreeperEntity(EntitySpawnContext context) {
@@ -73,7 +70,7 @@ public class CreeperEntity extends MonsterEntity {
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (itemInHand.is(session, ItemTag.CREEPER_IGNITERS)) {
-            // Ignite creeper - as of 1.19.3
+            
             session.playSoundEvent(SoundEvent.IGNITE, bedrockPosition());
             return InteractionResult.SUCCESS;
         } else {

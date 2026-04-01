@@ -47,13 +47,9 @@ import java.util.regex.Pattern;
 public class StatisticsUtils {
     private static final Pattern CONTENT_PATTERN = Pattern.compile("^\\S+:", Pattern.MULTILINE);
 
-    /**
-     * Build a form for the given session with all statistic categories
-     *
-     * @param session The session to build the form for
-     */
+    
     public static void buildAndSendStatisticsMenu(GeyserSession session) {
-        // Cache the language for cleaner access
+        
         String language = session.locale();
 
         session.sendForm(
@@ -181,11 +177,11 @@ public class StatisticsUtils {
                                 assembledContent.append("geyser.statistics.none");
                             } else {
                                 content.replaceAll(x -> translate(x, language));
-                                // Sort statistics alphabetically
+                                
                                 content.sort(String::compareTo);
                                 for (int i = 0; i < content.size(); i++) {
                                     assembledContent.append(content.get(i));
-                                    // Make every other line gray
+                                    
                                     if (i % 2 == 0) {
                                         assembledContent.append("\u00a77\n");
                                     } else {
@@ -201,13 +197,7 @@ public class StatisticsUtils {
                         }));
     }
 
-    /**
-     * Finds the item translation key from the Java locale.
-     *
-     * @param item     the namespaced item to search for.
-     * @param language the language to search in
-     * @return the full name of the item
-     */
+    
     private static String getItemTranslateKey(Item item, String language) {
         return MinecraftLocale.getLocaleString(item.translationKey(), language);
     }

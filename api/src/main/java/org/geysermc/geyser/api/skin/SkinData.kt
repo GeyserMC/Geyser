@@ -22,11 +22,10 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.skin;
+package org.geysermc.geyser.api.skin
 
 /**
- * Represents a full package of {@link Skin}, {@link Cape}, and {@link SkinGeometry}.
+ * Represents a full package of [Skin], [Cape], and [SkinGeometry].
  */
-public record SkinData(Skin skin, Cape cape, SkinGeometry geometry) {
-}
+@kotlin.jvm.JvmRecord
+data class SkinData(@kotlin.jvm.JvmField val skin: Skin?, @kotlin.jvm.JvmField val cape: Cape?, @kotlin.jvm.JvmField val geometry: SkinGeometry?)

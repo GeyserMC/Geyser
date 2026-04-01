@@ -26,8 +26,6 @@
 package org.geysermc.geyser.item.enchantment;
 
 public class EnchantmentComponent {
-    /**
-     * Singleton with no additional data
-     */
+    
     public static final EnchantmentComponent PREVENT_ARMOR_CHANGE = new EnchantmentComponent();
 }

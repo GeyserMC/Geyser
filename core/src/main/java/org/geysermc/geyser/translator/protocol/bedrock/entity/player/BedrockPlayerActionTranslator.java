@@ -42,26 +42,26 @@ public class BedrockPlayerActionTranslator extends PacketTranslator<PlayerAction
 
     @Override
     public void translate(GeyserSession session, PlayerActionPacket packet) {
-        // This packet was used more before server auth movement was needed, but it's still used for a couple things...
+        
         switch (packet.getAction()) {
             case RESPAWN -> {
                 SessionPlayerEntity entity = session.getPlayerEntity();
-                // Respawn process is finished and the server and client are both OK with respawning.
+                
                 EntityEventPacket eventPacket = new EntityEventPacket();
                 eventPacket.setRuntimeEntityId(entity.geyserId());
                 eventPacket.setType(EntityEventType.RESPAWN);
                 eventPacket.setData(0);
                 session.sendUpstreamPacket(eventPacket);
-                // Resend attributes or else in rare cases the user can think they're not dead when they are, upon joining the server
+                
                 UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
                 attributesPacket.setRuntimeEntityId(entity.geyserId());
                 attributesPacket.getAttributes().addAll(entity.getAttributes().values());
                 session.sendUpstreamPacket(attributesPacket);
 
-                // Bounding box must be sent after a player dies and respawns since 1.19.40
+                
                 entity.updateBoundingBox();
 
-                // Needed here since 1.19.81 for dimension switching
+                
                 session.getEntityCache().updateBossBars();
             }
             case STOP_SLEEP -> {
@@ -70,7 +70,7 @@ public class BedrockPlayerActionTranslator extends PacketTranslator<PlayerAction
             }
             case DIMENSION_CHANGE_SUCCESS -> {
                 SessionPlayerEntity entity = session.getPlayerEntity();
-                // Sometimes the client doesn't feel like loading
+                
                 PlayStatusPacket spawnPacket = new PlayStatusPacket();
                 spawnPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
                 session.sendUpstreamPacket(spawnPacket);

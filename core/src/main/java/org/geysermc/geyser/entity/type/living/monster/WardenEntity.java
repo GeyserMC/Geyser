@@ -72,8 +72,8 @@ public class WardenEntity extends MonsterEntity implements Tickable {
     public void tick() {
         super.tick();
         if (++tickCount % heartBeatDelay == 0 && !silent) {
-            // We have to do these calculations because they're clientside on Java Edition but we mute entities
-            // to prevent hearing their step sounds
+            
+            
             ThreadLocalRandom random = ThreadLocalRandom.current();
 
             PlaySoundPacket packet = new PlaySoundPacket();

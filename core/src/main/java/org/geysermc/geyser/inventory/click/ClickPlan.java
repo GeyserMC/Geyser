@@ -56,9 +56,7 @@ import java.util.ListIterator;
 public final class ClickPlan {
     private final List<ClickAction> plan = new ArrayList<>();
     private final Int2ObjectMap<GeyserItemStack> simulatedItems;
-    /**
-     * Used for 1.17.1+ proper packet translation - any non-cursor item that is changed in a single transaction gets sent here.
-     */
+    
     private Int2ObjectMap<ItemStack> changedItems;
     private Int2ObjectMap<HashedStack> changedHashedItems;
     private GeyserItemStack simulatedCursor;
@@ -103,8 +101,8 @@ public final class ClickPlan {
 
         ClickAction action = new ClickAction(click, slot, force);
         plan.add(action);
-        // RUNNING THE SIMULATION HERE IS IMPORTANT. The contents of the simulation are used in complex, multi-stage tasks
-        // such as autocrafting.
+        
+        
         simulateAction(action);
     }
 
@@ -117,7 +115,7 @@ public final class ClickPlan {
             ClickAction action = planIter.next();
 
             if (action.slot != Click.OUTSIDE_SLOT && translator.getSlotType(action.slot) != SlotType.NORMAL) {
-                // Needed with Paper 1.16.5
+                
                 refresh = true;
             }
 
@@ -136,12 +134,12 @@ public final class ClickPlan {
 
             ItemStack clickedItemStack;
             if (emulatePost1_16Logic) {
-                // The action must be simulated first as Java expects the new contents of the cursor (as of 1.18.1)
+                
                 clickedItemStack = simulatedCursor.getItemStack();
             } else {
                 if (!planIter.hasNext() && refresh) {
-                    // Doesn't have the intended effect with state IDs since this won't cause a complete window refresh
-                    // (It will eventually once state IDs desync, but this causes more problems than not)
+                    
+                    
                     clickedItemStack = InventoryUtils.REFRESH_ITEM;
                 } else {
                     if (action.click.actionType == ContainerActionType.DROP_ITEM || action.slot == Click.OUTSIDE_SLOT) {
@@ -201,19 +199,13 @@ public final class ClickPlan {
         return inventory;
     }
 
-    /**
-     * Test if the item stacks with another item in the specified slot.
-     * This will check the simulated inventory without copying.
-     */
+    
     public boolean canStack(int slot, GeyserItemStack item) {
         GeyserItemStack slotItem = simulatedItems.getOrDefault(slot, inventory.getItem(slot));
         return InventoryUtils.canStack(slotItem, item);
     }
 
-    /**
-     * Test if the specified slot is empty.
-     * This will check the simulated inventory without copying.
-     */
+    
     public boolean isEmpty(int slot) {
         return simulatedItems.getOrDefault(slot, inventory.getItem(slot)).isEmpty();
     }
@@ -254,9 +246,7 @@ public final class ClickPlan {
         onSlotItemChange(slot, itemStack);
     }
 
-    /**
-     * Does not need to be called for the cursor
-     */
+    
     private void onSlotItemChange(int slot, GeyserItemStack itemStack) {
         if (changedItems != null) {
             changedItems.put(slot, itemStack.getItemStack());
@@ -289,7 +279,7 @@ public final class ClickPlan {
                         cursor.add(clicked.getAmount());
                     }
                     reduceCraftingGrid(false);
-                    setItem(action.slot, GeyserItemStack.EMPTY); // Matches Java Edition 1.18.1
+                    setItem(action.slot, GeyserItemStack.EMPTY); 
                 }
                 case LEFT_SHIFT -> reduceCraftingGrid(true);
             }
@@ -316,8 +306,8 @@ public final class ClickPlan {
                         cursor.sub(1);
                         add(action.slot, clicked, 1);
                     } else {
-                        // Can't stack, but both the cursor and the slot have an item
-                        // (Called for bundles)
+                        
+                        
                         setCursor(clicked);
                         setItem(action.slot, cursor);
                     }
@@ -328,7 +318,7 @@ public final class ClickPlan {
                     GeyserItemStack toInsertInBundle = cursor.copy(amountToAddInBundle);
                     if (executionBegan) {
                         clicked.getBundleData().contents().add(0, toInsertInBundle);
-                        session.getBundleCache().onItemAdded(clicked); // Must be run before onSlotItemChange as the latter exports an ItemStack from the bundle
+                        session.getBundleCache().onItemAdded(clicked); 
                     }
                     onSlotItemChange(action.slot, clicked);
                     cursor.sub(amountToAddInBundle);
@@ -346,7 +336,7 @@ public final class ClickPlan {
                     break;
                 case RIGHT_BUNDLE:
                     if (!cursor.isEmpty()) {
-                        // Bundle should be in player's hand.
+                        
                         GeyserItemStack itemStack = cursor.getBundleData()
                             .contents()
                             .remove(0);
@@ -402,7 +392,7 @@ public final class ClickPlan {
                     }
                     
                     int remaining = clicked.getAmount();
-                    // are we shift-clicking items from the player inventory, or from the container?
+                    
                     boolean sourceInPlayerInventory = action.slot >= translator.size;
 
                     if (!sourceInPlayerInventory) {
@@ -411,22 +401,22 @@ public final class ClickPlan {
                         int mainEnd = hotbarOffset - 1;
                         int hotbarEnd = hotbarOffset + 8;
 
-                        // from what I understand, java has this priority for shift clicks:
-                        // 1. existing partial stacks in main inventory, top rows first
-                        // 2. existing partial stacks in hotbar
-                        // 3. empty slots in main inventory
-                        // 4. empty slots in hotbar
                         
-                        // fill partial stacks in main inventory, then opt for hotbar afterwards
+                        
+                        
+                        
+                        
+                        
+                        
                         remaining = fillPartialStacks(action.slot, clicked, remaining, mainStart, mainEnd);
                         remaining = fillPartialStacks(action.slot, clicked, remaining, hotbarOffset, hotbarEnd);
                         
-                        // fill empty slots in main inventory, then opt for hotbar afterwards
+                        
                         remaining = fillEmptySlots(action.slot, clicked, remaining, mainStart, mainEnd);
-                        fillEmptySlots(action.slot, clicked, remaining, hotbarOffset, hotbarEnd); // remaining is no longer used 
-                    } else { // the other way around. the source is the player inventory, and we're shift clicking into the target container
-                        // fill partial stacks in top inventory, then opt for empty slots
-                        // this isn't a player's inventory, so we do not need the hotbar/main-inventory logic and vice versa :P
+                        fillEmptySlots(action.slot, clicked, remaining, hotbarOffset, hotbarEnd); 
+                    } else { 
+                        
+                        
                         remaining = fillPartialStacks(action.slot, clicked, remaining, 0, translator.size - 1);
                         fillEmptySlots(action.slot, clicked, remaining, 0, translator.size - 1);
                     }
@@ -445,13 +435,11 @@ public final class ClickPlan {
     }
 
     private void sendSelectedBundleSlot(int slot) {
-        // Looks like this is also technically sent in creative mode.
+        
         session.sendDownstreamGamePacket(new ServerboundSelectBundleItemPacket(slot, desiredBundleSlot));
     }
 
-    /**
-     * Swap between two inventory slots without a cursor. This should only be used with {@link ContainerActionType#MOVE_TO_HOTBAR_SLOT}
-     */
+    
     private void swap(int sourceSlot, int destSlot, GeyserItemStack sourceItem) {
         GeyserItemStack destinationItem = getItem(destSlot);
         setItem(sourceSlot, destinationItem);
@@ -466,26 +454,26 @@ public final class ClickPlan {
             stateId = inventory.getStateId();
         }
 
-        // Java will never ever send more than one container click packet per set of actions*.
-        // *(exception being Java's "quick craft"/painting feature)
-        // Bedrock might, and this would generally fall into one of two categories:
-        // - Bedrock is sending an item directly from one slot to another, without picking it up, that cannot
-        //   be expressed with a shift click
-        // - Bedrock wants to pick up or place an arbitrary amount of items that cannot be expressed from
-        //   one left/right click action.
-        // Java typically doesn't increment the state ID if you send a vanilla-accurate container click packet,
-        // but it will increment the state ID with a vanilla client in at least the crafting table
+        
+        
+        
+        
+        
+        
+        
+        
+        
         if (inventory.getContainerType() == ContainerType.CRAFTING && CraftingInventoryTranslator.isCraftingGrid(action.slot)) {
-            // 1.18.1 sends a second set slot update for any action in the crafting grid
-            // And an additional packet if something is removed (Mojmap: CraftingContainer#removeItem)
+            
+            
             int stateIdIncrements;
             GeyserItemStack clicked = getItem(action.slot);
             if (action.click == Click.LEFT) {
                 if (!clicked.isEmpty() && !InventoryUtils.canStack(simulatedCursor, clicked)) {
-                    // An item is removed from the crafting table; yes deletion
+                    
                     stateIdIncrements = 2;
                 } else {
-                    // We can stack and we add all the items to the crafting slot; no deletion
+                    
                     stateIdIncrements = 1;
                 }
             } else if (action.click == Click.RIGHT) {
@@ -528,20 +516,15 @@ public final class ClickPlan {
             final int slot = i + 1;
             GeyserItemStack item = getItem(slot);
             if (!item.isEmpty()) {
-                // These changes should be broadcasted to the server
+                
                 sub(slot, item, crafted);
             }
         }
     }
 
-    /**
-     * Utility method for LEFT_SHIFT. Java has some specific logic where it will try fill partial stacks first, so this is
-     * just a util method to reduce code duplication.
-     * 
-     * @return The remaining item count
-     */
+    
     private int fillPartialStacks(int sourceSlot, GeyserItemStack source, int remaining, int rangeStart, int rangeEnd) {
-        if (remaining <= 0) return 0; // we already return early within the underlying loop, this is a sanity check and/or readability to avoid confusion
+        if (remaining <= 0) return 0; 
         for (int i = rangeStart; i <= rangeEnd && remaining > 0; i++) {
             if (!canStack(i, source)) continue;
 
@@ -556,13 +539,9 @@ public final class ClickPlan {
         return remaining;
     }
 
-    /**
-     * Utility method for LEFT_SHIFT. Java has some specific logic where it will fill empty slots AFTER attempting to fill partial slots...
-     * 
-     * @return The remaining item count
-     */
+    
     private int fillEmptySlots(int sourceSlot, GeyserItemStack source, int remaining, int rangeStart, int rangeEnd) {
-        if (remaining <= 0) return 0; // we already return early within the underlying loop, this is a sanity check and/or readability to avoid confusion
+        if (remaining <= 0) return 0; 
         for (int i = rangeStart; i <= rangeEnd && remaining > 0; i++) {
             if (!isEmpty(i)) continue;
 
@@ -575,9 +554,7 @@ public final class ClickPlan {
         return remaining;
     }
 
-    /**
-     * @return a new set of all affected slots.
-     */
+    
     @Contract("-> new")
     public IntSet getAffectedSlots() {
         IntSet affectedSlots = new IntOpenHashSet();
@@ -585,7 +562,7 @@ public final class ClickPlan {
             if (translator.getSlotType(action.slot) != SlotType.OUTPUT && action.slot != Click.OUTSIDE_SLOT) {
                 affectedSlots.add(action.slot);
                 if (action.click.actionType == ContainerActionType.MOVE_TO_HOTBAR_SLOT) {
-                    //TODO won't work if offhand is added
+                    
                     affectedSlots.add(inventory.getOffsetForHotbar(((MoveToHotbarAction) action.click.action).ordinal()));
                 }
             }

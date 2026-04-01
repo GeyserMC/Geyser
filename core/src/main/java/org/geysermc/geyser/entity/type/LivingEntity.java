@@ -85,24 +85,18 @@ public class LivingEntity extends Entity implements Tickable {
     protected EnumMap<EquipmentSlot, GeyserItemStack> equipment = new EnumMap<>(EquipmentSlot.class);
 
     @Getter(value = AccessLevel.NONE)
-    protected float health = 1f; // The default value in Java Edition before any entity metadata is sent
+    protected float health = 1f; 
     @Getter(value = AccessLevel.NONE)
-    protected float maxHealth = 20f; // The value Java Edition defaults to if no attribute is given
+    protected float maxHealth = 20f; 
 
-    /**
-     * A convenience variable for if the entity has reached the maximum frozen ticks and should be shaking
-     */
+    
     private boolean isMaxFrozenState = false;
 
-    /**
-     * The base scale entity data, without attributes applied. Used for such cases as baby variants.
-     */
+    
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     private float scale;
-    /**
-     * The scale sent through the Java attributes packet
-     */
+    
     @Getter(AccessLevel.NONE)
     @Setter(AccessLevel.NONE)
     protected float attributeScale;
@@ -248,7 +242,7 @@ public class LivingEntity extends Entity implements Tickable {
         session.sendUpstreamPacket(attributesPacket);
     }
 
-    // TODO: support all particle types
+    
     public void setParticles(ObjectEntityMetadata<List<Particle>> entityMetadata) {
         List<Particle> particles = entityMetadata.getValue();
 
@@ -358,9 +352,7 @@ public class LivingEntity extends Entity implements Tickable {
         this.dirtyMetadata.put(EntityDataTypes.SCALE, scale * attributeScale);
     }
 
-    /**
-     * @return a Bedrock health attribute constructed from the data sent from the server
-     */
+    
     protected AttributeData createHealthAttribute() {
         // Default health needs to be specified as the max health in order for maximum hearts to show correctly on mounted entities
         // Round health value up, so that Bedrock doesn't consider the entity to be dead when health is between 0 and 1
@@ -514,9 +506,7 @@ public class LivingEntity extends Entity implements Tickable {
         super.setBoundingBoxWidth(width);
     }
 
-    /**
-     * Checks to see if a nametag interaction would go through.
-     */
+    
     // Implementation note for 1.20.5: this code was moved to the NameTag item.
     protected final InteractionResult checkInteractWithNameTag(GeyserItemStack itemStack) {
         if (itemStack.getComponent(DataComponentTypes.CUSTOM_NAME) != null) {
@@ -578,21 +568,12 @@ public class LivingEntity extends Entity implements Tickable {
         session.sendUpstreamPacket(offHandPacket);
     }
 
-    /**
-     * Called when a SWING_ARM animation packet is received
-     *
-     * @return true if an ATTACK_START event should be used instead
-     */
+    
     public boolean useArmSwingAttack() {
         return false;
     }
 
-    /**
-     * Attributes are properties of an entity that are generally more runtime-based instead of permanent properties.
-     * Movement speed, current attack damage with a weapon, current knockback resistance.
-     *
-     * @param attributes the Java list of attributes sent from the server
-     */
+    
     public void updateBedrockAttributes(GeyserSession session, List<Attribute> attributes) {
         if (!valid) return;
 
@@ -614,9 +595,7 @@ public class LivingEntity extends Entity implements Tickable {
         session.sendUpstreamPacket(updateAttributesPacket);
     }
 
-    /**
-     * Takes the Java attribute and adds it to newAttributes as a Bedrock-formatted attribute
-     */
+    
     protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
         if (javaAttribute.getType() instanceof AttributeType.Builtin type) {
             switch (type) {
@@ -711,9 +690,7 @@ public class LivingEntity extends Entity implements Tickable {
         return true;
     }
 
-    /**
-     * Calculates the complete attribute value to send to Bedrock. Will be overriden if attributes need to be cached.
-     */
+    
     protected AttributeData calculateAttribute(Attribute javaAttribute, GeyserAttributeType type) {
         return type.getAttribute((float) AttributeUtils.calculateValue(javaAttribute));
     }

@@ -55,7 +55,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
         Integer rotation = blockState.getValue(Properties.ROTATION_16);
         if (rotation != null) {
-            // Could be a wall skull block otherwise, which has rotation in its Bedrock state
+            
             bedrockNbt.putFloat("Rotation", rotation * 22.5f);
         }
         if (blockState.getValue(Properties.POWERED)) {
@@ -84,7 +84,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
 
         GameProfile partialOrStatic = new GameProfile(uuid, name);
         partialOrStatic.setProperties(properties);
-        // Only if all fields are present, then the profile is a static one
+        
         return new ResolvableProfile(partialOrStatic);
     }
 
@@ -113,7 +113,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
             return null;
         }
 
-        // profile contained a username, so we have to wait for it to be retrieved
+        
         resolvedFuture.whenComplete((resolved, throwable) -> {
             if (throwable != null ) {
                 session.getGeyser().getLogger().debug("Failed resolving profile of player head at: " + blockPosition + " " + javaNbt);
@@ -125,7 +125,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
             session.ensureInEventLoop(() -> putSkull(session, blockPosition, resolved, blockState));
         });
 
-        // We don't have the textures yet, so we can't determine if a custom block was defined for this skull
+        
         return null;
     }
 

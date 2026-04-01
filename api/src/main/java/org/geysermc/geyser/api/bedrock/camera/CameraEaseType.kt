@@ -22,16 +22,16 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.bedrock.camera;
+package org.geysermc.geyser.api.bedrock.camera
 
 /**
- * These are all the easing types that can be used when sending a {@link CameraPosition} instruction.
+ * These are all the easing types that can be used when sending a [CameraPosition] instruction.
  * When using these, the client won't teleport to the new camera position, but instead transition to it.
- * <p>
- * See <a href="https://easings.net/">https://easings.net/</a> for more information.
+ * 
+ * 
+ * See [https://easings.net/](https://easings.net/) for more information.
  */
-public enum CameraEaseType {
+enum class CameraEaseType(id: String) {
     LINEAR("linear"),
     SPRING("spring"),
     EASE_IN_SINE("in_sine"),
@@ -65,13 +65,13 @@ public enum CameraEaseType {
     EASE_OUT_BOUNCE("out_bounce"),
     EASE_IN_OUT_BOUNCE("in_out_bounce");
 
-    private final String id;
+    private val id: String?
 
-    CameraEaseType(String id) {
-        this.id = id;
+    init {
+        this.id = id
     }
 
-    public String id() {
-        return this.id;
+    fun id(): String? {
+        return this.id
     }
 }

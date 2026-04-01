@@ -62,9 +62,9 @@ public abstract class DisplayScore {
     }
 
     protected void markUpdated() {
-        // with the last update (also for team) we rather have an old lastUpdate
-        // (and have to update again the next cycle) than potentially losing information
-        // by fetching the lastUpdate after update was performed
+        
+        
+        
         this.lastUpdate = reference.lastUpdate();
     }
 }

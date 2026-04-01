@@ -41,7 +41,7 @@ public class JavaSetTitleTextTranslator extends PacketTranslator<ClientboundSetT
         session.getWorldCache().synchronizeCorrectTitleTimes();
 
         String text;
-        if (packet.getText() == null || Component.empty().equals(packet.getText())) { // This can happen, see https://github.com/KyoriPowered/adventure/issues/447
+        if (packet.getText() == null || Component.empty().equals(packet.getText())) { 
             text = " ";
         } else {
             text = MessageTranslator.convertMessage(packet.getText(), session.locale());

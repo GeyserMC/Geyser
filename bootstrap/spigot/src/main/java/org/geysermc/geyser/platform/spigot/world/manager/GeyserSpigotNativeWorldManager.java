@@ -60,8 +60,8 @@ public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
     @Nullable
     @Override
     public String[] getBiomeIdentifiers(boolean withTags) {
-        // Biome identifiers will basically always be the same for one server, since you have to re-send the
-        // ClientboundLoginPacket to change the registry. Therefore, don't bother caching for each player.
+        
+        
         return adapter.getBiomeSuggestions(withTags);
     }
 }

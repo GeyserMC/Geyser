@@ -22,84 +22,77 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.extension
 
-package org.geysermc.geyser.api.extension;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.event.ExtensionEventBus;
-
-import java.nio.file.Path;
+import org.geysermc.geyser.api.event.ExtensionEventBus
+import java.nio.file.Path
 
 /**
  * The extension loader is responsible for loading, unloading, enabling and disabling extensions
  */
-public abstract class ExtensionLoader {
+abstract class ExtensionLoader {
     /**
-     * Gets if the given {@link Extension} is enabled.
-     *
+     * Gets if the given [Extension] is enabled.
+     * 
      * @param extension the extension
      * @return if the extension is enabled
      */
-    protected abstract boolean isEnabled(@NonNull Extension extension);
+    abstract fun isEnabled(extension: Extension): Boolean
 
     /**
-     * Sets if the given {@link Extension} is enabled.
-     *
+     * Sets if the given [Extension] is enabled.
+     * 
      * @param extension the extension to enable
      * @param enabled if the extension should be enabled
      */
-    protected abstract void setEnabled(@NonNull Extension extension, boolean enabled);
+    abstract fun setEnabled(extension: Extension, enabled: Boolean)
 
     /**
-     * Gets the given {@link Extension}'s data folder.
-     *
+     * Gets the given [Extension]'s data folder.
+     * 
      * @param extension the extension
      * @return the data folder of the given extension
      */
-    @NonNull
-    protected abstract Path dataFolder(@NonNull Extension extension);
+    abstract fun dataFolder(extension: Extension): Path
 
     /**
-     * Gets the given {@link Extension}'s {@link ExtensionDescription}.
-     *
+     * Gets the given [Extension]'s [ExtensionDescription].
+     * 
      * @param extension the extension
      * @return the description of the given extension
      */
-    @NonNull
-    protected abstract ExtensionDescription description(@NonNull Extension extension);
+    abstract fun description(extension: Extension): ExtensionDescription
 
     /**
-     * Gets the given {@link Extension}'s {@link ExtensionEventBus}.
-     *
+     * Gets the given [Extension]'s [ExtensionEventBus].
+     * 
      * @param extension the extension
      * @return the extension's event bus
      */
-    @NonNull
-    protected abstract ExtensionEventBus eventBus(@NonNull Extension extension);
+    abstract fun eventBus(extension: Extension): ExtensionEventBus
 
     /**
-     * Gets the {@link ExtensionLogger} for the given {@link Extension}.
-     *
+     * Gets the [ExtensionLogger] for the given [Extension].
+     * 
      * @param extension the extension
      * @return the extension logger for the given extension
      */
-    @NonNull
-    protected abstract ExtensionLogger logger(@NonNull Extension extension);
+    abstract fun logger(extension: Extension): ExtensionLogger
 
     /**
      * Loads all extensions.
-     *
+     * 
      * @param extensionManager the extension manager
      */
-    protected abstract void loadAllExtensions(@NonNull ExtensionManager extensionManager);
+    abstract fun loadAllExtensions(extensionManager: ExtensionManager)
 
     /**
-     * Registers the given {@link Extension} with the given {@link ExtensionManager}.
-     *
+     * Registers the given [Extension] with the given [ExtensionManager].
+     * 
      * @param extension the extension
      * @param extensionManager the extension manager
      */
-    protected void register(@NonNull Extension extension, @NonNull ExtensionManager extensionManager) {
-        extensionManager.register(extension);
+    protected fun register(extension: Extension, extensionManager: ExtensionManager) {
+        extensionManager.register(extension)
     }
 }

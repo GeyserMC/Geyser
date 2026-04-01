@@ -22,13 +22,10 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
 */
+package org.geysermc.geyser.api.block.custom.component
 
-package org.geysermc.geyser.api.block.custom.component;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.util.LinkedHashMap;
-import java.util.Set;
+import kotlin.collections.LinkedHashMap
+import kotlin.collections.MutableSet
 
 /**
  * This class is used to store conditions for a placement filter for a custom block.
@@ -36,8 +33,12 @@ import java.util.Set;
  * @param allowedFaces The faces that the block can be placed on
  * @param blockFilters The block filters that control what blocks the block can be placed on
  */
-public record PlacementConditions(@NonNull Set<Face> allowedFaces, @NonNull LinkedHashMap<String, BlockFilterType> blockFilters) {
-    public enum Face {
+@kotlin.jvm.JvmRecord
+data class PlacementConditions(
+    @kotlin.jvm.JvmField val allowedFaces: MutableSet<Face?>,
+    @kotlin.jvm.JvmField val blockFilters: LinkedHashMap<String?, BlockFilterType?>
+) {
+    enum class Face {
         DOWN,
         UP,
         NORTH,
@@ -45,8 +46,8 @@ public record PlacementConditions(@NonNull Set<Face> allowedFaces, @NonNull Link
         WEST,
         EAST
     }
-    
-    public enum BlockFilterType {
+
+    enum class BlockFilterType {
         BLOCK,
         TAG
     }

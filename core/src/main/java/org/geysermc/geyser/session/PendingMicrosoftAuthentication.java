@@ -50,15 +50,10 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-/**
- * Pending Microsoft authentication task cache.
- * It permits user to exit the server while they authorize Geyser to access their Microsoft account.
- */
+
 public class PendingMicrosoftAuthentication {
     public static final HttpClient AUTH_CLIENT = MinecraftAuth.createHttpClient();
-    /**
-     * For GeyserConnect usage.
-     */
+    
     private boolean storeServerInformation = false;
     private final LoadingCache<String, AuthenticationTask> authentications;
 
@@ -82,7 +77,7 @@ public class PendingMicrosoftAuthentication {
         return authentications.get(userKey);
     }
 
-    @SuppressWarnings("unused") // GeyserConnect
+    @SuppressWarnings("unused") 
     public void setStoreServerInformation() {
         storeServerInformation = true;
     }
@@ -105,7 +100,7 @@ public class PendingMicrosoftAuthentication {
                 return;
             }
 
-            // Interrupt the current flow
+            
             this.authentication.cancel(true);
         }
 
@@ -124,14 +119,14 @@ public class PendingMicrosoftAuthentication {
                 try {
                     MsaToken msaToken = authService.acquireToken();
                     JavaAuthManager authManager = JavaAuthManager.create(AUTH_CLIENT).msaApplicationConfig(applicationConfig).login(msaToken);
-                    authManager.getMinecraftToken().refresh(); // Preload the Minecraft token
-                    authManager.getMinecraftProfile().refresh(); // Preload the Minecraft profile
+                    authManager.getMinecraftToken().refresh(); 
+                    authManager.getMinecraftProfile().refresh(); 
                     return authManager;
                 } catch (Exception e) {
                     throw new CompletionException(e);
                 }
             }, DELAYED_BY_ONE_SECOND).whenComplete((r, ex) -> {
-                // avoid memory leak, in case player doesn't connect again
+                
                 CompletableFuture.delayedExecutor(timeoutSec, TimeUnit.SECONDS).execute(this::cleanup);
             });
         }

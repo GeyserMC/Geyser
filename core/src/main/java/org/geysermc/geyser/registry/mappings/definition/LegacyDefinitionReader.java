@@ -41,7 +41,7 @@ public class LegacyDefinitionReader implements ItemDefinitionReader {
     public void readDefinition(JsonElement data, Identifier vanillaItem, Identifier parentModel,
                                BiConsumer<Identifier, CustomItemDefinition> consumer) throws InvalidCustomMappingsFileException {
         Identifier bedrockIdentifier = ItemDefinitionReader.readBedrockIdentifier(data, "legacy item definition");
-        // We now know the Bedrock identifier, make a base context so that the error can be easily located in the JSON file
+        
         String context = "item definition (bedrock identifier=" + bedrockIdentifier + ")";
 
         int customModelData = MappingsUtil.readOrThrow(data, "custom_model_data", NodeReader.INT, context);

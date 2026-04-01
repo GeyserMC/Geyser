@@ -42,17 +42,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.VillagerDat
 import java.util.Optional;
 
 public class VillagerEntity extends AbstractMerchantEntity {
-    /**
-     * A map of Java profession IDs to Bedrock IDs
-     */
+    
     private static final int[] VILLAGER_PROFESSIONS = new int[15];
-    /**
-     * A map of all Java region IDs (plains, savanna...) to Bedrock
-     */
+    
     private static final int[] VILLAGER_REGIONS = new int[7];
 
     static {
-        // Java villager profession IDs -> Bedrock
+        
         VILLAGER_PROFESSIONS[0] = 0;
         VILLAGER_PROFESSIONS[1] = 8;
         VILLAGER_PROFESSIONS[2] = 11;
@@ -80,9 +76,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
 
     @Nullable
     private Vector3i bedPosition;
-    /**
-     * Used in the interactive tag manager
-     */
+    
     @Getter
     private boolean canTradeWith;
 
@@ -92,14 +86,14 @@ public class VillagerEntity extends AbstractMerchantEntity {
 
     public void setVillagerData(EntityMetadata<VillagerData, ?> entityMetadata) {
         VillagerData villagerData = entityMetadata.getValue();
-        // Profession
+        
         int profession = getBedrockProfession(villagerData.getProfession());
-        canTradeWith = profession != 14 && profession != 0; // Not a notwit and not professionless
+        canTradeWith = profession != 14 && profession != 0; 
         dirtyMetadata.put(EntityDataTypes.VARIANT, profession);
         //metadata.put(EntityDataTypes.SKIN_ID, villagerData.getType()); Looks like this is modified but for any reason?
-        // Region
+        
         dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, getBedrockRegion(villagerData.getType()));
-        // Trade tier - different indexing in Bedrock
+        
         dirtyMetadata.put(EntityDataTypes.TRADE_TIER, villagerData.getLevel() - 1);
     }
 
@@ -110,17 +104,17 @@ public class VillagerEntity extends AbstractMerchantEntity {
 
     @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        // The bed block position, if it exists
+        
         if (!getFlag(EntityFlag.SLEEPING) || bedPosition == null) {
-            // No need to worry about extra processing to compensate for sleeping
+            
             super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
             return;
         }
         
-        // The bed block
+        
         BlockState state = session.getGeyser().getWorldManager().blockAt(session, bedPosition);
 
-        // Set the correct position offset and rotation when sleeping
+        
         int bedRotation = 0;
         float xOffset = 0;
         float zOffset = 0;
@@ -139,7 +133,7 @@ public class VillagerEntity extends AbstractMerchantEntity {
                     xOffset = .5f;
                 }
                 case NORTH -> {
-                    // rotation does not change because north is 0
+                    
                     zOffset = .5f;
                 }
             }

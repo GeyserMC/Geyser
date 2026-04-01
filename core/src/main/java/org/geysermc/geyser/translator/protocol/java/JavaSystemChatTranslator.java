@@ -48,16 +48,16 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
     public void translate(GeyserSession session, ClientboundSystemChatPacket packet) {
         if (packet.getContent() instanceof TranslatableComponent component) {
             if (component.key().equals("chat.disabled.missingProfileKey")) {
-                // We likely got this message as a response to a player trying to chat
-                // As there SHOULD be no false flags for this, print every time it shows up in chat.
+                
+                
                 if (Boolean.parseBoolean(System.getProperty("Geyser.PrintSecureChatInformation", "true"))) {
                     session.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.chat.secure_info_1", session.locale()));
                     session.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.chat.secure_info_2", session.locale(), "https://geysermc.link/secure-chat"));
                 }
             } else if (component.key().equals("sleep.players_sleeping")) {
                 if (component.arguments().size() == 2) {
-                    // Hack FYI, but it allows Bedrock players to easily understand this information
-                    // without it being covered up or saying the night is being slept through.
+                    
+                    
                     Integer numPlayersSleeping = convertToInt(component.arguments().get(0));
                     Integer totalPlayersNeeded = convertToInt(component.arguments().get(1));
                     if (numPlayersSleeping != null && totalPlayersNeeded != null) {
@@ -112,7 +112,7 @@ public class JavaSystemChatTranslator extends PacketTranslator<ClientboundSystem
             try {
                 return Integer.parseInt(textComponent.content());
             } catch (NumberFormatException e) {
-                // Ignore
+                
             }
         }
         return null;

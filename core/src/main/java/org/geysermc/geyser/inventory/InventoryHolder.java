@@ -34,9 +34,7 @@ import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 
 import java.util.List;
 
-/**
- * A helper class storing the current inventory, translator, and session.
- */
+
 @Accessors(fluent = true)
 @Getter
 public final class InventoryHolder<T extends Inventory> {
@@ -44,19 +42,11 @@ public final class InventoryHolder<T extends Inventory> {
     private final T inventory;
     private final InventoryTranslator<T> translator;
 
-    /**
-     * Whether this inventory is currently pending.
-     * It can be pending if this inventory was opened while another inventory was still open,
-     * or because opening this inventory takes more time (e.g. virtual inventories).
-     */
+    
     @Setter
     private boolean pending;
 
-    /**
-     * Stores the number of attempts to open virtual inventories.
-     * Capped at 3, and isn't used in ideal circumstances.
-     * Used to resolve <a href="https://github.com/GeyserMC/Geyser/issues/5426">container closing issues.</a>
-     */
+    
     @Setter
     private int containerOpenAttempts;
 
@@ -80,10 +70,10 @@ public final class InventoryHolder<T extends Inventory> {
     }
 
     public void inheritFromExisting(InventoryHolder<? extends Inventory> existing) {
-        // Mirror Bedrock id
+        
         inventory.setBedrockId(existing.bedrockId());
 
-        // Also mirror other properties - in case we're e.g. dealing with a pending virtual inventory
+        
         Inventory existingInventory = existing.inventory;
         this.pending = existing.pending();
         inventory.setDisplayed(existingInventory.isDisplayed());

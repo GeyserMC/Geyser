@@ -46,17 +46,17 @@ public class ConfigMigrations {
         ConfigurationTransformation.versionedBuilder()
         .versionKey("config-version")
         .addVersion(5, ConfigurationTransformation.builder()
-            // Java section
+            
             .addAction(path("remote"), rename("java"))
             .addAction(path("remote", "address"), (path, value) -> {
                 if ("auto".equals(value.getString())) {
-                    // Auto-convert back to localhost
+                    
                     value.set("127.0.0.1");
                 }
                 return null;
             })
 
-            // Motd section
+            
             .addAction(path("bedrock", "motd1"), renameAndMove("motd", "primary-motd"))
             .addAction(path("bedrock", "motd2"), renameAndMove("motd", "secondary-motd"))
             .addAction(path("passthrough-motd"), moveTo("motd"))
@@ -64,12 +64,12 @@ public class ConfigMigrations {
             .addAction(path("ping-passthrough-interval"), moveTo("motd"))
             .addAction(path("max-players"), moveTo("motd"))
             .addAction(path("legacy-ping-passthrough"), configClass == GeyserRemoteConfig.class ? remove() : (path, value) -> {
-                // Invert value
+                
                 value.set(!value.getBoolean());
                 return new Object[]{ "motd", "integrated-ping-passthrough" };
             })
 
-            // gameplay
+            
             .addAction(path("command-suggestions"), moveTo("gameplay"))
             .addAction(path("forward-player-ping"), moveTo("gameplay"))
             .addAction(path("show-cooldown"), (path, value) -> {
@@ -93,8 +93,8 @@ public class ConfigMigrations {
             .addAction(path("add-non-bedrock-items"), renameAndMove("gameplay", "enable-custom-content"))
             .addAction(path("above-bedrock-nether-building"), renameAndMove("gameplay", "nether-roof-workaround"))
             .addAction(path("xbox-achievements-enabled"), moveTo("gameplay"))
-            // NOTE: We're not explicitly removing the allow-custom-skulls option, it will already be removed since it
-            // won't be written back. If we remove it, we can't query the value of it!
+            
+            
             .addAction(path("max-visible-custom-skulls"), (path, value) -> {
                 ConfigurationNode parent = value.parent();
                 if (parent != null && parent.isMap()) {
@@ -117,7 +117,7 @@ public class ConfigMigrations {
                 return null;
             })
 
-            // For the warning!
+            
             .addAction(path("allow-third-party-capes"), (node, value) -> {
                 if (bootstrap != null) {
                     bootstrap.getGeyserLogger().warning("Third-party ears/capes have been removed from Geyser. If you still wish to have this functionality, use this Geyser extension: https://github.com/GeyserMC/ThirdPartyCosmetics");
@@ -131,31 +131,31 @@ public class ConfigMigrations {
                 return null;
             })
 
-            // Advanced section
+            
             .addAction(path("cache-images"), moveTo("advanced"))
             .addAction(path("scoreboard-packet-threshold"), moveTo("advanced"))
             .addAction(path("add-team-suggestions"), moveTo("advanced"))
             .addAction(path("floodgate-key-file"), (path, value) -> {
-                // Elimate any legacy config values
+                
                 if ("public-key.pem".equals(value.getString())) {
                     value.set("key.pem");
                 }
                 return new Object[]{ "advanced", "floodgate-key-file" };
             })
 
-            // Bedrock
+            
             .addAction(path("bedrock", "broadcast-port"), moveTo("advanced", "bedrock"))
             .addAction(path("bedrock", "compression-level"), moveTo("advanced", "bedrock"))
             .addAction(path("bedrock", "enable-proxy-protocol"), renameAndMove("advanced", "bedrock", "use-haproxy-protocol"))
             .addAction(path("bedrock", "proxy-protocol-whitelisted-ips"), renameAndMove("advanced", "bedrock", "haproxy-protocol-whitelisted-ips"))
             .addAction(path("mtu"), moveTo("advanced", "bedrock"))
 
-            // Java
+            
             .addAction(path("remote", "use-proxy-protocol"), renameAndMove("advanced", "java", "use-haproxy-protocol"))
             .addAction(path("disable-compression"), moveTo("advanced", "java"))
             .addAction(path("use-direct-connection"), moveTo("advanced", "java"))
 
-            // Other
+            
             .addAction(path("default-locale"), (path, value) -> {
                 if (value.getString() == null) {
                     value.set("system");
@@ -164,13 +164,13 @@ public class ConfigMigrations {
             })
             .addAction(path("metrics", "uuid"), (path, value) -> {
                 if ("generateduuid".equals(value.getString())) {
-                    // Manually copied config without Metrics UUID creation?
+                    
                     value.set(UUID.randomUUID());
                 }
                 return new Object[]{ "metrics-uuid" };
             })
             .addAction(path("metrics", "enabled"), (path, value) -> {
-                // Move to the root, not in the Metrics class.
+                
                 return new Object[]{ "enable-metrics" };
             })
 
@@ -199,7 +199,7 @@ public class ConfigMigrations {
             if (arr.length == 0) {
                 throw new ConfigurateException(value, "The root node cannot be renamed!");
             } else {
-                // create a new array with space for newPath segments + the original last segment
+                
                 Object[] result = new Object[newPath.length + 1];
                 System.arraycopy(newPath, 0, result, 0, newPath.length);
                 result[newPath.length] = arr[arr.length - 1];

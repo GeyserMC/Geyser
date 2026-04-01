@@ -22,35 +22,30 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.block.custom.property;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-
-import java.util.List;
+package org.geysermc.geyser.api.block.custom.property
 
 /**
  * This class is used to store a property of a custom block of a generic type.
  */
-public interface CustomBlockProperty<T> {
+interface CustomBlockProperty<T> {
     /**
      * Gets the name of the property
-     *
+     * 
      * @return The name of the property.
      */
-    @NonNull String name();
+    fun name(): String
 
     /**
      * Gets the values of the property
-     *
+     * 
      * @return The values of the property.
      */
-    @NonNull List<T> values();
+    fun values(): MutableList<T?>
 
     /**
      * Gets the type of the property
-     *
+     * 
      * @return The type of the property.
      */
-    @NonNull PropertyType type();
+    fun type(): PropertyType
 }

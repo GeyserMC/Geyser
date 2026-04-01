@@ -22,83 +22,52 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.pack
 
-package org.geysermc.geyser.api.pack;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.common.returnsreceiver.qual.This;
-
-import java.util.UUID;
+import org.checkerframework.common.returnsreceiver.qual.This
+import java.util.*
 
 /**
  * Represents a resource pack sent to Bedrock clients
- * <p>
+ * 
+ * 
  * This representation of a resource pack only contains what
  * Geyser requires to send it to the client.
  * @since 2.1.1
  */
-public interface ResourcePack {
-
+interface ResourcePack {
     /**
-     * The {@link PackCodec codec} for this pack.
-     *
+     * The [codec][PackCodec] for this pack.
+     * 
      * @return the codec for this pack
      * @since 2.1.1
      */
-    @NonNull
-    PackCodec codec();
+    fun codec(): PackCodec
 
     /**
      * Gets the resource pack manifest.
-     *
+     * 
      * @return the resource pack manifest
      * @since 2.1.1
      */
-    @NonNull
-    ResourcePackManifest manifest();
+    fun manifest(): ResourcePackManifest
 
     /**
      * Gets the content key of the resource pack. Lack of a content key is represented by an empty String.
-     *
+     * 
      * @return the content key of the resource pack
      * @since 2.1.1
      */
-    @NonNull
-    String contentKey();
+    fun contentKey(): String
 
     /**
-     * Shortcut for getting the UUID from the {@link ResourcePackManifest}.
-     *
+     * Shortcut for getting the UUID from the [ResourcePackManifest].
+     * 
      * @return the resource pack uuid
      * @since 2.6.2
      */
-    @NonNull
-    default UUID uuid() {
-        return manifest().header().uuid();
-    }
-
-    /**
-     * Creates a resource pack with the given {@link PackCodec}.
-     *
-     * @param codec the pack codec
-     * @return the resource pack
-     * @since 2.1.1
-     */
-    @NonNull
-    static ResourcePack create(@NonNull PackCodec codec) {
-        return codec.create();
-    }
-
-    /**
-     * Returns a {@link Builder} for a resource pack.
-     * It can be used to set a content key.
-     *
-     * @param codec the {@link PackCodec} to base the builder on
-     * @return a {@link Builder} to build a resource pack
-     * @since 2.6.2
-     */
-    static Builder builder(@NonNull PackCodec codec) {
-        return codec.createBuilder();
+    fun uuid(): UUID {
+        return manifest().header().uuid()
     }
 
     /**
@@ -106,38 +75,62 @@ public interface ResourcePack {
      * @since 2.6.2
      */
     interface Builder {
-
         /**
-         * @return the {@link ResourcePackManifest} of this resource pack
+         * @return the [ResourcePackManifest] of this resource pack
          * @since 2.6.2
          */
-        ResourcePackManifest manifest();
+        fun manifest(): ResourcePackManifest?
 
         /**
-         * @return the {@link PackCodec} of this resource pack
+         * @return the [PackCodec] of this resource pack
          * @since 2.6.2
          */
-        PackCodec codec();
+        fun codec(): PackCodec?
 
         /**
          * @return the current content key, or an empty string if not set
          * @since 2.6.2
          */
-        String contentKey();
+        fun contentKey(): String?
 
         /**
          * Sets a content key for this resource pack.
-         *
+         * 
          * @param contentKey the content key
          * @return this builder
          * @since 2.6.2
          */
-        @This Builder contentKey(@NonNull String contentKey);
+        fun contentKey(contentKey: String): @This Builder?
 
         /**
          * @return the resource pack
          * @since 2.6.2
          */
-        ResourcePack build();
+        fun build(): ResourcePack?
+    }
+
+    companion object {
+        /**
+         * Creates a resource pack with the given [PackCodec].
+         * 
+         * @param codec the pack codec
+         * @return the resource pack
+         * @since 2.1.1
+         */
+        fun create(codec: PackCodec): ResourcePack {
+            return codec.create()
+        }
+
+        /**
+         * Returns a [Builder] for a resource pack.
+         * It can be used to set a content key.
+         * 
+         * @param codec the [PackCodec] to base the builder on
+         * @return a [Builder] to build a resource pack
+         * @since 2.6.2
+         */
+        fun builder(codec: PackCodec): Builder {
+            return codec.createBuilder()
+        }
     }
 }

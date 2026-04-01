@@ -69,7 +69,7 @@ public class WitherEntity extends MonsterEntity {
         int value = entityMetadata.getPrimitiveValue();
         dirtyMetadata.put(EntityDataTypes.WITHER_INVULNERABLE_TICKS, value);
 
-        // Show the shield for the first few seconds of spawning (like Java)
+        
         if (value >= 165) {
             dirtyMetadata.put(EntityDataTypes.WITHER_AERIAL_ATTACK, (short) 0);
         } else {

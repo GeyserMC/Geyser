@@ -36,11 +36,11 @@ import java.util.Optional;
 
 public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
 
-    // In Java, this waypoint always appears really far, so set the distance far here too,
-    // This also makes the waypoint more accurate on the bar and less susceptible to the player moving
+    
+    
     private static final float WAYPOINT_DISTANCE = 1000.0F;
 
-    // The angle, in radians, where the waypoint should appear on the bar
+    
     private float angle = 0.0F;
 
     public AzimuthWaypoint(GeyserSession session, Optional<PlayerEntity> player, Color color) {
@@ -59,18 +59,18 @@ public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
 
     @Override
     public void tick() {
-        // Update position so that it remains accurate to the angle as the player moves around
+        
         updatePosition();
         sendLocationPacket(false);
     }
 
     private void updatePosition() {
         Vector3f playerPosition = session.getPlayerEntity().position();
-        // Unit circle math!
-        // Unintuitively, the delta x corresponds to the sin of the angle, and delta z to the cos
+        
+        
         float dx = (float) -(Math.sin(angle) * WAYPOINT_DISTANCE);
         float dz = (float) (Math.cos(angle) * WAYPOINT_DISTANCE);
-        // Set Y to the player's Y since this waypoint always appears in the centre of the bar on Java
+        
         position = Vector3f.from(playerPosition.getX() + dx, playerPosition.getY(), playerPosition.getZ() + dz);
     }
 }

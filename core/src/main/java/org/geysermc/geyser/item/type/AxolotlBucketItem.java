@@ -41,11 +41,11 @@ public class AxolotlBucketItem extends Item {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
-        // Bedrock Edition displays the properties of the axolotl. Java does not.
-        // To work around this, set the custom name to the Axolotl translation and it's displayed correctly
+        
+        
         builder.putByte("AppendCustomName", 1);
         builder.putString("CustomName", MinecraftLocale.getLocaleString("entity.minecraft.axolotl", session.locale()));
-        // Boilerplate required so the nametag does not appear as "Bucket of "
+        
         builder.putString("ColorID", "");
         builder.putString("BodyID", "");
     }

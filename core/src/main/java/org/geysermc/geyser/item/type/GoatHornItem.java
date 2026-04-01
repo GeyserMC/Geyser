@@ -81,7 +81,7 @@ public class GoatHornItem extends Item {
         GeyserItemStack itemStack = super.translateToJava(session, itemData, mapping, mappings);
 
         int damage = itemData.getDamage();
-        // This could cause an issue since -1 is returned for non-vanilla goat horns
+        
         itemStack.getOrCreateComponents().put(DataComponentTypes.INSTRUMENT, new InstrumentComponent(Holder.ofId(GeyserInstrument.bedrockIdToJava(session, damage)), null));
 
         return itemStack;

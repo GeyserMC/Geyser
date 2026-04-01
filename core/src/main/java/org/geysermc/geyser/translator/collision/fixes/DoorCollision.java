@@ -37,12 +37,7 @@ import org.geysermc.geyser.translator.collision.CollisionRemapper;
 @EqualsAndHashCode(callSuper = true)
 @CollisionRemapper(regex = "_door$", usesParams = true, passDefaultBoxes = true)
 public class DoorCollision extends BlockCollision {
-    /**
-     * 1 = north
-     * 2 = east
-     * 3 = south
-     * 4 = west
-     */
+    
     private final int facing;
 
     public DoorCollision(BlockState state, BoundingBox[] defaultBoxes) {
@@ -64,7 +59,7 @@ public class DoorCollision extends BlockCollision {
 
     @Override
     protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision, double ulpX, double ulpZ) {
-        // Check for door bug (doors are 0.1875 blocks thick on Java but 0.1825 blocks thick on Bedrock)
+        
         switch (this.facing) {
             case 1 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.NORTH, 0.005 + ulpZ);
             case 2 -> blockCollision.pushOutOfBoundingBox(playerCollision, Direction.EAST, 0.005 + ulpX);

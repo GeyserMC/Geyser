@@ -63,21 +63,7 @@ import java.util.stream.Collectors;
 
 import static org.geysermc.geyser.scoreboard.UpdateType.REMOVE;
 
-/**
- * Here follows some information about how scoreboards work in Java Edition, that is related to the workings of this
- * class:
- * <p>
- * Objectives can be divided in two states: inactive and active.
- * Inactive objectives is the default state for objectives that have been created using the SetObjective packet.
- * Scores can be added, updated and removed, but as long as they're inactive they aren't shown to the player.
- * An objective becomes active when a SetDisplayObjective packet is received, which contains the slot that
- * the objective should be displayed at.
- * <p>
- * While Bedrock can handle showing one objective on multiple slots at the same time, we have to help Bedrock a bit
- * for example by limiting the amount of sidebar scores to the amount of lines that can be shown
- * (otherwise Bedrock may lag) and only showing online players in the playerlist (otherwise it's too cluttered.)
- * This fact is the biggest contributor for the class being structured like it is.
- */
+
 public final class Scoreboard {
     private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"));
     private static final boolean ADD_TEAM_SUGGESTIONS = Boolean.parseBoolean(
@@ -93,12 +79,8 @@ public final class Scoreboard {
     private final Map<ScoreboardPosition, DisplaySlot> objectiveSlots = Collections.synchronizedMap(new EnumMap<>(ScoreboardPosition.class));
     private final List<DisplaySlot> removedSlots = Collections.synchronizedList(new ArrayList<>());
 
-    private final Map<String, Team> teams = new ConcurrentHashMap<>(); // updated on multiple threads
-    /**
-     * Required to preserve vanilla behavior, which also uses a map.
-     * Otherwise, for example, if TAB has a team for a player and vanilla has a team, "race conditions" that do not
-     * match vanilla could occur.
-     */
+    private final Map<String, Team> teams = new ConcurrentHashMap<>(); 
+    
     @Getter
     private final Map<String, Team> playerToTeam = new Object2ObjectOpenHashMap<>();
 
@@ -123,7 +105,7 @@ public final class Scoreboard {
     public @Nullable Objective registerNewObjective(String objectiveId) {
         Objective objective = objectives.get(objectiveId);
         if (objective != null) {
-            // matches vanilla behaviour
+            
             if (SHOW_SCOREBOARD_LOGS) {
                 logger.warning("An objective with the same name '" + objectiveId + "' already exists! Ignoring new objective!");
             }
@@ -137,7 +119,7 @@ public final class Scoreboard {
 
     public void displayObjective(String objectiveId, ScoreboardPosition slot) {
         if (objectiveId.isEmpty()) {
-            // matches vanilla behaviour
+            
             var display = objectiveSlots.get(slot);
             if (display != null) {
                 removedSlots.add(display);
@@ -188,14 +170,14 @@ public final class Scoreboard {
         team = new Team(this, teamName, players, name, prefix, suffix, visibility, color);
         teams.put(teamName, team);
 
-        // Update command parameters - is safe to send even if the command enum doesn't exist on the client (as of 1.19.51)
+        
         if (ADD_TEAM_SUGGESTIONS) {
             session.addCommandEnum("Geyser_Teams", team.id());
         }
     }
 
     public void onUpdate() {
-        // if an update is already running, let it finish
+        
         if (updateLockActive.getAndSet(true)) {
             return;
         }
@@ -207,7 +189,7 @@ public final class Scoreboard {
         DisplaySlot correctSidebarSlot = null;
 
         for (DisplaySlot slot : objectiveSlots.values()) {
-            // slot has been removed
+            
             if (slot.updateType() == REMOVE) {
                 continue;
             }
@@ -223,8 +205,8 @@ public final class Scoreboard {
 
         var actualRemovedSlots = new ArrayList<>(removedSlots);
         for (var slot : actualRemovedSlots) {
-            // Deletion must be handled before the active objectives are handled - otherwise if a scoreboard display is changed before the current
-            // scoreboard is removed, the client can crash
+            
+            
             slot.remove();
         }
         removedSlots.removeAll(actualRemovedSlots);
@@ -328,7 +310,7 @@ public final class Scoreboard {
 
     public void setTeamFor(Team team, Set<String> entities) {
         for (DisplaySlot slot : objectiveSlots.values()) {
-            // only sidebar slots use teams
+            
             if (slot instanceof SidebarDisplaySlot sidebar) {
                 sidebar.setTeamFor(team, entities);
             }

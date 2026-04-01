@@ -42,7 +42,7 @@ public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
     }
 
     public void setHasFuel(BooleanEntityMetadata entityMetadata) {
-        // Note: Java ticks this entity and gives it particles if it has fuel
+        
         hasFuel = entityMetadata.getPrimitiveValue();
         updateDefaultBlockMetadata();
     }
@@ -56,7 +56,7 @@ public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
 
     @Override
     public InteractionResult interact(Hand hand) {
-        // Always works since you can "push" it this way
+        
         return InteractionResult.SUCCESS;
     }
 }

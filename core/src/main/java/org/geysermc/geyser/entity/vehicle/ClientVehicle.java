@@ -31,13 +31,13 @@ import org.cloudburstmc.math.vector.Vector3f;
 public interface ClientVehicle {
     VehicleComponent<?> getVehicleComponent();
 
-    // MojMap LivingEntity#getRiddenInput
+    
     Vector3f getRiddenInput(Vector2f input);
 
-    // MojMap LivingEntity#getRiddenSpeed
+    
     float getVehicleSpeed();
 
-    // MojMap Mob#getControllingPassenger
+    
     boolean shouldSimulateMovement();
 
     default boolean canWalkOnLava() {

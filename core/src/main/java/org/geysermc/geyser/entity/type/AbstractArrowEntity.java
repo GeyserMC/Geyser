@@ -36,7 +36,7 @@ public class AbstractArrowEntity extends Entity {
     public AbstractArrowEntity(EntitySpawnContext context) {
         super(context);
 
-        // Set the correct texture if using the resource pack
+        
         setFlag(EntityFlag.BRIBED, definition.entityType() == EntityType.SPECTRAL_ARROW);
 
         setMotion(motion);
@@ -48,8 +48,8 @@ public class AbstractArrowEntity extends Entity {
         setFlag(EntityFlag.CRITICAL, (data & 0x01) == 0x01);
     }
 
-    // Ignore the rotation sent by the Java server since the
-    // Java client calculates the rotation from the motion
+    
+    
     @Override
     public void setYaw(float yaw) {
     }

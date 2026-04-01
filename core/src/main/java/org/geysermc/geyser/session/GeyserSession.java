@@ -260,17 +260,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final GeyserImpl geyser;
     private final UpstreamSession upstream;
     private DownstreamSession downstream;
-    /**
-     * The loop where all packets and ticking is processed to prevent concurrency issues.
-     * If this is manually called, ensure that any exceptions are properly handled.
-     */
+    
     private final EventLoop tickEventLoop;
     @Setter
     private AuthData authData;
     private BedrockClientData clientData;
-    /**
-     * Used for Floodgate skin uploading
-     */
+    
     @Setter
     private List<String> certChainData;
     @Setter
@@ -305,9 +300,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final WaypointCache waypointCache;
     private final WorldCache worldCache;
 
-    /**
-     * Handles block breaking and break animation progress caching.
-     */
+    
     @Setter
     private BlockBreakHandler blockBreakHandler;
 
@@ -315,100 +308,63 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private TeleportCache unconfirmedTeleport;
 
     private final WorldBorder worldBorder;
-    /**
-     * Whether simulated fog has been sent to the client or not.
-     */
+    
     private boolean isInWorldBorderWarningArea = false;
 
-    /**
-     * Stores the player inventory and player inventory translator
-     */
+    
     private final InventoryHolder<PlayerInventory> playerInventoryHolder;
 
-    /**
-     * Stores the current open Bedrock inventory, including the correct translator.
-     * Prefer using {@link InventoryUtils#getInventory(GeyserSession, int)}, as this
-     * method can e.g. return a {@code InventoryHolder<LecternContainer>} due to the
-     * workaround in {@link LecternContainer#isBookInPlayerInventory()} workaround.
-     */
+    
     @Setter
     private @Nullable InventoryHolder<? extends Inventory> inventoryHolder;
 
     private final DialogManager dialogManager = new DialogManager(this);
 
-    /**
-     * A list of links sent to us by the server in the server links packet.
-     */
+    
     @Setter
     private List<ServerLink> serverLinks = List.of();
 
-    /**
-     * A list of commands known to the client. These are all the commands that have been sent to us by the server.
-     */
+    
     @Setter
     private List<String> knownCommands = List.of();
-    /**
-     * A list of "restricted" commands known to the client. These are all the commands that have been sent to us by the server, and require some sort of elevated permissions.
-     */
+    
     @Setter
     private List<String> restrictedCommands = List.of();
 
-    /**
-     * Whether the client is currently closing an inventory.
-     * Used to open new inventories while another one is currently open.
-     */
+    
     @Setter
     private boolean closingInventory;
 
-    /**
-     * Stores the bedrock inventory id of the pending inventory, or -1 if no inventory is pending.
-     * This id is only set when the block that should be opened exists.
-     */
+    
     @Setter
     private int pendingOrCurrentBedrockInventoryId = -1;
 
-    /**
-     * A check for whether or not we need to clear the attack cooldown we emulate.
-     */
+    
     @Setter
     private boolean needAttackCooldownClear = false;
 
-    /**
-     * Use {@link #getNextItemNetId()} instead for consistency
-     */
+    
     @Getter(AccessLevel.NONE)
     private final AtomicInteger itemNetId = new AtomicInteger(2);
 
     @Setter
     private ScheduledFuture<?> containerOutputFuture;
 
-    /**
-     * Stores session collision
-     */
+    
     private final CollisionManager collisionManager;
 
-    /**
-     * Stores the block mappings for this specific version.
-     */
+    
     @Setter
     private BlockMappings blockMappings;
 
-    /**
-     * Stores the item translations for this specific version.
-     */
+    
     @Setter
     private ItemMappings itemMappings;
 
-    /**
-     * A map of Vector3i positions to Java entities.
-     * Used for translating Bedrock block actions to Java entity actions.
-     */
+    
     private final Map<Vector3i, ItemFrameEntity> itemFrameCache = new Object2ObjectOpenHashMap<>();
 
-    /**
-     * A map of all players (and their heads) that are wearing a player head with a custom texture.
-     * Our workaround for these players is to give them a custom skin and geometry to emulate wearing a custom skull.
-     */
+    
     private final Map<UUID, ResolvableProfile> playerWithCustomHeads = new Object2ObjectOpenHashMap<>();
 
     @Setter
@@ -419,7 +375,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private int clientRenderDistance = -1;
     private int serverRenderDistance = -1;
 
-    // Exposed for GeyserConnect usage
+    
     protected boolean sentSpawnPacket;
 
     boolean loggedIn;
@@ -427,60 +383,39 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Setter
     private boolean spawned;
-    /**
-     * Accessed on the initial Java and Bedrock packet processing threads
-     */
+    
     private volatile boolean closed;
 
     private GameMode gameMode = GameMode.SURVIVAL;
 
-    /**
-     * Keeps track of the world name for respawning.
-     */
+    
     @Setter
     private Key worldName = null;
-    /**
-     * As of Java 1.19.3, the client only uses these for commands.
-     */
+    
     @Setter
     private String[] levels;
 
     private boolean sneaking;
 
-    /**
-     * Used to send a shift state for a tick to dismount from entitites
-     */
+    
     @Setter
     private boolean shouldSendSneak;
 
-    /**
-     * Stores the Java pose that the server and/or Geyser believes the player currently has.
-     */
+    
     @Setter
     private Pose pose = Pose.STANDING;
 
-    /**
-     * This is used to keep track of player sprinting and should only change by START_SPRINT and STOP_SPRINT sent by the player, not from flag update.
-     */
+    
     @Setter
     private boolean sprinting;
 
-    /**
-     * The overworld dimension which Bedrock Edition uses.
-     */
+    
     private BedrockDimension bedrockOverworldDimension = BedrockDimension.OVERWORLD;
-    /**
-     * The dimension of the player.
-     * As all entities are in the same world, this can be safely applied to all other entities.
-     */
+    
     @MonotonicNonNull
     @Setter
     private JavaDimension dimensionType = null;
-    /**
-     * Which dimension Bedrock understands themselves to be in.
-     * This should only be set after the ChangeDimensionPacket is sent, or
-     * right before the StartGamePacket is sent.
-     */
+    
     @Setter
     private BedrockDimension bedrockDimension = this.bedrockOverworldDimension;
 
@@ -493,97 +428,59 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private boolean interacting;
 
-    /**
-     * Stores the last position of the block the player interacted with. This can either be a block that the client
-     * placed or an existing block the player interacted with (for example, a chest). <br>
-     * Initialized as (0, 0, 0) so it is always not-null.
-     */
+    
     @Setter
     private Vector3i lastInteractionBlockPosition = Vector3i.ZERO;
 
-    /**
-     * Stores the Java position of the player the last time they interacted.
-     * Used to verify that the player did not move since their last interaction. <br>
-     * Initialized as (0, 0, 0) so it is always not-null.
-     */
+    
     @Setter
     private Vector3f lastInteractionPlayerPosition = Vector3f.ZERO;
 
-    /**
-     * The entity that the client is currently looking at.
-     */
+    
     @Setter
     private Entity mouseoverEntity;
 
-    /**
-     * Stores all Java recipes by ID, and matches them to all possible Bedrock recipe identifiers.
-     */
+    
     private final Int2ObjectMap<List<String>> javaToBedrockRecipeIds;
 
     private final Int2ObjectMap<GeyserRecipe> craftingRecipes;
     @Setter
-    private Pair<CraftingRecipeData, GeyserRecipe> lastCreatedRecipe = null; // TODO try to prevent sending duplicate recipes
+    private Pair<CraftingRecipeData, GeyserRecipe> lastCreatedRecipe = null; 
     private final AtomicInteger lastRecipeNetId;
 
-    /**
-     * Saves a list of all stonecutter recipes, for use in a stonecutter inventory.
-     * The key is the Bedrock recipe net ID; the values are their respective output and button ID.
-     */
+    
     @Setter
     private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes;
     private final List<GeyserSmithingRecipe> smithingRecipes = new ArrayList<>();
 
-    /**
-     * Whether to work around 1.13's different behavior in villager trading menus.
-     */
+    
     @Setter
     private boolean emulatePost1_13Logic = true;
-    /**
-     * Starting in 1.17, Java servers expect the <code>carriedItem</code> parameter of the serverbound click container
-     * packet to be the current contents of the mouse after the transaction has been done. 1.16 expects the clicked slot
-     * contents before any transaction is done. With the current ViaVersion structure, if we do not send what 1.16 expects
-     * and send multiple click container packets, then successive transactions will be rejected.
-     */
+    
     @Setter
     private boolean emulatePost1_16Logic = true;
     @Setter
     private boolean emulatePost1_18Logic = true;
 
-    /**
-     * Whether to emulate pre-1.20 smithing table behavior.
-     * Adapts ViaVersion's furnace UI to one Bedrock can use.
-     * See {@link org.geysermc.geyser.translator.inventory.OldSmithingTableTranslator}.
-     */
+    
     @Setter
     private boolean oldSmithingTable = false;
 
-    /**
-     * Whether to use the minecart_improvements experiment
-     */
+    
     @Setter
     private boolean isUsingExperimentalMinecartLogic = false;
 
-    /**
-     * Whether a fishing bobber in the world is connected to the player. Used for custom items, updates the item the player is holding when changed.
-     */
+    
     private boolean hasFishingRodCast = false;
 
-    /**
-     * The current attack speed of the player. Used for sending proper cooldown timings.
-     * Setting a default fixes cooldowns not showing up on a fresh world.
-     */
+    
     @Setter
     private double attackSpeed = 4.0d;
-    /**
-     * The time of the last hit. Used to gauge how long the cooldown is taking.
-     * This is a session variable in order to prevent more scheduled threads than necessary.
-     */
+    
     @Setter
     private long lastHitTime;
 
-    /**
-     * Saves if the client is steering left on a boat.
-     */
+    
     @Setter
     private boolean steeringLeft;
     /**
@@ -844,7 +741,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Send all necessary packets to load Bedrock into the server
      */
     public void connect() {
-        // Note: this.dimensionType may be null here if the player is connecting from online mode
+        
         int minY = BedrockDimension.OVERWORLD.minY();
         int maxY = BedrockDimension.OVERWORLD.maxY();
         for (JavaDimension javaDimension : this.registryCache.registry(JavaRegistries.DIMENSION_TYPE).values()) {
@@ -920,8 +817,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(getPlayerEntity().geyserId());
-        // Default move speed
-        // Bedrock clients move very fast by default until they get an attribute packet correcting the speed
+        
+        
         attributesPacket.setAttributes(Collections.singletonList(
             GeyserAttributeType.MOVEMENT_SPEED.getAttribute()));
         upstream.sendPacket(attributesPacket);
@@ -932,18 +829,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private void sendInitialGameRules() {
         GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
-        // Only allow the server to send health information
-        // Setting this to false allows natural regeneration to work false but doesn't break it being true
+        
+        
         gamerulePacket.getGameRules().add(new GameRuleData<>("naturalregeneration", false));
-        // Don't let the client modify the inventory on death
-        // Setting this to true allows keep inventory to work if enabled but doesn't break functionality being false
+        
+        
         gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
-        // Ensure client doesn't try and do anything funky; the server handles this for us
+        
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
-        // Recipe unlocking
+        
         gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
-        // We disable the locator bar until we are certain that the server wants us to enable it
-        // See WaypointCache for details
+        
+        
         gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
         
         upstream.sendPacket(gamerulePacket);
@@ -956,7 +853,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         loggingIn = true;
-        // Always replace spaces with underscores to avoid illegal nicknames, e.g. with GeyserConnect
+        
         protocol = new MinecraftProtocol(username.replace(' ', '_'));
 
         try {
@@ -980,7 +877,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             MinecraftToken mcToken;
             try {
                 JsonObject parsedAuthChain = GeyserImpl.GSON.fromJson(authChain, JsonObject.class);
-                if (parsedAuthChain.has("mcProfile")) { // Old Minecraft v4 auth chain
+                if (parsedAuthChain.has("mcProfile")) { 
                     parsedAuthChain = MinecraftAuth4To5Migrator.migrateJavaSave(parsedAuthChain, GeyserImpl.OAUTH_CONFIG);
                 }
 
@@ -1003,9 +900,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 return;
             }
             if (successful == Boolean.FALSE) {
-                // The player is waiting for a spawn packet, so let's spawn them in now to show them forms
+                
                 connect();
-                // Will be cached for after login
+                
                 LoginEncryptionUtils.buildAndShowTokenExpiredWindow(this);
                 return;
             }
@@ -1033,7 +930,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         loggingIn = true;
 
-        // This just looks cool
+        
         SetTimePacket packet = new SetTimePacket();
         packet.setTime(16000);
         sendUpstreamPacket(packet);
@@ -2228,7 +2125,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Locale is lowercase on Java - (https://github.com/GeyserMC/Geyser/issues/5235)
         ServerboundClientInformationPacket clientSettingsPacket = new ServerboundClientInformationPacket(locale().toLowerCase(Locale.ROOT),
             getRenderDistance(), ChatVisibility.FULL, true, SKIN_PARTS,
-            HandPreference.RIGHT_HAND, false, true, ParticleStatus.ALL); // TODO particle status
+            HandPreference.RIGHT_HAND, false, true, ParticleStatus.ALL); 
         sendDownstreamPacket(clientSettingsPacket);
     }
 
@@ -2391,7 +2288,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (clientData == null) {
             return BedrockPlatform.UNKNOWN;
         }
-        return BedrockPlatform.values()[clientData.getDeviceOs().ordinal()]; //todo
+        return BedrockPlatform.values()[clientData.getDeviceOs().ordinal()]; 
     }
 
     @Override
@@ -2401,17 +2298,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public @NonNull UiProfile uiProfile() {
-        return UiProfile.values()[clientData.getUiProfile().ordinal()]; //todo
+        return UiProfile.values()[clientData.getUiProfile().ordinal()]; 
     }
 
     @Override
     public @NonNull InputMode inputMode() {
-        return InputMode.values()[inputCache.getInputMode().ordinal()]; //todo
+        return InputMode.values()[inputCache.getInputMode().ordinal()]; 
     }
 
     @Override
     public boolean isLinked() {
-        return false; //todo
+        return false; 
     }
 
     @SuppressWarnings("ConstantConditions") // Need to enforce the parameter annotations

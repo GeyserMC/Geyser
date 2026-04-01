@@ -62,7 +62,7 @@ public class CustomSkullRegistryPopulator {
     private static final Pattern SKULL_HASH_PATTERN = Pattern.compile("^[a-fA-F0-9]+$");
 
     public static void populate() {
-        SkullResourcePackManager.SKULL_SKINS.clear(); // Remove skins after reloading
+        SkullResourcePackManager.SKULL_SKINS.clear(); 
         BlockRegistries.CUSTOM_SKULLS.set(Object2ObjectMaps.emptyMap());
 
         if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {

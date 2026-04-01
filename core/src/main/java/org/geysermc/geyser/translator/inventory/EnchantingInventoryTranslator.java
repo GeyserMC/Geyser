@@ -60,25 +60,25 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
             case 0:
             case 1:
             case 2:
-                // Experience required
+                
                 slotToUpdate = key;
                 container.getGeyserEnchantOptions()[slotToUpdate].setXpCost(value);
                 break;
             case 4:
             case 5:
             case 6:
-                // Enchantment type
+                
                 slotToUpdate = key - 4;
-                // "value" here is the Java enchant ordinal, so that does not need to be changed
-                // The Bedrock index might need changed, so let's look it up and see.
+                
+                
                 int bedrockIndex = value;
                 if (bedrockIndex != -1) {
                     Enchantment enchantment = session.getRegistryCache().registry(JavaRegistries.ENCHANTMENT).byId(value);
                     if (enchantment != null && enchantment.bedrockEnchantment() != null) {
-                        // Convert the Java enchantment index to Bedrock's
+                        
                         bedrockIndex = enchantment.bedrockEnchantment().ordinal();
                     } else {
-                        // There is no Bedrock enchantment equivalent
+                        
                         bedrockIndex = -1;
                     }
                 }
@@ -87,10 +87,10 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
             case 7:
             case 8:
             case 9:
-                // Enchantment level
+                
                 slotToUpdate = key - 7;
                 container.getGeyserEnchantOptions()[slotToUpdate].setEnchantLevel(value);
-                shouldUpdate = true; // Java sends each property as its own packet, so let's only update after all properties have been sent
+                shouldUpdate = true; 
                 break;
             default:
                 return;
@@ -111,21 +111,21 @@ public class EnchantingInventoryTranslator extends AbstractBlockInventoryTransla
 
     @Override
     public ItemStackResponse translateSpecialRequest(GeyserSession session, EnchantingContainer container, ItemStackRequest request) {
-        // Client has requested an item to be enchanted
+        
         CraftRecipeAction craftRecipeData = (CraftRecipeAction) request.getActions()[0];
         int javaSlot = -1;
         for (int i = 0; i < container.getEnchantOptions().length; i++) {
             EnchantOptionData enchantData = container.getEnchantOptions()[i];
             if (enchantData != null) {
                 if (craftRecipeData.getRecipeNetworkId() == enchantData.getEnchantNetId()) {
-                    // Enchant net ID is how we differentiate between what item Bedrock wants
+                    
                     javaSlot = container.getGeyserEnchantOptions()[i].getJavaIndex();
                     break;
                 }
             }
         }
         if (javaSlot == -1) {
-            // Slot should be determined as 0, 1, or 2
+            
             return rejectRequest(request);
         }
         ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(container.getJavaId(), javaSlot);

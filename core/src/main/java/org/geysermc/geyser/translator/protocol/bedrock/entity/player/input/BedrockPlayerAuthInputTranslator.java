@@ -81,8 +81,8 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         ServerboundPlayerCommandPacket sprintPacket = null;
 
         Set<PlayerAuthInputData> inputData = packet.getInputData();
-        // These inputs are sent in order, so if e.g. START_GLIDING and STOP_GLIDING are both present,
-        // it's important to make sure we send the last known status instead of both to the Java server.
+        
+        
         Set<PlayerAuthInputData> leftOverInputData = new HashSet<>(packet.getInputData());
         for (PlayerAuthInputData input : inputData) {
             leftOverInputData.remove(input);
@@ -102,23 +102,23 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     }
                 }
                 case STOP_SPRINTING -> {
-                    // Don't send sprinting update when we weren't sprinting
+                    
                     if (!leftOverInputData.contains(PlayerAuthInputData.START_SPRINTING) && session.isSprinting()) {
                         sprintPacket = new ServerboundPlayerCommandPacket(entity.javaId(), PlayerState.STOP_SPRINTING);
                         session.setSprinting(false);
                     }
                 }
-                case START_FLYING -> { // Since 1.20.30
+                case START_FLYING -> { 
                     if (session.isCanFly()) {
                         if (session.getGameMode() == GameMode.SPECTATOR) {
-                            // should already be flying
+                            
                             session.sendAdventureSettings();
                             break;
                         }
 
                         if (session.getPlayerEntity().getFlag(EntityFlag.SWIMMING) && session.getCollisionManager().isPlayerInWater()) {
-                            // As of 1.18.1, Java Edition cannot fly while in water, but it can fly while crawling
-                            // If this isn't present, swimming on a 1.13.2 server and then attempting to fly will put you into a flying/swimming state that is invalid on JE
+                            
+                            
                             session.sendAdventureSettings();
                             break;
                         }
@@ -126,7 +126,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                         session.setFlying(true);
                         session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(true));
                     } else {
-                        // Stop flying & remind the client about not trying to fly :)
+                        
                         session.setFlying(false);
                         session.sendAdventureSettings();
                     }
@@ -136,12 +136,12 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
                 }
                 case START_GLIDING -> {
-                    // Bedrock can send both start_glide and stop_glide in the same packet.
-                    // We only want to start gliding if the client has not stopped gliding in the same tick.
-                    // last replicated on 1.21.70 by "walking" and jumping while in water
+                    
+                    
+                    
                     if (!leftOverInputData.contains(PlayerAuthInputData.STOP_GLIDING)) {
                         if (entity.canStartGliding()) {
-                            // On Java you can't start gliding while flying
+                            
                             if (session.isFlying()) {
                                 session.setFlying(false);
                                 session.sendDownstreamGamePacket(new ServerboundPlayerAbilitiesPacket(false));
@@ -151,7 +151,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                         } else {
                             entity.forceFlagUpdate();
                             entity.setFlag(EntityFlag.GLIDING, false);
-                            // return to flying if we can't start gliding
+                            
                             if (session.isFlying()) {
                                 session.sendAdventureSettings();
                             }
@@ -161,9 +161,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 case START_SPIN_ATTACK -> entity.setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, true);
                 case STOP_SPIN_ATTACK -> entity.setFlag(EntityFlag.DAMAGE_NEARBY_MOBS, false);
                 case STOP_GLIDING -> {
-                    // Java doesn't allow elytra gliding to stop mid-air.
+                    
                     boolean shouldBeGliding = entity.isGliding() && entity.canStartGliding();
-                    // Always update; Bedrock can get real weird if the gliding state is mismatching
+                    
                     entity.forceFlagUpdate();
                     entity.setFlag(EntityFlag.GLIDING, shouldBeGliding);
                 }
@@ -175,7 +175,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                         session.activateArmAnimationTicking();
                     }
 
-                    // Touch devices expect an animation packet sent back to them
+                    
                     if (packet.getInputMode().equals(InputMode.TOUCH)) {
                         AnimatePacket animatePacket = new AnimatePacket();
                         animatePacket.setAction(AnimatePacket.Action.SWING_ARM);
@@ -183,16 +183,16 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                         session.sendUpstreamPacket(animatePacket);
                     }
 
-                    // Java edition sends a cooldown when hitting air.
+                    
                     CooldownUtils.setCooldownHitTime(session);
                 }
             }
         }
 
-        // The player will calculate the "desired" pose at the end of every tick, if this pose still invalid then
-        // it will consider the smaller pose, but we don't need to calculate that, we can go off what the client sent us.
-        // Also set the session pose directly and set the metadata directly since we don't want setPose method inside entity to change
-        // the current entity flag again.
+        
+        
+        
+        
         final Pose pose = entity.getDesiredPose();
         if (pose != session.getPose()) {
             session.setPose(pose);
@@ -200,26 +200,26 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             entity.updateBedrockMetadata();
         }
 
-        // Vehicle input is send before player movement
+        
         processVehicleInput(session, packet, wasJumping);
 
-        // Java edition sends sprinting after vehicle input, but before player movement
+        
         if (sprintPacket != null) {
             session.sendDownstreamGamePacket(sprintPacket);
         }
 
         BedrockMovePlayer.translate(session, packet);
 
-        // This is the best way send this since most modern anticheat will expect this to be in sync with the player movement packet.
+        
         if (session.isSpawned()) {
             session.sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
         }
 
-        // Only set steering values when the vehicle is a boat and when the client is actually in it
+        
         if (entity.getVehicle() instanceof BoatEntity && session.isInClientPredictedVehicle()) {
             boolean up = inputData.contains(PlayerAuthInputData.UP);
-            // Yes. These are flipped. Welcome to Bedrock edition.
-            // Hi random stranger. I am six days into updating for 1.21.3. How's it going?
+            
+            
             session.setSteeringLeft(up || inputData.contains(PlayerAuthInputData.PADDLE_RIGHT));
             session.setSteeringRight(up || inputData.contains(PlayerAuthInputData.PADDLE_LEFT));
         }
@@ -245,10 +245,10 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
         boolean inClientPredictedVehicle = session.isInClientPredictedVehicle();
         if (vehicle instanceof ClientVehicle) {
-            // Classic input mode for boat vehicle send PADDLE_LEFT/RIGHT instead of motion values.
+            
             boolean isMobileAndClassicMovement = packet.getInputMode() == InputMode.TOUCH && packet.getInputInteractionModel() == InputInteractionModel.CLASSIC;
             if (isMobileAndClassicMovement && vehicle instanceof BoatEntity) {
-                // Press both left and right to move forward and press 1 to turn the boat.
+                
                 boolean left = packet.getInputData().contains(PlayerAuthInputData.PADDLE_LEFT), right = packet.getInputData().contains(PlayerAuthInputData.PADDLE_RIGHT);
                 if (left && right) {
                     session.getPlayerEntity().setVehicleInput(Vector2f.UNIT_Y);
@@ -264,12 +264,12 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         if (vehicle instanceof AbstractHorseEntity && !(vehicle instanceof LlamaEntity)) {
             sendMovement = inClientPredictedVehicle;
         } else if (vehicle instanceof BoatEntity) {
-            // The player is either the only or the front rider.
+            
             sendMovement = inClientPredictedVehicle && (vehicle.getPassengers().size() == 1 || session.getPlayerEntity().isRidingInFront());
         }
 
         if ((vehicle instanceof AbstractHorseEntity || vehicle instanceof AbstractNautilusEntity) && !vehicle.getFlag(EntityFlag.HAS_DASH_COOLDOWN)) {
-            // Behavior verified as of Java Edition 1.21.3
+            
             int currentJumpingTicks = session.getInputCache().getJumpingTicks();
             if (currentJumpingTicks < 0) {
                 session.getInputCache().setJumpingTicks(++currentJumpingTicks);
@@ -280,8 +280,8 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
             boolean holdingJump = packet.getInputData().contains(PlayerAuthInputData.JUMPING);
             if (wasJumping && !holdingJump) {
-                // Jump released
-                // Yes, I'm fairly certain that entity ID is correct.
+                
+                
                 int finalVehicleJumpStrength = GenericMath.floor(session.getInputCache().getJumpScale() * 100f);
                 session.sendDownstreamGamePacket(new ServerboundPlayerCommandPacket(session.getPlayerEntity().getEntityId(),
                     PlayerState.START_HORSE_JUMP, finalVehicleJumpStrength));
@@ -307,15 +307,15 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         }
 
         if (sendMovement) {
-            // We only need to determine onGround status this way for client predicted vehicles.
-            // For other vehicle, Geyser already handle it in VehicleComponent or the Java server handle it.
+            
+            
             Vector3f position = vehicle.position();
             final BoundingBox box = new BoundingBox(
                 position.up(vehicle.getBoundingBoxHeight() / 2f).toDouble(),
                 vehicle.getBoundingBoxWidth(), vehicle.getBoundingBoxHeight(), vehicle.getBoundingBoxWidth()
             );
 
-            // Manually calculate the vertical collision ourselves, the VERTICAL_COLLISION input data is inaccurate inside a vehicle!
+            
             Vector3d movement = session.getPlayerEntity().getLastTickEndVelocity().toDouble();
             Vector3d correctedMovement = session.getCollisionManager().correctMovementForCollisions(movement, box, true, false);
             vehicle.setOnGround(correctedMovement.getY() != movement.getY() && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
@@ -323,11 +323,11 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             Vector3f vehiclePosition = packet.getPosition().down(vehicle.getOffset());
             Vector2f vehicleRotation = packet.getVehicleRotation();
             if (vehicleRotation == null) {
-                return; // If the client just got in or out of a vehicle for example.
+                return; 
             }
 
             if (session.getWorldBorder().isPassingIntoBorderBoundaries(vehiclePosition, false)) {
-                // This doesn't work if teleported is false
+                
                 vehicle.moveAbsoluteRaw(position, vehicle.getYaw(), vehicle.getPitch(), vehicle.getHeadYaw(),
                     vehicle.isOnGround(), true);
                 return;

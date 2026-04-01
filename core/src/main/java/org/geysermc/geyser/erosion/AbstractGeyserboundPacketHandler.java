@@ -71,9 +71,7 @@ public abstract class AbstractGeyserboundPacketHandler implements GeyserboundPac
         illegalPacket(packet);
     }
 
-    /**
-     * Is this handler actually listening to any packets?
-     */
+    
     public abstract boolean isActive();
 
     @Nullable

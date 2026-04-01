@@ -43,7 +43,7 @@ import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 
-// Array index formula by https://wiki.vg/Chunk_Format
+
 public class BiomeTranslator {
 
     public static int loadServerBiome(RegistryEntryContext entry) {
@@ -53,8 +53,8 @@ public class BiomeTranslator {
 
     public static BlockStorage toNewBedrockBiome(GeyserSession session, DataPalette biomeData) {
         JavaRegistry<Integer> biomeTranslations = session.getRegistryCache().registry(JavaRegistries.BIOME);
-        // As of 1.17.10: the client expects the same format as a chunk but filled with biomes
-        // As of 1.18 this is the same as Java Edition
+        
+        
 
         Palette palette = biomeData.getPalette();
         if (palette instanceof SingletonPalette) {
@@ -63,7 +63,7 @@ public class BiomeTranslator {
         } else {
             BlockStorage storage;
             if (!(palette instanceof GlobalPalette)) {
-                // Prevent resizing by allocating what we can ahead of time
+                
                 BitStorage bitStorage = biomeData.getStorage();
                 int size = palette.size();
                 BitArray bitArray = BitArrayVersion.forBitsCeil(bitStorage.getBitsPerEntry())
@@ -76,14 +76,14 @@ public class BiomeTranslator {
                     bedrockPalette.add(biomeTranslations.byId(javaId).intValue());
                 }
 
-                // Each section of biome corresponding to a chunk section contains 4 * 4 * 4 entries
+                
                 for (int i = 0; i < 64; i++) {
                     int idx = bitStorage.get(i);
                     int x = i & 3;
                     int y = (i >> 4) & 3;
                     int z = (i >> 2) & 3;
-                    // Convert biome coordinates into block coordinates
-                    // Bedrock expects a full 4096 blocks
+                    
+                    
                     multiplyIdToStorage(bitArray, idx, x, y, z);
                 }
 
@@ -91,19 +91,19 @@ public class BiomeTranslator {
             } else {
                 storage = new BlockStorage(0);
 
-                // Each section of biome corresponding to a chunk section contains 4 * 4 * 4 entries
+                
                 for (int i = 0; i < 64; i++) {
                     int javaId = palette.idToState(biomeData.getStorage().get(i));
                     int x = i & 3;
                     int y = (i >> 4) & 3;
                     int z = (i >> 2) & 3;
-                    // Get the Bedrock biome ID override
+                    
                     int biomeId = biomeTranslations.byId(javaId);
                     int idx = storage.idFor(biomeId);
-                    // Convert biome coordinates into block coordinates
-                    // Bedrock expects a full 4096 blocks
-                    // Implementation note: storage.getBitArray() must be called and not stored - if the palette
-                    // grows, then the instance can change
+                    
+                    
+                    
+                    
                     multiplyIdToStorage(storage.getBitArray(), idx, x, y, z);
                 }
             }

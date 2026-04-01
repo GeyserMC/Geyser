@@ -22,20 +22,19 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.event.lifecycle
 
-package org.geysermc.geyser.api.event.lifecycle;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.event.Event;
-import org.geysermc.geyser.api.event.EventBus;
-import org.geysermc.geyser.api.event.EventRegistrar;
-import org.geysermc.geyser.api.extension.ExtensionManager;
+import org.geysermc.event.Event
+import org.geysermc.geyser.api.event.EventBus
+import org.geysermc.geyser.api.event.EventRegistrar
+import org.geysermc.geyser.api.extension.ExtensionManager
 
 /**
  * Called when Geyser is starting to initialize.
- *
+ * 
  * @param extensionManager the extension manager
  * @param eventBus the event bus
  */
-public record GeyserPreInitializeEvent(@NonNull ExtensionManager extensionManager, @NonNull EventBus<EventRegistrar> eventBus) implements Event {
-}
+@kotlin.jvm.JvmRecord
+data class GeyserPreInitializeEvent(val extensionManager: ExtensionManager, val eventBus: EventBus<EventRegistrar?>) :
+    Event

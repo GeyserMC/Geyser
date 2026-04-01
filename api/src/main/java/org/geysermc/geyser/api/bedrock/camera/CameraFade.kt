@@ -22,73 +22,71 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.bedrock.camera
 
-package org.geysermc.geyser.api.bedrock.camera;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.common.value.qual.IntRange;
-import org.geysermc.geyser.api.GeyserApi;
-
-import java.awt.Color;
+import org.checkerframework.common.value.qual.IntRange
+import org.geysermc.geyser.api.GeyserApi
+import java.awt.Color
 
 /**
  * Represents a coloured fade overlay on the camera.
- * <p>
- * Can be sent with {@link CameraData#sendCameraFade(CameraFade)}, or with a {@link CameraPosition} instruction.
+ * 
+ * 
+ * Can be sent with [CameraData.sendCameraFade], or with a [CameraPosition] instruction.
  */
-public interface CameraFade {
-
+interface CameraFade {
     /**
      * Gets the color overlay of the camera.
      * Bedrock uses an RGB color system.
-     *
+     * 
      * @return the color of the fade
      */
-    @NonNull Color color();
+    fun color(): Color
 
     /**
      * Gets the seconds it takes to fade in.
      * All fade times combined must take at least 0.5 seconds, and at most 30 seconds.
-     *
+     * 
      * @return the seconds it takes to fade in
      */
-    float fadeInSeconds();
+    fun fadeInSeconds(): Float
 
     /**
      * Gets the seconds the overlay is held.
      * All fade times combined must take at least 0.5 seconds, and at most 30 seconds.
-     *
+     * 
      * @return the seconds the overlay is held
      */
-    float fadeHoldSeconds();
+    fun fadeHoldSeconds(): Float
 
     /**
      * Gets the seconds it takes to fade out.
      * All fade times combined must take at least 0.5 seconds, and at most 30 seconds.
-     *
+     * 
      * @return the seconds it takes to fade out
      */
-    float fadeOutSeconds();
-
-    /**
-     * Creates a Builder for CameraFade
-     *
-     * @return a CameraFade Builder
-     */
-    static CameraFade.Builder builder() {
-        return GeyserApi.api().provider(CameraFade.Builder.class);
-    }
+    fun fadeOutSeconds(): Float
 
     interface Builder {
+        fun color(color: Color): Builder?
 
-        Builder color(@NonNull Color color);
+        fun fadeInSeconds(fadeInSeconds: @IntRange(from = 0, to = 10) Float): Builder?
 
-        Builder fadeInSeconds(@IntRange(from = 0, to = 10) float fadeInSeconds);
+        fun fadeHoldSeconds(fadeHoldSeconds: @IntRange(from = 0, to = 10) Float): Builder?
 
-        Builder fadeHoldSeconds(@IntRange(from = 0, to = 10) float fadeHoldSeconds);
+        fun fadeOutSeconds(fadeOutSeconds: @IntRange(from = 0, to = 10) Float): Builder?
 
-        Builder fadeOutSeconds(@IntRange(from = 0, to = 10) float fadeOutSeconds);
+        fun build(): CameraFade?
+    }
 
-        CameraFade build();
+    companion object {
+        /**
+         * Creates a Builder for CameraFade
+         * 
+         * @return a CameraFade Builder
+         */
+        fun builder(): Builder {
+            return GeyserApi.Companion.api().provider<Builder, Builder?>(Builder::class.java)
+        }
     }
 }

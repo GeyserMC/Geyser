@@ -35,10 +35,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.lang.reflect.Type;
 
-/**
- * The structure of this class and its nested classes are specifically
- * designed for the format received by {@link GeyserLegacyPingPassthrough}.
- */
+
 @Data
 public class GeyserPingInfo {
 
@@ -49,7 +46,7 @@ public class GeyserPingInfo {
     private Players players;
 
     public GeyserPingInfo() {
-        // for json mapping
+        
     }
 
     public GeyserPingInfo(@Nullable String description, Players players) {
@@ -69,7 +66,7 @@ public class GeyserPingInfo {
         private int online;
 
         public Players() {
-            // for json mapping
+            
         }
 
         public Players(int max, int online) {
@@ -78,9 +75,7 @@ public class GeyserPingInfo {
         }
     }
 
-    /**
-     * So GSON does not complain how we are treating Description - it will be converted to a proper Component later.
-     */
+    
     private static final class DescriptionDeserializer implements JsonDeserializer<String> {
         @Override
         public String deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {

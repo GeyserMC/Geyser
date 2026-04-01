@@ -22,28 +22,24 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.entity.property.type
 
-package org.geysermc.geyser.api.entity.property.type;
-
-import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
-
-import java.util.List;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty
 
 /**
  * Represents a string-backed enum property.
  * There are a few key limitations:
- * <ul>
- *     <li>There cannot be more than 16 values</li>
- *     <li>The values' names cannot be longer than 32 chars, must start with a letter, and may contain numbers and underscores</li>
- * </ul>
- *
+ * 
+ *  * There cannot be more than 16 values
+ *  * The values' names cannot be longer than 32 chars, must start with a letter, and may contain numbers and underscores
+ * 
+ * 
  * @since 2.9.0
  */
-public interface GeyserStringEnumProperty extends GeyserEntityProperty<String> {
-
+interface GeyserStringEnumProperty : GeyserEntityProperty<String?> {
     /**
      * @return an unmodifiable list of all registered values
      * @since 2.9.0
      */
-    List<String> values();
+    fun values(): MutableList<String?>?
 }

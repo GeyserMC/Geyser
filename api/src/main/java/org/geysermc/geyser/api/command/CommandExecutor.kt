@@ -22,24 +22,21 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.command;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
+package org.geysermc.geyser.api.command
 
 /**
  * Handles executing a command.
- *
+ * 
  * @param <T> the command source
- */
-public interface CommandExecutor<T extends CommandSource> {
+</T> */
+interface CommandExecutor<T : CommandSource?> {
     /**
-     * Executes the given {@link Command} with the given
-     * {@link CommandSource}.
-     *
+     * Executes the given [Command] with the given
+     * [CommandSource].
+     * 
      * @param source the command source
      * @param command the command
      * @param args the arguments
      */
-    void execute(@NonNull T source, @NonNull Command command, @NonNull String[] args);
+    fun execute(source: T, command: Command, args: Array<String>?)
 }

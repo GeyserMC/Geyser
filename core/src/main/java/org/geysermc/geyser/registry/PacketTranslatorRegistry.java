@@ -46,11 +46,11 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
     private static final Set<Class<?>> IGNORED_PACKETS = Collections.newSetFromMap(new IdentityHashMap<>());
 
     static {
-        IGNORED_PACKETS.add(ClientboundChunkBatchStartPacket.class); // we don't track chunk batch sizes/periods
-        IGNORED_PACKETS.add(ClientboundDelimiterPacket.class); // Not implemented, spams logs
-        IGNORED_PACKETS.add(ClientboundLightUpdatePacket.class); // Light is handled on Bedrock for us
-        IGNORED_PACKETS.add(ClientboundTabListPacket.class); // Cant be implemented in Bedrock
-        IGNORED_PACKETS.add(ServerboundDiagnosticsPacket.class); // spammy
+        IGNORED_PACKETS.add(ClientboundChunkBatchStartPacket.class); 
+        IGNORED_PACKETS.add(ClientboundDelimiterPacket.class); 
+        IGNORED_PACKETS.add(ClientboundLightUpdatePacket.class); 
+        IGNORED_PACKETS.add(ClientboundTabListPacket.class); 
+        IGNORED_PACKETS.add(ServerboundDiagnosticsPacket.class); 
     }
 
     protected PacketTranslatorRegistry() {

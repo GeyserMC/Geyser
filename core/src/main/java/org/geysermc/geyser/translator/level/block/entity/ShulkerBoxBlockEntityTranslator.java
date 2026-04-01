@@ -36,10 +36,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 
 @BlockEntity(type = BlockEntityType.SHULKER_BOX)
 public class ShulkerBoxBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-    /**
-     * Also used in {@link ShulkerInventoryTranslator}
-     * where {@code tag} is passed as null.
-     */
+    
     @Override
     public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, @Nullable NbtMap javaNbt, BlockState blockState) {
         bedrockNbt.putByte("facing", (byte) blockState.getValue(Properties.FACING).ordinal());

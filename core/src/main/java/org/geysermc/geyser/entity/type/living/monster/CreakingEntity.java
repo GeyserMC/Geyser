@@ -48,12 +48,12 @@ public class CreakingEntity extends MonsterEntity {
         CreakingState.NEUTRAL
     );
 
-    // also, the creaking seems to have this minecraft:creaking_swaying_ticks thingy
-    // which i guess is responsible for some animation?
-    // it's sent over the network, all 6 "stages" 50ms in between of each other.
-    // no clue what it's used for tbh, so i'm not gonna bother implementing it
-    // - chris
-    // update: this still holds true, even a refactor later :(
+    
+    
+    
+    
+    
+    
     public static final IntProperty SWAYING_TICKS_PROPERTY = new IntProperty(
         IdentifierImpl.of("creaking_swaying_ticks"),
         6, 0, 0

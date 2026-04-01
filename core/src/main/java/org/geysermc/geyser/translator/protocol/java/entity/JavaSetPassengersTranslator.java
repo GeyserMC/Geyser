@@ -49,7 +49,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
 
-        // Handle new/existing passengers
+        
         List<Entity> newPassengers = new ArrayList<>();
         int @NonNull [] passengerIds = packet.getPassengerIds();
         for (int i = 0; i < passengerIds.length; i++) {
@@ -57,7 +57,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             Entity passenger = session.getEntityCache().getEntityByJavaId(passengerId);
             if (passenger == session.getPlayerEntity()) {
                 session.getPlayerEntity().setVehicle(entity);
-                // We need to confirm teleports before entering a vehicle, or else we will likely exit right out
+                
                 session.confirmTeleport(passenger.position());
 
                 if (entity instanceof ClientVehicle clientVehicle) {
@@ -65,8 +65,8 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                 }
             }
             if (passenger == null) {
-                // Can occur if the passenger is outside the client's tracking range
-                // In this case, another SetPassengers packet will be sent when the passenger is spawned.
+                
+                
                 continue;
             }
 
@@ -80,12 +80,12 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             passenger.setVehicle(entity);
             EntityUtils.updateRiderRotationLock(passenger, entity, true);
             EntityUtils.updateMountOffset(passenger, entity, rider, true, i, packet.getPassengerIds().length);
-            // Force an update to the passenger metadata
+            
             passenger.updateBedrockMetadata();
             passenger.setMotion(Vector3f.ZERO);
         }
 
-        // Handle passengers that were removed
+        
         List<Entity> passengers = entity.getPassengers();
         for (int i = 0; i < passengers.size(); i++) {
             Entity passenger = passengers.get(i);
@@ -100,19 +100,19 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                 passenger.setVehicle(null);
                 EntityUtils.updateRiderRotationLock(passenger, entity, false);
                 EntityUtils.updateMountOffset(passenger, entity, false, false, i, packet.getPassengerIds().length);
-                // Force an update to the passenger metadata
+                
                 passenger.updateBedrockMetadata();
 
                 if (passenger == session.getPlayerEntity()) {
-                    //TODO test
+                    
                     if (session.getMountVehicleScheduledFuture() != null) {
-                        // Cancel this task as it is now unnecessary.
-                        // Note that this isn't present in JavaSetPassengersTranslator as that code is not called for players
-                        // as of Java 1.19.3, but the scheduled future checks for the vehicle being null anyway.
+                        
+                        
+                        
                         session.getMountVehicleScheduledFuture().cancel(false);
                     }
 
-                    // Reset steering to avoid session#isHandsBusy from triggering
+                    
                     session.setSteeringLeft(false);
                     session.setSteeringRight(false);
 

@@ -32,9 +32,7 @@ import org.spongepowered.configurate.interfaces.meta.range.NumericRange;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 import org.spongepowered.configurate.objectmapping.meta.Comment;
 
-/**
- * Used for any instance where the Java server is detached from Geyser.
- */
+
 @ConfigSerializable
 public interface GeyserRemoteConfig extends GeyserConfig {
     @Override

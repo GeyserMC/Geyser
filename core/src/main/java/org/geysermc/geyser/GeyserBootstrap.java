@@ -47,106 +47,52 @@ public interface GeyserBootstrap {
 
     GeyserWorldManager DEFAULT_CHUNK_MANAGER = new GeyserWorldManager();
 
-    /**
-     * Called when the GeyserBootstrap is initialized.
-     * This will only be called once, when Geyser is loading. Calling this must
-     * happen before {@link #onGeyserEnable()}, since this "sets up" Geyser.
-     */
+    
     void onGeyserInitialize();
 
-    /**
-     * Called when the GeyserBootstrap is enabled/reloaded.
-     * This starts Geyser, after which, Geyser is in a player-accepting state.
-     */
+    
     void onGeyserEnable();
 
-    /**
-     * Called when the GeyserBootstrap is disabled - either before a reload,
-     * of before fully shutting down.
-     */
+    
     void onGeyserDisable();
 
-    /**
-     * Called when the GeyserBootstrap is shutting down.
-     */
+    
     void onGeyserShutdown();
 
-    /**
-     * Returns the platform type this Geyser instance is running on.
-     *
-     * @return the PlatformType this Geyser instance is running on.
-     */
+    
     @NonNull
     PlatformType platformType();
 
-    /**
-     * Returns the current GeyserConfig
-     *
-     * @return The current GeyserConfig
-     */
+    
     GeyserConfig config();
 
-    /**
-     * Returns the current GeyserLogger
-     *
-     * @return The current GeyserLogger
-     */
+    
     GeyserLogger getGeyserLogger();
 
-    /**
-     * Returns the current CommandRegistry
-     *
-     * @return The current CommandRegistry
-     */
+    
     CommandRegistry getCommandRegistry();
 
-    /**
-     * Returns the current PingPassthrough manager
-     *
-     * @return The current PingPassthrough manager
-     */
+    
     @Nullable
     IGeyserPingPassthrough getGeyserPingPassthrough();
 
-    /**
-     * Returns the current WorldManager
-     *
-     * @return the current WorldManager
-     */
+    
     default WorldManager getWorldManager() {
         return DEFAULT_CHUNK_MANAGER;
     }
 
-    /**
-     * Return the data folder where files get stored
-     *
-     * @return Path location of data folder
-     */
+    
     Path getConfigFolder();
 
-    /**
-     * @return the folder where user tokens are saved. This should always point to the location of the config.
-     */
+    
     default Path getSavedUserLoginsFolder() {
         return getConfigFolder();
     }
 
-    /**
-     * Information used for the bootstrap section of the debug dump
-     *
-     * @return The info about the bootstrap
-     */
+    
     BootstrapDumpInfo getDumpInfo();
 
-    /**
-     * Returns the Minecraft version currently being used on the server. This should be only be implemented on platforms
-     * that have direct server access - platforms such as proxies always have to be on their latest version to support
-     * the newest Minecraft version, but older servers can use ViaVersion to enable newer versions to join.
-     * <br>
-     * If used, this should not be null before {@link GeyserImpl} initialization.
-     *
-     * @return the Minecraft version being used on the server, or <code>null</code> if not applicable
-     */
+    
     @Nullable
     default String getMinecraftServerVersion() {
         return null;
@@ -161,28 +107,15 @@ public interface GeyserBootstrap {
         return Paths.get("logs/latest.log");
     }
 
-    /**
-     * @return  the name of the server platform Geyser is running on.
-     */
+    
     @NonNull String getServerPlatform();
 
-    /**
-     * Get an InputStream for the given resource path.
-     * Overridden on platforms that have different class loader properties.
-     *
-     * @param resource Resource to get
-     * @return InputStream of the given resource, or null if not found
-     */
+    
     default @Nullable InputStream getResourceOrNull(String resource) {
         return GeyserBootstrap.class.getClassLoader().getResourceAsStream(resource);
     }
 
-    /**
-     * Get an InputStream for the given resource path, throws AssertionError if resource is not found.
-     *
-     * @param resource Resource to get
-     * @return InputStream of the given resource
-     */
+    
     default @NonNull InputStream getResourceOrThrow(@NonNull String resource) {
         InputStream stream = getResourceOrNull(resource);
         if (stream == null) {
@@ -191,25 +124,17 @@ public interface GeyserBootstrap {
         return stream;
     }
 
-    /**
-     * @return the bind address being used by the Java server.
-     */
+    
     @NonNull
     String getServerBindAddress();
 
-    /**
-     * @return the listening port being used by the Java server. -1 if can't be found
-     */
+    
     int getServerPort();
 
-    /**
-     * Tests if Floodgate is installed, loads the Floodgate key if so, and returns the result of Floodgate installed.
-     */
+    
     boolean testFloodgatePluginPresent();
 
-    /**
-     * TEMPORARY - will be removed after The Merge:tm:.
-     */
+    
     Path getFloodgateKeyPath();
 
     @Nullable

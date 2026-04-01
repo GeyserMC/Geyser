@@ -63,21 +63,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-/**
- * Utility class to parse an item stack, or a data component patch, from NBT data.
- *
- * <p>This class does <em>NOT</em> parse all possible data components in a data component patch, only those that
- * can visually change the way an item looks. This class should/is usually used for parsing block entity NBT data,
- * such as for vault or shelf block entities.</p>
- *
- * <p>Be sure to update this class for Java updates!</p>
- */
-// Lots of unchecked casting happens here. It should all be handled properly.
+
+
 @SuppressWarnings("unchecked")
 public final class ItemStackParser {
     private static final Map<DataComponentType<?>, DataComponentParser<?, ?>> PARSERS = new Reference2ObjectOpenHashMap<>();
 
-    // We need the rawClass parameter here because the Raw type can't be inferred from the parser alone
+    
     private static <Raw, Parsed> void register(DataComponentType<Parsed> component, Class<Raw> rawClass, DataComponentParser<Raw, Parsed> parser) {
         if (PARSERS.containsKey(component)) {
             throw new IllegalStateException("Duplicate data component parser registered for " + component);
@@ -115,8 +107,8 @@ public final class ItemStackParser {
     }
 
     static {
-        // The various ignored null-warnings are for things that should never be null as they shouldn't be missing from the data component
-        // If they are null an exception will be thrown, but this will be caught with an error message logged
+        
+        
 
         register(DataComponentTypes.BANNER_PATTERNS, List.class, (session, raw) -> {
             List<NbtMap> casted = (List<NbtMap>) raw;
@@ -124,7 +116,7 @@ public final class ItemStackParser {
             for (NbtMap layer : casted) {
                 DyeColor colour = DyeColor.getByJavaIdentifier(layer.getString("color"));
 
-                // Patterns can be an ID or inline
+                
                 Object pattern = layer.get("pattern");
                 Holder<BannerPatternLayer.BannerPattern> patternHolder;
                 if (pattern instanceof String id) {
@@ -162,7 +154,7 @@ public final class ItemStackParser {
             boolean hasTwinkle = raw.getBoolean("has_twinkle");
             return new Fireworks.FireworkExplosion(shape.ordinal(),
                 colours.stream()
-                    .mapToInt(i -> i) // We need to do this because MCPL wants an int[] array
+                    .mapToInt(i -> i) 
                     .toArray(),
                 fadeColours.stream()
                     .mapToInt(i -> i)
@@ -177,7 +169,7 @@ public final class ItemStackParser {
         register(DataComponentTypes.POTION_CONTENTS, NbtMap.class, (session, map) -> {
             Potion potion = Potion.getByJavaIdentifier(map.getString("potion"));
             int customColour = map.getInt("custom_color", -1);
-            // Not reading custom effects
+            
             String customName = map.getString("custom_name", null);
             return new PotionContents(potion == null ? -1 : potion.ordinal(), customColour, List.of(), customName);
         });
@@ -205,7 +197,7 @@ public final class ItemStackParser {
         try {
             for (Map.Entry<String, Object> patchEntry : map.entrySet()) {
                 String rawType = patchEntry.getKey();
-                // When a component starts with a '!', indicates removal of the component from the default component set
+                
                 boolean removal = rawType.startsWith("!");
                 if (removal) {
                     rawType = rawType.substring(1);
@@ -215,7 +207,7 @@ public final class ItemStackParser {
                 if (type == null) {
                     GeyserImpl.getInstance().getLogger().warning("Received unknown data component " + rawType + " in NBT data component patch: " + map);
                 } else if (removal) {
-                    // Removals are easy, we don't have to parse anything
+                    
                     patch.put(type, null);
                 } else {
                     DataComponentParser<?, ?> parser = PARSERS.get(type);
@@ -249,15 +241,7 @@ public final class ItemStackParser {
         return new ItemStack(Items.AIR_ID);
     }
 
-    /**
-     * Shorthand method for calling the following methods:
-     *
-     * <ul>
-     *     <li>{@link ItemStackParser#parseItemStack(GeyserSession, NbtMap)}</li>
-     *     <li>{@link ItemTranslator#translateToBedrock(GeyserSession, ItemStack)}</li>
-     *     <li>{@link BedrockItemBuilder#createItemNbt(ItemData)}</li>
-     * </ul>
-     */
+    
     public static NbtMapBuilder javaItemStackToBedrock(GeyserSession session, @Nullable NbtMap map) {
         return BedrockItemBuilder.createItemNbt(ItemTranslator.translateToBedrock(session, parseItemStack(session, map)));
     }

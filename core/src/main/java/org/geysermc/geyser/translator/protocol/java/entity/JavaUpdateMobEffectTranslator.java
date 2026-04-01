@@ -54,7 +54,7 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
 
         if (entity == session.getPlayerEntity()) {
             EntityEffectCache cache = session.getEffectCache();
-            // Matches BDS
+            
             if (cache.getEntityEffects().contains(packet.getEffect())) {
                 event = MobEffectPacket.Event.MODIFY;
             }
@@ -74,12 +74,12 @@ public class JavaUpdateMobEffectTranslator extends PacketTranslator<ClientboundU
         mobEffectPacket.setEffectId(EffectType.fromJavaEffect(packet.getEffect()).getBedrockId());
         session.sendUpstreamPacket(mobEffectPacket);
 
-        // Bedrock expects some attributes to be updated in the same tick as the effect causing them
+        
         if (entity == session.getPlayerEntity()) {
             AttributeData attribute = switch (packet.getEffect()) {
-                // Fixes https://github.com/GeyserMC/Geyser/issues/5347
+                
                 case ABSORPTION -> session.getPlayerEntity().getAttributes().get(GeyserAttributeType.ABSORPTION);
-                // Fixes https://github.com/GeyserMC/Geyser/issues/5388
+                
                 case SPEED -> session.getPlayerEntity().getAttributes().get(GeyserAttributeType.MOVEMENT_SPEED);
                 default -> null;
             };

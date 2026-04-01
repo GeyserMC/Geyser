@@ -90,7 +90,7 @@ public class SheepEntity extends AnimalEntity {
                 return superResult;
             } else {
                 if (canDye(itemInHand)) {
-                    // Dyeing the sheep
+                    
                     return InteractionResult.SUCCESS;
                 }
                 return InteractionResult.PASS;

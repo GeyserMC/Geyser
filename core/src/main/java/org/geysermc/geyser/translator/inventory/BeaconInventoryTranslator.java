@@ -54,13 +54,13 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator<
         super(1, new BlockInventoryHolder(Blocks.BEACON, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.BEACON) {
             @Override
             protected boolean checkInteractionPosition(GeyserSession session) {
-                // Since we can't fall back to a virtual inventory, let's make opening one easier
+                
                 return true;
             }
 
             @Override
             public boolean prepareInventory(GeyserSession session, Container container) {
-                // Virtual beacon inventories aren't possible - we don't want to spawn a whole pyramid!
+                
                 return super.canUseRealBlock(session, container);
             }
         }, UIInventoryUpdater.INSTANCE);
@@ -69,10 +69,10 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator<
     @Override
     public void updateProperty(GeyserSession session, BeaconContainer container, int key, int value) {
         //FIXME?: Beacon graphics look weird after inputting an item. This might be a Bedrock bug, since it resets to nothing
-        // on BDS
+        
         switch (key) {
             case 0:
-                // Power - beacon doesn't use this, and uses the block position instead
+                
                 break;
             case 1:
                 container.setPrimaryId(value == -1 ? 0 : value);
@@ -82,7 +82,7 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator<
                 break;
         }
 
-        // Send a block entity data packet update to the fake beacon inventory
+        
         Vector3i position = container.getHolderPosition();
         NbtMapBuilder builder = BlockEntityTranslator.getConstantBedrockTag("Beacon", position)
                 .putString("CustomName", container.getTitle())
@@ -102,7 +102,7 @@ public class BeaconInventoryTranslator extends AbstractBlockInventoryTranslator<
 
     @Override
     public ItemStackResponse translateSpecialRequest(GeyserSession session, BeaconContainer container, ItemStackRequest request) {
-        // Input a beacon payment
+        
         BeaconPaymentAction beaconPayment = (BeaconPaymentAction) request.getActions()[0];
         ServerboundSetBeaconPacket packet = new ServerboundSetBeaconPacket(toJava(beaconPayment.getPrimaryEffect()), toJava(beaconPayment.getSecondaryEffect()));
         session.sendDownstreamGamePacket(packet);

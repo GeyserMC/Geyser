@@ -29,9 +29,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
-/**
- * This class is used as a base for minecarts with a default block to display like furnaces and spawners
- */
+
 public class DefaultBlockMinecartEntity extends MinecartEntity {
 
     public int customBlock = 0;

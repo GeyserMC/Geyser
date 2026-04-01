@@ -54,16 +54,12 @@ public interface GeyserInstrument {
 
     float range();
 
-    /**
-     * In Bedrock format
-     */
+    
     String description();
 
     BedrockInstrument bedrockInstrument();
 
-    /**
-     * @return the ID of the Bedrock counterpart for this instrument. If there is none ({@link #bedrockInstrument()} is null), then -1 is returned.
-     */
+    
     default int bedrockId() {
         BedrockInstrument bedrockInstrument = bedrockInstrument();
         if (bedrockInstrument != null) {
@@ -72,9 +68,7 @@ public interface GeyserInstrument {
         return -1;
     }
 
-    /**
-     * @return the ID of the Java counterpart for the given Bedrock ID. If an invalid Bedrock ID was given, or there is no counterpart, -1 is returned.
-     */
+    
     static int bedrockIdToJava(GeyserSession session, int id) {
         JavaRegistry<GeyserInstrument> instruments = session.getRegistryCache().registry(JavaRegistries.INSTRUMENT);
         BedrockInstrument bedrockInstrument = BedrockInstrument.getByBedrockId(id);
@@ -89,7 +83,7 @@ public interface GeyserInstrument {
         return -1;
     }
 
-    // TODO test in 1.21.5
+    
     static GeyserInstrument fromComponent(GeyserSession session, InstrumentComponent component) {
         if (component.instrumentLocation() != null) {
             return session.getRegistryCache().registry(JavaRegistries.INSTRUMENT).byKey(component.instrumentLocation());
@@ -124,7 +118,7 @@ public interface GeyserInstrument {
             if (instrument.soundEvent() instanceof BuiltinSound) {
                 return BedrockInstrument.getByJavaIdentifier(MinecraftKey.key(instrument.soundEvent().getName()));
             }
-            // Probably custom
+            
             return null;
         }
     }
@@ -132,9 +126,7 @@ public interface GeyserInstrument {
     record Impl(String soundEvent, float range, String description, @Nullable BedrockInstrument bedrockInstrument) implements GeyserInstrument {
     }
 
-    /**
-     * Each vanilla instrument on Bedrock, ordered in their network IDs.
-     */
+    
     enum BedrockInstrument {
         PONDER,
         SING,

@@ -87,10 +87,7 @@ public class GeyserMockContext {
         return object;
     }
 
-    /**
-     * Retries the mock or spy that is an instance of the specified type.
-     * This is only really intended for classes where you only need a single instance of.
-     */
+    
     public <T> T mockOrSpy(Class<T> type) {
         for (Object mock : mocksAndSpies) {
             if (type.isInstance(mock)) {

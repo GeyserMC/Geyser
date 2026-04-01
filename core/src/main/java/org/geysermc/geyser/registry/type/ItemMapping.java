@@ -48,7 +48,7 @@ public class ItemMapping {
             "minecraft:air",
             ItemDefinition.AIR,
             0,
-            null, // Air is never sent in full over the network for this to serialize.
+            null, 
             null,
             null,
             null,
@@ -60,19 +60,14 @@ public class ItemMapping {
     ItemDefinition bedrockDefinition;
     int bedrockData;
 
-    /**
-     * The Bedrock block runtime ID to render this item with. The specific state *does* matter in how this item is rendered and used as a crafting ingredient.
-     * Required since 1.16.220.
-     */
+    
     BlockDefinition bedrockBlockDefinition;
 
     String toolType;
 
     String translationString;
 
-    /**
-     * A map of item models and all of their custom items, sorted from most definition predicates to least, which is important when matching predicates.
-     */
+    
     @Nullable
     SortedSetMultimap<Key, GeyserCustomMappingData> customItemDefinitions;
 
@@ -82,29 +77,17 @@ public class ItemMapping {
     @NonNull
     Item javaItem;
 
-    /**
-     * Gets if this item is a block.
-     *
-     * @return if this item is a block
-     */
+    
     public boolean isBlock() {
         return this.bedrockBlockDefinition != null;
     }
 
-    /**
-     * Gets if this item has a translation string present.
-     *
-     * @return if this item has a translation string present
-     */
+    
     public boolean hasTranslation() {
         return this.translationString != null;
     }
 
-    /**
-     * Gets if this item is a tool.
-     *
-     * @return if this item is a tool
-     */
+    
     public boolean isTool() {
         return this.toolType != null;
     }

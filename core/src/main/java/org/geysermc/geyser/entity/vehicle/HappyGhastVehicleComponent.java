@@ -43,7 +43,7 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
 
     public HappyGhastVehicleComponent(HappyGhastEntity vehicle, float stepHeight) {
         super(vehicle, stepHeight);
-        // Happy Ghast has different defaults
+        
         flyingSpeed = 0.05f;
         moveSpeed = 0.05f;
         cameraDistance = 8.0f;
@@ -76,9 +76,7 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
         playerEntity.getDirtyMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
     }
 
-    /**
-     * Called every session tick while the player is mounted on the vehicle.
-     */
+    
     public void tickVehicle() {
         if (!vehicle.shouldSimulateMovement()) {
             return;
@@ -87,14 +85,14 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
         VehicleContext ctx = new VehicleContext();
         ctx.loadSurroundingBlocks();
 
-        // LivingEntity#travelFlying
+        
         Fluid fluid = checkForFluid(ctx);
         float drag = switch (fluid) {
             case WATER -> 0.8f;
             case LAVA -> 0.5f;
             case EMPTY -> 0.91f;
         };
-        // HappyGhast#travel
+        
         travel(ctx, flyingSpeed * 5.0f / 3.0f);
         vehicle.setMotion(vehicle.getMotion().mul(drag));
     }

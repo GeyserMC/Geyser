@@ -77,13 +77,13 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator<Co
             return false;
         }
 
-        // Reject the item if Bedrock is attempting to put in a dye that is not a dye in Java Edition
+        
         return !(itemStack.asItem() instanceof DyeItem);
     }
 
     @Override
     protected boolean shouldHandleRequestFirst(ItemStackRequestAction action, Container container) {
-        // If the LOOM_MATERIAL slot is empty, we are crafting a pattern that does not come from an item
+        
         return action.getType() == ItemStackRequestActionType.CRAFT_LOOM && container.getItem(2).isEmpty();
     }
 
@@ -111,27 +111,27 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator<Co
             return rejectRequest(request);
         }
 
-        // Get the patterns compound tag
+        
         List<NbtMap> newBlockEntityTag = craftData.getResultItems()[0].getTag().getList("Patterns", NbtType.COMPOUND);
-        // Get the pattern that the Bedrock client requests - the last pattern in the Patterns list
+        
         NbtMap pattern = newBlockEntityTag.get(newBlockEntityTag.size() - 1);
 
-        // Java's formula: 4 * row + col
-        // And the Java loom window has a fixed row/width of four
-        // So... Number / 4 = row (so we don't have to bother there), and number % 4 is our column, which leads us back to our index. :)
+        
+        
+        
         ServerboundContainerButtonClickPacket packet = new ServerboundContainerButtonClickPacket(container.getJavaId(), index);
         session.sendDownstreamGamePacket(packet);
 
         GeyserItemStack inputCopy = container.getItem(0).copy(1);
         inputCopy.setNetId(session.getNextItemNetId());
-        BannerPatternLayer bannerPatternLayer = BannerItem.getJavaBannerPattern(session, pattern); // TODO
+        BannerPatternLayer bannerPatternLayer = BannerItem.getJavaBannerPattern(session, pattern); 
         if (bannerPatternLayer != null) {
             List<BannerPatternLayer> patternsList = new ArrayList<>(inputCopy.getComponentElseGet(DataComponentTypes.BANNER_PATTERNS, ArrayList::new));
             patternsList.add(bannerPatternLayer);
             inputCopy.getOrCreateComponents().put(DataComponentTypes.BANNER_PATTERNS, patternsList);
         }
 
-        // Set the new item as the output
+        
         container.setItem(3, inputCopy, session);
 
         return translateRequest(session, container, request);

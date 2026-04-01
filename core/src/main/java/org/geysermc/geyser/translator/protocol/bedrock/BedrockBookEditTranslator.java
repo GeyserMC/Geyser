@@ -74,19 +74,19 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             }
             switch (packet.getAction()) {
                 case ADD_PAGE: {
-                    // Add empty pages in between
+                    
                     for (int i = pages.size(); i < page; i++) {
                         pages.add(i, "");
                     }
                     pages.add(page, MessageTranslator.convertIncomingToPlainText(packet.getText()));
                     break;
                 }
-                // Called whenever a page is modified
+                
                 case REPLACE_PAGE: {
                     if (page < pages.size()) {
                         pages.set(page, MessageTranslator.convertIncomingToPlainText(packet.getText()));
                     } else {
-                        // Add empty pages in between
+                        
                         for (int i = pages.size(); i < page; i++) {
                             pages.add(i, "");
                         }
@@ -108,13 +108,13 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                     break;
                 }
                 case SIGN_BOOK: {
-                    // As of JE 1.20.5, client no longer adds title and author on its own
+                    
                     break;
                 }
                 default:
                     return;
             }
-            // Remove empty pages at the end
+            
             while (!pages.isEmpty()) {
                 String currentPage = pages.get(pages.size() - 1);
                 if (currentPage.isEmpty()) {
@@ -130,13 +130,13 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             }
             components.put(DataComponentTypes.WRITABLE_BOOK_CONTENT, new WritableBookContent(filterablePages));
 
-            // Update local copy
+            
             session.getPlayerInventory().setItem(36 + session.getPlayerInventory().getHeldItemSlot(), GeyserItemStack.from(session, bookItem), session);
             session.getPlayerInventoryHolder().updateInventory();
 
             String title;
             if (packet.getAction() == BookEditPacket.Action.SIGN_BOOK) {
-                // Add title to packet so the server knows we're signing
+                
                 title = MessageTranslator.convertIncomingToPlainText(packet.getTitle());
                 if (title.length() > WrittenBookItem.MAXIMUM_TITLE_LENGTH) {
                     session.getGeyser().getLogger().warning("Book title larger than server allows!");
@@ -147,7 +147,7 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             }
 
             session.getBookEditCache().setPacket(new ServerboundEditBookPacket(session.getPlayerInventory().getHeldItemSlot(), pages, title));
-            // There won't be any more book updates after this, so we can try sending the edit packet immediately
+            
             if (packet.getAction() == BookEditPacket.Action.SIGN_BOOK) {
                 session.getBookEditCache().checkForSend();
             }

@@ -32,13 +32,9 @@ import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
-/**
- * Used as a class for any projectile entity that looks like an item
- */
+
 public class ThrowableItemEntity extends ThrowableEntity {
-    /**
-     * Number of draw ticks since the entity was spawned by the Java server
-     */
+    
     private int age;
     private boolean invisible;
 
@@ -52,17 +48,17 @@ public class ThrowableItemEntity extends ThrowableEntity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        // Correct sizing
+        
         dirtyMetadata.put(EntityDataTypes.SCALE, 0.5f);
     }
 
     private void checkVisibility() {
         age++;
 
-        // Prevent projectiles from blocking the player's screen
-        // TODO this seems incorrect
+        
+        
         if (session.isTickingFrozen()) {
-            // This may seem odd, but it matches java edition
+            
             Vector3f playerPos = session.getPlayerEntity().position();
             setInvisible(playerPos.distanceSquared(this.position) < 12.25);
         } else {

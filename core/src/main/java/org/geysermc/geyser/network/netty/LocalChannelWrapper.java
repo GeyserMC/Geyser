@@ -36,9 +36,7 @@ public class LocalChannelWrapper extends LocalChannel {
 
     private final ChannelWrapper wrapper;
 
-    /**
-     * {@link #newChannelPipeline()} is called during super, so this exists until the wrapper can be initialized.
-     */
+    
     private volatile ChannelWrapper tempWrapper;
 
     public LocalChannelWrapper(LocalServerChannel parent, LocalChannel peer) {

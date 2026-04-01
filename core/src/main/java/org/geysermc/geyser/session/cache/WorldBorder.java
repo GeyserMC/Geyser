@@ -52,41 +52,27 @@ public class WorldBorder {
     @Setter
     private @NonNull Vector2d center = Vector2d.ZERO;
 
-    /**
-     * Progress through the current movement
-     */
+    
     private long lerpProgress;
 
-    /**
-     * The duration of the current movement
-     */
+    
     private long lerpDuration;
 
-    /**
-     * The diameter in blocks of the new world border.
-     */
+    
     private double size = DEFAULT_WORLD_BORDER_SIZE;
-    /**
-     * The target diameter
-     */
+    
     @Setter
     private double to = DEFAULT_WORLD_BORDER_SIZE;
-    /**
-     * The diameter the current moving target came from
-     */
+    
     @Setter
     private double from = DEFAULT_WORLD_BORDER_SIZE;
-    /**
-     * Block length before you reach the border to show warning particles.
-     */
+    
     @Setter
     private int warningBlocks = 5;
 
     @Setter
     private int warningDelay = 15;
-    /**
-     * The world border cannot go beyond this number, positive or negative, in world coordinates
-     */
+    
     @Setter
     private int absoluteMaxSize = 29999984;
 
@@ -111,12 +97,10 @@ public class WorldBorder {
     private double warningMinX = 0.0D;
     private double warningMinZ = 0.0D;
 
-    @SuppressWarnings("FieldCanBeLocal") // We will use this at some point down the line for Integrated Pack
+    @SuppressWarnings("FieldCanBeLocal") 
     private Color currentWorldBorderColor = DEFAULT_WORLD_BORDER_COLOR;
 
-    /**
-     * To track when to send wall particle packets.
-     */
+    
     private int currentWallTick;
 
 
@@ -124,13 +108,11 @@ public class WorldBorder {
 
     public WorldBorder(GeyserSession session) {
         this.session = session;
-        // Initialize all min/max/warning variables
+        
         update();
     }
 
-    /**
-     * @return true as long as the player entity is within the world limits.
-     */
+    
     public boolean isInsideBorderBoundaries() {
         return isInsideBorderBoundaries(session.getPlayerEntity().position());
     }
@@ -141,28 +123,20 @@ public class WorldBorder {
 
     private static final int CLOSE_TO_BORDER = 5;
 
-    /**
-     * @return if the player is close to the border boundaries. Used to always indicate a border even if there is no
-     * warning blocks set.
-     */
+    
     public boolean isCloseToBorderBoundaries() {
         Vector3f position = session.getPlayerEntity().position();
         return !(position.getX() > minX + CLOSE_TO_BORDER && position.getX() < maxX - CLOSE_TO_BORDER
             && position.getZ() > minZ + CLOSE_TO_BORDER && position.getZ() < maxZ - CLOSE_TO_BORDER);
     }
 
-    /**
-     * Confirms that the entity is within world border boundaries when they move.
-     * Otherwise, if {@code adjustPosition} is true, this function will push the player back.
-     *
-     * @return if this player was indeed against the world border. Will return false if no world border was defined for us.
-     */
+    
     public boolean isPassingIntoBorderBoundaries(Vector3f newPosition, boolean adjustPosition) {
         boolean isInWorldBorder = isPassingIntoBorderBoundaries(newPosition);
         if (isInWorldBorder && adjustPosition) {
             PlayerEntity playerEntity = session.getPlayerEntity();
-            // Move the player back, but allow gravity to take place
-            // Teleported = true makes going back better, but disconnects the player from their mounted entity
+            
+            
             Vector3f combinedPosition = Vector3f.from(playerEntity.position().getX(), newPosition.getY(), playerEntity.position().getZ());
             playerEntity.moveAbsoluteRaw(combinedPosition, playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
         }
@@ -173,30 +147,20 @@ public class WorldBorder {
         int entityX = GenericMath.floor(newEntityPosition.getX());
         int entityZ = GenericMath.floor(newEntityPosition.getZ());
         Vector3f currentEntityPosition = session.getPlayerEntity().position();
-        // Make sure we can't move out of the world border, but if we're out of the world border, we can move in
+        
         return (entityX == (int) minX && currentEntityPosition.getX() > newEntityPosition.getX()) ||
             (entityX == (int) maxX && currentEntityPosition.getX() < newEntityPosition.getX()) ||
             (entityZ == (int) minZ && currentEntityPosition.getZ() > newEntityPosition.getZ()) ||
             (entityZ == (int) maxZ && currentEntityPosition.getZ() < newEntityPosition.getZ());
     }
 
-    /**
-     * Same as {@link #isInsideBorderBoundaries()} but using the warning boundaries.
-     *
-     * @return true as long the entity is within the world limits and not in the warning zone at the edge to the border.
-     */
+    
     public boolean isWithinWarningBoundaries() {
         Vector3f entityPosition = session.getPlayerEntity().position();
         return entityPosition.getX() > warningMinX && entityPosition.getX() < warningMaxX && entityPosition.getZ() > warningMinZ && entityPosition.getZ() < warningMaxZ;
     }
 
-    /**
-     * Adjusts the movement of an entity so that it does not cross the world border.
-     *
-     * @param boundingBox bounding box of the entity
-     * @param movement movement of the entity
-     * @return the corrected movement
-     */
+    
     public Vector3d correctMovement(BoundingBox boundingBox, Vector3d movement) {
         double correctedX;
         if (movement.getX() < 0) {
@@ -205,7 +169,7 @@ public class WorldBorder {
             correctedX = limitMovement(movement.getX(), GenericMath.ceil(maxX) - boundingBox.getMax(Axis.X));
         }
 
-        // Outside of border, don't adjust movement
+        
         if (Double.isNaN(correctedX)) {
             return movement;
         }
@@ -226,7 +190,7 @@ public class WorldBorder {
 
     private double limitMovement(double movement, double limit) {
         if (limit < 0) {
-            // Return NaN to indicate outside of border
+            
             return Double.NaN;
         }
 
@@ -237,9 +201,7 @@ public class WorldBorder {
         return Math.min(movement, limit);
     }
 
-    /**
-     * Updates the world border's minimum and maximum properties
-     */
+    
     public void update() {
         /*
          * Setting the correct boundary of our world border's square.
@@ -257,7 +219,7 @@ public class WorldBorder {
 
         double absoluteMinSize = -this.absoluteMaxSize;
 
-        // Mapping 2D vector to 3D coordinates >> Y becomes Z
+        
         this.minX = GenericMath.clamp(this.center.getX() - radius, absoluteMinSize, this.absoluteMaxSize);
         this.minZ = GenericMath.clamp(this.center.getY() - radius, absoluteMinSize, this.absoluteMaxSize);
         this.maxX = GenericMath.clamp(this.center.getX() + radius, absoluteMinSize, this.absoluteMaxSize);
@@ -315,12 +277,10 @@ public class WorldBorder {
         return d0 < 1.0 ? (this.to + d0 * (this.from - this.to)) : this.to;
     }
 
-    /**
-     * Draws a wall of particles where the world border resides
-     */
+    
     public void drawWall() {
         if (currentWallTick++ != 20) {
-            // Only draw a wall once every second
+            
             return;
         }
         currentWallTick = 0;

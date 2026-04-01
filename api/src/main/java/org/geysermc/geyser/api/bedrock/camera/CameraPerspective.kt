@@ -22,27 +22,26 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.bedrock.camera;
+package org.geysermc.geyser.api.bedrock.camera
 
 /**
  * Represents a camera perspective that a player's camera can take.
- * All perspectives except for {@link #FREE} are locked to the player's head,
+ * All perspectives except for [.FREE] are locked to the player's head,
  * and are therefore relative to the player's position and rotation.
  */
-public enum CameraPerspective {
+enum class CameraPerspective(id: String) {
     FIRST_PERSON("minecraft:first_person"),
     FREE("minecraft:free"),
     THIRD_PERSON("minecraft:third_person"),
     THIRD_PERSON_FRONT("minecraft:third_person_front");
 
-    private final String id;
+    private val id: String?
 
-    CameraPerspective(String id) {
-        this.id = id;
+    init {
+        this.id = id
     }
 
-    public String id() {
-        return this.id;
+    fun id(): String? {
+        return this.id
     }
 }

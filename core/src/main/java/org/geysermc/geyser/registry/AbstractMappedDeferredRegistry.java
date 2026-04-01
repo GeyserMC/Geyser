@@ -50,24 +50,12 @@ public abstract class AbstractMappedDeferredRegistry<K, V, M extends Map<K, V>, 
         super(input, registryInitializer, deferredLoader);
     }
 
-    /**
-     * Returns the value registered by the given key.
-     *
-     * @param key the key
-     * @return the value registered by the given key.
-     */
+    
     public @Nullable V get(K key) {
         return get().get(key);
     }
 
-    /**
-     * Returns and maps the value by the given key if present.
-     *
-     * @param key the key
-     * @param mapper the mapper
-     * @param <U> the type
-     * @return the mapped value from the given key if present
-     */
+    
     public <U> Optional<U> map(K key, Function<? super V, ? extends U> mapper) {
         V value = this.get(key);
         if (value == null) {
@@ -77,26 +65,12 @@ public abstract class AbstractMappedDeferredRegistry<K, V, M extends Map<K, V>, 
         }
     }
 
-    /**
-     * Returns the value registered by the given key or the default value
-     * specified if null.
-     *
-     * @param key the key
-     * @param defaultValue the default value
-     * @return the value registered by the given key or the default value
-     *         specified if null.
-     */
+    
     public V getOrDefault(K key, V defaultValue) {
         return get().getOrDefault(key, defaultValue);
     }
 
-    /**
-     * Registers a new value into this registry with the given key.
-     *
-     * @param key the key
-     * @param value the value
-     * @return a new value into this registry with the given key.
-     */
+    
     public V register(K key, V value) {
         return get().put(key, value);
     }

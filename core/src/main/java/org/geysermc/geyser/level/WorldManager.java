@@ -50,13 +50,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-/**
- * Class that manages or retrieves various information
- * from the world. Everything in this class should be
- * safe to return null or an empty value in the event
- * that chunk caching or anything of the sort is disabled
- * on the standalone version of Geyser.
- */
+
 public abstract class WorldManager {
 
     @NonNull
@@ -69,26 +63,12 @@ public abstract class WorldManager {
         return BlockState.of(this.getBlockAt(session, x, y, z));
     }
 
-    /**
-     * Gets the Java block state at the specified location
-     *
-     * @param session the session
-     * @param vector the position
-     * @return the block state at the specified location
-     */
+    
     public final int getBlockAt(GeyserSession session, Vector3i vector) {
         return this.getBlockAt(session, vector.getX(), vector.getY(), vector.getZ());
     }
 
-    /**
-     * Gets the Java block state at the specified location
-     *
-     * @param session the session
-     * @param x the x coordinate to get the block at
-     * @param y the y coordinate to get the block at
-     * @param z the z coordinate to get the block at
-     * @return the block state at the specified location
-     */
+    
     public abstract int getBlockAt(GeyserSession session, int x, int y, int z);
 
     public final CompletableFuture<Integer> getBlockAtAsync(GeyserSession session, Vector3i vector) {
@@ -108,84 +88,39 @@ public abstract class WorldManager {
         return blocks;
     }
 
-    /**
-     * Checks whether or not this world manager requires a separate chunk cache/has access to more block data than the chunk cache.
-     * <p>
-     * Some world managers (e.g. Spigot) can provide access to block data outside of the chunk cache, and even with chunk caching disabled. This
-     * method provides a means to check if this manager has this capability.
-     *
-     * @return whether or not this world manager has access to more block data than the chunk cache
-     */
+    
     public abstract boolean hasOwnChunkCache();
 
-    /**
-     * Updates a gamerule value on the Java server
-     *
-     * @param session The session of the user that requested the change
-     * @param name The gamerule to change
-     * @param value The new value for the gamerule
-     */
+    
     public void setGameRule(GeyserSession session, String name, Object value) {
         session.sendCommandPacket("gamerule " + name + " " + value);
     }
 
-    /**
-     * Gets a gamerule value as a boolean
-     *
-     * @param session The session of the user that requested the value
-     * @param gameRule The gamerule to fetch the value of
-     * @return The boolean representation of the value
-     */
+    
     public abstract boolean getGameRuleBool(GeyserSession session, GameRule gameRule);
 
-    /**
-     * Get a gamerule value as an integer
-     *
-     * @param session The session of the user that requested the value
-     * @param gameRule The gamerule to fetch the value of
-     * @return The integer representation of the value
-     */
+    
     public abstract int getGameRuleInt(GeyserSession session, GameRule gameRule);
 
-    /**
-     * Get the default game mode of the server
-     *
-     * @param session the player requesting the default game mode
-     * @return the default game mode of the server, or Survival if unknown.
-     */
+    
     public abstract GameMode getDefaultGameMode(GeyserSession session);
 
-    /**
-     * Change the default game mode of the session's server
-     *
-     * @param session the player making the change
-     * @param gameMode the new default game mode
-     */
+    
     public void setDefaultGameMode(GeyserSession session, GameMode gameMode) {
         session.sendCommandPacket("defaultgamemode " + gameMode.name().toLowerCase(Locale.ROOT));
     }
 
-    /**
-     * Change the difficulty of the Java server
-     *
-     * @param session The session of the user that requested the change
-     * @param difficulty The difficulty to change to
-     */
+    
     public void setDifficulty(GeyserSession session, Difficulty difficulty) {
         session.sendCommandPacket("difficulty " + difficulty.name().toLowerCase(Locale.ROOT));
     }
 
-    /**
-     * Returns a list of biome identifiers available on the server.
-     */
+    
     public String @Nullable [] getBiomeIdentifiers(boolean withTags) {
         return null;
     }
 
-    /**
-     * Retrieves decorated pot sherds from the server. Used to ensure the data is not erased on animation sent
-     * through the BlockEntityDataPacket.
-     */
+    
     public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
     }
 

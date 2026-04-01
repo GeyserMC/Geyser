@@ -48,25 +48,25 @@ public class PlayerHeadItem extends BlockItem {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
-        // Use the correct color, determined by the rarity of the item
+        
         char rarity = Rarity.fromId(components.getOrDefault(DataComponentTypes.RARITY, Rarity.COMMON.ordinal())).getColor();
 
         ResolvableProfile profile = components.get(DataComponentTypes.PROFILE);
         if (profile != null) {
-            // Ideally we'd update the item once the profile is resolved,
-            // but there's no good way of doing this as we don't know where the item is in an inventory after we have translated it
-            // So, we request a resolve here, and if the profile has already been resolved it will be returned instantly from cache.
-            // If not, the next time the item will be translated the profile will probably have been resolved
+            
+            
+            
+            
             GameProfile resolved = SkinManager.resolveProfile(profile).getNow(null);
             if (resolved != null) {
                 String name = resolved.getName();
                 if (name != null) {
-                    // Add correct name of player skull
+                    
                     String displayName = ChatColor.RESET + ChatColor.ESCAPE + rarity +
                         MinecraftLocale.getLocaleString("block.minecraft.player_head.named", session.locale()).replace("%s", name);
                     builder.setCustomName(displayName);
                 } else {
-                    // No name found so default to "Player Head"
+                    
                     builder.setCustomName(ChatColor.RESET + ChatColor.ESCAPE + rarity +
                         MinecraftLocale.getLocaleString("block.minecraft.player_head", session.locale()));
                 }

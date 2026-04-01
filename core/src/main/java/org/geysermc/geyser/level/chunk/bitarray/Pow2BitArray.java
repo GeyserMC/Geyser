@@ -32,19 +32,13 @@ import java.util.Arrays;
 
 public class Pow2BitArray implements BitArray {
 
-    /**
-     * Array used to store data
-     */
+    
     private final int[] words;
 
-    /**
-     * Palette version information
-     */
+    
     private final BitArrayVersion version;
 
-    /**
-     * Number of entries in this palette (<b>not</b> the length of the words array that internally backs this palette)
-     */
+    
     private final int size;
 
     Pow2BitArray(BitArrayVersion version, int size, int[] words) {
@@ -58,9 +52,7 @@ public class Pow2BitArray implements BitArray {
         }
     }
 
-    /**
-     * Sets the entry at the given location to the given value
-     */
+    
     public void set(int index, int value) {
         Preconditions.checkElementIndex(index, this.size);
         Preconditions.checkArgument(value >= 0 && value <= this.version.maxEntryValue, "Invalid value %s", value);
@@ -70,9 +62,7 @@ public class Pow2BitArray implements BitArray {
         this.words[arrayIndex] = this.words[arrayIndex] & ~(this.version.maxEntryValue << offset) | (value & this.version.maxEntryValue) << offset;
     }
 
-    /**
-     * Gets the entry at the given index
-     */
+    
     public int get(int index) {
         Preconditions.checkElementIndex(index, this.size);
         int bitIndex = index * this.version.bits;
@@ -81,17 +71,12 @@ public class Pow2BitArray implements BitArray {
         return this.words[arrayIndex] >>> wordOffset & this.version.maxEntryValue;
     }
 
-    /**
-     * Gets the long array that is used to store the data in this BitArray. This is useful for sending packet data.
-     */
+    
     public int size() {
         return this.size;
     }
 
-    /**
-     * {@inheritDoc}
-     * @return {@inheritDoc}
-     */
+    
     @Override
     public int[] getWords() {
         return this.words;

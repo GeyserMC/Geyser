@@ -75,31 +75,31 @@ public class ConnectionTestCommand extends GeyserCommand {
     public void execute(CommandContext<GeyserCommandSource> context) {
         GeyserCommandSource source = context.sender();
         String ipArgument = context.get(ADDRESS);
-        Integer portArgument = context.getOrDefault(PORT, null); // null if port was not specified
+        Integer portArgument = context.getOrDefault(PORT, null); 
 
-        // Replace "<" and ">" symbols if they are present to avoid the common issue of people including them
+        
         final String ip = ipArgument.replace("<", "").replace(">", "");
-        final int port = portArgument != null ? portArgument : geyser.config().advanced().bedrock().broadcastPort(); // default bedrock port
+        final int port = portArgument != null ? portArgument : geyser.config().advanced().bedrock().broadcastPort(); 
 
-        // Issue: people commonly checking placeholders
+        
         if (ip.equals("ip")) {
             source.sendMessage(ip + " is not a valid IP, and instead a placeholder. Please specify the IP to check.");
             return;
         }
 
-        // Issue: checking 0.0.0.0 won't work
+        
         if (ip.equals("0.0.0.0")) {
             source.sendMessage("Please specify the IP that you would connect with. 0.0.0.0 in the config tells Geyser to the listen on the server's IPv4.");
             return;
         }
 
-        // Issue: people testing local ip
+        
         if (ip.equals("localhost") || ip.startsWith("127.") || ip.startsWith("10.") || ip.startsWith("192.168.")) {
             source.sendMessage("This tool checks if connections from other networks are possible, so you cannot check a local IP.");
             return;
         }
 
-        // Issue: port out of bounds
+        
         if (port <= 0 || port >= 65535) {
             source.sendMessage("The port you specified is invalid! Please specify a valid port.");
             return;
@@ -107,7 +107,7 @@ public class ConnectionTestCommand extends GeyserCommand {
 
         GeyserConfig config = geyser.config();
 
-        // Issue: do the ports not line up? We only check this if players don't override the broadcast port - if they do, they (hopefully) know what they're doing
+        
         if (config.advanced().bedrock().broadcastPort() == config.bedrock().port()) {
             if (port != config.bedrock().port()) {
                 if (portArgument != null) {
@@ -133,12 +133,12 @@ public class ConnectionTestCommand extends GeyserCommand {
             }
         }
 
-        // Issue: is the `bedrock` `address` in the config different?
+        
         if (!config.bedrock().address().equals("0.0.0.0")) {
             source.sendMessage("The address specified in `bedrock` `address` is not \"0.0.0.0\" - this may cause issues unless this is deliberate and intentional.");
         }
 
-        // Issue: did someone turn on enable-proxy-protocol, and they didn't mean it?
+        
         if (config.advanced().bedrock().useHaproxyProtocol()) {
             source.sendMessage("You have the `use-haproxy-protocol` setting enabled. " +
                     "Unless you're deliberately using additional software that REQUIRES this setting, you may not need it enabled.");
@@ -146,7 +146,7 @@ public class ConnectionTestCommand extends GeyserCommand {
 
         CompletableFuture.runAsync(() -> {
             try {
-                // Issue: SRV record?
+                
                 String[] record = WebUtils.findSrvRecord(geyser, ip);
                 if (record != null && !ip.equals(record[3]) && !record[2].equals(String.valueOf(port))) {
                     source.sendMessage("Bedrock Edition does not support SRV records. Try connecting to your server using the address " + record[3] + " and the port " + record[2]
@@ -154,7 +154,7 @@ public class ConnectionTestCommand extends GeyserCommand {
                     return;
                 }
 
-                // Generate some random, unique bits that another server wouldn't provide
+                
                 byte[] randomBytes = new byte[2];
                 this.random.nextBytes(randomBytes);
                 StringBuilder randomStr = new StringBuilder();

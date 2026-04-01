@@ -38,9 +38,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public abstract class TameableEntity extends AnimalEntity {
-    /**
-     * Used in the interactive tag manager to track if the session player owns this entity
-     */
+    
     @Getter
     protected long ownerBedrockId;
 
@@ -56,9 +54,9 @@ public abstract class TameableEntity extends AnimalEntity {
     }
 
     public void setOwner(EntityMetadata<Optional<UUID>, ?> entityMetadata) {
-        // Note: Must be set for wolf collar color to work
+        
         if (entityMetadata.getValue().isPresent()) {
-            // Owner UUID of entity
+            
             UUID uuid = entityMetadata.getValue().get();
             Entity entity;
             if (uuid.equals(session.getPlayerEntity().uuid())) {
@@ -66,16 +64,16 @@ public abstract class TameableEntity extends AnimalEntity {
             } else {
                 entity = session.getEntityCache().getPlayerEntity(uuid);
             }
-            // Used as both a check since the player isn't in the entity cache and a normal fallback
+            
             if (entity == null) {
-                // Set to tame, but indicate that we are not the player that owns this
+                
                 ownerBedrockId = Long.MAX_VALUE;
             } else {
-                // Translate to entity ID
+                
                 ownerBedrockId = entity.geyserId();
             }
         } else {
-            // Reset
+            
             ownerBedrockId = 0L;
         }
         dirtyMetadata.put(EntityDataTypes.OWNER_EID, ownerBedrockId);

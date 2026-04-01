@@ -29,17 +29,10 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.net.InetSocketAddress;
 
-/**
- * Interface that retrieves ping passthrough information from the Java server
- */
+
 public interface IGeyserPingPassthrough {
 
-    /**
-     * Gets the ping information, including the MOTD and player count, from the server
-     *
-     * @param inetSocketAddress the ip address of the client pinging the server
-     * @return the ping information
-     */
+    
     @Nullable
     GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress);
 

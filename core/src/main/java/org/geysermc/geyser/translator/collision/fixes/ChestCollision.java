@@ -49,17 +49,17 @@ public class ChestCollision extends BlockCollision {
 
         final SessionPlayerEntity player = session.getPlayerEntity();
 
-        // Player didn't fall on the blocks yet, no need to move them down.
+        
         if (!player.isCollidingVertically()) {
             return;
         }
 
         final double collisionExpansion = CollisionManager.COLLISION_TOLERANCE * 2;
-        // Slightly expand the collision so we can see if the player is actually colliding with the block or not.
+        
         playerCollision.setSizeY(playerCollision.getSizeY() + collisionExpansion);
 
         double beforeYVelocity = player.getLastTickEndVelocity().getY();
-        // If the player is already colliding with the block or player velocity y is larger than 0, then the player likely does not need a correction
+        
         if (beforeYVelocity > 0 || playerCollision.getMin(Axis.Y) - player.position().getY() > 0 || this.checkIntersection(x, y, z, playerCollision)) {
             playerCollision.setSizeY(playerCollision.getSizeY() - collisionExpansion);
             return;
@@ -71,14 +71,14 @@ public class ChestCollision extends BlockCollision {
         previous.setMiddleY(player.position().getY() + (playerCollision.getSizeY() / 2));
         previous.setMiddleZ(player.getPosition().getZ());
 
-        // Check for chest bug (chest are 0.875 blocks thick on Java but 0.95 blocks thick on Bedrock)
-        // We grab the player velocity from last tick then apply collision on it, if the player can still fall then we correct
-        // their position to fall down. If not then just use the player current position. Also do the same when player is jumping, if player
-        // haven't collided yet, then correct them. Resolve #3277 and #4955
+        
+        
+        
+        
 
         Vector3d corrected = session.getCollisionManager().correctMovementForCollisions(Vector3d.from(0, beforeYVelocity, 0), previous, true, false);
         double yVelocity = Math.max(beforeYVelocity, corrected.getY());
-        // Player velocity is close enough, no need to correct, avoid moving player position silently if possible. Also don't move the player upwards.
+        
         if (Math.abs(beforeYVelocity - yVelocity) <= CollisionManager.COLLISION_TOLERANCE || yVelocity > CollisionManager.COLLISION_TOLERANCE) {
             return;
         }

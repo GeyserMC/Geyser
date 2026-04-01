@@ -79,15 +79,9 @@ public enum FireworkColor {
         return (byte) nearestTo(hsv).ordinal();
     }
 
-    // The following two methods were adapted from the Adventure project:
-    // https://github.com/KyoriPowered/adventure/blob/09edf74409feb52d9147a5a811910de0721acf95/api/src/main/java/net/kyori/adventure/text/format/NamedTextColor.java#L193-L237
-    /**
-     * Find the firework color nearest to the provided color.
-     *
-     * @param any color to match
-     * @return nearest named color. will always return a value
-     * @since 4.0.0
-     */
+    
+    
+    
     private static @NonNull FireworkColor nearestTo(final HSVLike any) {
         float matchedDistance = Float.MAX_VALUE;
         FireworkColor match = VALUES[0];
@@ -98,22 +92,15 @@ public enum FireworkColor {
                 matchedDistance = distance;
             }
             if (distance == 0) {
-                break; // same colour! whoo!
+                break; 
             }
         }
         return match;
     }
 
-    /**
-     * Returns a distance metric to the other color.
-     *
-     * <p>This value is unitless and should only be used to compare with other firework colors.</p>
-     *
-     * @param other color to compare to
-     * @return distance metric
-     */
+    
     private static float distance(final HSVLike self, final HSVLike other) {
-        // weight hue more heavily than saturation and brightness. kind of magic numbers, but is fine for our use case of downsampling to a set of colors
+        
         final float hueDistance = 3 * Math.min(Math.abs(self.h() - other.h()), 1f - Math.abs(self.h() - other.h()));
         final float saturationDiff = self.s() - other.s();
         final float valueDiff = self.v() - other.v();

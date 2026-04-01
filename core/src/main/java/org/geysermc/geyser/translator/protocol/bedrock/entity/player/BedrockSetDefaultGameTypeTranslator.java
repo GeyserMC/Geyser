@@ -37,16 +37,14 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 @Translator(packet = SetDefaultGameTypePacket.class)
 public class BedrockSetDefaultGameTypeTranslator extends PacketTranslator<SetDefaultGameTypePacket> {
 
-    /**
-     * Sets the default game mode for the server via the Bedrock client's "world" menu (given sufficient permissions).
-     */
+    
     @Override
     public void translate(GeyserSession session, SetDefaultGameTypePacket packet) {
         if (session.getOpPermissionLevel() >= 2 && session.hasPermission(Permissions.SERVER_SETTINGS)) {
             session.getGeyser().getWorldManager().setDefaultGameMode(session, GameMode.byId(packet.getGamemode()));
         }
-        // Stop the client from updating their own Gamemode without telling the server
-        // Can occur when client Gamemode is set to "default", and default game mode is changed.
+        
+        
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
         playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(session.getGameMode()).ordinal());
         session.sendUpstreamPacket(playerGameTypePacket);

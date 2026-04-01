@@ -31,9 +31,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
-/**
- * The packet sent for server-authoritative-style inventory transactions.
- */
+
 @Translator(packet = ItemStackRequestPacket.class)
 public class BedrockItemStackRequestTranslator extends PacketTranslator<ItemStackRequestPacket> {
 

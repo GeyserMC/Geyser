@@ -22,48 +22,38 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.entity.property;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
+package org.geysermc.geyser.api.entity.property
 
 /**
  * Collects property changes to be applied as a single, batched update to an entity.
- * <p>
+ * 
+ * 
  * Notes:
- * <ul>
- *     <li>Passing {@code null} as a value resets the property to its default.</li>
- *     <li>Numeric properties must be within declared ranges; enum properties must use an allowed value.</li>
- *     <li>Multiple updates to the same property within a single batch will result in the last value being applied.</li>
- *     <li>The updater is short-lived and should not be retained outside the batching callback.</li>
- * </ul>
- *
- * <pre>{@code
- * entity.updatePropertiesBatched(updater -> {
- *     updater.update(SOME_FLOAT_PROPERTY, 0.15f);
- *     updater.update(SOME_BOOLEAN_PROPERTY, true);
- *     updater.update(SOME_INT_PROPERTY, null); // reset to default
- * });
- * }</pre>
- *
+ * 
+ *  * Passing `null` as a value resets the property to its default.
+ *  * Numeric properties must be within declared ranges; enum properties must use an allowed value.
+ *  * Multiple updates to the same property within a single batch will result in the last value being applied.
+ *  * The updater is short-lived and should not be retained outside the batching callback.
+ * 
+ * 
+ * <pre>`entity.updatePropertiesBatched(updater -> {     updater.update(SOME_FLOAT_PROPERTY, 0.15f);     updater.update(SOME_BOOLEAN_PROPERTY, true);     updater.update(SOME_INT_PROPERTY, null); // reset to default }); `</pre>
+ * 
  * @since 2.9.0
  */
 @FunctionalInterface
-public interface BatchPropertyUpdater {
-
+interface BatchPropertyUpdater {
     /**
      * Queues an update for the given property within the current batch.
-     * <p>
-     * If {@code value} is {@code null}, the property will be reset to its default value
-     * as declared when the property was registered during the {@link GeyserDefineEntityPropertiesEvent}.
-     *
-     * @param property a {@link GeyserEntityProperty} registered for the target entity type
-     * @param value    the new value, or {@code null} to reset to the default
+     * 
+     * 
+     * If `value` is `null`, the property will be reset to its default value
+     * as declared when the property was registered during the [GeyserDefineEntityPropertiesEvent].
+     * 
+     * @param property a [GeyserEntityProperty] registered for the target entity type
+     * @param value    the new value, or `null` to reset to the default
      * @param <T>      the property's value type
-     *
+     * 
      * @since 2.9.0
-     */
-    <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value);
+    </T> */
+    fun <T> update(property: GeyserEntityProperty<T?>, value: T?)
 }

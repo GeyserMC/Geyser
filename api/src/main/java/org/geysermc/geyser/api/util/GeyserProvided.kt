@@ -22,14 +22,7 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.util;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package org.geysermc.geyser.api.util
 
 /**
  * Annotation used to mark interfaces and classes that should not be implemented / extended by developers
@@ -37,8 +30,7 @@ import java.lang.annotation.Target;
  * with this annotation will result in exceptions.
  * @since 2.9.3
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-public @interface GeyserProvided {
-}
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.RUNTIME)
+@MustBeDocumented
+annotation class GeyserProvided 

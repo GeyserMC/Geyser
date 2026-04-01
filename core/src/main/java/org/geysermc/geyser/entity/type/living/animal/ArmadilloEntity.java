@@ -65,12 +65,12 @@ public class ArmadilloEntity extends AnimalEntity {
     }
 
     public void onPeeking() {
-        // Technically we should wait if not currently scared
+        
         if (armadilloState == ArmadilloState.SCARED) {
             STATE_PROPERTY.apply(propertyManager, State.ROLLED_UP_PEEKING);
             updateBedrockEntityProperties();
 
-            // Needed for consecutive peeks
+            
             session.scheduleInEventLoop(() -> {
                 if (armadilloState == ArmadilloState.SCARED) {
                     STATE_PROPERTY.apply(propertyManager, State.ROLLED_UP_RELAXING);

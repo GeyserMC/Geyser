@@ -32,13 +32,9 @@ import lombok.Getter;
 
 @Getter
 public class EnchantingContainer extends Container {
-    /**
-     * A cache of what Bedrock sees
-     */
+    
     private final EnchantOptionData[] enchantOptions;
-    /**
-     * A mutable cache of what the server sends us
-     */
+    
     private final GeyserEnchantOption[] geyserEnchantOptions;
 
     public EnchantingContainer(GeyserSession session, String title, int id, int size, ContainerType containerType) {
@@ -48,8 +44,8 @@ public class EnchantingContainer extends Container {
         geyserEnchantOptions = new GeyserEnchantOption[3];
         for (int i = 0; i < geyserEnchantOptions.length; i++) {
             geyserEnchantOptions[i] = new GeyserEnchantOption(i);
-            // Options cannot be null, so we build initial options
-            // GeyserConnection can be safely null here because it's only needed for net IDs
+            
+            
             enchantOptions[i] = geyserEnchantOptions[i].build(null);
         }
     }

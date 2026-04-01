@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.item.hashing.data.entity;
 
-// Ordered and named by Java ID
+
 public enum FoxVariant {
     RED,
     SNOW

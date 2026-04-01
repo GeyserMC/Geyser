@@ -76,7 +76,7 @@ public class GeyserNonVanillaCustomItemDefinition extends GeyserCustomItemDefini
         private String translationString;
 
         public Builder(@NonNull Identifier identifier, @NonNull Identifier bedrockIdentifier, int javaId) {
-            super(bedrockIdentifier, identifier); // TODO different models?
+            super(bedrockIdentifier, identifier); 
             this.identifier = identifier;
             this.javaId = javaId;
         }

@@ -35,7 +35,7 @@ import java.util.Locale;
 @Getter
 public enum Potion {
     WATER(0, ArrowParticleColors.NONE),
-    MUNDANE(1, ArrowParticleColors.NONE), // 2 is extended?
+    MUNDANE(1, ArrowParticleColors.NONE), 
     THICK(3, ArrowParticleColors.NONE),
     AWKWARD(4, ArrowParticleColors.NONE),
     NIGHT_VISION(5, ArrowParticleColors.NIGHT_VISION),
@@ -73,7 +73,7 @@ public enum Potion {
     STRONG_STRENGTH(33, ArrowParticleColors.STRENGTH),
     WEAKNESS(34, ArrowParticleColors.WEAKNESS),
     LONG_WEAKNESS(35, ArrowParticleColors.WEAKNESS),
-    LUCK(2, ArrowParticleColors.LUCK), // does not exist in Bedrock
+    LUCK(2, ArrowParticleColors.LUCK), 
     SLOW_FALLING(40, ArrowParticleColors.SLOW_FALLING),
     LONG_SLOW_FALLING(41, ArrowParticleColors.SLOW_FALLING),
     WIND_CHARGING(43, ArrowParticleColors.WIND_CHARGING),
@@ -94,7 +94,7 @@ public enum Potion {
     }
 
     public int tippedArrowId() {
-        // +1 likely to offset 0 as nothing?
+        
         return this.bedrockId + 1;
     }
 
@@ -140,10 +140,7 @@ public enum Potion {
         return (byte) 0;
     }
 
-    /**
-     * For tipped arrow usage
-     * https://minecraft.wiki/w/Effect_colors#Potion_colors
-     */
+    
     private static final class ArrowParticleColors {
         static final int NONE = 3694022;
         static final int NIGHT_VISION = 12779366;

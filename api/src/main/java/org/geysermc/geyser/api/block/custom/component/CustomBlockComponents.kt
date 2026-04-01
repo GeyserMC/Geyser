@@ -22,344 +22,342 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
+package org.geysermc.geyser.api.block.custom.component
 
-package org.geysermc.geyser.api.block.custom.component;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.checkerframework.common.returnsreceiver.qual.This;
-import org.geysermc.geyser.api.GeyserApi;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.checkerframework.common.returnsreceiver.qual.This
+import org.geysermc.geyser.api.GeyserApi
 
 /**
  * This class is used to store components for a custom block or custom block permutation.
  * @since 2.2.0
  */
-public interface CustomBlockComponents {
-
+interface CustomBlockComponents {
     /**
      * Gets the selection box component
      * Equivalent to "minecraft:selection_box"
-     *
+     * 
      * @return the selection box
      * @since 2.2.0
      */
-    @Nullable BoxComponent selectionBox();
+    fun selectionBox(): BoxComponent?
 
     /**
      * Gets the collision box component
      * Equivalent to "minecraft:collision_box"
-     *
+     * 
      * @return the collision box
-     * @deprecated Use {@link #collisionBoxes()} instead
      * @since 2.2.0
      */
-    @Deprecated(since = "2.9.5")
-    @Nullable BoxComponent collisionBox();
+    @Deprecated(
+        """Use {@link #collisionBoxes()} instead
+      """
+    )
+    fun collisionBox(): BoxComponent?
 
     /**
      * Gets the collision boxes component.
      * Equivalent to "minecraft:collision_box", which can be either one,
      * none, or up to 16 collision boxes.
-     *
+     * 
      * @return the collision boxes
      * @since 2.9.5
      */
-    @NonNull Set<BoxComponent> collisionBoxes();
+    fun collisionBoxes(): MutableSet<BoxComponent?>
 
     /**
      * Gets the display name component.
      * Equivalent to "minecraft:display_name"
-     *
+     * 
      * @return the display name
      * @since 2.2.0
      */
-    @Nullable String displayName();
+    fun displayName(): String?
 
     /**
      * Gets the geometry component.
      * Equivalent to "minecraft:geometry"
-     *
+     * 
      * @return the geometry
      * @since 2.2.0
      */
-    @Nullable GeometryComponent geometry();
+    fun geometry(): GeometryComponent?
 
     /**
      * Gets the material instances component
      * Equivalent to "minecraft:material_instances"
-     *
+     * 
      * @return the material instances
      * @since 2.2.0
      */
-    @NonNull Map<String, MaterialInstance> materialInstances();
+    fun materialInstances(): MutableMap<String?, MaterialInstance?>
 
     /**
      * Gets the placement filter component
      * Equivalent to "minecraft:placement_filter"
-     *
+     * 
      * @return the placement filter
      * @since 2.2.0
      */
-    @Nullable List<PlacementConditions> placementFilter();
+    fun placementFilter(): MutableList<PlacementConditions?>?
 
     /**
      * Gets the destructible by mining component
      * Equivalent to "minecraft:destructible_by_mining"
-     *
+     * 
      * @return the destructible by mining value
      * @since 2.2.0
      */
-    @Nullable Float destructibleByMining();
+    fun destructibleByMining(): Float?
 
     /**
      * Gets the friction component
      * Equivalent to "minecraft:friction"
-     *
+     * 
      * @return the friction value
      * @since 2.2.0
      */
-    @Nullable Float friction();
+    fun friction(): Float?
 
     /**
      * Gets the light emission component
      * Equivalent to "minecraft:light_emission"
-     *
+     * 
      * @return the light emission value
      * @since 2.2.0
      */
-    @Nullable Integer lightEmission();
+    fun lightEmission(): Int?
 
     /**
      * Gets the light dampening component
      * Equivalent to "minecraft:light_dampening"
-     *
+     * 
      * @return the light dampening value
      * @since 2.2.0
      */
-    @Nullable Integer lightDampening();
+    fun lightDampening(): Int?
 
     /**
      * Gets the transformation component
      * Equivalent to "minecraft:transformation"
-     *
+     * 
      * @return the transformation
      * @since 2.2.0
      */
-    @Nullable TransformationComponent transformation();
+    fun transformation(): TransformationComponent?
 
     /**
      * Gets the unit cube component
      * Equivalent to "minecraft:unit_cube"
-     *
-     * @deprecated Use {@link #geometry()} and compare with `minecraft:geometry.full_block` instead.
+     * 
      * @return whether this block is a unit cube
      * @since 2.2.0
      */
-    @Deprecated(since = "2.2.2")
-    boolean unitCube();
+    @Deprecated(
+        """Use {@link #geometry()} and compare with `minecraft:geometry.full_block` instead.
+      """
+    )
+    fun unitCube(): Boolean
 
     /**
      * Gets if the block should place only air
      * Equivalent to setting a dummy event to run on "minecraft:on_player_placing"
-     *
+     * 
      * @return if the block should place only air
      * @since 2.2.0
      */
-    boolean placeAir();
+    fun placeAir(): Boolean
 
     /**
      * Gets the set of tags
      * Equivalent to "tag:some_tag"
-     *
+     * 
      * @return the set of tags
      * @since 2.2.0
      */
-    @NonNull Set<String> tags();
-
-    /**
-     * Create a Builder for CustomBlockComponents
-     *
-     * @return a {@link CustomBlockComponents.Builder}
-     * @since 2.2.0
-     */
-    static CustomBlockComponents.Builder builder() {
-        return GeyserApi.api().provider(CustomBlockComponents.Builder.class);
-    }
+    fun tags(): MutableSet<String?>
 
     interface Builder {
         /**
          * Sets a selection box for the block. Unlike Java Edition, there can only
          * be one selection box.
-         *
-         * @see CustomBlockComponents#selectionBox()
+         * 
+         * @see CustomBlockComponents.selectionBox
          * @param selectionBox a selection box, or null for none
          * @return this builder
          * @since 2.2.0
          */
-        @This Builder selectionBox(@Nullable BoxComponent selectionBox);
+        fun selectionBox(selectionBox: BoxComponent?): @This Builder?
 
         /**
          * Sets a collision box for the block. Can be null to disable collisions.
-         *
-         * @deprecated use {@link #collisionBoxes(BoxComponent...)} instead
+         * 
          * @param collisionBox the collision box to set
          * @return this builder
          * @since 2.2.0
          */
-        @Deprecated(since = "2.9.5")
-        @This Builder collisionBox(@Nullable BoxComponent collisionBox);
+        @Deprecated(
+            """use {@link #collisionBoxes(BoxComponent...)} instead
+          """
+        )
+        fun collisionBox(collisionBox: BoxComponent?): @This Builder?
 
         /**
          * Sets up to 16 different collision boxes for the block. Can be null to disable collisions.
-         *
-         * @see CustomBlockComponents#collisionBoxes()
+         * 
+         * @see CustomBlockComponents.collisionBoxes
          * @param collisionBoxes the collision boxes to set
          * @return this builder
          * @since 2.9.5
          */
-        @This Builder collisionBoxes(@Nullable BoxComponent... collisionBoxes);
+        fun collisionBoxes(vararg collisionBoxes: BoxComponent?): @This Builder?
 
         /**
          * Convenience method to set collision boxes for the block. Can be null to disable collisions.
-         *
-         * @see CustomBlockComponents#collisionBoxes()
+         * 
+         * @see CustomBlockComponents.collisionBoxes
          * @param collisionBoxes the collection of collision boxes to set
          * @return this builder
          * @since 2.9.5
          */
-        @This Builder collisionBoxes(@Nullable Collection<BoxComponent> collisionBoxes);
+        fun collisionBoxes(collisionBoxes: MutableCollection<BoxComponent?>?): @This Builder?
 
         /**
          * Sets the display name of the block.
-         *
-         * @see CustomBlockComponents#displayName()
+         * 
+         * @see CustomBlockComponents.displayName
          * @param displayName the display name to set
          * @return this builder
          * @since 2.2.0
          */
-        @This Builder displayName(String displayName);
+        fun displayName(displayName: String?): @This Builder?
 
         /**
          * Sets the geometry of the block.
-         *
-         * @see CustomBlockComponents#geometry()
+         * 
+         * @see CustomBlockComponents.geometry
          * @param geometry the geometry to set
          * @return this builder
          * @since 2.2.0
          */
-         @This Builder geometry(GeometryComponent geometry);
+        fun geometry(geometry: GeometryComponent?): @This Builder?
 
         /**
          * Sets the material instances of the block.
-         *
-         * @see CustomBlockComponents#materialInstances()
+         * 
+         * @see CustomBlockComponents.materialInstances
          * @param name the name of the material instance
          * @param materialInstance the material instance to set
          * @return this builder
          * @since 2.2.0
          */
-        @This Builder materialInstance(@NonNull String name, @NonNull MaterialInstance materialInstance);
+        fun materialInstance(name: String, materialInstance: MaterialInstance): @This Builder?
 
         /**
          * Sets the placement filter of the block.
-         *
-         * @see CustomBlockComponents#placementFilter()
+         * 
+         * @see CustomBlockComponents.placementFilter
          * @param placementConditions the placement conditions to set
          * @return this builder
          * @since 2.2.0
          */
-         @This Builder placementFilter(List<PlacementConditions> placementConditions);
+        fun placementFilter(placementConditions: MutableList<PlacementConditions?>?): @This Builder?
 
         /**
          * Sets the destructible by mining value of the block.
-         *
-         * @see CustomBlockComponents#destructibleByMining()
+         * 
+         * @see CustomBlockComponents.destructibleByMining
          * @param destructibleByMining the destructible by mining value to set
          * @return this builder
          * @since 2.2.0
          */
-        @This Builder destructibleByMining(Float destructibleByMining);
+        fun destructibleByMining(destructibleByMining: Float?): @This Builder?
 
         /**
          * Sets the friction value of the block.
-         *
-         * @see CustomBlockComponents#friction()
+         * 
+         * @see CustomBlockComponents.friction
          * @param friction the friction value to set
          * @return this builder
          * @since 2.2.0
          */
-        @This Builder friction(Float friction);
+        fun friction(friction: Float?): @This Builder?
 
         /**
          * Sets the light emission value of the block.
-         *
-         * @see CustomBlockComponents#lightEmission()
+         * 
+         * @see CustomBlockComponents.lightEmission
          * @param lightEmission the light emission value to set
          * @return this builder
          * @since 2.2.0
          */
-        @This Builder lightEmission(Integer lightEmission);
+        fun lightEmission(lightEmission: Int?): @This Builder?
 
         /**
          * Sets the light dampening value of the block.
-         *
-         * @see CustomBlockComponents#lightDampening()
+         * 
+         * @see CustomBlockComponents.lightDampening
          * @param lightDampening the light dampening value to set
          * @return this builder
          * @since 2.2.0
          */
-        @This Builder lightDampening(Integer lightDampening);
+        fun lightDampening(lightDampening: Int?): @This Builder?
 
         /**
          * Sets the transformation of the block.
-         *
-         * @see CustomBlockComponents#transformation()
+         * 
+         * @see CustomBlockComponents.transformation
          * @param transformation the transformation to set
          * @return this builder
          * @since 2.2.0
          */
-        @This Builder transformation(TransformationComponent transformation);
+        fun transformation(transformation: TransformationComponent?): @This Builder?
 
         /**
          * Sets the unit cube value, equivalent to setting a full block geometry.
-         *
-         * @see CustomBlockComponents#unitCube()
-         * @deprecated Use {@link #geometry(GeometryComponent)} with `minecraft:geometry.full_block` instead.
+         * 
+         * @see CustomBlockComponents.unitCube
          */
-        @Deprecated(since = "2.2.2")
-        @This Builder unitCube(boolean unitCube);
+        @Deprecated("Use {@link #geometry(GeometryComponent)} with `minecraft:geometry.full_block` instead.")
+        fun unitCube(unitCube: Boolean): @This Builder?
 
         /**
          * Whether the block should place only air, overriding the default behavior.
-         *
-         * @see CustomBlockComponents#placeAir()
+         * 
+         * @see CustomBlockComponents.placeAir
          * @param placeAir whether the block should place only air
          * @return this builder
          * @since 2.2.0
          */
-        @This Builder placeAir(boolean placeAir);
+        fun placeAir(placeAir: Boolean): @This Builder?
 
         /**
          * Sets the set of tags for the block.
-         *
-         * @see CustomBlockComponents#tags()
+         * 
+         * @see CustomBlockComponents.tags
          * @param tags the set of tags to set
          * @return this builder
          * @since 2.2.0
          */
-        @This Builder tags(@Nullable Set<String> tags);
+        fun tags(tags: MutableSet<String?>?): @This Builder?
 
         /**
          * Builds these CustomBlockComponents.
-         *
+         * 
          * @return the built CustomBlockComponents
          * @since 2.2.0
          */
-        CustomBlockComponents build();
+        fun build(): CustomBlockComponents?
+    }
+
+    companion object {
+        /**
+         * Create a Builder for CustomBlockComponents
+         * 
+         * @return a [CustomBlockComponents.Builder]
+         * @since 2.2.0
+         */
+        fun builder(): Builder {
+            return GeyserApi.Companion.api().provider<Builder, Builder?>(Builder::class.java)
+        }
     }
 }

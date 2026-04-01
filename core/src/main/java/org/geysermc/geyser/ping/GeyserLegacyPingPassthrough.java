@@ -60,14 +60,10 @@ public class GeyserLegacyPingPassthrough extends Thread implements IGeyserPingPa
 
     private GeyserPingInfo pingInfo;
 
-    /**
-     * Start legacy ping passthrough thread
-     * @param geyser Geyser
-     * @return GeyserPingPassthrough, or null if not initialized
-     */
+    
     public static @Nullable IGeyserPingPassthrough init(GeyserImpl geyser) {
         if (geyser.config().motd().passthroughMotd() || geyser.config().motd().passthroughPlayerCounts()) {
-            // Ensure delay is not zero
+            
             int interval = (geyser.config().motd().pingPassthroughInterval() == 0) ? 1 : geyser.config().motd().pingPassthroughInterval();
             geyser.getLogger().debug("Scheduling ping passthrough at an interval of " + interval + " second(s).");
             GeyserLegacyPingPassthrough pingPassthrough = new GeyserLegacyPingPassthrough(geyser, interval);
@@ -107,8 +103,8 @@ public class GeyserLegacyPingPassthrough extends Thread implements IGeyserPingPa
 
                 try (DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream())) {
                     if (geyser.config().advanced().java().useHaproxyProtocol()) {
-                        // HAProxy support
-                        // Based on https://github.com/netty/netty/blob/d8ad931488f6b942dabe28ecd6c399b4438da0a8/codec-haproxy/src/main/java/io/netty/handler/codec/haproxy/HAProxyMessageEncoder.java#L78
+                        
+                        
                         dataOutputStream.write(HAPROXY_BINARY_PREFIX);
                         dataOutputStream.writeByte((0x02 << 4) | HAProxyCommand.PROXY.byteValue());
                         dataOutputStream.writeByte(socket.getLocalAddress() instanceof Inet4Address ?
@@ -153,7 +149,7 @@ public class GeyserLegacyPingPassthrough extends Thread implements IGeyserPingPa
                 this.pingInfo = null;
                 this.geyser.getLogger().warning("Failed to ping the remote Java server! Is it online and configured in Geyser's config?");
             } catch (UnknownHostException ex) {
-                // Don't reset pingInfo, as we want to keep the last known value
+                
                 this.geyser.getLogger().warning("Unable to resolve remote host! Is the remote server down or invalid?");
             } catch (IOException e) {
                 this.geyser.getLogger().error("IO error while trying to use legacy ping passthrough", e);
@@ -162,7 +158,7 @@ public class GeyserLegacyPingPassthrough extends Thread implements IGeyserPingPa
             try {
                 Thread.sleep(interval);
             } catch (InterruptedException ex) {
-                // no-op
+                
             }
         }
     }

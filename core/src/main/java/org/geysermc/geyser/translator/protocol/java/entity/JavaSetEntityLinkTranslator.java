@@ -35,9 +35,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityLinkPacket;
 
-/**
- * Called when a leash is attached, removed or updated from an entity
- */
+
 @Translator(packet = ClientboundSetEntityLinkPacket.class)
 public class JavaSetEntityLinkTranslator extends PacketTranslator<ClientboundSetEntityLinkPacket> {
 
@@ -50,7 +48,7 @@ public class JavaSetEntityLinkTranslator extends PacketTranslator<ClientboundSet
 
         Entity attachedToId = session.getEntityCache().getEntityByJavaId(packet.getAttachedToId());
         if (attachedToId == null || packet.getAttachedToId() == 0) {
-            // Is not being leashed
+            
             holderId.setFlag(EntityFlag.LEASHED, false);
             asLeashable.setLeashHolderBedrockId(-1L);
             holderId.updateBedrockMetadata();

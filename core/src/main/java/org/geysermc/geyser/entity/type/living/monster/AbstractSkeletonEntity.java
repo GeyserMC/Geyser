@@ -41,7 +41,7 @@ public class AbstractSkeletonEntity extends MonsterEntity {
     public void setMobFlags(ByteEntityMetadata entityMetadata) {
         super.setMobFlags(entityMetadata);
         byte xd = entityMetadata.getPrimitiveValue();
-        // A bit of a loophole so the hands get raised - set the target ID to its own ID
+        
         dirtyMetadata.put(EntityDataTypes.TARGET_EID, ((xd & 4) == 4) ? geyserId : 0);
 
         if ((xd & 4) == 4) {

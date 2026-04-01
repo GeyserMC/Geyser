@@ -54,7 +54,7 @@ public class EndPortalCollision extends BlockCollision {
             return;
         }
 
-        // Check for end portal frame bug (BE don't have the eye collision when the end portal frame contain an eye unlike JE)
+        
         blockCollision.pushOutOfBoundingBox(playerCollision, Direction.UP, MAX_PUSH_DISTANCE);
     }
 }

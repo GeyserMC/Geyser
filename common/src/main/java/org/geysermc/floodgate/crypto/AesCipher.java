@@ -90,7 +90,7 @@ public final class AesCipher implements FloodgateCipher {
         if (topping != null) {
             int mark = buffer.position();
 
-            // we need the first index, the second is for the actual data
+            
             boolean found = false;
             while (buffer.hasRemaining() && !found) {
                 if (buffer.get() == 0x21) {
@@ -98,16 +98,16 @@ public final class AesCipher implements FloodgateCipher {
                 }
             }
 
-            ivLength = buffer.position() - mark - 1; // don't include the splitter itself
-            // don't remove this cast, it'll cause problems if you remove it
-            ((Buffer) buffer).position(mark); // reset to the pre-while index
+            ivLength = buffer.position() - mark - 1; 
+            
+            ((Buffer) buffer).position(mark); 
         }
 
         byte[] iv = new byte[ivLength];
         buffer.get(iv);
 
-        // don't remove this cast, it'll cause problems if you remove it
-        ((Buffer) buffer).position(buffer.position() + 1); // skip splitter
+        
+        ((Buffer) buffer).position(buffer.position() + 1); 
 
         byte[] cipherText = new byte[buffer.remaining()];
         buffer.get(cipherText);

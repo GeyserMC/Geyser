@@ -70,8 +70,8 @@ public class ArmorItem extends Item {
 
             if (material != null && pattern != null) {
                 NbtMapBuilder trimBuilder = NbtMap.builder();
-                // Strip namespace from identifiers - Bedrock expects just the path part
-                // e.g., "minecraft:iron" -> "iron", "civilization:frost_trim" -> "frost_trim"
+                
+                
                 String materialId = material.getMaterialId();
                 String patternId = pattern.getPatternId();
                 int colonIdx;

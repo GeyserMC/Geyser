@@ -45,20 +45,14 @@ import java.util.Optional;
 
 public class InteractionEntity extends Entity {
 
-    /**
-     * true - java client hears swing sound when attacking, and arm swings when right-clicking
-     * false - java client hears no swing sound when attacking, and arm does not swing when right-clicking
-     */
+    
     private boolean response = false;
 
     public InteractionEntity(EntitySpawnContext context) {
         super(context);
     }
 
-    /**
-     * On Java Edition, interaction entities can have a nametag. Invisibility hides the name on Bedrock.
-     * By having a second entity, we can still show the nametag while keeping the interaction entity invisible.
-     */
+    
     private ArmorStandEntity secondEntity = null;
     private boolean isInvisible = false;
 
@@ -66,13 +60,13 @@ public class InteractionEntity extends Entity {
     protected void initializeMetadata() {
         super.initializeMetadata();
 
-        // hide the armor stand but keep the hitbox active
+        
         setFlag(EntityFlag.INVISIBLE, true);
     }
 
     @Override
     protected void setInvisible(boolean value) {
-        // Always invisible; would reveal the armor stand otherwise
+        
         isInvisible = value;
         this.updateNameTag();
     }
@@ -91,8 +85,8 @@ public class InteractionEntity extends Entity {
 
     @Override
     public InteractionResult interact(Hand hand) {
-        // these InteractionResults do mirror the java client
-        // but the bedrock client won't arm swing itself because of our armor stand workaround
+        
+        
         if (response) {
             AnimatePacket animatePacket = new AnimatePacket();
             animatePacket.setRuntimeEntityId(session.getPlayerEntity().geyserId());
@@ -132,9 +126,9 @@ public class InteractionEntity extends Entity {
     }
 
     public void setHeight(FloatEntityMetadata height) {
-        // Bedrock does *not* like high values being placed here
-        // https://gist.github.com/Owen1212055/f5d59169d3a6a5c32f0c173d57eb199d recommend(s/ed) using the tactic
-        // https://github.com/GeyserMC/Geyser/issues/4688
+        
+        
+        
         setBoundingBoxHeight(Math.min(height.getPrimitiveValue(), 64f));
 
         if (secondEntity != null) {
@@ -148,9 +142,9 @@ public class InteractionEntity extends Entity {
 
     @Override
     public void updateBedrockMetadata() {
-        // Bundle metadata updates to ensure they aren't ignored
+        
         if (secondEntity != null) {
-            if (!secondEntity.valid) { // Spawn the entity once
+            if (!secondEntity.valid) { 
                 secondEntity.spawnEntity();
             } else {
                 secondEntity.updateBedrockMetadata();
@@ -173,9 +167,9 @@ public class InteractionEntity extends Entity {
         }
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, customNameVisible ? (byte) 1 : (byte) 0);
-        // Scale to 0 to show nametag
+        
         secondEntity.setScale(0f);
-        // No bounding box as we don't want to interact with this entity
+        
         secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);

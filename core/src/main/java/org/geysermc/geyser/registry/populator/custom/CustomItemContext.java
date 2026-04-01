@@ -43,59 +43,24 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-/**
- * Contains various context properties regarding a custom item definition.
- *
- * @param definition the custom item definition itself
- * @param components the full component map of the custom item definition. For vanilla-item overrides, this is the component patch applied on top of the vanilla item's default components. For non-vanilla items, this is the default components that were set in the API.
- * @param resolvableComponents for non-vanilla custom items, any components that should be resolved once the session has finished the configuration phase
- * @param vanillaMapping for vanilla-item overrides, the vanilla bedrock mapping of the item
- * @param customItemId the bedrock ID of the item
- * @param protocolVersion the bedrock protocol version
- */
+
 public record CustomItemContext(CustomItemDefinition definition, DataComponents components, List<ResolvableComponent<?>> resolvableComponents,
                                 Optional<GeyserMappingItem> vanillaMapping, int customItemId, int protocolVersion) {
 
-    /**
-     * Creates a CustomItemContext for a vanilla-item override. This patches the component patch of the {@code CustomItemDefinition} onto the default components of the {@code javaItem}
-     *
-     * @param javaItem the vanilla Java item
-     * @param vanillaMapping the mapping of the vanilla Java item
-     * @param customItem the custom item definition
-     * @param customItemId the bedrock ID of the item
-     * @param protocolVersion the bedrock protocol version
-     * @return the created context
-     * @throws InvalidItemComponentsException when the custom item definition has an invalid combination of components in its component patch
-     */
+    
     public static CustomItemContext createVanillaAndValidateComponents(Item javaItem, GeyserMappingItem vanillaMapping, CustomItemDefinition customItem,
                                                                        int customItemId, int protocolVersion, boolean firstPass) throws InvalidItemComponentsException {
         return new CustomItemContext(customItem, checkComponents(customItem, javaItem, resolvable -> {}, firstPass), List.of(), Optional.of(vanillaMapping), customItemId, protocolVersion);
     }
 
-    /**
-     * Creates a CustomItemContext for a non-vanilla custom item.
-     *
-     * @param customItem the non-vanilla custom item definition
-     * @param customItemId the bedrock ID of the item
-     * @param protocolVersion the bedrock protocol version
-     * @return the created context
-     * @throws InvalidItemComponentsException when the custom item definition has an invalid combination of components in its component patch
-     */
+    
     public static CustomItemContext createNonVanillaAndValidateComponents(NonVanillaCustomItemDefinition customItem, int customItemId, int protocolVersion, boolean firstPass) throws InvalidItemComponentsException {
         List<ResolvableComponent<?>> resolvableComponents = new ArrayList<>();
         DataComponents components = checkComponents(customItem, null, resolvableComponents::add, firstPass);
         return new CustomItemContext(customItem, components, resolvableComponents, Optional.empty(), customItemId, protocolVersion);
     }
 
-    /**
-     * Check for illegal combinations of item components that can be specified in the custom item API, and validated components that can't be checked in the API, e.g. components that reference items.
-     *
-     * <p>Note that, component validation is preferred to occur early in the API module. This method should primarily check for illegal <em>combinations</em> of item components.
-     * It is expected that the values of the components separately have already been validated when possible (for example, it is expected that stack size is in the range [1, 99]).</p>
-     *
-     * @param javaItem the vanilla item to patch components on to, can be null for non-vanilla custom items
-     * @return the custom data components patched on the vanilla item's components (if present), validated
-     */
+    
     private static DataComponents checkComponents(CustomItemDefinition definition, Item javaItem, Consumer<ResolvableComponent<?>> resolvableConsumer, boolean firstPass) throws InvalidItemComponentsException {
         DataComponents components = patchDataComponents(javaItem, definition, resolvableConsumer);
         int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 0);
@@ -112,18 +77,11 @@ public record CustomItemContext(CustomItemDefinition definition, DataComponents 
         return components;
     }
 
-    /**
-     * Converts the API components to MCPL ones using the converters in {@link ComponentConverters}, and applies these on top of the default item components.
-     *
-     * <p>Note that not every API component has a converter in {@link ComponentConverters}. See the documentation there.</p>
-     *
-     * @param javaItem can be null for non-vanilla custom items
-     * @see ComponentConverters
-     */
+    
     private static DataComponents patchDataComponents(@Nullable Item javaItem, CustomItemDefinition definition, Consumer<ResolvableComponent<?>> resolvableConsumer) throws InvalidItemComponentsException {
         DataComponents convertedComponents = ComponentConverters.convertComponentPatch(definition.components(), definition.removedComponents(), resolvableConsumer);
         if (javaItem != null) {
-            // componentCache can be null here because javaItem will always be a vanilla item
+            
             return javaItem.gatherComponents(null, convertedComponents);
         }
         return convertedComponents;

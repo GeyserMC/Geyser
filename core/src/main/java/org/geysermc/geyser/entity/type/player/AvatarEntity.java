@@ -85,8 +85,8 @@ public abstract class AvatarEntity extends LivingEntity {
         AbilityLayer abilityLayer = new AbilityLayer();
         abilityLayer.setLayerType(AbilityLayer.Type.BASE);
         Ability[] abilities = Ability.values();
-        Collections.addAll(abilityLayer.getAbilitiesSet(), abilities); // Apparently all the abilities you're working with
-        Collections.addAll(abilityLayer.getAbilityValues(), abilities); // Apparently all the abilities the player can work with
+        Collections.addAll(abilityLayer.getAbilitiesSet(), abilities); 
+        Collections.addAll(abilityLayer.getAbilityValues(), abilities); 
         BASE_ABILITY_LAYER = Collections.singletonList(abilityLayer);
     }
 
@@ -99,7 +99,7 @@ public abstract class AvatarEntity extends LivingEntity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        // For the OptionalPack, set all bits as invisible by default as this matches Java Edition behavior
+        
         dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, 0xff);
     }
 
@@ -110,7 +110,7 @@ public abstract class AvatarEntity extends LivingEntity {
         addPlayerPacket.setUsername(username);
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
-        addPlayerPacket.setPosition(position()); // No offset sent here, apparently?
+        addPlayerPacket.setPosition(position()); 
         addPlayerPacket.setRotation(bedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(ItemTranslator.translateToBedrock(session, getMainHandItem()));
@@ -118,8 +118,8 @@ public abstract class AvatarEntity extends LivingEntity {
         addPlayerPacket.getAdventureSettings().setPlayerPermission(PlayerPermission.MEMBER);
         addPlayerPacket.setDeviceId("");
         addPlayerPacket.setPlatformChatId("");
-        addPlayerPacket.setGameType(GameType.SURVIVAL); //TODO
-        addPlayerPacket.setAbilityLayers(BASE_ABILITY_LAYER); // Recommended to be added since 1.19.10, but only needed here for permissions viewing
+        addPlayerPacket.setGameType(GameType.SURVIVAL); 
+        addPlayerPacket.setAbilityLayers(BASE_ABILITY_LAYER); 
         addPlayerPacket.getMetadata().putFlags(flags);
         dirtyMetadata.apply(addPlayerPacket.getMetadata());
 
@@ -129,7 +129,7 @@ public abstract class AvatarEntity extends LivingEntity {
         session.sendUpstreamPacket(addPlayerPacket);
     }
 
-    // The player entity already lerps client-sided on bedrock
+    
     @Override
     public boolean shouldLerp() {
         return false;
@@ -157,7 +157,7 @@ public abstract class AvatarEntity extends LivingEntity {
         session.sendUpstreamPacket(movePlayerPacket);
 
         if (teleported && !(this instanceof SessionPlayerEntity)) {
-            // As of 1.19.0, head yaw seems to be ignored during teleports, also don't do this for session player.
+            
             updateHeadLookRotation(headYaw);
         }
     }
@@ -189,12 +189,12 @@ public abstract class AvatarEntity extends LivingEntity {
     public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         bedPosition = super.setBedPosition(entityMetadata);
         if (bedPosition != null) {
-            // Indicate that the player should enter the sleep cycle
-            // Has to be a byte or it does not work
-            // (Bed position is what actually triggers sleep - "pose" is only optional)
+            
+            
+            
             dirtyMetadata.put(EntityDataTypes.PLAYER_FLAGS, (byte) 2);
         } else {
-            // Player is no longer sleeping
+            
             dirtyMetadata.put(EntityDataTypes.PLAYER_FLAGS, (byte) 0);
             return null;
         }
@@ -226,10 +226,10 @@ public abstract class AvatarEntity extends LivingEntity {
     }
 
     public void setSkinVisibility(ByteEntityMetadata entityMetadata) {
-        // OptionalPack usage for toggling skin bits
-        // In Java Edition, a bit being set means that part should be enabled
-        // However, to ensure that the pack still works on other servers, we invert the bit so all values by default
-        // are true (0).
+        
+        
+        
+        
         dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, ~entityMetadata.getPrimitiveValue() & 0xff);
     }
 
@@ -243,7 +243,7 @@ public abstract class AvatarEntity extends LivingEntity {
 
     @Override
     public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // Doesn't do anything for players
+        
         if (!(this instanceof PlayerEntity)) {
             super.setCustomName(entityMetadata);
         }
@@ -251,7 +251,7 @@ public abstract class AvatarEntity extends LivingEntity {
 
     @Override
     public void setCustomNameVisible(BooleanEntityMetadata entityMetadata) {
-        // Doesn't do anything for players
+        
         if (!(this instanceof PlayerEntity)) {
             super.setCustomNameVisible(entityMetadata);
         }
@@ -269,13 +269,7 @@ public abstract class AvatarEntity extends LivingEntity {
         }
     }
 
-    /**
-     * Whether this entity is listed on the player list.
-     * Since player entities are used for e.g. custom skulls too, we need to hack around
-     * limitations introduced in 1.21.130 to ensure skins are correctly applied. 
-     * @see SkinManager#sendSkinPacket(GeyserSession, AvatarEntity, SkinData)
-     * @return whether this player entity is listed
-     */
+    
     public abstract boolean isListed();
 
     @Override
@@ -285,8 +279,8 @@ public abstract class AvatarEntity extends LivingEntity {
         if (!visibilityChanged) {
             return;
         }
-        // if the player has no cachedScore, we never have to change the score.
-        // hide = set to "" (does nothing), show = change from "" (does nothing)
+        
+        
         if (cachedScore.isEmpty()) {
             return;
         }
@@ -300,14 +294,14 @@ public abstract class AvatarEntity extends LivingEntity {
         setFlag(EntityFlag.CRAWLING, false);
 
         if (pose == Pose.SWIMMING) {
-            // This is just for, so we know if player is swimming or crawling.
+            
             if (session.getGeyser().getWorldManager().blockAt(session, this.position.toInt()).is(Blocks.WATER)) {
                 setFlag(EntityFlag.SWIMMING, true);
             } else {
                 setFlag(EntityFlag.CRAWLING, true);
 
-                // Look at https://github.com/GeyserMC/Geyser/issues/5316, we're fixing this by spoofing player pitch to 0.
-                // Don't do this for session player however, as that teleport them back and messed up their rotation.
+                
+                
                 if (!(this instanceof SessionPlayerEntity)) {
                     updateRotation(this.yaw, 0, this.onGround);
                 }
@@ -348,7 +342,7 @@ public abstract class AvatarEntity extends LivingEntity {
 
     @Override
     public Vector3f bedrockPosition() {
-        // Don't apply the full bedrock y offset when le player is sleeping
+        
         if (bedPosition != null && getFlag(EntityFlag.SLEEPING)) {
             return position.up(0.2f);
         }
@@ -364,6 +358,6 @@ public abstract class AvatarEntity extends LivingEntity {
         }
 
         SkinData fallback = SkinProvider.determineFallbackSkinData(this.uuid);
-        return fallback.skin().textureUrl();
+        return fallback.skin.textureUrl;
     }
 }

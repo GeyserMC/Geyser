@@ -54,7 +54,7 @@ public class SingleDefinitionReader implements ItemDefinitionReader {
     public void readDefinition(JsonElement data, Identifier vanillaItem, Identifier parentModel,
                                BiConsumer<Identifier, CustomItemDefinition> consumer) throws InvalidCustomMappingsFileException {
         Identifier bedrockIdentifier = ItemDefinitionReader.readBedrockIdentifier(data, "single item definition");
-        // We now know the Bedrock identifier, make a base context so that the error can be easily located in the JSON file
+        
         String context = "item definition (bedrock identifier=" + bedrockIdentifier + ")";
 
         Identifier model = MappingsUtil.readOrDefault(data, "model", NodeReader.IDENTIFIER, parentModel, context);
@@ -70,7 +70,7 @@ public class SingleDefinitionReader implements ItemDefinitionReader {
     public static void readDefinitionBase(CustomItemDefinition.Builder builder, JsonElement data, String context) throws InvalidCustomMappingsFileException {
         MappingsUtil.readIfPresent(data, "priority", builder::priority, NodeReader.INT, context);
 
-        // Mappings util method used above already threw a properly formatted error if the element is not a JSON object
+        
         JsonObject definition = data.getAsJsonObject();
 
         JsonElement displayName = definition.get("display_name");

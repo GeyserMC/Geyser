@@ -48,7 +48,7 @@ public class DecoratedPotItem extends BlockItem {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
-        List<Integer> decorations = components.get(DataComponentTypes.POT_DECORATIONS); // TODO maybe unbox in MCProtocolLib
+        List<Integer> decorations = components.get(DataComponentTypes.POT_DECORATIONS); 
         if (decorations != null) {
             List<String> sherds = new ArrayList<>(decorations.size());
             for (Integer decoration : decorations) {

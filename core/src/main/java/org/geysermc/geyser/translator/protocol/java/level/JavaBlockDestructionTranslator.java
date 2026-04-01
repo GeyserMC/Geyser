@@ -41,23 +41,23 @@ public class JavaBlockDestructionTranslator extends PacketTranslator<Clientbound
     @Override
     public void translate(GeyserSession session, ClientboundBlockDestructionPacket packet) {
         if (packet.getStage() == BlockBreakStage.RESET) {
-            // Invalidate the position now that it's not being broken anymore
+            
             session.getBlockBreakHandler().getDestructionStageCache().invalidate(packet.getPosition());
             BlockUtils.sendBedrockStopBlockBreak(session, packet.getPosition().toFloat());
             return;
         }
 
-        // Bedrock wants a total destruction time, not a stage - so we estimate!
+        
         LevelEventPacket levelEventPacket = new LevelEventPacket();
         levelEventPacket.setPosition(packet.getPosition().toFloat());
 
-        // First: Check if we know when the last packet for this position was sent - we'll use that for our estimation
+        
         Pair<Long, BlockBreakStage> lastUpdate = session.getBlockBreakHandler().getDestructionStageCache().getIfPresent(packet.getPosition());
         if (lastUpdate == null) {
             levelEventPacket.setType(LevelEvent.BLOCK_START_BREAK);
-            levelEventPacket.setData(65535 / 6000); // just a high value (5 mins), we'll update this once we get a new progress update
+            levelEventPacket.setData(65535 / 6000); 
         } else {
-            // Ticks since last update
+            
             int ticksSince = (int) (session.getClientTicks() - lastUpdate.first());
             int stagesSince = packet.getStage().compareTo(lastUpdate.second());
             int ticksPerStage = stagesSince == 0 ? ticksSince : ticksSince / stagesSince;

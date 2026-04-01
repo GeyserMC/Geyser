@@ -86,23 +86,19 @@ public final class GeyserServer {
     private static final String PING_VERSION = GameProtocol.DEFAULT_BEDROCK_VERSION;
     private static final int PING_VERSION_BYTES_LENGTH = PING_VERSION.getBytes(StandardCharsets.UTF_8).length;
     private static final int BRAND_BYTES_LENGTH = GeyserImpl.NAME.getBytes(StandardCharsets.UTF_8).length;
-    /**
-     * The MOTD, sub-MOTD and Minecraft version ({@link #PING_VERSION_BYTES_LENGTH}) combined cannot reach this length.
-     */
+    
     private static final int MAGIC_RAKNET_LENGTH = 338;
 
-    // Let MCPL determine the transport type -> less code duplication and risk of ending up with 2 different types
+    
     private static final TransportHelper.TransportType TRANSPORT = TransportHelper.TRANSPORT_TYPE;
 
-    /**
-     * See {@link EventLoopGroup#shutdownGracefully(long, long, TimeUnit)}
-     */
+    
     private static final int SHUTDOWN_QUIET_PERIOD_MS = 100;
     private static final int SHUTDOWN_TIMEOUT_MS = 500;
 
     private final GeyserImpl geyser;
     private EventLoopGroup group;
-    // Split childGroup may improve IO
+    
     private EventLoopGroup childGroup;
     private final ServerBootstrap bootstrap;
     private EventLoopGroup playerGroup;
@@ -113,13 +109,11 @@ public final class GeyserServer {
 
     private ChannelFuture[] bootstrapFutures;
 
-    // Keep track of connection attempts for dump info
+    
     @Getter
     private int connectionAttempts = 0;
 
-    /**
-     * The port to broadcast in the pong. This can be different from the port the server is bound to, e.g. due to port forwarding.
-     */
+    
     private final int broadcastPort;
 
     public GeyserServer(GeyserImpl geyser, int threadCount) {
@@ -130,8 +124,8 @@ public final class GeyserServer {
         this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount, new DefaultThreadFactory("GeyserServerChild", true));
 
         this.bootstrap = this.createBootstrap();
-        // setup SO_REUSEPORT if exists - or, if the option does not actually exist, reset listen count
-        // otherwise, we try to bind multiple times which wont work if so_reuseport is not valid
+        
+        
         if (listenCount > 1 && !Bootstraps.setupBootstrap(this.bootstrap, TRANSPORT)) {
             this.listenCount = 1;
         }
@@ -166,12 +160,12 @@ public final class GeyserServer {
             }
 
             Channel channel = f.channel();
-            // Add our ping handler
+            
             channel.pipeline()
                 .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
                 .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
 
-            // Add proxy handler
+            
             boolean isProxyProtocol = this.geyser.config().advanced().bedrock().useHaproxyProtocol();
             if (isProxyProtocol) {
                 channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
@@ -179,10 +173,10 @@ public final class GeyserServer {
 
             boolean isWhitelistedProxyProtocol = isProxyProtocol && !this.geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps().isEmpty();
             if (Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false")) || isWhitelistedProxyProtocol) {
-                // We would already block any non-whitelisted IP addresses in onConnectionRequest so we can remove the rate limiter
+                
                 channel.pipeline().remove(RakServerRateLimiter.NAME);
             } else {
-                // Use our own rate limiter to allow multiple players from the same IP
+                
                 channel.pipeline().replace(RakServerRateLimiter.NAME, RakGeyserRateLimiter.NAME, new RakGeyserRateLimiter(channel));
             }
         });
@@ -218,7 +212,7 @@ public final class GeyserServer {
                 if (System.getProperties().contains("disableNativeEventLoop")) {
                     this.geyser.getLogger().debug("EventLoop type is NIO because native event loops are disabled.");
                 } else {
-                    // Use lambda here, not method reference, or else NoClassDefFoundError for Epoll/KQueue will not be caught
+                    
                     this.geyser.getLogger().debug("Reason for no Epoll: " + throwableOrCaught(() -> Epoll.unavailabilityCause()));
                     this.geyser.getLogger().debug("Reason for no KQueue: " + throwableOrCaught(() -> KQueue.unavailabilityCause()));
                     this.geyser.getLogger().debug("Reason for no IoUring: " + throwableOrCaught(() -> IoUring.unavailabilityCause()));
@@ -322,7 +316,7 @@ public final class GeyserServer {
 
         BedrockPong pong = new BedrockPong()
                 .edition("MCPE")
-                .gameType("Survival") // Can only be Survival or Creative as of 1.16.210.59
+                .gameType("Survival") 
                 .nintendoLimited(false)
                 .protocolVersion(GameProtocol.DEFAULT_BEDROCK_PROTOCOL)
                 .version(PING_VERSION)
@@ -332,17 +326,17 @@ public final class GeyserServer {
 
         if (config.motd().passthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
             String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
-            String mainMotd = (motd.length > 0) ? motd[0] : config.motd().primaryMotd(); // First line of the motd.
-            String subMotd = (motd.length > 1) ? motd[1] : config.motd().secondaryMotd(); // Second line of the motd if present, otherwise default.
+            String mainMotd = (motd.length > 0) ? motd[0] : config.motd().primaryMotd(); 
+            String subMotd = (motd.length > 1) ? motd[1] : config.motd().secondaryMotd(); 
 
             pong.motd(mainMotd.trim());
-            pong.subMotd(subMotd.trim()); // Trimmed to shift it to the left, prevents the universe from collapsing on us just because we went 2 characters over the text box's limit.
+            pong.subMotd(subMotd.trim()); 
         } else {
             pong.motd(config.motd().primaryMotd());
             pong.subMotd(config.motd().secondaryMotd());
         }
 
-        // Placed here to prevent overriding values set in the ping event.
+        
         if (config.motd().passthroughPlayerCounts() && pingInfo != null) {
             pong.playerCount(pingInfo.getPlayers().getOnline());
             pong.maximumPlayerCount(pingInfo.getPlayers().getMax());
@@ -353,37 +347,37 @@ public final class GeyserServer {
 
         this.geyser.eventBus().fire(new GeyserBedrockPingEventImpl(pong, inetSocketAddress));
 
-        // https://github.com/GeyserMC/Geyser/issues/3388
+        
         pong.motd(pong.motd().replace(';', ':'));
         pong.subMotd(pong.subMotd().replace(';', ':'));
 
-        // Fallbacks to prevent errors and allow Bedrock to see the server
+        
         if (pong.motd() == null || pong.motd().isBlank()) {
             pong.motd(GeyserImpl.NAME);
         }
         if (pong.subMotd() == null || pong.subMotd().isBlank()) {
-            // Sub-MOTD cannot be empty as of 1.16.210.59
+            
             pong.subMotd(GeyserImpl.NAME);
         }
 
         if (ConnectionTestCommand.CONNECTION_TEST_MOTD != null) {
-            // Force-override as we are testing the connection and want to verify we are connecting to the right server through the MOTD
+            
             pong.motd(ConnectionTestCommand.CONNECTION_TEST_MOTD);
             pong.subMotd(GeyserImpl.NAME);
         }
 
-        // The ping will not appear if the MOTD + sub-MOTD is of a certain length.
-        // We don't know why, though
+        
+        
         byte[] motdArray = pong.motd().getBytes(StandardCharsets.UTF_8);
         int subMotdLength = pong.subMotd().getBytes(StandardCharsets.UTF_8).length;
         if (motdArray.length + subMotdLength > (MAGIC_RAKNET_LENGTH - PING_VERSION_BYTES_LENGTH)) {
-            // Shorten the sub-MOTD first since that only appears locally
+            
             if (subMotdLength > BRAND_BYTES_LENGTH) {
                 pong.subMotd(GeyserImpl.NAME);
                 subMotdLength = BRAND_BYTES_LENGTH;
             }
             if (motdArray.length > (MAGIC_RAKNET_LENGTH - PING_VERSION_BYTES_LENGTH - subMotdLength)) {
-                // If the top MOTD is still too long, we chop it down
+                
                 byte[] newMotdArray = new byte[MAGIC_RAKNET_LENGTH - PING_VERSION_BYTES_LENGTH - subMotdLength];
                 System.arraycopy(motdArray, 0, newMotdArray, 0, newMotdArray.length);
                 pong.motd(new String(newMotdArray, StandardCharsets.UTF_8));
@@ -401,15 +395,13 @@ public final class GeyserServer {
 
     private List<CIDRMatcher> whitelistedIPsMatchers = null;
 
-    /**
-     * @return Unmodifiable list of {@link CIDRMatcher}s from {@link GeyserConfig.AdvancedBedrockConfig#haproxyProtocolWhitelistedIps()}
-     */
+    
     public List<CIDRMatcher> getWhitelistedIPsMatchers() {
-        // Effective Java, Third Edition; Item 83: Use lazy initialization judiciously
+        
         List<CIDRMatcher> matchers = this.whitelistedIPsMatchers;
         if (matchers == null) {
             synchronized (this) {
-                // Check if proxyProtocolWhitelistedIPs contains URLs we need to fetch and parse by line
+                
                 List<String> whitelistedCIDRs = new ArrayList<>();
                 for (String ip: geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps()) {
                     if (!ip.startsWith("http")) {
@@ -428,9 +420,7 @@ public final class GeyserServer {
         return Collections.unmodifiableList(matchers);
     }
 
-    /**
-     * @return the throwable from the given supplier, or the throwable caught while calling the supplier.
-     */
+    
     private static Throwable throwableOrCaught(Supplier<Throwable> supplier) {
         try {
             return supplier.get();

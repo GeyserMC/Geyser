@@ -86,7 +86,7 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
                 .thenAccept(pack -> this.fallback = pack)
                 .exceptionally(throwable -> {
                     throw new IllegalStateException(throwable.getCause());
-                }).join(); // Needed to ensure that we don't attempt to read a pack before downloading/checking it
+                }).join(); 
         }
 
         return ResourcePackLoader.readPack(this);
@@ -97,11 +97,7 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
         return this.url;
     }
 
-    /**
-     * Tests whether Geyser's "mirror" of the remote pack needs to be updated.
-     * This is triggered if a Bedrock client is unable to download a pack
-     * @param holder the current resource pack holder with the "originally" known manifest
-     */
+    
     public void testForChanges(ResourcePackHolder holder) {
         ResourcePackLoader.downloadPack(url, true)
             .thenAccept(backingPathCodec -> {
@@ -123,9 +119,9 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
                     Registries.RESOURCE_PACKS.get().remove(holder.uuid());
                 }
 
-                // Update to new url pack codec (same url, updated fallback), and keep content key
+                
                 GeyserResourcePack pack = updatedPack.withCodec(new GeyserUrlPackCodec(url, backingPathCodec));
-                // Keep the pack options that were previously set
+                
                 Registries.RESOURCE_PACKS.get().put(updatedPack.uuid(), holder.withPack(pack));
 
             })

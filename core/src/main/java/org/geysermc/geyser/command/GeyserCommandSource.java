@@ -35,15 +35,10 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.UUID;
 
-/**
- * Implemented on top of any class that can send a command.
- * For example, it wraps around Spigot's CommandSender class.
- */
+
 public interface GeyserCommandSource extends CommandSource {
 
-    /**
-     * {@inheritDoc}
-     */
+    
     default String locale() {
         return GeyserLocale.getDefaultLocale();
     }
@@ -69,10 +64,7 @@ public interface GeyserCommandSource extends CommandSource {
         return GeyserImpl.getInstance().connectionByUuid(uuid);
     }
 
-    /**
-     * @return the underlying platform handle that this source represents.
-     *         If such handle doesn't exist, this itself is returned.
-     */
+    
     default Object handle() {
         return this;
     }

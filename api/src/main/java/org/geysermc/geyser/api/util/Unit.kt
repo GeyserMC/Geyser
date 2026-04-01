@@ -22,13 +22,12 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.util;
+package org.geysermc.geyser.api.util
 
 /**
- * A {@link Unit#INSTANCE} is used to indicate the presence of something.
+ * A [Unit.INSTANCE] is used to indicate the presence of something.
  * @since 2.9.3
  */
-public enum Unit {
+enum class Unit {
     INSTANCE
 }

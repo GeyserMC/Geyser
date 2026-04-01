@@ -50,14 +50,14 @@ public class InvalidPacketHandler extends ChannelInboundHandlerAdapter {
         GeyserLogger logger = GeyserImpl.getInstance().getLogger();
 
         if (!(rootCause instanceof IllegalArgumentException)) {
-            // Kick users that cause exceptions
+            
             logger.error("Exception caught in session of " + session.bedrockUsername(), cause);
             session.disconnect("An internal error occurred!");
             session.forciblyCloseUpstream();
             return;
         }
 
-        // Kick users that try to send illegal packets
+        
         logger.error("Illegal packet from " + session.bedrockUsername(), cause);
         session.disconnect("Invalid packet received!");
         session.forciblyCloseUpstream();

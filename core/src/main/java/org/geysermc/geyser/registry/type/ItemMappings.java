@@ -59,9 +59,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
 
     ItemMapping[] items;
 
-    /**
-     * A unique exception as this is an item in Bedrock, but not in Java.
-     */
+    
     ItemMapping lodestoneCompass;
     Int2ObjectMap<ItemMapping> lightBlocks;
 
@@ -75,44 +73,28 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
     List<ItemDefinition> buckets;
     List<ItemDefinition> boats;
     Int2ObjectMap<String> customIdMappings;
-    // the item definition runtime id that is actually for the block
-    // that has the block definition with a 0 runtime id
-    // as of 1.21.110: cyan_terracotta
-    // array since it could be multiple
+    
+    
+    
+    
     Integer[] zeroBlockDefinitionRuntimeId;
 
     IntSet nonVanillaCustomItemIds;
 
     Object2ObjectMap<CustomBlockData, ItemDefinition> customBlockItemDefinitions;
 
-    /**
-     * Gets an {@link ItemMapping} from the given {@link GeyserItemStack}.
-     *
-     * @param itemStack the itemstack
-     * @return an item entry from the given item stack
-     */
+    
     public ItemMapping getMapping(@NonNull GeyserItemStack itemStack) {
         return this.getMapping(itemStack.getJavaId());
     }
 
-    /**
-     * Gets an {@link ItemMapping} from the given {@link ItemStack}.
-     *
-     * @param itemStack the itemstack
-     * @return an item entry from the given java edition item stack
-     */
+    
     @NonNull
     public ItemMapping getMapping(@NonNull ItemStack itemStack) {
         return this.getMapping(itemStack.getId());
     }
 
-    /**
-     * Gets an {@link ItemMapping} from the given Minecraft: Java
-     * Edition id.
-     *
-     * @param javaId the id
-     * @return an item entry from the given java edition identifier
-     */
+    
     @NonNull
     public ItemMapping getMapping(int javaId) {
         return javaId >= 0 && javaId < this.items.length ? this.items[javaId] : ItemMapping.AIR;
@@ -123,13 +105,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
         return getMapping(javaItem.javaId());
     }
 
-    /**
-     * Gets an {@link ItemMapping} from the given Minecraft: Java Edition
-     * block state identifier.
-     *
-     * @param javaIdentifier the block state identifier
-     * @return an item entry from the given java edition identifier
-     */
+    
     @Nullable
     public ItemMapping getMapping(String javaIdentifier) {
         return this.cachedJavaMappings.computeIfAbsent(javaIdentifier, key -> {
@@ -142,12 +118,7 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
         });
     }
 
-    /**
-     * Gets an {@link ItemMapping} from the given {@link ItemData}.
-     *
-     * @param data the item data
-     * @return an item entry from the given item data
-     */
+    
     @NonNull
     public ItemMapping getMapping(ItemData data) {
         ItemDefinition definition = data.getDefinition();
@@ -167,19 +138,19 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
 
         for (ItemMapping mapping : this.items) {
             if (mapping.getBedrockDefinition().getRuntimeId() == definition.getRuntimeId()) {
-                if (isBlock && !hasDamage) { // Pre-1.16.220 will not use block runtime IDs at all, so we shouldn't check either
+                if (isBlock && !hasDamage) { 
                     if (data.getBlockDefinition() != mapping.getBedrockBlockDefinition()) {
                         continue;
                     }
                 } else {
                     if (!(mapping.getBedrockData() == data.getDamage() ||
-                            // Make exceptions for items whose damage values can vary
+                            
                             (mapping.getJavaItem().ignoreDamage() || mapping.getJavaItem() == Items.SUSPICIOUS_STEW))) {
                         continue;
                     }
                 }
                 if (!this.javaOnlyItems.contains(mapping.getJavaItem())) {
-                    // From a Bedrock item data, we aren't getting one of these items
+                    
                     return mapping;
                 }
             }
@@ -199,9 +170,9 @@ public class ItemMappings implements DefinitionRegistry<ItemDefinition> {
             return true;
         }
 
-        // Bedrock likes sending ""block definitions"" that aren't actually any
-        // Unfortunately, unlike Java, a block definition with runtime id 0 is not air,
-        // but a block. For example, in 1.21.110: cyan terracotta.
+        
+        
+        
         for (int other : zeroBlockDefinitionRuntimeId) {
             if (itemData.getDefinition().getRuntimeId() == other) {
                 return true;

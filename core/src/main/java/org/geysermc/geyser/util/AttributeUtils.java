@@ -30,12 +30,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeM
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
 
 public class AttributeUtils {
-    /**
-     * Retrieve the base attribute value with all modifiers applied.
-     * <a href="https://minecraft.wiki/w/Attribute#Modifiers">See here</a>
-     * @param attribute The attribute to calculate the total value.
-     * @return The finished attribute with all modifiers applied.
-     */
+    
     public static double calculateValue(Attribute attribute) {
         double base = attribute.getValue();
         for (AttributeModifier modifier : attribute.getModifiers()) {

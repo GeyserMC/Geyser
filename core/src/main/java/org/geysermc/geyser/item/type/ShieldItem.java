@@ -48,7 +48,7 @@ public class ShieldItem extends Item {
         if (patterns != null) {
             BannerItem.convertBannerPattern(session, patterns, builder);
         }
-        // Shield pattern backing color
+        
         Integer baseColor = components.get(DataComponentTypes.BASE_COLOR);
         if (baseColor != null) {
             builder.putInt("Base", 15 - baseColor);

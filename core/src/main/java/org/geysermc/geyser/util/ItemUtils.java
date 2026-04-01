@@ -43,9 +43,7 @@ import java.util.Map;
 
 public final class ItemUtils {
 
-    /**
-     * Cheap hack. Proper solution is to read the enchantment effects.
-     */
+    
     @Deprecated
     public static int getEnchantmentLevel(GeyserSession session, @Nullable DataComponents components, BedrockEnchantment bedrockEnchantment) {
         if (components == null) {
@@ -85,14 +83,12 @@ public final class ItemUtils {
         return false;
     }
 
-    /**
-     * @return the correct Bedrock durability for this item.
-     */
+    
     public static int getCorrectBedrockDurability(Item item, int original) {
         if (item == Items.FISHING_ROD) {
-            // Java durability: 64
-            // Bedrock durability : 384
-            // 384 / 64 = 6
+            
+            
+            
             return FishingRodItem.getBedrockDamage(original);
         }
         return original;

@@ -63,7 +63,7 @@ public class HelpCommand extends GeyserCommand {
     public void execute(GeyserCommandSource source) {
         boolean bedrockPlayer = source.connection() != null;
 
-        // todo: pagination
+        
         int page = 1;
         int maxPage = 1;
         String translationKey = this.rootCommand.equals(DEFAULT_ROOT_COMMAND) ? "geyser.commands.help.header" : "geyser.commands.extensions.header";
@@ -71,8 +71,8 @@ public class HelpCommand extends GeyserCommand {
         source.sendMessage(header);
 
         this.commands.stream()
-            .distinct() // remove aliases
-            .filter(bedrockPlayer ? Predicates.alwaysTrue() : cmd -> !cmd.isBedrockOnly()) // remove bedrock only commands if not a bedrock player
+            .distinct() 
+            .filter(bedrockPlayer ? Predicates.alwaysTrue() : cmd -> !cmd.isBedrockOnly()) 
             .filter(cmd -> source.hasPermission(cmd.permission()))
             .sorted(Comparator.comparing(Command::name))
             .forEachOrdered(cmd -> {

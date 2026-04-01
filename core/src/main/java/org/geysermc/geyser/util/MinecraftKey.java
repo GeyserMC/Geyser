@@ -33,16 +33,12 @@ import org.intellij.lang.annotations.Subst;
 
 public final class MinecraftKey {
 
-    /**
-     * To prevent constant warnings from invalid regex.
-     */
+    
     public static Key key(@Subst("empty") String s) {
         return Key.key(s);
     }
 
-    /**
-     * To prevent constant warnings from invalid regex.
-     */
+    
     public static Key key(@Subst("empty") String namespace, @Subst("empty") String value) {
         return Key.key(namespace, value);
     }

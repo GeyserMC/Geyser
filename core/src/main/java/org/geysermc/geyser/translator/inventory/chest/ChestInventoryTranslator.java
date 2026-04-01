@@ -44,7 +44,7 @@ public abstract class ChestInventoryTranslator<Type extends Container> extends B
     @Override
     protected boolean shouldRejectItemPlace(GeyserSession session, Type container, ContainerSlotType bedrockSourceContainer,
                                          int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
-        // Reject any item placements that occur in the unusable inventory space
+        
         if (bedrockSourceContainer == slotType(container) && javaSourceSlot >= this.size) {
             return true;
         }
@@ -74,10 +74,7 @@ public abstract class ChestInventoryTranslator<Type extends Container> extends B
         return super.javaSlotToBedrockContainer(javaSlot, inventory);
     }
 
-    /**
-     * Overridden by the SingleChestInventoryTranslator in case barrels are used.
-     * Bedrock uses the ContainerSlotType.BARREL for those.
-     */
+    
     protected ContainerSlotType slotType(Type type) {
         return ContainerSlotType.LEVEL_ENTITY;
     }

@@ -29,9 +29,7 @@ import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.util.MinecraftKey;
 
-/**
- * Lists vanilla enchantment tags.
- */
+
 @SuppressWarnings("unused")
 public final class EnchantmentTag {
     public static final Tag<Enchantment> TOOLTIP_ORDER = create("tooltip_order");

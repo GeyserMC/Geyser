@@ -48,13 +48,13 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType
 
 public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator<Container> {
     public ShulkerInventoryTranslator() {
-        // Ensure that the shulker box default state won't be trying to open in a state facing the player
+        
         super(27, new BlockInventoryHolder(Blocks.SHULKER_BOX.defaultBlockState().withValue(Properties.FACING, Direction.NORTH), ContainerType.CONTAINER) {
             private final BlockEntityTranslator shulkerBoxTranslator = Registries.BLOCK_ENTITIES.get(BlockEntityType.SHULKER_BOX);
 
             @Override
             protected boolean isValidBlock(GeyserSession session, Vector3i position, BlockState blockState) {
-                return blockState.block().javaIdentifier().value().contains("shulker_box"); // TODO ew
+                return blockState.block().javaIdentifier().value().contains("shulker_box"); 
             }
 
             @Override
@@ -64,7 +64,7 @@ public class ShulkerInventoryTranslator extends AbstractBlockInventoryTranslator
                         .putInt("y", position.getY())
                         .putInt("z", position.getZ())
                         .putString("CustomName", inventory.getTitle());
-                // Don't reset facing property
+                
                 shulkerBoxTranslator.translateTag(session, tag, null, javaBlockState);
 
                 BlockEntityDataPacket dataPacket = new BlockEntityDataPacket();

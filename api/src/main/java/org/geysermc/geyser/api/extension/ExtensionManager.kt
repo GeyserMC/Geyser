@@ -22,69 +22,59 @@
  * @author GeyserMC
  * @link https://github.com/GeyserMC/Geyser
  */
-
-package org.geysermc.geyser.api.extension;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-
-import java.util.Collection;
+package org.geysermc.geyser.api.extension
 
 /**
- * Manages Geyser {@link Extension}s
+ * Manages Geyser [Extension]s
  */
-public abstract class ExtensionManager {
-
+abstract class ExtensionManager {
     /**
      * Gets an extension by the given ID.
-     *
+     * 
      * @param id the ID of the extension
      * @return an extension with the given ID
      */
-    @Nullable
-    public abstract Extension extension(@NonNull String id);
+    abstract fun extension(id: String): Extension?
 
     /**
-     * Enables the given {@link Extension}.
-     *
+     * Enables the given [Extension].
+     * 
      * @param extension the extension to enable
      */
-    public abstract void enable(@NonNull Extension extension);
+    abstract fun enable(extension: Extension)
 
     /**
-     * Disables the given {@link Extension}.
-     *
+     * Disables the given [Extension].
+     * 
      * @param extension the extension to disable
      */
-    public abstract void disable(@NonNull Extension extension);
+    abstract fun disable(extension: Extension)
 
     /**
-     * Gets all the {@link Extension}s currently loaded.
-     *
+     * Gets all the [Extension]s currently loaded.
+     * 
      * @return all the extensions currently loaded
      */
-    @NonNull
-    public abstract Collection<Extension> extensions();
+    abstract fun extensions(): MutableCollection<Extension?>
 
     /**
-     * Gets the {@link ExtensionLoader}.
-     *
+     * Gets the [ExtensionLoader].
+     * 
      * @return the extension loader
      */
-    @Nullable
-    public abstract ExtensionLoader extensionLoader();
+    abstract fun extensionLoader(): ExtensionLoader?
 
     /**
-     * Registers an {@link Extension} with the given {@link ExtensionLoader}.
-     *
+     * Registers an [Extension] with the given [ExtensionLoader].
+     * 
      * @param extension the extension
      */
-    public abstract void register(@NonNull Extension extension);
+    abstract fun register(extension: Extension)
 
     /**
-     * Loads all extensions from the given {@link ExtensionLoader}.
+     * Loads all extensions from the given [ExtensionLoader].
      */
-    protected final void loadAllExtensions(@NonNull ExtensionLoader extensionLoader) {
-        extensionLoader.loadAllExtensions(this);
+    protected fun loadAllExtensions(extensionLoader: ExtensionLoader) {
+        extensionLoader.loadAllExtensions(this)
     }
 }

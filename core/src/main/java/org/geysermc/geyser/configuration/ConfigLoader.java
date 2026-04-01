@@ -60,17 +60,13 @@ public final class ConfigLoader {
         In most cases, especially with server hosting providers, further hosting-specific configuration is required.
         --------------------------------""";
 
-    /**
-     * Only nullable for testing.
-     */
+    
     private final @Nullable GeyserBootstrap bootstrap;
     private PlatformType platformType;
     private @Nullable Consumer<CommentedConfigurationNode> transformer;
     private File configFile;
 
-    /**
-     * Only set during testing.
-     */
+    
     @VisibleForTesting
     CommentedConfigurationNode configurationNode;
 
@@ -87,9 +83,7 @@ public final class ConfigLoader {
         configFile = file;
     }
 
-    /**
-     * Creates the directory as indicated by {@link GeyserBootstrap#getConfigFolder()}
-     */
+    
     @This
     public ConfigLoader createFolder() {
         Path dataFolder = this.bootstrap.getConfigFolder();
@@ -113,9 +107,7 @@ public final class ConfigLoader {
         return this;
     }
 
-    /**
-     * @return null if the config failed to load.
-     */
+    
     @Nullable
     public <T extends GeyserConfig> T load(Class<T> configClass) {
         try {
@@ -140,19 +132,19 @@ public final class ConfigLoader {
 
         T config = node.get(configClass);
 
-        // Serialize the instance to ensure strict field ordering. Additionally, if we serialized back
-        // to the old node, existing nodes would only have their value changed, keeping their position
-        // at the top of the ordered map, forcing all new nodes to the bottom (regardless of field order).
-        // For that reason, we must also create a new node.
+        
+        
+        
+        
         CommentedConfigurationNode newRoot = CommentedConfigurationNode.root(loader.defaultOptions());
         newRoot.set(config);
 
         if (originallyEmpty || currentVersion != newVersion) {
             if (!originallyEmpty && currentVersion > 4) {
-                // Only copy comments over if the file already existed, and we are going to replace it
+                
 
-                // Second case: Version 4 is pre-configurate where there were commented out nodes.
-                // These get treated as comments on lower nodes, which produces very undesirable results.
+                
+                
                 ConfigurationCommentMover.moveComments(node, newRoot);
             }
 
@@ -160,12 +152,12 @@ public final class ConfigLoader {
         }
 
         if (transformer != null) {
-            // We transform AFTER saving so that these specific transformations aren't applied to file.
+            
             transformer.accept(newRoot);
             config = newRoot.get(configClass);
         }
 
-        if (this.bootstrap != null) { // Null for testing only.
+        if (this.bootstrap != null) { 
             this.bootstrap.getGeyserLogger().setDebug(config.debugMode());
         } else {
             this.configurationNode = newRoot;
@@ -186,11 +178,11 @@ public final class ConfigLoader {
             .indent(2)
             .nodeStyle(NodeStyle.BLOCK)
             .defaultOptions(options -> InterfaceDefaultOptions.addTo(options, builder -> {
-                        builder.addProcessor(ExcludePlatform.class, excludePlatform(platformType.platformName()))
-                            .addProcessor(IncludePlatform.class, includePlatform(platformType.platformName()))
+                        builder.addProcessor(ExcludePlatform.class, excludePlatform(platformType.platformName))
+                            .addProcessor(IncludePlatform.class, includePlatform(platformType.platformName))
                             .addProcessor(PluginSpecific.class, integrationSpecific(platformType != PlatformType.STANDALONE));
                 })
-                .shouldCopyDefaults(false) // If we use ConfigurationNode#get(type, default), do not write the default back to the node.
+                .shouldCopyDefaults(false) 
                 .header(ConfigLoader.HEADER)
                 .serializers(builder -> builder.register(new LowercaseEnumSerializer())))
             .build();
