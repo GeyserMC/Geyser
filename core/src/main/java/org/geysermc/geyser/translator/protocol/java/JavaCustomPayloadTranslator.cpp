@@ -1,0 +1,147 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.translator.protocol.java;
+
+#include "com.google.common.base.Charsets"
+#include "io.netty.buffer.ByteBuf"
+#include "io.netty.buffer.Unpooled"
+#include "org.cloudburstmc.protocol.bedrock.packet.TransferPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.UnknownPacket"
+#include "org.geysermc.cumulus.Forms"
+#include "org.geysermc.cumulus.form.Form"
+#include "org.geysermc.cumulus.form.util.FormType"
+#include "org.geysermc.erosion.Constants"
+#include "org.geysermc.erosion.packet.ErosionPacket"
+#include "org.geysermc.erosion.packet.Packets"
+#include "org.geysermc.erosion.packet.geyserbound.GeyserboundPacket"
+#include "org.geysermc.floodgate.pluginmessage.PluginMessageChannels"
+#include "org.geysermc.geyser.GeyserImpl"
+#include "org.geysermc.geyser.GeyserLogger"
+#include "org.geysermc.geyser.session.GeyserSession"
+#include "org.geysermc.geyser.translator.protocol.PacketTranslator"
+#include "org.geysermc.geyser.translator.protocol.Translator"
+#include "org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundCustomPayloadPacket"
+#include "org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundCustomPayloadPacket"
+
+#include "java.nio.charset.StandardCharsets"
+
+@Translator(packet = ClientboundCustomPayloadPacket.class)
+public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCustomPayloadPacket> {
+    private final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
+
+    override public void translate(GeyserSession session, ClientboundCustomPayloadPacket packet) {
+        std::string channel = packet.getChannel().asString();
+
+        if (channel.equals(Constants.PLUGIN_MESSAGE)) {
+            ByteBuf buf = Unpooled.wrappedBuffer(packet.getData());
+            ErosionPacket<?> erosionPacket = Packets.decode(buf);
+            ((GeyserboundPacket) erosionPacket).handle(session.getErosionHandler());
+            return;
+        }
+
+        if (channel.equals(PluginMessageChannels.FORM)) {
+            session.ensureInEventLoop(() -> {
+                byte[] data = packet.getData();
+
+
+                if (data.length == 0) {
+                    session.closeForm();
+                    return;
+                }
+
+
+
+
+                FormType type = FormType.fromOrdinal(data[0]);
+                if (type == null) {
+                    throw new NullPointerException("Got type " + data[0] + " which isn't a valid form type!");
+                }
+
+                std::string dataString = new std::string(data, 3, data.length - 3, Charsets.UTF_8);
+
+                Form form = Forms.fromJson(dataString, type, (ignored, response) -> {
+                    byte[] finalData;
+                    if (response == null) {
+
+
+                        finalData = new byte[]{data[1], data[2]};
+                    } else {
+                        byte[] raw = response.getBytes(StandardCharsets.UTF_8);
+                        finalData = new byte[raw.length + 2];
+
+                        finalData[0] = data[1];
+                        finalData[1] = data[2];
+                        System.arraycopy(raw, 0, finalData, 2, raw.length);
+                    }
+
+                    session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(packet.getChannel(), finalData));
+                });
+                session.sendForm(form);
+            });
+        } else if (channel.equals(PluginMessageChannels.TRANSFER)) {
+            session.ensureInEventLoop(() -> {
+                byte[] data = packet.getData();
+
+
+                if (data.length < 5) {
+                    throw new NullPointerException("Transfer data should be at least 5 bytes long");
+                }
+
+                int port = data[0] << 24 | (data[1] & 0xFF) << 16 | (data[2] & 0xFF) << 8 | data[3] & 0xFF;
+                std::string address = new std::string(data, 4, data.length - 4);
+
+                if (logger.isDebug()) {
+                    logger.info("Transferring client to: " + address + ":" + port);
+                }
+
+                TransferPacket transferPacket = new TransferPacket();
+                transferPacket.setAddress(address);
+                transferPacket.setPort(port);
+                session.sendUpstreamPacket(transferPacket);
+            });
+
+        } else if (channel.equals(PluginMessageChannels.PACKET)) {
+            session.ensureInEventLoop(() -> {
+                logger.debug("A packet has been sent using the Floodgate api");
+                byte[] data = packet.getData();
+
+
+                if (data.length < 2) {
+                    throw new IllegalStateException("Packet data should be at least 2 bytes long");
+                }
+
+                int packetId = data[0] & 0xFF;
+                ByteBuf packetData = Unpooled.wrappedBuffer(data, 1, data.length - 1);
+
+                var toSend = new UnknownPacket();
+                toSend.setPacketId(packetId);
+                toSend.setPayload(packetData);
+
+                session.sendUpstreamPacket(toSend);
+            });
+        }
+    }
+}

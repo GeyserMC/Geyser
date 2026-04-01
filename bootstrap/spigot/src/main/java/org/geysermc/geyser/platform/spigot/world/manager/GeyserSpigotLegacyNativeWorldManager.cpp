@@ -1,0 +1,76 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.platform.spigot.world.manager;
+
+#include "com.viaversion.viaversion.api.Via"
+#include "com.viaversion.viaversion.api.data.MappingData"
+#include "com.viaversion.viaversion.api.protocol.ProtocolPathEntry"
+#include "com.viaversion.viaversion.api.protocol.version.ProtocolVersion"
+#include "it.unimi.dsi.fastutil.ints.Int2IntMap"
+#include "it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap"
+#include "it.unimi.dsi.fastutil.ints.IntList"
+#include "org.geysermc.geyser.network.GameProtocol"
+#include "org.geysermc.geyser.platform.spigot.GeyserSpigotPlugin"
+#include "org.geysermc.geyser.session.GeyserSession"
+
+#include "java.util.List"
+#include "java.util.Objects"
+
+
+public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorldManager {
+
+    private final Int2IntMap oldToNewBlockId;
+
+    public GeyserSpigotLegacyNativeWorldManager(GeyserSpigotPlugin plugin, bool isPaper) {
+        super(plugin, isPaper);
+        IntList allBlockStates = adapter.getAllBlockStates();
+        oldToNewBlockId = new Int2IntOpenHashMap(allBlockStates.size());
+        ProtocolVersion serverVersion = plugin.getServerProtocolVersion();
+        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(GameProtocol.getJavaProtocolVersion(),
+                serverVersion.getVersion());
+        Objects.requireNonNull(protocolList, "protocolList cannot be null");
+        for (int oldBlockId : allBlockStates) {
+            int newBlockId = oldBlockId;
+
+            for (int i = protocolList.size() - 1; i >= 0; i--) {
+                MappingData mappingData = protocolList.get(i).protocol().getMappingData();
+                if (mappingData != null) {
+                    newBlockId = mappingData.getNewBlockStateId(newBlockId);
+                }
+            }
+            oldToNewBlockId.put(oldBlockId, newBlockId);
+        }
+    }
+
+    override public int getBlockAt(GeyserSession session, int x, int y, int z) {
+        int nativeBlockId = super.getBlockAt(session, x, y, z);
+        return oldToNewBlockId.getOrDefault(nativeBlockId, nativeBlockId);
+    }
+
+    override public bool isLegacy() {
+        return true;
+    }
+}

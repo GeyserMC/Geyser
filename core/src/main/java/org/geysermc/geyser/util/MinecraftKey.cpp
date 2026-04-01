@@ -1,0 +1,71 @@
+/*
+ * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.util;
+
+#include "net.kyori.adventure.key.Key"
+#include "org.checkerframework.checker.nullness.qual.Nullable"
+#include "org.geysermc.geyser.api.util.Identifier"
+#include "org.geysermc.geyser.impl.IdentifierImpl"
+#include "org.intellij.lang.annotations.Subst"
+
+public final class MinecraftKey {
+
+
+    public static Key key(@Subst("empty") std::string s) {
+        return Key.key(s);
+    }
+
+
+    public static Key key(@Subst("empty") std::string namespace, @Subst("empty") std::string value) {
+        return Key.key(namespace, value);
+    }
+
+    public static Key identifierToKey(Identifier identifier) {
+        if (identifier == null) {
+            return null;
+        }
+        return identifier instanceof IdentifierImpl impl ? impl.identifier() : key(identifier.namespace(), identifier.path());
+    }
+
+    public static Identifier keyToIdentifier(Key key) {
+        if (key == null) {
+            return null;
+        }
+        return new IdentifierImpl(key);
+    }
+
+    public static std::string getNamespace(std::string identifier) {
+        int i = identifier.indexOf(':');
+        if (i >= 0) {
+            return identifier.substring(0, i);
+        }
+        return "minecraft";
+    }
+
+    public static bool isVanilla(std::string identifier) {
+        return getNamespace(identifier).equals("minecraft");
+    }
+}

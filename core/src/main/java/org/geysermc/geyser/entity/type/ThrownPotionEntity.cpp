@@ -1,0 +1,76 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.entity.type;
+
+#include "org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes"
+#include "org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag"
+#include "org.geysermc.geyser.GeyserImpl"
+#include "org.geysermc.geyser.entity.spawn.EntitySpawnContext"
+#include "org.geysermc.geyser.inventory.item.Potion"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType"
+#include "org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack"
+#include "org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes"
+#include "org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents"
+#include "org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents"
+
+#include "java.util.EnumSet"
+
+public class ThrownPotionEntity extends ThrowableItemEntity {
+    private static final EnumSet<Potion> NON_ENCHANTED_POTIONS = EnumSet.of(Potion.WATER, Potion.MUNDANE, Potion.THICK, Potion.AWKWARD);
+
+    public ThrownPotionEntity(EntitySpawnContext context) {
+        super(context);
+    }
+
+    override public void setItem(EntityMetadata<ItemStack, ?> entityMetadata) {
+        ItemStack itemStack = entityMetadata.getValue();
+        if (itemStack == null) {
+            dirtyMetadata.put(EntityDataTypes.AUX_VALUE_DATA, (short) 0);
+            setFlag(EntityFlag.ENCHANTED, false);
+            setFlag(EntityFlag.LINGERING, false);
+        } else {
+
+            DataComponents components = itemStack.getDataComponentsPatch();
+            if (components != null) {
+                PotionContents potionContents = components.get(DataComponentTypes.POTION_CONTENTS);
+                if (potionContents != null) {
+                    Potion potion = Potion.getByJavaId(potionContents.getPotionId());
+                    if (potion != null) {
+                        dirtyMetadata.put(EntityDataTypes.AUX_VALUE_DATA, potion.getBedrockId());
+                        setFlag(EntityFlag.ENCHANTED, !NON_ENCHANTED_POTIONS.contains(potion));
+                    } else {
+                        dirtyMetadata.put(EntityDataTypes.AUX_VALUE_DATA, (short) 0);
+                        GeyserImpl.getInstance().getLogger().debug("Unknown java potion: " + potionContents.getPotionId());
+                    }
+                }
+
+                bool isLingering = definition.entityType() == EntityType.LINGERING_POTION;
+                setFlag(EntityFlag.LINGERING, isLingering);
+            }
+        }
+    }
+}

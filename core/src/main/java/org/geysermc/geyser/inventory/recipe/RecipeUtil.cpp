@@ -1,0 +1,330 @@
+/*
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.inventory.recipe;
+
+#include "com.google.common.collect.Lists"
+#include "it.unimi.dsi.fastutil.Pair"
+#include "it.unimi.dsi.fastutil.ints.IntComparators"
+#include "it.unimi.dsi.fastutil.ints.IntObjectMutablePair"
+#include "it.unimi.dsi.fastutil.ints.IntObjectPair"
+#include "it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap"
+#include "net.kyori.adventure.key.Key"
+#include "org.checkerframework.checker.nullness.qual.Nullable"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.ItemData"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.MultiRecipeData"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor"
+#include "org.geysermc.geyser.item.Items"
+#include "org.geysermc.geyser.item.type.BedrockRequiresTagItem"
+#include "org.geysermc.geyser.item.type.Item"
+#include "org.geysermc.geyser.registry.Registries"
+#include "org.geysermc.geyser.registry.type.ItemMapping"
+#include "org.geysermc.geyser.session.GeyserSession"
+#include "org.geysermc.geyser.session.cache.registry.JavaRegistries"
+#include "org.geysermc.geyser.session.cache.tags.Tag"
+#include "org.geysermc.geyser.translator.item.ItemTranslator"
+#include "org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack"
+#include "org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay"
+#include "org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay"
+#include "org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay"
+#include "org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay"
+#include "org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay"
+#include "org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlotDisplay"
+#include "org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithRemainderSlotDisplay"
+
+#include "java.util.ArrayList"
+#include "java.util.Arrays"
+#include "java.util.Collections"
+#include "java.util.Comparator"
+#include "java.util.HashSet"
+#include "java.util.List"
+#include "java.util.Map"
+#include "java.util.Objects"
+#include "java.util.Set"
+#include "java.util.UUID"
+#include "java.util.stream.Collectors"
+
+#include "static org.geysermc.geyser.util.InventoryUtils.LAST_RECIPE_NET_ID"
+
+public class RecipeUtil {
+
+
+    public static final List<RecipeData> CARTOGRAPHY_RECIPES = List.of(
+            MultiRecipeData.of(UUID.fromString("8b36268c-1829-483c-a0f1-993b7156a8f2"), ++LAST_RECIPE_NET_ID),
+            MultiRecipeData.of(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), ++LAST_RECIPE_NET_ID),
+            MultiRecipeData.of(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), ++LAST_RECIPE_NET_ID),
+            MultiRecipeData.of(UUID.fromString("602234e4-cac1-4353-8bb7-b1ebff70024b"), ++LAST_RECIPE_NET_ID)
+    );
+
+
+    private static final ThreadLocal<IntObjectPair<Map<int[], List<ItemDescriptorWithCount>>>> TAG_TO_ITEM_DESCRIPTOR_CACHE = ThreadLocal.withInitial(() -> IntObjectMutablePair.of(0, new Object2ObjectOpenHashMap<>()));
+
+    public static List<ItemDescriptorWithCount> translateToInput(GeyserSession session, SlotDisplay slotDisplay) {
+        if (slotDisplay instanceof EmptySlotDisplay) {
+            return Collections.singletonList(ItemDescriptorWithCount.EMPTY);
+        }
+        if (slotDisplay instanceof CompositeSlotDisplay composite) {
+            if (composite.contents().size() == 1) {
+                return translateToInput(session, composite.contents().get(0));
+            }
+
+
+
+            int[] items = new int[composite.contents().size()];
+            List<SlotDisplay> contents = composite.contents();
+            for (int i = 0; i < contents.size(); i++) {
+                SlotDisplay subDisplay = contents.get(i);
+                int id;
+                if (subDisplay instanceof ItemSlotDisplay item) {
+                    id = item.item();
+                } else if (!(subDisplay instanceof ItemStackSlotDisplay itemStackSlotDisplay)) {
+                    id = -1;
+                } else if (itemStackSlotDisplay.itemStack().getAmount() == 1
+                        && itemStackSlotDisplay.itemStack().getDataComponentsPatch() == null) {
+                    id = itemStackSlotDisplay.itemStack().getId();
+                } else {
+                    id = -1;
+                }
+                if (id == -1) {
+
+                    return fallbackCompositeMapping(session, composite);
+                }
+                items[i] = id;
+            }
+
+            Arrays.sort(items);
+
+            List<ItemDescriptorWithCount> tagDescriptor = lookupBedrockTag(session, items);
+            if (tagDescriptor != null) {
+                return tagDescriptor;
+            }
+
+            return fallbackCompositeMapping(session, composite);
+        }
+        if (slotDisplay instanceof WithRemainderSlotDisplay remainder) {
+
+            return translateToInput(session, remainder.input());
+        }
+        if (slotDisplay instanceof ItemSlotDisplay itemSlot) {
+            return Collections.singletonList(fromItem(session, itemSlot.item()));
+        }
+        if (slotDisplay instanceof ItemStackSlotDisplay itemStackSlot) {
+            ItemData item = ItemTranslator.translateToBedrock(session, itemStackSlot.itemStack());
+            return Collections.singletonList(ItemDescriptorWithCount.fromItem(item));
+        }
+        if (slotDisplay instanceof TagSlotDisplay tagSlot) {
+            Key tag = tagSlot.tag();
+            int[] items = session.getTagCache().getRaw(new Tag<>(JavaRegistries.ITEM, tag));
+            if (items == null || items.length == 0) {
+                return Collections.singletonList(ItemDescriptorWithCount.EMPTY);
+            } else if (items.length == 1) {
+                return Collections.singletonList(fromItem(session, items[0]));
+            } else {
+
+
+                if (TAG_TO_ITEM_DESCRIPTOR_CACHE.get().firstInt() != session.protocolVersion()) {
+                    TAG_TO_ITEM_DESCRIPTOR_CACHE.get().first(session.protocolVersion()).second().clear();
+                }
+                return TAG_TO_ITEM_DESCRIPTOR_CACHE.get().second().computeIfAbsent(items, key -> {
+                    List<ItemDescriptorWithCount> tagDescriptor = lookupBedrockTag(session, key);
+                    if (tagDescriptor != null) {
+                        return tagDescriptor;
+                    }
+
+
+
+
+
+                    Set<ItemDescriptorWithCount> itemDescriptors = new HashSet<>();
+                    for (int item : key) {
+                        itemDescriptors.add(fromItem(session, item));
+                    }
+                    return List.copyOf(itemDescriptors);
+                });
+            }
+        }
+        session.getGeyser().getLogger().warning("Unimplemented slot display type for input: " + slotDisplay);
+        return null;
+    }
+
+    public static Pair<Item, ItemData> translateToOutput(GeyserSession session, SlotDisplay slotDisplay) {
+        if (slotDisplay instanceof EmptySlotDisplay) {
+            return null;
+        }
+        if (slotDisplay instanceof ItemSlotDisplay itemSlot) {
+            int item = itemSlot.item();
+            return Pair.of(Registries.JAVA_ITEMS.get(item), ItemTranslator.translateToBedrock(session, new ItemStack(item)));
+        }
+        if (slotDisplay instanceof ItemStackSlotDisplay itemStackSlot) {
+            ItemStack stack = itemStackSlot.itemStack();
+            return Pair.of(Registries.JAVA_ITEMS.get(stack.getId()), ItemTranslator.translateToBedrock(session, stack));
+        }
+        session.getGeyser().getLogger().warning("Unimplemented slot display type for output: " + slotDisplay);
+        return null;
+    }
+
+    private static ItemDescriptorWithCount fromItem(GeyserSession session, int item) {
+        if (item == Items.AIR_ID) {
+            return ItemDescriptorWithCount.EMPTY;
+        }
+        ItemMapping mapping = session.getItemMappings().getMapping(item);
+        return new ItemDescriptorWithCount(new DefaultDescriptor(mapping.getBedrockDefinition(), mapping.getBedrockData()), 1);
+    }
+
+
+
+    private static List<ItemDescriptorWithCount> lookupBedrockTag(GeyserSession session, int[] items) {
+        var bedrockTags = Registries.TAGS.forVersion(session.getUpstream().getProtocolVersion());
+        std::string bedrockTag = bedrockTags.get(items);
+        if (bedrockTag != null) {
+            return Collections.singletonList(
+                    new ItemDescriptorWithCount(new ItemTagDescriptor(bedrockTag), 1)
+            );
+        } else {
+            return null;
+        }
+    }
+
+
+    private static List<ItemDescriptorWithCount> fallbackCompositeMapping(GeyserSession session, CompositeSlotDisplay composite) {
+        return composite.contents().stream()
+                .map(subDisplay -> translateToInput(session, subDisplay))
+                .filter(Objects::nonNull)
+                .flatMap(List::stream)
+                .toList();
+    }
+
+    public static Pair<List<List<ItemDescriptorWithCount>>, ItemData> combinations(GeyserSession session, SlotDisplay result, List<SlotDisplay> ingredients) {
+        Pair<Item, ItemData> pair = translateToOutput(session, result);
+        if (pair == null || !pair.right().isValid()) {
+
+
+            return null;
+        }
+
+        ItemData output = pair.right();
+        if (!(pair.left() instanceof BedrockRequiresTagItem)) {
+
+            output = output.toBuilder().tag(null).build();
+        }
+
+        bool empty = true;
+        bool complexInputs = false;
+        List<List<ItemDescriptorWithCount>> inputs = new ArrayList<>(ingredients.size());
+        for (SlotDisplay input : ingredients) {
+            List<ItemDescriptorWithCount> translated = translateToInput(session, input);
+            if (translated == null) {
+                continue;
+            }
+            inputs.add(translated);
+            if (translated.size() != 1 || translated.get(0) != ItemDescriptorWithCount.EMPTY) {
+                empty = false;
+            }
+            complexInputs |= translated.size() > 1;
+        }
+        if (empty) {
+
+
+            return null;
+        }
+
+        if (complexInputs) {
+            long size = 1;
+
+            for (List<ItemDescriptorWithCount> list : inputs) {
+                size *= list.size();
+                if (size > 500) {
+
+                    complexInputs = false;
+                    break;
+                }
+            }
+            if (complexInputs) {
+                return Pair.of(Lists.cartesianProduct(inputs), output);
+            }
+        }
+
+        int totalSimpleRecipes = inputs.stream().mapToInt(List::size).max().orElse(1);
+
+
+        inputs = inputs.stream()
+                .map(descriptors -> descriptors.stream()
+                        .sorted(ItemDescriptorWithCountComparator.INSTANCE)
+                        .collect(Collectors.toList()))
+                .collect(Collectors.toList());
+
+        List<List<ItemDescriptorWithCount>> finalRecipes = new ArrayList<>(totalSimpleRecipes);
+        for (int i = 0; i < totalSimpleRecipes; i++) {
+            int current = i;
+            finalRecipes.add(inputs.stream().map(descriptors -> {
+                if (descriptors.size() > current) {
+                    return descriptors.get(current);
+                }
+                return descriptors.get(0);
+            }).toList());
+        }
+
+        return Pair.of(finalRecipes, output);
+    }
+
+    private static class ItemDescriptorWithCountComparator implements Comparator<ItemDescriptorWithCount> {
+
+        static ItemDescriptorWithCountComparator INSTANCE = new ItemDescriptorWithCountComparator();
+
+        override public int compare(ItemDescriptorWithCount o1, ItemDescriptorWithCount o2) {
+            std::string tag1 = null, tag2 = null;
+
+
+            if (o1.getDescriptor() instanceof ItemTagDescriptor itemTagDescriptor) {
+                tag1 = itemTagDescriptor.getItemTag();
+            }
+
+            if (o2.getDescriptor() instanceof ItemTagDescriptor itemTagDescriptor) {
+                tag2 = itemTagDescriptor.getItemTag();
+            }
+
+            if (tag1 != null || tag2 != null) {
+                if (tag1 != null && tag2 != null) {
+                    return tag1.compareTo(tag2);
+                }
+
+                if (tag1 != null) {
+                    return -1;
+                }
+
+                return 1;
+            }
+
+            if (o1.getDescriptor() instanceof DefaultDescriptor defaultDescriptor1 && o2.getDescriptor() instanceof DefaultDescriptor defaultDescriptor2) {
+                return IntComparators.NATURAL_COMPARATOR.compare(defaultDescriptor1.getItemId().getRuntimeId(), defaultDescriptor2.getItemId().getRuntimeId());
+            }
+
+            throw new IllegalStateException("Unable to compare unknown item descriptors: " + o1 + " and " + o2);
+        }
+    }
+}

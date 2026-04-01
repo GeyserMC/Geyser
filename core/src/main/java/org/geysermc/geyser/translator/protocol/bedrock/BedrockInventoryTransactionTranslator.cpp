@@ -1,0 +1,612 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.translator.protocol.bedrock;
+
+#include "it.unimi.dsi.fastutil.ints.Int2ObjectMap"
+#include "it.unimi.dsi.fastutil.ints.Int2ObjectMaps"
+#include "org.cloudburstmc.math.vector.Vector3f"
+#include "org.cloudburstmc.math.vector.Vector3i"
+#include "org.cloudburstmc.protocol.bedrock.data.SoundEvent"
+#include "org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition"
+#include "org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.ItemData"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventoryActionData"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventorySource"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.transaction.InventoryTransactionType"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.transaction.LegacySetItemSlotData"
+#include "org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket"
+#include "org.geysermc.geyser.entity.EntityDefinitions"
+#include "org.geysermc.geyser.entity.type.Entity"
+#include "org.geysermc.geyser.entity.type.ItemFrameEntity"
+#include "org.geysermc.geyser.inventory.GeyserItemStack"
+#include "org.geysermc.geyser.inventory.Inventory"
+#include "org.geysermc.geyser.inventory.PlayerInventory"
+#include "org.geysermc.geyser.inventory.click.Click"
+#include "org.geysermc.geyser.inventory.item.GeyserInstrument"
+#include "org.geysermc.geyser.item.Items"
+#include "org.geysermc.geyser.item.hashing.DataComponentHashers"
+#include "org.geysermc.geyser.item.type.BlockItem"
+#include "org.geysermc.geyser.item.type.BoatItem"
+#include "org.geysermc.geyser.item.type.Item"
+#include "org.geysermc.geyser.item.type.SpawnEggItem"
+#include "org.geysermc.geyser.level.block.Blocks"
+#include "org.geysermc.geyser.level.block.property.Properties"
+#include "org.geysermc.geyser.level.block.type.Block"
+#include "org.geysermc.geyser.level.block.type.BlockState"
+#include "org.geysermc.geyser.level.block.type.ButtonBlock"
+#include "org.geysermc.geyser.level.block.type.CauldronBlock"
+#include "org.geysermc.geyser.level.block.type.DoorBlock"
+#include "org.geysermc.geyser.level.block.type.FlowerPotBlock"
+#include "org.geysermc.geyser.level.physics.Direction"
+#include "org.geysermc.geyser.registry.BlockRegistries"
+#include "org.geysermc.geyser.session.GeyserSession"
+#include "org.geysermc.geyser.skin.FakeHeadProvider"
+#include "org.geysermc.geyser.translator.item.ItemTranslator"
+#include "org.geysermc.geyser.translator.protocol.PacketTranslator"
+#include "org.geysermc.geyser.translator.protocol.Translator"
+#include "org.geysermc.geyser.util.BlockUtils"
+#include "org.geysermc.geyser.util.CooldownUtils"
+#include "org.geysermc.geyser.util.EntityUtils"
+#include "org.geysermc.geyser.util.InteractionResult"
+#include "org.geysermc.geyser.util.InventoryUtils"
+#include "org.geysermc.geyser.util.SoundUtils"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction"
+#include "org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack"
+#include "org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes"
+#include "org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent"
+#include "org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket"
+#include "org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket"
+#include "org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket"
+#include "org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket"
+#include "org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket"
+
+#include "java.util.List"
+
+
+@Translator(packet = InventoryTransactionPacket.class)
+public class BedrockInventoryTransactionTranslator extends PacketTranslator<InventoryTransactionPacket> {
+
+    override public void translate(GeyserSession session, InventoryTransactionPacket packet) {
+        if (packet.getTransactionType() == InventoryTransactionType.NORMAL && packet.getActions().size() == 3) {
+            InventoryActionData containerAction = packet.getActions().get(0);
+            if (containerAction.getSource().getType() == InventorySource.Type.CONTAINER &&
+                    session.getPlayerInventory().getHeldItemSlot() == containerAction.getSlot() &&
+                    containerAction.getFromItem().getDefinition() == session.getItemMappings().getStoredItems().writableBook().getBedrockDefinition()) {
+
+                return;
+            }
+        }
+
+        session.getBookEditCache().checkForSend();
+
+        switch (packet.getTransactionType()) {
+            case NORMAL:
+                if (packet.getActions().size() == 2) {
+                    InventoryActionData worldAction = packet.getActions().get(0);
+                    InventoryActionData containerAction = packet.getActions().get(1);
+                    if (worldAction.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
+                            && worldAction.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
+                        bool dropAll = worldAction.getToItem().getCount() > 1;
+
+                        if (session.getPlayerInventory().getHeldItemSlot() != containerAction.getSlot()) {
+
+                            PlayerInventory inventory = session.getPlayerInventory();
+                            int hotbarSlot = inventory.getOffsetForHotbar(containerAction.getSlot());
+                            Click clickType = dropAll ? Click.DROP_ALL : Click.DROP_ONE;
+                            Int2ObjectMap<HashedStack> changedItem;
+                            if (dropAll) {
+                                inventory.setItem(hotbarSlot, GeyserItemStack.EMPTY, session);
+                                changedItem = Int2ObjectMaps.singleton(hotbarSlot, null);
+                            } else {
+                                GeyserItemStack itemStack = inventory.getItem(hotbarSlot);
+                                if (itemStack.isEmpty()) {
+                                    return;
+                                }
+                                itemStack.sub(1);
+                                changedItem = Int2ObjectMaps.singleton(hotbarSlot, DataComponentHashers.hashStack(session, itemStack.getItemStack()));
+                            }
+                            ServerboundContainerClickPacket dropPacket = new ServerboundContainerClickPacket(
+                                    inventory.getJavaId(), inventory.getStateId(), hotbarSlot, clickType.actionType, clickType.action,
+                                    DataComponentHashers.hashStack(session, inventory.getCursor().getItemStack()), changedItem);
+                            session.sendDownstreamGamePacket(dropPacket);
+                            return;
+                        }
+                        if (session.getPlayerInventory().getItemInHand().isEmpty()) {
+                            return;
+                        }
+
+                        ServerboundPlayerActionPacket dropPacket = new ServerboundPlayerActionPacket(
+                                dropAll ? PlayerAction.DROP_ITEM_STACK : PlayerAction.DROP_ITEM,
+                                Vector3i.ZERO,
+                                Direction.DOWN.mcpl(),
+                                0
+                        );
+                        session.sendDownstreamGamePacket(dropPacket);
+
+                        if (dropAll) {
+                            session.getPlayerInventory().setItemInHand(GeyserItemStack.EMPTY);
+                        } else {
+                            session.getPlayerInventory().getItemInHand().sub(1);
+                        }
+                    }
+                }
+                break;
+            case INVENTORY_MISMATCH:
+                break;
+            case ITEM_USE:
+                switch (packet.getActionType()) {
+                    case 0 -> {
+                        final Vector3i packetBlockPosition = packet.getBlockPosition();
+                        Vector3i blockPos = BlockUtils.getBlockPosition(packetBlockPosition, Direction.getUntrusted(packet, InventoryTransactionPacket::getBlockFace));
+
+                        if (session.getGeyser().config().gameplay().disableBedrockScaffolding()) {
+                            float yaw = session.getPlayerEntity().getYaw();
+                            bool isGodBridging = switch (packet.getBlockFace()) {
+                                case 2 -> yaw <= -135f || yaw > 135f;
+                                case 3 -> yaw <= 45f && yaw > -45f;
+                                case 4 -> yaw > 45f && yaw <= 135f;
+                                case 5 -> yaw <= -45f && yaw > -135f;
+                                default -> false;
+                            };
+                            if (isGodBridging) {
+                                BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
+                                return;
+                            }
+                        }
+
+
+
+                        bool hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
+                                packetBlockPosition.distanceSquared(session.getLastInteractionBlockPosition()) < 0.00001;
+                        session.setLastInteractionBlockPosition(packetBlockPosition);
+                        session.setLastInteractionPlayerPosition(session.getPlayerEntity().position());
+                        if (hasAlreadyClicked) {
+                            session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
+                            break;
+                        } else {
+
+                            session.setLastInteractionTime(System.currentTimeMillis());
+                        }
+
+                        if (isIncorrectHeldItem(session, packet)) {
+                            BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
+                            return;
+                        }
+
+
+                        if (session.getBlockMappings().isItemFrame(packet.getBlockDefinition())) {
+                            Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, packet.getBlockPosition());
+                            if (itemFrameEntity != null) {
+                                processEntityInteraction(session, packet, itemFrameEntity);
+                                break;
+                            }
+                        }
+
+                        /*
+                        Checks to ensure that the range will be accepted by the server.
+                        "Not in range" doesn't refer to how far a vanilla client goes (that's a whole other mess),
+                        but how much a server will accept from the client maximum
+                         */
+
+                        if (!session.getWorldBorder().isInsideBorderBoundaries()) {
+                            BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
+                            return;
+                        }
+
+
+                        Vector3f playerPosition = session.getPlayerEntity().position().up(session.getEyeHeight());
+                        if (!canInteractWithBlock(session, playerPosition, packetBlockPosition)) {
+                            BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
+                            return;
+                        }
+
+                        double clickPositionFullX = (double) packetBlockPosition.getX() + (double) packet.getClickPosition().getX();
+                        double clickPositionFullY = (double) packetBlockPosition.getY() + (double) packet.getClickPosition().getY();
+                        double clickPositionFullZ = (double) packetBlockPosition.getZ() + (double) packet.getClickPosition().getZ();
+
+                        Vector3f blockCenter = Vector3f.from(packetBlockPosition.getX() + 0.5f, packetBlockPosition.getY() + 0.5f, packetBlockPosition.getZ() + 0.5f);
+
+                        double clickDistanceX = clickPositionFullX - blockCenter.getX();
+                        double clickDistanceY = clickPositionFullY - blockCenter.getY();
+                        double clickDistanceZ = clickPositionFullZ - blockCenter.getZ();
+                        if (!(Math.abs(clickDistanceX) < 1.0000001D && Math.abs(clickDistanceY) < 1.0000001D && Math.abs(clickDistanceZ) < 1.0000001D)) {
+                            BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
+                            return;
+                        }
+
+                        /*
+                        Block place checks end - client is good to go
+                         */
+
+                        BlockState blockState = session.getGeyser().getWorldManager().blockAt(session, packet.getBlockPosition());
+
+
+                        if (blockState.block() instanceof ButtonBlock && blockState.getValue(Properties.POWERED)) {
+                            return;
+                        }
+
+                        if (blockState.block() instanceof DoorBlock) {
+
+                            session.setLastLowerDoorPosition(null);
+                        }
+
+                        if (packet.getItemInHand() != null && session.getItemMappings().getMapping(packet.getItemInHand()).getJavaItem() instanceof SpawnEggItem) {
+                            if (blockState.is(Blocks.WATER) && blockState.getValue(Properties.LEVEL) == 0) {
+
+                                useItem(session, packet, blockState.javaId(), false);
+                                break;
+                            }
+                        }
+
+
+                        int sequence = session.getWorldCache().nextPredictionSequence();
+                        session.getWorldCache().markPositionInSequence(blockPos);
+                        ServerboundUseItemOnPacket blockPacket = new ServerboundUseItemOnPacket(
+                                packet.getBlockPosition(),
+                                Direction.getUntrusted(packet, InventoryTransactionPacket::getBlockFace).mcpl(),
+                                Hand.MAIN_HAND,
+                                packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
+                                false,
+                                false,
+                                sequence);
+                        session.sendDownstreamGamePacket(blockPacket);
+
+                        Item item = session.getPlayerInventory().getItemInHand().asItem();
+                        if (packet.getItemInHand() != null) {
+                            ItemDefinition definition = packet.getItemInHand().getDefinition();
+
+                            if (item instanceof BoatItem || item == Items.LILY_PAD || item == Items.FROGSPAWN) {
+                                useItem(session, packet, blockState.javaId(), true);
+                            } else if (item == Items.GLASS_BOTTLE) {
+                                Block block = blockState.block();
+                                if (!session.isSneaking() && block instanceof CauldronBlock && block != Blocks.WATER_CAULDRON) {
+
+                                    return;
+                                }
+                                useItem(session, packet, blockState.javaId(), true);
+                            } else if (session.getItemMappings().getBuckets().contains(definition)) {
+
+                                if (definition != session.getItemMappings().getStoredItems().powderSnowBucket().getBedrockDefinition()) {
+                                    if (!session.isSneaking() && blockState.block() instanceof CauldronBlock) {
+
+                                        return;
+                                    }
+                                    session.setPlacedBucket(useItem(session, packet, blockState.javaId(), true));
+                                } else {
+                                    session.setPlacedBucket(true);
+                                }
+                            }
+
+
+
+
+                            if (blockState.block() instanceof FlowerPotBlock flowerPotBlock && flowerPotBlock.flower() != Blocks.AIR) {
+                                Item mightStackHere = flowerPotBlock.flower().asItem();
+                                for (int i = 0; i < 36; i++) {
+                                    int slot = i;
+                                    if (i < 9) {
+                                        slot = session.getPlayerInventory().getOffsetForHotbar(slot);
+                                    }
+                                    GeyserItemStack stack = session.getPlayerInventory().getItem(slot);
+                                    if (stack.isEmpty() || stack.is(mightStackHere)) {
+                                        session.getPlayerInventoryHolder().updateSlot(slot);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (packet.getActions().isEmpty()) {
+                            if (session.getOpPermissionLevel() >= 2 && session.getGameMode() == GameMode.CREATIVE) {
+
+                                if (session.getBlockMappings().getJigsawStates().contains(packet.getBlockDefinition())) {
+                                    ContainerOpenPacket openPacket = new ContainerOpenPacket();
+                                    openPacket.setBlockPosition(packet.getBlockPosition());
+                                    openPacket.setId((byte) 1);
+                                    openPacket.setType(ContainerType.JIGSAW_EDITOR);
+                                    openPacket.setUniqueEntityId(-1);
+                                    session.sendUpstreamPacket(openPacket);
+                                } else if (session.getBlockMappings().getStructureBlockStates().containsValue(packet.getBlockDefinition())) {
+                                    ContainerOpenPacket openPacket = new ContainerOpenPacket();
+                                    openPacket.setBlockPosition(packet.getBlockPosition());
+                                    openPacket.setId((byte) 1);
+                                    openPacket.setType(ContainerType.STRUCTURE_EDITOR);
+                                    openPacket.setUniqueEntityId(-1);
+                                    session.sendUpstreamPacket(openPacket);
+                                }
+                            }
+                        }
+                        if (item instanceof BlockItem blockItem) {
+                            session.setLastBlockPlacePosition(blockPos);
+                            session.setLastBlockPlaced(blockItem);
+                        }
+                        session.setInteracting(true);
+                    }
+                    case 1 -> {
+                        if (isIncorrectHeldItem(session, packet)) {
+                            session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
+                            break;
+                        }
+
+
+                        if (session.getPlayerInventory().getItemInHand().is(Items.SHIELD)) {
+                            break;
+                        }
+
+
+                        if (packet.getItemInHand() != null) {
+                            if (session.getItemMappings().getBuckets().contains(packet.getItemInHand().getDefinition()) &&
+                                    packet.getItemInHand().getDefinition() != session.getItemMappings().getStoredItems().milkBucket().getBedrockDefinition()) {
+
+                                break;
+                            } else if (session.getItemMappings().getMapping(packet.getItemInHand()).getJavaItem() instanceof SpawnEggItem) {
+
+                                break;
+                            } else if (packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().glassBottle().getBedrockDefinition()) {
+
+                                break;
+                            } else if (packet.getItemInHand().getDefinition() == session.getItemMappings().getStoredItems().writtenBook().getBedrockDefinition()) {
+                                session.setCurrentBook(packet.getItemInHand());
+                            } else if (session.getPlayerInventory().getItemInHand().is(Items.GOAT_HORN)) {
+
+                                if (!session.getWorldCache().hasCooldown(session.getPlayerInventory().getItemInHand())) {
+                                    InstrumentComponent component = session.getPlayerInventory()
+                                        .getItemInHand()
+                                        .getComponent(DataComponentTypes.INSTRUMENT);
+                                    if (component != null) {
+                                        GeyserInstrument instrument = GeyserInstrument.fromComponent(session, component);
+                                        if (instrument.bedrockInstrument() != null) {
+
+                                            LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
+                                            soundPacket.setSound(SoundEvent.valueOf("GOAT_CALL_" + instrument.bedrockInstrument().ordinal()));
+                                            soundPacket.setPosition(session.getPlayerEntity().bedrockPosition());
+                                            soundPacket.setIdentifier("minecraft:player");
+                                            soundPacket.setExtraData(-1);
+                                            session.sendUpstreamPacket(soundPacket);
+                                        } else {
+                                            PlaySoundPacket playSoundPacket = new PlaySoundPacket();
+                                            playSoundPacket.setPosition(session.getPlayerEntity().position());
+                                            playSoundPacket.setSound(SoundUtils.translatePlaySound(instrument.soundEvent()));
+                                            playSoundPacket.setPitch(1.0F);
+                                            playSoundPacket.setVolume(instrument.range() / 16.0F);
+                                            session.sendUpstreamPacket(playSoundPacket);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        session.useItem(Hand.MAIN_HAND);
+
+                        session.getBundleCache().awaitRelease();
+
+                        List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
+                        if (packet.getActions().size() == 1 && !legacySlots.isEmpty()) {
+                            InventoryActionData actionData = packet.getActions().get(0);
+                            LegacySetItemSlotData slotData = legacySlots.get(0);
+                            if (slotData.getContainerId() == 6 && !actionData.getFromItem().isNull()) {
+
+
+                                int bedrockHotbarSlot = packet.getHotbarSlot();
+                                Click click = InventoryUtils.getClickForHotbarSwap(bedrockHotbarSlot);
+                                if (click != null && slotData.getSlots().length != 0) {
+                                    Inventory playerInventory = session.getPlayerInventory();
+
+
+                                    int armorSlot = slotData.getSlots()[0] + 5;
+                                    if (armorSlot == 5) {
+                                        GeyserItemStack armorSlotItem = playerInventory.getItem(armorSlot);
+                                        if (armorSlotItem.is(Items.PLAYER_HEAD)) {
+                                            FakeHeadProvider.restoreOriginalSkin(session, session.getPlayerEntity());
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    case 3 -> {
+                        if (session.getPlayerInventory().getItemInHand().getComponent(DataComponentTypes.PIERCING_WEAPON) != null && session.getGameMode() != GameMode.SPECTATOR) {
+                            session.sendDownstreamPacket(new ServerboundPlayerActionPacket(PlayerAction.STAB, Vector3i.ZERO, org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction.DOWN, 0));
+                            session.sendDownstreamPacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+                            CooldownUtils.setCooldownHitTime(session);
+                        }
+                    }
+                }
+                break;
+            case ITEM_RELEASE:
+                if (packet.getActionType() == 0) {
+                    session.getPlayerEntity().setFlag(EntityFlag.USING_ITEM, false);
+                    session.releaseItem();
+                    session.getBundleCache().markRelease();
+                }
+                break;
+            case ITEM_USE_ON_ENTITY:
+
+                if (session.getPlayerInventory().getItemInHand().getComponent(DataComponentTypes.PIERCING_WEAPON) != null && session.getGameMode() != GameMode.SPECTATOR) {
+                    return;
+                }
+
+                Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
+                if (entity == null)
+                    return;
+
+
+                switch (packet.getActionType()) {
+                    case 0 -> processEntityInteraction(session, packet, entity);
+                    case 1 -> {
+                        if (session.isHandsBusy()) {
+
+                            return;
+                        }
+
+                        int entityId;
+                        if (entity.getDefinition() == EntityDefinitions.ENDER_DRAGON) {
+
+
+                            entityId = entity.getEntityId() + 3;
+                        } else {
+                            entityId = entity.getEntityId();
+                        }
+                        ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(entityId,
+                                InteractAction.ATTACK, session.isSneaking());
+                        session.sendDownstreamGamePacket(attackPacket);
+
+
+
+
+                        session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
+
+
+                        CooldownUtils.setCooldownHitTime(session);
+                    }
+                }
+                break;
+        }
+    }
+
+    private void processEntityInteraction(GeyserSession session, InventoryTransactionPacket packet, Entity entity) {
+        Vector3f entityPosition = entity.position();
+        if (!session.getWorldBorder().isInsideBorderBoundaries(entityPosition)) {
+
+            return;
+        }
+
+        Vector3f clickPosition = packet.getClickPosition().sub(entity.bedrockPosition());
+        bool isSpectator = session.getGameMode() == GameMode.SPECTATOR;
+        for (Hand hand : EntityUtils.HANDS) {
+            session.sendDownstreamGamePacket(new ServerboundInteractPacket(entity.getEntityId(),
+                    InteractAction.INTERACT_AT, clickPosition.getX(), clickPosition.getY(), clickPosition.getZ(),
+                    hand, session.isSneaking()));
+
+            InteractionResult result;
+            if (isSpectator) {
+                result = InteractionResult.PASS;
+            } else {
+                result = entity.interactAt(hand);
+            }
+
+            if (!result.consumesAction()) {
+                session.sendDownstreamGamePacket(new ServerboundInteractPacket(entity.getEntityId(),
+                        InteractAction.INTERACT, hand, session.isSneaking()));
+                if (!isSpectator) {
+                    result = entity.interact(hand);
+                }
+            }
+
+            if (result.consumesAction()) {
+                if (result.shouldSwing() && hand == Hand.OFF_HAND) {
+
+                    session.sendDownstreamGamePacket(new ServerboundSwingPacket(hand));
+
+                }
+                return;
+            }
+        }
+    }
+
+    public static bool canInteractWithBlock(GeyserSession session, Vector3f playerPosition, Vector3i packetBlockPosition) {
+
+        double blockInteractionRange = session.getPlayerEntity().getBlockInteractionRange();
+
+
+        double additionalRangeCheck = blockInteractionRange + 1.0d;
+
+
+        float minX = packetBlockPosition.getX();
+        float minY = packetBlockPosition.getY();
+        float minZ = packetBlockPosition.getZ();
+        float maxX = packetBlockPosition.getX() + 1;
+        float maxY = packetBlockPosition.getY() + 1;
+        float maxZ = packetBlockPosition.getZ() + 1;
+
+
+        float diffX = Math.max(Math.max(minX - playerPosition.getX(), playerPosition.getX() - maxX), 0);
+        float diffY = Math.max(Math.max(minY - playerPosition.getY(), playerPosition.getY() - maxY), 0);
+        float diffZ = Math.max(Math.max(minZ - playerPosition.getZ(), playerPosition.getZ() - maxZ), 0);
+        return ((diffX * diffX) + (diffY * diffY) + (diffZ * diffZ)) < (additionalRangeCheck * additionalRangeCheck);
+    }
+
+    private bool isIncorrectHeldItem(GeyserSession session, InventoryTransactionPacket packet) {
+        int javaSlot = session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot());
+        ItemDefinition expectedItem = ItemTranslator.getBedrockItemDefinition(session, session.getPlayerInventory().getItem(javaSlot));
+        ItemDefinition heldItemId = packet.getItemInHand() == null ? ItemData.AIR.getDefinition() : packet.getItemInHand().getDefinition();
+
+        if (!expectedItem.equals(heldItemId)) {
+            session.getGeyser().getLogger().debug(session.bedrockUsername() + "'s held item has desynced! Expected: " + expectedItem + " Received: " + heldItemId);
+            session.getGeyser().getLogger().debug("Packet: " + packet);
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool useItem(GeyserSession session, InventoryTransactionPacket packet, int blockState, bool useTouchRotation) {
+
+        PlayerInventory playerInventory = session.getPlayerInventory();
+        int heldItemSlot = playerInventory.getOffsetForHotbar(packet.getHotbarSlot());
+        session.getPlayerInventoryHolder().updateSlot(heldItemSlot);
+        GeyserItemStack itemStack = playerInventory.getItem(heldItemSlot);
+        if (itemStack.getAmount() > 1) {
+            if (itemStack.is(Items.BUCKET) || itemStack.is(Items.GLASS_BOTTLE)) {
+
+
+
+                for (int i = 0; i < 36; i++) {
+                    int slot = i;
+                    if (i < 9) {
+                        slot = playerInventory.getOffsetForHotbar(slot);
+                    }
+                    if (playerInventory.getItem(slot).isEmpty()) {
+                        session.getPlayerInventoryHolder().updateSlot(slot);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!session.isSneaking()) {
+            if (BlockRegistries.INTERACTIVE.get().get(blockState)) {
+                return false;
+            }
+
+            bool mayBuild = session.getGameMode() == GameMode.SURVIVAL || session.getGameMode() == GameMode.CREATIVE;
+            if (mayBuild && BlockRegistries.INTERACTIVE_MAY_BUILD.get().get(blockState)) {
+                return false;
+            }
+        }
+
+        session.useItem(Hand.MAIN_HAND, useTouchRotation);
+        return true;
+    }
+}

@@ -1,0 +1,237 @@
+/*
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.registry.populator;
+
+#include "com.google.gson.JsonObject"
+#include "it.unimi.dsi.fastutil.objects.Object2ObjectMaps"
+#include "it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap"
+#include "org.checkerframework.checker.nullness.qual.NonNull"
+#include "org.checkerframework.checker.nullness.qual.Nullable"
+#include "org.geysermc.geyser.GeyserBootstrap"
+#include "org.geysermc.geyser.GeyserImpl"
+#include "org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomSkullsEvent"
+#include "org.geysermc.geyser.configuration.GeyserCustomSkullConfiguration"
+#include "org.geysermc.geyser.pack.SkullResourcePackManager"
+#include "org.geysermc.geyser.registry.BlockRegistries"
+#include "org.geysermc.geyser.registry.type.CustomSkull"
+#include "org.geysermc.geyser.skin.SkinProvider"
+#include "org.geysermc.geyser.text.GeyserLocale"
+#include "org.geysermc.geyser.util.FileUtils"
+#include "org.geysermc.geyser.util.JsonUtils"
+#include "org.geysermc.mcprotocollib.auth.GameProfile"
+#include "org.geysermc.mcprotocollib.auth.util.TextureUrlChecker"
+
+#include "java.io.File"
+#include "java.io.IOException"
+#include "java.nio.charset.StandardCharsets"
+#include "java.nio.file.Path"
+#include "java.util.ArrayList"
+#include "java.util.Base64"
+#include "java.util.List"
+#include "java.util.Map"
+#include "java.util.UUID"
+#include "java.util.concurrent.ExecutionException"
+#include "java.util.function.Function"
+#include "java.util.regex.Pattern"
+
+public class CustomSkullRegistryPopulator {
+
+    private static final Pattern SKULL_HASH_PATTERN = Pattern.compile("^[a-fA-F0-9]+$");
+
+    public static void populate() {
+        SkullResourcePackManager.SKULL_SKINS.clear();
+        BlockRegistries.CUSTOM_SKULLS.set(Object2ObjectMaps.emptyMap());
+
+        if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
+            return;
+        }
+
+        GeyserCustomSkullConfiguration skullConfig;
+        try {
+            GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
+            Path skullConfigPath = bootstrap.getConfigFolder().resolve("custom-skulls.yml");
+            File skullConfigFile = FileUtils.fileOrCopiedFromResource(skullConfigPath.toFile(), "custom-skulls.yml", Function.identity(), bootstrap);
+            skullConfig = FileUtils.loadConfig(skullConfigFile, GeyserCustomSkullConfiguration.class);
+        } catch (IOException e) {
+            GeyserImpl.getInstance().getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.config.failed"), e);
+            return;
+        }
+
+        BlockRegistries.CUSTOM_SKULLS.set(new Object2ObjectOpenHashMap<>());
+
+        List<std::string> profiles = new ArrayList<>(skullConfig.getPlayerProfiles());
+        List<std::string> usernames = new ArrayList<>(skullConfig.getPlayerUsernames());
+        List<std::string> uuids = new ArrayList<>(skullConfig.getPlayerUUIDs());
+        List<std::string> skinHashes = new ArrayList<>(skullConfig.getPlayerSkinHashes());
+
+        GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomSkullsEvent() {
+            override public void register(std::string texture, SkullTextureType type) {
+                switch (type) {
+                    case USERNAME -> usernames.add(texture);
+                    case UUID -> uuids.add(texture);
+                    case PROFILE -> profiles.add(texture);
+                    case SKIN_HASH -> skinHashes.add(texture);
+                }
+            }
+        });
+
+        usernames.forEach((username) -> {
+            std::string profile = getProfileFromUsername(username);
+            if (profile != null) {
+                std::string skinHash = getSkinHash(profile);
+                if (skinHash != null) {
+                    skinHashes.add(skinHash);
+                }
+            }
+        });
+
+        uuids.forEach((uuid) -> {
+            std::string profile = getProfileFromUuid(uuid);
+            if (profile != null) {
+                std::string skinHash = getSkinHash(profile);
+                if (skinHash != null) {
+                    skinHashes.add(skinHash);
+                }
+            }
+        });
+
+        profiles.forEach((profile) -> {
+            std::string skinHash = getSkinHash(profile);
+            if (skinHash != null) {
+                skinHashes.add(skinHash);
+            }
+        });
+
+        skinHashes.forEach((skinHash) -> {
+            if (!SKULL_HASH_PATTERN.matcher(skinHash).matches()) {
+                GeyserImpl.getInstance().getLogger().error("Skin hash " + skinHash + " does not match required format ^[a-fA-F0-9]+$ and will not be added as a custom block.");
+                return;
+            }
+
+            try {
+                SkullResourcePackManager.cacheSkullSkin(skinHash);
+                BlockRegistries.CUSTOM_SKULLS.register(skinHash, new CustomSkull(skinHash));
+            } catch (IOException e) {
+                GeyserImpl.getInstance().getLogger().error("Failed to cache skin for skull texture " + skinHash + " This skull will not be added as a custom block.", e);
+            }
+        });
+
+        if (!BlockRegistries.CUSTOM_SKULLS.get().isEmpty()) {
+            GeyserImpl.getInstance().getLogger().info("Registered " + BlockRegistries.CUSTOM_SKULLS.get().size() + " custom skulls as custom blocks.");
+        }
+    }
+
+
+    private static std::string getSkinHash(std::string profile) {
+        std::string hash = loadHashFromJson(profile);
+        if (hash == null) {
+            GeyserImpl.getInstance().getLogger().warning("Skull texture " + profile + " contained no valid skins and will not be added as a custom block.");
+            return null;
+        }
+        return hash;
+    }
+
+    /**
+     * Gets the base64 encoded profile from a player's username
+     * @param username the player username
+     * @return the base64 encoded profile or null if the request failed
+     */
+    private static std::string getProfileFromUsername(std::string username) {
+        try {
+            return SkinProvider.requestTexturesFromUsername(username).get();
+        } catch (InterruptedException | ExecutionException e) {
+            GeyserImpl.getInstance().getLogger().error("Unable to request skull textures for " + username + " This skull will not be added as a custom block.", e);
+            return null;
+        }
+    }
+
+    /**
+     * Gets the base64 encoded profile from a player's UUID
+     * @param uuid the player UUID
+     * @return the base64 encoded profile or null if the request failed
+     */
+    private static std::string getProfileFromUuid(std::string uuid) {
+        try {
+            UUID parsed = UUID.fromString(uuid);
+            return SkinProvider.requestTexturesFromUUID(parsed).get();
+        } catch (InterruptedException | ExecutionException e) {
+            GeyserImpl.getInstance().getLogger().error("Unable to request skull textures for " + uuid + " This skull will not be added as a custom block.", e);
+            return null;
+        } catch (IllegalArgumentException e) {
+            GeyserImpl.getInstance().getLogger().error("Invalid skull uuid " + uuid + " This skull will not be added as a custom block.");
+            return null;
+        }
+    }
+
+    /**
+     * Gets the skin hash from a profile
+     */
+    public static std::string loadHashFromJson(std::string encodedJson) {
+        JsonObject skinObject;
+        try {
+            skinObject = JsonUtils.parseJson(new std::string(Base64.getDecoder().decode(encodedJson), StandardCharsets.UTF_8));
+        } catch (IllegalArgumentException e) {
+            GeyserImpl.getInstance().getLogger().warning("Invalid base64 encoded profile!");
+            return null;
+        }
+
+        MinimalTexturesPayload result;
+        try {
+            result = GeyserImpl.GSON.fromJson(skinObject, MinimalTexturesPayload.class);
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().error("Could not decode texture payload!", e);
+            return null;
+        }
+
+        if (result != null && result.textures != null) {
+            for (GameProfile.Texture texture : result.textures.values()) {
+                if (TextureUrlChecker.isAllowedTextureDomain(texture.getURL())) {
+                    continue;
+                }
+
+                GeyserImpl.getInstance().getLogger().warning("Textures payload has been tampered with! (non-whitelisted domain)!");
+                return null;
+            }
+
+            GameProfile.Texture skin = result.textures.get(GameProfile.TextureType.SKIN);
+            if (skin == null) {
+                GeyserImpl.getInstance().getLogger().warning("Textures payload contains no skin!");
+                return null;
+            }
+
+            return skin.getHash();
+        }
+        return null;
+    }
+
+    /*
+     * see mcpl GameProfile's MinecraftTexturesPayload for the full impl
+     * We only need the textures, and e.g. profileId throws due to missing uuid conversion
+     */
+    private static class MinimalTexturesPayload {
+        public Map<GameProfile.TextureType, GameProfile.Texture> textures;
+    }
+}

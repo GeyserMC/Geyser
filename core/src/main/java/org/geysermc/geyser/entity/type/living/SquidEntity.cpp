@@ -1,0 +1,140 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.entity.type.living;
+
+#include "org.cloudburstmc.math.vector.Vector3f"
+#include "org.cloudburstmc.math.vector.Vector3i"
+#include "org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag"
+#include "org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket"
+#include "org.geysermc.geyser.entity.spawn.EntitySpawnContext"
+#include "org.geysermc.geyser.entity.type.Tickable"
+#include "org.geysermc.geyser.level.block.BlockStateValues"
+
+#include "java.util.concurrent.CompletableFuture"
+
+public class SquidEntity extends AgeableWaterEntity implements Tickable {
+    private float targetPitch;
+    private float targetYaw;
+    private Vector3i lastPosition;
+
+    private CompletableFuture<Boolean> inWater = CompletableFuture.completedFuture(Boolean.FALSE);
+
+    public SquidEntity(EntitySpawnContext context) {
+        super(context);
+        this.lastPosition = position.toInt();
+    }
+
+    override public void tick() {
+        float oldPitch = pitch;
+        if (inWater.join()) {
+            float oldYaw = yaw;
+            pitch += (targetPitch - pitch) * 0.1f;
+            yaw += (targetYaw - yaw) * 0.1f;
+            dirtyYaw = oldYaw != yaw;
+        } else {
+            pitch += (-90 - pitch) * 0.02f;
+            dirtyYaw = false;
+        }
+        dirtyPitch = oldPitch != pitch;
+
+        if (getLerpSteps() == 0) {
+            if (dirtyPitch || dirtyYaw) {
+                MoveEntityDeltaPacket packet = new MoveEntityDeltaPacket();
+                packet.setRuntimeEntityId(geyserId);
+
+                if (dirtyPitch) {
+                    packet.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
+                    packet.setPitch(pitch);
+                    dirtyPitch = false;
+                }
+                if (dirtyYaw) {
+                    packet.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
+                    packet.setYaw(yaw);
+                    dirtyYaw = false;
+                }
+
+                session.sendUpstreamPacket(packet);
+            }
+        }
+
+        super.tick();
+    }
+
+    override public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, bool isOnGround) {
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        checkInWater();
+    }
+
+    override public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, bool isOnGround, bool teleported) {
+        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
+        checkInWater();
+    }
+
+    override public void setYaw(float yaw) {
+
+        if (!inWater.join()) {
+            this.yaw = yaw;
+        }
+    }
+
+    override public void setPitch(float pitch) {
+    }
+
+    override public void setHeadYaw(float headYaw) {
+    }
+
+    override public void setMotion(Vector3f motion) {
+        super.setMotion(motion);
+
+        double horizontalSpeed = Math.sqrt(motion.getX() * motion.getX() + motion.getZ() * motion.getZ());
+        targetPitch = (float) Math.toDegrees(-Math.atan2(horizontalSpeed, motion.getY()));
+        targetYaw = (float) Math.toDegrees(-Math.atan2(motion.getX(), motion.getZ()));
+    }
+
+    override public Vector3f bedrockRotation() {
+        return Vector3f.from(getPitch(), getYaw(), getYaw());
+    }
+
+    override public bool canBeLeashed() {
+        return true;
+    }
+
+    private void checkInWater() {
+        Vector3i newPosition = position.toInt();
+        if (newPosition.equals(lastPosition)) {
+            return;
+        } else {
+            lastPosition = newPosition;
+        }
+
+        if (getFlag(EntityFlag.RIDING)) {
+            inWater = CompletableFuture.completedFuture(false);
+        } else {
+            inWater = session.getGeyser().getWorldManager().getBlockAtAsync(session, newPosition)
+                    .thenApply(block -> BlockStateValues.getWaterLevel(block) != -1);
+        }
+    }
+}

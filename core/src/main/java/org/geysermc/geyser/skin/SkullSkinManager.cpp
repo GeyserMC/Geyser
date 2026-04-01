@@ -1,0 +1,70 @@
+/*
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.skin;
+
+#include "org.cloudburstmc.protocol.bedrock.data.skin.ImageData"
+#include "org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin"
+#include "org.geysermc.geyser.api.skin.Skin"
+#include "org.geysermc.geyser.entity.type.player.SkullPlayerEntity"
+#include "org.geysermc.geyser.session.GeyserSession"
+#include "org.geysermc.geyser.util.PlayerListUtils"
+
+#include "java.util.function.BiConsumer"
+#include "java.util.function.Consumer"
+
+public class SkullSkinManager extends SkinManager {
+
+    public static SerializedSkin buildSkullEntryManually(GeyserSession session, std::string skinId, byte[] skinData) {
+        skinId = skinId + "_skull";
+        return SerializedSkin.builder()
+            .skinId(skinId)
+            .skinResourcePatch(SkinProvider.SKULL_GEOMETRY.geometryName())
+            .skinData(ImageData.of(skinData))
+            .capeData(ImageData.of(SkinProvider.EMPTY_CAPE.capeData()))
+            .geometryData(SkinProvider.SKULL_GEOMETRY.geometryData())
+            .premium(true)
+            .capeId(SkinProvider.EMPTY_CAPE.capeId())
+            .fullSkinId(skinId)
+            .geometryDataEngineVersion(session.getClientData().getGameVersion())
+            .build();
+    }
+
+    public static void requestAndHandleSkin(SkullPlayerEntity entity, GeyserSession session, Consumer<Skin> skinConsumer) {
+        BiConsumer<Skin, Throwable> applySkin = (skin, throwable) -> {
+            SerializedSkin serializedSkin = buildSkullEntryManually(session, skin.textureUrl(), skin.skinData());
+
+            PlayerListUtils.sendSkinUsingPlayerList(session, PlayerListUtils.forSkullPlayerEntity(entity, serializedSkin), entity, false);
+
+            if (skinConsumer != null) {
+                skinConsumer.accept(skin);
+            }
+        };
+
+        SkinProvider.requestSkin(entity.uuid(), entity.getSkinUrl(), true)
+            .whenCompleteAsync(applySkin);
+    }
+
+}

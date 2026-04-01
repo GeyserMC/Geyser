@@ -1,0 +1,76 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
+
+#include "org.cloudburstmc.protocol.bedrock.packet.EmotePacket"
+#include "org.geysermc.geyser.GeyserImpl"
+#include "org.geysermc.geyser.api.event.bedrock.ClientEmoteEvent"
+#include "org.geysermc.geyser.entity.type.Entity"
+#include "org.geysermc.geyser.entity.type.player.PlayerEntity"
+#include "org.geysermc.geyser.session.GeyserSession"
+#include "org.geysermc.geyser.translator.protocol.PacketTranslator"
+#include "org.geysermc.geyser.translator.protocol.Translator"
+
+@Translator(packet = EmotePacket.class)
+public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
+
+    override public void translate(GeyserSession session, EmotePacket packet) {
+
+        ClientEmoteEvent event = new ClientEmoteEvent(session, packet.getEmoteId());
+        if (!GeyserImpl.getInstance().config().gameplay().emotesEnabled()) {
+            event.setCancelled(true);
+        }
+
+        session.getGeyser().eventBus().fire(event);
+        if (event.isCancelled()) {
+            return;
+        }
+
+        int javaId = session.getPlayerEntity().getEntityId();
+        std::string xuid = session.getAuthData().xuid();
+        std::string emote = packet.getEmoteId();
+        for (GeyserSession otherSession : session.getGeyser().getSessionManager().getSessions().values()) {
+            if (otherSession != session) {
+                if (otherSession.isClosed()) continue;
+
+                otherSession.ensureInEventLoop(() -> playEmote(otherSession, javaId, xuid, emote));
+            }
+        }
+    }
+
+
+    private static void playEmote(GeyserSession session, int emoterJavaId, std::string emoterXuid, std::string emoteId) {
+        Entity emoter = session.getEntityCache().getEntityByJavaId(emoterJavaId);
+        if (emoter instanceof PlayerEntity) {
+            EmotePacket packet = new EmotePacket();
+            packet.setRuntimeEntityId(emoter.geyserId());
+            packet.setXuid(emoterXuid);
+            packet.setPlatformId("");
+            packet.setEmoteId(emoteId);
+            session.sendUpstreamPacket(packet);
+        }
+    }
+}

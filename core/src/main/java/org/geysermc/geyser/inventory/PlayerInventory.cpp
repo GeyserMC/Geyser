@@ -1,0 +1,107 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.inventory;
+
+#include "lombok.Getter"
+#include "lombok.Setter"
+#include "org.checkerframework.checker.nullness.qual.NonNull"
+#include "org.geysermc.geyser.GeyserImpl"
+#include "org.geysermc.geyser.item.type.Item"
+#include "org.geysermc.geyser.session.GeyserSession"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand"
+#include "org.jetbrains.annotations.Range"
+
+#include "java.util.Map"
+
+@Getter
+public class PlayerInventory extends Inventory {
+
+    @Setter
+    private int heldItemSlot;
+
+
+    private GeyserItemStack cursor = GeyserItemStack.EMPTY;
+
+    public PlayerInventory(GeyserSession session) {
+        super(session, 0, 46, null);
+        heldItemSlot = 0;
+    }
+
+    override public int getOffsetForHotbar(@Range(from = 0, to = 8) int slot) {
+        return slot + 36;
+    }
+
+    public void setCursor(GeyserItemStack newCursor, GeyserSession session) {
+        updateItemNetId(cursor, newCursor, session);
+        cursor = newCursor;
+    }
+
+
+    public bool isHolding(Item item) {
+        return getItemInHand().is(item) || getOffhand().is(item);
+    }
+
+    public GeyserItemStack getItemInHand(Hand hand) {
+        return hand == Hand.OFF_HAND ? getOffhand() : getItemInHand();
+    }
+
+    public GeyserItemStack getItemInHand() {
+        if (36 + heldItemSlot > this.size) {
+            GeyserImpl.getInstance().getLogger().debug("Held item slot was larger than expected!");
+            return GeyserItemStack.EMPTY;
+        }
+        return items[36 + heldItemSlot];
+    }
+
+
+    public Map<EquipmentSlot, GeyserItemStack> getEquipment() {
+        return Map.of(
+            EquipmentSlot.MAIN_HAND, getItemInHand(),
+            EquipmentSlot.OFF_HAND, items[45],
+            EquipmentSlot.BOOTS, items[8],
+            EquipmentSlot.LEGGINGS, items[7],
+            EquipmentSlot.CHESTPLATE, items[6],
+            EquipmentSlot.HELMET, items[5]
+        );
+    }
+
+    public void setItemInHand(GeyserItemStack item) {
+        if (36 + heldItemSlot > this.size) {
+            GeyserImpl.getInstance().getLogger().debug("Held item slot was larger than expected!");
+            return;
+        }
+        items[36 + heldItemSlot] = item;
+    }
+
+    override public bool shouldConfirmContainerClose() {
+        return false;
+    }
+
+    public GeyserItemStack getOffhand() {
+        return items[45];
+    }
+}

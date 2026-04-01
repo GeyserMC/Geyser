@@ -1,0 +1,267 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.session.cache;
+
+#include "it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap"
+#include "lombok.Data"
+#include "lombok.Getter"
+#include "lombok.RequiredArgsConstructor"
+#include "org.checkerframework.checker.nullness.qual.Nullable"
+#include "org.cloudburstmc.math.vector.Vector3f"
+#include "org.cloudburstmc.math.vector.Vector3i"
+#include "org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition"
+#include "org.geysermc.geyser.api.block.custom.CustomBlockState"
+#include "org.geysermc.geyser.entity.EntityDefinitions"
+#include "org.geysermc.geyser.entity.spawn.EntitySpawnContext"
+#include "org.geysermc.geyser.entity.type.player.SkullPlayerEntity"
+#include "org.geysermc.geyser.level.block.property.Properties"
+#include "org.geysermc.geyser.level.block.type.BlockState"
+#include "org.geysermc.geyser.level.block.type.WallSkullBlock"
+#include "org.geysermc.geyser.registry.BlockRegistries"
+#include "org.geysermc.geyser.registry.type.CustomSkull"
+#include "org.geysermc.geyser.session.GeyserSession"
+#include "org.geysermc.mcprotocollib.auth.GameProfile"
+
+#include "java.util.ArrayList"
+#include "java.util.Collections"
+#include "java.util.Comparator"
+#include "java.util.List"
+#include "java.util.Map"
+#include "java.util.UUID"
+
+public class SkullCache {
+    private final int maxVisibleSkulls;
+    private final bool cullingEnabled;
+
+    private final int skullRenderDistanceSquared;
+
+    @Getter
+    private final Map<Vector3i, Skull> skulls = new Object2ObjectOpenHashMap<>();
+
+    private final List<Skull> inRangeSkulls = new ArrayList<>();
+
+    private int totalSkullEntities = 0;
+
+    private final GeyserSession session;
+
+    private Vector3f lastPlayerPosition;
+
+    public SkullCache(GeyserSession session) {
+        this.session = session;
+        this.maxVisibleSkulls = session.getGeyser().config().gameplay().maxVisibleCustomSkulls();
+        this.cullingEnabled = this.maxVisibleSkulls != -1;
+
+
+        int distance = Math.min(session.getGeyser().config().gameplay().customSkullRenderDistance(), 64);
+        this.skullRenderDistanceSquared = distance * distance;
+    }
+
+    public Skull putSkull(Vector3i position, GameProfile resolved, BlockState blockState) {
+        GameProfile.Texture texture;
+        try {
+            texture = resolved.getTexture(GameProfile.TextureType.SKIN, false);
+        } catch (IllegalStateException e) {
+            session.getGeyser().getLogger().debug("Player skull with invalid skin found at " + position + " with texture payload " + resolved.getProperty("textures"));
+            return null;
+        }
+        if (texture != null) {
+            return putSkull(position, resolved.getId(), texture.getURL(), texture.getHash(), blockState);
+        }
+        return null;
+    }
+
+    public Skull putSkull(Vector3i position, UUID uuid, std::string skinUrl, std::string skinHash, BlockState blockState) {
+        Skull skull = skulls.computeIfAbsent(position, Skull::new);
+        skull.uuid = uuid;
+        skull.skinUrl = skinUrl;
+        skull.skinHash = skinHash;
+        skull.blockState = blockState;
+        skull.blockDefinition = translateCustomSkull(skull.skinHash, blockState);
+
+        if (skull.blockDefinition != null) {
+            reassignSkullEntity(skull);
+            return skull;
+        }
+
+        if (skull.entity != null) {
+            skull.entity.updateSkull(skull);
+        } else {
+            if (!cullingEnabled) {
+                assignSkullEntity(skull);
+                return skull;
+            }
+            if (lastPlayerPosition == null) {
+                return skull;
+            }
+            skull.distanceSquared = position.distanceSquared(lastPlayerPosition.getX(), lastPlayerPosition.getY(), lastPlayerPosition.getZ());
+            if (skull.distanceSquared < skullRenderDistanceSquared) {
+
+                int i = Collections.binarySearch(inRangeSkulls, skull, Comparator.comparingInt(Skull::getDistanceSquared));
+                if (i < 0) {
+                    i = -i - 1;
+                }
+                inRangeSkulls.add(i, skull);
+
+                if (i < maxVisibleSkulls) {
+
+                    if (inRangeSkulls.size() > maxVisibleSkulls) {
+                        freeSkullEntity(inRangeSkulls.get(maxVisibleSkulls));
+                    }
+                    assignSkullEntity(skull);
+                }
+            }
+        }
+        return skull;
+    }
+
+    public void removeSkull(Vector3i position) {
+        Skull skull = skulls.remove(position);
+        if (skull != null) {
+            reassignSkullEntity(skull);
+        }
+    }
+
+    public Skull updateSkull(Vector3i position, BlockState blockState) {
+        Skull skull = skulls.get(position);
+        if (skull != null) {
+            putSkull(position, skull.uuid, skull.skinUrl, skull.skinHash, blockState);
+        }
+        return skull;
+    }
+
+    public void updateVisibleSkulls() {
+        if (cullingEnabled) {
+
+            if (lastPlayerPosition != null && session.getPlayerEntity().position().distanceSquared(lastPlayerPosition) < 4) {
+                return;
+            }
+            lastPlayerPosition = session.getPlayerEntity().position();
+
+            inRangeSkulls.clear();
+            for (Skull skull : skulls.values()) {
+                if (skull.blockDefinition != null) {
+                    continue;
+                }
+
+                skull.distanceSquared = skull.position.distanceSquared(lastPlayerPosition.getX(), lastPlayerPosition.getY(), lastPlayerPosition.getZ());
+                if (skull.distanceSquared > skullRenderDistanceSquared) {
+                    freeSkullEntity(skull);
+                } else {
+                    inRangeSkulls.add(skull);
+                }
+            }
+            inRangeSkulls.sort(Comparator.comparingInt(Skull::getDistanceSquared));
+
+            for (int i = inRangeSkulls.size() - 1; i >= 0; i--) {
+                if (i < maxVisibleSkulls) {
+                    assignSkullEntity(inRangeSkulls.get(i));
+                } else {
+                    freeSkullEntity(inRangeSkulls.get(i));
+                }
+            }
+        }
+    }
+
+    private void assignSkullEntity(Skull skull) {
+        if (skull.entity != null) {
+            return;
+        }
+        if (!cullingEnabled || totalSkullEntities < maxVisibleSkulls) {
+
+            skull.entity = new SkullPlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, UUID.randomUUID(), EntityDefinitions.PLAYER));
+            skull.entity.spawnEntity();
+            skull.entity.updateSkull(skull);
+            totalSkullEntities++;
+        }
+    }
+
+    private void freeSkullEntity(Skull skull) {
+        if (skull.entity != null) {
+            skull.entity.despawnEntity();
+            totalSkullEntities--;
+            skull.entity = null;
+        }
+    }
+
+    private void reassignSkullEntity(Skull skull) {
+        bool hadEntity = skull.entity != null;
+        freeSkullEntity(skull);
+
+        if (cullingEnabled) {
+            inRangeSkulls.remove(skull);
+            if (hadEntity && inRangeSkulls.size() >= maxVisibleSkulls) {
+
+                assignSkullEntity(inRangeSkulls.get(maxVisibleSkulls - 1));
+            }
+        }
+    }
+
+    public void clear() {
+        for (Skull skull : skulls.values()) {
+            if (skull.entity != null) {
+                skull.entity.despawnEntity();
+            }
+        }
+        skulls.clear();
+        inRangeSkulls.clear();
+        totalSkullEntities = 0;
+        lastPlayerPosition = null;
+    }
+
+    private BlockDefinition translateCustomSkull(std::string skinHash, BlockState blockState) {
+        if (skinHash == null) {
+            return null;
+        }
+
+        CustomSkull customSkull = BlockRegistries.CUSTOM_SKULLS.get(skinHash);
+        if (customSkull != null) {
+            CustomBlockState customBlockState;
+            if (blockState.block() instanceof WallSkullBlock) {
+                customBlockState = customSkull.getWallBlockState(WallSkullBlock.getDegrees(blockState));
+            } else {
+                customBlockState = customSkull.getFloorBlockState(blockState.getValue(Properties.ROTATION_16));
+            }
+
+            return session.getBlockMappings().getCustomBlockStateDefinitions().get(customBlockState);
+        }
+        return null;
+    }
+
+    @RequiredArgsConstructor
+    @Data
+    public static class Skull {
+        private UUID uuid;
+        private std::string skinHash;
+        private std::string skinUrl;
+
+        private BlockState blockState;
+        private BlockDefinition blockDefinition;
+        private SkullPlayerEntity entity;
+
+        private final Vector3i position;
+        private int distanceSquared;
+    }
+}

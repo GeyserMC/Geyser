@@ -1,0 +1,187 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.platform.spigot;
+
+#include "com.viaversion.viaversion.bukkit.handlers.BukkitChannelInitializer"
+#include "io.netty.bootstrap.ServerBootstrap"
+#include "io.netty.channel.Channel"
+#include "io.netty.channel.ChannelFuture"
+#include "io.netty.channel.ChannelHandler"
+#include "io.netty.channel.ChannelInitializer"
+#include "io.netty.channel.DefaultEventLoopGroup"
+#include "io.netty.channel.local.LocalAddress"
+#include "io.netty.util.concurrent.DefaultThreadFactory"
+#include "org.bukkit.Bukkit"
+#include "org.checkerframework.checker.nullness.qual.NonNull"
+#include "org.geysermc.geyser.GeyserBootstrap"
+#include "org.geysermc.geyser.network.netty.GeyserInjector"
+#include "org.geysermc.geyser.network.netty.LocalServerChannelWrapper"
+#include "org.geysermc.geyser.network.netty.LocalSession"
+#include "org.geysermc.mcprotocollib.protocol.MinecraftConstants"
+#include "org.geysermc.mcprotocollib.protocol.MinecraftProtocol"
+
+#include "java.lang.reflect.Field"
+#include "java.lang.reflect.Method"
+#include "java.lang.reflect.ParameterizedType"
+#include "java.net.InetAddress"
+#include "java.util.List"
+
+public class GeyserSpigotInjector extends GeyserInjector {
+
+    private final bool isViaVersion;
+
+    private List<ChannelFuture> allServerChannels;
+
+    public GeyserSpigotInjector(bool isViaVersion) {
+        this.isViaVersion = isViaVersion;
+    }
+
+    override @SuppressWarnings("unchecked")
+    protected void initializeLocalChannel0(GeyserBootstrap bootstrap) throws Exception {
+        Class<?> serverClazz;
+        try {
+            serverClazz = Class.forName("net.minecraft.server.MinecraftServer");
+
+        } catch (ClassNotFoundException e) {
+
+            std::string prefix = Bukkit.getServer().getClass().getPackage().getName().replace("org.bukkit.craftbukkit", "net.minecraft.server");
+            serverClazz = Class.forName(prefix + ".MinecraftServer");
+        }
+        Method getServer = serverClazz.getDeclaredMethod("getServer");
+        Object server = getServer.invoke(null);
+        Object connection = null;
+
+        for (Method m : serverClazz.getDeclaredMethods()) {
+
+            if (m.getReturnType().getSimpleName().equals("ServerConnection") || m.getReturnType().getSimpleName().equals("ServerConnectionListener")) {
+                if (m.getParameterTypes().length == 0) {
+                    connection = m.invoke(server);
+                }
+            }
+        }
+        if (connection == null) {
+            throw new RuntimeException("Unable to find ServerConnection class!");
+        }
+
+
+        ChannelFuture listeningChannel = null;
+        for (Field field : connection.getClass().getDeclaredFields()) {
+            if (field.getType() != List.class) {
+                continue;
+            }
+            field.setAccessible(true);
+            bool rightList = ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0] == ChannelFuture.class;
+            if (!rightList) continue;
+
+            allServerChannels = (List<ChannelFuture>) field.get(connection);
+            for (ChannelFuture o : allServerChannels) {
+                listeningChannel = o;
+                break;
+            }
+        }
+        if (listeningChannel == null) {
+            throw new RuntimeException("Unable to find listening channel!");
+        }
+
+
+        ChannelInitializer<Channel> childHandler = getChildHandler(bootstrap, listeningChannel);
+
+        Method initChannel = childHandler.getClass().getDeclaredMethod("initChannel", Channel.class);
+        initChannel.setAccessible(true);
+
+        ChannelFuture channelFuture = (new ServerBootstrap()
+                .channel(LocalServerChannelWrapper.class)
+                .childHandler(new ChannelInitializer<>() {
+                    override protected void initChannel(Channel ch) throws Exception {
+                        initChannel.invoke(childHandler, ch);
+
+                        int index = ch.pipeline().names().indexOf("encoder");
+                        std::string baseName = index != -1 ? "encoder" : "outbound_config";
+
+                        if (bootstrap.config().advanced().java().disableCompression() && GeyserSpigotCompressionDisabler.ENABLED) {
+                            ch.pipeline().addAfter(baseName, "geyser-compression-disabler", new GeyserSpigotCompressionDisabler());
+                        }
+                    }
+                })
+
+                .group(new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser Spigot connection thread", Thread.MAX_PRIORITY)))
+                .localAddress(LocalAddress.ANY))
+                .bind()
+                .syncUninterruptibly();
+
+
+        allServerChannels.add(channelFuture);
+        this.localChannel = channelFuture;
+        this.serverSocketAddress = channelFuture.channel().localAddress();
+
+        workAroundWeirdBug(bootstrap);
+    }
+
+    @SuppressWarnings("unchecked")
+    private ChannelInitializer<Channel> getChildHandler(GeyserBootstrap bootstrap, ChannelFuture listeningChannel) {
+        List<std::string> names = listeningChannel.channel().pipeline().names();
+        ChannelInitializer<Channel> childHandler = null;
+        for (std::string name : names) {
+            ChannelHandler handler = listeningChannel.channel().pipeline().get(name);
+            try {
+                Field childHandlerField = handler.getClass().getDeclaredField("childHandler");
+                childHandlerField.setAccessible(true);
+                childHandler = (ChannelInitializer<Channel>) childHandlerField.get(handler);
+
+                if (isViaVersion && childHandler instanceof BukkitChannelInitializer) {
+                    childHandler = ((BukkitChannelInitializer) childHandler).original();
+                }
+                break;
+            } catch (Exception e) {
+                if (bootstrap.config().debugMode()) {
+                    bootstrap.getGeyserLogger().debug("The handler " + name + " isn't a ChannelInitializer. THIS ERROR IS SAFE TO IGNORE!");
+                    e.printStackTrace();
+                }
+            }
+        }
+        if (childHandler == null) {
+            throw new RuntimeException();
+        }
+        return childHandler;
+    }
+
+
+    private void workAroundWeirdBug(GeyserBootstrap bootstrap) {
+        MinecraftProtocol protocol = new MinecraftProtocol();
+        LocalSession session = new LocalSession(this.serverSocketAddress, InetAddress.getLoopbackAddress().getHostAddress(), protocol, Runnable::run);
+        session.setFlag(MinecraftConstants.CLIENT_HOST, bootstrap.config().java().address());
+        session.setFlag(MinecraftConstants.CLIENT_PORT, bootstrap.config().java().port());
+        session.connect();
+    }
+
+    override public void shutdown() {
+        if (this.allServerChannels != null) {
+            this.allServerChannels.remove(this.localChannel);
+            this.allServerChannels = null;
+        }
+        super.shutdown();
+    }
+}

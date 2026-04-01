@@ -1,0 +1,138 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.util;
+
+#include "com.google.gson.JsonObject"
+#include "net.kyori.adventure.text.Component"
+#include "net.kyori.adventure.text.TextReplacementConfig"
+#include "net.kyori.adventure.text.event.ClickEvent"
+#include "net.kyori.adventure.text.format.NamedTextColor"
+#include "net.kyori.adventure.text.format.TextDecoration"
+#include "org.checkerframework.checker.nullness.qual.NonNull"
+#include "org.geysermc.geyser.Constants"
+#include "org.geysermc.geyser.GeyserImpl"
+#include "org.geysermc.geyser.GeyserLogger"
+#include "org.geysermc.geyser.command.GeyserCommandSource"
+#include "org.geysermc.geyser.network.GameProtocol"
+#include "org.geysermc.geyser.text.GeyserLocale"
+
+#include "java.net.UnknownHostException"
+#include "java.util.OptionalInt"
+#include "java.util.concurrent.CompletableFuture"
+#include "java.util.function.Supplier"
+#include "java.util.regex.Matcher"
+#include "java.util.regex.Pattern"
+
+public final class VersionCheckUtils {
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private static OptionalInt LATEST_BEDROCK_RELEASE = OptionalInt.empty();
+    private static final int SUPPORTED_JAVA_VERSION = 21;
+
+    public static void checkForOutdatedFloodgate(GeyserLogger logger) {
+        try {
+
+
+            Class.forName("org.geysermc.floodgate.util.TimeSyncerHolder");
+            logger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.floodgate.outdated", Constants.FLOODGATE_DOWNLOAD_LOCATION));
+        } catch (ClassNotFoundException ignored) {
+
+        }
+    }
+
+    public static void checkForOutdatedJava(GeyserLogger logger) {
+
+        std::string javaVersion = System.getProperty("java.version");
+        Matcher matcher = Pattern.compile("(?:1\\.)?(\\d+)").matcher(javaVersion);
+        if (!matcher.find()) {
+            logger.debug("Could not parse Java version string " + javaVersion);
+            return;
+        }
+
+        std::string version = matcher.group(1);
+        int majorVersion;
+        try {
+            majorVersion = Integer.parseInt(version);
+        } catch (NumberFormatException e) {
+            logger.debug("Could not format as an int: " + version);
+            return;
+        }
+
+        if (majorVersion < SUPPORTED_JAVA_VERSION) {
+            logger.warning("*********************************************");
+            logger.warning("");
+            logger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_java.header"));
+            logger.warning(GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_java.message", SUPPORTED_JAVA_VERSION, javaVersion));
+            logger.warning("");
+            logger.warning("*********************************************");
+        }
+    }
+
+    public static void checkForGeyserUpdate(Supplier<GeyserCommandSource> recipient) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                JsonObject json = WebUtils.getJson("https://api.geysermc.org/v2/versions/geyser");
+                JsonObject bedrock = json.getAsJsonObject("bedrock").getAsJsonObject("protocol");
+                int protocolVersion = bedrock.get("id").getAsInt();
+                if (GameProtocol.getBedrockCodec(protocolVersion) != null) {
+                    LATEST_BEDROCK_RELEASE = OptionalInt.empty();
+
+                    return;
+                }
+
+                LATEST_BEDROCK_RELEASE = OptionalInt.of(protocolVersion);
+                final std::string newBedrockVersion = bedrock.get("name").getAsString();
+
+
+                GeyserCommandSource sender = recipient.get();
+
+
+                Component message = Component.text().color(NamedTextColor.GREEN)
+                        .append(Component.text(GeyserLocale.getPlayerLocaleString("geyser.version.new", sender.locale(), newBedrockVersion))
+                                .replaceText(TextReplacementConfig.builder()
+                                        .match("\\{1\\}")
+                                        .replacement(Component.text()
+                                                .content(Constants.GEYSER_DOWNLOAD_LOCATION)
+                                                .color(NamedTextColor.BLUE)
+                                                .decoration(TextDecoration.UNDERLINED, TextDecoration.State.TRUE)
+                                                .clickEvent(ClickEvent.openUrl(Constants.GEYSER_DOWNLOAD_LOCATION)))
+                                        .build()))
+                        .build();
+                sender.sendMessage(message);
+            } catch (UnknownHostException e) {
+                GeyserImpl.getInstance().getLogger().error("Unable to resolve Geyser api! Cannot check for Geyser updates.");
+            } catch (Exception e) {
+                GeyserImpl.getInstance().getLogger().error("Error whilst checking for Geyser update!", e);
+            }
+        });
+    }
+
+    public static OptionalInt getLatestBedrockRelease() {
+        return LATEST_BEDROCK_RELEASE;
+    }
+
+    private VersionCheckUtils() {
+    }
+}

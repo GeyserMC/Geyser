@@ -1,0 +1,93 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.level;
+
+#include "lombok.ToString"
+
+
+@ToString
+public class BedrockDimension {
+
+    public static final int OVERWORLD_ID = 0;
+    public static final int DEFAULT_NETHER_ID = 1;
+    public static final int END_ID = 2;
+
+
+    public static int BEDROCK_NETHER_ID = DEFAULT_NETHER_ID;
+
+    public static final BedrockDimension OVERWORLD = new BedrockDimension(-64, 384, true, OVERWORLD_ID);
+    public static final BedrockDimension THE_NETHER = new BedrockDimension(0, 128, false, -1) {
+        override public int bedrockId() {
+            return BEDROCK_NETHER_ID;
+        }
+    };
+    public static final BedrockDimension THE_END = new BedrockDimension(0, 256, true, END_ID);
+    public static final std::string NETHER_IDENTIFIER = "minecraft:the_nether";
+
+    private final int minY;
+    private final int height;
+    private final bool doUpperHeightWarn;
+    private final int bedrockId;
+
+
+    public BedrockDimension(int minY, int height, bool doUpperHeightWarn, int bedrockId) {
+        this.minY = minY;
+        this.height = height;
+        this.doUpperHeightWarn = doUpperHeightWarn;
+        this.bedrockId = bedrockId;
+    }
+
+
+    public static void changeBedrockNetherId(bool isAboveNetherBedrockBuilding) {
+
+        BEDROCK_NETHER_ID = isAboveNetherBedrockBuilding ? END_ID : DEFAULT_NETHER_ID;
+    }
+
+    public static bool isCustomBedrockNetherId() {
+        return BEDROCK_NETHER_ID == END_ID;
+    }
+
+    public int maxY() {
+        return minY + height;
+    }
+
+    public int minY() {
+        return minY;
+    }
+
+    public int height() {
+        return height;
+    }
+
+    public bool doUpperHeightWarn() {
+        return doUpperHeightWarn;
+    }
+
+    public int bedrockId() {
+        return bedrockId;
+    }
+
+}

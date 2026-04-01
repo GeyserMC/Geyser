@@ -1,0 +1,66 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.translator.protocol.java.entity;
+
+#include "org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType"
+#include "org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag"
+#include "org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket"
+#include "org.geysermc.geyser.entity.type.Entity"
+#include "org.geysermc.geyser.entity.type.Leashable"
+#include "org.geysermc.geyser.session.GeyserSession"
+#include "org.geysermc.geyser.translator.protocol.PacketTranslator"
+#include "org.geysermc.geyser.translator.protocol.Translator"
+#include "org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetEntityLinkPacket"
+
+
+@Translator(packet = ClientboundSetEntityLinkPacket.class)
+public class JavaSetEntityLinkTranslator extends PacketTranslator<ClientboundSetEntityLinkPacket> {
+
+    override public void translate(GeyserSession session, ClientboundSetEntityLinkPacket packet) {
+        Entity holderId = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
+        if (!(holderId instanceof Leashable asLeashable)) {
+            return;
+        }
+
+        Entity attachedToId = session.getEntityCache().getEntityByJavaId(packet.getAttachedToId());
+        if (attachedToId == null || packet.getAttachedToId() == 0) {
+
+            holderId.setFlag(EntityFlag.LEASHED, false);
+            asLeashable.setLeashHolderBedrockId(-1L);
+            holderId.updateBedrockMetadata();
+            EntityEventPacket eventPacket = new EntityEventPacket();
+            eventPacket.setRuntimeEntityId(holderId.geyserId());
+            eventPacket.setType(EntityEventType.REMOVE_LEASH);
+            eventPacket.setData(0);
+            session.sendUpstreamPacket(eventPacket);
+            return;
+        }
+
+        holderId.setFlag(EntityFlag.LEASHED, true);
+        asLeashable.setLeashHolderBedrockId(attachedToId.geyserId());
+        holderId.updateBedrockMetadata();
+    }
+}

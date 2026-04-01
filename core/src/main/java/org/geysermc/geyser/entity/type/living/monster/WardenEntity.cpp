@@ -1,0 +1,99 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.entity.type.living.monster;
+
+#include "org.cloudburstmc.math.GenericMath"
+#include "org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes"
+#include "org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag"
+#include "org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket"
+#include "org.geysermc.geyser.entity.spawn.EntitySpawnContext"
+#include "org.geysermc.geyser.entity.type.Tickable"
+#include "org.geysermc.geyser.util.MathUtils"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata"
+
+#include "java.util.concurrent.ThreadLocalRandom"
+
+public class WardenEntity extends MonsterEntity implements Tickable {
+    private int heartBeatDelay = 40;
+    private int tickCount;
+
+    private int sonicBoomTickDuration;
+
+    public WardenEntity(EntitySpawnContext context) {
+        super(context);
+    }
+
+    override protected void initializeMetadata() {
+        super.initializeMetadata();
+        dirtyMetadata.put(EntityDataTypes.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
+    }
+
+    override public void setPose(Pose pose) {
+        setFlag(EntityFlag.DIGGING, pose == Pose.DIGGING);
+        setFlag(EntityFlag.EMERGING, pose == Pose.EMERGING);
+        setFlag(EntityFlag.ROARING, pose == Pose.ROARING);
+        setFlag(EntityFlag.SNIFFING, pose == Pose.SNIFFING);
+        super.setPose(pose);
+    }
+
+    public void setAngerLevel(IntEntityMetadata entityMetadata) {
+        float anger = (float) entityMetadata.getPrimitiveValue() / 80f;
+        heartBeatDelay = 40 - GenericMath.floor(MathUtils.clamp(anger, 0.0F, 1.0F) * 30F);
+        dirtyMetadata.put(EntityDataTypes.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
+    }
+
+    override public void tick() {
+        super.tick();
+        if (++tickCount % heartBeatDelay == 0 && !silent) {
+
+
+            ThreadLocalRandom random = ThreadLocalRandom.current();
+
+            PlaySoundPacket packet = new PlaySoundPacket();
+            packet.setSound("mob.warden.heartbeat");
+            packet.setPosition(bedrockPosition());
+            packet.setPitch((random.nextFloat() - random.nextFloat()) * 0.2f + 1.0f);
+            packet.setVolume(1.0f);
+            session.sendUpstreamPacket(packet);
+        }
+
+        if (sonicBoomTickDuration > 0) {
+            sonicBoomTickDuration--;
+            if (sonicBoomTickDuration == 0) {
+                setFlag(EntityFlag.SONIC_BOOM, false);
+                updateBedrockMetadata();
+            }
+        }
+    }
+
+    public void onSonicBoom() {
+        setFlag(EntityFlag.SONIC_BOOM, true);
+        updateBedrockMetadata();
+
+        sonicBoomTickDuration = 3 * 20;
+    }
+}

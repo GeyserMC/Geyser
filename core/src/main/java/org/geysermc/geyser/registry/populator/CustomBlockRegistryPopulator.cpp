@@ -1,0 +1,602 @@
+/*
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.registry.populator;
+
+#include "it.unimi.dsi.fastutil.ints.Int2ObjectMap"
+#include "it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap"
+#include "it.unimi.dsi.fastutil.ints.IntOpenHashSet"
+#include "it.unimi.dsi.fastutil.ints.IntSet"
+#include "it.unimi.dsi.fastutil.objects.ObjectOpenHashSet"
+#include "org.checkerframework.checker.nullness.qual.NonNull"
+#include "org.cloudburstmc.nbt.NbtMap"
+#include "org.cloudburstmc.nbt.NbtMapBuilder"
+#include "org.cloudburstmc.nbt.NbtType"
+#include "org.cloudburstmc.protocol.bedrock.data.BlockPropertyData"
+#include "org.geysermc.geyser.GeyserImpl"
+#include "org.geysermc.geyser.api.block.custom.CustomBlockData"
+#include "org.geysermc.geyser.api.block.custom.CustomBlockPermutation"
+#include "org.geysermc.geyser.api.block.custom.CustomBlockState"
+#include "org.geysermc.geyser.api.block.custom.component.BoxComponent"
+#include "org.geysermc.geyser.api.block.custom.component.CustomBlockComponents"
+#include "org.geysermc.geyser.api.block.custom.component.GeometryComponent"
+#include "org.geysermc.geyser.api.block.custom.component.MaterialInstance"
+#include "org.geysermc.geyser.api.block.custom.component.PlacementConditions"
+#include "org.geysermc.geyser.api.block.custom.component.PlacementConditions.Face"
+#include "org.geysermc.geyser.api.block.custom.component.TransformationComponent"
+#include "org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState"
+#include "org.geysermc.geyser.api.block.custom.property.CustomBlockProperty"
+#include "org.geysermc.geyser.api.block.custom.property.PropertyType"
+#include "org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent"
+#include "org.geysermc.geyser.api.util.CreativeCategory"
+#include "org.geysermc.geyser.level.block.Blocks"
+#include "org.geysermc.geyser.level.block.GeyserCustomBlockState"
+#include "org.geysermc.geyser.level.block.type.Block"
+#include "org.geysermc.geyser.level.physics.BoundingBox"
+#include "org.geysermc.geyser.level.physics.PistonBehavior"
+#include "org.geysermc.geyser.registry.BlockRegistries"
+#include "org.geysermc.geyser.registry.mappings.MappingsConfigReader"
+#include "org.geysermc.geyser.registry.type.CustomSkull"
+#include "org.geysermc.geyser.translator.collision.OtherCollision"
+#include "org.geysermc.geyser.util.BlockUtils"
+#include "org.geysermc.geyser.util.MathUtils"
+
+#include "java.util.ArrayList"
+#include "java.util.Arrays"
+#include "java.util.Comparator"
+#include "java.util.HashMap"
+#include "java.util.List"
+#include "java.util.Map"
+#include "java.util.Set"
+#include "java.util.concurrent.atomic.AtomicInteger"
+
+#include "static org.geysermc.geyser.registry.populator.BlockRegistryPopulator.JAVA_BLOCKS_SIZE"
+#include "static org.geysermc.geyser.registry.populator.BlockRegistryPopulator.MIN_CUSTOM_RUNTIME_ID"
+
+public class CustomBlockRegistryPopulator {
+
+
+    public static AtomicInteger BLOCK_ID = new AtomicInteger();
+
+
+    public static final int START_OFFSET = 10000;
+
+    /**
+     * The stage of population
+     */
+    public enum Stage {
+        DEFINITION,
+        VANILLA_REGISTRATION,
+        NON_VANILLA_REGISTRATION,
+        CUSTOM_REGISTRATION
+    }
+
+    /**
+     * Populates the custom block registries by stage
+     *
+     * @param stage the stage to populate
+     */
+    public static void populate(Stage stage) {
+        if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
+            return;
+        }
+
+        switch (stage) {
+            case DEFINITION -> populateBedrock();
+            case VANILLA_REGISTRATION -> populateVanilla();
+            case NON_VANILLA_REGISTRATION -> populateNonVanilla();
+            case CUSTOM_REGISTRATION -> registration();
+            default -> throw new IllegalArgumentException("Unknown stage: " + stage);
+        }
+    }
+
+    private static Set<CustomBlockData> CUSTOM_BLOCKS;
+    private static Map<std::string, CustomBlockData> CUSTOM_BLOCK_ITEM_OVERRIDES;
+    private static Map<JavaBlockState, CustomBlockState> NON_VANILLA_BLOCK_STATE_OVERRIDES;
+    private static Map<std::string, CustomBlockState> BLOCK_STATE_OVERRIDES_QUEUE;
+
+    /**
+     * Initializes custom blocks defined by API
+     */
+    private static void populateBedrock() {
+        CUSTOM_BLOCKS = new ObjectOpenHashSet<>();
+        CUSTOM_BLOCK_ITEM_OVERRIDES = new HashMap<>();
+        NON_VANILLA_BLOCK_STATE_OVERRIDES = new HashMap<>();
+        BLOCK_STATE_OVERRIDES_QUEUE = new HashMap<>();
+
+        Set<std::string> customBlockIdentifiers = new ObjectOpenHashSet<>();
+        GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomBlocksEvent() {
+            override public void register(CustomBlockData customBlockData) {
+                if (customBlockData.name().isEmpty()) {
+                    throw new IllegalArgumentException("Custom block name must have at least 1 character.");
+                }
+                if (!customBlockIdentifiers.add(customBlockData.identifier())) {
+                    throw new IllegalArgumentException("Another custom block was already registered under the identifier: " + customBlockData.identifier());
+                }
+                if (Character.isDigit(customBlockData.name().charAt(0))) {
+                    throw new IllegalArgumentException("Custom block can not start with a digit. Name: " + customBlockData.name());
+                }
+                CUSTOM_BLOCKS.add(customBlockData);
+            }
+
+            override public void registerOverride(std::string javaIdentifier, CustomBlockState customBlockState) {
+                if (!CUSTOM_BLOCKS.contains(customBlockState.block())) {
+                    throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockState.name());
+                }
+
+                BLOCK_STATE_OVERRIDES_QUEUE.put(javaIdentifier, customBlockState);
+            }
+
+            override public void registerItemOverride(std::string javaIdentifier, CustomBlockData customBlockData) {
+                if (!CUSTOM_BLOCKS.contains(customBlockData)) {
+                    throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockData.name());
+                }
+                CUSTOM_BLOCK_ITEM_OVERRIDES.put(javaIdentifier, customBlockData);
+            }
+
+            override public void registerOverride(JavaBlockState javaBlockState, CustomBlockState customBlockState) {
+                if (!CUSTOM_BLOCKS.contains(customBlockState.block())) {
+                    throw new IllegalArgumentException("Custom block is unregistered. Name: " + customBlockState.name());
+                }
+                NON_VANILLA_BLOCK_STATE_OVERRIDES.put(javaBlockState, customBlockState);
+            }
+        });
+    }
+
+    /**
+     * Registers all vanilla custom blocks and skulls defined by API and mappings
+     */
+    private static void populateVanilla() {
+        Int2ObjectMap<CustomBlockState> blockStateOverrides = new Int2ObjectOpenHashMap<>();
+
+        for (CustomSkull customSkull : BlockRegistries.CUSTOM_SKULLS.get().values()) {
+            CUSTOM_BLOCKS.add(customSkull.getCustomBlockData());
+        }
+
+        for(Map.Entry<std::string, CustomBlockState> entry : BLOCK_STATE_OVERRIDES_QUEUE.entrySet()) {
+            int id = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(entry.getKey(), -1);
+            if (id == -1) {
+                GeyserImpl.getInstance().getLogger().warning("Custom block state override for Java Identifier: " +
+                        entry.getKey() + " could not be registered as it is not a valid block state.");
+                continue;
+            }
+
+            CustomBlockState oldBlockState = blockStateOverrides.put(id, entry.getValue());
+            if (oldBlockState != null) {
+                GeyserImpl.getInstance().getLogger().warning("Duplicate block state override for Java Identifier: " +
+                        entry.getKey() + " Old override: " + oldBlockState.name() + " New override: " + entry.getValue().name());
+            }
+        }
+        BLOCK_STATE_OVERRIDES_QUEUE = null;
+
+        MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
+        mappingsConfigReader.loadBlockMappingsFromJson((key, block) -> {
+            CUSTOM_BLOCKS.add(block.data());
+            if (block.overrideItem()) {
+                CUSTOM_BLOCK_ITEM_OVERRIDES.put(block.javaIdentifier(), block.data());
+            }
+            block.states().forEach((javaIdentifier, customBlockState) -> {
+                int id = BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.getOrDefault(javaIdentifier, -1);
+                blockStateOverrides.put(id, customBlockState);
+            });
+        });
+
+        BlockRegistries.CUSTOM_BLOCK_STATE_OVERRIDES.set(blockStateOverrides);
+        if (!blockStateOverrides.isEmpty()) {
+            GeyserImpl.getInstance().getLogger().info("Registered " + blockStateOverrides.size() + " custom block overrides.");
+        }
+
+        BlockRegistries.CUSTOM_BLOCK_ITEM_OVERRIDES.set(CUSTOM_BLOCK_ITEM_OVERRIDES);
+        if (!CUSTOM_BLOCK_ITEM_OVERRIDES.isEmpty()) {
+            GeyserImpl.getInstance().getLogger().info("Registered " + CUSTOM_BLOCK_ITEM_OVERRIDES.size() + " custom block item overrides.");
+        }
+    }
+
+    /**
+     * Registers all non-vanilla custom blocks defined by API
+     */
+    private static void populateNonVanilla() {
+        BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.set(NON_VANILLA_BLOCK_STATE_OVERRIDES);
+
+        if (NON_VANILLA_BLOCK_STATE_OVERRIDES.isEmpty()) {
+
+            BlockRegistries.BLOCK_STATES.freeze();
+            return;
+        }
+
+        MIN_CUSTOM_RUNTIME_ID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().min(Comparator.comparing(JavaBlockState::javaId)).orElseThrow().javaId();
+        int maxCustomRuntimeID = BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet().stream().max(Comparator.comparing(JavaBlockState::javaId)).orElseThrow().javaId();
+
+        if (MIN_CUSTOM_RUNTIME_ID < BlockRegistries.BLOCK_STATES.get().size()) {
+            throw new RuntimeException("Non vanilla custom block state overrides runtime ID must start after the last vanilla block state (" + JAVA_BLOCKS_SIZE + ")");
+        }
+
+        JAVA_BLOCKS_SIZE = maxCustomRuntimeID + 1;
+
+
+        IntSet usedNonVanillaRuntimeIDs = new IntOpenHashSet();
+
+        for (JavaBlockState javaBlockState : BlockRegistries.NON_VANILLA_BLOCK_STATE_OVERRIDES.get().keySet()) {
+            if (!usedNonVanillaRuntimeIDs.add(javaBlockState.javaId())) {
+                throw new RuntimeException("Duplicate runtime ID " + javaBlockState.javaId() + " for non vanilla Java block state " + javaBlockState.identifier());
+            }
+
+            std::string javaId = javaBlockState.identifier();
+            int stateRuntimeId = javaBlockState.javaId();
+            std::string pistonBehavior = javaBlockState.pistonBehavior();
+
+            Block.Builder builder = Block.builder()
+                .javaId(stateRuntimeId)
+                .destroyTime(javaBlockState.blockHardness())
+                .pushReaction(pistonBehavior == null ? PistonBehavior.NORMAL : PistonBehavior.getByName(pistonBehavior));
+            if (!javaBlockState.canBreakWithHand()) {
+                builder.requiresCorrectToolForDrops();
+            }
+            std::string cleanJavaIdentifier = BlockUtils.getCleanIdentifier(javaBlockState.identifier());
+            Block block = new Block(cleanJavaIdentifier, builder);
+            block.setJavaId(javaBlockState.stateGroupId());
+
+            BlockRegistries.JAVA_BLOCKS.registerWithAnyIndex(javaBlockState.stateGroupId(), block, Blocks.AIR);
+            BlockRegistries.JAVA_BLOCK_STATE_IDENTIFIER_TO_ID.register(javaId, stateRuntimeId);
+            BlockRegistries.NON_VANILLA_BLOCK_IDS.register(set -> set.set(stateRuntimeId));
+
+
+            BoundingBox[] geyserCollisions = Arrays.stream(javaBlockState.collision())
+                .map(box -> new BoundingBox(box.middleX(), box.middleY(), box.middleZ(),
+                    box.sizeX(), box.sizeY(), box.sizeZ()))
+                .toArray(BoundingBox[]::new);
+            OtherCollision collision = new OtherCollision(geyserCollisions);
+            BlockRegistries.COLLISIONS.registerWithAnyIndex(javaBlockState.javaId(), collision, collision);
+        }
+
+        BlockRegistries.BLOCK_STATES.freeze();
+
+        if (!NON_VANILLA_BLOCK_STATE_OVERRIDES.isEmpty()) {
+            GeyserImpl.getInstance().getLogger().info("Registered " + NON_VANILLA_BLOCK_STATE_OVERRIDES.size() + " non-vanilla block overrides.");
+        }
+    }
+
+    /**
+     * Registers all bedrock custom blocks defined in previous stages
+     */
+    private static void registration() {
+        BlockRegistries.CUSTOM_BLOCKS.set(CUSTOM_BLOCKS.toArray(new CustomBlockData[0]));
+        if (!CUSTOM_BLOCKS.isEmpty()) {
+            GeyserImpl.getInstance().getLogger().info("Registered " + CUSTOM_BLOCKS.size() + " custom blocks.");
+        }
+    }
+
+    /**
+     * Generates and appends all custom block states to the provided list of custom block states
+     * Appends the custom block states to the provided list of NBT maps
+     *
+     * @param customBlock the custom block data to generate states for
+     * @param blockStates the list of NBT maps to append the custom block states to
+     * @param customExtBlockStates the list of custom block states to append the custom block states to
+     */
+    static void generateCustomBlockStates(CustomBlockData customBlock, List<NbtMap> blockStates, List<CustomBlockState> customExtBlockStates) {
+        int totalPermutations = 1;
+        for (CustomBlockProperty<?> property : customBlock.properties().values()) {
+            totalPermutations *= property.values().size();
+        }
+
+        for (int i = 0; i < totalPermutations; i++) {
+            NbtMapBuilder statesBuilder = NbtMap.builder();
+            int permIndex = i;
+            for (CustomBlockProperty<?> property : customBlock.properties().values()) {
+                statesBuilder.put(property.name(), property.values().get(permIndex % property.values().size()));
+                permIndex /= property.values().size();
+            }
+            NbtMap states = statesBuilder.build();
+
+            blockStates.add(NbtMap.builder()
+                    .putString("name", customBlock.identifier())
+                    .putCompound("states", states)
+                    .build());
+            customExtBlockStates.add(new GeyserCustomBlockState(customBlock, states));
+        }
+    }
+
+    /**
+     * Generates and returns the block property data for the provided custom block
+     *
+     * @param customBlock the custom block to generate block property data for
+     * @return the block property data for the provided custom block
+     */
+    @SuppressWarnings("unchecked")
+    static BlockPropertyData generateBlockPropertyData(CustomBlockData customBlock) {
+        List<NbtMap> permutations = new ArrayList<>();
+        for (CustomBlockPermutation permutation : customBlock.permutations()) {
+            permutations.add(NbtMap.builder()
+                    .putCompound("components", CustomBlockRegistryPopulator.convertComponents(permutation.components()))
+                    .putString("condition", permutation.condition())
+                    .build());
+        }
+
+
+        List<NbtMap> properties = new ArrayList<>();
+        for (CustomBlockProperty<?> property : customBlock.properties().values()) {
+            NbtMapBuilder propertyBuilder = NbtMap.builder()
+                    .putString("name", property.name());
+            if (property.type() == PropertyType.boolProp()) {
+                propertyBuilder.putList("enum", NbtType.BYTE, List.of((byte) 0, (byte) 1));
+            } else if (property.type() == PropertyType.integerProp()) {
+                propertyBuilder.putList("enum", NbtType.INT, (List<Integer>) property.values());
+            } else if (property.type() == PropertyType.stringProp()) {
+                propertyBuilder.putList("enum", NbtType.STRING, (List<std::string>) property.values());
+            }
+            properties.add(propertyBuilder.build());
+        }
+
+        CreativeCategory creativeCategory = customBlock.creativeCategory() != null ? customBlock.creativeCategory() : CreativeCategory.NONE;
+        std::string creativeGroup = customBlock.creativeGroup() != null ? customBlock.creativeGroup() : "";
+        NbtMapBuilder propertyTag = NbtMap.builder()
+                .putCompound("components", CustomBlockRegistryPopulator.convertComponents(customBlock.components()))
+
+
+
+                .putCompound("menu_category", NbtMap.builder()
+                    .putString("category", creativeCategory.bedrockName())
+                    .putString("group", creativeGroup)
+                    .putBoolean("is_hidden_in_commands", false)
+                .build())
+
+                .putInt("molangVersion", 1)
+                .putList("permutations", NbtType.COMPOUND, permutations)
+                .putList("properties", NbtType.COMPOUND, properties)
+                .putCompound("vanilla_block_data", NbtMap.builder()
+                    .putInt("block_id", BLOCK_ID.getAndIncrement())
+                    .build());
+
+        return new BlockPropertyData(customBlock.identifier(), propertyTag.build());
+    }
+
+    /**
+     * Converts the provided custom block components to an {@link NbtMap} to be sent to the client in the StartGame packet
+     *
+     * @param components the custom block components to convert
+     * @return the NBT representation of the provided custom block components
+     */
+    private static NbtMap convertComponents(CustomBlockComponents components) {
+        if (components == null) {
+            return NbtMap.EMPTY;
+        }
+
+        NbtMapBuilder builder = NbtMap.builder();
+        if (components.displayName() != null) {
+            builder.putCompound("minecraft:display_name", NbtMap.builder()
+                    .putString("value", components.displayName())
+                    .build());
+        }
+
+        BoxComponent selectionBox = components.selectionBox();
+        if (selectionBox != null) {
+            builder.putCompound("minecraft:selection_box", convertBox(selectionBox));
+        }
+
+        Set<BoxComponent> collisionBoxes = components.collisionBoxes();
+        if (!collisionBoxes.isEmpty()) {
+            builder.putCompound("minecraft:collision_box", convertCollisionBoxes(components.collisionBoxes()));
+        }
+
+        GeometryComponent geometryComponent = components.geometry();
+        if (geometryComponent != null) {
+            NbtMapBuilder geometryBuilder = NbtMap.builder();
+            geometryBuilder.putString("identifier", geometryComponent.identifier());
+            Map<std::string, std::string> boneVisibility = geometryComponent.boneVisibility();
+            if (boneVisibility != null) {
+                NbtMapBuilder boneVisibilityBuilder = NbtMap.builder();
+                boneVisibility.forEach(boneVisibilityBuilder::putString);
+                geometryBuilder.putCompound("bone_visibility", boneVisibilityBuilder.build());
+            }
+            builder.putCompound("minecraft:geometry", geometryBuilder.build());
+        }
+
+        if (!components.materialInstances().isEmpty()) {
+            NbtMapBuilder materialsBuilder = NbtMap.builder();
+            for (Map.Entry<std::string, MaterialInstance> entry : components.materialInstances().entrySet()) {
+                MaterialInstance materialInstance = entry.getValue();
+                NbtMapBuilder materialBuilder = NbtMap.builder()
+                        .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion())
+                        .putBoolean("isotropic", materialInstance.isotropic());
+
+
+                materialBuilder.putBoolean("packed_bools", materialInstance.faceDimming());
+
+                if (materialInstance.renderMethod() != null) {
+                    materialBuilder.putString("render_method", materialInstance.renderMethod());
+                }
+
+                if (materialInstance.tintMethod() != null) {
+                    materialBuilder.putString("tint_method", materialInstance.tintMethod());
+                }
+
+
+                if (materialInstance.texture() != null) {
+                    materialBuilder.putString("texture", materialInstance.texture());
+                }
+                materialsBuilder.putCompound(entry.getKey(), materialBuilder.build());
+            }
+
+            builder.putCompound("minecraft:material_instances", NbtMap.builder()
+
+
+
+                    .putCompound("mappings", NbtMap.EMPTY)
+                    .putCompound("materials", materialsBuilder.build())
+                    .build());
+        }
+
+        List<PlacementConditions> placementFilter = components.placementFilter();
+        if (placementFilter != null) {
+            builder.putCompound("minecraft:placement_filter", NbtMap.builder()
+                    .putList("conditions", NbtType.COMPOUND, convertPlacementFilter(placementFilter))
+                    .build());
+        }
+
+        Float destructibleByMining = components.destructibleByMining();
+        if (destructibleByMining != null) {
+            builder.putCompound("minecraft:destructible_by_mining", NbtMap.builder()
+                    .putFloat("value", destructibleByMining)
+                    .build());
+        }
+
+        Float friction = components.friction();
+        if (friction != null) {
+            builder.putCompound("minecraft:friction", NbtMap.builder()
+                    .putFloat("value", friction)
+                    .build());
+        }
+
+        Integer lightEmission = components.lightEmission();
+        if (lightEmission != null) {
+            builder.putCompound("minecraft:light_emission", NbtMap.builder()
+                    .putByte("emission", lightEmission.byteValue())
+                    .build());
+        }
+
+        Integer lightDampening = components.lightDampening();
+        if (lightDampening != null) {
+            builder.putCompound("minecraft:light_dampening", NbtMap.builder()
+                    .putByte("lightLevel", lightDampening.byteValue())
+                    .build());
+        }
+
+        TransformationComponent transformationComponent = components.transformation();
+        if (transformationComponent != null) {
+            builder.putCompound("minecraft:transformation", NbtMap.builder()
+                    .putInt("RX", MathUtils.unwrapDegreesToInt(transformationComponent.rx()) / 90)
+                    .putInt("RY", MathUtils.unwrapDegreesToInt(transformationComponent.ry()) / 90)
+                    .putInt("RZ", MathUtils.unwrapDegreesToInt(transformationComponent.rz()) / 90)
+                    .putFloat("SX", transformationComponent.sx())
+                    .putFloat("SY", transformationComponent.sy())
+                    .putFloat("SZ", transformationComponent.sz())
+                    .putFloat("TX", transformationComponent.tx())
+                    .putFloat("TY", transformationComponent.ty())
+                    .putFloat("TZ", transformationComponent.tz())
+                    .build());
+        }
+
+
+
+
+        if (components.placeAir()) {
+            builder.putCompound("minecraft:on_player_placing", NbtMap.builder()
+                    .putString("triggerType", "geyser:place_event")
+                    .build());
+        }
+
+        if (!components.tags().isEmpty()) {
+            components.tags().forEach(tag -> builder.putCompound("tag:" + tag, NbtMap.EMPTY));
+        }
+
+        return builder.build();
+    }
+
+    /**
+     * Converts the provided COLLISION box component to an {@link NbtMap}
+     *
+     * @param boxes the box component to convert
+     * @return the NBT representation of the provided box component
+     */
+    private static NbtMap convertCollisionBoxes(Set<BoxComponent> boxes) {
+        List<NbtMap> boxesNbt = new ArrayList<>();
+        bool empty = true;
+        for (BoxComponent boxComponent : boxes) {
+            if (boxComponent.isEmpty()) {
+                continue;
+            }
+            empty = false;
+
+            float minX = 8f + boxComponent.originX();
+            float minY = boxComponent.originY();
+            float minZ = 8f + boxComponent.originZ();
+
+            boxesNbt.add(NbtMap.builder()
+                .putFloat("minX", minX)
+                .putFloat("minY", minY)
+                .putFloat("minZ", minZ)
+                .putFloat("maxX", minX + boxComponent.sizeX())
+                .putFloat("maxY", minY + boxComponent.sizeY())
+                .putFloat("maxZ", minZ + boxComponent.sizeZ())
+                .build());
+        }
+
+        return NbtMap.builder()
+            .putBoolean("enabled", !empty)
+            .putList("boxes", NbtType.COMPOUND, boxesNbt)
+            .build();
+    }
+
+    /**
+     * Converts the provided box component to an {@link NbtMap}
+     * 
+     * @param boxComponent the box component to convert
+     * @return the NBT representation of the provided box component
+     */
+    private static NbtMap convertBox(BoxComponent boxComponent) {
+        return NbtMap.builder()
+                .putBoolean("enabled", !boxComponent.isEmpty())
+                .putList("origin", NbtType.FLOAT, boxComponent.originX(), boxComponent.originY(), boxComponent.originZ())
+                .putList("size", NbtType.FLOAT, boxComponent.sizeX(), boxComponent.sizeY(), boxComponent.sizeZ())
+                .build();
+    }
+
+    /**
+     * Converts the provided placement filter to a list of {@link NbtMap}
+     * 
+     * @param placementFilter the placement filter to convert
+     * @return the NBT representation of the provided placement filter
+     */
+    private static List<NbtMap> convertPlacementFilter(List<PlacementConditions> placementFilter) {
+        List<NbtMap> conditions = new ArrayList<>();
+        placementFilter.forEach((condition) -> {
+            NbtMapBuilder conditionBuilder = NbtMap.builder();
+
+
+
+            byte allowedFaces = 0;
+            for (Face face : condition.allowedFaces()) { allowedFaces |= (1 << face.ordinal()); }
+            conditionBuilder.putByte("allowed_faces", allowedFaces);
+
+
+
+            List <NbtMap> blockFilters = new ArrayList<>();
+            condition.blockFilters().forEach((value, type) -> {
+                NbtMapBuilder blockFilterBuilder = NbtMap.builder();
+                switch (type) {
+                    case BLOCK -> blockFilterBuilder.putString("name", value);
+
+                    case TAG -> blockFilterBuilder.putString("tags", value).putInt("tags_version", 6);
+                }
+                blockFilters.add(blockFilterBuilder.build());
+            });
+            conditionBuilder.putList("block_filters", NbtType.COMPOUND, blockFilters);
+            conditions.add(conditionBuilder.build());
+        });
+
+        return conditions;
+    }
+}

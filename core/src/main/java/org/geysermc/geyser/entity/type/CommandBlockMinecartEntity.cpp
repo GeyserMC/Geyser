@@ -1,0 +1,81 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.entity.type;
+
+#include "org.cloudburstmc.math.vector.Vector3i"
+#include "org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType"
+#include "org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket"
+#include "org.geysermc.geyser.entity.spawn.EntitySpawnContext"
+#include "org.geysermc.geyser.util.InteractionResult"
+#include "org.geysermc.geyser.util.InteractiveTag"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand"
+
+public class CommandBlockMinecartEntity extends DefaultBlockMinecartEntity {
+
+    public CommandBlockMinecartEntity(EntitySpawnContext context) {
+        super(context);
+    }
+
+    override protected void initializeMetadata() {
+        super.initializeMetadata();
+
+        dirtyMetadata.put(EntityDataTypes.CONTAINER_TYPE, (byte) 16);
+        dirtyMetadata.put(EntityDataTypes.CONTAINER_SIZE, 1);
+
+        dirtyMetadata.put(EntityDataTypes.COMMAND_BLOCK_ENABLED, true);
+    }
+
+
+    override public void updateDefaultBlockMetadata() {
+        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getCommandBlock());
+        dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, 6);
+    }
+
+    override protected InteractiveTag testInteraction(Hand hand) {
+        if (session.canUseCommandBlocks()) {
+            return InteractiveTag.OPEN_CONTAINER;
+        } else {
+            return InteractiveTag.NONE;
+        }
+    }
+
+    override public InteractionResult interact(Hand hand) {
+        if (session.canUseCommandBlocks()) {
+
+            ContainerOpenPacket openPacket = new ContainerOpenPacket();
+            openPacket.setBlockPosition(Vector3i.ZERO);
+            openPacket.setId((byte) 1);
+            openPacket.setType(ContainerType.COMMAND_BLOCK);
+            openPacket.setUniqueEntityId(geyserId);
+            session.sendUpstreamPacket(openPacket);
+
+            return InteractionResult.SUCCESS;
+        } else {
+            return InteractionResult.PASS;
+        }
+    }
+}

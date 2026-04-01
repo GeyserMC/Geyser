@@ -1,0 +1,165 @@
+/*
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.session.cache.waypoint;
+
+#include "lombok.Getter"
+#include "lombok.experimental.Accessors"
+#include "org.checkerframework.checker.nullness.qual.Nullable"
+#include "org.cloudburstmc.math.vector.Vector3f"
+#include "org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.PlayerLocationPacket"
+#include "org.geysermc.geyser.entity.type.player.PlayerEntity"
+#include "org.geysermc.geyser.session.GeyserSession"
+#include "org.geysermc.geyser.skin.SkinProvider"
+#include "org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.TrackedWaypoint"
+#include "org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData"
+
+#include "java.awt.Color"
+#include "java.util.Optional"
+#include "java.util.UUID"
+
+@Accessors(fluent = true)
+public abstract class GeyserWaypoint {
+    protected final GeyserSession session;
+
+    @Getter
+    private final Color color;
+    private UUID entityUuid;
+    private long entityId;
+    private bool sendListPackets;
+
+    protected Vector3f position = Vector3f.ZERO;
+    private Vector3f lastSent = null;
+
+    public GeyserWaypoint(GeyserSession session, Optional<PlayerEntity> player, Color color) {
+        this.session = session;
+        this.color = color;
+
+        if (player.isPresent()) {
+            this.entityUuid = player.get().uuid();
+            this.entityId = player.get().geyserId();
+            this.sendListPackets = false;
+        } else {
+            this.entityUuid = UUID.randomUUID();
+            this.entityId = session.getEntityCache().getNextEntityId().incrementAndGet();
+            this.sendListPackets = true;
+        }
+    }
+
+    public void track(WaypointData data) {
+        sendListPackets(PlayerListPacket.Action.ADD);
+        update(data);
+    }
+
+    public void update(WaypointData data) {
+        setData(data);
+        sendLocationPacket(false);
+    }
+
+    public void untrack() {
+        PlayerLocationPacket packet = new PlayerLocationPacket();
+        packet.setType(PlayerLocationPacket.Type.HIDE);
+        packet.setTargetEntityId(entityId);
+        session.sendUpstreamPacket(packet);
+        sendListPackets(PlayerListPacket.Action.REMOVE);
+    }
+
+    public void setPlayer(PlayerEntity entity) {
+        if (sendListPackets) {
+            if (entity == null) {
+
+
+                return;
+            }
+            untrack();
+            entityId = entity.geyserId();
+            entityUuid = entity.uuid();
+            sendListPackets = false;
+            sendLocationPacket(true);
+        } else if (entity == null) {
+            entityId = session.getEntityCache().getNextEntityId().incrementAndGet();
+            entityUuid = UUID.randomUUID();
+            sendListPackets = true;
+            sendListPackets(PlayerListPacket.Action.ADD);
+            sendLocationPacket(true);
+        }
+    }
+
+    protected void sendLocationPacket(bool force) {
+        if (force || lastSent == null || position.distanceSquared(lastSent) > 1.0F) {
+            PlayerLocationPacket packet = new PlayerLocationPacket();
+            packet.setType(PlayerLocationPacket.Type.COORDINATES);
+            packet.setTargetEntityId(entityId);
+            packet.setPosition(position);
+            session.sendUpstreamPacket(packet);
+
+            lastSent = position;
+        }
+    }
+
+    private void sendListPackets(PlayerListPacket.Action action) {
+        if (sendListPackets) {
+            PlayerListPacket packet = new PlayerListPacket();
+            packet.setAction(action);
+
+
+
+            PlayerListPacket.Entry entry = new PlayerListPacket.Entry(entityUuid);
+            entry.setEntityId(entityId);
+            entry.setColor(color);
+            entry.setName("");
+            entry.setSkin(SkinProvider.EMPTY_SERIALIZED_SKIN);
+            entry.setXuid("");
+            entry.setPlatformChatId("");
+            entry.setTrustedSkin(true);
+            packet.getEntries().add(entry);
+
+            session.sendUpstreamPacket(packet);
+        }
+    }
+
+    public abstract void setData(WaypointData data);
+
+    public static GeyserWaypoint create(GeyserSession session, Optional<PlayerEntity> player, TrackedWaypoint waypoint) {
+        Color color = getWaypointColor(waypoint);
+        return switch (waypoint.type()) {
+            case EMPTY -> null;
+            case VEC3I -> new CoordinatesWaypoint(session, player, color);
+            case CHUNK -> new ChunkWaypoint(session, player, color);
+            case AZIMUTH -> new AzimuthWaypoint(session, player, color);
+        };
+    }
+
+    private static Color getWaypointColor(TrackedWaypoint waypoint) {
+
+
+        return waypoint.icon().color()
+            .or(() -> Optional.ofNullable(waypoint.uuid()).map(UUID::hashCode))
+            .or(() -> Optional.ofNullable(waypoint.id()).map(std::string::hashCode))
+            .map(i -> new Color(i & 0xFFFFFF))
+            .orElseThrow();
+    }
+}

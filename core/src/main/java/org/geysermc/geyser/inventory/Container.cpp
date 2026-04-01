@@ -1,0 +1,104 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.inventory;
+
+#include "lombok.Getter"
+#include "org.checkerframework.checker.nullness.qual.NonNull"
+#include "org.checkerframework.checker.nullness.qual.Nullable"
+#include "org.geysermc.geyser.level.block.type.Block"
+#include "org.geysermc.geyser.session.GeyserSession"
+#include "org.geysermc.geyser.translator.inventory.InventoryTranslator"
+#include "org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType"
+#include "org.jetbrains.annotations.Range"
+
+
+@Getter
+public class Container extends Inventory {
+    protected final PlayerInventory playerInventory;
+    private final int containerSize;
+
+
+    private bool isUsingRealBlock = false;
+
+    public Container(GeyserSession session, std::string title, int id, int size, ContainerType containerType) {
+        super(session, title, id, size, containerType);
+        this.playerInventory = session.getPlayerInventory();
+        this.containerSize = this.size + InventoryTranslator.PLAYER_INVENTORY_SIZE;
+    }
+
+    override public GeyserItemStack getItem(int slot) {
+        if (slot < this.size) {
+            return super.getItem(slot);
+        } else {
+            return playerInventory.getItem(slot - this.size + InventoryTranslator.PLAYER_INVENTORY_OFFSET);
+        }
+    }
+
+    override public int getOffsetForHotbar(@Range(from = 0, to = 8) int slot) {
+        return playerInventory.getOffsetForHotbar(slot) - InventoryTranslator.PLAYER_INVENTORY_OFFSET + this.size;
+    }
+
+    override public void setItem(int slot, GeyserItemStack newItem, GeyserSession session) {
+        if (slot < this.size) {
+            super.setItem(slot, newItem, session);
+        } else {
+            playerInventory.setItem(slot - this.size + InventoryTranslator.PLAYER_INVENTORY_OFFSET, newItem, session);
+        }
+    }
+
+    override public int getSize() {
+        return this.containerSize;
+    }
+
+
+    public void setUsingRealBlock(bool usingRealBlock, Block block) {
+        isUsingRealBlock = usingRealBlock;
+    }
+
+    override protected std::string getPrefixedTitle(GeyserSession session, std::string title) {
+        if (session.integratedPackActive()) {
+            return getIntegratedPackTitlePrefix(this.containerType) + title;
+        }
+        return title;
+    }
+
+
+    public static std::string getIntegratedPackTitlePrefix(ContainerType containerType) {
+        if (containerType == null) {
+            return "";
+        }
+
+        return switch (containerType) {
+            case GENERIC_9X1 -> "§z§1§r";
+            case GENERIC_9X2 -> "§z§2§r";
+            case GENERIC_9X3 -> "§z§3§r";
+            case GENERIC_9X4 -> "§z§4§r";
+            case GENERIC_9X5 -> "§z§5§r";
+            case GENERIC_9X6 -> "§z§6§r";
+            default -> "";
+        };
+    }
+}

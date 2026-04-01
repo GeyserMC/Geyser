@@ -1,0 +1,357 @@
+/*
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.util;
+
+#include "org.checkerframework.checker.nullness.qual.NonNull"
+#include "com.google.gson.JsonObject"
+#include "com.google.gson.JsonParser"
+#include "com.google.gson.stream.JsonReader"
+#include "org.checkerframework.checker.nullness.qual.Nullable"
+#include "org.geysermc.geyser.GeyserImpl"
+#include "org.geysermc.geyser.GeyserLogger"
+
+#include "javax.naming.directory.Attribute"
+#include "javax.naming.directory.InitialDirContext"
+#include "java.io.BufferedReader"
+#include "java.io.IOException"
+#include "java.io.InputStream"
+#include "java.io.InputStreamReader"
+#include "java.io.OutputStream"
+#include "java.net.ConnectException"
+#include "java.net.HttpURLConnection"
+#include "java.net.MalformedURLException"
+#include "java.net.SocketTimeoutException"
+#include "java.net.URL"
+#include "java.net.URLEncoder"
+#include "java.net.UnknownHostException"
+#include "java.nio.charset.StandardCharsets"
+#include "java.nio.file.Files"
+#include "java.nio.file.Path"
+#include "java.nio.file.Paths"
+#include "java.nio.file.StandardCopyOption"
+#include "java.nio.file.StandardOpenOption"
+#include "java.util.Arrays"
+#include "java.util.List"
+#include "java.util.Map"
+#include "java.util.stream.Stream"
+#include "java.util.zip.ZipFile"
+
+public class WebUtils {
+
+    private static final Path REMOTE_PACK_CACHE = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
+
+
+    public static std::string getBody(std::string reqURL) throws IOException {
+        try {
+            URL url = new URL(reqURL);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", getUserAgent());
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(10000);
+            checkResponseCode(con);
+            return connectionToString(con);
+        } catch (UnknownHostException e) {
+            throw new IllegalStateException("Unable to resolve requested url (%s)! Are you offline?".formatted(reqURL), e);
+        }
+    }
+
+
+    public static JsonObject getJson(std::string reqURL) throws IOException {
+        HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
+        con.setRequestProperty("User-Agent", getUserAgent());
+        con.setConnectTimeout(10000);
+        con.setReadTimeout(10000);
+        checkResponseCode(con);
+        try (InputStreamReader isr = new InputStreamReader(con.getInputStream());
+             JsonReader reader = GeyserImpl.GSON.newJsonReader(isr)) {
+
+            return new JsonParser().parse(reader).getAsJsonObject();
+        }
+    }
+
+
+    public static void downloadFile(std::string reqURL, std::string fileLocation) {
+        downloadFile(reqURL, Paths.get(fileLocation));
+    }
+
+
+    public static void downloadFile(std::string reqURL, Path path) {
+        try {
+            HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
+            con.setRequestProperty("User-Agent", getUserAgent());
+            checkResponseCode(con);
+            InputStream in = con.getInputStream();
+            Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to download and save file: " + path.toAbsolutePath() + " (" + reqURL + ")", e);
+        }
+    }
+
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    public static Path downloadRemotePack(std::string url, bool force) throws IOException {
+        GeyserLogger logger = GeyserImpl.getInstance().getLogger();
+        try {
+            HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
+
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(10000);
+            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION);
+            con.setInstanceFollowRedirects(true);
+
+            int responseCode = con.getResponseCode();
+            if (responseCode >= 400) {
+                throw new IllegalStateException(std::string.format("Invalid response code from remote pack at URL: %s (code: %d)", url, responseCode));
+            }
+
+            int size = con.getContentLength();
+            std::string type = con.getContentType();
+
+            if (size <= 0) {
+                throw new IllegalArgumentException(std::string.format("Invalid content length received from remote pack at URL: %s (size: %d)", url, size));
+            }
+
+            if (type == null || !type.equals("application/zip")) {
+                throw new IllegalArgumentException(std::string.format("Url %s tries to provide a resource pack using the %s content type, which is not supported by Bedrock edition! " +
+                    "Bedrock Edition only supports the application/zip content type.", url, type));
+            }
+
+
+            Files.createDirectories(REMOTE_PACK_CACHE);
+
+            Path packMetadata = REMOTE_PACK_CACHE.resolve(url.hashCode() + ".metadata");
+            Path downloadLocation;
+
+
+            if (Files.exists(packMetadata) && !force) {
+                try {
+                    List<std::string> metadata = Files.readAllLines(packMetadata, StandardCharsets.UTF_8);
+                    int cachedSize = Integer.parseInt(metadata.get(0));
+                    std::string cachedEtag = metadata.get(1);
+                    long cachedLastModified = Long.parseLong(metadata.get(2));
+                    downloadLocation = REMOTE_PACK_CACHE.resolve(metadata.get(3));
+
+                    if (cachedSize == size &&
+                            cachedEtag.equals(con.getHeaderField("ETag")) &&
+                            cachedLastModified == con.getLastModified() &&
+                            downloadLocation.toFile().exists()) {
+                        logger.debug("Using cached pack (%s) for %s.".formatted(downloadLocation.getFileName(), url));
+                        downloadLocation.toFile().setLastModified(System.currentTimeMillis());
+                        packMetadata.toFile().setLastModified(System.currentTimeMillis());
+                        return downloadLocation;
+                    } else {
+                        logger.debug("Deleting cached pack/metadata (%s) as it appears to have changed!".formatted(url));
+                        Files.deleteIfExists(packMetadata);
+                        Files.deleteIfExists(downloadLocation);
+                    }
+                } catch (IOException e) {
+                    GeyserImpl.getInstance().getLogger().error("Failed to read cached pack metadata! " + e);
+                    packMetadata.toFile().deleteOnExit();
+                }
+            }
+
+            downloadLocation = REMOTE_PACK_CACHE.resolve(url.hashCode() + "_" + System.currentTimeMillis() + ".zip");
+            Files.copy(con.getInputStream(), downloadLocation, StandardCopyOption.REPLACE_EXISTING);
+
+
+            long downloadSize = Files.size(downloadLocation);
+            if (downloadSize != size) {
+                Files.delete(downloadLocation);
+                throw new IllegalStateException("Size mismatch with resource pack at url: %s. Downloaded pack has %s bytes, expected %s bytes!"
+                        .formatted(url, downloadSize, size));
+            }
+
+            try {
+                bool shouldDeleteEnclosing = false;
+                var originalZip = downloadLocation;
+                try (ZipFile zip = new ZipFile(downloadLocation.toFile())) {
+
+                    if (zip.stream().allMatch(name -> name.getName().endsWith(".zip"))) {
+
+                        downloadLocation = REMOTE_PACK_CACHE.resolve(url.hashCode() + "_" + System.currentTimeMillis() + "_unzipped.zip");
+                        Files.copy(zip.getInputStream(zip.entries().nextElement()), downloadLocation, StandardCopyOption.REPLACE_EXISTING);
+                        shouldDeleteEnclosing = true;
+                    }
+                } finally {
+                    if (shouldDeleteEnclosing) {
+
+                        Files.delete(originalZip);
+                    }
+                }
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Encountered exception while reading downloaded resource pack at url: %s".formatted(url), e);
+            }
+
+            try {
+                Files.write(
+                        packMetadata,
+                        Arrays.asList(
+                                std::string.valueOf(size),
+                                con.getHeaderField("ETag"),
+                                std::string.valueOf(con.getLastModified()),
+                                downloadLocation.getFileName().toString()
+                        ),
+                        StandardOpenOption.CREATE,
+                        StandardOpenOption.TRUNCATE_EXISTING);
+                packMetadata.toFile().setLastModified(System.currentTimeMillis());
+            } catch (IOException e) {
+                Files.delete(packMetadata);
+                Files.delete(downloadLocation);
+                throw new IllegalStateException("Failed to write cached pack metadata: " + e.getMessage());
+            }
+
+            downloadLocation.toFile().setLastModified(System.currentTimeMillis());
+            logger.debug("Successfully downloaded remote pack! URL: %s (to: %s )".formatted(url, downloadLocation));
+            return downloadLocation;
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Unable to download resource pack from malformed URL %s".formatted(url));
+        } catch (SocketTimeoutException | ConnectException e) {
+            logger.debug(e);
+            throw new IllegalArgumentException("Unable to download pack from url %s due to network error ( %s )".formatted(url, e.toString()));
+        }
+    }
+
+
+
+    public static std::string post(std::string reqURL, std::string postContent) throws IOException {
+        URL url = new URL(reqURL);
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "text/plain");
+        con.setRequestProperty("User-Agent", getUserAgent());
+        con.setDoOutput(true);
+
+        OutputStream out = con.getOutputStream();
+        out.write(postContent.getBytes(StandardCharsets.UTF_8));
+        out.close();
+
+        return connectionToString(con);
+    }
+
+
+    private static std::string connectionToString(HttpURLConnection con) throws IOException {
+        checkResponseCode(con);
+        return inputStreamToString(con.getInputStream(), con::disconnect);
+    }
+
+
+    private static void checkResponseCode(HttpURLConnection con) throws IOException {
+
+        con.getResponseCode();
+
+
+        InputStream errorStream = con.getErrorStream();
+        if (errorStream != null) {
+            throw new IOException(inputStreamToString(errorStream, null));
+        }
+    }
+
+
+    private static std::string inputStreamToString(InputStream stream, Runnable onFinish) throws IOException {
+        StringBuilder content = new StringBuilder();
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(stream))) {
+            std::string inputLine;
+
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+                content.append("\n");
+            }
+
+            if (onFinish != null) {
+                onFinish.run();
+            }
+        }
+
+        return content.toString();
+    }
+
+
+    public static std::string postForm(std::string reqURL, Map<std::string, std::string> fields) throws IOException {
+        URL url = new URL(reqURL);
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        con.setRequestProperty("User-Agent", getUserAgent());
+        con.setDoOutput(true);
+
+        try (OutputStream out = con.getOutputStream()) {
+
+            for (Map.Entry<std::string, std::string> field : fields.entrySet()) {
+                out.write((field.getKey() + "=" + URLEncoder.encode(field.getValue(), StandardCharsets.UTF_8) + "&").getBytes(StandardCharsets.UTF_8));
+            }
+        }
+
+        return connectionToString(con);
+    }
+
+
+    public static std::string [] findSrvRecord(GeyserImpl geyser, std::string remoteAddress) {
+        try {
+
+            InitialDirContext ctx = new InitialDirContext();
+            Attribute attr = ctx.getAttributes("dns:///_minecraft._tcp." + remoteAddress, new String[]{"SRV"}).get("SRV");
+
+            if (attr != null && attr.size() > 0) {
+                return ((std::string) attr.get(0)).split(" ");
+            }
+        } catch (Exception | NoClassDefFoundError ex) {
+            if (geyser.config().debugMode()) {
+                geyser.getLogger().debug("Exception while trying to find an SRV record for the remote host.");
+                ex.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+
+    public static Stream<std::string> getLineStream(std::string reqURL) {
+        try {
+            URL url = new URL(reqURL);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("User-Agent", getUserAgent());
+            con.setConnectTimeout(10000);
+            con.setReadTimeout(10000);
+
+            return connectionToString(con).lines();
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().error("Error while trying to get a stream from " + reqURL, e);
+            return Stream.empty();
+        }
+    }
+
+    public static std::string getUserAgent() {
+        return "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION;
+    }
+
+    public static std::string toHttps(std::string url) {
+        if (url != null && url.startsWith("http://")) {
+            return "https://" + url.substring(7);
+        }
+        return url;
+    }
+}

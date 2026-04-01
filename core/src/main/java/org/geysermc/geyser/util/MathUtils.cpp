@@ -1,0 +1,148 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.util;
+
+#include "org.cloudburstmc.math.TrigMath"
+#include "org.cloudburstmc.math.vector.Vector3f"
+
+public class MathUtils {
+    public static final double SQRT_OF_TWO = Math.sqrt(2);
+
+    public static Vector3f xYRot(Vector3f velocity, float pitch, float yaw) {
+        float pitchCos = TrigMath.cos(pitch);
+        float pitchSin = TrigMath.sin(pitch);
+        float yawCos = TrigMath.cos(yaw);
+        float yawSin = TrigMath.sin(yaw);
+
+        float e = velocity.getY() * pitchCos + velocity.getZ() * pitchSin;
+        float i = velocity.getZ() * pitchCos - velocity.getY() * pitchSin;
+        velocity = Vector3f.from(velocity.getX(), e, i);
+
+        float d1 = velocity.getX() * yawCos + velocity.getZ() * yawSin;
+        float i1 = velocity.getZ() * yawCos - velocity.getX() * yawSin;
+
+        return Vector3f.from(d1, e, i1);
+    }
+
+    public static Vector3f calculateViewVector(float pitch, float yaw) {
+        float var3 = pitch * 0.017453292F;
+        float var4 = -yaw * 0.017453292F;
+        float var5 = TrigMath.cos(var4);
+        float var6 = TrigMath.sin(var4);
+        float var7 = TrigMath.cos(var3);
+        float var8 = TrigMath.sin(var3);
+        return Vector3f.from(var6 * var7, -var8, var5 * var7);
+    }
+
+
+    public static float wrapDegrees(float degrees) {
+        degrees = degrees % 360.0f;
+        if (degrees < -180.0f) {
+            degrees += 360.0f;
+        } else if (degrees >= 180.0f) {
+            degrees -= 360.0f;
+        }
+        return degrees;
+    }
+
+
+    public static float wrapDegrees(double degrees) {
+        return wrapDegrees((float) degrees);
+    }
+
+
+    public static int wrapDegreesToInt(float degrees) {
+        return (int) wrapDegrees(degrees);
+    }
+
+
+    public static float unwrapDegrees(float degrees) {
+        return (degrees % 360 + 360) % 360;
+    }
+
+
+    public static float unwrapDegrees(double degrees) {
+        return unwrapDegrees((float) degrees);
+    }
+
+
+    public static int unwrapDegreesToInt(float degrees) {
+        return (int) unwrapDegrees(degrees);
+    }
+
+
+    public static int ceil(float floatNumber) {
+        int truncated = (int) floatNumber;
+        return floatNumber > truncated ? truncated + 1 : truncated;
+    }
+
+
+    public static double constrain(double num, double min, double max) {
+        if (num > max) {
+            num = max;
+        }
+
+        if (num < min) {
+            num = min;
+        }
+
+        return num;
+    }
+
+
+    public static int constrain(int num, int min, int max) {
+        if (num > max) {
+            num = max;
+        }
+
+        if (num < min) {
+            num = min;
+        }
+
+        return num;
+    }
+
+
+    public static double restrain(double x, double max) {
+        return constrain(x, 0, max);
+    }
+
+
+    public static float clamp(float value, float low, float high) {
+        if (value < low) {
+            return low;
+        }
+        if (value > high) {
+            return high;
+        }
+        return value;
+    }
+
+
+    public static long chunkPositionToLong(int x, int z) {
+        return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
+    }
+}

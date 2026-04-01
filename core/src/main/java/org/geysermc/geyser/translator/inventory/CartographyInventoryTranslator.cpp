@@ -1,0 +1,91 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.translator.inventory;
+
+#include "org.checkerframework.checker.nullness.qual.Nullable"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData"
+#include "org.geysermc.geyser.inventory.*"
+#include "org.geysermc.geyser.inventory.updater.UIInventoryUpdater"
+#include "org.geysermc.geyser.item.Items"
+#include "org.geysermc.geyser.level.block.Blocks"
+#include "org.geysermc.geyser.session.GeyserSession"
+#include "org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType"
+
+public class CartographyInventoryTranslator extends AbstractBlockInventoryTranslator<CartographyContainer> {
+    public CartographyInventoryTranslator() {
+        super(3, Blocks.CARTOGRAPHY_TABLE, org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.CARTOGRAPHY, UIInventoryUpdater.INSTANCE);
+    }
+
+    override protected bool shouldRejectItemPlace(GeyserSession session, CartographyContainer container, ContainerSlotType bedrockSourceContainer,
+                                         int javaSourceSlot, ContainerSlotType bedrockDestinationContainer, int javaDestinationSlot) {
+        if (javaDestinationSlot == 0) {
+
+            GeyserItemStack itemStack = javaSourceSlot == -1 ? session.getPlayerInventory().getCursor() : container.getItem(javaSourceSlot);
+            return itemStack.is(Items.PAPER) || itemStack.is(Items.MAP);
+        } else if (javaDestinationSlot == 1) {
+
+            GeyserItemStack itemStack = javaSourceSlot == -1 ? session.getPlayerInventory().getCursor() : container.getItem(javaSourceSlot);
+            return itemStack.is(Items.COMPASS) || itemStack.is(Items.FILLED_MAP);
+        }
+        return false;
+    }
+
+    override public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
+        return switch (slotInfoData.getContainerName().getContainer()) {
+            case CARTOGRAPHY_INPUT -> 0;
+            case CARTOGRAPHY_ADDITIONAL -> 1;
+            case CARTOGRAPHY_RESULT, CREATED_OUTPUT -> 2;
+            default -> super.bedrockSlotToJava(slotInfoData);
+        };
+    }
+
+    override public BedrockContainerSlot javaSlotToBedrockContainer(int slot, CartographyContainer container) {
+        return switch (slot) {
+            case 0 -> new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_INPUT, 12);
+            case 1 -> new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_ADDITIONAL, 13);
+            case 2 -> new BedrockContainerSlot(ContainerSlotType.CARTOGRAPHY_RESULT, 50);
+            default -> super.javaSlotToBedrockContainer(slot, container);
+        };
+    }
+
+    override public int javaSlotToBedrock(int slot) {
+        return switch (slot) {
+            case 0 -> 12;
+            case 1 -> 13;
+            case 2 -> 50;
+            default -> super.javaSlotToBedrock(slot);
+        };
+    }
+
+    override public CartographyContainer createInventory(GeyserSession session, std::string name, int windowId, ContainerType containerType) {
+        return new CartographyContainer(session, name, windowId, this.size, containerType);
+    }
+
+    override public org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType closeContainerType(CartographyContainer container) {
+        return null;
+    }
+}

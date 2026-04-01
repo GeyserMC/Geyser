@@ -1,0 +1,134 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.session.cache;
+
+#include "lombok.AllArgsConstructor"
+#include "net.kyori.adventure.text.Component"
+#include "org.cloudburstmc.math.vector.Vector2f"
+#include "org.cloudburstmc.math.vector.Vector3f"
+#include "org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap"
+#include "org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes"
+#include "org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.BossEventPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket"
+#include "org.geysermc.geyser.session.GeyserSession"
+#include "org.geysermc.geyser.translator.text.MessageTranslator"
+
+@AllArgsConstructor
+public class BossBar {
+    private final GeyserSession session;
+
+    private final long entityId;
+    private Component title;
+    private float health;
+    private int color;
+    private final int overlay;
+    private final int darkenSky;
+
+    public void addBossBar() {
+        addBossEntity();
+        updateBossBar();
+    }
+
+
+
+    public void updateBossBar() {
+        BossEventPacket bossEventPacket = new BossEventPacket();
+        bossEventPacket.setBossUniqueEntityId(entityId);
+        bossEventPacket.setAction(BossEventPacket.Action.CREATE);
+        bossEventPacket.setTitle(MessageTranslator.convertMessage(title, session.locale()));
+        bossEventPacket.setHealthPercentage(health);
+        bossEventPacket.setColor(color);
+        bossEventPacket.setOverlay(overlay);
+        bossEventPacket.setDarkenSky(darkenSky);
+
+        session.sendUpstreamPacket(bossEventPacket);
+    }
+
+    public void updateTitle(Component title) {
+        this.title = title;
+        BossEventPacket bossEventPacket = new BossEventPacket();
+        bossEventPacket.setBossUniqueEntityId(entityId);
+        bossEventPacket.setAction(BossEventPacket.Action.UPDATE_NAME);
+        bossEventPacket.setTitle(MessageTranslator.convertMessage(title, session.locale()));
+
+        session.sendUpstreamPacket(bossEventPacket);
+    }
+
+    public void updateHealth(float health) {
+        this.health = health;
+        BossEventPacket bossEventPacket = new BossEventPacket();
+        bossEventPacket.setBossUniqueEntityId(entityId);
+        bossEventPacket.setAction(BossEventPacket.Action.UPDATE_PERCENTAGE);
+        bossEventPacket.setHealthPercentage(health);
+
+        session.sendUpstreamPacket(bossEventPacket);
+    }
+
+    public void updateColor(int color) {
+        this.color = color;
+        BossEventPacket bossEventPacket = new BossEventPacket();
+        bossEventPacket.setBossUniqueEntityId(entityId);
+        bossEventPacket.setAction(BossEventPacket.Action.UPDATE_STYLE);
+        bossEventPacket.setColor(color);
+
+        session.sendUpstreamPacket(bossEventPacket);
+    }
+
+    public void removeBossBar() {
+        BossEventPacket bossEventPacket = new BossEventPacket();
+        bossEventPacket.setBossUniqueEntityId(entityId);
+        bossEventPacket.setAction(BossEventPacket.Action.REMOVE);
+
+        session.sendUpstreamPacket(bossEventPacket);
+        removeBossEntity();
+    }
+
+
+    private void addBossEntity() {
+        AddEntityPacket addEntityPacket = new AddEntityPacket();
+        addEntityPacket.setUniqueEntityId(entityId);
+        addEntityPacket.setRuntimeEntityId(entityId);
+        addEntityPacket.setIdentifier("minecraft:creeper");
+        addEntityPacket.setEntityType(33);
+        addEntityPacket.setPosition(session.getPlayerEntity().position().down(10));
+        addEntityPacket.setRotation(Vector2f.ZERO);
+        addEntityPacket.setMotion(Vector3f.ZERO);
+        EntityDataMap metadata = addEntityPacket.getMetadata();
+        metadata.put(EntityDataTypes.SCALE, 0F);
+        metadata.put(EntityDataTypes.WIDTH, 0F);
+        metadata.put(EntityDataTypes.HEIGHT, 0F);
+
+        session.sendUpstreamPacket(addEntityPacket);
+    }
+
+    private void removeBossEntity() {
+        RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
+        removeEntityPacket.setUniqueEntityId(entityId);
+
+        session.sendUpstreamPacket(removeEntityPacket);
+    }
+}

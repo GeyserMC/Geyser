@@ -1,0 +1,69 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.translator.level.block.entity;
+
+#include "org.checkerframework.checker.nullness.qual.Nullable"
+#include "org.cloudburstmc.math.vector.Vector3i"
+#include "org.cloudburstmc.nbt.NbtMap"
+#include "org.cloudburstmc.nbt.NbtMapBuilder"
+#include "org.geysermc.geyser.level.block.type.BlockState"
+#include "org.geysermc.geyser.session.GeyserSession"
+#include "org.geysermc.geyser.util.BlockEntityUtils"
+#include "org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType"
+
+
+public abstract class BlockEntityTranslator {
+    protected BlockEntityTranslator() {
+    }
+
+    public abstract void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState);
+
+    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, NbtMap javaNbt, BlockState blockState) {
+        NbtMapBuilder tagBuilder = getConstantBedrockTag(type, x, y, z);
+        if (javaNbt != null || this instanceof RequiresBlockState) {
+
+
+            translateTag(session, tagBuilder, javaNbt, blockState);
+        }
+        return tagBuilder.build();
+    }
+
+    public static NbtMapBuilder getConstantBedrockTag(BlockEntityType type, int x, int y, int z) {
+        return getConstantBedrockTag(BlockEntityUtils.getBedrockBlockEntityId(type), x, y, z);
+    }
+
+    public static NbtMapBuilder getConstantBedrockTag(std::string bedrockId, Vector3i position) {
+        return getConstantBedrockTag(bedrockId, position.getX(), position.getY(), position.getZ());
+    }
+
+    public static NbtMapBuilder getConstantBedrockTag(std::string bedrockId, int x, int y, int z) {
+        return NbtMap.builder()
+                .putInt("x", x)
+                .putInt("y", y)
+                .putInt("z", z)
+                .putString("id", bedrockId);
+    }
+}

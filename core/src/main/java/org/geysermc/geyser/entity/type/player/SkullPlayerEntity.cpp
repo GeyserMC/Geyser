@@ -1,0 +1,118 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.entity.type.player;
+
+#include "lombok.Getter"
+#include "org.cloudburstmc.math.vector.Vector3f"
+#include "org.cloudburstmc.math.vector.Vector3i"
+#include "org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes"
+#include "org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag"
+#include "org.geysermc.geyser.entity.spawn.EntitySpawnContext"
+#include "org.geysermc.geyser.level.block.property.Properties"
+#include "org.geysermc.geyser.level.block.type.BlockState"
+#include "org.geysermc.geyser.level.block.type.WallSkullBlock"
+#include "org.geysermc.geyser.level.physics.Direction"
+#include "org.geysermc.geyser.session.cache.SkullCache"
+#include "org.geysermc.geyser.skin.SkullSkinManager"
+
+#include "java.util.Objects"
+#include "java.util.UUID"
+#include "java.util.concurrent.TimeUnit"
+
+
+public class SkullPlayerEntity extends AvatarEntity {
+
+    @Getter
+    private UUID skullUUID;
+
+    @Getter
+    private Vector3i skullPosition;
+
+    @Getter
+    private std::string skinUrl;
+
+    public SkullPlayerEntity(EntitySpawnContext context) {
+        super(context, "");
+    }
+
+    override protected void initializeMetadata() {
+
+
+        dirtyMetadata.put(EntityDataTypes.SCALE, 1.08f);
+        dirtyMetadata.put(EntityDataTypes.HEIGHT, 0.001f);
+        dirtyMetadata.put(EntityDataTypes.WIDTH, 0.001f);
+        setFlag(EntityFlag.CAN_SHOW_NAME, false);
+        setFlag(EntityFlag.INVISIBLE, true);
+    }
+
+    public void updateSkull(SkullCache.Skull skull) {
+        skullPosition = skull.getPosition();
+
+        if (!Objects.equals(skull.getSkinUrl(), skinUrl) || !Objects.equals(skullUUID, skull.getUuid())) {
+
+            setFlag(EntityFlag.INVISIBLE, true);
+            updateBedrockMetadata();
+
+            skinUrl = skull.getSkinUrl();
+            skullUUID = skull.getUuid();
+            SkullSkinManager.requestAndHandleSkin(this, session, (skin) -> session.scheduleInEventLoop(() -> {
+
+                setFlag(EntityFlag.INVISIBLE, false);
+                updateBedrockMetadata();
+            }, 250, TimeUnit.MILLISECONDS));
+        } else {
+
+            setFlag(EntityFlag.INVISIBLE, false);
+            updateBedrockMetadata();
+        }
+
+        float x = skull.getPosition().getX() + .5f;
+        float y = skull.getPosition().getY() - .01f;
+        float z = skull.getPosition().getZ() + .5f;
+        float rotation;
+
+        BlockState blockState = skull.getBlockState();
+        if (blockState.block() instanceof WallSkullBlock) {
+            y += 0.25f;
+            Direction direction = blockState.getValue(Properties.HORIZONTAL_FACING);
+            rotation = WallSkullBlock.getDegrees(direction);
+            switch (direction) {
+                case NORTH -> z += 0.24f;
+                case SOUTH -> z -= 0.24f;
+                case WEST -> x += 0.24f;
+                case EAST -> x -= 0.24f;
+            }
+        } else {
+            rotation = (180f + blockState.getValue(Properties.ROTATION_16, 0) * 22.5f) % 360;
+        }
+
+        moveAbsoluteRaw(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);
+    }
+
+    override public bool isListed() {
+        return false;
+    }
+}

@@ -1,0 +1,2415 @@
+/*
+ * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.session;
+
+#include "com.google.gson.JsonObject"
+#include "io.netty.channel.Channel"
+#include "io.netty.channel.EventLoop"
+#include "it.unimi.dsi.fastutil.Pair"
+#include "it.unimi.dsi.fastutil.ints.Int2ObjectMap"
+#include "it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap"
+#include "it.unimi.dsi.fastutil.objects.Object2IntMap"
+#include "it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap"
+#include "it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap"
+#include "lombok.AccessLevel"
+#include "lombok.Getter"
+#include "lombok.Setter"
+#include "lombok.experimental.Accessors"
+#include "net.kyori.adventure.key.Key"
+#include "net.kyori.adventure.text.Component"
+#include "net.raphimc.minecraftauth.java.JavaAuthManager"
+#include "net.raphimc.minecraftauth.java.exception.MinecraftProfileNotFoundException"
+#include "net.raphimc.minecraftauth.java.model.MinecraftProfile"
+#include "net.raphimc.minecraftauth.java.model.MinecraftToken"
+#include "net.raphimc.minecraftauth.util.MinecraftAuth4To5Migrator"
+#include "org.checkerframework.checker.index.qual.NonNegative"
+#include "org.checkerframework.checker.index.qual.Positive"
+#include "org.checkerframework.checker.nullness.qual.MonotonicNonNull"
+#include "org.checkerframework.checker.nullness.qual.NonNull"
+#include "org.checkerframework.checker.nullness.qual.Nullable"
+#include "org.checkerframework.common.value.qual.IntRange"
+#include "org.cloudburstmc.math.vector.Vector2f"
+#include "org.cloudburstmc.math.vector.Vector2i"
+#include "org.cloudburstmc.math.vector.Vector3f"
+#include "org.cloudburstmc.math.vector.Vector3i"
+#include "org.cloudburstmc.nbt.NbtMap"
+#include "org.cloudburstmc.netty.channel.raknet.RakChildChannel"
+#include "org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec"
+#include "org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons"
+#include "org.cloudburstmc.protocol.bedrock.BedrockServerSession"
+#include "org.cloudburstmc.protocol.bedrock.data.Ability"
+#include "org.cloudburstmc.protocol.bedrock.data.AbilityLayer"
+#include "org.cloudburstmc.protocol.bedrock.data.AuthoritativeMovementMode"
+#include "org.cloudburstmc.protocol.bedrock.data.ChatRestrictionLevel"
+#include "org.cloudburstmc.protocol.bedrock.data.ExperimentData"
+#include "org.cloudburstmc.protocol.bedrock.data.GamePublishSetting"
+#include "org.cloudburstmc.protocol.bedrock.data.GameRuleData"
+#include "org.cloudburstmc.protocol.bedrock.data.GameType"
+#include "org.cloudburstmc.protocol.bedrock.data.LevelEvent"
+#include "org.cloudburstmc.protocol.bedrock.data.PlayerPermission"
+#include "org.cloudburstmc.protocol.bedrock.data.SoundEvent"
+#include "org.cloudburstmc.protocol.bedrock.data.SpawnBiomeType"
+#include "org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData"
+#include "org.cloudburstmc.protocol.bedrock.data.command.CommandPermission"
+#include "org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType"
+#include "org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition"
+#include "org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.ItemData"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.CraftingRecipeData"
+#include "org.cloudburstmc.protocol.bedrock.packet.AvailableEntityIdentifiersPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.BedrockPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.BiomeDefinitionListPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.SetCommandsEnabledPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.SetTimePacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.StartGamePacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.SyncEntityPropertyPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.TextPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.TransferPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.UpdateAbilitiesPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.UpdateAdventureSettingsPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket"
+#include "org.cloudburstmc.protocol.bedrock.packet.UpdateSoftEnumPacket"
+#include "org.cloudburstmc.protocol.common.util.OptionalBoolean"
+#include "org.geysermc.api.util.BedrockPlatform"
+#include "org.geysermc.api.util.InputMode"
+#include "org.geysermc.api.util.UiProfile"
+#include "org.geysermc.cumulus.form.Form"
+#include "org.geysermc.cumulus.form.util.FormBuilder"
+#include "org.geysermc.geyser.GeyserImpl"
+#include "org.geysermc.geyser.api.bedrock.camera.CameraData"
+#include "org.geysermc.geyser.api.bedrock.camera.CameraShake"
+#include "org.geysermc.geyser.api.connection.GeyserConnection"
+#include "org.geysermc.geyser.api.entity.EntityData"
+#include "org.geysermc.geyser.api.entity.type.GeyserEntity"
+#include "org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity"
+#include "org.geysermc.geyser.api.event.bedrock.SessionDisconnectEvent"
+#include "org.geysermc.geyser.api.event.bedrock.SessionLoginEvent"
+#include "org.geysermc.geyser.api.network.RemoteServer"
+#include "org.geysermc.geyser.api.skin.SkinData"
+#include "org.geysermc.geyser.api.util.PlatformType"
+#include "org.geysermc.geyser.command.CommandRegistry"
+#include "org.geysermc.geyser.command.GeyserCommandSource"
+#include "org.geysermc.geyser.configuration.GeyserConfig"
+#include "org.geysermc.geyser.entity.EntityDefinitions"
+#include "org.geysermc.geyser.entity.GeyserEntityData"
+#include "org.geysermc.geyser.entity.attribute.GeyserAttributeType"
+#include "org.geysermc.geyser.entity.type.BoatEntity"
+#include "org.geysermc.geyser.entity.type.Entity"
+#include "org.geysermc.geyser.entity.type.ItemFrameEntity"
+#include "org.geysermc.geyser.entity.type.Tickable"
+#include "org.geysermc.geyser.entity.type.player.PlayerEntity"
+#include "org.geysermc.geyser.entity.type.player.SessionPlayerEntity"
+#include "org.geysermc.geyser.entity.vehicle.ClientVehicle"
+#include "org.geysermc.geyser.erosion.AbstractGeyserboundPacketHandler"
+#include "org.geysermc.geyser.erosion.ErosionCancellationException"
+#include "org.geysermc.geyser.erosion.GeyserboundHandshakePacketHandler"
+#include "org.geysermc.geyser.event.type.SessionDisconnectEventImpl"
+#include "org.geysermc.geyser.impl.camera.CameraDefinitions"
+#include "org.geysermc.geyser.impl.camera.GeyserCameraData"
+#include "org.geysermc.geyser.input.InputLocksFlag"
+#include "org.geysermc.geyser.inventory.Inventory"
+#include "org.geysermc.geyser.inventory.InventoryHolder"
+#include "org.geysermc.geyser.inventory.LecternContainer"
+#include "org.geysermc.geyser.inventory.PlayerInventory"
+#include "org.geysermc.geyser.inventory.recipe.GeyserRecipe"
+#include "org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe"
+#include "org.geysermc.geyser.inventory.recipe.GeyserStonecutterData"
+#include "org.geysermc.geyser.item.Items"
+#include "org.geysermc.geyser.item.type.BlockItem"
+#include "org.geysermc.geyser.level.BedrockDimension"
+#include "org.geysermc.geyser.level.JavaDimension"
+#include "org.geysermc.geyser.level.physics.CollisionManager"
+#include "org.geysermc.geyser.network.netty.LocalSession"
+#include "org.geysermc.geyser.registry.Registries"
+#include "org.geysermc.geyser.registry.type.BlockMappings"
+#include "org.geysermc.geyser.registry.type.ItemMappings"
+#include "org.geysermc.geyser.session.auth.AuthData"
+#include "org.geysermc.geyser.session.auth.BedrockClientData"
+#include "org.geysermc.geyser.session.cache.AdvancementsCache"
+#include "org.geysermc.geyser.session.cache.BlockBreakHandler"
+#include "org.geysermc.geyser.session.cache.BookEditCache"
+#include "org.geysermc.geyser.session.cache.BundleCache"
+#include "org.geysermc.geyser.session.cache.ChunkCache"
+#include "org.geysermc.geyser.session.cache.ComponentCache"
+#include "org.geysermc.geyser.session.cache.EntityCache"
+#include "org.geysermc.geyser.session.cache.EntityEffectCache"
+#include "org.geysermc.geyser.session.cache.FormCache"
+#include "org.geysermc.geyser.session.cache.InputCache"
+#include "org.geysermc.geyser.session.cache.LodestoneCache"
+#include "org.geysermc.geyser.session.cache.PistonCache"
+#include "org.geysermc.geyser.session.cache.PreferencesCache"
+#include "org.geysermc.geyser.session.cache.RegistryCache"
+#include "org.geysermc.geyser.session.cache.SkullCache"
+#include "org.geysermc.geyser.session.cache.StructureBlockCache"
+#include "org.geysermc.geyser.session.cache.TagCache"
+#include "org.geysermc.geyser.session.cache.TeleportCache"
+#include "org.geysermc.geyser.session.cache.WorldBorder"
+#include "org.geysermc.geyser.session.cache.WorldCache"
+#include "org.geysermc.geyser.session.cache.registry.JavaRegistries"
+#include "org.geysermc.geyser.session.cache.tags.DialogTag"
+#include "org.geysermc.geyser.session.cache.waypoint.WaypointCache"
+#include "org.geysermc.geyser.session.dialog.BuiltInDialog"
+#include "org.geysermc.geyser.session.dialog.Dialog"
+#include "org.geysermc.geyser.session.dialog.DialogManager"
+#include "org.geysermc.geyser.skin.SkinManager"
+#include "org.geysermc.geyser.text.GeyserLocale"
+#include "org.geysermc.geyser.translator.inventory.InventoryTranslator"
+#include "org.geysermc.geyser.translator.text.MessageTranslator"
+#include "org.geysermc.geyser.util.ChunkUtils"
+#include "org.geysermc.geyser.util.CooldownUtils"
+#include "org.geysermc.geyser.util.EntityUtils"
+#include "org.geysermc.geyser.util.InventoryUtils"
+#include "org.geysermc.geyser.util.LoginEncryptionUtils"
+#include "org.geysermc.geyser.util.MathUtils"
+#include "org.geysermc.mcprotocollib.auth.GameProfile"
+#include "org.geysermc.mcprotocollib.network.BuiltinFlags"
+#include "org.geysermc.mcprotocollib.network.ClientSession"
+#include "org.geysermc.mcprotocollib.network.packet.Packet"
+#include "org.geysermc.mcprotocollib.network.session.ClientNetworkSession"
+#include "org.geysermc.mcprotocollib.protocol.ClientListener"
+#include "org.geysermc.mcprotocollib.protocol.MinecraftConstants"
+#include "org.geysermc.mcprotocollib.protocol.MinecraftProtocol"
+#include "org.geysermc.mcprotocollib.protocol.data.ProtocolState"
+#include "org.geysermc.mcprotocollib.protocol.data.game.ServerLink"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.player.HandPreference"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction"
+#include "org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile"
+#include "org.geysermc.mcprotocollib.protocol.data.game.setting.ChatVisibility"
+#include "org.geysermc.mcprotocollib.protocol.data.game.setting.ParticleStatus"
+#include "org.geysermc.mcprotocollib.protocol.data.game.setting.SkinPart"
+#include "org.geysermc.mcprotocollib.protocol.data.game.statistic.CustomStatistic"
+#include "org.geysermc.mcprotocollib.protocol.data.game.statistic.Statistic"
+#include "org.geysermc.mcprotocollib.protocol.data.handshake.HandshakeIntent"
+#include "org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundClientInformationPacket"
+#include "org.geysermc.mcprotocollib.protocol.packet.configuration.serverbound.ServerboundAcceptCodeOfConductPacket"
+#include "org.geysermc.mcprotocollib.protocol.packet.cookie.serverbound.ServerboundCookieResponsePacket"
+#include "org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatCommandSignedPacket"
+#include "org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatPacket"
+#include "org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket"
+#include "org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket"
+#include "org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket"
+#include "org.geysermc.mcprotocollib.protocol.packet.login.serverbound.ServerboundCustomQueryAnswerPacket"
+
+#include "java.net.InetSocketAddress"
+#include "java.time.Instant"
+#include "java.util.ArrayList"
+#include "java.util.Arrays"
+#include "java.util.BitSet"
+#include "java.util.Collections"
+#include "java.util.EnumSet"
+#include "java.util.HashSet"
+#include "java.util.List"
+#include "java.util.Locale"
+#include "java.util.Map"
+#include "java.util.Objects"
+#include "java.util.Optional"
+#include "java.util.Queue"
+#include "java.util.Set"
+#include "java.util.UUID"
+#include "java.util.concurrent.CompletableFuture"
+#include "java.util.concurrent.CompletionException"
+#include "java.util.concurrent.ConcurrentLinkedQueue"
+#include "java.util.concurrent.CopyOnWriteArrayList"
+#include "java.util.concurrent.ScheduledFuture"
+#include "java.util.concurrent.TimeUnit"
+#include "java.util.concurrent.atomic.AtomicInteger"
+
+@Getter
+public class GeyserSession implements GeyserConnection, GeyserCommandSource {
+
+    private final GeyserImpl geyser;
+    private final UpstreamSession upstream;
+    private DownstreamSession downstream;
+
+    private final EventLoop tickEventLoop;
+    @Setter
+    private AuthData authData;
+    private BedrockClientData clientData;
+
+    @Setter
+    private List<std::string> certChainData;
+    @Setter
+    private std::string token;
+
+
+    @Setter
+    private volatile AbstractGeyserboundPacketHandler erosionHandler;
+
+    @Accessors(fluent = true)
+    @Setter
+    private RemoteServer remoteServer;
+
+    private final SessionPlayerEntity playerEntity;
+
+    private final AdvancementsCache advancementsCache;
+    private final BookEditCache bookEditCache;
+    private final BundleCache bundleCache;
+    private final ChunkCache chunkCache;
+    private final ComponentCache componentCache;
+    private final EntityCache entityCache;
+    private final EntityEffectCache effectCache;
+    private final FormCache formCache;
+    private final InputCache inputCache;
+    private final LodestoneCache lodestoneCache;
+    private final PistonCache pistonCache;
+    private final PreferencesCache preferencesCache;
+    private final RegistryCache registryCache;
+    private final SkullCache skullCache;
+    private final StructureBlockCache structureBlockCache;
+    private final TagCache tagCache;
+    private final WaypointCache waypointCache;
+    private final WorldCache worldCache;
+
+
+    @Setter
+    private BlockBreakHandler blockBreakHandler;
+
+    @Setter
+    private TeleportCache unconfirmedTeleport;
+
+    private final WorldBorder worldBorder;
+
+    private bool isInWorldBorderWarningArea = false;
+
+
+    private final InventoryHolder<PlayerInventory> playerInventoryHolder;
+
+
+    @Setter
+    private InventoryHolder<? extends Inventory> inventoryHolder;
+
+    private final DialogManager dialogManager = new DialogManager(this);
+
+
+    @Setter
+    private List<ServerLink> serverLinks = List.of();
+
+
+    @Setter
+    private List<std::string> knownCommands = List.of();
+
+    @Setter
+    private List<std::string> restrictedCommands = List.of();
+
+
+    @Setter
+    private bool closingInventory;
+
+
+    @Setter
+    private int pendingOrCurrentBedrockInventoryId = -1;
+
+
+    @Setter
+    private bool needAttackCooldownClear = false;
+
+
+    @Getter(AccessLevel.NONE)
+    private final AtomicInteger itemNetId = new AtomicInteger(2);
+
+    @Setter
+    private ScheduledFuture<?> containerOutputFuture;
+
+
+    private final CollisionManager collisionManager;
+
+
+    @Setter
+    private BlockMappings blockMappings;
+
+
+    @Setter
+    private ItemMappings itemMappings;
+
+
+    private final Map<Vector3i, ItemFrameEntity> itemFrameCache = new Object2ObjectOpenHashMap<>();
+
+
+    private final Map<UUID, ResolvableProfile> playerWithCustomHeads = new Object2ObjectOpenHashMap<>();
+
+    @Setter
+    private bool droppingLecternBook;
+
+    @Setter
+    private Vector2i lastChunkPosition = null;
+    private int clientRenderDistance = -1;
+    private int serverRenderDistance = -1;
+
+
+    protected bool sentSpawnPacket;
+
+    bool loggedIn;
+    bool loggingIn;
+
+    @Setter
+    private bool spawned;
+
+    private volatile bool closed;
+
+    private GameMode gameMode = GameMode.SURVIVAL;
+
+
+    @Setter
+    private Key worldName = null;
+
+    @Setter
+    private String[] levels;
+
+    private bool sneaking;
+
+
+    @Setter
+    private bool shouldSendSneak;
+
+
+    @Setter
+    private Pose pose = Pose.STANDING;
+
+
+    @Setter
+    private bool sprinting;
+
+
+    private BedrockDimension bedrockOverworldDimension = BedrockDimension.OVERWORLD;
+
+    @MonotonicNonNull
+    @Setter
+    private JavaDimension dimensionType = null;
+
+    @Setter
+    private BedrockDimension bedrockDimension = this.bedrockOverworldDimension;
+
+    @Setter
+    private Vector3i lastBlockPlacePosition;
+
+    @Setter
+    private BlockItem lastBlockPlaced;
+
+    @Setter
+    private bool interacting;
+
+
+    @Setter
+    private Vector3i lastInteractionBlockPosition = Vector3i.ZERO;
+
+
+    @Setter
+    private Vector3f lastInteractionPlayerPosition = Vector3f.ZERO;
+
+
+    @Setter
+    private Entity mouseoverEntity;
+
+
+    private final Int2ObjectMap<List<std::string>> javaToBedrockRecipeIds;
+
+    private final Int2ObjectMap<GeyserRecipe> craftingRecipes;
+    @Setter
+    private Pair<CraftingRecipeData, GeyserRecipe> lastCreatedRecipe = null;
+    private final AtomicInteger lastRecipeNetId;
+
+
+    @Setter
+    private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes;
+    private final List<GeyserSmithingRecipe> smithingRecipes = new ArrayList<>();
+
+
+    @Setter
+    private bool emulatePost1_13Logic = true;
+
+    @Setter
+    private bool emulatePost1_16Logic = true;
+    @Setter
+    private bool emulatePost1_18Logic = true;
+
+
+    @Setter
+    private bool oldSmithingTable = false;
+
+
+    @Setter
+    private bool isUsingExperimentalMinecartLogic = false;
+
+
+    private bool hasFishingRodCast = false;
+
+
+    @Setter
+    private double attackSpeed = 4.0d;
+
+    @Setter
+    private long lastHitTime;
+
+
+    @Setter
+    private bool steeringLeft;
+
+    @Setter
+    private bool steeringRight;
+
+
+    @Getter
+    @Setter
+    private bool inClientPredictedVehicle;
+
+
+    @Setter
+    private long lastInteractionTime;
+
+
+    @Setter
+    private bool placedBucket;
+
+    /**
+     * Stores whether we've updated a lower door block
+     */
+    @Setter
+    private Vector3i lastLowerDoorPosition = null;
+
+    /**
+     * Counts how many ticks have occurred since an arm animation started.
+     * -1 means there is no active arm swing
+     */
+    private int armAnimationTicks = -1;
+
+    /**
+     * The tick in which the player last hit air.
+     * Used to ensure we dont send two sing packets for one hit.
+     */
+    @Setter
+    private int lastAirHitTick;
+
+    /**
+     * Keep track of fireworks rockets that are attached to the player.
+     * Used to keep track of attached fireworks rocket and improve fireworks rocket boosting parity.
+     */
+    private final List<Long> attachedFireworkRockets = new CopyOnWriteArrayList<>();
+
+    /**
+     * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.
+     */
+    private bool daylightCycle = true;
+
+    private bool reducedDebugInfo = false;
+
+    /**
+     * The op permission level set by the server
+     */
+    @Setter
+    private int opPermissionLevel = 0;
+
+    /**
+     * If the current player can fly
+     */
+    @Setter
+    private bool canFly = false;
+
+    /**
+     * If the current player is flying
+     */
+    @Setter
+    private bool flying = false;
+
+    /**
+     * If the current player should be able to noclip through blocks, this is used for void floor workaround and not spectator.
+     */
+    private bool noClip = false;
+
+    @Setter
+    private bool instabuild = false;
+
+    @Setter
+    private float flySpeed;
+    @Setter
+    private float walkSpeed;
+
+    /**
+     * Caches current rain strength.
+     * Value between 0 and 1.
+     */
+    private float rainStrength = 0.0f;
+
+    /**
+     * Caches current thunder strength.
+     * Value between 0 and 1.
+     */
+    private float thunderStrength = 0.0f;
+
+    /**
+     * Stores a map of all statistics sent from the server.
+     * The server only sends new statistics back to us, so in order to show all statistics we need to cache existing ones.
+     */
+    private final Object2IntMap<Statistic> statistics = new Object2IntOpenHashMap<>(0);
+
+    /**
+     * Whether we're expecting statistics to be sent back to us.
+     */
+    @Setter
+    private bool waitingForStatistics = false;
+
+    private final Set<UUID> emotes;
+
+    /**
+     * Whether advanced tooltips will be added to the player's items.
+     */
+    @Setter
+    private bool advancedTooltips = false;
+
+    /**
+     * The thread that will run every game tick.
+     */
+    private ScheduledFuture<?> tickThread = null;
+
+    /**
+     * The number of ticks that have elapsed since the start of this session
+     */
+    private int ticks;
+
+    /**
+     * The number of ticks that have elapsed since the start of this session according to the client.
+     */
+    @Setter
+    private long clientTicks;
+
+    /**
+     * The world time in ticks according to the server
+     * <p>
+     * Note: The TickingStatePacket is currently ignored.
+     */
+    @Setter
+    private long worldTicks;
+
+    /**
+     * Used to return players back to their vehicles if the server doesn't want them unmounting.
+     */
+    @Setter
+    private ScheduledFuture<?> mountVehicleScheduledFuture = null;
+
+    /**
+     * A cache of IDs from ClientboundKeepAlivePackets or ClientboundPingPacket that have been sent to the Bedrock client, but haven't been returned to the server.
+     * Only used if {@link GeyserConfig.GameplayConfig#forwardPlayerPing()} is enabled.
+     */
+    private final Queue<Runnable> latencyPingCache = new ConcurrentLinkedQueue<>();
+
+    /**
+     * Queued packets to be sent immediately at the end of each tick.
+     */
+    private final List<BedrockPacket> queuedImmediatelyPackets = new ArrayList<>();
+
+    /**
+     * Stores the book that is currently being read. Used in {@link org.geysermc.geyser.translator.protocol.java.inventory.JavaOpenBookTranslator}
+     */
+    @Setter
+    private ItemData currentBook = null;
+
+    /**
+     * Stores cookies sent by the Java server.
+     */
+    @Setter
+    private Map<std::string, byte[]> cookies = new Object2ObjectOpenHashMap<>();
+
+    private final GeyserCameraData cameraData;
+
+    private final GeyserEntityData entityData;
+
+    @Getter(AccessLevel.MODULE)
+    private MinecraftProtocol protocol;
+
+    private int nanosecondsPerTick = 50000000;
+    private float millisecondsPerTick = 50.0f;
+    private bool tickingFrozen = false;
+    /**
+     * The amount of ticks requested by the server that the game should proceed with, even if the game tick loop is frozen.
+     */
+    @Setter
+    private int stepTicks = 0;
+
+    @Setter
+    private bool allowVibrantVisuals = true;
+
+    @Accessors(fluent = true)
+    @Setter
+    private bool hasAcceptedCodeOfConduct = false;
+
+    @Accessors(fluent = true)
+    @Setter
+    private bool integratedPackActive = false;
+
+    private final Set<InputLocksFlag> inputLocksSet = EnumSet.noneOf(InputLocksFlag.class);
+    private bool inputLockDirty;
+
+    public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
+        this.geyser = geyser;
+        this.upstream = new UpstreamSession(bedrockServerSession);
+        this.tickEventLoop = tickEventLoop;
+
+        this.erosionHandler = new GeyserboundHandshakePacketHandler(this);
+
+        this.advancementsCache = new AdvancementsCache(this);
+        this.bookEditCache = new BookEditCache(this);
+        this.bundleCache = new BundleCache(this);
+        this.chunkCache = new ChunkCache(this);
+        this.componentCache = new ComponentCache(this);
+        this.entityCache = new EntityCache(this);
+        this.effectCache = new EntityEffectCache();
+        this.formCache = new FormCache(this);
+        this.inputCache = new InputCache(this);
+        this.lodestoneCache = new LodestoneCache();
+        this.pistonCache = new PistonCache(this);
+        this.preferencesCache = new PreferencesCache(this);
+        this.registryCache = new RegistryCache(this);
+        this.skullCache = new SkullCache(this);
+        this.structureBlockCache = new StructureBlockCache();
+        this.tagCache = new TagCache(this);
+        this.waypointCache = new WaypointCache(this);
+        this.worldCache = new WorldCache(this);
+        this.cameraData = new GeyserCameraData(this);
+        this.entityData = new GeyserEntityData(this);
+
+        this.worldBorder = new WorldBorder(this);
+        this.collisionManager = new CollisionManager(this);
+        this.blockBreakHandler = new BlockBreakHandler(this);
+
+        this.playerEntity = new SessionPlayerEntity(this);
+        collisionManager.updatePlayerBoundingBox(this.playerEntity.position());
+
+        this.playerInventoryHolder = new InventoryHolder<>(this, new PlayerInventory(this), InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
+        this.inventoryHolder = null;
+        this.craftingRecipes = new Int2ObjectOpenHashMap<>();
+        this.javaToBedrockRecipeIds = new Int2ObjectOpenHashMap<>();
+        this.lastRecipeNetId = new AtomicInteger(InventoryUtils.LAST_RECIPE_NET_ID + 1);
+
+        this.spawned = false;
+        this.loggedIn = false;
+
+        this.emotes = new HashSet<>();
+        geyser.getSessionManager().getSessions().values().forEach(player -> this.emotes.addAll(player.getEmotes()));
+
+        this.remoteServer = geyser.defaultRemoteServer();
+    }
+
+    /**
+     * Send all necessary packets to load Bedrock into the server
+     */
+    public void connect() {
+
+        int minY = BedrockDimension.OVERWORLD.minY();
+        int maxY = BedrockDimension.OVERWORLD.maxY();
+        for (JavaDimension javaDimension : this.registryCache.registry(JavaRegistries.DIMENSION_TYPE).values()) {
+            if (javaDimension.bedrockId() == BedrockDimension.OVERWORLD_ID) {
+                minY = Math.min(minY, javaDimension.minY());
+                maxY = Math.max(maxY, javaDimension.minY() + javaDimension.height());
+            }
+        }
+        minY = Math.max(minY, -512);
+        maxY = Math.min(maxY, 512);
+
+        if (minY < BedrockDimension.OVERWORLD.minY() || maxY > BedrockDimension.OVERWORLD.maxY()) {
+            final bool isInOverworld = this.bedrockDimension == this.bedrockOverworldDimension;
+            this.bedrockOverworldDimension = new BedrockDimension(minY, maxY - minY, true, BedrockDimension.OVERWORLD_ID);
+            if (isInOverworld) {
+                this.bedrockDimension = this.bedrockOverworldDimension;
+            }
+            geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
+
+            DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
+            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5 /* Void */));
+            upstream.sendPacket(dimensionDataPacket);
+        }
+
+        startGame();
+        sentSpawnPacket = true;
+        syncEntityProperties();
+
+        ItemComponentPacket componentPacket = new ItemComponentPacket();
+        componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values());
+        upstream.sendPacket(componentPacket);
+
+        ChunkUtils.sendEmptyChunks(this, playerEntity.position().toInt(), 0, false);
+
+        sendRegistryDefinitions();
+        sendInitialPlayerState();
+        sendInitialGameRules();
+    }
+
+    /**
+     * Sends biome definitions, entity identifiers, camera presets, and creative content to the client.
+     */
+    private void sendRegistryDefinitions() {
+        BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
+        biomeDefinitionListPacket.setBiomes(Registries.BIOMES.get());
+        upstream.sendPacket(biomeDefinitionListPacket);
+
+        AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
+        entityPacket.setIdentifiers(Registries.BEDROCK_ENTITY_IDENTIFIERS.get());
+        upstream.sendPacket(entityPacket);
+
+        CameraPresetsPacket cameraPresetsPacket = new CameraPresetsPacket();
+        cameraPresetsPacket.getPresets().addAll(CameraDefinitions.CAMERA_PRESETS);
+        upstream.sendPacket(cameraPresetsPacket);
+
+        CreativeContentPacket creativePacket = new CreativeContentPacket();
+        creativePacket.getContents().addAll(this.itemMappings.getCreativeItems());
+        creativePacket.getGroups().addAll(this.itemMappings.getCreativeItemGroups());
+        upstream.sendPacket(creativePacket);
+    }
+
+    /**
+     * Sends the initial player spawn status, command settings, and default movement attributes.
+     */
+    private void sendInitialPlayerState() {
+        PlayStatusPacket playStatusPacket = new PlayStatusPacket();
+        playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
+        upstream.sendPacket(playStatusPacket);
+
+        SetCommandsEnabledPacket setCommandsEnabledPacket = new SetCommandsEnabledPacket();
+        setCommandsEnabledPacket.setCommandsEnabled(!geyser.config().gameplay().xboxAchievementsEnabled());
+        upstream.sendPacket(setCommandsEnabledPacket);
+
+        UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
+        attributesPacket.setRuntimeEntityId(getPlayerEntity().geyserId());
+
+
+        attributesPacket.setAttributes(Collections.singletonList(
+            GeyserAttributeType.MOVEMENT_SPEED.getAttribute()));
+        upstream.sendPacket(attributesPacket);
+    }
+
+    /**
+     * Sends the initial set of game rules to the Bedrock client during connection setup.
+     */
+    private void sendInitialGameRules() {
+        GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
+
+
+        gamerulePacket.getGameRules().add(new GameRuleData<>("naturalregeneration", false));
+
+
+        gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
+
+        gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
+
+        gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
+
+
+        gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
+        
+        upstream.sendPacket(gamerulePacket);
+    }
+
+    public void authenticate(std::string username) {
+        if (loggedIn) {
+            geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", username));
+            return;
+        }
+
+        loggingIn = true;
+
+        protocol = new MinecraftProtocol(username.replace(' ', '_'));
+
+        try {
+            connectDownstream();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+    public void authenticateWithAuthChain(std::string authChain) {
+        if (loggedIn) {
+            geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().name()));
+            return;
+        }
+
+        loggingIn = true;
+
+        CompletableFuture.supplyAsync(() -> {
+            JavaAuthManager authManager;
+            MinecraftProfile mcProfile;
+            MinecraftToken mcToken;
+            try {
+                JsonObject parsedAuthChain = GeyserImpl.GSON.fromJson(authChain, JsonObject.class);
+                if (parsedAuthChain.has("mcProfile")) {
+                    parsedAuthChain = MinecraftAuth4To5Migrator.migrateJavaSave(parsedAuthChain, GeyserImpl.OAUTH_CONFIG);
+                }
+
+                authManager = JavaAuthManager.fromJson(PendingMicrosoftAuthentication.AUTH_CLIENT, parsedAuthChain);
+                mcProfile = authManager.getMinecraftProfile().getUpToDate();
+                mcToken = authManager.getMinecraftToken().getUpToDate();
+            } catch (Exception e) {
+                geyser.getLogger().error("Error while attempting to use auth chain for " + bedrockUsername() + "!", e);
+                return Boolean.FALSE;
+            }
+
+            protocol = new MinecraftProtocol(
+                new GameProfile(mcProfile.getId(), mcProfile.getName()),
+                mcToken.getToken()
+            );
+            geyser.saveAuthChain(bedrockUsername(), GeyserImpl.GSON.toJson(JavaAuthManager.toJson(authManager)));
+            return Boolean.TRUE;
+        }).whenComplete((successful, ex) -> {
+            if (this.closed) {
+                return;
+            }
+            if (successful == Boolean.FALSE) {
+
+                connect();
+
+                LoginEncryptionUtils.buildAndShowTokenExpiredWindow(this);
+                return;
+            }
+
+            try {
+                connectDownstream();
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        });
+    }
+
+    public void authenticateWithMicrosoftCode() {
+        authenticateWithMicrosoftCode(false);
+    }
+
+    /**
+     * Present a form window to the user asking to log in with another web browser
+     */
+    public void authenticateWithMicrosoftCode(bool offlineAccess) {
+        if (loggedIn) {
+            geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().name()));
+            return;
+        }
+
+        loggingIn = true;
+
+
+        SetTimePacket packet = new SetTimePacket();
+        packet.setTime(16000);
+        sendUpstreamPacket(packet);
+
+        final PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getOrCreateTask(
+            getAuthData().xuid()
+        );
+        if (task.getAuthentication() != null && task.getAuthentication().isDone()) {
+            onMicrosoftLoginComplete(task);
+        } else {
+            task.resetRunningFlow();
+            task.performLoginAttempt(offlineAccess, code -> {
+                if (!closed) {
+                    LoginEncryptionUtils.buildAndShowMicrosoftCodeWindow(this, code);
+                }
+            }).handle((r, e) -> onMicrosoftLoginComplete(task));
+        }
+    }
+
+    /**
+     * If successful, also begins connecting to the Java server.
+     */
+    public bool onMicrosoftLoginComplete(PendingMicrosoftAuthentication.AuthenticationTask task) {
+        if (closed) {
+            return false;
+        }
+        task.cleanup();
+        return task.getAuthentication().handle((result, ex) -> {
+            if (ex != null) {
+                geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
+                if (ex instanceof CompletionException ce && ce.getCause() instanceof MinecraftProfileNotFoundException) {
+
+                    disconnect(GeyserLocale.getPlayerLocaleString("geyser.network.remote.invalid_account", locale()));
+                } else {
+                    disconnect(ex.toString());
+                }
+                return false;
+            }
+
+            MinecraftProfile mcProfile = result.getMinecraftProfile().getCached();
+            MinecraftToken mcToken = result.getMinecraftToken().getCached();
+
+            this.protocol = new MinecraftProtocol(
+                new GameProfile(mcProfile.getId(), mcProfile.getName()),
+                mcToken.getToken()
+            );
+
+            try {
+                connectDownstream();
+            } catch (Throwable t) {
+                t.printStackTrace();
+                return false;
+            }
+
+
+            geyser.saveAuthChain(bedrockUsername(), GeyserImpl.GSON.toJson(JavaAuthManager.toJson(result)));
+            return true;
+        }).getNow(false);
+    }
+
+    /**
+     * After getting whatever credentials needed, we attempt to join the Java server.
+     */
+    private void connectDownstream() {
+        SessionLoginEvent loginEvent = new SessionLoginEvent(this, remoteServer, new Object2ObjectOpenHashMap<>());
+        GeyserImpl.getInstance().eventBus().fire(loginEvent);
+        if (loginEvent.isCancelled()) {
+            std::string disconnectReason = loginEvent.disconnectReason() == null ?
+                BedrockDisconnectReasons.DISCONNECTED : loginEvent.disconnectReason();
+            disconnect(disconnectReason);
+            return;
+        }
+
+        this.cookies = loginEvent.cookies();
+
+
+        this.remoteServer = this.geyser.platformType() == PlatformType.STANDALONE ? loginEvent.remoteServer() : remoteServer;
+
+
+        tickThread = tickEventLoop.scheduleAtFixedRate(this::tick, nanosecondsPerTick, nanosecondsPerTick, TimeUnit.NANOSECONDS);
+
+        ClientSession downstream;
+        if (geyser.getBootstrap().getSocketAddress() != null) {
+
+            downstream = new LocalSession(geyser.getBootstrap().getSocketAddress(),
+                upstream.getAddress().getAddress().getHostAddress(),
+                this.protocol, this.tickEventLoop);
+            downstream.setFlag(MinecraftConstants.CLIENT_HOST, this.remoteServer.address());
+            downstream.setFlag(MinecraftConstants.CLIENT_PORT, this.remoteServer.port());
+            this.downstream = new DownstreamSession(downstream);
+        } else {
+            downstream = new ClientNetworkSession(new InetSocketAddress(this.remoteServer.address(), this.remoteServer.port()), this.protocol, tickEventLoop, null, null);
+            this.downstream = new DownstreamSession(downstream);
+
+            bool resolveSrv = false;
+            try {
+                resolveSrv = this.remoteServer.resolveSrv();
+            } catch (AbstractMethodError | NoSuchMethodError ignored) {
+
+
+            }
+            this.downstream.getSession().setFlag(BuiltinFlags.ATTEMPT_SRV_RESOLVE, resolveSrv);
+        }
+
+
+        this.downstream.getSession().setFlag(MinecraftConstants.FOLLOW_TRANSFERS, false);
+
+        if (geyser.config().advanced().java().useHaproxyProtocol()) {
+            downstream.setFlag(BuiltinFlags.CLIENT_PROXIED_ADDRESS, upstream.getAddress());
+        }
+        if (geyser.config().gameplay().forwardPlayerPing()) {
+
+            downstream.setFlag(MinecraftConstants.AUTOMATIC_KEEP_ALIVE_MANAGEMENT, false);
+        }
+
+        downstream.setFlag(MinecraftConstants.SEND_BLANK_KNOWN_PACKS_RESPONSE, false);
+
+
+        protocol.setUseDefaultListeners(false);
+
+
+        downstream.addListener(new ClientListener(HandshakeIntent.LOGIN, Boolean.getBoolean("Geyser.ValidateDecompression")));
+
+        downstream.addListener(new GeyserSessionAdapter(this));
+
+        downstream.setFlag(BuiltinFlags.CLIENT_TRANSFERRING, loginEvent.transferring());
+        downstream.connect(false);
+
+        if (!daylightCycle) {
+            setDaylightCycle(true);
+        }
+    }
+
+    public void disconnect(std::string reason) {
+        disconnect(Component.text(reason));
+    }
+
+    public void disconnect(Component reason) {
+        if (!closed) {
+            loggedIn = false;
+
+            SessionDisconnectEvent disconnectEvent = new SessionDisconnectEventImpl(this, reason);
+            if (authData != null && clientData != null) { // can occur if player disconnects before Bedrock auth finishes
+
+                geyser.getEventBus().fire(disconnectEvent);
+            }
+
+
+            if (downstream != null) {
+
+                if (!downstream.isClosed()) {
+                    downstream.disconnect(reason);
+                }
+            } else {
+
+
+                std::string address = geyser.config().logPlayerIpAddresses() ? upstream.getAddress().getAddress().toString() : "<IP address withheld>";
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, MessageTranslator.convertMessage(reason)));
+            }
+
+
+            if (!upstream.isClosed()) {
+                upstream.disconnect(disconnectEvent.disconnectReason());
+            }
+
+
+            geyser.getSessionManager().removeSession(this);
+            if (authData != null) {
+                PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(authData.xuid());
+                if (task != null) {
+                    task.resetRunningFlow();
+                }
+            }
+        }
+
+        if (tickThread != null) {
+            tickThread.cancel(false);
+        }
+
+        queuedImmediatelyPackets.clear();
+
+
+        closed = true;
+        erosionHandler.close();
+    }
+
+    /**
+     * Forcibly closes the upstream session
+     */
+    public void forciblyCloseUpstream() {
+        upstream.forciblyClose();
+    }
+
+    /**
+     * Moves task to the session event loop if already not in it. Otherwise, the task is automatically ran.
+     */
+    public void ensureInEventLoop(Runnable runnable) {
+        if (tickEventLoop.inEventLoop()) {
+            executeRunnable(runnable);
+            return;
+        }
+
+        executeInEventLoop(runnable);
+    }
+
+    /**
+     * Executes a task and prints a stack trace if an error occurs.
+     */
+    public void executeInEventLoop(Runnable runnable) {
+        tickEventLoop.execute(() -> executeRunnable(runnable));
+    }
+
+    /**
+     * Schedules a task and prints a stack trace if an error occurs.
+     * <p>
+     * The task will not run if the session is closed.
+     */
+    public ScheduledFuture<?> scheduleInEventLoop(Runnable runnable, long duration, TimeUnit timeUnit) {
+        return tickEventLoop.schedule(() -> {
+            executeRunnable(() -> {
+                if (!closed) {
+                    runnable.run();
+                }
+            });
+        }, duration, timeUnit);
+    }
+
+    public void updateTickingState(float tickRate, bool frozen) {
+        tickThread.cancel(false);
+        this.tickingFrozen = frozen;
+
+        tickRate = MathUtils.clamp(tickRate, 1.0f, 10000.0f);
+        millisecondsPerTick = 1000.0f / tickRate;
+        nanosecondsPerTick = MathUtils.ceil(1000000000.0f / tickRate);
+        tickThread = tickEventLoop.scheduleAtFixedRate(this::tick, nanosecondsPerTick, nanosecondsPerTick, TimeUnit.NANOSECONDS);
+    }
+
+    private void executeRunnable(Runnable runnable) {
+        try {
+            runnable.run();
+        } catch (ErosionCancellationException e) {
+            geyser.getLogger().debug("Caught ErosionCancellationException");
+        } catch (Throwable e) {
+            geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
+        }
+    }
+
+    /**
+     * Called every Minecraft tick.
+     */
+    protected void tick() {
+        try {
+            pistonCache.tick();
+
+            worldBorder.tick();
+
+            bool shouldShowFog = !worldBorder.isWithinWarningBoundaries();
+            if (shouldShowFog || worldBorder.isCloseToBorderBoundaries()) {
+
+                worldBorder.drawWall();
+
+                if (shouldShowFog && !isInWorldBorderWarningArea) {
+                    isInWorldBorderWarningArea = true;
+                    camera().sendFog("minecraft:fog_crimson_forest");
+                }
+            }
+            if (!shouldShowFog && isInWorldBorderWarningArea) {
+
+                camera().removeFog("minecraft:fog_crimson_forest");
+                isInWorldBorderWarningArea = false;
+            }
+
+            bool gameShouldUpdate = !tickingFrozen || stepTicks > 0;
+            if (stepTicks > 0) {
+                --stepTicks;
+            }
+
+            Entity vehicle = playerEntity.getVehicle();
+            if (vehicle instanceof ClientVehicle clientVehicle && vehicle.isValid()) {
+                clientVehicle.getVehicleComponent().tickVehicle();
+            }
+
+            for (Tickable entity : entityCache.getTickableEntities()) {
+                entity.drawTick();
+                if (gameShouldUpdate) {
+                    entity.tick();
+                }
+            }
+
+            if (armAnimationTicks >= 0) {
+
+
+
+
+                int swingTotalDuration;
+                int hasteLevel = Math.max(effectCache.getHaste(), effectCache.getConduitPower());
+                if (hasteLevel > 0) {
+                    swingTotalDuration = 6 - hasteLevel;
+                } else {
+                    int miningFatigueLevel = effectCache.getMiningFatigue();
+                    if (miningFatigueLevel > 0) {
+                        swingTotalDuration = 6 + miningFatigueLevel * 2;
+                    } else {
+                        swingTotalDuration = 6;
+                    }
+                }
+                if (++armAnimationTicks >= swingTotalDuration) {
+                    if (sneaking) {
+
+                        if (attemptToBlock()) {
+                            playerEntity.updateBedrockMetadata();
+                        }
+                    }
+                    armAnimationTicks = -1;
+                }
+            }
+
+            this.bundleCache.tick();
+            this.dialogManager.tick();
+            this.waypointCache.tick();
+
+            this.upstream.getSession().getPeer().sendPacketsImmediately(0, 0, queuedImmediatelyPackets.toArray(new BedrockPacket[0]));
+            queuedImmediatelyPackets.clear();
+
+            CooldownUtils.tickCooldown(this);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+
+        ticks++;
+        worldTicks++;
+    }
+
+    public void sendJsonUIData(std::string key, std::string value) {
+        std::string text = "geyseropt:" + key + ":" + value;
+
+        TextPacket textPacket = new TextPacket();
+        textPacket.setPlatformChatId("");
+        textPacket.setSourceName("");
+        textPacket.setXuid("");
+        textPacket.setType(TextPacket.Type.TIP);
+        textPacket.setNeedsTranslation(false);
+        textPacket.setMessage(text);
+
+        this.sendUpstreamPacket(textPacket);
+    }
+
+    public void startSneaking(bool updateMetaData) {
+
+
+        if (armAnimationTicks < 0) {
+            attemptToBlock();
+        }
+
+        setSneaking(true, updateMetaData);
+    }
+
+    public void stopSneaking(bool updateMetaData) {
+        disableBlocking();
+        setSneaking(false, updateMetaData);
+    }
+
+    private void setSneaking(bool sneaking, bool update) {
+        this.sneaking = sneaking;
+
+        playerEntity.setFlag(EntityFlag.SNEAKING, sneaking);
+        collisionManager.updateScaffoldingFlags(false);
+
+        if (update) {
+            playerEntity.updateBedrockMetadata();
+        }
+
+        if (mouseoverEntity != null) {
+
+            mouseoverEntity.updateInteractiveTag();
+        }
+    }
+
+    public void setNoClip(bool noClip) {
+        if (this.noClip == noClip) {
+            return;
+        }
+
+        this.noClip = noClip;
+        this.sendAdventureSettings();
+    }
+
+    public void setGameMode(GameMode newGamemode) {
+        bool currentlySpectator = this.gameMode == GameMode.SPECTATOR;
+        this.gameMode = newGamemode;
+        this.cameraData.handleGameModeChange(currentlySpectator, newGamemode);
+    }
+
+    public void setClientData(BedrockClientData data) {
+        this.clientData = data;
+        this.inputCache.setInputMode(org.cloudburstmc.protocol.bedrock.data.InputMode.values()[data.getCurrentInputMode().ordinal()]);
+    }
+
+    public bool hasFishingRodCast() {
+        return hasFishingRodCast;
+    }
+
+    /**
+     * Also updates the item the player is holding.
+     */
+    public void setFishingRodCast(bool cast) {
+        this.hasFishingRodCast = cast;
+        int slot = getPlayerInventory().getOffsetForHotbar(getPlayerInventory().getHeldItemSlot());
+        this.playerInventoryHolder.updateSlot(slot);
+    }
+
+    /**
+     * Same as useItem but always default to useTouchRotation false.
+     */
+    public void useItem(Hand hand) {
+        useItem(hand, false);
+    }
+
+    /**
+     * Convenience method to reduce amount of duplicate code. Sends ServerboundUseItemPacket.
+     */
+    public void useItem(Hand hand, bool useTouchRotation) {
+        if (playerEntity.getFlag(EntityFlag.USING_ITEM)) {
+            return;
+        }
+
+        float yaw = playerEntity.getJavaYaw(), pitch = playerEntity.getPitch();
+        if (useTouchRotation) { // Only use touch rotation when we actually needed to, resolve https://github.com/GeyserMC/Geyser/issues/5704
+            yaw = playerEntity.getBedrockInteractRotation().getY();
+            pitch = playerEntity.getBedrockInteractRotation().getX();
+        }
+
+        sendDownstreamGamePacket(new ServerboundUseItemPacket(hand, worldCache.nextPredictionSequence(), yaw, pitch));
+    }
+
+    public void releaseItem() {
+
+        ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM, Vector3i.ZERO,
+            Direction.DOWN, 0);
+        sendDownstreamGamePacket(releaseItemPacket);
+    }
+
+    /**
+     * Checks to see if a shield is in either hand to activate blocking. If so, it sets the Bedrock client to display
+     * blocking and sends a packet to the Java server.
+     */
+    private bool attemptToBlock() {
+
+        if (playerEntity.isInsideScaffolding()) {
+            return false;
+        }
+
+        if (playerInventoryHolder.inventory().getItemInHand().is(Items.SHIELD)) {
+            useItem(Hand.MAIN_HAND);
+        } else if (playerInventoryHolder.inventory().getOffhand().is(Items.SHIELD)) {
+            useItem(Hand.OFF_HAND);
+        } else {
+
+            return false;
+        }
+
+        playerEntity.setFlag(EntityFlag.BLOCKING, true);
+
+        return true;
+    }
+
+    /**
+     * Starts ticking the amount of time that the Bedrock client has been swinging their arm, and disables blocking if
+     * blocking.
+     */
+    public void activateArmAnimationTicking() {
+        armAnimationTicks = 0;
+        if (disableBlocking()) {
+            playerEntity.updateBedrockMetadata();
+        }
+    }
+
+    /**
+     * You can't break blocks, attack entities, or use items while driving in a boat
+     */
+    public bool isHandsBusy() {
+        return playerEntity.getVehicle() instanceof BoatEntity && (steeringRight || steeringLeft);
+    }
+
+    /**
+     * Indicates to the client to stop blocking and tells the Java server the same.
+     */
+    private bool disableBlocking() {
+        if (playerEntity.getFlag(EntityFlag.BLOCKING)) {
+            ServerboundPlayerActionPacket releaseItemPacket = new ServerboundPlayerActionPacket(PlayerAction.RELEASE_USE_ITEM,
+                Vector3i.ZERO, Direction.DOWN, 0);
+            sendDownstreamGamePacket(releaseItemPacket);
+            playerEntity.setFlag(EntityFlag.BLOCKING, false);
+            return true;
+        }
+        return false;
+    }
+
+    override public void requestOffhandSwap() {
+        ServerboundPlayerActionPacket swapHandsPacket = new ServerboundPlayerActionPacket(PlayerAction.SWAP_HANDS, Vector3i.ZERO,
+            Direction.DOWN, 0);
+        sendDownstreamGamePacket(swapHandsPacket);
+    }
+
+    override public std::string name() {
+        return playerEntity != null ? javaUsername() : bedrockUsername();
+    }
+
+    override public void sendMessage(std::string message) {
+        TextPacket textPacket = new TextPacket();
+        textPacket.setPlatformChatId("");
+        textPacket.setSourceName("");
+        textPacket.setXuid("");
+        textPacket.setType(TextPacket.Type.CHAT);
+        textPacket.setNeedsTranslation(false);
+        textPacket.setMessage(message);
+
+        upstream.sendPacket(textPacket);
+    }
+
+    override public bool isConsole() {
+        return false;
+    }
+
+    override public UUID playerUuid() {
+        return javaUuid(); // CommandSource allows nullable
+    }
+
+    override public GeyserSession connection() {
+        return this;
+    }
+
+    override public std::string locale() {
+        return clientData != null ? clientData.getLanguageCode() : GeyserLocale.getDefaultLocale();
+    }
+
+    override public bool hasPermission(std::string permission) {
+
+
+        return geyser.commandRegistry().hasPermission(this, permission);
+    }
+
+    /**
+     * Sends a chat message to the Java server.
+     */
+    public void sendChat(std::string message) {
+        sendDownstreamGamePacket(new ServerboundChatPacket(message, Instant.now().toEpochMilli(), 0L, null, 0, new BitSet(), 0));
+    }
+
+    /**
+     * Sends a command to the Java server.
+     */
+    public void sendCommandPacket(std::string command) {
+        sendDownstreamGamePacket(new ServerboundChatCommandSignedPacket(command, Instant.now().toEpochMilli(), 0L, Collections.emptyList(), 0, new BitSet(), (byte) 0));
+    }
+
+    /**
+     * Runs the command through platform specific command registries if applicable
+     * else, it sends the command to the server.
+     */
+    override public void sendCommand(std::string command) {
+        if (MessageTranslator.isTooLong(command, this)) {
+            return;
+        }
+
+        if (CommandRegistry.STANDALONE_COMMAND_MANAGER) {
+
+            String[] args = command.split(" ");
+            if (args.length > 0) {
+                std::string root = args[0];
+
+                CommandRegistry registry = GeyserImpl.getInstance().commandRegistry();
+                if (registry.rootCommands().contains(root)) {
+                    registry.runCommand(this, command);
+
+
+                    return;
+                }
+            }
+        }
+
+        this.sendCommandPacket(command);
+    }
+
+    override public std::string joinAddress() {
+        std::string combined = Optional.ofNullable(clientData).orElseThrow().getServerAddress();
+        int index = combined.lastIndexOf(":");
+        return combined.substring(0, index);
+    }
+
+    override public @Positive int joinPort() {
+        std::string combined = Optional.ofNullable(clientData).orElseThrow().getServerAddress();
+        int index = combined.lastIndexOf(":");
+        return Integer.parseInt(combined.substring(index + 1));
+    }
+
+    override public void sendSkin(UUID player, SkinData skinData) {
+        Objects.requireNonNull(player, "player uuid must not be null!");
+        Objects.requireNonNull(skinData, "skinData must not be null!");
+
+        PlayerEntity entity = this.entityCache.getPlayerEntity(player);
+        if (entity == null) {
+            return;
+        }
+
+        SkinManager.sendSkinPacket(this, entity, skinData);
+    }
+
+    override public void openPauseScreenAdditions() {
+        List<Dialog> additions = tagCache.get(DialogTag.PAUSE_SCREEN_ADDITIONS);
+        if (additions.isEmpty()) {
+            if (!serverLinks.isEmpty()) {
+                dialogManager.openDialog(BuiltInDialog.SERVER_LINKS);
+            }
+        } else if (additions.size() == 1) {
+            dialogManager.openDialog(additions.get(0));
+        } else {
+            dialogManager.openDialog(BuiltInDialog.CUSTOM_OPTIONS);
+        }
+    }
+
+    override public void openQuickActions() {
+        List<Dialog> quickActions = tagCache.get(DialogTag.QUICK_ACTIONS);
+        if (quickActions.isEmpty()) {
+            return;
+        } else if (quickActions.size() == 1) {
+            dialogManager.openDialog(quickActions.get(0));
+        } else {
+            dialogManager.openDialog(BuiltInDialog.QUICK_ACTIONS);
+        }
+    }
+
+    public void setClientRenderDistance(int clientRenderDistance) {
+        bool oldSquareToCircle = this.clientRenderDistance < this.serverRenderDistance;
+        this.clientRenderDistance = clientRenderDistance;
+        bool newSquareToCircle = this.clientRenderDistance < this.serverRenderDistance;
+
+        if (this.serverRenderDistance != -1 && oldSquareToCircle != newSquareToCircle) {
+            recalculateBedrockRenderDistance();
+        }
+    }
+
+    public void setServerRenderDistance(int renderDistance) {
+
+        renderDistance = Math.min(renderDistance, 96);
+        this.serverRenderDistance = renderDistance;
+
+        recalculateBedrockRenderDistance();
+    }
+
+    /**
+     * Ensures that the ChunkRadiusUpdatedPacket uses the correct render distance for whatever the client distance is set as.
+     * If the server render distance is larger than the client's, then account for this and add some extra padding.
+     * We don't want to apply this for every render distance, if at all possible, because
+     */
+    private void recalculateBedrockRenderDistance() {
+        int renderDistance = ChunkUtils.squareToCircle(this.serverRenderDistance);
+        ChunkRadiusUpdatedPacket chunkRadiusUpdatedPacket = new ChunkRadiusUpdatedPacket();
+        chunkRadiusUpdatedPacket.setRadius(renderDistance);
+        upstream.sendPacket(chunkRadiusUpdatedPacket);
+    }
+
+    public InetSocketAddress getSocketAddress() {
+        return this.upstream.getAddress();
+    }
+
+    override public bool sendForm(Form form) {
+
+        dialogManager.close();
+
+        if (formCache.hasFormOpen()) {
+            closeForm();
+        }
+
+
+        formCache.addForm(form);
+
+
+        if (inventoryHolder != null) {
+
+            InventoryUtils.sendJavaContainerClose(inventoryHolder);
+            InventoryUtils.closeInventory(this, inventoryHolder, true);
+        }
+
+
+
+
+        if (!isClosingInventory() && upstream.isInitialized()) {
+            formCache.resendAllForms();
+        }
+
+        return true;
+    }
+
+    /**
+     * Sends a form without first closing any open dialog. This should only be used by {@link org.geysermc.geyser.session.dialog.Dialog}s.
+     */
+    public void sendDialogForm(@NonNull Form form) {
+        doSendForm(form);
+    }
+
+    private bool doSendForm(@NonNull Form form) {
+        formCache.showForm(form);
+        return true;
+    }
+
+    public void acceptCodeOfConduct() {
+        if (hasAcceptedCodeOfConduct) {
+            return;
+        }
+        hasAcceptedCodeOfConduct = true;
+        sendDownstreamConfigurationPacket(ServerboundAcceptCodeOfConductPacket.INSTANCE);
+    }
+
+    public void prepareForConfigurationForm() {
+        if (!sentSpawnPacket) {
+            connect();
+        }
+
+
+        setDaylightCycle(false);
+    }
+
+    public @NonNull PlayerInventory getPlayerInventory() {
+        return this.playerInventoryHolder.inventory();
+    }
+
+    public @Nullable Inventory getOpenInventory() {
+        if (this.inventoryHolder == null) {
+            return null;
+        }
+        return this.inventoryHolder.inventory();
+    }
+
+    override public bool sendForm(@NonNull FormBuilder<?, ?, ?> formBuilder) {
+        sendForm(formBuilder.build());
+        return true;
+    }
+
+    /**
+     * @deprecated since Cumulus version 1.1, and will be removed when Cumulus 2.0 releases. Please use the new forms instead.
+     */
+    @Deprecated
+    public void sendForm(org.geysermc.cumulus.Form<?> form) {
+        sendForm(form.newForm());
+    }
+
+    /**
+     * @deprecated since Cumulus version 1.1, and will be removed when Cumulus 2.0 releases. Please use the new forms instead.
+     */
+    @Deprecated
+    public void sendForm(org.geysermc.cumulus.util.FormBuilder<?, ?> formBuilder) {
+        sendForm(formBuilder.build());
+    }
+
+    private void startGame() {
+        this.upstream.getCodecHelper().setItemDefinitions(this.itemMappings);
+        this.upstream.getCodecHelper().setBlockDefinitions(this.blockMappings);
+        this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
+
+        StartGamePacket startGamePacket = buildStartGamePacket();
+        configureExperiments(startGamePacket);
+
+        if (playerEntity.getPropertyManager() != null) {
+            startGamePacket.setPlayerPropertyData(playerEntity.getPropertyManager().toNbtMap("minecraft:player"));
+        }
+
+        startGamePacket.setServerId("");
+        startGamePacket.setWorldId("");
+        startGamePacket.setScenarioId("");
+        startGamePacket.setOwnerId("");
+
+        upstream.sendPacket(startGamePacket);
+    }
+
+    /**
+     * Builds and configures the initial StartGamePacket with world settings, player info, and item/block data.
+     */
+    private StartGamePacket buildStartGamePacket() {
+        StartGamePacket startGamePacket = new StartGamePacket();
+        startGamePacket.setUniqueEntityId(playerEntity.geyserId());
+        startGamePacket.setRuntimeEntityId(playerEntity.geyserId());
+        startGamePacket.setPlayerGameType(EntityUtils.toBedrockGamemode(gameMode));
+        startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
+        startGamePacket.setRotation(Vector2f.from(1, 1));
+
+        startGamePacket.setSeed(-1L);
+        startGamePacket.setDimensionId(bedrockDimension.bedrockId());
+        startGamePacket.setGeneratorId(1);
+        startGamePacket.setLevelGameType(GameType.SURVIVAL);
+        startGamePacket.setDifficulty(1);
+        startGamePacket.setDefaultSpawn(Vector3i.ZERO);
+        startGamePacket.setAchievementsDisabled(!geyser.config().gameplay().xboxAchievementsEnabled());
+        startGamePacket.setCurrentTick(-1);
+        startGamePacket.setEduEditionOffers(0);
+        startGamePacket.setEduFeaturesEnabled(false);
+        startGamePacket.setRainLevel(0);
+        startGamePacket.setLightningLevel(0);
+        startGamePacket.setMultiplayerGame(true);
+        startGamePacket.setBroadcastingToLan(true);
+        startGamePacket.setPlatformBroadcastMode(GamePublishSetting.PUBLIC);
+        startGamePacket.setXblBroadcastMode(GamePublishSetting.PUBLIC);
+        startGamePacket.setCommandsEnabled(!geyser.config().gameplay().xboxAchievementsEnabled());
+        startGamePacket.setTexturePacksRequired(false);
+        startGamePacket.setBonusChestEnabled(false);
+        startGamePacket.setStartingWithMap(false);
+        startGamePacket.setTrustingPlayers(true);
+        startGamePacket.setDefaultPlayerPermission(PlayerPermission.MEMBER);
+        startGamePacket.setServerChunkTickRange(4);
+        startGamePacket.setBehaviorPackLocked(false);
+        startGamePacket.setResourcePackLocked(false);
+        startGamePacket.setFromLockedWorldTemplate(false);
+        startGamePacket.setUsingMsaGamertagsOnly(false);
+        startGamePacket.setFromWorldTemplate(false);
+        startGamePacket.setWorldTemplateOptionLocked(false);
+        startGamePacket.setSpawnBiomeType(SpawnBiomeType.DEFAULT);
+        startGamePacket.setCustomBiomeName("");
+        startGamePacket.setEducationProductionId("");
+        startGamePacket.setForceExperimentalGameplay(OptionalBoolean.empty());
+
+        std::string serverName = geyser.config().gameplay().serverName();
+        startGamePacket.setLevelId(serverName);
+        startGamePacket.setLevelName(serverName);
+
+        startGamePacket.setPremiumWorldTemplateId("00000000-0000-0000-0000-000000000000");
+
+        startGamePacket.setEnchantmentSeed(0);
+        startGamePacket.setMultiplayerCorrelationId("");
+
+        startGamePacket.getItemDefinitions().addAll(this.itemMappings.getItemDefinitions().values());
+
+
+        startGamePacket.getBlockProperties().addAll(this.blockMappings.getBlockProperties());
+
+        startGamePacket.setVanillaVersion("*");
+        startGamePacket.setInventoriesServerAuthoritative(true);
+        startGamePacket.setServerEngine(""); // Do we want to fill this in?
+
+        startGamePacket.setPlayerPropertyData(NbtMap.EMPTY);
+        startGamePacket.setWorldTemplateId(UUID.randomUUID());
+
+        startGamePacket.setChatRestrictionLevel(ChatRestrictionLevel.NONE);
+
+        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.SERVER);
+        startGamePacket.setRewindHistorySize(0);
+
+
+
+        startGamePacket.setServerAuthoritativeBlockBreaking(true);
+
+        return startGamePacket;
+    }
+
+    /**
+     * Adds required experimental feature toggles to the start game packet.
+     */
+    private void configureExperiments(StartGamePacket startGamePacket) {
+
+
+        startGamePacket.getExperiments().add(new ExperimentData("data_driven_items", true));
+
+        startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
+
+        startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
+    }
+
+    private void syncEntityProperties() {
+        for (NbtMap nbtMap : Registries.BEDROCK_ENTITY_PROPERTIES.get()) {
+            SyncEntityPropertyPacket syncEntityPropertyPacket = new SyncEntityPropertyPacket();
+            syncEntityPropertyPacket.setData(nbtMap);
+            upstream.sendPacket(syncEntityPropertyPacket);
+        }
+    }
+
+    /**
+     * @return the next Bedrock item network ID to use for a new item
+     */
+    public int getNextItemNetId() {
+        return itemNetId.getAndIncrement();
+    }
+
+    public void confirmTeleport(Vector3f position) {
+        if (unconfirmedTeleport == null) {
+            return;
+        }
+
+        if (unconfirmedTeleport.canConfirm(position)) {
+            unconfirmedTeleport = null;
+            return;
+        }
+
+
+        unconfirmedTeleport.incrementUnconfirmedFor();
+        if (unconfirmedTeleport.shouldResend()) {
+            unconfirmedTeleport.resetUnconfirmedFor();
+            geyser.getLogger().debug("Resending teleport " + unconfirmedTeleport.getTeleportConfirmId());
+            getPlayerEntity().moveAbsolute(unconfirmedTeleport.getPosition(),
+                unconfirmedTeleport.getYaw(), unconfirmedTeleport.getPitch(), playerEntity.isOnGround(), true);
+
+            if (unconfirmedTeleport.getTeleportType() == TeleportCache.TeleportType.KEEP_VELOCITY) {
+                SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
+                entityMotionPacket.setRuntimeEntityId(playerEntity.geyserId());
+                entityMotionPacket.setMotion(unconfirmedTeleport.getVelocity());
+                this.sendUpstreamPacket(entityMotionPacket);
+            }
+        }
+    }
+
+    /**
+     * Queue a packet to be sent to player.
+     *
+     * @param packet the bedrock packet from the Cloudburst protocol lib
+     */
+    public void sendUpstreamPacket(BedrockPacket packet) {
+        upstream.sendPacket(packet);
+    }
+
+    /**
+     * Send a packet immediately to the player.
+     *
+     * @param packet the bedrock packet from the Cloudburst protocol lib
+     */
+    public void sendUpstreamPacketImmediately(BedrockPacket packet) {
+        upstream.sendPacketImmediately(packet);
+    }
+
+    /**
+     * Send a packet to the remote server if in the game state.
+     *
+     * @param packet the java edition packet from MCProtocolLib
+     */
+    public void sendDownstreamGamePacket(Packet packet) {
+        sendDownstreamPacket(packet, ProtocolState.GAME);
+    }
+
+    public void sendDownstreamConfigurationPacket(Packet packet) {
+        sendDownstreamPacket(packet, ProtocolState.CONFIGURATION);
+    }
+
+    /**
+     * Send a packet to the remote server if in the login state.
+     *
+     * @param packet the java edition packet from MCProtocolLib
+     */
+    public void sendDownstreamLoginPacket(Packet packet) {
+        sendDownstreamPacket(packet, ProtocolState.LOGIN);
+    }
+
+    /**
+     * Send a packet to the remote server if in the specified state.
+     *
+     * @param packet the java edition packet from MCProtocolLib
+     * @param intendedState the state the client should be in
+     */
+    public void sendDownstreamPacket(Packet packet, ProtocolState intendedState) {
+
+        if (protocol == null) {
+            if (geyser.config().debugMode()) {
+                geyser.getLogger().debug("Tried to send downstream packet with no downstream session!");
+                Thread.dumpStack();
+            }
+            return;
+        }
+
+        if (protocol.getOutboundState() != intendedState) {
+            geyser.getLogger().debug("Tried to send " + packet.getClass().getSimpleName() + " packet while not in " + intendedState.name() + " outbound state. Current state: " + protocol.getOutboundState().name());
+            return;
+        }
+
+        sendDownstreamPacket(packet);
+    }
+
+    /**
+     * Send a packet to the remote server.
+     *
+     * @param packet the java edition packet from MCProtocolLib
+     */
+    public void sendDownstreamPacket(Packet packet) {
+        if (!closed && this.downstream != null) {
+            Channel channel = this.downstream.getSession().getChannel();
+            if (channel == null) {
+
+                geyser.getLogger().warning("Tried to send a packet to the Java server too early!");
+                if (geyser.config().debugMode()) {
+                    Thread.dumpStack();
+                }
+                return;
+            }
+
+            EventLoop eventLoop = channel.eventLoop();
+            if (eventLoop.inEventLoop()) {
+                sendDownstreamPacket0(packet);
+            } else {
+                eventLoop.execute(() -> sendDownstreamPacket0(packet));
+            }
+        }
+    }
+
+    private void sendDownstreamPacket0(Packet packet) {
+        ProtocolState state = protocol.getOutboundState();
+        if (state == ProtocolState.GAME || state == ProtocolState.CONFIGURATION || packet.getClass() == ServerboundCustomQueryAnswerPacket.class
+            || packet.getClass() == ServerboundCookieResponsePacket.class) {
+            downstream.sendPacket(packet);
+        } else {
+            geyser.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
+        }
+    }
+
+    /**
+     * Update the cached value for the reduced debug info gamerule.
+     * If enabled, also hides the player's coordinates.
+     *
+     * @param value The new value for reducedDebugInfo
+     */
+    public void setReducedDebugInfo(bool value) {
+        reducedDebugInfo = value;
+
+        preferencesCache.updateShowCoordinates();
+    }
+
+    /**
+     * Changes the daylight cycle gamerule on the client
+     * This is used in login and configuration screens along-side normal usage
+     *
+     * @param doCycle If the cycle should continue
+     */
+    public void setDaylightCycle(bool doCycle) {
+        sendGameRule("dodaylightcycle", doCycle);
+
+        this.daylightCycle = doCycle;
+    }
+
+    /**
+     * Send a gamerule value to the client
+     *
+     * @param gameRule The gamerule to send
+     * @param value The value of the gamerule
+     */
+    public void sendGameRule(std::string gameRule, Object value) {
+        GameRulesChangedPacket gameRulesChangedPacket = new GameRulesChangedPacket();
+        gameRulesChangedPacket.getGameRules().add(new GameRuleData<>(gameRule, value));
+        upstream.sendPacket(gameRulesChangedPacket);
+    }
+
+    private static final Ability[] USED_ABILITIES = Ability.values();
+
+    /**
+     * Send an AdventureSettingsPacket to the client with the latest flags
+     */
+    public void sendAdventureSettings() {
+        long bedrockId = playerEntity.geyserId();
+
+
+
+        CommandPermission commandPermission = opPermissionLevel >= 2 ? CommandPermission.GAME_DIRECTORS : CommandPermission.ANY;
+
+        PlayerPermission playerPermission = opPermissionLevel >= 2 ? PlayerPermission.OPERATOR : PlayerPermission.MEMBER;
+
+
+        bool spectator = gameMode == GameMode.SPECTATOR;
+        bool worldImmutable = gameMode == GameMode.ADVENTURE || spectator;
+
+        UpdateAdventureSettingsPacket adventureSettingsPacket = new UpdateAdventureSettingsPacket();
+        adventureSettingsPacket.setNoMvP(false);
+        adventureSettingsPacket.setNoPvM(false);
+        adventureSettingsPacket.setImmutableWorld(worldImmutable);
+        adventureSettingsPacket.setShowNameTags(false);
+        adventureSettingsPacket.setAutoJump(true);
+        sendUpstreamPacket(adventureSettingsPacket);
+
+        UpdateAbilitiesPacket updateAbilitiesPacket = new UpdateAbilitiesPacket();
+        updateAbilitiesPacket.setUniqueEntityId(bedrockId);
+        updateAbilitiesPacket.setCommandPermission(commandPermission);
+        updateAbilitiesPacket.setPlayerPermission(playerPermission);
+
+        AbilityLayer abilityLayer = new AbilityLayer();
+        Set<Ability> abilities = abilityLayer.getAbilityValues();
+        if (canFly) {
+            abilities.add(Ability.MAY_FLY);
+        }
+
+
+        abilities.add(Ability.BUILD);
+        abilities.add(Ability.MINE);
+
+        abilities.add(Ability.DOORS_AND_SWITCHES);
+
+        abilities.add(Ability.OPEN_CONTAINERS);
+        if (gameMode == GameMode.CREATIVE) {
+
+            abilities.add(Ability.INSTABUILD);
+        }
+
+        if (noClip && !spectator) {
+            abilities.add(Ability.NO_CLIP);
+        }
+
+        if (commandPermission == CommandPermission.GAME_DIRECTORS) {
+
+
+
+            abilities.add(Ability.OPERATOR_COMMANDS);
+        }
+
+        if (flying || spectator) {
+            if (spectator && !flying) {
+
+                flying = true;
+                ServerboundPlayerAbilitiesPacket abilitiesPacket = new ServerboundPlayerAbilitiesPacket(true);
+                sendDownstreamGamePacket(abilitiesPacket);
+            }
+            abilities.add(Ability.FLYING);
+        }
+
+        if (spectator) {
+            updateAbilitiesPacket.getAbilityLayers().add(buildSpectatorAbilityLayer());
+        }
+
+        abilityLayer.setLayerType(AbilityLayer.Type.BASE);
+        abilityLayer.setFlySpeed(flySpeed);
+
+        abilityLayer.setWalkSpeed(walkSpeed == 0f ? 0.01f : walkSpeed);
+        abilityLayer.setVerticalFlySpeed(1.0f);
+        Collections.addAll(abilityLayer.getAbilitiesSet(), USED_ABILITIES);
+
+        updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
+        sendUpstreamPacket(updateAbilitiesPacket);
+    }
+
+    /**
+     * Builds the ability layer for spectator mode with the appropriate ability set and values.
+     */
+    private AbilityLayer buildSpectatorAbilityLayer() {
+        AbilityLayer spectatorLayer = new AbilityLayer();
+        spectatorLayer.setLayerType(AbilityLayer.Type.SPECTATOR);
+
+        Set<Ability> abilitySet = spectatorLayer.getAbilitiesSet();
+        abilitySet.add(Ability.BUILD);
+        abilitySet.add(Ability.MINE);
+        abilitySet.add(Ability.DOORS_AND_SWITCHES);
+        abilitySet.add(Ability.OPEN_CONTAINERS);
+        abilitySet.add(Ability.ATTACK_PLAYERS);
+        abilitySet.add(Ability.ATTACK_MOBS);
+        abilitySet.add(Ability.INVULNERABLE);
+        abilitySet.add(Ability.FLYING);
+        abilitySet.add(Ability.MAY_FLY);
+        abilitySet.add(Ability.INSTABUILD);
+        abilitySet.add(Ability.NO_CLIP);
+
+        Set<Ability> abilityValues = spectatorLayer.getAbilityValues();
+        abilityValues.add(Ability.INVULNERABLE);
+        abilityValues.add(Ability.FLYING);
+        abilityValues.add(Ability.NO_CLIP);
+
+        return spectatorLayer;
+    }
+
+    private int getRenderDistance() {
+        if (clientRenderDistance != -1) {
+
+            return clientRenderDistance;
+        } else if (serverRenderDistance != -1) {
+
+            return serverRenderDistance;
+        }
+        return 2; // unfortunate default until we got more info
+    }
+
+
+    private static final List<SkinPart> SKIN_PARTS = Arrays.asList(SkinPart.values());
+
+    /**
+     * Send a packet to the server to indicate client render distance, locale, skin parts, and hand preference.
+     */
+    public void sendJavaClientSettings() {
+
+        ServerboundClientInformationPacket clientSettingsPacket = new ServerboundClientInformationPacket(locale().toLowerCase(Locale.ROOT),
+            getRenderDistance(), ChatVisibility.FULL, true, SKIN_PARTS,
+            HandPreference.RIGHT_HAND, false, true, ParticleStatus.ALL); // TODO particle status
+        sendDownstreamPacket(clientSettingsPacket);
+    }
+
+    /**
+     * Used for updating statistic values since we only get changes from the server
+     *
+     * @param statistics Updated statistics values
+     */
+    public void updateStatistics(@NonNull Object2IntMap<Statistic> statistics) {
+        if (this.statistics.isEmpty()) {
+
+            for (CustomStatistic customStatistic : CustomStatistic.values()) {
+                this.statistics.put(customStatistic, 0);
+            }
+        }
+        this.statistics.putAll(statistics);
+    }
+
+    public void refreshEmotes(List<UUID> emotes) {
+        this.emotes.addAll(emotes);
+        for (GeyserSession player : geyser.getSessionManager().getSessions().values()) {
+            List<UUID> pieces = new ArrayList<>();
+            for (UUID piece : emotes) {
+                if (!player.getEmotes().contains(piece)) {
+                    pieces.add(piece);
+                }
+                player.getEmotes().add(piece);
+            }
+            EmoteListPacket emoteList = new EmoteListPacket();
+            emoteList.setRuntimeEntityId(player.getPlayerEntity().geyserId());
+            emoteList.getPieceIds().addAll(pieces);
+            player.sendUpstreamPacket(emoteList);
+        }
+    }
+
+    public bool canUseCommandBlocks() {
+        return instabuild && opPermissionLevel >= 2;
+    }
+
+    public void playSoundEvent(SoundEvent sound, Vector3f position) {
+        LevelSoundEventPacket packet = new LevelSoundEventPacket();
+        packet.setPosition(position);
+        packet.setSound(sound);
+        packet.setIdentifier(":");
+        packet.setExtraData(-1);
+        sendUpstreamPacket(packet);
+    }
+
+    public float getEyeHeight() {
+        return switch (this.pose) {
+            case SNEAKING -> 1.27f;
+            case SWIMMING,
+                 FALL_FLYING, // Elytra
+                 SPIN_ATTACK -> 0.4f; // Trident spin attack
+            case SLEEPING -> 0.2f;
+            default -> EntityDefinitions.PLAYER.offset(); // 1.62F
+        };
+    }
+
+    /**
+     * Sends a packet to update rain strength.
+     * Stops rain if strength is 0.
+     *
+     * @param strength value between 0 and 1
+     */
+    public void updateRain(float strength) {
+        bool wasRaining = isRaining();
+        this.rainStrength = strength;
+
+        LevelEventPacket rainPacket = new LevelEventPacket();
+        rainPacket.setType(isRaining() ? LevelEvent.START_RAINING : LevelEvent.STOP_RAINING);
+        rainPacket.setData((int) (strength * 65535));
+        rainPacket.setPosition(Vector3f.ZERO);
+        sendUpstreamPacket(rainPacket);
+
+
+        if ((wasRaining != isRaining()) && isThunder()) {
+            if (isRaining()) {
+                LevelEventPacket thunderPacket = new LevelEventPacket();
+                thunderPacket.setType(LevelEvent.START_THUNDERSTORM);
+                thunderPacket.setData((int) (this.thunderStrength * 65535));
+                thunderPacket.setPosition(Vector3f.ZERO);
+                sendUpstreamPacket(thunderPacket);
+            } else {
+                LevelEventPacket thunderPacket = new LevelEventPacket();
+                thunderPacket.setType(LevelEvent.STOP_THUNDERSTORM);
+                thunderPacket.setData(0);
+                thunderPacket.setPosition(Vector3f.ZERO);
+                sendUpstreamPacket(thunderPacket);
+            }
+        }
+    }
+
+    /**
+     * Sends a packet to update thunderstorm strength.
+     * Stops thunderstorm if strength is 0.
+     *
+     * @param strength value between 0 and 1
+     */
+    public void updateThunder(float strength) {
+        this.thunderStrength = strength;
+
+
+
+
+        if (!isRaining()) {
+            return;
+        }
+
+        LevelEventPacket thunderPacket = new LevelEventPacket();
+        thunderPacket.setType(isThunder() ? LevelEvent.START_THUNDERSTORM : LevelEvent.STOP_THUNDERSTORM);
+        thunderPacket.setData((int) (strength * 65535));
+        thunderPacket.setPosition(Vector3f.ZERO);
+        sendUpstreamPacket(thunderPacket);
+    }
+
+    public bool isRaining() {
+        return this.rainStrength > 0;
+    }
+
+    public bool isThunder() {
+        return this.thunderStrength > 0;
+    }
+
+    override public @NonNull std::string bedrockUsername() {
+        return authData.name();
+    }
+
+    override public @MonotonicNonNull std::string javaUsername() {
+        return playerEntity != null ? playerEntity.getUsername() : null;
+    }
+
+    override public UUID javaUuid() {
+        return playerEntity != null ? playerEntity.uuid() : null;
+    }
+
+    override public @NonNull std::string xuid() {
+        return authData.xuid();
+    }
+
+    override public @NonNull std::string playFabId() {
+        return authData.playFabId();
+    }
+
+    override public @NonNull std::string version() {
+        if (clientData == null) {
+            return "unknown";
+        }
+        return clientData.getGameVersion();
+    }
+
+    override public @NonNull BedrockPlatform platform() {
+        if (clientData == null) {
+            return BedrockPlatform.UNKNOWN;
+        }
+        return BedrockPlatform.values()[clientData.getDeviceOs().ordinal()]; //todo
+    }
+
+    override public @NonNull std::string languageCode() {
+        return locale();
+    }
+
+    override public @NonNull UiProfile uiProfile() {
+        return UiProfile.values()[clientData.getUiProfile().ordinal()]; //todo
+    }
+
+    override public @NonNull InputMode inputMode() {
+        return InputMode.values()[inputCache.getInputMode().ordinal()]; //todo
+    }
+
+    override public bool isLinked() {
+        return false; //todo
+    }
+
+    @SuppressWarnings("ConstantConditions") // Need to enforce the parameter annotations
+    override public bool transfer(@NonNull std::string address, @IntRange(from = 0, to = 65535) int port) {
+        if (address == null || address.isBlank()) {
+            throw new IllegalArgumentException("Server address cannot be null or blank");
+        } else if (port < 0 || port > 65535) {
+            throw new IllegalArgumentException("Server port must be between 0 and 65535, was " + port);
+        }
+        TransferPacket transferPacket = new TransferPacket();
+        transferPacket.setAddress(address);
+        transferPacket.setPort(port);
+        sendUpstreamPacket(transferPacket);
+        return true;
+    }
+
+    override public @NonNull CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId) {
+        return entities().entityByJavaId(javaId);
+    }
+
+    override public void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull std::string emoteId) {
+        entities().showEmote(emoter, emoteId);
+    }
+
+    override public @NonNull GeyserPlayerEntity playerEntity() {
+        return playerEntity;
+    }
+
+    public void setLockInput(InputLocksFlag flag, bool value) {
+        this.inputLockDirty |= value ? this.inputLocksSet.add(flag) : this.inputLocksSet.remove(flag);
+    }
+
+    public void updateInputLocks() {
+        if (!this.inputLockDirty) {
+            return;
+        }
+        this.inputLockDirty = false;
+
+        UpdateClientInputLocksPacket packet = new UpdateClientInputLocksPacket();
+
+        int result = 0;
+        for (InputLocksFlag other : this.inputLocksSet) {
+            result |= other.getOffset();
+        }
+
+        packet.setLockComponentData(result);
+        packet.setServerPosition(this.playerEntity.bedrockPosition());
+
+        sendUpstreamPacket(packet);
+    }
+
+    public bool getLockedInput(InputLocksFlag flag) {
+        return this.inputLocksSet.contains(flag);
+    }
+
+    override public @NonNull CameraData camera() {
+        return this.cameraData;
+    }
+
+    override public @NonNull EntityData entities() {
+        return this.entityData;
+    }
+
+    override public void shakeCamera(float intensity, float duration, @NonNull CameraShake type) {
+        this.cameraData.shakeCamera(intensity, duration, type);
+    }
+
+    override public void stopCameraShake() {
+        this.cameraData.stopCameraShake();
+    }
+
+    override public void sendFog(std::string... fogNameSpaces) {
+        this.cameraData.sendFog(fogNameSpaces);
+    }
+
+    override public void removeFog(std::string... fogNameSpaces) {
+        this.cameraData.removeFog(fogNameSpaces);
+    }
+
+    override public @NonNull Set<std::string> fogEffects() {
+        return this.cameraData.fogEffects();
+    }
+
+    override public int ping() {
+
+        if (!getUpstream().isInitialized() || getUpstream().isClosed()) {
+            return 0;
+        }
+
+        RakSessionCodec rakSessionCodec = ((RakChildChannel) getUpstream().getSession().getPeer().getChannel()).rakPipeline().get(RakSessionCodec.class);
+        return (int) Math.floor(rakSessionCodec.getPing());
+    }
+
+    override public int protocolVersion() {
+        return upstream.getProtocolVersion();
+    }
+
+    override public bool hasFormOpen() {
+        return formCache.hasFormOpen();
+    }
+
+    override public void closeForm() {
+        formCache.closeForms();
+    }
+
+    public void addCommandEnum(std::string name, std::string enums) {
+        softEnumPacket(name, SoftEnumUpdateType.ADD, enums);
+    }
+
+    public void removeCommandEnum(std::string name, std::string enums) {
+        softEnumPacket(name, SoftEnumUpdateType.REMOVE, enums);
+    }
+
+    private void softEnumPacket(std::string name, SoftEnumUpdateType type, std::string enums) {
+
+        if (!this.geyser.config().gameplay().commandSuggestions()) {
+            return;
+        }
+        UpdateSoftEnumPacket packet = new UpdateSoftEnumPacket();
+        packet.setType(type);
+        packet.setSoftEnum(new CommandEnumData(name, Collections.singletonMap(enums, Collections.emptySet()), true));
+        sendUpstreamPacket(packet);
+    }
+
+    public void sendNetworkLatencyStackPacket(long timestamp, bool ensureEventLoop, Runnable runnable) {
+        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
+        latencyPacket.setFromServer(true);
+        latencyPacket.setTimestamp(timestamp);
+        if (ensureEventLoop) {
+            latencyPingCache.add(() -> ensureInEventLoop(runnable));
+        } else {
+            latencyPingCache.add(runnable);
+        }
+        sendUpstreamPacket(latencyPacket);
+    }
+
+    public std::string getDebugInfo() {
+        return "Username: %s, DeviceOs: %s, Version: %s".formatted(bedrockUsername(), platform(), version());
+    }
+}

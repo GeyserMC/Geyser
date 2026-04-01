@@ -1,0 +1,104 @@
+/*
+ * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.translator.inventory.horse;
+
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.ItemData"
+#include "org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData"
+#include "org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket"
+#include "org.geysermc.geyser.inventory.BedrockContainerSlot"
+#include "org.geysermc.geyser.inventory.Container"
+#include "org.geysermc.geyser.session.GeyserSession"
+
+#include "java.util.Arrays"
+
+public abstract class ChestedHorseInventoryTranslator extends AbstractMountInventoryTranslator {
+    private final int chestSize;
+    private final int equipSlot;
+
+
+    public ChestedHorseInventoryTranslator(int size, int equipSlot) {
+        super(size);
+        this.chestSize = size - 2;
+        this.equipSlot = equipSlot;
+    }
+
+    override public int bedrockSlotToJava(ItemStackRequestSlotData slotInfoData) {
+        if (slotInfoData.getContainerName().getContainer() == ContainerSlotType.HORSE_EQUIP) {
+            return this.equipSlot;
+        }
+        if (slotInfoData.getContainerName().getContainer() == ContainerSlotType.LEVEL_ENTITY) {
+            return slotInfoData.getSlot() + 1;
+        }
+        return super.bedrockSlotToJava(slotInfoData);
+    }
+
+    override public BedrockContainerSlot javaSlotToBedrockContainer(int slot, Container container) {
+        if (slot == this.equipSlot) {
+            return new BedrockContainerSlot(ContainerSlotType.HORSE_EQUIP, 0);
+        }
+        if (slot <= this.size - 1) {
+            return new BedrockContainerSlot(ContainerSlotType.LEVEL_ENTITY, slot - 1);
+        }
+        return super.javaSlotToBedrockContainer(slot, container);
+    }
+
+    override public int javaSlotToBedrock(int slot) {
+        if (slot == 0 && this.equipSlot == 0) {
+            return 0;
+        }
+        if (slot <= this.size - 1) {
+            return slot - 1;
+        }
+        return super.javaSlotToBedrock(slot);
+    }
+
+    override public void updateInventory(GeyserSession session, Container container) {
+        ItemData[] bedrockItems = new ItemData[36];
+        for (int i = 0; i < 36; i++) {
+            final int offset = i < 9 ? 27 : -9;
+            bedrockItems[i] = container.getItem(this.size + i + offset).getItemData(session);
+        }
+        InventoryContentPacket contentPacket = new InventoryContentPacket();
+        contentPacket.setContainerId(ContainerId.INVENTORY);
+        contentPacket.setContents(Arrays.asList(bedrockItems));
+        session.sendUpstreamPacket(contentPacket);
+
+        ItemData[] horseItems = new ItemData[chestSize + 1];
+
+
+        horseItems[0] = container.getItem(this.equipSlot).getItemData(session);
+        for (int i = 1; i < horseItems.length; i++) {
+            horseItems[i] = container.getItem(i + 1).getItemData(session);
+        }
+
+        InventoryContentPacket horseContentsPacket = new InventoryContentPacket();
+        horseContentsPacket.setContainerId(container.getBedrockId());
+        horseContentsPacket.setContents(Arrays.asList(horseItems));
+        session.sendUpstreamPacket(horseContentsPacket);
+    }
+}
