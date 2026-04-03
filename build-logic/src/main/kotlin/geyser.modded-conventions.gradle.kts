@@ -1,5 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
+import net.fabricmc.loom.task.RemapJarTask
 import org.gradle.kotlin.dsl.dependencies
 
 plugins {
@@ -70,13 +71,7 @@ tasks {
         from(sourceSets.main.get().allSource)
     }
 
-    jar {
-        archiveClassifier.set("raw")
-    }
-
     shadowJar {
-        dependsOn(jar)
-
         // Mirrors the example fabric project, otherwise tons of dependencies are shaded that shouldn't be
         configurations = listOf(project.configurations.getByName("shadowBundle"))
         archiveBaseName.set("${project.name}-shaded")
