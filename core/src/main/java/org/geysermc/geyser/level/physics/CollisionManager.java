@@ -150,7 +150,7 @@ public class CollisionManager {
      * @return the bounding box to use for movement calculations
      */
     public BoundingBox getActiveBoundingBox() {
-        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.shouldSimulateMovement()) {
             return clientVehicle.getVehicleComponent().getBoundingBox();
         }
 
@@ -179,7 +179,7 @@ public class CollisionManager {
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY, Double.parseDouble(Float.toString(bedrockPosition.getZ())));
 
         // Don't correct position if controlling a vehicle
-        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.shouldSimulateMovement()) {
             playerBoundingBox.setMiddleX(position.getX());
             playerBoundingBox.setMiddleY(position.getY() + playerBoundingBox.getSizeY() / 2);
             playerBoundingBox.setMiddleZ(position.getZ());
@@ -226,8 +226,8 @@ public class CollisionManager {
         PlayerEntity entity = session.getPlayerEntity();
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(entity.geyserId());
-        movePlayerPacket.setPosition(entity.getPosition());
-        movePlayerPacket.setRotation(entity.getBedrockRotation());
+        movePlayerPacket.setPosition(entity.bedrockPosition());
+        movePlayerPacket.setRotation(entity.bedrockRotation());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.NORMAL);
         session.sendUpstreamPacket(movePlayerPacket);
     }
@@ -415,7 +415,7 @@ public class CollisionManager {
      * @return if the player is currently in a water block
      */
     public boolean isPlayerInWater() {
-        BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getPlayerEntity().getPosition().toInt());
+        BlockState state = session.getGeyser().getWorldManager().blockAt(session, session.getPlayerEntity().position().toInt());
         return state.is(Blocks.WATER) && state.getValue(Properties.LEVEL) == 0;
     }
 
