@@ -36,7 +36,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 /**
  * Used as a class for any projectile entity that looks like an item
  */
-public class ThrowableItemEntity extends ThrowableEntity {
+public class ThrowableItemEntity extends ProjectileEntity {
     /**
      * Number of draw ticks since the entity was spawned by the Java server
      */
