@@ -936,7 +936,10 @@ public class ItemRegistryPopulator {
                         // If a similar predicate was found, check if they're negated
                         // If they are, prefer the one with the lowest threshold
                         // If they aren't, prefer the one with the highest threshold
-                        return (int) (rangeDispatch.negated() ? rangeDispatch.threshold() - other.get().threshold() : other.get().threshold() - rangeDispatch.threshold());
+                        int thresholdComparison = (int) (rangeDispatch.negated() ? rangeDispatch.threshold() - other.get().threshold() : other.get().threshold() - rangeDispatch.threshold());
+                        if (thresholdComparison != 0) {
+                            return thresholdComparison;
+                        }
                     }
                 }
             }
