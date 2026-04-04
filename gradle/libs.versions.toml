@@ -43,7 +43,7 @@ fabric-api = "0.144.3+26.1"
 fabric-permissions-api = "0.7.0"
 neoforge-minecraft = "26.1.0.5-beta"
 mixin = "0.8.5"
-mixinextras = "0.3.5"
+mixinextras = "0.5.3"
 minecraft = "26.1.1"
 mockito = "5.+"
 
