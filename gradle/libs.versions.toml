@@ -60,7 +60,7 @@ runtask = "3.0.2"
 
 # run tasks versions
 runpaperversion = "26.1.1"
-runvelocityversion = "3.4.0-SNAPSHOT"
+runvelocityversion = "3.5.0-SNAPSHOT"
 
 [libraries]
 base-api = { group = "org.geysermc.api", name = "base-api", version.ref = "base-api" }
