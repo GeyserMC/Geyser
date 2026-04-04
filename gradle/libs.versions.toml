@@ -54,7 +54,7 @@ architectury-plugin = "3.5-SNAPSHOT"
 architectury-loom = "1.14-SNAPSHOT"
 loom-companion = "1.14-SNAPSHOT"
 minotaur = "2.8.10"
-lombok = "9.1.0"
+lombok = "9.2.0"
 blossom = "2.2.0"
 runtask = "3.0.2"
 
