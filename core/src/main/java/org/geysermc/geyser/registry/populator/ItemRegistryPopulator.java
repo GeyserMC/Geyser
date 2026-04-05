@@ -914,8 +914,8 @@ public class ItemRegistryPopulator {
                 return second.priority() - first.priority();
             }
 
-            if (first.predicates().isEmpty() ^ second.predicates().isEmpty()) {
-                // If one has no predicates, and the other has at least one, there's no need to check for range dispatch predicates.
+            if (first.predicates().size() != second.predicates().size()) {
+                // If predicate size differs, there's no need to check for range dispatch predicates.
                 // Prefer the one with the most amount of predicates
                 return second.predicates().size() - first.predicates().size();
             }
@@ -938,7 +938,10 @@ public class ItemRegistryPopulator {
                         // If a similar predicate was found, check if they're negated
                         // If they are, prefer the one with the lowest threshold
                         // If they aren't, prefer the one with the highest threshold
-                        return (int) (negated ? threshold - other.get().threshold() : other.get().threshold() - threshold);
+                        double thresholdComparison = negated ? threshold - other.get().threshold() : other.get().threshold() - threshold;
+                        if (thresholdComparison != 0.0) {
+                            return thresholdComparison < 0 ? -1 : 1;
+                        }
                     }
                 }
             }

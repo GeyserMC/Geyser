@@ -37,11 +37,11 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 /**
  * Used as a class for any object-like entity that moves as a projectile
  */
-public class ThrowableEntity extends Entity implements Tickable {
+public class ProjectileEntity extends Entity implements Tickable {
 
     protected Vector3f lastJavaPosition;
 
-    public ThrowableEntity(EntitySpawnContext context) {
+    public ProjectileEntity(EntitySpawnContext context) {
         super(context);
         this.lastJavaPosition = position;
     }
@@ -58,7 +58,7 @@ public class ThrowableEntity extends Entity implements Tickable {
         moveAbsoluteImmediate(position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
         float drag = getDrag();
         float gravity = getGravity();
-        motion = motion.mul(drag).down(gravity);
+        setMotion(motion.mul(drag).down(gravity));
     }
 
     protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {

@@ -42,7 +42,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEnt
 
 import java.util.concurrent.ThreadLocalRandom;
 
-public class FishingHookEntity extends ThrowableEntity {
+public class FishingHookEntity extends ProjectileEntity {
 
     private boolean hooked = false;
     private boolean castByPlayer = false;
