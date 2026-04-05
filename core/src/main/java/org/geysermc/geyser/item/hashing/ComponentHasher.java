@@ -86,7 +86,7 @@ public interface ComponentHasher {
         case TRUE -> true;
     });
 
-    MinecraftHasher<ClickEvent.Action> CLICK_EVENT_ACTION = MinecraftHasher.STRING.cast(ClickEvent.Action::toString);
+    MinecraftHasher<ClickEvent.Action<?>> CLICK_EVENT_ACTION = MinecraftHasher.STRING.cast(ClickEvent.Action::name);
 
     MinecraftHasher<ClickEvent.Payload.Text> CLICK_EVENT_TEXT_PAYLOAD = MinecraftHasher.STRING.cast(ClickEvent.Payload.Text::value);
 
@@ -96,13 +96,15 @@ public interface ComponentHasher {
     // - Dialog has no proper implementation within Adventure yet. Once it does, we'd probably only hash dialog holders with a resource location, because setting up
     //   hashers for the full dialog structure can be a lot of work.
     // - Custom uses BinaryTagHolder to store NBT data, which essentially only stores a string representation. This won't work with hashing, we need a NBT tag to hash.
-    MinecraftHasher<ClickEvent> CLICK_EVENT = CLICK_EVENT_ACTION.dispatch("action", ClickEvent::action, action -> switch (action) {
-        case OPEN_URL -> builder -> builder.accept("url", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
-        case OPEN_FILE -> builder -> builder.accept("path", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
-        case RUN_COMMAND, SUGGEST_COMMAND -> builder -> builder.accept("command", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
-        case CHANGE_PAGE -> builder -> builder.accept("page", CLICK_EVENT_INT_PAYLOAD, event -> (ClickEvent.Payload.Int) event.payload());
-        case COPY_TO_CLIPBOARD -> builder -> builder.accept("value", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
-        case SHOW_DIALOG, CUSTOM -> MapBuilder.unit();
+    MinecraftHasher<ClickEvent<?>> CLICK_EVENT = CLICK_EVENT_ACTION.dispatch("action", ClickEvent::action, action -> switch (action) {
+        case ClickEvent.Action.OpenUrl ignored -> builder -> builder.accept("url", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
+        case ClickEvent.Action.OpenFile ignored -> builder -> builder.accept("path", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
+        case ClickEvent.Action.RunCommand ignored -> builder -> builder.accept("command", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
+        case ClickEvent.Action.SuggestCommand ignored -> builder -> builder.accept("command", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
+        case ClickEvent.Action.ChangePage ignored -> builder -> builder.accept("page", CLICK_EVENT_INT_PAYLOAD, event -> (ClickEvent.Payload.Int) event.payload());
+        case ClickEvent.Action.CopyToClipboard ignored -> builder -> builder.accept("value", CLICK_EVENT_TEXT_PAYLOAD, event -> (ClickEvent.Payload.Text) event.payload());
+        case ClickEvent.Action.ShowDialog ignored -> MapBuilder.unit();
+        case ClickEvent.Action.Custom ignored -> MapBuilder.unit();
     });
 
     MinecraftHasher<HoverEvent.Action<?>> HOVER_EVENT_ACTION = MinecraftHasher.STRING.cast(HoverEvent.Action::toString);
@@ -161,10 +163,10 @@ public interface ComponentHasher {
         .accept("selector", MinecraftHasher.STRING, SelectorComponent::pattern)
         .optionalNullable("separator", COMPONENT, SelectorComponent::separator));
 
-    MinecraftHasher<NBTComponent<?, ?>> NBT_COMPONENT = component(builder -> builder
+    MinecraftHasher<NBTComponent<?>> NBT_COMPONENT = component(builder -> builder
         .accept("nbt", MinecraftHasher.STRING, NBTComponent::nbtPath)
         .optional("interpret", MinecraftHasher.BOOL, NBTComponent::interpret, false)
-        .optionalNullable("separator", COMPONENT, NBTComponent::separator)); // TODO source key, needs kyori update?
+        .optionalNullable("separator", COMPONENT, NBTComponent::separator)); // TODO source key (FIXME 26.1, adventure 5.0.0 has this)
 
     MinecraftHasher<ObjectContentsType> OBJECT_CONTENTS_TYPE = MinecraftHasher.fromEnum(ObjectContentsType::getName);
 
@@ -184,7 +186,7 @@ public interface ComponentHasher {
             return SCORE_COMPONENT.hash(score, encoder);
         } else if (component instanceof SelectorComponent selector) {
             return SELECTOR_COMPONENT.hash(selector, encoder);
-        } else if (component instanceof NBTComponent<?,?> nbt) {
+        } else if (component instanceof NBTComponent<?> nbt) {
             return NBT_COMPONENT.hash(nbt, encoder);
         } else if (component instanceof ObjectComponent object) {
             return OBJECT_COMPONENT.hash(object, encoder);
