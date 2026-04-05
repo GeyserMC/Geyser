@@ -92,7 +92,7 @@ public class RecipeUtil {
         }
         if (slotDisplay instanceof CompositeSlotDisplay composite) {
             if (composite.contents().size() == 1) {
-                return translateToInput(session, composite.contents().get(0));
+                return translateToInput(session, composite.contents().getFirst());
             }
 
             // Try and see if the contents match a tag.
@@ -102,13 +102,12 @@ public class RecipeUtil {
             for (int i = 0; i < contents.size(); i++) {
                 SlotDisplay subDisplay = contents.get(i);
                 int id;
-                if (subDisplay instanceof ItemSlotDisplay item) {
-                    id = item.item();
-                } else if (!(subDisplay instanceof ItemStackSlotDisplay itemStackSlotDisplay)) {
+                if (subDisplay instanceof ItemSlotDisplay(int itemSlotId)) {
+                    id = itemSlotId;
+                } else if (!(subDisplay instanceof ItemStackSlotDisplay(ItemStack itemStack))) {
                     id = -1;
-                } else if (itemStackSlotDisplay.itemStack().getAmount() == 1
-                        && itemStackSlotDisplay.itemStack().getDataComponentsPatch() == null) {
-                    id = itemStackSlotDisplay.itemStack().getId();
+                } else if (itemStack.getAmount() == 1 && itemStack.getDataComponentsPatch() == null) {
+                    id = itemStack.getId();
                 } else {
                     id = -1;
                 }
@@ -132,15 +131,14 @@ public class RecipeUtil {
             // Don't need to worry about what will stay in the crafting table after crafting for the purposes of sending recipes to Bedrock
             return translateToInput(session, remainder.input());
         }
-        if (slotDisplay instanceof ItemSlotDisplay itemSlot) {
-            return Collections.singletonList(fromItem(session, itemSlot.item()));
+        if (slotDisplay instanceof ItemSlotDisplay(int itemId)) {
+            return Collections.singletonList(fromItem(session, itemId));
         }
-        if (slotDisplay instanceof ItemStackSlotDisplay itemStackSlot) {
-            ItemData item = ItemTranslator.translateToBedrock(session, itemStackSlot.itemStack());
+        if (slotDisplay instanceof ItemStackSlotDisplay(ItemStack itemStack)) {
+            ItemData item = ItemTranslator.translateToBedrock(session, itemStack);
             return Collections.singletonList(ItemDescriptorWithCount.fromItem(item));
         }
-        if (slotDisplay instanceof TagSlotDisplay tagSlot) {
-            Key tag = tagSlot.tag();
+        if (slotDisplay instanceof TagSlotDisplay(Key tag)) {
             int[] items = session.getTagCache().getRaw(new Tag<>(JavaRegistries.ITEM, tag)); // I don't like this...
             if (items == null || items.length == 0) {
                 return Collections.singletonList(ItemDescriptorWithCount.EMPTY);
@@ -178,12 +176,10 @@ public class RecipeUtil {
         if (slotDisplay instanceof EmptySlotDisplay) {
             return null;
         }
-        if (slotDisplay instanceof ItemSlotDisplay itemSlot) {
-            int item = itemSlot.item();
+        if (slotDisplay instanceof ItemSlotDisplay(int item)) {
             return Pair.of(Registries.JAVA_ITEMS.get(item), ItemTranslator.translateToBedrock(session, new ItemStack(item)));
         }
-        if (slotDisplay instanceof ItemStackSlotDisplay itemStackSlot) {
-            ItemStack stack = itemStackSlot.itemStack();
+        if (slotDisplay instanceof ItemStackSlotDisplay(ItemStack stack)) {
             return Pair.of(Registries.JAVA_ITEMS.get(stack.getId()), ItemTranslator.translateToBedrock(session, stack));
         }
         session.getGeyser().getLogger().warning("Unimplemented slot display type for output: " + slotDisplay);
@@ -248,7 +244,7 @@ public class RecipeUtil {
                 continue;
             }
             inputs.add(translated);
-            if (translated.size() != 1 || translated.get(0) != ItemDescriptorWithCount.EMPTY) {
+            if (translated.size() != 1 || translated.getFirst() != ItemDescriptorWithCount.EMPTY) {
                 empty = false;
             }
             complexInputs |= translated.size() > 1;
@@ -291,7 +287,7 @@ public class RecipeUtil {
                 if (descriptors.size() > current) {
                     return descriptors.get(current);
                 }
-                return descriptors.get(0);
+                return descriptors.getFirst();
             }).toList());
         }
 

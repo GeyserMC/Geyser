@@ -774,7 +774,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private final GeyserEntityData entityData;
 
-    @Getter(AccessLevel.MODULE)
+    @Getter(AccessLevel.PACKAGE)
     private MinecraftProtocol protocol;
 
     private int nanosecondsPerTick = 50000000;
@@ -1690,7 +1690,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 dialogManager.openDialog(BuiltInDialog.SERVER_LINKS);
             }
         } else if (additions.size() == 1) {
-            dialogManager.openDialog(additions.get(0));
+            dialogManager.openDialog(additions.getFirst());
         } else {
             dialogManager.openDialog(BuiltInDialog.CUSTOM_OPTIONS);
         }
@@ -1699,12 +1699,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public void openQuickActions() {
         List<Dialog> quickActions = tagCache.get(DialogTag.QUICK_ACTIONS);
-        if (quickActions.isEmpty()) {
-            return;
-        } else if (quickActions.size() == 1) {
-            dialogManager.openDialog(quickActions.get(0));
-        } else {
-            dialogManager.openDialog(BuiltInDialog.QUICK_ACTIONS);
+        if (!quickActions.isEmpty()) {
+            if (quickActions.size() == 1) {
+                dialogManager.openDialog(quickActions.getFirst());
+            } else {
+                dialogManager.openDialog(BuiltInDialog.QUICK_ACTIONS);
+            }
         }
     }
 

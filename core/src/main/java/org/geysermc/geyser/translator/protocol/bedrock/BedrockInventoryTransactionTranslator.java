@@ -93,7 +93,6 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
 import java.util.List;
-import java.util.Vector;
 
 /**
  * BedrockInventoryTransactionTranslator handles most interactions between the client and the world,
@@ -105,7 +104,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     @Override
     public void translate(GeyserSession session, InventoryTransactionPacket packet) {
         if (packet.getTransactionType() == InventoryTransactionType.NORMAL && packet.getActions().size() == 3) {
-            InventoryActionData containerAction = packet.getActions().get(0);
+            InventoryActionData containerAction = packet.getActions().getFirst();
             if (containerAction.getSource().getType() == InventorySource.Type.CONTAINER &&
                     session.getPlayerInventory().getHeldItemSlot() == containerAction.getSlot() &&
                     containerAction.getFromItem().getDefinition() == session.getItemMappings().getStoredItems().writableBook().getBedrockDefinition()) {
@@ -419,8 +418,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
                         if (packet.getActions().size() == 1 && !legacySlots.isEmpty()) {
-                            InventoryActionData actionData = packet.getActions().get(0);
-                            LegacySetItemSlotData slotData = legacySlots.get(0);
+                            InventoryActionData actionData = packet.getActions().getFirst();
+                            LegacySetItemSlotData slotData = legacySlots.getFirst();
                             if (slotData.getContainerId() == 6 && !actionData.getFromItem().isNull()) {
                                 // The player is trying to swap out an armor piece that already has an item in it
                                 // 1.19.4 brings this natively, but we need this specific case for custom head rendering to work

@@ -90,8 +90,8 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
     private ServerPing getPingInfo() {
         return new ServerPing(
                 new ServerPing.Protocol(
-                        proxyServer.getName() + " " + ProtocolConstants.SUPPORTED_VERSIONS.get(0) + "-" + ProtocolConstants.SUPPORTED_VERSIONS.get(ProtocolConstants.SUPPORTED_VERSIONS.size() - 1),
-                        ProtocolConstants.SUPPORTED_VERSION_IDS.get(ProtocolConstants.SUPPORTED_VERSION_IDS.size() - 1)),
+                        proxyServer.getName() + " " + ProtocolConstants.SUPPORTED_VERSIONS.getFirst() + "-" + ProtocolConstants.SUPPORTED_VERSIONS.getLast(),
+                        ProtocolConstants.SUPPORTED_VERSION_IDS.getLast()),
                 new ServerPing.Players(getDefaultListener().getMaxPlayers(), proxyServer.getOnlineCount(), null),
                 TextComponent.fromLegacyText(getDefaultListener().getMotd())[0],
                 proxyServer.getConfig().getFaviconObject()
