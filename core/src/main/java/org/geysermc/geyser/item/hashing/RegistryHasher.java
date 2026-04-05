@@ -287,7 +287,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     // Encode as a single element if the list only has one element
     MinecraftHasher<AdventureModePredicate> ADVENTURE_MODE_PREDICATE = MinecraftHasher.either(BLOCK_PREDICATE,
-        predicate -> predicate.getPredicates().size() == 1 ? predicate.getPredicates().get(0) : null, BLOCK_PREDICATE.list(), AdventureModePredicate::getPredicates);
+        predicate -> predicate.getPredicates().size() == 1 ? predicate.getPredicates().getFirst() : null, BLOCK_PREDICATE.list(), AdventureModePredicate::getPredicates);
 
     MinecraftHasher<ItemAttributeModifiers.DisplayType> ATTRIBUTE_MODIFIER_DISPLAY_TYPE = MinecraftHasher.fromEnum();
 

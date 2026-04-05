@@ -51,7 +51,7 @@ public final class MinecraftKey {
         if (identifier == null) {
             return null;
         }
-        return identifier instanceof IdentifierImpl impl ? impl.identifier() : key(identifier.namespace(), identifier.path());
+        return identifier instanceof IdentifierImpl(Key key) ? key : key(identifier.namespace(), identifier.path());
     }
 
     public static @Nullable Identifier keyToIdentifier(@Nullable Key key) {

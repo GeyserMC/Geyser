@@ -327,7 +327,7 @@ public final class ClickPlan {
                     int amountToAddInBundle = Math.min(BundleInventoryTranslator.capacityForItemStack(bundleWeight, cursor), cursor.getAmount());
                     GeyserItemStack toInsertInBundle = cursor.copy(amountToAddInBundle);
                     if (executionBegan) {
-                        clicked.getBundleData().contents().add(0, toInsertInBundle);
+                        clicked.getBundleData().contents().addFirst(toInsertInBundle);
                         session.getBundleCache().onItemAdded(clicked); // Must be run before onSlotItemChange as the latter exports an ItemStack from the bundle
                     }
                     onSlotItemChange(action.slot, clicked);
@@ -339,7 +339,7 @@ public final class ClickPlan {
                     amountToAddInBundle = Math.min(BundleInventoryTranslator.capacityForItemStack(bundleWeight, clicked), clicked.getAmount());
                     toInsertInBundle = clicked.copy(amountToAddInBundle);
                     if (executionBegan) {
-                        cursor.getBundleData().contents().add(0, toInsertInBundle);
+                        cursor.getBundleData().contents().addFirst(toInsertInBundle);
                         session.getBundleCache().onItemAdded(cursor);
                     }
                     sub(action.slot, clicked, amountToAddInBundle);
@@ -349,7 +349,7 @@ public final class ClickPlan {
                         // Bundle should be in player's hand.
                         GeyserItemStack itemStack = cursor.getBundleData()
                             .contents()
-                            .remove(0);
+                            .removeFirst();
                         if (executionBegan) {
                             session.getBundleCache().onItemRemoved(cursor, 0);
                         }

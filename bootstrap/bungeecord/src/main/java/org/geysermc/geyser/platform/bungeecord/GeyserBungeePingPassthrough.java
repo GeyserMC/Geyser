@@ -115,7 +115,7 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
 
         @Override
         public int getVersion() {
-            return ProtocolConstants.SUPPORTED_VERSION_IDS.get(ProtocolConstants.SUPPORTED_VERSION_IDS.size() - 1);
+            return ProtocolConstants.SUPPORTED_VERSION_IDS.getLast();
         }
 
         @Override

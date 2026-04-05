@@ -101,17 +101,15 @@ public class GeyserItemStack {
     }
 
     public static @NonNull GeyserItemStack from(@Nullable GeyserSession session, @NonNull SlotDisplay slotDisplay) {
-        if (slotDisplay instanceof EmptySlotDisplay) {
-            return GeyserItemStack.EMPTY;
-        }
-        if (slotDisplay instanceof ItemSlotDisplay itemSlotDisplay) {
-            return GeyserItemStack.of(session, itemSlotDisplay.item(), 1);
-        }
-        if (slotDisplay instanceof ItemStackSlotDisplay itemStackSlotDisplay) {
-            return GeyserItemStack.from(session, itemStackSlotDisplay.itemStack());
-        }
-        GeyserImpl.getInstance().getLogger().warning("Unsure how to convert to ItemStack: " + slotDisplay);
-        return GeyserItemStack.EMPTY;
+        return switch (slotDisplay) {
+            case EmptySlotDisplay ignored -> GeyserItemStack.EMPTY;
+            case ItemSlotDisplay(int itemId) -> GeyserItemStack.of(session, itemId, 1);
+            case ItemStackSlotDisplay(ItemStack itemStack) -> GeyserItemStack.from(session, itemStack);
+            default -> {
+                GeyserImpl.getInstance().getLogger().warning("Unsure how to convert to ItemStack: " + slotDisplay);
+                yield GeyserItemStack.EMPTY;
+            }
+        };
     }
 
     public int getJavaId() {

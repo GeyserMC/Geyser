@@ -922,23 +922,23 @@ public class ItemRegistryPopulator {
 
             // Loop through the predicates of the first definition and look for a range dispatch predicate
             for (MinecraftPredicate<? super ItemPredicateContext> predicate : first.predicates()) {
-                if (predicate instanceof GeyserRangeDispatchPredicate rangeDispatch) {
+                if (predicate instanceof GeyserRangeDispatchPredicate(GeyserRangeDispatchPredicate.GeyserRangeDispatchProperty rangeProperty, double threshold, int index, boolean normalized, boolean negated)) {
                     // Look for a similar predicate in the other definition's predicates
                     Optional<GeyserRangeDispatchPredicate> other = second.predicates().stream()
                         .filter(GeyserRangeDispatchPredicate.class::isInstance)
                         .map(GeyserRangeDispatchPredicate.class::cast)
                         .filter(otherPredicate ->
-                            otherPredicate.rangeProperty() == rangeDispatch.rangeProperty()
-                            && otherPredicate.index() == rangeDispatch.index()
-                            && otherPredicate.normalized() == rangeDispatch.normalized()
-                            && otherPredicate.negated() == rangeDispatch.negated())
+                            otherPredicate.rangeProperty() == rangeProperty
+                            && otherPredicate.index() == index
+                            && otherPredicate.normalized() == normalized
+                            && otherPredicate.negated() == negated)
                         .findFirst();
 
                     if (other.isPresent()) {
                         // If a similar predicate was found, check if they're negated
                         // If they are, prefer the one with the lowest threshold
                         // If they aren't, prefer the one with the highest threshold
-                        return (int) (rangeDispatch.negated() ? rangeDispatch.threshold() - other.get().threshold() : other.get().threshold() - rangeDispatch.threshold());
+                        return (int) (negated ? threshold - other.get().threshold() : other.get().threshold() - threshold);
                     }
                 }
             }
