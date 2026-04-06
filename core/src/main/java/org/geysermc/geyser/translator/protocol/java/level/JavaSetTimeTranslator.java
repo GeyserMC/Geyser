@@ -25,8 +25,10 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import net.kyori.adventure.key.Key;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.mcprotocollib.protocol.data.game.level.ClockNetworkState;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundSetTimePacket;
-import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -36,21 +38,18 @@ public class JavaSetTimeTranslator extends PacketTranslator<ClientboundSetTimePa
 
     @Override
     public void translate(GeyserSession session, ClientboundSetTimePacket packet) {
-        session.setWorldTicks(packet.getGameTime());
+        session.setGameTicks(packet.getGameTime());
 
-        long time = packet.getDayTime();
-
-        // https://minecraft.wiki/w/Day-night_cycle#24-hour_Minecraft_day
-        SetTimePacket setTimePacket = new SetTimePacket();
-        // We use modulus to prevent an integer overflow
-        // 24000 is the range of ticks that a Minecraft day can be; we times by 8 so all moon phases are visible
-        // (Last verified behavior: Bedrock 1.18.12 / Java 1.18.2)
-        setTimePacket.setTime((int) (Math.abs(time) % (24000 * 8)));
-        session.sendUpstreamPacket(setTimePacket);
-
-        // We need to send a gamerule if this changed
-        if (session.isDaylightCycle() != packet.isTickDayTime()) {
-            session.setDaylightCycle(packet.isTickDayTime());
+        // We only translate the dimension's default clock right now, which will work for vanilla, but probably less so for custom dimensions
+        // Nevertheless, this is the best effort we can do right now, and better than just translating the overworld clock
+        Key defaultClock = session.getDimensionType().defaultClock();
+        if (defaultClock != null) {
+            ClockNetworkState currentDimensionState = packet.getClockUpdates().get(JavaRegistries.WORLD_CLOCK.networkId(session, defaultClock));
+            if (currentDimensionState != null) {
+                session.setTimeTicks(currentDimensionState.totalTicks(), currentDimensionState.partialTick());
+                // We need to send a gamerule if this changed
+                session.setClockRate(currentDimensionState.rate());
+            }
         }
     }
 }

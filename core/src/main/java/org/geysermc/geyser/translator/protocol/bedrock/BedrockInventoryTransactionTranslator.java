@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.bedrock;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
+import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
@@ -77,14 +78,15 @@ import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.SoundUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClickPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundAttackPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
@@ -102,7 +104,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     @Override
     public void translate(GeyserSession session, InventoryTransactionPacket packet) {
         if (packet.getTransactionType() == InventoryTransactionType.NORMAL && packet.getActions().size() == 3) {
-            InventoryActionData containerAction = packet.getActions().get(0);
+            InventoryActionData containerAction = packet.getActions().getFirst();
             if (containerAction.getSource().getType() == InventorySource.Type.CONTAINER &&
                     session.getPlayerInventory().getHeldItemSlot() == containerAction.getSlot() &&
                     containerAction.getFromItem().getDefinition() == session.getItemMappings().getStoredItems().writableBook().getBedrockDefinition()) {
@@ -384,7 +386,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             } else if (session.getPlayerInventory().getItemInHand().is(Items.GOAT_HORN)) {
                                 // Temporary workaround while we don't have full item/block use tracking.
                                 if (!session.getWorldCache().hasCooldown(session.getPlayerInventory().getItemInHand())) {
-                                    InstrumentComponent component = session.getPlayerInventory()
+                                    Holder<Instrument> component = session.getPlayerInventory()
                                         .getItemInHand()
                                         .getComponent(DataComponentTypes.INSTRUMENT);
                                     if (component != null) {
@@ -416,8 +418,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
                         if (packet.getActions().size() == 1 && !legacySlots.isEmpty()) {
-                            InventoryActionData actionData = packet.getActions().get(0);
-                            LegacySetItemSlotData slotData = legacySlots.get(0);
+                            InventoryActionData actionData = packet.getActions().getFirst();
+                            LegacySetItemSlotData slotData = legacySlots.getFirst();
                             if (slotData.getContainerId() == 6 && !actionData.getFromItem().isNull()) {
                                 // The player is trying to swap out an armor piece that already has an item in it
                                 // 1.19.4 brings this natively, but we need this specific case for custom head rendering to work
@@ -482,8 +484,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         } else {
                             entityId = entity.getEntityId();
                         }
-                        ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(entityId,
-                                InteractAction.ATTACK, session.isSneaking());
+                        ServerboundAttackPacket attackPacket = new ServerboundAttackPacket(entityId);
                         session.sendDownstreamGamePacket(attackPacket);
 
                         // Even though it is true that we already send this in BedrockAnimateTranslator, the behaviour is a bit inconsistent and
@@ -510,8 +511,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         boolean isSpectator = session.getGameMode() == GameMode.SPECTATOR;
         for (Hand hand : EntityUtils.HANDS) {
             session.sendDownstreamGamePacket(new ServerboundInteractPacket(entity.getEntityId(),
-                    InteractAction.INTERACT_AT, clickPosition.getX(), clickPosition.getY(), clickPosition.getZ(),
-                    hand, session.isSneaking()));
+                hand, Vector3d.from(clickPosition.getX(), clickPosition.getY(), clickPosition.getZ()),
+                session.isSneaking()));
 
             InteractionResult result;
             if (isSpectator) {
@@ -522,7 +523,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
             if (!result.consumesAction()) {
                 session.sendDownstreamGamePacket(new ServerboundInteractPacket(entity.getEntityId(),
-                        InteractAction.INTERACT, hand, session.isSneaking()));
+                    hand, Vector3d.ZERO, session.isSneaking()));
                 if (!isSpectator) {
                     result = entity.interact(hand);
                 }

@@ -197,7 +197,7 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
             return;
         }
 
-        Entity rower = passengers.get(0);
+        Entity rower = passengers.getFirst();
         if (rower == null) {
             return;
         }
@@ -238,7 +238,7 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
 
     @Override
     public boolean shouldSimulateMovement() {
-        return !session.isInClientPredictedVehicle() && !passengers.isEmpty() && this.session.getPlayerEntity() == passengers.get(0);
+        return !session.isInClientPredictedVehicle() && !passengers.isEmpty() && this.session.getPlayerEntity() == passengers.getFirst();
     }
 
     /**

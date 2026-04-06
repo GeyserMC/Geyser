@@ -284,7 +284,7 @@ public class Item {
     private void addJavaOnlyEnchantment(GeyserSession session, BedrockItemBuilder builder, String enchantmentName, int level) {
         String lvlTranslation = MinecraftLocale.getLocaleString("enchantment.level." + level, session.locale());
 
-        builder.getOrCreateLore().add(0, ChatColor.RESET + ChatColor.GRAY + enchantmentName + " " + lvlTranslation);
+        builder.getOrCreateLore().addFirst(ChatColor.RESET + ChatColor.GRAY + enchantmentName + " " + lvlTranslation);
     }
 
     protected final void translateDyedColor(DataComponents components, BedrockItemBuilder builder) {

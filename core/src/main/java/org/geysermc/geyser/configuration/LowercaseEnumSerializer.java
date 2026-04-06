@@ -40,7 +40,7 @@ import java.util.function.Predicate;
  */
 final class LowercaseEnumSerializer extends ScalarSerializer<Enum<?>> {
     LowercaseEnumSerializer() {
-        super(new TypeToken<Enum<?>>() {});
+        super(new TypeToken<>() {});
     }
 
     @Override

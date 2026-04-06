@@ -711,8 +711,8 @@ public class CustomItemRegistryPopulator {
 
     private static NbtMapBuilder addAttackRangeProperties(NbtMapBuilder component, AttackRange attackRange) {
         return component
-            .putCompound("reach", createReachMap(attackRange.minRange(), attackRange.maxRange()))
-            .putCompound("creative_reach", createReachMap(attackRange.minCreativeRange(), attackRange.maxCreativeRange()))
+            .putCompound("reach", createReachMap(attackRange.minReach(), attackRange.maxReach()))
+            .putCompound("creative_reach", createReachMap(attackRange.minCreativeReach(), attackRange.maxCreativeReach()))
             .putFloat("hitbox_margin", attackRange.hitboxMargin()); // TODO is this 1-to-1 with Java?
     }
 

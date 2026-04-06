@@ -79,21 +79,20 @@ public abstract class Dialog {
         afterAction = AfterAction.fromString(map.getString("after_action"));
 
         Object bodyTag = map.get("body");
-        if (bodyTag == null) {
-            labels = List.of();
-        } else if (bodyTag instanceof NbtMap bodyMap) {
-            labels = readBody(session, bodyMap).map(List::of).orElse(List.of());
-        } else if (bodyTag instanceof List<?> bodyList) {
-            labels = new ArrayList<>();
-            for (Object tag : bodyList) {
-                if (tag instanceof NbtMap bodyMap) {
-                    readBody(session, bodyMap).ifPresent(labels::add);
-                } else {
-                    throw new IllegalStateException("Found non-NBT map in list of bodies, was: " + tag);
+        switch (bodyTag) {
+            case null -> labels = List.of();
+            case NbtMap bodyMap -> labels = readBody(session, bodyMap).map(List::of).orElse(List.of());
+            case List<?> bodyList -> {
+                labels = new ArrayList<>();
+                for (Object tag : bodyList) {
+                    if (tag instanceof NbtMap bodyMap) {
+                        readBody(session, bodyMap).ifPresent(labels::add);
+                    } else {
+                        throw new IllegalStateException("Found non-NBT map in list of bodies, was: " + tag);
+                    }
                 }
             }
-        } else {
-            throw new IllegalStateException("Expected body tag to either be a NBT map or list thereof, was: " + bodyTag);
+            default -> throw new IllegalStateException("Expected body tag to either be a NBT map or list thereof, was: " + bodyTag);
         }
 
         List<NbtMap> inputTag = map.getList("inputs", NbtType.COMPOUND);

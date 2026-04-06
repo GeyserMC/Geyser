@@ -126,7 +126,7 @@ public final class Properties {
     public static final EnumProperty<ChestType> CHEST_TYPE = EnumProperty.create("type", ChestType.VALUES);
     public static final BasicEnumProperty MODE_COMPARATOR = BasicEnumProperty.create("mode", "compare", "subtract");
     public static final BasicEnumProperty DOOR_HINGE = BasicEnumProperty.create("hinge", "left", "right");
-    public static final BasicEnumProperty NOTEBLOCK_INSTRUMENT = BasicEnumProperty.create("instrument", "harp", "basedrum", "snare", "hat", "bass", "flute", "bell", "guitar", "chime", "xylophone", "iron_xylophone", "cow_bell", "didgeridoo", "bit", "banjo", "pling", "zombie", "skeleton", "creeper", "dragon", "wither_skeleton", "piglin", "custom_head");
+    public static final BasicEnumProperty NOTEBLOCK_INSTRUMENT = BasicEnumProperty.create("instrument", "harp", "basedrum", "snare", "hat", "bass", "flute", "bell", "guitar", "chime", "xylophone", "iron_xylophone", "cow_bell", "didgeridoo", "bit", "banjo", "pling", "trumpet", "trumpet_exposed", "trumpet_oxidized", "trumpet_weathered", "zombie", "skeleton", "creeper", "dragon", "wither_skeleton", "piglin", "custom_head");
     public static final BasicEnumProperty PISTON_TYPE = BasicEnumProperty.create("type", "normal", "sticky");
     public static final BasicEnumProperty SLAB_TYPE = BasicEnumProperty.create("type", "top", "bottom", "double");
     public static final BasicEnumProperty STAIRS_SHAPE = BasicEnumProperty.create("shape", "straight", "inner_left", "inner_right", "outer_left", "outer_right");

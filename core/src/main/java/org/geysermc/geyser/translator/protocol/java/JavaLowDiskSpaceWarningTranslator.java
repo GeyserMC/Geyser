@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,23 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.protocol.bedrock;
+package org.geysermc.geyser.translator.protocol.java;
 
-import org.geysermc.mcprotocollib.protocol.data.game.ClientCommand;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundClientCommandPacket;
-import org.cloudburstmc.protocol.bedrock.packet.RespawnPacket;
+import net.kyori.adventure.text.Component;
+import org.cloudburstmc.protocol.bedrock.packet.ToastRequestPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundLowDiskSpaceWarningPacket;
 
-@Translator(packet = RespawnPacket.class)
-public class BedrockRespawnTranslator extends PacketTranslator<RespawnPacket> {
+@Translator(packet = ClientboundLowDiskSpaceWarningPacket.class)
+public class JavaLowDiskSpaceWarningTranslator extends PacketTranslator<ClientboundLowDiskSpaceWarningPacket> {
+
+    private static final Component LOW_DISK_SPACE = Component.translatable("chunk.toast.lowDiskSpace");
+    private static final Component LOW_DISK_SPACE_DESCRIPTION = Component.translatable("chunk.toast.lowDiskSpace.description");
 
     @Override
-    public void translate(GeyserSession session, RespawnPacket packet) {
-        if (packet.getState() == RespawnPacket.State.CLIENT_READY) {
-            ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientCommand.PERFORM_RESPAWN);
-            session.sendDownstreamGamePacket(javaRespawnPacket);
-        }
+    public void translate(GeyserSession session, ClientboundLowDiskSpaceWarningPacket packet) {
+        ToastRequestPacket toastRequestPacket = new ToastRequestPacket();
+        toastRequestPacket.setTitle(MessageTranslator.convertMessage(LOW_DISK_SPACE, session.locale()));
+        toastRequestPacket.setContent(MessageTranslator.convertMessage(LOW_DISK_SPACE_DESCRIPTION, session.locale()));
+        session.sendUpstreamPacket(toastRequestPacket);
     }
 }

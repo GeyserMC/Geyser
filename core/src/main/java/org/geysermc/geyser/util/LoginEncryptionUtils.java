@@ -156,7 +156,7 @@ public class LoginEncryptionUtils {
         }
 
         // Set DoDaylightCycle to false so the time doesn't accelerate while we're here
-        session.setDaylightCycle(false);
+        session.setShouldClientTickClock(false);
 
         session.sendForm(
                 SimpleForm.builder()

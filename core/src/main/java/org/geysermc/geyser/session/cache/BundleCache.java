@@ -163,7 +163,7 @@ public final class BundleCache {
 
         List<GeyserItemStack> contents = data.contents();
         int bedrockSlot = platformConvertSlot(contents.size(), 0);
-        ItemData bedrockContent = contents.get(0).getItemData(session);
+        ItemData bedrockContent = contents.getFirst().getItemData(session);
 
         sendInventoryPacket(data.bundleId(), bedrockSlot, bedrockContent, bundle.getItemData(session));
 

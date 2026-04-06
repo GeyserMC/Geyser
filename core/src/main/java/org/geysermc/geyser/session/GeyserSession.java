@@ -62,7 +62,6 @@ import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
 import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
-import org.cloudburstmc.protocol.bedrock.data.AuthoritativeMovementMode;
 import org.cloudburstmc.protocol.bedrock.data.ChatRestrictionLevel;
 import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.GamePublishSetting;
@@ -640,7 +639,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.
      */
-    private boolean daylightCycle = true;
+    private boolean shouldClientTickClock = true;
 
     private boolean reducedDebugInfo = false;
 
@@ -724,12 +723,35 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private long clientTicks;
 
     /**
-     * The world time in ticks according to the server
-     * <p>
-     * Note: The TickingStatePacket is currently ignored.
+     * The game ticks counter according to the server.
+     *
+     * <p>This is probably the counter you want to use when dealing with ticks on the server. The day time counters can
+     * change and can have a custom rate, however this counter never changes in a dimension, and always has the same rate (1 tick every 20th of a second),
+     * pending any server lag.</p>
+     *
+     * <p>Note: The TickingStatePacket is currently ignored.</p>
      */
     @Setter
-    private long worldTicks;
+    private long gameTicks;
+
+    /**
+     * The day time in ticks according to the server.
+     *
+     * <p>Note: The TickingStatePacket is currently ignored.</p>
+     */
+    private long dayTimeTicks;
+
+    /**
+     * The partial day time tick according to the server.
+     *
+     * <p>Note: The TickingStatePacket is currently ignored.</p>
+     */
+    private double partialTimeTick;
+
+    /**
+     * How fast the world time should pass according to the server
+     */
+    private float clockRate = 1.0f;
 
     /**
      * Used to return players back to their vehicles if the server doesn't want them unmounting.
@@ -764,7 +786,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private final GeyserEntityData entityData;
 
-    @Getter(AccessLevel.MODULE)
+    @Getter(AccessLevel.PACKAGE)
     private MinecraftProtocol protocol;
 
     private int nanosecondsPerTick = 50000000;
@@ -1162,8 +1184,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         downstream.setFlag(BuiltinFlags.CLIENT_TRANSFERRING, loginEvent.transferring());
         downstream.connect(false);
 
-        if (!daylightCycle) {
-            setDaylightCycle(true);
+        if (shouldClientTickClock) {
+            // Java server will tell us to tick time if they want us to
+            setShouldClientTickClock(false);
         }
     }
 
@@ -1364,7 +1387,26 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         ticks++;
-        worldTicks++;
+        partialTimeTick += clockRate;
+        if (partialTimeTick >= 1.0F) {
+            long flooredPartialTick = (long) Math.floor(partialTimeTick);
+            dayTimeTicks += flooredPartialTick;
+            partialTimeTick -= flooredPartialTick;
+
+            if (!isShouldClientTickClock()) {
+                synchronizeTime();
+            }
+        }
+    }
+
+    public void synchronizeTime() {
+        // https://minecraft.wiki/w/Day-night_cycle#24-hour_Minecraft_day
+        SetTimePacket setTimePacket = new SetTimePacket();
+        // We use modulus to prevent an integer overflow
+        // 24000 is the range of ticks that a Minecraft day can be; we times by 8 so all moon phases are visible
+        // (Last verified behavior: Bedrock 1.18.12 / Java 1.18.2)
+        setTimePacket.setTime((int) (Math.abs(dayTimeTicks) % (24000 * 8)));
+        this.sendUpstreamPacket(setTimePacket);
     }
 
     public void sendJsonUIData(String key, String value) {
@@ -1662,7 +1704,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 dialogManager.openDialog(BuiltInDialog.SERVER_LINKS);
             }
         } else if (additions.size() == 1) {
-            dialogManager.openDialog(additions.get(0));
+            dialogManager.openDialog(additions.getFirst());
         } else {
             dialogManager.openDialog(BuiltInDialog.CUSTOM_OPTIONS);
         }
@@ -1671,12 +1713,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public void openQuickActions() {
         List<Dialog> quickActions = tagCache.get(DialogTag.QUICK_ACTIONS);
-        if (quickActions.isEmpty()) {
-            return;
-        } else if (quickActions.size() == 1) {
-            dialogManager.openDialog(quickActions.get(0));
-        } else {
-            dialogManager.openDialog(BuiltInDialog.QUICK_ACTIONS);
+        if (!quickActions.isEmpty()) {
+            if (quickActions.size() == 1) {
+                dialogManager.openDialog(quickActions.getFirst());
+            } else {
+                dialogManager.openDialog(BuiltInDialog.QUICK_ACTIONS);
+            }
         }
     }
 
@@ -1769,7 +1811,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         // Disable time progression whilst the form is open
         // Once logged into the game this is set correctly when receiving a time packet from the server
-        setDaylightCycle(false);
+        setShouldClientTickClock(false);
     }
 
     public @NonNull PlayerInventory getPlayerInventory() {
@@ -1879,8 +1921,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
 
-        startGamePacket.getItemDefinitions().addAll(this.itemMappings.getItemDefinitions().values());
-
         // Needed for custom block mappings and custom skulls system
         startGamePacket.getBlockProperties().addAll(this.blockMappings.getBlockProperties());
 
@@ -1893,7 +1933,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         startGamePacket.setChatRestrictionLevel(ChatRestrictionLevel.NONE);
 
-        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.SERVER);
         startGamePacket.setRewindHistorySize(0);
         // Server authorative block breaking results in the client always sending
         // positions for block breaking actions, which is easier to validate
@@ -2076,10 +2115,30 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      *
      * @param doCycle If the cycle should continue
      */
-    public void setDaylightCycle(boolean doCycle) {
+    public void setShouldClientTickClock(boolean doCycle) {
+        if (this.shouldClientTickClock == doCycle) {
+            return;
+        }
         sendGameRule("dodaylightcycle", doCycle);
         // Save the value so we don't have to constantly send a daylight cycle gamerule update
-        this.daylightCycle = doCycle;
+        this.shouldClientTickClock = doCycle;
+    }
+
+    /**
+     * Sets the current Java tick counters
+     *
+     * @param timeTicks the current day time ticks according to the server (minecraft:overworld clock)
+     * @param partialTick the current partial day time tick according to the server (minecraft:overworld clock)
+     */
+    public void setTimeTicks(long timeTicks, float partialTick) {
+        this.dayTimeTicks = timeTicks;
+        this.partialTimeTick = partialTick;
+        synchronizeTime();
+    }
+
+    public void setClockRate(float rate) {
+        this.clockRate = rate;
+        setShouldClientTickClock(this.clockRate == 1.0f);
     }
 
     /**

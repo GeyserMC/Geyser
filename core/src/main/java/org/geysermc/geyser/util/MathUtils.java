@@ -202,10 +202,7 @@ public class MathUtils {
         if (value < low) {
             return low;
         }
-        if (value > high) {
-            return high;
-        }
-        return value;
+        return Math.min(value, high);
     }
 
     /**
