@@ -42,8 +42,8 @@ import net.kyori.adventure.text.format.ShadowColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.object.ObjectContents;
 import net.kyori.adventure.text.object.PlayerHeadObjectContents;
+import org.geysermc.geyser.item.hashing.data.NbtComponentType;
 import org.geysermc.geyser.item.hashing.data.ObjectContentsType;
 
 import java.util.function.Function;
@@ -174,14 +174,11 @@ public interface ComponentHasher {
     MinecraftHasher<NBTComponent<?>> NBT_COMPONENT = component(builder -> builder
         .accept("nbt", MinecraftHasher.STRING, NBTComponent::nbtPath)
         .optional("interpret", MinecraftHasher.BOOL, NBTComponent::interpret, false)
-        .optionalNullable("separator", COMPONENT, NBTComponent::separator)); // TODO source key (FIXME 26.1, adventure 5.0.0 has this)
-
-    MinecraftHasher<ObjectContentsType> OBJECT_CONTENTS_TYPE = MinecraftHasher.fromEnum(ObjectContentsType::getName);
-
-    MapBuilder<ObjectContents> OBJECT_CONTENTS = MapBuilder.dispatch("object", OBJECT_CONTENTS_TYPE, ObjectContentsType::fromContents, ObjectContentsType::mapBuilder);
+        .optionalNullable("separator", COMPONENT, NBTComponent::separator)
+        .accept(NbtComponentType.NBT_COMPONENT_SOURCE_MAP_BUILDER, Function.identity()));
 
     MinecraftHasher<ObjectComponent> OBJECT_COMPONENT = component(builder -> builder
-        .accept(OBJECT_CONTENTS, ObjectComponent::contents));
+        .accept(ObjectContentsType.OBJECT_CONTENTS_MAP_BUILDER, ObjectComponent::contents));
 
     MinecraftHasher<Component> ACTUAL_COMPONENT = (component, encoder) -> {
         if (component instanceof TextComponent text) {
