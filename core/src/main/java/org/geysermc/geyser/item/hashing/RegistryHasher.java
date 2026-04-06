@@ -308,9 +308,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<Consumable.ItemUseAnimation> ITEM_USE_ANIMATION = MinecraftHasher.fromEnum();
 
-    MinecraftHasher<ConsumeEffectType> CONSUME_EFFECT_TYPE = enumRegistry();
-
-    MinecraftHasher<ConsumeEffect> CONSUME_EFFECT = CONSUME_EFFECT_TYPE.dispatch(ConsumeEffectType::fromEffect, ConsumeEffectType::mapBuilder);
+    MinecraftHasher<ConsumeEffect> CONSUME_EFFECT = ConsumeEffectType.CONSUME_EFFECT_HASHER;
 
     MinecraftHasher<SuspiciousStewEffect> SUSPICIOUS_STEW_EFFECT = MinecraftHasher.mapBuilder(builder -> builder
         .accept("id", EFFECT_ID, SuspiciousStewEffect::getMobEffectId)

@@ -189,6 +189,15 @@ public interface MinecraftHasher<Type> {
     }
 
     /**
+     * Casts this hasher to a hasher for {@link Casted}. This cast is done unsafely without converting of any kind, only use this if you are sure the object being encoded is of the type being cast to!
+     *
+     * @param <Casted> the type to cast to.
+     */
+    default <Casted> MinecraftHasher<Casted> cast() {
+        return cast(casted -> (Type) casted);
+    }
+
+    /**
      * "Casts" this hasher to another hash a different object, with a converter method. The returned hasher takes a {@link Casted}, converts it to a {@link Type} using the {@code converter}, and then hashes it.
      *
      * <p>If a {@link JavaRegistryProvider} object is needed for conversion, use {@link MinecraftHasher#registryCast(BiFunction)}.</p>

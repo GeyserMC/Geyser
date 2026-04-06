@@ -25,46 +25,48 @@
 
 package org.geysermc.geyser.item.hashing.data;
 
-import lombok.Getter;
 import net.kyori.adventure.text.object.ObjectContents;
 import net.kyori.adventure.text.object.PlayerHeadObjectContents;
 import net.kyori.adventure.text.object.SpriteObjectContents;
 import org.geysermc.geyser.item.hashing.ComponentHasher;
+import org.geysermc.geyser.item.hashing.EnumMapDispatchHasher;
 import org.geysermc.geyser.item.hashing.MapBuilder;
 import org.geysermc.geyser.item.hashing.MinecraftHasher;
 
 import java.util.function.Function;
 
-public enum ObjectContentsType {
-    ATLAS("atlas", SpriteObjectContents.class,
+public enum ObjectContentsType implements EnumMapDispatchHasher<ObjectContentsType, ObjectContents> {
+    ATLAS(SpriteObjectContents.class,
         builder -> builder
             .optional("atlas", MinecraftHasher.KEY, SpriteObjectContents::atlas, SpriteObjectContents.DEFAULT_ATLAS)
             .accept("sprite", MinecraftHasher.KEY, SpriteObjectContents::sprite)),
-    PLAYER("player", PlayerHeadObjectContents.class,
+    PLAYER(PlayerHeadObjectContents.class,
         builder -> builder
             .accept("player", ComponentHasher.RESOLVABLE_PROFILE, Function.identity())
             .optional("hat", MinecraftHasher.BOOL, PlayerHeadObjectContents::hat, true));
 
-    @Getter
-    private final String name;
+    public static final MapBuilder<ObjectContents> OBJECT_CONTENTS_MAP_BUILDER = EnumMapDispatchHasher.dispatch("objects", ObjectContentsType::values);
+
+    private final Class<? extends ObjectContents> clazz;
     private final MapBuilder<? extends ObjectContents> builder;
 
-    @SuppressWarnings("unused") // So Java knows what T we are talking about
-    <T extends ObjectContents> ObjectContentsType(String name, Class<T> clazz, MapBuilder<T> builder) {
-        this.name = name;
+    <T extends ObjectContents> ObjectContentsType(Class<T> clazz, MapBuilder<T> builder) {
+        this.clazz = clazz;
         this.builder = builder;
     }
 
-    public MapBuilder<ObjectContents> mapBuilder() {
-        return builder.cast();
+    @Override
+    public ObjectContentsType distinction() {
+        return this;
     }
 
-    public static ObjectContentsType fromContents(ObjectContents contents) {
-        if (contents instanceof SpriteObjectContents) {
-            return ATLAS;
-        } else if (contents instanceof PlayerHeadObjectContents) {
-            return PLAYER;
-        }
-        throw new UnsupportedOperationException("Don't know how to hash object contents of type " + contents.getClass());
+    @Override
+    public Class<? extends ObjectContents> valueTypeClass() {
+        return clazz;
+    }
+
+    @Override
+    public MapBuilder<? extends ObjectContents> mapBuilder() {
+        return builder;
     }
 }
