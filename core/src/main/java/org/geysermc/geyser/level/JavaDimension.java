@@ -25,11 +25,13 @@
 
 package org.geysermc.geyser.level;
 
+import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.util.DimensionUtils;
+import org.geysermc.geyser.util.MinecraftKey;
 
 /**
  * Represents the information we store from the current Java dimension
@@ -41,7 +43,7 @@ import org.geysermc.geyser.util.DimensionUtils;
  * As a Java dimension can be null in some login cases (e.g. GeyserConnect), make sure the player
  * is logged in before utilizing this field.
  */
-public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ultrawarm, int bedrockId, boolean isNetherLike, @Nullable String defaultClock) {
+public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ultrawarm, int bedrockId, boolean isNetherLike, @Nullable Key defaultClock) {
 
     public static JavaDimension read(RegistryEntryContext entry) {
         NbtMap dimension = entry.data();
@@ -75,7 +77,12 @@ public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ul
             isNetherLike = BedrockDimension.NETHER_IDENTIFIER.equals(skyboxId);
         }
 
-        String defaultClock = dimension.getString("default_clock", null);
+        Key defaultClock;
+        try {
+            defaultClock = MinecraftKey.nullableKey(dimension.getString("default_clock", null));
+        } catch (InvalidKeyException exception) {
+            defaultClock = null;
+        }
 
         if (minY % 16 != 0) {
             throw new RuntimeException("Minimum Y must be a multiple of 16!");

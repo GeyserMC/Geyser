@@ -723,18 +723,30 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private long clientTicks;
 
     /**
-     * The world time in ticks according to the server but floored
-     * <p>
-     * Note: The TickingStatePacket is currently ignored.
+     * The game ticks counter according to the server.
+     *
+     * <p>This is probably the counter you want to use when dealing with ticks on the server. The day time counters can
+     * change and can have a custom rate, however this counter never changes in a dimension, and always has the same rate (1 tick every 20th of a second),
+     * pending any server lag.</p>
+     *
+     * <p>Note: The TickingStatePacket is currently ignored.</p>
      */
-    private long worldTicks;
+    @Setter
+    private long gameTicks;
 
     /**
-     * The world time in ticks according to the server
-     * <p>
-     * Note: The TickingStatePacket is currently ignored.
+     * The day time in ticks according to the server.
+     *
+     * <p>Note: The TickingStatePacket is currently ignored.</p>
      */
-    private double partialWorldTick;
+    private long dayTimeTicks;
+
+    /**
+     * The partial day time tick according to the server.
+     *
+     * <p>Note: The TickingStatePacket is currently ignored.</p>
+     */
+    private double partialTimeTick;
 
     /**
      * How fast the world time should pass according to the server
@@ -1172,8 +1184,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         downstream.setFlag(BuiltinFlags.CLIENT_TRANSFERRING, loginEvent.transferring());
         downstream.connect(false);
 
-        if (!shouldClientTickClock) {
-            setShouldClientTickClock(true);
+        if (shouldClientTickClock) {
+            // Java server will tell us to tick time if they want us to
+            setShouldClientTickClock(false);
         }
     }
 
@@ -1374,24 +1387,25 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         ticks++;
-        partialWorldTick += clockRate;
-        if (partialWorldTick >= 1) {
-            worldTicks++;
-            partialWorldTick--;
+        partialTimeTick += clockRate;
+        if (partialTimeTick >= 1.0F) {
+            long flooredPartialTick = (long) Math.floor(partialTimeTick);
+            dayTimeTicks += flooredPartialTick;
+            partialTimeTick -= flooredPartialTick;
 
             if (!isShouldClientTickClock()) {
-                sendTimePacket(worldTicks);
+                synchronizeTime();
             }
         }
     }
 
-    public void sendTimePacket(long time) {
+    public void synchronizeTime() {
         // https://minecraft.wiki/w/Day-night_cycle#24-hour_Minecraft_day
         SetTimePacket setTimePacket = new SetTimePacket();
         // We use modulus to prevent an integer overflow
         // 24000 is the range of ticks that a Minecraft day can be; we times by 8 so all moon phases are visible
         // (Last verified behavior: Bedrock 1.18.12 / Java 1.18.2)
-        setTimePacket.setTime((int) (Math.abs(time) % (24000 * 8)));
+        setTimePacket.setTime((int) (Math.abs(dayTimeTicks) % (24000 * 8)));
         this.sendUpstreamPacket(setTimePacket);
     }
 
@@ -2102,19 +2116,24 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * @param doCycle If the cycle should continue
      */
     public void setShouldClientTickClock(boolean doCycle) {
-        if (this.shouldClientTickClock == doCycle) return;
+        if (this.shouldClientTickClock == doCycle) {
+            return;
+        }
         sendGameRule("dodaylightcycle", doCycle);
         // Save the value so we don't have to constantly send a daylight cycle gamerule update
         this.shouldClientTickClock = doCycle;
     }
 
     /**
-     * Sets the current world ticks
-     * @param worldTicks the current world ticks according to the server
+     * Sets the current Java tick counters
+     *
+     * @param timeTicks the current day time ticks according to the server (minecraft:overworld clock)
+     * @param partialTick the current partial day time tick according to the server (minecraft:overworld clock)
      */
-    public void setWorldTicks(long worldTicks) {
-        this.worldTicks = worldTicks;
-        this.partialWorldTick = 0;
+    public void setTimeTicks(long timeTicks, float partialTick) {
+        this.dayTimeTicks = timeTicks;
+        this.partialTimeTick = partialTick;
+        synchronizeTime();
     }
 
     public void setClockRate(float rate) {

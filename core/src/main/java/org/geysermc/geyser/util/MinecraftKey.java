@@ -35,8 +35,21 @@ public final class MinecraftKey {
 
     /**
      * To prevent constant warnings from invalid regex.
+     *
+     * @throws net.kyori.adventure.key.InvalidKeyException for invalid keys
      */
     public static Key key(@Subst("empty") String s) {
+        return Key.key(s);
+    }
+
+    /**
+     * @return null when the input is null
+     * @throws net.kyori.adventure.key.InvalidKeyException for invalid keys
+     */
+    public static @Nullable Key nullableKey(@Nullable @Subst("empty") String s) {
+        if (s == null) {
+            return null;
+        }
         return Key.key(s);
     }
 
