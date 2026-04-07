@@ -205,8 +205,15 @@ public class LivingEntity extends Entity implements Tickable {
 
     @Override
     public void updateNametag(@Nullable Team team) {
+        // Java hides the name tag when a living entity has any passengers
         // if name not visible, don't mark it as visible
-        updateNametag(team, team == null || team.isVisibleFor(session.getPlayerEntity().getUsername()));
+        updateNametag(team, passengers.isEmpty() && (team == null || team.isVisibleFor(session.getPlayerEntity().getUsername())));
+    }
+
+    @Override
+    public void setPassengers(List<Entity> passengers) {
+        super.setPassengers(passengers);
+        updateNametag(session.getWorldCache().getScoreboard().getTeamFor(teamIdentifier()));
     }
 
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
