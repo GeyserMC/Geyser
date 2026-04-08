@@ -1,5 +1,6 @@
 {
   "type": "geyser:component_hash",
+  "required": false,
   "component": "minecraft:custom_name",
   "value": [
     {
