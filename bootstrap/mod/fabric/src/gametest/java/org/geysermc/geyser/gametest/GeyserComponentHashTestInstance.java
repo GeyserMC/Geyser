@@ -38,8 +38,8 @@ import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.HashOps;
 import org.geysermc.geyser.gametest.registries.GameTestJavaRegistryProvider;
@@ -63,7 +63,7 @@ public class GeyserComponentHashTestInstance extends GameTestInstance {
     public GeyserComponentHashTestInstance(List<TypedDataComponent<?>> testCases) {
         // TODO use default vanilla test environment
         super(new TestData<>(Holder.direct(new TestEnvironmentDefinition.AllOf(List.of())),
-            ResourceLocation.withDefaultNamespace("empty"), 1, 1, true));
+            Identifier.withDefaultNamespace("empty"), 1, 1, true));
         this.testCases = testCases;
     }
 

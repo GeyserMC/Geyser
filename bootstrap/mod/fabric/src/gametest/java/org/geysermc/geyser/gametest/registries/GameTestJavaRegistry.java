@@ -30,9 +30,9 @@ import com.mojang.serialization.DynamicOps;
 import net.kyori.adventure.key.Key;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.cache.RegistryCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
@@ -66,11 +66,11 @@ public class GameTestJavaRegistry<T> implements JavaRegistry<T> {
         //noinspection unchecked
         RegistryCache.RegistryReader<Geyser> reader = (RegistryCache.RegistryReader<Geyser>) RegistryCache.READERS.get(registryKey);
 
-        ToIntFunction<Key> keyIdFunction = key -> registry.getId(registry.getValue(keyToResourceLocation(key)));
+        ToIntFunction<Key> keyIdFunction = key -> registry.getId(registry.getValue(keyToIdentifier(key)));
         List<RegistryEntryData<Geyser>> entries = new ArrayList<>();
         for (Mojang entry : registry) {
             int id = registry.getIdOrThrow(entry);
-            Key key = resourceLocationToKey(Objects.requireNonNull(registry.getKey(entry)));
+            Key key = identifierToKey(Objects.requireNonNull(registry.getKey(entry)));
             NbtMap encoded = (NbtMap) codec.encodeStart(nbtOps, entry).getOrThrow();
             Geyser mapped = reader.read(new RegistryEntryContext(new RegistryEntry(key, encoded), keyIdFunction, Optional.empty()));
             entries.add(new RegistryEntryData<>(id, key, mapped));
@@ -88,15 +88,15 @@ public class GameTestJavaRegistry<T> implements JavaRegistry<T> {
     }
 
     private static ResourceKey<? extends Registry<?>> geyserKeyToMojangKey(JavaRegistryKey<?> key) {
-        return ResourceKey.createRegistryKey(keyToResourceLocation(key.registryKey()));
+        return ResourceKey.createRegistryKey(keyToIdentifier(key.registryKey()));
     }
 
-    private static ResourceLocation keyToResourceLocation(Key key) {
-        return ResourceLocation.fromNamespaceAndPath(key.namespace(), key.value());
+    private static Identifier keyToIdentifier(Key key) {
+        return Identifier.fromNamespaceAndPath(key.namespace(), key.value());
     }
 
-    private static Key resourceLocationToKey(ResourceLocation location) {
+    private static Key identifierToKey(Identifier identifier) {
         //noinspection PatternValidation
-        return Key.key(location.getNamespace(), location.getPath());
+        return Key.key(identifier.getNamespace(), identifier.getPath());
     }
 }

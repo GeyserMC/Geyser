@@ -29,12 +29,12 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestInstance;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class GeyserGameTests {
 
-    private static ResourceLocation createKey(String name) {
-        return ResourceLocation.fromNamespaceAndPath("geyser", name);
+    private static Identifier createKey(String name) {
+        return Identifier.fromNamespaceAndPath("geyser", name);
     }
 
     private static void register(String name, MapCodec<? extends GameTestInstance> codec) {
