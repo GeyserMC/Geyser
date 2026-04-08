@@ -35,6 +35,8 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.DataPalette;
+import org.geysermc.mcprotocollib.protocol.data.game.level.LightUpdateData;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
 
 public class ChunkCache {
     private final boolean cache;
@@ -50,20 +52,20 @@ public class ChunkCache {
         chunks = cache ? new Long2ObjectOpenHashMap<>() : null;
     }
 
-    public void addToCache(int x, int z, DataPalette[] chunks) {
+    public void addToCache(int x, int z, DataPalette[] chunks, BlockEntityInfo[][] blockEntities, LightUpdateData lightData) {
         if (!cache) {
             return;
         }
 
         long chunkPosition = MathUtils.chunkPositionToLong(x, z);
-        GeyserChunk geyserChunk = GeyserChunk.from(chunks);
+        GeyserChunk geyserChunk = GeyserChunk.from(chunks, blockEntities, lightData);
         this.chunks.put(chunkPosition, geyserChunk);
     }
 
     /**
      * Doesn't check for cache enabled, so don't use this without checking that first!
      */
-    private GeyserChunk getChunk(int chunkX, int chunkZ) {
+    public GeyserChunk getChunk(int chunkX, int chunkZ) {
         long chunkPosition = MathUtils.chunkPositionToLong(chunkX, chunkZ);
         return chunks.getOrDefault(chunkPosition, null);
     }
