@@ -2,9 +2,9 @@ plugins {
     id("geyser.modded-conventions")
 }
 
-//architectury {
-//    common("neoforge", "fabric")
-//}
+architectury {
+    common("neoforge", "fabric")
+}
 
 afterEvaluate {
     // We don't need these
