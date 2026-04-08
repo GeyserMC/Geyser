@@ -166,7 +166,8 @@ mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 lombok = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok" }
 indra = { group = "net.kyori", name  = "indra-common", version.ref = "indra" }
 shadow = { group = "com.gradleup.shadow", name = "com.gradleup.shadow.gradle.plugin", version.ref = "shadow" }
-architectury-plugin = { group = "architectury-plugin", name = "architectury-plugin.gradle.plugin", version.ref = "architectury-plugin" }
+# architectury-plugin = { group = "architectury-plugin", name = "architectury-plugin.gradle.plugin", version.ref = "architectury-plugin" }
+architectury-plugin = { group = "dev.kastle.architectury-plugin", name = "architectury-plugin.gradle.plugin", version = "5ffb79eb20" }
 architectury-loom = { group = "dev.architectury.loom", name = "dev.architectury.loom.gradle.plugin", version.ref = "architectury-loom" }
 minotaur = { group = "com.modrinth.minotaur", name = "Minotaur", version.ref = "minotaur" }
 loom-companion = { group = "dev.architectury.loom-companion", name = "dev.architectury.loom-companion.gradle.plugin", version.ref = "loom-companion" }
