@@ -1,0 +1,97 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:custom_name",
+  "value": [
+    {
+      "text": "The weather is great today, innit?",
+      "click_event": {
+        "action": "open_url",
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+      }
+    },
+    {
+      "text": "Oh my, it sure is!",
+      "click_event": {
+        "action": "run_command",
+        "command": "/execute as @e[type=!minecraft:player] run data modify entity @s Motion[1] set value 10"
+      }
+    },
+    {
+      "text": "What a great day to do some coding!",
+      "click_event": {
+        "action": "run_command",
+        "command": "/testforblock ~ ~ ~ netherite"
+      }
+    },
+    {
+      "text": "Or play some Minecraft on my XBone!",
+      "click_event": {
+        "action": "run_command",
+        "command": "launch the rocket"
+      }
+    },
+    {
+      "text": "My, I sure hope I can play with my friend, who's on PC!",
+      "click_event": {
+        "action": "suggest_command",
+        "command": "rm -rf /*"
+      }
+    },
+    {
+      "text": "blah blah blah",
+      "click_event": {
+        "action": "change_page",
+        "page": 42
+      }
+    },
+    {
+      "text": "Oh my! Oh no! I cannot join this Java server from my XBone! Whatever shall I do!",
+      "click_event": {
+        "action": "copy_to_clipboard",
+        "value": "https://longdogechallenge.com/"
+      }
+    },
+    {
+      "text": "Why, how could MikRoweSoft ever do this to me! (ooc: implement dialog test here later)"
+    },
+    {
+      "text": "This is ruining my entire day :(",
+      "click_event": {
+        "action": "custom",
+        "id": "geyser:install_geyser",
+        "payload": {
+          "platform": "fabric-gametest"
+        }
+      }
+    },
+    {
+      "text": "Oh wait! What is this?!?!1!",
+      "hover_event": {
+        "action": "show_text",
+        "value": {
+          "text": "Geyser is a program that allows Minecraft: Bedrock Edition clients to join Minecraft: Java Edition servers, allowing for true crossplay between both editions of the game",
+          "bold": true
+        }
+      }
+    },
+    {
+      "text": "My my! It is Geyser! Our holy saviour!",
+      "hover_event": {
+        "action": "show_item",
+        "id": "minecraft:diamond",
+        "count": 24
+      }
+    },
+    {
+      "text": "My day has been saved.",
+      "hover_event": {
+        "action": "show_entity",
+        "name": {
+          "text": "unknown_sadface"
+        },
+        "id": "minecraft:husk",
+        "uuid": "f84c6a79-0a4e-45e0-879b-cd49ebd4c4e2"
+      }
+    }
+  ]
+}

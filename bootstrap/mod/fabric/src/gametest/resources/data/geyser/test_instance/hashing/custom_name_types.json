@@ -1,0 +1,80 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:custom_name",
+  "value": [
+    "simple component test!",
+    {
+      "translate": "a.translatable"
+    },
+    {
+      "text": "component with more stuff",
+      "extra": [
+        {
+          "translate": "a.translate.string",
+          "with": [
+            "hello 1 2 3",
+            [
+              "456",
+              "7 8 9"
+            ]
+          ],
+          "fallback": "fallback!"
+        }
+      ]
+    },
+    {
+      "score": {
+        "name": "eclipseisoffline",
+        "objective": "diamonds_mined"
+      }
+    },
+    {
+      "selector": "@a"
+    },
+    {
+      "selector": "@s",
+      "separator": {
+        "color": "gray",
+        "text": ", "
+      }
+    },
+    {
+      "keybind": "key.forward"
+    },
+    {
+      "nbt": "an.example.path",
+      "interpret": false,
+      "separator": "|",
+      "entity": "@s"
+    },
+    {
+      "nbt": "another.cool.path",
+      "interpret": false,
+      "separator": "|",
+      "block": "~ ~.2 ~"
+    },
+    {
+      "nbt": "another.cool.path",
+      "interpret": false,
+      "separator": "|",
+      "block": "^ ^7 ^-.5"
+    },
+    {
+      "nbt": "very.cool.path.mhm",
+      "interpret": true,
+      "separator": "|",
+      "storage": "geyser:hello_is_anyone_there"
+    },
+    {
+      "atlas": "minecraft:items",
+      "sprite": "item/diamond"
+    },
+    {
+      "sprite": "block/netherite"
+    },
+    {
+      "player": "eclipseisoffline",
+      "hat": false
+    }
+  ]
+}

@@ -128,7 +128,7 @@ public class GeyserComponentHashTestInstance extends GameTestInstance {
             GameTestJavaRegistryProvider registries = new GameTestJavaRegistryProvider(helper.getLevel().registryAccess());
             int geyser = DataComponentHashers.hash(registries, mcplComponent).asInt();
 
-            helper.assertValueEqual(expected, geyser, Component.literal("Hash for component " + testCase));
+            helper.assertValueEqual(expected, geyser, Component.literal("hash for component " + testCase));
         }
 
         // Succeed if nothing was thrown
