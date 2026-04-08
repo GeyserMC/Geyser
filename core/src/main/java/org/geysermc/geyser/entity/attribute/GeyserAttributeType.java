@@ -54,6 +54,7 @@ public enum GeyserAttributeType {
     MINING_EFFICIENCY("minecraft:mining_efficiency", null, 0f, 1024f, 0f),
     BLOCK_BREAK_SPEED("minecraft:block_break_speed", null, 0f, 1024f, 1f),
     SUBMERGED_MINING_SPEED("minecraft:submerged_mining_speed", null, 0f, 20f, 0.2f),
+    WATER_MOVEMENT_EFFICIENCY("minecraft:water_movement_efficiency", null, 0f, 1f, 0f),
 
     // Bedrock Attributes
     ABSORPTION(null, "minecraft:absorption", 0f, 1024f, 0f),
@@ -62,7 +63,9 @@ public enum GeyserAttributeType {
     EXPERIENCE_LEVEL(null, "minecraft:player.level", 0f, 24791.00f, 0f),
     HEALTH(null, "minecraft:health", 0f, 1024f, 20f),
     HUNGER(null, "minecraft:player.hunger", 0f, 20f, 20f),
-    SATURATION(null, "minecraft:player.saturation", 0f, 20f, 20f);
+    SATURATION(null, "minecraft:player.saturation", 0f, 20f, 20f),
+    LAVA_MOVEMENT(null, "minecraft:lava_movement", 0f, 3.4028235E38f, 0.02f),
+    UNDERWATER_MOVEMENT(null, "minecraft:underwater_movement", 0f, 3.4028235E38f, 0.02f);
 
     private final String javaIdentifier;
     private final String bedrockIdentifier;
