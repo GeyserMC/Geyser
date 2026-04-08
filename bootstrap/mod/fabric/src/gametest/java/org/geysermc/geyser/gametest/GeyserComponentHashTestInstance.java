@@ -26,15 +26,21 @@
 package org.geysermc.geyser.gametest;
 
 import com.google.common.hash.HashCode;
+import com.mojang.datafixers.util.Either;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.MapLike;
+import com.mojang.serialization.RecordBuilder;
 import io.netty.buffer.Unpooled;
-import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.TypedDataComponent;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.gametest.framework.GameTestEnvironments;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInstance;
 import net.minecraft.gametest.framework.TestData;
-import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -49,27 +55,64 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 public class GeyserComponentHashTestInstance extends GameTestInstance {
 
-    private static final MapCodec<List<TypedDataComponent<?>>> TYPED_COMPONENT_CODEC = DataComponentType.PERSISTENT_CODEC
+    private static final MapCodec<List<TypedDataComponent<?>>> TYPED_COMPONENT_LIST_CODEC = DataComponentType.PERSISTENT_CODEC
         .dispatchMap("component", list -> list.getFirst().type(), GeyserComponentHashTestInstance::typedComponentListCodec);
-    public static final MapCodec<GeyserComponentHashTestInstance> CODEC = TYPED_COMPONENT_CODEC.xmap(GeyserComponentHashTestInstance::new,
-        instance -> instance.testCases);
+    private static final MapCodec<List<TypedDataComponent<?>>> MERGED_TYPED_COMPONENT_LIST_CODEC = TYPED_COMPONENT_LIST_CODEC.codec().listOf()
+        .xmap(listOfLists -> listOfLists.stream().flatMap(List::stream).toList(), list -> {
+            Map<DataComponentType<?>, List<TypedDataComponent<?>>> split = new HashMap<>();
+            list.forEach(component -> {
+                split.compute(component.type(), (type, typeList) -> {
+                    if (typeList == null) {
+                        typeList = new ArrayList<>();
+                    }
+                    typeList.add(component);
+                    return typeList;
+                });
+            });
+            return split.values().stream().toList();
+        }).fieldOf("components");
+    public static final MapCodec<List<TypedDataComponent<?>>> MERGED_AND_SINGLE_COMPONENT_MAP_CODEC = Codec.mapEither(MERGED_TYPED_COMPONENT_LIST_CODEC, TYPED_COMPONENT_LIST_CODEC)
+        .xmap(Either::unwrap, Either::left);
+    public static final MapCodec<GeyserComponentHashTestInstance> MAP_CODEC = new MapCodec<>() {
+        @Override
+        public <T> Stream<T> keys(DynamicOps<T> ops) {
+            return MERGED_AND_SINGLE_COMPONENT_MAP_CODEC.keys(ops);
+        }
+
+        @Override
+        public <T> DataResult<GeyserComponentHashTestInstance> decode(DynamicOps<T> ops, MapLike<T> input) {
+            if (ops instanceof RegistryOps<T> registryOps) {
+                return MERGED_AND_SINGLE_COMPONENT_MAP_CODEC.decode(ops, input).map(cases -> new GeyserComponentHashTestInstance(registryOps, cases));
+            }
+            return DataResult.error(() -> "Unable to parse component hash test without RegistryOps");
+        }
+
+        @Override
+        public <T> RecordBuilder<T> encode(GeyserComponentHashTestInstance input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
+            return MERGED_AND_SINGLE_COMPONENT_MAP_CODEC.encode(input.testCases, ops, prefix);
+        }
+    };
 
     private final List<TypedDataComponent<?>> testCases;
 
-    public GeyserComponentHashTestInstance(List<TypedDataComponent<?>> testCases) {
-        // TODO use default vanilla test environment
-        super(new TestData<>(Holder.direct(new TestEnvironmentDefinition.AllOf(List.of())),
+    public GeyserComponentHashTestInstance(RegistryOps<?> ops, List<TypedDataComponent<?>> testCases) {
+        super(new TestData<>(ops.getter(Registries.TEST_ENVIRONMENT)
+            .flatMap(getter -> getter.get(GameTestEnvironments.DEFAULT_KEY)).orElseThrow(),
             Identifier.withDefaultNamespace("empty"), 1, 1, true));
         this.testCases = testCases;
     }
 
     @Override
     public void run(@NotNull GameTestHelper helper) {
-        RegistryOps<HashCode> ops = RegistryOps.create(HashOps.CRC32C_INSTANCE, helper.getLevel().registryAccess());
+        RegistryOps<HashCode> ops = helper.getLevel().registryAccess().createSerializationContext(HashOps.CRC32C_INSTANCE);
 
         for (TypedDataComponent<?> testCase : testCases) {
             // Encode vanilla component to buffer
@@ -94,7 +137,7 @@ public class GeyserComponentHashTestInstance extends GameTestInstance {
 
     @Override
     public @NotNull MapCodec<? extends GameTestInstance> codec() {
-        return CODEC;
+        return MAP_CODEC;
     }
 
     @Override

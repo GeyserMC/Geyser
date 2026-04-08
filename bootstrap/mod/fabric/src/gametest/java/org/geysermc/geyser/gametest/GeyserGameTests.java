@@ -42,6 +42,6 @@ public class GeyserGameTests {
     }
 
     public static void bootstrap() {
-        register("component_hash", GeyserComponentHashTestInstance.CODEC);
+        register("component_hash", GeyserComponentHashTestInstance.MAP_CODEC);
     }
 }

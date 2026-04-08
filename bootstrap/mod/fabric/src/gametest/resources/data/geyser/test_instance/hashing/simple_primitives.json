@@ -1,0 +1,21 @@
+{
+  "type": "geyser:component_hash",
+  "components": [
+    {
+      "component": "minecraft:max_stack_size",
+      "value": 64
+    },
+    {
+      "component": "minecraft:max_damage",
+      "value": 13
+    },
+    {
+      "component": "minecraft:damage",
+      "value": 459
+    },
+    {
+      "component": "minecraft:unbreakable",
+      "value": {}
+    }
+  ]
+}
