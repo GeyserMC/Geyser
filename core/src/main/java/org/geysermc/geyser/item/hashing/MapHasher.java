@@ -26,6 +26,8 @@
 package org.geysermc.geyser.item.hashing;
 
 import com.google.common.hash.HashCode;
+import org.geysermc.geyser.GeyserImpl;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +46,8 @@ import java.util.function.Predicate;
  */
 @SuppressWarnings("UnstableApiUsage")
 public class MapHasher<Type> {
-    private static final boolean DEBUG = false;
+    @VisibleForTesting
+    public static boolean debug = false;
 
     private final MinecraftHashEncoder encoder;
     private final Type object;
@@ -52,7 +55,7 @@ public class MapHasher<Type> {
     private final Map<String, Object> unhashed;
 
     MapHasher(Type object, MinecraftHashEncoder encoder) {
-        this(object, encoder, new HashMap<>(), DEBUG ? new HashMap<>() : null);
+        this(object, encoder, new HashMap<>(), debug ? new HashMap<>() : null);
     }
 
     private MapHasher(Type object, MinecraftHashEncoder encoder, Map<HashCode, HashCode> map, Map<String, Object> unhashed) {
@@ -213,6 +216,9 @@ public class MapHasher<Type> {
     }
 
     public HashCode build() {
+        if (debug) {
+            GeyserImpl.getInstance().getLogger().info("Building MapHasher with unhashed map: " + unhashed);
+        }
         return encoder.map(map);
     }
 }

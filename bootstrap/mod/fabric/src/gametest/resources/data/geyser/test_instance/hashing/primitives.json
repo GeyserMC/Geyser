@@ -20,6 +20,18 @@
     {
       "component": "minecraft:minimum_attack_charge",
       "value": 0.4
+    },
+    {
+      "component": "minecraft:repair_cost",
+      "value": 25
+    },
+    {
+      "component": "minecraft:enchantment_glint_override",
+      "value": true
+    },
+    {
+      "component": "minecraft:intangible_projectile",
+      "value": {}
     }
   ]
 }

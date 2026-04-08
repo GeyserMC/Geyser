@@ -77,6 +77,11 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
 
         this.onGeyserInitialize();
 
+        if (GeyserFabricPlatform.isGameTestServer()) {
+            // Have to manually start Geyser for game test environment
+            GeyserImpl.start();
+        }
+
         var sourceConverter = CommandSourceConverter.layered(
                 CommandSourceStack.class,
                 id -> getServer().getPlayerList().getPlayer(id),

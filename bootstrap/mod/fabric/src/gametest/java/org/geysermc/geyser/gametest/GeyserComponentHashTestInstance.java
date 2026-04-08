@@ -30,6 +30,7 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
+import com.mojang.serialization.JavaOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
@@ -37,6 +38,7 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestEnvironments;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInstance;
@@ -48,8 +50,10 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.HashOps;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.gametest.registries.GameTestJavaRegistryProvider;
 import org.geysermc.geyser.item.hashing.DataComponentHashers;
+import org.geysermc.geyser.item.hashing.MapHasher;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -112,7 +116,8 @@ public class GeyserComponentHashTestInstance extends GameTestInstance {
 
     @Override
     public void run(@NotNull GameTestHelper helper) {
-        RegistryOps<HashCode> ops = helper.getLevel().registryAccess().createSerializationContext(HashOps.CRC32C_INSTANCE);
+        RegistryOps<Object> javaOps = helper.getLevel().registryAccess().createSerializationContext(JavaOps.INSTANCE);
+        RegistryOps<HashCode> hashOps = helper.getLevel().registryAccess().createSerializationContext(HashOps.CRC32C_INSTANCE);
 
         for (TypedDataComponent<?> testCase : testCases) {
             // Encode vanilla component to buffer
@@ -123,12 +128,22 @@ public class GeyserComponentHashTestInstance extends GameTestInstance {
             int id = MinecraftTypes.readVarInt(buffer);
             DataComponent<?, ?> mcplComponent = DataComponentTypes.from(id).readDataComponent(buffer);
 
+            Object encodedJavaValue = testCase.encodeValue(javaOps).getOrThrow();
             // Hash both and compare
-            int expected = testCase.encodeValue(ops).getOrThrow().asInt();
+            int expected = testCase.encodeValue(hashOps).getOrThrow().asInt();
             GameTestJavaRegistryProvider registries = new GameTestJavaRegistryProvider(helper.getLevel().registryAccess());
             int geyser = DataComponentHashers.hash(registries, mcplComponent).asInt();
 
-            helper.assertValueEqual(expected, geyser, Component.literal("hash for component " + testCase));
+            try {
+                helper.assertValueEqual(expected, geyser, "hash for component " + encodedJavaValue);
+            } catch (GameTestAssertException assertException) {
+                GeyserImpl.getInstance().getLogger().info("Hash failed for component " + testCase.type() + ", printing values of MapHasher");
+                MapHasher.debug = true;
+                DataComponentHashers.hash(registries, mcplComponent);
+                MapHasher.debug = false;
+                GeyserImpl.getInstance().getLogger().info("The Mojang encoded/expected value is printed in the exception message");
+                throw assertException;
+            }
         }
 
         // Succeed if nothing was thrown
@@ -149,7 +164,8 @@ public class GeyserComponentHashTestInstance extends GameTestInstance {
     // Generics are NOT friendly!!!
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static MapCodec<List<TypedDataComponent<?>>> typedComponentListCodec(DataComponentType component) {
-        return ExtraCodecs.compactListCodec(component.codecOrThrow()).fieldOf("value")
+        return ExtraCodecs.compactListCodec(component.codecOrThrow(), ExtraCodecs.nonEmptyList(component.codecOrThrow().listOf()))
+            .fieldOf("value")
             .xmap(
                 values -> ((List<?>) values).stream()
                     .map(testCase -> new TypedDataComponent(component, testCase))
