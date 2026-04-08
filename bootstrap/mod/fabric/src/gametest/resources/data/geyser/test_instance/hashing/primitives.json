@@ -16,6 +16,10 @@
     {
       "component": "minecraft:unbreakable",
       "value": {}
+    },
+    {
+      "component": "minecraft:minimum_attack_charge",
+      "value": 0.4
     }
   ]
 }

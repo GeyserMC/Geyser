@@ -19,12 +19,13 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 // Stolen from mappings-gen: is there a better way to do this?
+// Has some cursed modifications made to support non-null empty tags
 public class CloudburstNbtOps implements DynamicOps<Object> {
     public static final CloudburstNbtOps INSTANCE = new CloudburstNbtOps();
 
     @Override
     public Object empty() {
-        return null;
+        return NbtType.END;
     }
 
     @Override
@@ -94,6 +95,7 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
     @Override
     @SuppressWarnings({"rawtypes", "unchecked"})
     public DataResult<Object> mergeToList(Object list, Object value) {
+        value = checkEndTag(value);
         if (list == empty()) {
             NbtType<?> type = NbtType.byClass(value.getClass());
             return DataResult.success(new NbtList(type, value));
@@ -108,6 +110,9 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
 
     @Override
     public DataResult<Object> mergeToList(Object list, List<Object> values) {
+        values = values.stream()
+            .map(CloudburstNbtOps::checkEndTag)
+            .toList();
         if (list == empty()) {
             if (values.isEmpty()) {
                 return DataResult.success(emptyList());
@@ -131,19 +136,25 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
 
     @Override
     public DataResult<Object> mergeToMap(Object map, Object key, Object value) {
-        if (!(map instanceof NbtMap) && map != null) {
-            return DataResult.error(() -> "mergeToMap called with not a map: " + map, map);
-        } else if (!(key instanceof String)) {
-            return DataResult.error(() -> "key is not a string: " + key, map);
+        Object checkedMap = checkEndTag(map);
+        Object checkedKey = checkEndTag(key);
+        value = checkEndTag(value);
+        if (value == null) {
+            return DataResult.success(map);
+        }
+        if (!(checkedMap instanceof NbtMap) && checkedMap != null) {
+            return DataResult.error(() -> "mergeToMap called with not a map: " + checkedMap, checkedMap);
+        } else if (!(checkedKey instanceof String)) {
+            return DataResult.error(() -> "key is not a string: " + checkedKey, checkedMap);
         } else {
             NbtMapBuilder builder;
-            if (map instanceof NbtMap nbtMap) {
+            if (checkedMap instanceof NbtMap nbtMap) {
                 builder = nbtMap.toBuilder();
             } else {
                 builder = NbtMap.builder();
             }
 
-            builder.put((String) key, value);
+            builder.put((String) checkedKey, value);
             return DataResult.success(builder.build());
         }
     }
@@ -160,7 +171,7 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
     @Override
     public Object createMap(Stream<Pair<Object, Object>> map) {
         NbtMapBuilder builder = NbtMap.builder();
-        map.forEach(pair -> builder.put((String) pair.getFirst(), pair.getSecond()));
+        map.forEach(pair -> builder.put((String) pair.getFirst(), checkEndTag(pair.getSecond())));
         return builder.build();
     }
 
@@ -213,7 +224,7 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
 
     @Override
     public Object createList(Stream<Object> input) {
-        final List<?> list = input.toList();
+        final List<?> list = input.map(CloudburstNbtOps::checkEndTag).toList();
         if (list.isEmpty()) {
             return emptyList();
         }
@@ -230,5 +241,12 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
         } else {
             return input;
         }
+    }
+
+    private static Object checkEndTag(Object object) {
+        if (object == NbtType.END) {
+            return null;
+        }
+        return object;
     }
 }
