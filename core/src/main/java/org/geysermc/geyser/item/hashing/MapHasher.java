@@ -98,6 +98,22 @@ public class MapHasher<Type> {
     }
 
     /**
+     * Extracts a {@link Value} from a {@link Type} using the {@code extractor}, then applies the {@link MapBuilder} to it,
+     * essentially adding all the keys it defines under the given {@code key}.
+     *
+     * @param key the key to add the map produced by the {@code builder} to.
+     * @param extractor the function that extracts a {@link Value} from a {@link Type}.
+     * @param builder the {@code builder} that encodes the {@link Value} into a map.
+     * @param <Value> the type of the value.
+     */
+    public <Value> MapHasher<Type> accept(String key, Function<Type, Value> extractor, MapBuilder<Value> builder) {
+        MapHasher<Value> hasher = new MapHasher<>(extractor.apply(object), encoder);
+        builder.apply(hasher);
+        accept(key, hasher.build());
+        return this;
+    }
+
+    /**
      * Applies the {@link MapBuilder} to this {@link MapHasher}, essentially adding all the keys it defines here.
      */
     public MapHasher<Type> accept(MapBuilder<Type> builder) {
@@ -168,6 +184,22 @@ public class MapHasher<Type> {
      */
     public <Value> MapHasher<Type> optional(String key, MinecraftHasher<Value> hasher, Function<Type, Value> extractor, Value defaultValue) {
         return optionalPredicate(key, hasher, extractor, value -> !value.equals(defaultValue));
+    }
+
+    /**
+     * Extracts a {@link Value} from a {@link Type} using the {@code extractor}, and adds it to the map only if {@code predicate} returns {@code true} for it.
+     *
+     * @param key the key to put the {@link Value} in.
+     * @param hasher the hasher used to hash a {@link Value}.
+     * @param extractor the function that extracts a {@link Value} from a {@link Type}.
+     * @param predicate the predicate that checks if a {@link Type} should be added to the map. The {@link Value} won't be added to the map if the predicate returns {@code false} for it.
+     * @param <Value> the type of the value.
+     */
+    public <Value> MapHasher<Type> optionalTypePredicate(String key, MinecraftHasher<Value> hasher, Function<Type, Value> extractor, Predicate<Type> predicate) {
+        if (predicate.test(object)) {
+            accept(key, hasher, extractor);
+        }
+        return this;
     }
 
     /**

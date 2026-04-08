@@ -31,6 +31,7 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtUtils;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
@@ -42,6 +43,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -118,6 +120,49 @@ public interface MinecraftHasher<Type> {
     MinecraftHasher<NbtList<?>> NBT_LIST = (list, encoder) -> encoder.nbtList(list);
 
     MinecraftHasher<Vector3i> POS = INT_ARRAY.cast(pos -> new int[]{pos.getX(), pos.getY(), pos.getZ()});
+
+    MinecraftHasher<Object> NBT_STRING = STRING.cast(object -> {
+        if (object instanceof NbtMap map) {
+            // Mojang compares entries by key when converting a NbtMap to a string
+            // See StringTagVisitor#visitCompound
+            List<Map.Entry<String, Object>> entries = new ArrayList<>(map.entrySet());
+            entries.sort(Map.Entry.comparingByKey());
+
+            // Manually converting to string because Mojang does not do newlines or spaces/indents,
+            // and doesn't put quotes for keys without spaces
+            // This will break for keys with quotes, but honestly, Cloud should just expand for this
+            StringBuilder mapString = new StringBuilder("{");
+            for (int i = 0; i < entries.size(); i++) {
+                Map.Entry<String, Object> entry = entries.get(i);
+                if (entry.getKey().contains(" ")) {
+                    mapString.append('"').append(entry.getKey()).append('"');
+                } else {
+                    mapString.append(entry.getKey());
+                }
+                mapString.append(':');
+                // Won't be perfect with child lists or maps.... whatever, Cloud should expand for this
+                mapString.append(NbtUtils.toString(entry.getValue()));
+                if (i < entries.size() - 1) {
+                    mapString.append(',');
+                }
+            }
+            mapString.append('}');
+            return mapString.toString();
+        } else if (object instanceof NbtList<?> list) {
+            // Same as above
+            StringBuilder listString = new StringBuilder("[");
+            for (int i = 0; i < list.size(); i++) {
+                // Won't be perfect with child lists or maps.... whatever, Cloud should expand for this
+                listString.append(NbtUtils.toString(list.get(i)));
+                if (i < list.size() - 1) {
+                    listString.append(',');
+                }
+            }
+            listString.append(']');
+            return listString.toString();
+        }
+        return NbtUtils.toString(object).replaceAll("\\n *", "");
+    });
 
     MinecraftHasher<Key> KEY = STRING.cast(Key::asString);
 

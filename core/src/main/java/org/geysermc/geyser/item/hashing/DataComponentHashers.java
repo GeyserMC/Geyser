@@ -168,7 +168,7 @@ public class DataComponentHashers {
             .optional("disable_blocking_for_seconds", MinecraftHasher.FLOAT, Weapon::disableBlockingForSeconds, 0.0F));
         registerMap(DataComponentTypes.PIERCING_WEAPON, builder -> builder
             .optional("deals_knockback", MinecraftHasher.BOOL, PiercingWeapon::dealsKnockback, true)
-            .optional("dismounts", MinecraftHasher.BOOL, PiercingWeapon::dealsKnockback, false)
+            .optional("dismounts", MinecraftHasher.BOOL, PiercingWeapon::dismounts, false)
             .optionalNullable("sound", RegistryHasher.SOUND_EVENT, PiercingWeapon::sound)
             .optionalNullable("hit_sound", RegistryHasher.SOUND_EVENT, PiercingWeapon::hitSound)); // TODO test 1.21.11
         registerMap(DataComponentTypes.ATTACK_RANGE, builder -> builder

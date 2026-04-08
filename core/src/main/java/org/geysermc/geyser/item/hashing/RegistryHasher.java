@@ -137,7 +137,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<CustomSound> CUSTOM_SOUND = MinecraftHasher.mapBuilder(builder -> builder
         .accept("sound_id", KEY, sound -> MinecraftKey.key(sound.getName()))
-        .optional("range", FLOAT, CustomSound::getRange, 16.0F));
+        .optionalTypePredicate("range", FLOAT, CustomSound::getRange, CustomSound::isNewSystem));
 
     MinecraftHasher<Sound> SOUND_EVENT = (sound, encoder) -> {
         if (sound instanceof BuiltinSound builtin) {
@@ -241,7 +241,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<ItemStack> ITEM_STACK = MinecraftHasher.mapBuilder(builder -> builder
         .accept("id", ITEM, ItemStack::getId)
-        .accept("count", INT, ItemStack::getAmount)
+        .optional("count", INT, ItemStack::getAmount, 1)
         .optionalNullable("components", DATA_COMPONENTS, ItemStack::getDataComponentsPatch));
 
     // Encoding of hidden effects is unfortunately not possible
@@ -283,7 +283,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<AdventureModePredicate.BlockPredicate> BLOCK_PREDICATE = MinecraftHasher.mapBuilder(builder -> builder
         .optionalNullable("blocks", BLOCK.holderSet(), AdventureModePredicate.BlockPredicate::getBlocks)
-        .optionalNullable("nbt", NBT_MAP, AdventureModePredicate.BlockPredicate::getNbt)); // Property and data component matchers are, unfortunately, too complicated to include here
+        .optionalNullable("nbt", NBT_STRING, AdventureModePredicate.BlockPredicate::getNbt)); // Property and data component matchers are, unfortunately, too complicated to include here
 
     // Encode as a single element if the list only has one element
     MinecraftHasher<AdventureModePredicate> ADVENTURE_MODE_PREDICATE = MinecraftHasher.either(BLOCK_PREDICATE,
