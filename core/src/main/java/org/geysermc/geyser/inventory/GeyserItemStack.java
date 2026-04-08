@@ -122,6 +122,10 @@ public class GeyserItemStack {
         return isEmpty() ? 0 : amount;
     }
 
+    public int maxStackSize() {
+        return getComponentElseGet(DataComponentTypes.MAX_STACK_SIZE, asItem()::defaultMaxStackSize);
+    }
+
     public boolean is(Item item) {
         return javaId == item.javaId();
     }
@@ -218,12 +222,25 @@ public class GeyserItemStack {
         }
     }
 
-    public void add(int add) {
-        amount += add;
+    /**
+     * Gets the maximum amount that can be added to this stack without exceeding the max stack size
+     *
+     * @return the difference between the max stack size and the current amount
+     */
+    public int remainingSpace() {
+        return Math.max(maxStackSize() - amount, 0);
     }
 
-    public void sub(int sub) {
+    public int add(int add) {
+        add = Math.min(add, remainingSpace());
+        amount += add;
+        return add;
+    }
+
+    public int sub(int sub) {
+        sub = Math.min(sub, amount);
         amount -= sub;
+        return sub;
     }
 
     public ItemStack getItemStack() {
