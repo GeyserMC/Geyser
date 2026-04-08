@@ -1,0 +1,15 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:food",
+  "value": [
+    {
+      "nutrition": 5,
+      "saturation": 1.3
+    },
+    {
+      "nutrition": 70,
+      "saturation": 0.0,
+      "can_always_eat": true
+    }
+  ]
+}

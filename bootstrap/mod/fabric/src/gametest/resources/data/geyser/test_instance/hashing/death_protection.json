@@ -1,0 +1,21 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:death_protection",
+  "value": [
+    {},
+    {
+      "death_effects": []
+    },
+    {
+      "death_effects": [
+        {
+          "type": "play_sound",
+          "sound": {
+            "sound_id": "geyser:epic_dying_recovery_sound",
+            "range": 16.0
+          }
+        }
+      ]
+    }
+  ]
+}

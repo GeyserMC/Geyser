@@ -1,0 +1,9 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:tooltip_style",
+  "value": [
+    "geyser:my_cool_tooltip_style",
+    "minecraft:default",
+    "geyser:warning_danger_error_fault_critical_evacuate_immediately"
+  ]
+}

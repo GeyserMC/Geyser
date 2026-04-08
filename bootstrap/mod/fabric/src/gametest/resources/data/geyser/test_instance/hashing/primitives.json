@@ -32,6 +32,10 @@
     {
       "component": "minecraft:intangible_projectile",
       "value": {}
+    },
+    {
+      "component": "minecraft:glider",
+      "value": {}
     }
   ]
 }

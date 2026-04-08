@@ -137,7 +137,7 @@ public class GeyserComponentHashTestInstance extends GameTestInstance {
             try {
                 helper.assertValueEqual(expected, geyser, "hash for component " + encodedJavaValue);
             } catch (GameTestAssertException assertException) {
-                GeyserImpl.getInstance().getLogger().info("Hash failed for component " + testCase.type() + ", printing values of MapHasher");
+                GeyserImpl.getInstance().getLogger().info("Hash failed for component " + testCase.type() + " (" + testCase.value() + "), printing values of MapHasher");
                 MapHasher.debug = true;
                 DataComponentHashers.hash(registries, mcplComponent);
                 MapHasher.debug = false;
