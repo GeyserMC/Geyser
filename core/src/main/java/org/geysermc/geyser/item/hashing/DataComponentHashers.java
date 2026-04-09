@@ -41,7 +41,6 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
@@ -213,7 +212,7 @@ public class DataComponentHashers {
             .optionalNullable("disabled_sound", RegistryHasher.SOUND_EVENT, BlocksAttacks::disableSound)); // TODO needs tests
         registerMap(DataComponentTypes.KINETIC_WEAPON, builder -> builder
             .optional("contact_cooldown_ticks", MinecraftHasher.INT, KineticWeapon::contactCooldownTicks, 10)
-            .optional("delay_ticks", MinecraftHasher.INT, KineticWeapon::contactCooldownTicks, 0)
+            .optional("delay_ticks", MinecraftHasher.INT, KineticWeapon::delayTicks, 0)
             .optionalNullable("dismount_conditions", RegistryHasher.KINETIC_WEAPON_CONDITION, KineticWeapon::dismountConditions)
             .optionalNullable("knockback_conditions", RegistryHasher.KINETIC_WEAPON_CONDITION, KineticWeapon::knockbackConditions)
             .optionalNullable("damage_conditions", RegistryHasher.KINETIC_WEAPON_CONDITION, KineticWeapon::damageConditions)
@@ -247,7 +246,7 @@ public class DataComponentHashers {
         registerMap(DataComponentTypes.WRITTEN_BOOK_CONTENT, builder -> builder
             .accept("title", MinecraftHasher.STRING.filterable(), WrittenBookContent::getTitle)
             .accept("author", MinecraftHasher.STRING, WrittenBookContent::getAuthor)
-            .accept("generation", MinecraftHasher.INT, WrittenBookContent::getGeneration)
+            .optional("generation", MinecraftHasher.INT, WrittenBookContent::getGeneration, 0)
             .optionalList("pages", ComponentHasher.COMPONENT.filterable(), WrittenBookContent::getPages)
             .optional("resolved", MinecraftHasher.BOOL, WrittenBookContent::isResolved, false));
 

@@ -1,6 +1,5 @@
 {
   "type": "geyser:component_hash",
-  "required": false,
   "components": [
     {
       "component": "minecraft:can_place_on",

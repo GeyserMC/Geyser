@@ -121,48 +121,7 @@ public interface MinecraftHasher<Type> {
 
     MinecraftHasher<Vector3i> POS = INT_ARRAY.cast(pos -> new int[]{pos.getX(), pos.getY(), pos.getZ()});
 
-    MinecraftHasher<Object> NBT_STRING = STRING.cast(object -> {
-        if (object instanceof NbtMap map) {
-            // Mojang compares entries by key when converting a NbtMap to a string
-            // See StringTagVisitor#visitCompound
-            List<Map.Entry<String, Object>> entries = new ArrayList<>(map.entrySet());
-            entries.sort(Map.Entry.comparingByKey());
-
-            // Manually converting to string because Mojang does not do newlines or spaces/indents,
-            // and doesn't put quotes for keys without spaces
-            // This will break for keys with quotes, but honestly, Cloud should just expand for this
-            StringBuilder mapString = new StringBuilder("{");
-            for (int i = 0; i < entries.size(); i++) {
-                Map.Entry<String, Object> entry = entries.get(i);
-                if (entry.getKey().contains(" ")) {
-                    mapString.append('"').append(entry.getKey()).append('"');
-                } else {
-                    mapString.append(entry.getKey());
-                }
-                mapString.append(':');
-                // Won't be perfect with child lists or maps.... whatever, Cloud should expand for this
-                mapString.append(NbtUtils.toString(entry.getValue()));
-                if (i < entries.size() - 1) {
-                    mapString.append(',');
-                }
-            }
-            mapString.append('}');
-            return mapString.toString();
-        } else if (object instanceof NbtList<?> list) {
-            // Same as above
-            StringBuilder listString = new StringBuilder("[");
-            for (int i = 0; i < list.size(); i++) {
-                // Won't be perfect with child lists or maps.... whatever, Cloud should expand for this
-                listString.append(NbtUtils.toString(list.get(i)));
-                if (i < list.size() - 1) {
-                    listString.append(',');
-                }
-            }
-            listString.append(']');
-            return listString.toString();
-        }
-        return NbtUtils.toString(object).replaceAll("\\n *", "");
-    });
+    MinecraftHasher<Object> NBT_STRING = STRING.cast(MinecraftHasher::nbtObjectToCompressedString);
 
     MinecraftHasher<Key> KEY = STRING.cast(Key::asString);
 
@@ -188,7 +147,9 @@ public interface MinecraftHasher<Type> {
         .optionalNullable("texture", KEY, ResolvableProfile::getBody)
         .optionalNullable("cape", KEY, ResolvableProfile::getCape)
         .optionalNullable("elytra", KEY, ResolvableProfile::getElytra)
-        .optional("model", STRING, resolvableProfile -> Optional.ofNullable(resolvableProfile.getModel()).map(GameProfile.TextureModel::name))
+        .optional("model", STRING, resolvableProfile -> Optional.ofNullable(resolvableProfile.getModel())
+            .map(GameProfile.TextureModel::name)
+            .map(model -> model.toLowerCase(Locale.ROOT)))
     );
 
     MinecraftHasher<Integer> RARITY = fromIdEnum(Rarity.values(), Rarity::getName);
@@ -438,5 +399,47 @@ public interface MinecraftHasher<Type> {
      */
     static <Type> MinecraftHasher<Type> dispatch(Function<Type, MinecraftHasher<Type>> hashDispatch) {
         return (value, encoder) -> hashDispatch.apply(value).hash(value, encoder);
+    }
+
+    private static String nbtObjectToCompressedString(Object object) {
+        // Can't just use NbtUtils.toString for everything because there are some differences with how Mojang does it
+        if (object instanceof NbtMap map) {
+            // Mojang compares entries by key when converting a NbtMap to a string
+            // See StringTagVisitor#visitCompound
+            List<Map.Entry<String, Object>> entries = new ArrayList<>(map.entrySet());
+            entries.sort(Map.Entry.comparingByKey());
+
+            // Manually converting to string because Mojang does not do newlines or spaces/indents,
+            // and doesn't put quotes for keys without spaces
+            // This will break for keys with quotes, but honestly, Cloud should just expand for this
+            StringBuilder mapString = new StringBuilder("{");
+            for (int i = 0; i < entries.size(); i++) {
+                Map.Entry<String, Object> entry = entries.get(i);
+                if (entry.getKey().contains(" ")) {
+                    mapString.append('"').append(entry.getKey()).append('"');
+                } else {
+                    mapString.append(entry.getKey());
+                }
+                mapString.append(':');
+                mapString.append(nbtObjectToCompressedString(entry.getValue()));
+                if (i < entries.size() - 1) {
+                    mapString.append(',');
+                }
+            }
+            mapString.append('}');
+            return mapString.toString();
+        } else if (object instanceof NbtList<?> list) {
+            // Same as above
+            StringBuilder listString = new StringBuilder("[");
+            for (int i = 0; i < list.size(); i++) {
+                listString.append(nbtObjectToCompressedString(list.get(i)));
+                if (i < list.size() - 1) {
+                    listString.append(',');
+                }
+            }
+            listString.append(']');
+            return listString.toString();
+        }
+        return NbtUtils.toString(object).replaceAll("\\n *", "");
     }
 }

@@ -73,6 +73,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectIns
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SuspiciousStewEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.TypedEntityData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
@@ -357,8 +358,9 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .optional("has_twinkle", BOOL, Fireworks.FireworkExplosion::isHasTwinkle, false));
 
     MinecraftHasher<BeehiveOccupant> BEEHIVE_OCCUPANT = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("id", RegistryHasher.ENTITY_TYPE_KEY, beehiveOccupant -> beehiveOccupant.getEntityData().type())
-        .accept(beehiveOccupant -> beehiveOccupant.getEntityData().tag(), MapBuilder.inlineNbtMap())
+        .accept("entity_data", BeehiveOccupant::getEntityData, entityDataBuilder -> entityDataBuilder
+            .accept("id", ENTITY_TYPE_KEY, TypedEntityData::type)
+            .accept(TypedEntityData::tag, MapBuilder.inlineNbtMap()))
         .accept("ticks_in_hive", INT, BeehiveOccupant::getTicksInHive)
         .accept("min_ticks_in_hive", INT, BeehiveOccupant::getMinTicksInHive));
 
