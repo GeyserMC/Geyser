@@ -51,7 +51,6 @@ import org.geysermc.geyser.item.hashing.MapHasher;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,7 +97,7 @@ public class ComponentHashTestInstance extends GameTestInstance {
     }
 
     @Override
-    public void run(@NotNull GameTestHelper helper) {
+    public void run(GameTestHelper helper) {
         RegistryOps<Object> javaOps = helper.getLevel().registryAccess().createSerializationContext(JavaOps.INSTANCE);
         RegistryOps<HashCode> hashOps = helper.getLevel().registryAccess().createSerializationContext(HashOps.CRC32C_INSTANCE);
 
@@ -134,12 +133,12 @@ public class ComponentHashTestInstance extends GameTestInstance {
     }
 
     @Override
-    public @NotNull MapCodec<ComponentHashTestInstance> codec() {
+    public MapCodec<ComponentHashTestInstance> codec() {
         return MAP_CODEC;
     }
 
     @Override
-    protected @NotNull MutableComponent typeDescription() {
+    protected MutableComponent typeDescription() {
         // TODO more descriptive?
         return Component.literal("Geyser Data Component Hash Test");
     }

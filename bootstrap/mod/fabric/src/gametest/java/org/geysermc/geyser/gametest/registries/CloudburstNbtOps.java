@@ -9,6 +9,7 @@ import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
+import org.jspecify.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -243,7 +244,7 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
         }
     }
 
-    private static Object checkEndTag(Object object) {
+    private static @Nullable Object checkEndTag(Object object) {
         if (object == NbtType.END) {
             return null;
         }
