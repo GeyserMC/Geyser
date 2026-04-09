@@ -191,9 +191,15 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     RegistryHasher<?> PIG_VARIANT = registry(JavaRegistries.PIG_VARIANT);
 
+    RegistryHasher<?> PIG_SOUND_VARIANT = registry(JavaRegistries.PIG_SOUND_VARIANT);
+
     RegistryHasher<?> COW_VARIANT = registry(JavaRegistries.COW_VARIANT);
 
+    RegistryHasher<?> COW_SOUND_VARIANT = registry(JavaRegistries.COW_SOUND_VARIANT);
+
     RegistryHasher<?> CHICKEN_VARIANT = registry(JavaRegistries.CHICKEN_VARIANT);
+
+    RegistryHasher<?> CHICKEN_SOUND_VARIANT = registry(JavaRegistries.CHICKEN_SOUND_VARIANT);
 
     RegistryHasher<?> ZOMBIE_NAUTILUS_VARIANT = registry(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT);
 
@@ -202,6 +208,8 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
     RegistryHasher<?> PAINTING_VARIANT = registry(JavaRegistries.PAINTING_VARIANT);
 
     RegistryHasher<?> CAT_VARIANT = registry(JavaRegistries.CAT_VARIANT);
+
+    RegistryHasher<?> CAT_SOUND_VARIANT = registry(JavaRegistries.CAT_SOUND_VARIANT);
 
     // Entity variants
     // These are all not registries on Java, meaning they serialise as just literal strings, not namespaced IDs
@@ -232,6 +240,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
     @SuppressWarnings({"unchecked", "rawtypes"}) // Java generics :(
     MinecraftHasher<DataComponent<?, ?>> DATA_COMPONENT_VALUE = (component, encoder) -> {
         if (component.getValue() == null) {
+            // Component removal
             return UNIT.hash(Unit.INSTANCE, encoder);
         }
         MinecraftHasher hasher = DataComponentHashers.hasher(component.getType());

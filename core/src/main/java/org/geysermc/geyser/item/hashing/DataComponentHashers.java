@@ -26,7 +26,6 @@
 package org.geysermc.geyser.item.hashing;
 
 import com.google.common.hash.HashCode;
-import it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -87,6 +86,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBook
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.CustomSound;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -97,7 +97,8 @@ import java.util.function.Function;
 
 @SuppressWarnings("UnstableApiUsage")
 public class DataComponentHashers {
-    private static final Set<DataComponentType<?>> NOT_HASHED = ReferenceOpenHashSet.of(DataComponentTypes.CREATIVE_SLOT_LOCK, DataComponentTypes.MAP_POST_PROCESSING);
+    @VisibleForTesting
+    public static final Set<DataComponentType<?>> NOT_HASHED = Set.of(DataComponentTypes.CREATIVE_SLOT_LOCK, DataComponentTypes.MAP_POST_PROCESSING, DataComponentTypes.ADDITIONAL_TRADE_COST);
     private static final Map<DataComponentType<?>, MinecraftHasher<?>> hashers = new HashMap<>();
 
     static {
@@ -304,8 +305,11 @@ public class DataComponentHashers {
         register(DataComponentTypes.MOOSHROOM_VARIANT, RegistryHasher.MOOSHROOM_VARIANT);
         register(DataComponentTypes.RABBIT_VARIANT, RegistryHasher.RABBIT_VARIANT);
         register(DataComponentTypes.PIG_VARIANT, RegistryHasher.PIG_VARIANT);
+        register(DataComponentTypes.PIG_SOUND_VARIANT, RegistryHasher.PIG_SOUND_VARIANT);
         register(DataComponentTypes.COW_VARIANT, RegistryHasher.COW_VARIANT);
+        register(DataComponentTypes.COW_SOUND_VARIANT, RegistryHasher.COW_SOUND_VARIANT);
         register(DataComponentTypes.CHICKEN_VARIANT, RegistryHasher.CHICKEN_VARIANT);
+        register(DataComponentTypes.CHICKEN_SOUND_VARIANT, RegistryHasher.CHICKEN_SOUND_VARIANT);
         register(DataComponentTypes.ZOMBIE_NAUTILUS_VARIANT, RegistryHasher.ZOMBIE_NAUTILUS_VARIANT); // TODO test 1.21.11
         register(DataComponentTypes.FROG_VARIANT, RegistryHasher.FROG_VARIANT);
         register(DataComponentTypes.HORSE_VARIANT, RegistryHasher.HORSE_VARIANT);
@@ -313,6 +317,7 @@ public class DataComponentHashers {
         register(DataComponentTypes.LLAMA_VARIANT, RegistryHasher.LLAMA_VARIANT);
         register(DataComponentTypes.AXOLOTL_VARIANT, RegistryHasher.AXOLOTL_VARIANT);
         register(DataComponentTypes.CAT_VARIANT, RegistryHasher.CAT_VARIANT);
+        register(DataComponentTypes.CAT_SOUND_VARIANT, RegistryHasher.CAT_SOUND_VARIANT);
         register(DataComponentTypes.CAT_COLLAR, MinecraftHasher.DYE_COLOR);
         register(DataComponentTypes.SHEEP_COLOR, MinecraftHasher.DYE_COLOR);
         register(DataComponentTypes.SHULKER_COLOR, MinecraftHasher.DYE_COLOR);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,35 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.gametest;
+package org.geysermc.geyser.gametest.tests;
 
 import com.google.common.hash.HashCode;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JavaOps;
 import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.MapLike;
-import com.mojang.serialization.RecordBuilder;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.Unpooled;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.TypedDataComponent;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestAssertException;
-import net.minecraft.gametest.framework.GameTestEnvironments;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInstance;
-import net.minecraft.gametest.framework.TestData;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.HashOps;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.gametest.GameTestUtil;
 import org.geysermc.geyser.gametest.registries.GameTestJavaRegistryProvider;
 import org.geysermc.geyser.item.hashing.DataComponentHashers;
 import org.geysermc.geyser.item.hashing.MapHasher;
@@ -64,12 +57,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
-public class GeyserComponentHashTestInstance extends GameTestInstance {
+public class ComponentHashTestInstance extends GameTestInstance {
 
     private static final MapCodec<List<TypedDataComponent<?>>> TYPED_COMPONENT_LIST_CODEC = DataComponentType.PERSISTENT_CODEC
-        .dispatchMap("component", list -> list.getFirst().type(), GeyserComponentHashTestInstance::typedComponentListCodec);
+        .dispatchMap("component", list -> list.getFirst().type(), ComponentHashTestInstance::typedComponentListCodec);
     private static final MapCodec<List<TypedDataComponent<?>>> MERGED_TYPED_COMPONENT_LIST_CODEC = TYPED_COMPONENT_LIST_CODEC.codec().listOf()
         .xmap(listOfLists -> listOfLists.stream().flatMap(List::stream).toList(), list -> {
             Map<DataComponentType<?>, List<TypedDataComponent<?>>> split = new HashMap<>();
@@ -86,42 +78,23 @@ public class GeyserComponentHashTestInstance extends GameTestInstance {
         }).fieldOf("components");
     private static final MapCodec<List<TypedDataComponent<?>>> MERGED_AND_SINGLE_COMPONENT_MAP_CODEC = Codec.mapEither(MERGED_TYPED_COMPONENT_LIST_CODEC, TYPED_COMPONENT_LIST_CODEC)
         .xmap(Either::unwrap, Either::left);
-    // Cursed codec to extract a RegistryOps
-    private static final MapCodec<RegistryOps<?>> REGISTRY_OPS_MAP_CODEC = new MapCodec<>() {
-        @Override
-        public <T> Stream<T> keys(DynamicOps<T> ops) {
-            return Stream.empty();
-        }
-
-        @Override
-        public <T> DataResult<RegistryOps<?>> decode(DynamicOps<T> ops, MapLike<T> input) {
-            if (ops instanceof RegistryOps<T> registryOps) {
-                return DataResult.success(registryOps);
-            }
-            return DataResult.error(() -> "Registry ops required for parsing");
-        }
-
-        @Override
-        public <T> RecordBuilder<T> encode(RegistryOps<?> input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
-            // noop
-            return prefix;
-        }
-    };
-    public static final MapCodec<GeyserComponentHashTestInstance> MAP_CODEC = RecordCodecBuilder.mapCodec(instance ->
+    public static final MapCodec<ComponentHashTestInstance> MAP_CODEC = RecordCodecBuilder.mapCodec(instance ->
         instance.group(
-            REGISTRY_OPS_MAP_CODEC.forGetter(ignored -> null),
+            GameTestUtil.REGISTRY_OPS_MAP_CODEC.forGetter(ignored -> null),
             MERGED_AND_SINGLE_COMPONENT_MAP_CODEC.forGetter(testInstance -> testInstance.testCases),
             Codec.BOOL.optionalFieldOf("required", true).forGetter(GameTestInstance::required)
-        ).apply(instance, GeyserComponentHashTestInstance::new)
+        ).apply(instance, ComponentHashTestInstance::new)
     );
 
     private final List<TypedDataComponent<?>> testCases;
 
-    public GeyserComponentHashTestInstance(RegistryOps<?> ops, List<TypedDataComponent<?>> testCases, boolean required) {
-        super(new TestData<>(ops.getter(Registries.TEST_ENVIRONMENT)
-            .flatMap(getter -> getter.get(GameTestEnvironments.DEFAULT_KEY)).orElseThrow(),
-            Identifier.withDefaultNamespace("empty"), 1, 1, required));
+    public ComponentHashTestInstance(RegistryOps<?> ops, List<TypedDataComponent<?>> testCases, boolean required) {
+        super(GameTestUtil.createEmptyTestData(ops, required));
         this.testCases = testCases;
+    }
+
+    public List<TypedDataComponent<?>> testCases() {
+        return testCases;
     }
 
     @Override
@@ -161,7 +134,7 @@ public class GeyserComponentHashTestInstance extends GameTestInstance {
     }
 
     @Override
-    public @NotNull MapCodec<GeyserComponentHashTestInstance> codec() {
+    public @NotNull MapCodec<ComponentHashTestInstance> codec() {
         return MAP_CODEC;
     }
 

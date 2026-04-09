@@ -109,6 +109,14 @@
       ]
     },
     {
+      "component": "minecraft:pig/sound_variant",
+      "value": [
+        "minecraft:classic",
+        "minecraft:mini",
+        "minecraft:big"
+      ]
+    },
+    {
       "component": "minecraft:cow/variant",
       "value": [
         "minecraft:temperate",
@@ -117,11 +125,25 @@
       ]
     },
     {
+      "component": "minecraft:cow/sound_variant",
+      "value": [
+        "minecraft:classic",
+        "minecraft:moody"
+      ]
+    },
+    {
       "component": "minecraft:chicken/variant",
       "value": [
         "minecraft:temperate",
         "minecraft:cold",
         "minecraft:warm"
+      ]
+    },
+    {
+      "component": "minecraft:chicken/sound_variant",
+      "value": [
+        "minecraft:classic",
+        "minecraft:picky"
       ]
     },
     {
@@ -193,6 +215,13 @@
         "minecraft:white",
         "minecraft:jellie",
         "minecraft:all_black"
+      ]
+    },
+    {
+      "component": "minecraft:cat/sound_variant",
+      "value": [
+        "minecraft:classic",
+        "minecraft:royal"
       ]
     }
   ]

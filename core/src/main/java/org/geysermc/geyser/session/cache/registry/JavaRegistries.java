@@ -94,13 +94,17 @@ public class JavaRegistries {
     public static final JavaRegistryKey<RegistryUnit> WORLD_CLOCK = create("world_clock");
 
     public static final JavaRegistryKey<CatEntity.BuiltInVariant> CAT_VARIANT = create("cat_variant");
+    public static final JavaRegistryKey<RegistryUnit> CAT_SOUND_VARIANT = create("cat_sound_variant");
     public static final JavaRegistryKey<FrogEntity.BuiltInVariant> FROG_VARIANT = create("frog_variant");
     public static final JavaRegistryKey<WolfEntity.BuiltInVariant> WOLF_VARIANT = create("wolf_variant");
     public static final JavaRegistryKey<RegistryUnit> WOLF_SOUND_VARIANT = create("wolf_sound_variant");
 
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> PIG_VARIANT = create("pig_variant");
+    public static final JavaRegistryKey<RegistryUnit> PIG_SOUND_VARIANT = create("pig_sound_variant");
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> COW_VARIANT = create("cow_variant");
+    public static final JavaRegistryKey<RegistryUnit> COW_SOUND_VARIANT = create("cow_sound_variant");
     public static final JavaRegistryKey<TemperatureVariantAnimal.BuiltInVariant> CHICKEN_VARIANT = create("chicken_variant");
+    public static final JavaRegistryKey<RegistryUnit> CHICKEN_SOUND_VARIANT = create("chicken_sound_variant");
     public static final JavaRegistryKey<ZombieNautilusEntity.BuiltInVariant> ZOMBIE_NAUTILUS_VARIANT = create("zombie_nautilus_variant");
 
     private static <T> JavaRegistryKey<T> create(String key, JavaRegistryKey.RegistryLookup<T> registryLookup) {

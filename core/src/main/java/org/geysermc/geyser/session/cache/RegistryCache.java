@@ -97,13 +97,17 @@ public final class RegistryCache implements JavaRegistryProvider {
         register(JavaRegistries.WORLD_CLOCK, RegistryReader.UNIT);
 
         register(JavaRegistries.CAT_VARIANT, VariantHolder.reader(CatEntity.BuiltInVariant.class, CatEntity.BuiltInVariant.BLACK));
+        register(JavaRegistries.CAT_SOUND_VARIANT, RegistryReader.UNIT);
         register(JavaRegistries.FROG_VARIANT, VariantHolder.reader(FrogEntity.BuiltInVariant.class, FrogEntity.BuiltInVariant.TEMPERATE));
         register(JavaRegistries.WOLF_VARIANT, VariantHolder.reader(WolfEntity.BuiltInVariant.class, WolfEntity.BuiltInVariant.PALE));
         register(JavaRegistries.WOLF_SOUND_VARIANT, RegistryReader.UNIT);
 
         register(JavaRegistries.PIG_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
+        register(JavaRegistries.PIG_SOUND_VARIANT, RegistryReader.UNIT);
         register(JavaRegistries.COW_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
+        register(JavaRegistries.COW_SOUND_VARIANT, RegistryReader.UNIT);
         register(JavaRegistries.CHICKEN_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
+        register(JavaRegistries.CHICKEN_SOUND_VARIANT, RegistryReader.UNIT);
         register(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT, ZombieNautilusEntity.VARIANT_READER);
 
         // Load from MCProtocolLib's classloader
