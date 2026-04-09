@@ -1,0 +1,10 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:break_sound",
+  "value": [
+    "minecraft:entity.happy_ghast.death",
+    {
+      "sound_id": "geyser:custom_tool_break_sound"
+    }
+  ]
+}

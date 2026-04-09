@@ -36,6 +36,26 @@
     {
       "component": "minecraft:glider",
       "value": {}
+    },
+    {
+      "component": "minecraft:dyed_color",
+      "value": 3844589
+    },
+    {
+      "component": "minecraft:map_color",
+      "value": 439435
+    },
+    {
+      "component": "minecraft:map_id",
+      "value": 55
+    },
+    {
+      "component": "minecraft:potion_duration_scale",
+      "value": 34.0
+    },
+    {
+      "component": "minecraft:ominous_bottle_amplifier",
+      "value": 3
     }
   ]
 }

@@ -1,0 +1,199 @@
+{
+  "type": "geyser:component_hash",
+  "components": [
+    {
+      "component": "minecraft:villager/variant",
+      "value": [
+        "desert",
+        "jungle",
+        "plains",
+        "savanna",
+        "snow",
+        "swamp",
+        "taiga"
+      ]
+    },
+    {
+      "component": "minecraft:wolf/variant",
+      "value": [
+        "minecraft:pale",
+        "minecraft:spotted",
+        "minecraft:snowy",
+        "minecraft:black",
+        "minecraft:ashen",
+        "minecraft:rusty",
+        "minecraft:woods",
+        "minecraft:chestnut",
+        "minecraft:striped"
+      ]
+    },
+    {
+      "component": "minecraft:wolf/sound_variant",
+      "value": [
+        "minecraft:classic",
+        "minecraft:puglin",
+        "minecraft:sad",
+        "minecraft:angry",
+        "minecraft:grumpy",
+        "minecraft:big",
+        "minecraft:cute"
+      ]
+    },
+    {
+      "component": "minecraft:fox/variant",
+      "value": [
+        "red",
+        "snow"
+      ]
+    },
+    {
+      "component": "minecraft:salmon/size",
+      "value": [
+        "small",
+        "medium",
+        "large"
+      ]
+    },
+    {
+      "component": "minecraft:parrot/variant",
+      "value": [
+        "red_blue",
+        "blue",
+        "green",
+        "yellow_blue",
+        "gray"
+      ]
+    },
+    {
+      "component": "minecraft:tropical_fish/pattern",
+      "value": [
+        "kob",
+        "sunstreak",
+        "snooper",
+        "dasher",
+        "brinely",
+        "spotty",
+        "flopper",
+        "stripey",
+        "glitter",
+        "blockfish",
+        "betty",
+        "clayfish"
+      ]
+    },
+    {
+      "component": "minecraft:mooshroom/variant",
+      "value": [
+        "red",
+        "brown"
+      ]
+    },
+    {
+      "component": "minecraft:rabbit/variant",
+      "value": [
+        "brown",
+        "white",
+        "black",
+        "white_splotched",
+        "gold",
+        "salt",
+        "evil"
+      ]
+    },
+    {
+      "component": "minecraft:pig/variant",
+      "value": [
+        "minecraft:temperate",
+        "minecraft:cold",
+        "minecraft:warm"
+      ]
+    },
+    {
+      "component": "minecraft:cow/variant",
+      "value": [
+        "minecraft:temperate",
+        "minecraft:cold",
+        "minecraft:warm"
+      ]
+    },
+    {
+      "component": "minecraft:chicken/variant",
+      "value": [
+        "minecraft:temperate",
+        "minecraft:cold",
+        "minecraft:warm"
+      ]
+    },
+    {
+      "component": "minecraft:zombie_nautilus/variant",
+      "value": [
+        "minecraft:temperate",
+        "minecraft:warm"
+      ]
+    },
+    {
+      "component": "minecraft:frog/variant",
+      "value": [
+        "minecraft:temperate",
+        "minecraft:cold",
+        "minecraft:warm"
+      ]
+    },
+    {
+      "component": "minecraft:horse/variant",
+      "value": [
+        "white",
+        "creamy",
+        "chestnut",
+        "brown",
+        "black",
+        "gray",
+        "dark_brown"
+      ]
+    },
+    {
+      "component": "minecraft:painting/variant",
+      "value": [
+        "minecraft:kebab",
+        "minecraft:aztec",
+        "minecraft:alban",
+        "minecraft:aztec2"
+      ]
+    },
+    {
+      "component": "minecraft:llama/variant",
+      "value": [
+        "creamy",
+        "white",
+        "brown",
+        "gray"
+      ]
+    },
+    {
+      "component": "minecraft:axolotl/variant",
+      "value": [
+        "lucy",
+        "wild",
+        "gold",
+        "cyan",
+        "blue"
+      ]
+    },
+    {
+      "component": "minecraft:cat/variant",
+      "value": [
+        "minecraft:tabby",
+        "minecraft:black",
+        "minecraft:red",
+        "minecraft:siamese",
+        "minecraft:british_shorthair",
+        "minecraft:calico",
+        "minecraft:persian",
+        "minecraft:ragdoll",
+        "minecraft:white",
+        "minecraft:jellie",
+        "minecraft:all_black"
+      ]
+    }
+  ]
+}
