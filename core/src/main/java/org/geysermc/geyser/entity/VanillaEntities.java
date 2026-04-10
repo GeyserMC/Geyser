@@ -59,7 +59,7 @@ import org.geysermc.geyser.entity.type.SpawnerMinecartEntity;
 import org.geysermc.geyser.entity.type.TNTEntity;
 import org.geysermc.geyser.entity.type.TextDisplayEntity;
 import org.geysermc.geyser.entity.type.ThrowableEggEntity;
-import org.geysermc.geyser.entity.type.ThrowableEntity;
+import org.geysermc.geyser.entity.type.ProjectileEntity;
 import org.geysermc.geyser.entity.type.ThrowableItemEntity;
 import org.geysermc.geyser.entity.type.ThrownPotionEntity;
 import org.geysermc.geyser.entity.type.TridentEntity;
@@ -244,7 +244,7 @@ public final class VanillaEntities {
     public static final VanillaEntityType<LeashKnotEntity> LEASH_KNOT;
     public static final VanillaEntityType<LightningEntity> LIGHTNING_BOLT;
     public static final VanillaEntityType<LlamaEntity> LLAMA;
-    public static final VanillaEntityType<ThrowableEntity> LLAMA_SPIT;
+    public static final VanillaEntityType<ProjectileEntity> LLAMA_SPIT;
     public static final VanillaEntityType<MagmaCubeEntity> MAGMA_CUBE;
     public static final VanillaEntityType<BoatEntity> MANGROVE_BOAT;
     public static final VanillaEntityType<ChestBoatEntity> MANGROVE_CHEST_BOAT;
@@ -278,7 +278,7 @@ public final class VanillaEntities {
     public static final VanillaEntityType<SheepEntity> SHEEP;
     public static final VanillaEntityType<ShulkerEntity> SHULKER;
     public static final VanillaEntityType<SnifferEntity> SNIFFER;
-    public static final VanillaEntityType<ThrowableEntity> SHULKER_BULLET;
+    public static final VanillaEntityType<ProjectileEntity> SHULKER_BULLET;
     public static final VanillaEntityType<MonsterEntity> SILVERFISH;
     public static final VanillaEntityType<SkeletonEntity> SKELETON;
     public static final VanillaEntityType<SkeletonHorseEntity> SKELETON_HORSE;
@@ -408,11 +408,11 @@ public final class VanillaEntities {
             LIGHTNING_BOLT = VanillaEntityType.inherited(LightningEntity::new, entityBase)
                     .type(BuiltinEntityType.LIGHTNING_BOLT)
                     .build();
-            LLAMA_SPIT = VanillaEntityType.inherited(ThrowableEntity::new, entityBase)
+            LLAMA_SPIT = VanillaEntityType.inherited(ProjectileEntity::new, entityBase)
                     .type(BuiltinEntityType.LLAMA_SPIT)
                     .heightAndWidth(0.25f)
                     .build();
-            SHULKER_BULLET = VanillaEntityType.inherited(ThrowableEntity::new, entityBase)
+            SHULKER_BULLET = VanillaEntityType.inherited(ProjectileEntity::new, entityBase)
                     .type(BuiltinEntityType.SHULKER_BULLET)
                     .heightAndWidth(0.3125f)
                     .build();
@@ -518,7 +518,7 @@ public final class VanillaEntities {
             EntityTypeBase<AbstractArrowEntity> abstractArrowBase = EntityTypeBase.baseInherited(AbstractArrowEntity.class, entityBase)
                     .addTranslator(MetadataTypes.BYTE, AbstractArrowEntity::setArrowFlags)
                     .addTranslator(null) // "Piercing level"
-                    .addTranslator(null) // If the arrow is in the ground
+                    .addTranslator(MetadataTypes.BOOLEAN, AbstractArrowEntity::setInGround) // If the arrow is in the ground
                     .build();
             ARROW = VanillaEntityType.inherited(ArrowEntity::new, abstractArrowBase)
                     .type(BuiltinEntityType.ARROW)
