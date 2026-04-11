@@ -108,7 +108,7 @@ public record HitboxImpl(Vector3f min, Vector3f max, Vector3f pivot) implements 
         }
 
         @Override
-        public Hitbox build() {
+        public @NonNull Hitbox build() {
             return new HitboxImpl(min == null ? Vector3f.ZERO : min, max == null ? Vector3f.ZERO : max, pivot == null ? Vector3f.ZERO : pivot);
         }
     }

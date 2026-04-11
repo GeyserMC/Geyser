@@ -43,12 +43,12 @@ public interface GeyserEntityDefinition {
     /**
      * @return the Bedrock entity identifier
      */
-    Identifier identifier();
+    @NonNull Identifier identifier();
 
     /**
      * @return the properties registered for this entity type
      */
-    List<GeyserEntityProperty<?>> properties();
+    @NonNull List<GeyserEntityProperty<?>> properties();
 
     /**
      * @return whether this entity is a vanilla entity

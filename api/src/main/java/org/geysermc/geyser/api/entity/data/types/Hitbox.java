@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.entity.data.types;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.GeyserApi;
 
@@ -43,19 +44,19 @@ public interface Hitbox {
      * The min "corner" of the hitbox
      * @return the vector of the corner
      */
-    Vector3f min();
+    @NonNull Vector3f min();
 
     /**
      * The max "corner" of the hitbox
      * @return the vector of the corner
      */
-    Vector3f max();
+    @NonNull Vector3f max();
 
     /**
      * The pivot of the hitbox
      * @return the pivot
      */
-    Vector3f pivot();
+    @NonNull Vector3f pivot();
 
     static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
@@ -71,21 +72,21 @@ public interface Hitbox {
          * @param min the vector of the corner
          * @return this builder
          */
-        Builder min(@NonNull Vector3f min);
+        @This Builder min(@NonNull Vector3f min);
 
         /**
          * Sets the max corner of the hitbox
          * @param max the vector of the corner
          * @return this builder
          */
-        Builder max(@NonNull Vector3f max);
+        @This Builder max(@NonNull Vector3f max);
 
         /**
          * Sets the pivot of the hitbox
          * @param pivot the pivot vector
          * @return this builder
          */
-        Builder pivot(@NonNull Vector3f pivot);
+        @This Builder pivot(@NonNull Vector3f pivot);
 
         /**
          * Builds this hitbox, defaulting to {@code Vector3f.ZERO} if
@@ -93,6 +94,6 @@ public interface Hitbox {
          *
          * @return a new hitbox
          */
-        Hitbox build();
+        @NonNull Hitbox build();
     }
 }

@@ -26,7 +26,9 @@
 package org.geysermc.geyser.api.entity.custom;
 
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.definition.JavaEntityType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
@@ -52,28 +54,28 @@ public interface CustomJavaEntityType extends JavaEntityType {
          * @param entityType the identifier
          * @return this builder
          */
-        Builder type(Identifier entityType);
+        @This Builder type(@NonNull Identifier entityType);
 
         /**
          * The entity type's numeric network id.
          * @param javaId the java id
          * @return this builder
          */
-        Builder javaId(int javaId);
+        @This Builder javaId(int javaId);
 
         /**
          * The width of this entity.
          * @param width the width of this entity
          * @return this builder
          */
-        Builder width(@NonNegative float width);
+        @This Builder width(@NonNegative float width);
 
         /**
          * The height of this entity
          * @param height the height
          * @return this builder
          */
-        Builder height(@NonNegative float height);
+        @This Builder height(@NonNegative float height);
 
         /**
          * The default Bedrock edition entity definition.
@@ -84,6 +86,6 @@ public interface CustomJavaEntityType extends JavaEntityType {
          * @param defaultBedrockDefinition the default Bedrock definition
          * @return this builder
          */
-        Builder definition(@Nullable GeyserEntityDefinition defaultBedrockDefinition);
+        @This Builder definition(@Nullable GeyserEntityDefinition defaultBedrockDefinition);
     }
 }

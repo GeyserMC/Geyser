@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.entity.definition;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.Identifier;
 
@@ -36,7 +37,7 @@ public interface JavaEntityType {
     /**
      * @return the Java identifier of the type
      */
-    Identifier identifier();
+    @NonNull Identifier identifier();
 
     /**
      * @return the numeric Java entity type id

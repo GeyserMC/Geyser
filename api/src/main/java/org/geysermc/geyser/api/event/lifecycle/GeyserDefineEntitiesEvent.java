@@ -44,12 +44,12 @@ public interface GeyserDefineEntitiesEvent extends Event {
     /**
      * @return an immutable collection of all registered entity definitions
      */
-    Collection<GeyserEntityDefinition> entities();
+    @NonNull Collection<@NonNull GeyserEntityDefinition> entities();
 
     /**
      * @return an immutable collection of all registered custom entity definitions
      */
-    Collection<CustomEntityDefinition> customEntities();
+    @NonNull Collection<@NonNull CustomEntityDefinition> customEntities();
 
     /**
      * Registers a custom entity definition
@@ -62,5 +62,5 @@ public interface GeyserDefineEntitiesEvent extends Event {
      *
      * @param builderConsumer the builder for the non-vanilla type
      */
-    void registerEntityType(Consumer<CustomJavaEntityType.Builder> builderConsumer);
+    void registerEntityType(@NonNull Consumer<CustomJavaEntityType.@NonNull Builder> builderConsumer);
 }

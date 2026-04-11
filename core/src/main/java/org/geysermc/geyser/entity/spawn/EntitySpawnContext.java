@@ -63,7 +63,6 @@ public class EntitySpawnContext {
     private BedrockEntityDefinition bedrockEntityDefinition;
     private Vector3f position;
     private Vector3f motion;
-    private float offset;
     private float yaw;
     private float pitch;
     private float headYaw;
@@ -75,33 +74,32 @@ public class EntitySpawnContext {
     });
 
     public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> type, int javaId, UUID uuid) {
-        this(session, type, javaId, uuid, type.defaultBedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, type.offset(), null);
+        this(session, type, javaId, uuid, type.defaultBedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null);
     }
 
     public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> type, int entityId, long geyserId) {
-        this(session, type, entityId, null, type.defaultBedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, 0, geyserId);
+        this(session, type, entityId, null, type.defaultBedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, geyserId);
     }
 
     public static EntitySpawnContext fromPacket(GeyserSession session, EntityTypeDefinition<?> definition, ClientboundAddEntityPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = packet.getMovement().toFloat();
         return new EntitySpawnContext(session, definition, packet.getEntityId(), packet.getUuid(), definition.defaultBedrockDefinition(),
-            position, motion, packet.getYaw(), packet.getPitch(), packet.getHeadYaw(), definition.offset(), null);
+            position, motion, packet.getYaw(), packet.getPitch(), packet.getHeadYaw(), null);
     }
 
     public static EntitySpawnContext inherited(GeyserSession session, EntityTypeDefinition<?> definition, Entity base, Vector3f position) {
         return new EntitySpawnContext(session, definition, 0, null, definition.defaultBedrockDefinition(), position, base.getMotion(), base.getYaw(),
-            base.getPitch(), base.getHeadYaw(), definition.offset(), null);
+            base.getPitch(), base.getHeadYaw(), null);
     }
 
     public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> definition, int javaId, UUID uuid, BedrockEntityDefinition bedrockEntityDefinition, Vector3f position,
-                              Vector3f motion, float yaw, float pitch, float headYaw, float offset, @Nullable Long geyserId) {
+                              Vector3f motion, float yaw, float pitch, float headYaw, @Nullable Long geyserId) {
         this.session = session;
         this.entityTypeDefinition = definition;
         this.javaId = javaId;
         this.uuid = uuid;
         this.position = position;
-        this.offset = definition.offset();
         this.bedrockEntityDefinition = bedrockEntityDefinition;
         this.motion = motion;
         this.yaw = yaw;
@@ -182,6 +180,9 @@ public class EntitySpawnContext {
         return bedrockEntityDefinition != null;
     }
 
+    /**
+     * @return true if the parrot should be spawned
+     */
     public boolean callParrotEvent(PlayerEntity player, int variant, boolean right) {
         if (EnvironmentUtils.IS_UNIT_TESTING) {
             return true;

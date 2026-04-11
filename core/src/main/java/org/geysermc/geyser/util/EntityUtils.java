@@ -400,12 +400,12 @@ public final class EntityUtils {
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntitiesEvent() {
 
             @Override
-            public Collection<GeyserEntityDefinition> entities() {
+            public @NonNull Collection<GeyserEntityDefinition> entities() {
                 return Collections.unmodifiableCollection(Registries.BEDROCK_ENTITY_DEFINITIONS.get().values());
             }
 
             @Override
-            public Collection<CustomEntityDefinition> customEntities() {
+            public @NonNull Collection<CustomEntityDefinition> customEntities() {
                 return Collections.unmodifiableCollection(customEntities);
             }
 
@@ -426,7 +426,8 @@ public final class EntityUtils {
             }
 
             @Override
-            public void registerEntityType(Consumer<CustomJavaEntityType.Builder> consumer) {
+            public void registerEntityType(@NonNull Consumer<CustomJavaEntityType.Builder> consumer) {
+                Objects.requireNonNull(consumer);
                 var builder = new GeyserEntityType.GeyserJavaEntityTypeBuild();
                 consumer.accept(builder);
 

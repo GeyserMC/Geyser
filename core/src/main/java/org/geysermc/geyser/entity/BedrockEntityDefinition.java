@@ -67,7 +67,7 @@ public record BedrockEntityDefinition(
     }
 
     @Override
-    public List<GeyserEntityProperty<?>> properties() {
+    public @NonNull List<GeyserEntityProperty<?>> properties() {
         if (registeredProperties.isEmpty()) {
             return List.of();
         }

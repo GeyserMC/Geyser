@@ -95,10 +95,10 @@ public class FishingHookEntity extends ProjectileEntity {
     }
 
     @Override
-    protected void moveAbsoluteImmediate(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        boundingBox.setMiddleX(javaPosition.getX());
-        boundingBox.setMiddleY(javaPosition.getY() + boundingBox.getSizeY() / 2);
-        boundingBox.setMiddleZ(javaPosition.getZ());
+    protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        boundingBox.setMiddleX(position.getX());
+        boundingBox.setMiddleY(position.getY() + boundingBox.getSizeY() / 2);
+        boundingBox.setMiddleZ(position.getZ());
 
         boolean touchingWater = false;
         boolean collided = false;
@@ -113,7 +113,7 @@ public class FishingHookEntity extends ProjectileEntity {
             }
 
             double waterHeight = BlockStateValues.getWaterHeight(blockID);
-            if (waterHeight != -1 && javaPosition.getY() <= (iter.getY() + waterHeight)) {
+            if (waterHeight != -1 && position.getY() <= (iter.getY() + waterHeight)) {
                 touchingWater = true;
             }
         }
@@ -124,9 +124,9 @@ public class FishingHookEntity extends ProjectileEntity {
         inWater = touchingWater;
 
         if (!collided) {
-            super.moveAbsoluteImmediate(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
+            super.moveAbsoluteImmediate(position, yaw, pitch, headYaw, isOnGround, teleported);
         } else {
-            super.moveAbsoluteImmediate(this.position(), yaw, pitch, headYaw, true, true);
+            super.moveAbsoluteImmediate(this.position, yaw, pitch, headYaw, true, true);
         }
     }
 
@@ -157,7 +157,7 @@ public class FishingHookEntity extends ProjectileEntity {
         float gravity = getGravity();
         motion = motion.down(gravity);
 
-        moveAbsoluteImmediate(position().add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
+        moveAbsoluteImmediate(position.add(motion), getYaw(), getPitch(), getHeadYaw(), isOnGround(), false);
 
         float drag = getDrag();
         motion = motion.mul(drag);
@@ -175,7 +175,7 @@ public class FishingHookEntity extends ProjectileEntity {
      * @return true if this entity is currently in air.
      */
     protected boolean isInAir() {
-        int block = session.getGeyser().getWorldManager().getBlockAt(session, position().toInt());
+        int block = session.getGeyser().getWorldManager().getBlockAt(session, position.toInt());
         return block == Block.JAVA_AIR_ID;
     }
 

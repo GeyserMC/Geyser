@@ -141,13 +141,13 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     }
 
     @Override
-    public void moveAbsoluteRaw(Vector3f javaPosition, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
         if (leftParrot != null) {
-            leftParrot.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, true, teleported);
+            leftParrot.moveAbsoluteRaw(position, yaw, pitch, headYaw, true, teleported);
         }
         if (rightParrot != null) {
-            rightParrot.moveAbsoluteRaw(javaPosition, yaw, pitch, headYaw, true, teleported);
+            rightParrot.moveAbsoluteRaw(position, yaw, pitch, headYaw, true, teleported);
         }
     }
 
@@ -193,7 +193,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
             // The parrot is a separate entity in Bedrock, but part of the player entity in Java
             EntitySpawnContext context = EntitySpawnContext.inherited(session, VanillaEntities.PARROT, this, position());
             if (!context.callParrotEvent(this, variant.getAsInt(), !isLeft)) {
-                GeyserImpl.getInstance().getLogger().debug(session, "Cancelled parrot spawn as definition is null!");
+                GeyserImpl.getInstance().getLogger().debug(session, "Cancelled parrot spawn event as definition is null!");
                 return;
             }
             ParrotEntity parrot = new ParrotEntity(context);

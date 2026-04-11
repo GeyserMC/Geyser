@@ -195,7 +195,7 @@ public class Entity implements GeyserEntity {
         this.valid = false;
         this.propertyManager = bedrockDefinition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(bedrockDefinition.registeredProperties());
 
-        setOffset(context.offset());
+        setOffset(javaTypeDefinition.offset());
         setPosition(context.position());
         setAirSupply(getMaxAir());
 
