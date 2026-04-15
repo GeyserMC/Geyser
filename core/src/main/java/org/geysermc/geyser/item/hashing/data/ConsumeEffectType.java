@@ -43,7 +43,8 @@ public enum ConsumeEffectType implements EnumMapDispatchHasher<ConsumeEffectType
     PLAY_SOUND(ConsumeEffect.PlaySound.class, builder -> builder
         .accept("sound", RegistryHasher.SOUND_EVENT, ConsumeEffect.PlaySound::sound));
 
-    public static final MinecraftHasher<ConsumeEffect> CONSUME_EFFECT_HASHER = MinecraftHasher.mapBuilder(EnumMapDispatchHasher.dispatch(ConsumeEffectType::values));
+    public static final MinecraftHasher<ConsumeEffectType> CONSUME_EFFECT_TYPE_HASHER = RegistryHasher.enumRegistry();
+    public static final MinecraftHasher<ConsumeEffect> CONSUME_EFFECT_HASHER = MinecraftHasher.mapBuilder(EnumMapDispatchHasher.dispatch(CONSUME_EFFECT_TYPE_HASHER, ConsumeEffectType::values));
 
     private final Class<? extends ConsumeEffect> clazz;
     private final MapBuilder<? extends ConsumeEffect> builder;

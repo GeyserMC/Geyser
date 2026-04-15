@@ -45,7 +45,7 @@ public enum ObjectContentsType implements EnumMapDispatchHasher<ObjectContentsTy
             .accept("player", ComponentHasher.RESOLVABLE_PROFILE, Function.identity())
             .optional("hat", MinecraftHasher.BOOL, PlayerHeadObjectContents::hat, true));
 
-    public static final MapBuilder<ObjectContents> OBJECT_CONTENTS_MAP_BUILDER = EnumMapDispatchHasher.dispatch("objects", ObjectContentsType::values);
+    public static final MapBuilder<ObjectContents> OBJECT_CONTENTS_MAP_BUILDER = EnumMapDispatchHasher.dispatchFuzzy(ObjectContentsType::values);
 
     private final Class<? extends ObjectContents> clazz;
     private final MapBuilder<? extends ObjectContents> builder;
