@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.entity.property;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.util.Identifier;
 
 /**
@@ -50,7 +49,6 @@ public interface GeyserEntityProperty<T> {
      * @return the property identifier
      * @since 2.9.0
      */
-    @NonNull
     Identifier identifier();
 
     /**
@@ -60,6 +58,5 @@ public interface GeyserEntityProperty<T> {
      * @return the default value of this property
      * @since 2.9.0
      */
-    @NonNull
     T defaultValue();
 }

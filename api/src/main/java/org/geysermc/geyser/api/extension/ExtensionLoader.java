@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.extension;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.ExtensionEventBus;
 
 import java.nio.file.Path;
@@ -40,7 +39,7 @@ public abstract class ExtensionLoader {
      * @param extension the extension
      * @return if the extension is enabled
      */
-    protected abstract boolean isEnabled(@NonNull Extension extension);
+    protected abstract boolean isEnabled(Extension extension);
 
     /**
      * Sets if the given {@link Extension} is enabled.
@@ -48,7 +47,7 @@ public abstract class ExtensionLoader {
      * @param extension the extension to enable
      * @param enabled if the extension should be enabled
      */
-    protected abstract void setEnabled(@NonNull Extension extension, boolean enabled);
+    protected abstract void setEnabled(Extension extension, boolean enabled);
 
     /**
      * Gets the given {@link Extension}'s data folder.
@@ -56,8 +55,7 @@ public abstract class ExtensionLoader {
      * @param extension the extension
      * @return the data folder of the given extension
      */
-    @NonNull
-    protected abstract Path dataFolder(@NonNull Extension extension);
+    protected abstract Path dataFolder(Extension extension);
 
     /**
      * Gets the given {@link Extension}'s {@link ExtensionDescription}.
@@ -65,8 +63,7 @@ public abstract class ExtensionLoader {
      * @param extension the extension
      * @return the description of the given extension
      */
-    @NonNull
-    protected abstract ExtensionDescription description(@NonNull Extension extension);
+    protected abstract ExtensionDescription description(Extension extension);
 
     /**
      * Gets the given {@link Extension}'s {@link ExtensionEventBus}.
@@ -74,8 +71,7 @@ public abstract class ExtensionLoader {
      * @param extension the extension
      * @return the extension's event bus
      */
-    @NonNull
-    protected abstract ExtensionEventBus eventBus(@NonNull Extension extension);
+    protected abstract ExtensionEventBus eventBus(Extension extension);
 
     /**
      * Gets the {@link ExtensionLogger} for the given {@link Extension}.
@@ -83,15 +79,14 @@ public abstract class ExtensionLoader {
      * @param extension the extension
      * @return the extension logger for the given extension
      */
-    @NonNull
-    protected abstract ExtensionLogger logger(@NonNull Extension extension);
+    protected abstract ExtensionLogger logger(Extension extension);
 
     /**
      * Loads all extensions.
      *
      * @param extensionManager the extension manager
      */
-    protected abstract void loadAllExtensions(@NonNull ExtensionManager extensionManager);
+    protected abstract void loadAllExtensions(ExtensionManager extensionManager);
 
     /**
      * Registers the given {@link Extension} with the given {@link ExtensionManager}.
@@ -99,7 +94,7 @@ public abstract class ExtensionLoader {
      * @param extension the extension
      * @param extensionManager the extension manager
      */
-    protected void register(@NonNull Extension extension, @NonNull ExtensionManager extensionManager) {
+    protected void register(Extension extension, ExtensionManager extensionManager) {
         extensionManager.register(extension);
     }
 }

@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event.java;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.bedrock.SessionAcceptCodeOfConductEvent;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
@@ -45,7 +44,7 @@ public final class ServerCodeOfConductEvent extends ConnectionEvent {
     private final String codeOfConduct;
     private boolean hasAccepted = false;
     
-    public ServerCodeOfConductEvent(@NonNull GeyserConnection connection, String codeOfConduct) {
+    public ServerCodeOfConductEvent(GeyserConnection connection, String codeOfConduct) {
         super(connection);
         this.codeOfConduct = codeOfConduct;
     }

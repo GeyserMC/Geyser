@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component.java;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 
 /**
@@ -38,7 +37,7 @@ public interface JavaPiercingWeapon {
      * @return the piercing weapon component
      * @since 2.9.3
      */
-    static @NonNull JavaPiercingWeapon instance() {
+    static JavaPiercingWeapon instance() {
         return GeyserApi.api().provider(JavaPiercingWeapon.class);
     }
 }

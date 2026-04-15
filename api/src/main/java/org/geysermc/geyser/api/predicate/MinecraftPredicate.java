@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.predicate;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 
@@ -47,19 +46,19 @@ import java.util.function.Predicate;
 public interface MinecraftPredicate<C extends MinecraftPredicateContext> extends Predicate<C> {
 
     @Override
-    default @NonNull MinecraftPredicate<C> and(@NonNull Predicate<? super C> other) {
+    default MinecraftPredicate<C> and(Predicate<? super C> other) {
         Objects.requireNonNull(other);
         return (context) -> this.test(context) && other.test(context);
     }
 
     @Override
-    default @NonNull MinecraftPredicate<C> negate() {
+    default MinecraftPredicate<C> negate() {
         return (context) -> !this.test(context);
     }
 
     @Override
-    default @NonNull MinecraftPredicate<C> or(@NonNull Predicate<? super C> other) {
+    default MinecraftPredicate<C> or(Predicate<? super C> other) {
         Objects.requireNonNull(other);
-        return (context) -> this.test(context) || other.test(context);
+        return context -> this.test(context) || other.test(context);
     }
 }

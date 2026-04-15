@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event.connection;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 
@@ -35,7 +34,7 @@ import org.geysermc.geyser.api.connection.GeyserConnection;
 public abstract class ConnectionEvent implements Event {
     private final GeyserConnection connection;
 
-    public ConnectionEvent(@NonNull GeyserConnection connection) {
+    public ConnectionEvent(GeyserConnection connection) {
         this.connection = connection;
     }
 
@@ -44,7 +43,6 @@ public abstract class ConnectionEvent implements Event {
      *
      * @return the connection
      */
-    @NonNull
     public GeyserConnection connection() {
         return this.connection;
     }

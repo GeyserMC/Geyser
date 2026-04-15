@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.item.custom.v2;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.item.custom.v2.component.ItemDataComponent;
@@ -76,7 +75,7 @@ public interface CustomItemDefinition {
      * @return the Bedrock item identifier
      * @since 2.9.3
      */
-    @NonNull Identifier bedrockIdentifier();
+    Identifier bedrockIdentifier();
 
     /**
      * The display name of the item. If none is set, the display name is taken from the item's Bedrock identifier.
@@ -84,7 +83,7 @@ public interface CustomItemDefinition {
      * @return the display name shown to Bedrock clients
      * @since 2.9.3
      */
-    @NonNull String displayName();
+    String displayName();
 
     /**
      * The item model this definition is for. If the model is in the {@code minecraft} namespace, then the definition must have at least one predicate.
@@ -94,7 +93,7 @@ public interface CustomItemDefinition {
      * @return the identifier of the Java item model used to match this definition
      * @since 2.9.3
      */
-    @NonNull Identifier model();
+    Identifier model();
 
     /**
      * The icon used for this item.
@@ -108,7 +107,7 @@ public interface CustomItemDefinition {
      * @return the icon shown to Bedrock players
      * @since 2.9.3
      */
-    @NonNull String icon();
+    String icon();
 
     /**
      * The predicates that have to match for this item definition to be used. These predicates can access properties similar to the Java item model predicates.
@@ -122,14 +121,14 @@ public interface CustomItemDefinition {
      *
      * @since 2.9.3
      */
-    @NonNull List<MinecraftPredicate<? super ItemPredicateContext>> predicates();
+    List<MinecraftPredicate<? super ItemPredicateContext>> predicates();
 
     /**
      * The predicate strategy used when evaluating predicates. Determines if one of, or all of the predicates have to pass for this item definition to be used. Defaults to {@link PredicateStrategy#AND}.
      *
      * @since 2.9.3
      */
-    @NonNull PredicateStrategy predicateStrategy();
+    PredicateStrategy predicateStrategy();
 
     /**
      * @return the priority of this definition. For all definitions for a single Java item model, definitions with a higher priority will be matched first. Defaults to 0.
@@ -141,7 +140,7 @@ public interface CustomItemDefinition {
      * @return the item's Bedrock options. These describe item properties that can't be described in item components, e.g. item texture size and if the item is allowed in the off-hand.
      * @since 2.9.3
      */
-    @NonNull CustomItemBedrockOptions bedrockOptions();
+    CustomItemBedrockOptions bedrockOptions();
 
     /**
      * The item's data components. It is expected that the item <em>always</em> has these components on the server. If the components mismatch, bugs will occur.
@@ -173,7 +172,6 @@ public interface CustomItemDefinition {
      * @return the item's data component patch
      * @since 2.9.3
      */
-    @NonNull
     ItemDataComponentMap components();
 
     /**
@@ -184,7 +182,7 @@ public interface CustomItemDefinition {
      * @return a list of removed default item data components
      * @since 2.9.3
      */
-    @NonNull List<Identifier> removedComponents();
+    List<Identifier> removedComponents();
 
     /**
      * Creates a builder for the custom item definition.
@@ -196,7 +194,7 @@ public interface CustomItemDefinition {
      * @return a new builder
      * @since 2.9.3
      */
-    static Builder builder(@NonNull Identifier bedrockIdentifier, @NonNull Identifier itemModel) {
+    static Builder builder(Identifier bedrockIdentifier, Identifier itemModel) {
         return GeyserApi.api().provider(Builder.class, bedrockIdentifier, itemModel);
     }
 
@@ -215,7 +213,7 @@ public interface CustomItemDefinition {
          * @since 2.9.3
          */
         @This
-        Builder displayName(@NonNull String displayName);
+        Builder displayName(String displayName);
 
         /**
          * Sets the priority of this definition, used for definition matching.
@@ -239,7 +237,7 @@ public interface CustomItemDefinition {
          * @since 2.9.3
          */
         @This
-        Builder bedrockOptions(CustomItemBedrockOptions.@NonNull Builder options);
+        Builder bedrockOptions(CustomItemBedrockOptions.Builder options);
 
         /**
          * Adds a predicate that must match for Geyser to use this item definition.
@@ -250,7 +248,7 @@ public interface CustomItemDefinition {
          * @since 2.9.3
          */
         @This
-        Builder predicate(@NonNull MinecraftPredicate<? super ItemPredicateContext> predicate);
+        Builder predicate(MinecraftPredicate<? super ItemPredicateContext> predicate);
 
         /**
          * Sets the predicate strategy that should be used for item definition matching.
@@ -260,7 +258,7 @@ public interface CustomItemDefinition {
          * @since 2.9.3
          */
         @This
-        Builder predicateStrategy(@NonNull PredicateStrategy strategy);
+        Builder predicateStrategy(PredicateStrategy strategy);
 
         /**
          * Sets data components that determine the item behavior. These are assumed to also be
@@ -278,7 +276,7 @@ public interface CustomItemDefinition {
          * @since 2.9.3
          */
         @This
-        <T> Builder component(@NonNull ItemDataComponent<T> component, @NonNull T value);
+        <T> Builder component(ItemDataComponent<T> component, T value);
 
         /**
          * Convenience method for {@link CustomItemDefinition.Builder#component(ItemDataComponent, Object)}
@@ -292,7 +290,7 @@ public interface CustomItemDefinition {
          * @since 2.9.3
          */
         @This
-        default <T> Builder component(@NonNull ItemDataComponent<T> component, @NonNull GenericBuilder<T> builder) {
+        default <T> Builder component(ItemDataComponent<T> component, GenericBuilder<T> builder) {
             return component(component, builder.build());
         }
 
@@ -310,7 +308,7 @@ public interface CustomItemDefinition {
          * @since 2.9.3
          */
         @This
-        Builder removeComponent(@NonNull Identifier component);
+        Builder removeComponent(Identifier component);
 
         /**
          * Convenience method for {@link CustomItemDefinition.Builder#removeComponent(Identifier)}.
@@ -321,7 +319,7 @@ public interface CustomItemDefinition {
          * @since 2.9.3
          */
         @This
-        default Builder removeComponent(@NonNull ItemDataComponent<?> component) {
+        default Builder removeComponent(ItemDataComponent<?> component) {
             Objects.requireNonNull(component);
             if (!component.vanilla()) {
                 throw new IllegalArgumentException("Cannot remove non-vanilla component");

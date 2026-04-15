@@ -26,7 +26,6 @@
 package org.geysermc.geyser.api.item.custom.v2.component.geyser;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
@@ -71,7 +70,7 @@ public interface GeyserChargeable {
      * @return all valid ammunition items
      * @since 2.9.3
      */
-    List<@NonNull Identifier> ammunition();
+    List<Identifier> ammunition();
 
     /**
      * Creates a builder for the Chargeable component.
@@ -79,7 +78,7 @@ public interface GeyserChargeable {
      * @return a new builder
      * @since 2.9.3
      */
-    static @NonNull Builder builder() {
+    static Builder builder() {
         return GeyserApi.api().provider(GeyserChargeable.Builder.class);
     }
 
@@ -121,7 +120,7 @@ public interface GeyserChargeable {
          * @since 2.9.3
          */
         @This
-        Builder ammunition(@NonNull Identifier ammunition);
+        Builder ammunition(Identifier ammunition);
 
         /**
          * Creates the chargeable component.

@@ -25,10 +25,9 @@
 
 package org.geysermc.geyser.api.block.custom.component;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -69,7 +68,7 @@ public interface CustomBlockComponents {
      * @return the collision boxes
      * @since 2.9.5
      */
-    @NonNull Set<BoxComponent> collisionBoxes();
+    Set<BoxComponent> collisionBoxes();
 
     /**
      * Gets the display name component.
@@ -96,7 +95,7 @@ public interface CustomBlockComponents {
      * @return the material instances
      * @since 2.2.0
      */
-    @NonNull Map<String, MaterialInstance> materialInstances();
+    Map<String, MaterialInstance> materialInstances();
 
     /**
      * Gets the placement filter component
@@ -179,7 +178,7 @@ public interface CustomBlockComponents {
      * @return the set of tags
      * @since 2.2.0
      */
-    @NonNull Set<String> tags();
+    Set<String> tags();
 
     /**
      * Create a Builder for CustomBlockComponents
@@ -263,7 +262,7 @@ public interface CustomBlockComponents {
          * @return this builder
          * @since 2.2.0
          */
-        @This Builder materialInstance(@NonNull String name, @NonNull MaterialInstance materialInstance);
+        @This Builder materialInstance(String name, MaterialInstance materialInstance);
 
         /**
          * Sets the placement filter of the block.

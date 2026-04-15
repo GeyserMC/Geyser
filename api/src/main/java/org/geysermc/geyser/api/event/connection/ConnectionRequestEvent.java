@@ -25,10 +25,9 @@
 
 package org.geysermc.geyser.api.event.connection;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.event.Cancellable;
 import org.geysermc.event.Event;
+import org.jspecify.annotations.Nullable;
 
 import java.net.InetSocketAddress;
 
@@ -41,7 +40,7 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
     private final InetSocketAddress ip;
     private final InetSocketAddress proxyIp;
 
-    public ConnectionRequestEvent(@NonNull InetSocketAddress ip, @Nullable InetSocketAddress proxyIp) {
+    public ConnectionRequestEvent(InetSocketAddress ip, @Nullable InetSocketAddress proxyIp) {
         this.ip = ip;
         this.proxyIp = proxyIp;
     }
@@ -52,7 +51,7 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
      * @return the IP address of the client attempting to connect
      * @deprecated Use {@link #inetSocketAddress()} instead
      */
-    @NonNull @Deprecated(forRemoval = true)
+    @Deprecated(forRemoval = true)
     public InetSocketAddress getInetSocketAddress() {
         return ip;
     }
@@ -63,8 +62,8 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
      * @return the IP address of the proxy handling the connection
      * @deprecated Use {@link #proxyIp()} instead
      */
-    @Nullable @Deprecated(forRemoval = true)
-    public InetSocketAddress getProxyIp() {
+    @Deprecated(forRemoval = true)
+    public @Nullable InetSocketAddress getProxyIp() {
         return proxyIp;
     }
 
@@ -73,7 +72,6 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
      *
      * @return the IP address of the client attempting to connect
      */
-    @NonNull
     public InetSocketAddress inetSocketAddress() {
         return ip;
     }
@@ -83,8 +81,7 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
      *
      * @return the IP address of the proxy handling the connection
      */
-    @Nullable
-    public InetSocketAddress proxyIp() {
+    public @Nullable InetSocketAddress proxyIp() {
         return proxyIp;
     }
 

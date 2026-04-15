@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event.lifecycle;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinitionRegisterException;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
@@ -55,7 +54,6 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * @deprecated replaced by {@link GeyserDefineCustomItemsEvent#customItemDefinitions()}
      */
     @Deprecated
-    @NonNull
     Map<String, Collection<CustomItemData>> getExistingCustomItems();
 
     /**
@@ -63,7 +61,6 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * indexed by the {@link Identifier} of the Java item which the item is based on.
      * @since 2.9.3
      */
-    @NonNull
     Map<Identifier, Collection<CustomItemDefinition>> customItemDefinitions();
 
     /**
@@ -74,7 +71,6 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * @deprecated replaced by {@link GeyserDefineCustomItemsEvent#nonVanillaCustomItemDefinitions()}
      */
     @Deprecated
-    @NonNull
     List<NonVanillaCustomItemData> getExistingNonVanillaCustomItems();
 
     /**
@@ -83,7 +79,6 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * <p>This multimap will, at the moment, always have one entry per key.</p>
      * @since 2.9.3
      */
-    @NonNull
     Map<Identifier, Collection<NonVanillaCustomItemDefinition>> nonVanillaCustomItemDefinitions();
 
     /**
@@ -96,7 +91,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * @deprecated use {@link GeyserDefineCustomItemsEvent#register(Identifier, CustomItemDefinition)}
      */
     @Deprecated
-    boolean register(@NonNull String identifier, @NonNull CustomItemData customItemData);
+    boolean register(String identifier, CustomItemData customItemData);
 
     /**
      * Registers a Bedrock custom item definition based on a Java item. This is used to register items with custom textures and properties
@@ -107,7 +102,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * @throws CustomItemDefinitionRegisterException when an error occurred while registering the item
      * @since 2.9.3
      */
-    void register(@NonNull Identifier identifier, @NonNull CustomItemDefinition customItemDefinition);
+    void register(Identifier identifier, CustomItemDefinition customItemDefinition);
 
     /**
      * Registers a custom item with no base item. This is used for mods.
@@ -118,7 +113,7 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * @deprecated use {@link GeyserDefineCustomItemsEvent#register(NonVanillaCustomItemDefinition)}
      */
     @Deprecated
-    boolean register(@NonNull NonVanillaCustomItemData customItemData);
+    boolean register(NonVanillaCustomItemData customItemData);
 
     /**
      * Registers a custom item with no base Java edition item. This is used for non-vanilla items added by mods.
@@ -127,5 +122,5 @@ public interface GeyserDefineCustomItemsEvent extends Event {
      * @throws CustomItemDefinitionRegisterException when an error occurred while registering the item
      * @since 2.9.3
      */
-    void register(@NonNull NonVanillaCustomItemDefinition customItemDefinition);
+    void register(NonVanillaCustomItemDefinition customItemDefinition);
 }

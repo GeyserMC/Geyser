@@ -25,12 +25,11 @@
 
 package org.geysermc.geyser.api.item.custom.v2;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
@@ -47,8 +46,7 @@ public interface CustomItemBedrockOptions {
      * @see CustomItemDefinition#icon()
      * @since 2.9.3
      */
-    @Nullable
-    String icon();
+    @Nullable String icon();
 
     /**
      * If the item is allowed to be put into the offhand. Defaults to true.
@@ -83,7 +81,6 @@ public interface CustomItemBedrockOptions {
      * @return the item's creative category
      * @since 2.9.3
      */
-    @NonNull
     CreativeCategory creativeCategory();
 
     /**
@@ -94,8 +91,7 @@ public interface CustomItemBedrockOptions {
      * @return the item's creative group
      * @since 2.9.3
      */
-    @Nullable
-    String creativeGroup();
+    @Nullable String creativeGroup();
 
     /**
      * Gets the item's set of bedrock tags that can be used in Molang.
@@ -104,7 +100,6 @@ public interface CustomItemBedrockOptions {
      * @return the item's set of bedrock tags, can be empty
      * @since 2.9.3
      */
-    @NonNull
     Set<Identifier> tags();
 
     /**
@@ -176,7 +171,7 @@ public interface CustomItemBedrockOptions {
          * @since 2.9.3
          */
         @This
-        Builder creativeCategory(@NonNull CreativeCategory creativeCategory);
+        Builder creativeCategory(CreativeCategory creativeCategory);
 
         /**
          * Sets the item's creative group.
@@ -198,7 +193,7 @@ public interface CustomItemBedrockOptions {
          * @since 2.9.3
          */
         @This
-        Builder tag(@NonNull Identifier tag);
+        Builder tag(Identifier tag);
 
         /**
          * Sets the item's set of bedrock tags, for use in Molang. Pass {@code null} to clear all tags.

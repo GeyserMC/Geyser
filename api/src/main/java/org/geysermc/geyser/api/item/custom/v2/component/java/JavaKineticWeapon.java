@@ -26,11 +26,10 @@
 package org.geysermc.geyser.api.item.custom.v2.component.java;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The kinetic weapon component is used to specify a spear-like attack when the item is in use.
@@ -60,7 +59,7 @@ public interface JavaKineticWeapon {
      * @return a new builder
      * @since 2.9.3
      */
-    static @NonNull Builder builder() {
+    static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
     }
 
@@ -73,7 +72,7 @@ public interface JavaKineticWeapon {
      * @return the new {@link Condition}
      * @since 2.9.3
      */
-    static @NonNull Condition condition(@NonNegative int maxDurationTicks) {
+    static Condition condition(@NonNegative int maxDurationTicks) {
         return condition(maxDurationTicks, 0.0F, 0.0F);
     }
 
@@ -90,7 +89,7 @@ public interface JavaKineticWeapon {
      * @return the new {@link Condition}
      * @since 2.9.3
      */
-    static @NonNull Condition condition(@NonNegative int maxDurationTicks, float minSpeed, float minRelativeSpeed) {
+    static Condition condition(@NonNegative int maxDurationTicks, float minSpeed, float minRelativeSpeed) {
         return Condition.builder(maxDurationTicks)
             .minSpeed(minSpeed)
             .minRelativeSpeed(minRelativeSpeed)
@@ -119,7 +118,7 @@ public interface JavaKineticWeapon {
          * @since 2.9.3
          */
         @This
-        default Builder dismountConditions(Condition.@NonNull Builder dismountConditions) {
+        default Builder dismountConditions(Condition.Builder dismountConditions) {
             return dismountConditions(dismountConditions.build());
         }
 
@@ -183,7 +182,7 @@ public interface JavaKineticWeapon {
          * @return a new builder
          * @since 2.9.3
          */
-        static @NonNull Builder builder(@NonNegative int maxDurationTicks) {
+        static Builder builder(@NonNegative int maxDurationTicks) {
             return GeyserApi.api().provider(Builder.class, maxDurationTicks);
         }
 

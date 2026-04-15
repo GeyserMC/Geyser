@@ -1,6 +1,5 @@
 package org.geysermc.geyser.api.event.lifecycle;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
 
 /**
@@ -24,5 +23,5 @@ public abstract class GeyserDefineCustomSkullsEvent implements Event {
      * @param texture the username, UUID, base64 encoded profile, or skin hash
      * @param type the type of texture provided
      */
-    public abstract void register(@NonNull String texture, @NonNull SkullTextureType type);
+    public abstract void register(String texture, SkullTextureType type);
 }

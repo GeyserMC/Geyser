@@ -1,9 +1,8 @@
 package org.geysermc.geyser.api.block.custom.nonvanilla;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
+import org.jspecify.annotations.Nullable;
 
 public interface JavaBlockState {
     /**
@@ -11,7 +10,7 @@ public interface JavaBlockState {
      * 
      * @return the identifier of the block state
      */
-    @NonNull String identifier();
+    String identifier();
 
     /**
      * Gets the Java ID of the block state
@@ -46,7 +45,7 @@ public interface JavaBlockState {
      * 
      * @return the collision of the block state
      */
-    @NonNull JavaBoundingBox[] collision();
+    JavaBoundingBox[] collision();
 
     /**
      * Gets whether the block state can be broken with hand
@@ -57,7 +56,7 @@ public interface JavaBlockState {
 
     /**
      * Gets the pick item of the block state
-     * 
+     *
      * @return the pick item of the block state
      * @deprecated the pick item is sent by the Java server
      */
@@ -91,7 +90,7 @@ public interface JavaBlockState {
     }
 
     interface Builder {
-        Builder identifier(@NonNull String identifier);
+        Builder identifier(String identifier);
 
         Builder javaId(@NonNegative int javaId);
 
@@ -101,7 +100,7 @@ public interface JavaBlockState {
 
         Builder waterlogged(boolean waterlogged);
 
-        Builder collision(@NonNull JavaBoundingBox[] collision);
+        Builder collision(JavaBoundingBox[] collision);
 
         Builder canBreakWithHand(boolean canBreakWithHand);
 

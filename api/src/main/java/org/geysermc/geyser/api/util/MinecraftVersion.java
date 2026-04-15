@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.util;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -40,7 +39,7 @@ public interface MinecraftVersion {
      *
      * @return the version string
      */
-    @NonNull String versionString();
+    String versionString();
 
     /**
      * Gets the protocol version of this Minecraft version.

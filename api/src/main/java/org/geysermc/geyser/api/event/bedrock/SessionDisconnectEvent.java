@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event.bedrock;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 
@@ -35,7 +34,7 @@ import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 public class SessionDisconnectEvent extends ConnectionEvent {
     private String disconnectReason;
 
-    public SessionDisconnectEvent(@NonNull GeyserConnection connection, @NonNull String reason) {
+    public SessionDisconnectEvent(GeyserConnection connection, String reason) {
         super(connection);
         this.disconnectReason = reason;
     }
@@ -45,7 +44,7 @@ public class SessionDisconnectEvent extends ConnectionEvent {
      *
      * @return the reason for the disconnect
      */
-    public @NonNull String disconnectReason() {
+    public String disconnectReason() {
         return disconnectReason;
     }
 
@@ -54,7 +53,7 @@ public class SessionDisconnectEvent extends ConnectionEvent {
      *
      * @param disconnectReason the reason for the disconnect
      */
-    public void disconnectReason(@NonNull String disconnectReason) {
+    public void disconnectReason(String disconnectReason) {
         this.disconnectReason = disconnectReason;
     }
 }

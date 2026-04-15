@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.pack;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * Represents a pack codec that creates a resource
@@ -46,6 +45,5 @@ public abstract class UrlPackCodec extends PackCodec {
      * @return the URL of the resource pack
      * @since 2.6.2
      */
-    @NonNull
     public abstract String url();
 }

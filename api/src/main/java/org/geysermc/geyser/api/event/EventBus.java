@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
 import org.geysermc.event.bus.OwnedEventBus;
 
@@ -37,6 +36,5 @@ import java.util.Set;
  */
 public interface EventBus<R extends EventRegistrar> extends OwnedEventBus<R, Event, EventSubscriber<R, ? extends Event>> {
     @Override
-    @NonNull
-    <T extends Event> Set<? extends EventSubscriber<R, T>> subscribers(@NonNull Class<T> eventClass);
+    <T extends Event> Set<? extends EventSubscriber<R, T>> subscribers(Class<T> eventClass);
 }

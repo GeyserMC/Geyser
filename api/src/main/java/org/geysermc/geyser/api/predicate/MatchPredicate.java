@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.predicate;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
@@ -45,7 +44,7 @@ public interface MatchPredicate {
      * @see DimensionPredicate
      * @since 2.9.3
      */
-    static MinecraftPredicate<MinecraftPredicateContext> dimension(@NonNull Identifier dimension) {
+    static MinecraftPredicate<MinecraftPredicateContext> dimension(Identifier dimension) {
         return GeyserApi.api().provider(DimensionPredicate.class, dimension, false);
     }
 }

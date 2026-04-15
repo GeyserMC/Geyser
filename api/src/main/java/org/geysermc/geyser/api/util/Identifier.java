@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.util;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -69,7 +68,7 @@ public interface Identifier {
      * @throws IllegalArgumentException if either namespace or path are invalid.
      * @since 2.9.0
      */
-    static Identifier of(@NonNull String namespace, @NonNull String path) {
+    static Identifier of(String namespace, String path) {
         return GeyserApi.api().provider(Identifier.class, namespace, path);
     }
 

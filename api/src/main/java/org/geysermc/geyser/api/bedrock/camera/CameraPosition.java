@@ -25,11 +25,10 @@
 
 package org.geysermc.geyser.api.bedrock.camera;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.GeyserApi;
+import org.jspecify.annotations.Nullable;
 
 /**
  * This interface represents a camera position instruction. Can be built with the {@link #builder()}.
@@ -47,7 +46,7 @@ public interface CameraPosition {
      *
      * @return camera position vector
      */
-    @NonNull Vector3f position();
+    Vector3f position();
 
     /**
      * Gets the {@link CameraEaseType} of the camera.
@@ -137,7 +136,7 @@ public interface CameraPosition {
 
         Builder easeSeconds(float easeSeconds);
 
-        Builder position(@NonNull Vector3f position);
+        Builder position(Vector3f position);
 
         Builder rotationX(@IntRange(from = -90, to = 90) int rotationX);
 

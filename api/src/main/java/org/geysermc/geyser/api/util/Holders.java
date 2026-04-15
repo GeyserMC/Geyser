@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.util;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.jetbrains.annotations.ApiStatus;
@@ -47,7 +46,7 @@ public interface Holders {
      * @return a new Holders object
      * @since 2.9.3
      */
-    static @NonNull Holders of(Identifier identifier) {
+    static Holders of(Identifier identifier) {
         return builder().with(identifier).build();
     }
 
@@ -58,7 +57,7 @@ public interface Holders {
      * @return a new Holders object
      * @since 2.9.3
      */
-    static @NonNull Holders of(List<Identifier> identifiers) {
+    static Holders of(List<Identifier> identifiers) {
         Builder builder = builder();
         identifiers.forEach(builder::with);
         return builder.build();
@@ -71,7 +70,7 @@ public interface Holders {
      * @return a new Holders object
      * @since 2.9.3
      */
-    static @NonNull Holders ofTag(Identifier tag) {
+    static Holders ofTag(Identifier tag) {
         return builder().tag(tag).build();
     }
 
@@ -81,7 +80,7 @@ public interface Holders {
      * @return a new builder
      * @since 2.9.3
      */
-    static @NonNull Builder builder() {
+    static Builder builder() {
         return GeyserApi.api().provider(Holders.Builder.class);
     }
 
@@ -101,7 +100,7 @@ public interface Holders {
          * @since 2.9.3
          */
         @This
-        Builder with(@NonNull Identifier identifier);
+        Builder with(Identifier identifier);
 
         /**
          * Sets the tag of the Holders object. A Holders object can only consist of one tag. This will throw when at least one identifier has been
@@ -113,7 +112,7 @@ public interface Holders {
          * @since 2.9.3
          */
         @This
-        Builder tag(@NonNull Identifier tag);
+        Builder tag(Identifier tag);
 
         /**
          * Creates the Holders object.

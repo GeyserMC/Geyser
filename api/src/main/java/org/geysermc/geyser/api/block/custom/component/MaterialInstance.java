@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.api.block.custom.component;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
+import org.jspecify.annotations.Nullable;
 
 /**
  * This class is used to store data for a material instance.

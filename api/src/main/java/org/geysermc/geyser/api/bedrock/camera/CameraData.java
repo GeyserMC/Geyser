@@ -25,9 +25,8 @@
 
 package org.geysermc.geyser.api.bedrock.camera;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 import java.util.UUID;
@@ -46,7 +45,7 @@ public interface CameraData {
      *
      * @param fade the camera fade instruction to send
      */
-    void sendCameraFade(@NonNull CameraFade fade);
+    void sendCameraFade(CameraFade fade);
 
     /**
      * Sends a camera position instruction to the client.
@@ -58,7 +57,7 @@ public interface CameraData {
      *
      * @param position the camera position instruction to send
      */
-    void sendCameraPosition(@NonNull CameraPosition position);
+    void sendCameraPosition(CameraPosition position);
 
     /**
      * Stops all sent camera instructions (fades, movements, and perspective locks).
@@ -76,7 +75,7 @@ public interface CameraData {
      *
      * @param perspective the {@link CameraPerspective} to force
      */
-    void forceCameraPerspective(@NonNull CameraPerspective perspective);
+    void forceCameraPerspective(CameraPerspective perspective);
 
     /**
      * Gets the client's current {@link CameraPerspective}, if one is currently forced.
@@ -99,7 +98,7 @@ public interface CameraData {
      * @param duration the time in seconds that the shake will occur for
      * @param type the type of shake
      */
-    void shakeCamera(float intensity, float duration, @NonNull CameraShake type);
+    void shakeCamera(float intensity, float duration, CameraShake type);
 
     /**
      * Stops all camera shakes of any type.
@@ -125,7 +124,6 @@ public interface CameraData {
     /**
      * Returns an immutable copy of all fog affects currently applied to this client.
      */
-    @NonNull
     Set<String> fogEffects();
 
     /**
@@ -137,7 +135,7 @@ public interface CameraData {
      * @param owner the owner of the lock, represented with a UUID
      * @return if the camera is locked after this method call
      */
-    boolean lockCamera(boolean lock, @NonNull UUID owner);
+    boolean lockCamera(boolean lock, UUID owner);
 
     /**
      * Returns whether the client's camera is locked.
@@ -151,7 +149,7 @@ public interface CameraData {
      *
      * @param element the {@link GuiElement} to hide
      */
-    void hideElement(@NonNull GuiElement... element);
+    void hideElement(GuiElement... element);
 
     /**
      * Resets a {@link GuiElement} on the client's side.
@@ -162,19 +160,19 @@ public interface CameraData {
      *
      * @param element the {@link GuiElement} to reset
      */
-    void resetElement(@NonNull GuiElement @Nullable... element);
+    void resetElement(GuiElement @Nullable... element);
 
     /**
      * Determines whether a {@link GuiElement} is currently hidden.
      *
      * @param element the {@link GuiElement} to check
      */
-    boolean isHudElementHidden(@NonNull GuiElement element);
+    boolean isHudElementHidden(GuiElement element);
 
     /**
      * Returns the currently hidden {@link GuiElement}s.
      *
      * @return an unmodifiable view of all currently hidden {@link GuiElement}s
      */
-    @NonNull Set<GuiElement> hiddenElements();
+    Set<GuiElement> hiddenElements();
 }

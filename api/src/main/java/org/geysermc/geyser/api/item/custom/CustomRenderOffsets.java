@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.api.item.custom;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * This class is used to store the render offsets of custom items.

@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.bedrock.camera;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.GeyserApi;
 
@@ -44,7 +43,7 @@ public interface CameraFade {
      *
      * @return the color of the fade
      */
-    @NonNull Color color();
+    Color color();
 
     /**
      * Gets the seconds it takes to fade in.
@@ -81,7 +80,7 @@ public interface CameraFade {
 
     interface Builder {
 
-        Builder color(@NonNull Color color);
+        Builder color(Color color);
 
         Builder fadeInSeconds(@IntRange(from = 0, to = 10) float fadeInSeconds);
 

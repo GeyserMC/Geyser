@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.block.custom.property;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * This class is used to define a custom block property's type.
@@ -40,7 +39,7 @@ public class PropertyType {
      *
      * @return The property type for a boolean.
      */
-    @NonNull public static PropertyType booleanProp() {
+    public static PropertyType booleanProp() {
         return BOOLEAN;
     }
 
@@ -49,7 +48,7 @@ public class PropertyType {
      *
      * @return The property type for an integer.
      */
-    @NonNull public static PropertyType integerProp() {
+    public static PropertyType integerProp() {
         return INTEGER;
     }
 
@@ -58,7 +57,7 @@ public class PropertyType {
      *
      * @return The property type for a string.
      */
-    @NonNull public static PropertyType stringProp() {
+    public static PropertyType stringProp() {
         return STRING;
     }
 
@@ -69,7 +68,7 @@ public class PropertyType {
      *
      * @return The class of the property type.
      */
-    @NonNull public Class<?> typeClass() {
+    public Class<?> typeClass() {
         return typeClass;
     }
 

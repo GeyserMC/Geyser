@@ -26,7 +26,6 @@
 package org.geysermc.geyser.api.predicate.item;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.GeyserProvided;
@@ -48,7 +47,7 @@ public interface RangeDispatchPredicate extends MinecraftPredicate<ItemPredicate
      * @return the property type to check against
      * @since 2.9.3
      */
-    @NonNull Property property();
+    Property property();
 
     /**
      * @return the threshold above which this predicate is true

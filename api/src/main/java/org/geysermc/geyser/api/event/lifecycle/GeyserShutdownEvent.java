@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event.lifecycle;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
 import org.geysermc.geyser.api.event.EventBus;
 import org.geysermc.geyser.api.event.EventRegistrar;
@@ -34,5 +33,5 @@ import org.geysermc.geyser.api.extension.ExtensionManager;
 /**
  * Called when Geyser is shutting down.
  */
-public record GeyserShutdownEvent(@NonNull ExtensionManager extensionManager, @NonNull EventBus<EventRegistrar> eventBus) implements Event {
+public record GeyserShutdownEvent(ExtensionManager extensionManager, EventBus<EventRegistrar> eventBus) implements Event {
 }

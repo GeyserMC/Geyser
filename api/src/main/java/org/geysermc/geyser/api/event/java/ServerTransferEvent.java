@@ -25,11 +25,10 @@
 
 package org.geysermc.geyser.api.event.java;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
@@ -45,8 +44,8 @@ public final class ServerTransferEvent extends ConnectionEvent {
     private int bedrockPort;
     private final Map<String, byte[]> cookies;
 
-    public ServerTransferEvent(@NonNull GeyserConnection connection,
-                               @NonNull String host, int port, @NonNull Map<String, byte[]> cookies) {
+    public ServerTransferEvent(GeyserConnection connection,
+                               String host, int port, Map<String, byte[]> cookies) {
         super(connection);
         this.host = host;
         this.port = port;
@@ -60,7 +59,7 @@ public final class ServerTransferEvent extends ConnectionEvent {
      *
      * @return the host
      */
-    public @NonNull String host() {
+    public String host() {
         return this.host;
     }
 
@@ -96,7 +95,7 @@ public final class ServerTransferEvent extends ConnectionEvent {
     /**
      * Sets the host for the Bedrock player to be transferred to
      */
-    public void bedrockHost(@NonNull String host) {
+    public void bedrockHost(String host) {
         if (host == null || host.isBlank()) {
             throw new IllegalArgumentException("Server address cannot be null or blank");
         }
@@ -118,7 +117,7 @@ public final class ServerTransferEvent extends ConnectionEvent {
      *
      * @return the connections cookies
      */
-    public @NonNull Map<String, byte[]> cookies() {
+    public Map<String, byte[]> cookies() {
         return cookies;
     }
 

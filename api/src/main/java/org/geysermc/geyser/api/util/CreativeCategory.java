@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.api.util;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents the creative menu categories or tabs.
@@ -53,7 +53,7 @@ public enum CreativeCategory {
      * 
      * @return the name of the category
      */
-    public @NonNull String bedrockName() {
+    public String bedrockName() {
         return bedrockName;
     }
 

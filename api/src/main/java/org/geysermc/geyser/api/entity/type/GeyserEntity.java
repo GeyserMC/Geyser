@@ -26,12 +26,11 @@
 package org.geysermc.geyser.api.entity.type;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -55,7 +54,7 @@ public interface GeyserEntity {
      * @param <T> the type of the value
      * @since 2.9.0
      */
-    default <T> void updateProperty(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
+    default <T> void updateProperty(GeyserEntityProperty<T> property, @Nullable T value) {
         this.updatePropertiesBatched(consumer -> consumer.update(property, value));
     }
 

@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component.geyser;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
@@ -47,7 +46,7 @@ public interface GeyserBlockPlacer {
      * @return the identifier of the block to place
      * @since 2.9.3
      */
-    @NonNull Identifier block();
+    Identifier block();
 
     /**
      * Whether to use the block's rendering
@@ -65,7 +64,7 @@ public interface GeyserBlockPlacer {
      * @return a new builder
      * @since 2.9.3
      */
-    static @NonNull Builder builder() {
+    static Builder builder() {
         return GeyserApi.api().provider(GeyserBlockPlacer.Builder.class);
     }
 
@@ -77,7 +76,7 @@ public interface GeyserBlockPlacer {
      * @return the block placer component
      * @since 2.9.3
      */
-    static @NonNull GeyserBlockPlacer of(@NonNull Identifier block, boolean useBlockIcon) {
+    static GeyserBlockPlacer of(Identifier block, boolean useBlockIcon) {
         return GeyserBlockPlacer.builder().block(block).useBlockIcon(useBlockIcon).build();
     }
 
@@ -98,7 +97,7 @@ public interface GeyserBlockPlacer {
          * @since 2.9.3
          */
         @This
-        Builder block(@NonNull Identifier block);
+        Builder block(Identifier block);
 
         /**
          * Whether to use the block's icon over the item icon.

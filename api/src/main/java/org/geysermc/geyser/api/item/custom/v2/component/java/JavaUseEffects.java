@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component.java;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.GeyserApi;
@@ -53,7 +52,7 @@ public interface JavaUseEffects {
      * @return a new builder
      * @since 2.9.3
      */
-    static @NonNull Builder builder() {
+    static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
     }
 
@@ -64,7 +63,7 @@ public interface JavaUseEffects {
      * @return the new use effects component
      * @since 2.9.3
      */
-    static @NonNull JavaUseEffects of(@IntRange(from = 0, to = 1) float speedMultiplier) {
+    static JavaUseEffects of(@IntRange(from = 0, to = 1) float speedMultiplier) {
         return builder()
             .speedMultiplier(speedMultiplier)
             .build();

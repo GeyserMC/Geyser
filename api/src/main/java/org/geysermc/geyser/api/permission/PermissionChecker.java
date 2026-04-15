@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.permission;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.util.TriState;
 
@@ -44,6 +43,5 @@ public interface PermissionChecker {
      *         node itself was not found, and the source does not have such permission.
      *         {@link TriState#TRUE} and {@link TriState#FALSE} represent explicitly set values.
      */
-    @NonNull
-    TriState hasPermission(@NonNull CommandSource source, @NonNull String permission);
+    TriState hasPermission(CommandSource source, String permission);
 }

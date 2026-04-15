@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.block.custom;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Map;
 
@@ -39,14 +38,14 @@ public interface CustomBlockState {
      *
      * @return The custom block data for the state.
      */
-    @NonNull CustomBlockData block();
+    CustomBlockData block();
 
     /**
      * Gets the name of the state
      *
      * @return The name of the state.
      */
-    @NonNull String name();
+    String name();
 
     /**
      * Gets the given property for the state
@@ -54,21 +53,21 @@ public interface CustomBlockState {
      * @param propertyName the property name
      * @return the boolean, int, or string property.
      */
-    @NonNull <T> T property(@NonNull String propertyName);
+    <T> T property(String propertyName);
 
     /**
      * Gets a map of the properties for the state
      *
      * @return The properties for the state.
      */
-    @NonNull Map<String, Object> properties();
+    Map<String, Object> properties();
 
     interface Builder {
-        Builder booleanProperty(@NonNull String propertyName, boolean value);
+        Builder booleanProperty(String propertyName, boolean value);
 
-        Builder intProperty(@NonNull String propertyName, int value);
+        Builder intProperty(String propertyName, int value);
 
-        Builder stringProperty(@NonNull String propertyName, @NonNull String value);
+        Builder stringProperty(String propertyName, String value);
 
         CustomBlockState build();
     }

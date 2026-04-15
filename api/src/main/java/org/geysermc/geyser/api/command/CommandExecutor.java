@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.command;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * Handles executing a command.
@@ -41,5 +40,5 @@ public interface CommandExecutor<T extends CommandSource> {
      * @param command the command
      * @param args the arguments
      */
-    void execute(@NonNull T source, @NonNull Command command, @NonNull String[] args);
+    void execute(T source, Command command, String[] args);
 }

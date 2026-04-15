@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.block.custom;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 
 /**
@@ -35,5 +34,5 @@ import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
  * @param components The components of the block
  * @param condition The Molang query that should return true or false
  */
-public record CustomBlockPermutation(@NonNull CustomBlockComponents components, @NonNull String condition) {
+public record CustomBlockPermutation(CustomBlockComponents components, String condition) {
 }

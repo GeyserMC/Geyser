@@ -25,11 +25,10 @@
 
 package org.geysermc.geyser.api.block.custom;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.util.CreativeCategory;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -42,7 +41,7 @@ public interface NonVanillaCustomBlockData extends CustomBlockData {
      *
      * @return The namespace of the custom block.
      */
-    @NonNull String namespace();
+    String namespace();
 
 
     /**
@@ -56,10 +55,10 @@ public interface NonVanillaCustomBlockData extends CustomBlockData {
 
     interface Builder extends CustomBlockData.Builder {
 
-        Builder namespace(@NonNull String namespace);
+        Builder namespace(String namespace);
 
         @Override
-        Builder name(@NonNull String name);
+        Builder name(String name);
 
         @Override
         Builder includedInCreativeInventory(boolean includedInCreativeInventory);
@@ -71,19 +70,19 @@ public interface NonVanillaCustomBlockData extends CustomBlockData {
         Builder creativeGroup(@Nullable String creativeGroup);
 
         @Override
-        Builder components(@NonNull CustomBlockComponents components);
+        Builder components(CustomBlockComponents components);
 
         @Override
-        Builder booleanProperty(@NonNull String propertyName);
+        Builder booleanProperty(String propertyName);
 
         @Override
-        Builder intProperty(@NonNull String propertyName, List<Integer> values);
+        Builder intProperty(String propertyName, List<Integer> values);
 
         @Override
-        Builder stringProperty(@NonNull String propertyName, List<String> values);
+        Builder stringProperty(String propertyName, List<String> values);
 
         @Override
-        Builder permutations(@NonNull List<CustomBlockPermutation> permutations);
+        Builder permutations(List<CustomBlockPermutation> permutations);
 
         @Override
         NonVanillaCustomBlockData build();

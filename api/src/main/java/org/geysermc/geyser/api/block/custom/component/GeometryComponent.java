@@ -25,9 +25,8 @@
 
 package org.geysermc.geyser.api.block.custom.component;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
@@ -41,7 +40,7 @@ public interface GeometryComponent {
      *
      * @return The identifier of the geometry.
      */
-    @NonNull String identifier();
+    String identifier();
 
     /**
      * Gets the bone visibility of the geometry
@@ -60,7 +59,7 @@ public interface GeometryComponent {
     }
 
     interface Builder {
-        Builder identifier(@NonNull String identifier);
+        Builder identifier(String identifier);
 
         Builder boneVisibility(@Nullable Map<String, String> boneVisibility);
 

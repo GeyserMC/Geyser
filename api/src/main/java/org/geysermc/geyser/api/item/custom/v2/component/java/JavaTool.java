@@ -26,7 +26,6 @@
 package org.geysermc.geyser.api.item.custom.v2.component.java;
 
 import org.checkerframework.checker.index.qual.Positive;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
@@ -50,7 +49,7 @@ public interface JavaTool {
      * @return a list of rules this tool has
      * @since 2.9.3
      */
-    List<@NonNull Rule> rules();
+    List<Rule> rules();
 
     /**
      * The default mining speed of the tool. This speed is used when no rules match when breaking a block.
@@ -76,7 +75,7 @@ public interface JavaTool {
      * @return a new builder
      * @since 2.9.3
      */
-    static @NonNull Builder builder() {
+    static Builder builder() {
         return GeyserApi.api().provider(JavaTool.Builder.class);
     }
 
@@ -87,7 +86,7 @@ public interface JavaTool {
      * @return a tool  component
      * @since 2.9.3
      */
-    static @NonNull JavaTool of(boolean canDestroyBlocksInCreative) {
+    static JavaTool of(boolean canDestroyBlocksInCreative) {
         return builder().canDestroyBlocksInCreative(canDestroyBlocksInCreative).build();
     }
 
@@ -106,7 +105,7 @@ public interface JavaTool {
          * @since 2.9.3
          */
         @This
-        Builder rule(@NonNull Rule rule);
+        Builder rule(Rule rule);
 
         /**
          * Sets the default mining speed of this tool. Vanilla-item overrides don't need a speed set.
@@ -151,7 +150,7 @@ public interface JavaTool {
          * @return the {@link Holders} of block identifiers that this rule is for
          * @since 2.9.3
          */
-        @NonNull Holders blocks();
+        Holders blocks();
 
         /**
          * @return the speed to use when mining a block that matches this rule
@@ -165,7 +164,7 @@ public interface JavaTool {
          * @return a new builder
          * @since 2.9.3
          */
-        static @NonNull Builder builder() {
+        static Builder builder() {
             return GeyserApi.api().provider(Rule.Builder.class);
         }
 
@@ -177,7 +176,7 @@ public interface JavaTool {
          * @return a tool rule
          * @since 2.9.3
          */
-        static @NonNull Rule of(@NonNull Holders blocks, @Positive float speed) {
+        static Rule of(Holders blocks, @Positive float speed) {
             return Rule.builder().blocks(blocks).speed(speed).build();
         }
 
@@ -195,7 +194,7 @@ public interface JavaTool {
              * @since 2.9.3
              */
             @This
-            Builder blocks(@NonNull Holders blocks);
+            Builder blocks(Holders blocks);
 
             /**
              * Sets the speed to use when mining a block that matches this rule

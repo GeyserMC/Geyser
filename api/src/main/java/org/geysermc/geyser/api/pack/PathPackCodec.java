@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.pack;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.nio.file.Path;
 
@@ -42,6 +41,5 @@ public abstract class PathPackCodec extends PackCodec {
      * @return the path of the resource pack
      * @since 2.1.1
      */
-    @NonNull
     public abstract Path path();
 }

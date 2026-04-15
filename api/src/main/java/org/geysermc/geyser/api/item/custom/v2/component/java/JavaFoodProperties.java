@@ -26,7 +26,6 @@
 package org.geysermc.geyser.api.item.custom.v2.component.java;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
@@ -71,7 +70,7 @@ public interface JavaFoodProperties {
      * @return a new builder
      * @since 2.9.3
      */
-    static @NonNull Builder builder() {
+    static Builder builder() {
         return GeyserApi.api().provider(JavaFoodProperties.Builder.class);
     }
 
@@ -84,7 +83,7 @@ public interface JavaFoodProperties {
      * @return the food properties component
      * @since 2.9.3
      */
-    static @NonNull JavaFoodProperties of(int nutrition, float saturation, boolean canAlwaysEat) {
+    static JavaFoodProperties of(int nutrition, float saturation, boolean canAlwaysEat) {
         return JavaFoodProperties.builder().nutrition(nutrition).saturation(saturation).canAlwaysEat(canAlwaysEat).build();
     }
 

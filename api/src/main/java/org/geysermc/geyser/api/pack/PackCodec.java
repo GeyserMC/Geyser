@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.pack;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 
 import java.io.IOException;
@@ -45,7 +44,7 @@ public abstract class PackCodec {
      * @return the hash of the resource pack
      * @since 2.1.1
      */
-    public abstract byte @NonNull [] sha256();
+    public abstract byte[] sha256();
 
     /**
      * Gets the resource pack size.
@@ -59,8 +58,7 @@ public abstract class PackCodec {
      * @deprecated use {@link #serialize()} instead.
      */
     @Deprecated
-    @NonNull
-    public SeekableByteChannel serialize(@NonNull ResourcePack resourcePack) throws IOException {
+    public SeekableByteChannel serialize(ResourcePack resourcePack) throws IOException {
         return serialize();
     };
 
@@ -70,7 +68,6 @@ public abstract class PackCodec {
      * @return the serialized resource pack
      * @since 2.6.2
      */
-    @NonNull
     public abstract SeekableByteChannel serialize() throws IOException;
 
     /**
@@ -79,7 +76,6 @@ public abstract class PackCodec {
      * @return the new resource pack
      * @since 2.1.1
      */
-    @NonNull
     protected abstract ResourcePack create();
 
     /**
@@ -88,7 +84,7 @@ public abstract class PackCodec {
      * @return the new resource pack builder
      * @since 2.6.2
      */
-    protected abstract ResourcePack.@NonNull Builder createBuilder();
+    protected abstract ResourcePack.Builder createBuilder();
 
     /**
      * Creates a new pack provider from the given path.
@@ -97,8 +93,7 @@ public abstract class PackCodec {
      * @return the new pack provider
      * @since 2.1.1
      */
-    @NonNull
-    public static PackCodec path(@NonNull Path path) {
+    public static PackCodec path(Path path) {
         return GeyserApi.api().provider(PathPackCodec.class, path);
     }
 
@@ -109,8 +104,7 @@ public abstract class PackCodec {
      * @return the new pack provider
      * @since 2.6.2
      */
-    @NonNull
-    public static PackCodec url(@NonNull String url) {
+    public static PackCodec url(String url) {
         return GeyserApi.api().provider(UrlPackCodec.class, url);
     }
 }

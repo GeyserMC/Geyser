@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.api.util;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * This is a way to represent a boolean, but with a non set value added.
@@ -67,7 +67,7 @@ public enum TriState {
      * @param value the Boolean value
      * @return the created TriState
      */
-    public static @NonNull TriState fromBoolean(@Nullable Boolean value) {
+    public static TriState fromBoolean(@Nullable Boolean value) {
         return value == null ? NOT_SET : fromBoolean(value.booleanValue());
     }
 
@@ -77,7 +77,7 @@ public enum TriState {
      * @param value the boolean value
      * @return the created TriState
      */
-    public @NonNull static TriState fromBoolean(boolean value) {
+    public static TriState fromBoolean(boolean value) {
         return value ? TRUE : FALSE;
     }
 }

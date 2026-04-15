@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event.lifecycle;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
 import org.geysermc.geyser.api.util.TriState;
 
@@ -47,5 +46,5 @@ public interface GeyserRegisterPermissionsEvent extends Event {
      * @param permission the permission node to register
      * @param defaultValue the default value of the node
      */
-    void register(@NonNull String permission, @NonNull TriState defaultValue);
+    void register(String permission, TriState defaultValue);
 }

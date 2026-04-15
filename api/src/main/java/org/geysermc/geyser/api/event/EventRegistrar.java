@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 
 /**
@@ -40,8 +39,7 @@ public interface EventRegistrar {
      * @param object the object to wrap around
      * @return an event registrar instance
      */
-    @NonNull
-    static EventRegistrar of(@NonNull Object object) {
+    static EventRegistrar of(Object object) {
         return GeyserApi.api().provider(EventRegistrar.class, object);
     }
 }

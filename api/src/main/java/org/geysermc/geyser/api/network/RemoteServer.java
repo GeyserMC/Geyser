@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.network;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * Represents the Java server that Geyser is connecting to.
@@ -65,7 +64,6 @@ public interface RemoteServer {
      *
      * @return the auth type required by the remote server
      */
-    @NonNull
     AuthType authType();
 
     /**

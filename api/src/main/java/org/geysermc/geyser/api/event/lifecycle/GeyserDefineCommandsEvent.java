@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event.lifecycle;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Event;
 import org.geysermc.geyser.api.command.Command;
 
@@ -45,13 +44,12 @@ public interface GeyserDefineCommandsEvent extends Event {
      *
      * @param command the command to register
      */
-    void register(@NonNull Command command);
+    void register(Command command);
 
     /**
      * Gets all the registered built-in {@link Command}s.
      *
      * @return all the registered built-in commands as an unmodifiable map
      */
-    @NonNull
     Map<String, Command> commands();
 }

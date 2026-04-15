@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component.geyser;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
@@ -54,7 +53,7 @@ public interface GeyserThrowableComponent {
      * @return a new builder
      * @since 2.9.3
      */
-    static @NonNull Builder builder() {
+    static Builder builder() {
         return GeyserApi.api().provider(GeyserThrowableComponent.Builder.class);
     }
 
@@ -65,7 +64,7 @@ public interface GeyserThrowableComponent {
      * @return a throwable component
      * @since 2.9.3
      */
-    static @NonNull GeyserThrowableComponent of(boolean doSwingAnimation) {
+    static GeyserThrowableComponent of(boolean doSwingAnimation) {
         return builder().doSwingAnimation(doSwingAnimation).build();
     }
 

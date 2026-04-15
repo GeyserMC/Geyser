@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.predicate.item;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
@@ -44,7 +43,7 @@ public interface ChargeTypePredicate extends MinecraftPredicate<ItemPredicateCon
      * @return type of the projectile to check for
      * @since 2.9.3
      */
-    ChargedProjectile.@NonNull ChargeType type();
+    ChargedProjectile.ChargeType type();
 
     /**
      * @return whether this predicate is negated

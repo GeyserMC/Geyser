@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event.bedrock;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 
@@ -33,7 +32,7 @@ import org.geysermc.geyser.api.event.connection.ConnectionEvent;
  * Called when Geyser initialises a session for a new bedrock client.
  */
 public final class SessionInitializeEvent extends ConnectionEvent {
-    public SessionInitializeEvent(@NonNull GeyserConnection connection) {
+    public SessionInitializeEvent(GeyserConnection connection) {
         super(connection);
     }
 }

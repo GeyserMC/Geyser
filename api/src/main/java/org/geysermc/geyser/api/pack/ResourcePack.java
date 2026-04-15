@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.pack;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 
 import java.util.UUID;
@@ -45,7 +44,6 @@ public interface ResourcePack {
      * @return the codec for this pack
      * @since 2.1.1
      */
-    @NonNull
     PackCodec codec();
 
     /**
@@ -54,7 +52,6 @@ public interface ResourcePack {
      * @return the resource pack manifest
      * @since 2.1.1
      */
-    @NonNull
     ResourcePackManifest manifest();
 
     /**
@@ -63,7 +60,6 @@ public interface ResourcePack {
      * @return the content key of the resource pack
      * @since 2.1.1
      */
-    @NonNull
     String contentKey();
 
     /**
@@ -72,7 +68,6 @@ public interface ResourcePack {
      * @return the resource pack uuid
      * @since 2.6.2
      */
-    @NonNull
     default UUID uuid() {
         return manifest().header().uuid();
     }
@@ -84,8 +79,7 @@ public interface ResourcePack {
      * @return the resource pack
      * @since 2.1.1
      */
-    @NonNull
-    static ResourcePack create(@NonNull PackCodec codec) {
+    static ResourcePack create(PackCodec codec) {
         return codec.create();
     }
 
@@ -97,7 +91,7 @@ public interface ResourcePack {
      * @return a {@link Builder} to build a resource pack
      * @since 2.6.2
      */
-    static Builder builder(@NonNull PackCodec codec) {
+    static Builder builder(PackCodec codec) {
         return codec.createBuilder();
     }
 
@@ -132,7 +126,7 @@ public interface ResourcePack {
          * @return this builder
          * @since 2.6.2
          */
-        @This Builder contentKey(@NonNull String contentKey);
+        @This Builder contentKey(String contentKey);
 
         /**
          * @return the resource pack

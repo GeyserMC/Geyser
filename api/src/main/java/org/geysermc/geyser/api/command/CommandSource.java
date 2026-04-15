@@ -25,9 +25,8 @@
 
 package org.geysermc.geyser.api.command;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -48,7 +47,7 @@ public interface CommandSource {
      *
      * @param message the message to send
      */
-    void sendMessage(@NonNull String message);
+    void sendMessage(String message);
 
     /**
      * Sends the given messages to the command source
