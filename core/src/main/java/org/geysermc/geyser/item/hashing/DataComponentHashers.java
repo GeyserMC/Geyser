@@ -26,36 +26,16 @@
 package org.geysermc.geyser.item.hashing;
 
 import com.google.common.hash.HashCode;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.format.TextDecoration;
-import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtList;
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.item.Potion;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.components.Rarity;
-import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
-import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.AttackRange;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlockStateProperties;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.BlocksAttacks;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Consumable;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.ConsumeEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.CustomModelData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -64,14 +44,10 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.IntComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.KineticWeapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.LodestoneTracker;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PiercingWeapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionContents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
@@ -85,7 +61,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.Weapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WritableBookContent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
-import org.geysermc.mcprotocollib.protocol.data.game.level.sound.CustomSound;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.HashMap;
@@ -110,7 +85,7 @@ public class DataComponentHashers {
         registerMap(DataComponentTypes.USE_EFFECTS, builder -> builder
             .optional("can_sprint", MinecraftHasher.BOOL, UseEffects::canSprint, false)
             .optional("interact_vibrations", MinecraftHasher.BOOL, UseEffects::interactVibrations, true)
-            .optional("speed_multiplier", MinecraftHasher.FLOAT, UseEffects::speedMultiplier, 0.2F)); // TODO test 1.21.11
+            .optional("speed_multiplier", MinecraftHasher.FLOAT, UseEffects::speedMultiplier, 0.2F));
 
         register(DataComponentTypes.CUSTOM_NAME, ComponentHasher.COMPONENT);
         register(DataComponentTypes.MINIMUM_ATTACK_CHARGE, MinecraftHasher.FLOAT);
@@ -122,8 +97,8 @@ public class DataComponentHashers {
         register(DataComponentTypes.ENCHANTMENTS, RegistryHasher.ITEM_ENCHANTMENTS);
 
         register(DataComponentTypes.CAN_PLACE_ON, RegistryHasher.ADVENTURE_MODE_PREDICATE);
-        register(DataComponentTypes.CAN_BREAK, RegistryHasher.ADVENTURE_MODE_PREDICATE); // TODO needs tests
-        register(DataComponentTypes.ATTRIBUTE_MODIFIERS, RegistryHasher.ATTRIBUTE_MODIFIER_ENTRY.list().cast(ItemAttributeModifiers::getModifiers)); // TODO needs tests
+        register(DataComponentTypes.CAN_BREAK, RegistryHasher.ADVENTURE_MODE_PREDICATE);
+        register(DataComponentTypes.ATTRIBUTE_MODIFIERS, RegistryHasher.ATTRIBUTE_MODIFIER_ENTRY.list().cast(ItemAttributeModifiers::getModifiers));
 
         registerMap(DataComponentTypes.CUSTOM_MODEL_DATA, builder -> builder
             .optionalList("floats", MinecraftHasher.FLOAT, CustomModelData::floats)
@@ -170,17 +145,17 @@ public class DataComponentHashers {
             .optional("deals_knockback", MinecraftHasher.BOOL, PiercingWeapon::dealsKnockback, true)
             .optional("dismounts", MinecraftHasher.BOOL, PiercingWeapon::dismounts, false)
             .optionalNullable("sound", RegistryHasher.SOUND_EVENT, PiercingWeapon::sound)
-            .optionalNullable("hit_sound", RegistryHasher.SOUND_EVENT, PiercingWeapon::hitSound)); // TODO test 1.21.11
+            .optionalNullable("hit_sound", RegistryHasher.SOUND_EVENT, PiercingWeapon::hitSound));
         registerMap(DataComponentTypes.ATTACK_RANGE, builder -> builder
             .optional("min_reach", MinecraftHasher.FLOAT, AttackRange::minReach, 0.0F)
             .optional("max_reach", MinecraftHasher.FLOAT, AttackRange::maxReach, 3.0F)
             .optional("min_creative_reach", MinecraftHasher.FLOAT, AttackRange::minCreativeReach, 0.0F)
             .optional("max_creative_reach", MinecraftHasher.FLOAT, AttackRange::maxCreativeReach, 5.0F)
             .optional("hitbox_margin", MinecraftHasher.FLOAT, AttackRange::hitboxMargin, 0.3F)
-            .optional("mob_factor", MinecraftHasher.FLOAT, AttackRange::mobFactor, 1.0F)); // TODO test 1.21.11
+            .optional("mob_factor", MinecraftHasher.FLOAT, AttackRange::mobFactor, 1.0F));
         registerMap(DataComponentTypes.SWING_ANIMATION, builder -> builder
             .optional("type", RegistryHasher.SWING_ANIMATION_TYPE, SwingAnimation::type, SwingAnimation.Type.WHACK)
-            .optional("duration", MinecraftHasher.INT, SwingAnimation::duration, 6)); // TODO test 1.21.11
+            .optional("duration", MinecraftHasher.INT, SwingAnimation::duration, 6));
         registerMap(DataComponentTypes.ENCHANTABLE, builder -> builder
             .accept("value", MinecraftHasher.INT, Function.identity()));
         registerMap(DataComponentTypes.EQUIPPABLE, builder -> builder
@@ -210,7 +185,7 @@ public class DataComponentHashers {
             .optional("item_damage", RegistryHasher.BLOCKS_ATTACKS_ITEM_DAMAGE_FUNCTION, BlocksAttacks::itemDamage, new BlocksAttacks.ItemDamageFunction(1.0F, 0.0F, 1.0F))
             .optionalNullable("bypassed_by", RegistryHasher.DAMAGE_TYPE.holderSet(), BlocksAttacks::bypassedBy)
             .optionalNullable("block_sound", RegistryHasher.SOUND_EVENT, BlocksAttacks::blockSound)
-            .optionalNullable("disabled_sound", RegistryHasher.SOUND_EVENT, BlocksAttacks::disableSound)); // TODO needs tests
+            .optionalNullable("disabled_sound", RegistryHasher.SOUND_EVENT, BlocksAttacks::disableSound));
         registerMap(DataComponentTypes.KINETIC_WEAPON, builder -> builder
             .optional("contact_cooldown_ticks", MinecraftHasher.INT, KineticWeapon::contactCooldownTicks, 10)
             .optional("delay_ticks", MinecraftHasher.INT, KineticWeapon::delayTicks, 0)
@@ -220,7 +195,7 @@ public class DataComponentHashers {
             .optional("forward_movement", MinecraftHasher.FLOAT, KineticWeapon::forwardMovement, 0.0F)
             .optional("damage_multiplier", MinecraftHasher.FLOAT, KineticWeapon::damageMultiplier, 1.0F)
             .optionalNullable("sound", RegistryHasher.SOUND_EVENT, KineticWeapon::sound)
-            .optionalNullable("hit_sound", RegistryHasher.SOUND_EVENT, KineticWeapon::hitSound)); // TODO test 1.21.11
+            .optionalNullable("hit_sound", RegistryHasher.SOUND_EVENT, KineticWeapon::hitSound));
         register(DataComponentTypes.STORED_ENCHANTMENTS, RegistryHasher.ITEM_ENCHANTMENTS);
 
         register(DataComponentTypes.DYE, MinecraftHasher.DYE_COLOR);
@@ -231,7 +206,7 @@ public class DataComponentHashers {
         register(DataComponentTypes.MAP_DECORATIONS, MinecraftHasher.NBT_MAP);
 
         register(DataComponentTypes.CHARGED_PROJECTILES, RegistryHasher.ITEM_STACK.list());
-        register(DataComponentTypes.BUNDLE_CONTENTS, RegistryHasher.ITEM_STACK.list()); // TODO test data component removal
+        register(DataComponentTypes.BUNDLE_CONTENTS, RegistryHasher.ITEM_STACK.list());
 
         registerMap(DataComponentTypes.POTION_CONTENTS, builder -> builder
             .optional("potion", RegistryHasher.POTION, PotionContents::getPotionId, -1)
@@ -310,7 +285,7 @@ public class DataComponentHashers {
         register(DataComponentTypes.COW_SOUND_VARIANT, RegistryHasher.COW_SOUND_VARIANT);
         register(DataComponentTypes.CHICKEN_VARIANT, RegistryHasher.CHICKEN_VARIANT);
         register(DataComponentTypes.CHICKEN_SOUND_VARIANT, RegistryHasher.CHICKEN_SOUND_VARIANT);
-        register(DataComponentTypes.ZOMBIE_NAUTILUS_VARIANT, RegistryHasher.ZOMBIE_NAUTILUS_VARIANT); // TODO test 1.21.11
+        register(DataComponentTypes.ZOMBIE_NAUTILUS_VARIANT, RegistryHasher.ZOMBIE_NAUTILUS_VARIANT);
         register(DataComponentTypes.FROG_VARIANT, RegistryHasher.FROG_VARIANT);
         register(DataComponentTypes.HORSE_VARIANT, RegistryHasher.HORSE_VARIANT);
         register(DataComponentTypes.PAINTING_VARIANT, RegistryHasher.PAINTING_VARIANT.cast(Holder::id)); // This can and will throw when a direct holder was received, which is still possible due to a bug in 1.21.6.
@@ -382,208 +357,9 @@ public class DataComponentHashers {
             } else if (component.getValue().getValue() == null) {
                 removals.add(component.getKey());
             } else {
-                hashedAdditions.put(component.getKey(), hash(session.getRegistryCache(), (DataComponentType) component.getKey(), component.getValue().getValue()).asInt());
+                hashedAdditions.put(component.getKey(), hash(session.getRegistryCache(), component.getValue()).asInt());
             }
         }
         return new HashedStack(stack.getId(), stack.getAmount(), hashedAdditions, removals);
-    }
-
-    // TODO better testing
-    public static void testHashing(GeyserSession session) {
-        // Hashed values generated by vanilla Java
-
-        NbtMap customData = NbtMap.builder()
-            .putString("hello", "g'day")
-            .putBoolean("nice?", false)
-            .putByte("coolness", (byte) 100)
-            .putCompound("geyser", NbtMap.builder()
-                .putString("is", "very cool")
-                .build())
-            .putList("a list", NbtType.LIST, List.of(new NbtList<>(NbtType.STRING, "in a list")))
-            .build();
-
-        testHash(session, DataComponentTypes.CUSTOM_DATA, customData, -385053299);
-
-        testHash(session, DataComponentTypes.MAX_STACK_SIZE, 64, 733160003);
-        testHash(session, DataComponentTypes.MAX_DAMAGE, 13, -801733367);
-        testHash(session, DataComponentTypes.DAMAGE, 459, 1211405277);
-        testHash(session, DataComponentTypes.UNBREAKABLE, Unit.INSTANCE, -982207288);
-
-        testHash(session, DataComponentTypes.CUSTOM_NAME, Component.text("simple component test!"), 950545066);
-        testHash(session, DataComponentTypes.CUSTOM_NAME, Component.translatable("a.translatable"), 1983484873);
-        testHash(session, DataComponentTypes.CUSTOM_NAME, Component.text("component with *style*")
-            .style(style -> style.color(NamedTextColor.RED).decorate(TextDecoration.ITALIC)), -886479206);
-        testHash(session, DataComponentTypes.CUSTOM_NAME, Component.text("component with more stuff")
-            .children(List.of(Component.translatable("a.translate.string", "fallback!")
-                .style(style -> style.color(TextColor.color(0x446688)).decorate(TextDecoration.BOLD)))), -1591253390);
-
-        testHash(session, DataComponentTypes.ITEM_MODEL, MinecraftKey.key("testing"), -689946239);
-
-        testHash(session, DataComponentTypes.RARITY, Rarity.COMMON.ordinal(), 75150990);
-        testHash(session, DataComponentTypes.RARITY, Rarity.RARE.ordinal(), -1420566726);
-        testHash(session, DataComponentTypes.RARITY, Rarity.EPIC.ordinal(), -292715907);
-
-        testHash(session, DataComponentTypes.ENCHANTMENTS, new ItemEnchantments(Map.of(
-            0, 1
-        )), 0); // TODO identifier lookup
-
-        testHash(session, DataComponentTypes.ATTRIBUTE_MODIFIERS, new ItemAttributeModifiers(
-            List.of(
-                ItemAttributeModifiers.Entry.builder()
-                    .attribute(AttributeType.Builtin.ATTACK_DAMAGE.getId())
-                    .modifier(ItemAttributeModifiers.AttributeModifier.builder()
-                        .id(MinecraftKey.key("test_modifier_1"))
-                        .amount(2.0)
-                        .operation(ModifierOperation.ADD)
-                        .build())
-                    .slot(ItemAttributeModifiers.EquipmentSlotGroup.ANY)
-                    .display(new ItemAttributeModifiers.Display(ItemAttributeModifiers.DisplayType.DEFAULT, null))
-                    .build(),
-                ItemAttributeModifiers.Entry.builder()
-                    .attribute(AttributeType.Builtin.JUMP_STRENGTH.getId())
-                    .modifier(ItemAttributeModifiers.AttributeModifier.builder()
-                        .id(MinecraftKey.key("test_modifier_2"))
-                        .amount(4.2)
-                        .operation(ModifierOperation.ADD_MULTIPLIED_TOTAL)
-                        .build())
-                    .slot(ItemAttributeModifiers.EquipmentSlotGroup.HEAD)
-                    .display(new ItemAttributeModifiers.Display(ItemAttributeModifiers.DisplayType.HIDDEN, null))
-                    .build(),
-                ItemAttributeModifiers.Entry.builder()
-                    .attribute(AttributeType.Builtin.WAYPOINT_RECEIVE_RANGE.getId())
-                    .modifier(ItemAttributeModifiers.AttributeModifier.builder()
-                        .id(MinecraftKey.key("geyser_mc:test_modifier_3"))
-                        .amount(5.4)
-                        .operation(ModifierOperation.ADD_MULTIPLIED_BASE)
-                        .build())
-                    .slot(ItemAttributeModifiers.EquipmentSlotGroup.FEET)
-                    .display(new ItemAttributeModifiers.Display(ItemAttributeModifiers.DisplayType.DEFAULT, null))
-                    .build()
-            )
-        ), 1889444548);
-
-        testHash(session, DataComponentTypes.ATTRIBUTE_MODIFIERS, new ItemAttributeModifiers(
-            List.of(
-                ItemAttributeModifiers.Entry.builder()
-                    .attribute(AttributeType.Builtin.WAYPOINT_TRANSMIT_RANGE.getId())
-                    .modifier(ItemAttributeModifiers.AttributeModifier.builder()
-                        .id(MinecraftKey.key("geyser_mc:test_modifier_4"))
-                        .amount(2.0)
-                        .operation(ModifierOperation.ADD)
-                        .build())
-                    .slot(ItemAttributeModifiers.EquipmentSlotGroup.ANY)
-                    .display(new ItemAttributeModifiers.Display(ItemAttributeModifiers.DisplayType.OVERRIDE, Component.text("give me a test")))
-                    .build()
-            )
-        ), 1375953017);
-
-        testHash(session, DataComponentTypes.CUSTOM_MODEL_DATA,
-            new CustomModelData(List.of(5.0F, 3.0F, -1.0F), List.of(false, true, false), List.of("1", "3", "2"), List.of(3424, -123, 345)), 1947635619);
-
-        testHash(session, DataComponentTypes.CUSTOM_MODEL_DATA,
-            new CustomModelData(List.of(5.03F, 3.0F, -1.11F), List.of(true, true, false), List.of("2", "5", "7"), List.of()), -512419908);
-
-        testHash(session, DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplay(false, List.of(DataComponentTypes.CONSUMABLE, DataComponentTypes.DAMAGE)), -816418453);
-        testHash(session, DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplay(true, List.of()), 14016722);
-        testHash(session, DataComponentTypes.TOOLTIP_DISPLAY, new TooltipDisplay(false, List.of()), -982207288);
-
-        testHash(session, DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, true, -1019818302);
-        testHash(session, DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, false, 828198337);
-
-        testHash(session, DataComponentTypes.FOOD, new FoodProperties(5, 1.4F, false), 445786378);
-        testHash(session, DataComponentTypes.FOOD, new FoodProperties(3, 5.7F, true), 1917653498);
-        testHash(session, DataComponentTypes.FOOD, new FoodProperties(7, 0.15F, false), -184166204);
-
-        testHash(session, DataComponentTypes.CONSUMABLE, new Consumable(2.0F, Consumable.ItemUseAnimation.EAT,
-            BuiltinSound.ITEM_OMINOUS_BOTTLE_DISPOSE, true,
-            List.of(new ConsumeEffect.RemoveEffects(new HolderSet(new int[]{Effect.BAD_OMEN.ordinal(), Effect.REGENERATION.ordinal()})),
-                new ConsumeEffect.TeleportRandomly(3.0F))), 1742669333);
-
-        testHash(session, DataComponentTypes.USE_REMAINDER, new ItemStack(Items.MELON.javaId(), 52), -1279684916);
-
-        DataComponents specialComponents = new DataComponents(new HashMap<>());
-        specialComponents.put(DataComponentTypes.ITEM_MODEL, MinecraftKey.key("testing"));
-        specialComponents.put(DataComponentTypes.MAX_STACK_SIZE, 44);
-        testHash(session, DataComponentTypes.USE_REMAINDER, new ItemStack(Items.PUMPKIN.javaId(), 32, specialComponents), 1991032843);
-
-        testHash(session, DataComponentTypes.DAMAGE_RESISTANT, new HolderSet(MinecraftKey.key("testing")), -1230493835);
-
-        testHash(session, DataComponentTypes.TOOL, new ToolData(List.of(), 5.0F, 3, false), -1789071928);
-        testHash(session, DataComponentTypes.TOOL, new ToolData(List.of(), 3.0F, 1, true), -7422944);
-        testHash(session, DataComponentTypes.TOOL, new ToolData(List.of(
-            new ToolData.Rule(new HolderSet(MinecraftKey.key("acacia_logs")), null, null),
-            new ToolData.Rule(new HolderSet(new int[]{Blocks.JACK_O_LANTERN.javaId(), Blocks.WALL_TORCH.javaId()}), 4.2F, true),
-            new ToolData.Rule(new HolderSet(new int[]{Blocks.PUMPKIN.javaId()}), 7.0F, false)),
-            1.0F, 1, true), 2103678261);
-
-        testHash(session, DataComponentTypes.WEAPON, new Weapon(5, 2.0F), -154556976);
-        testHash(session, DataComponentTypes.WEAPON, new Weapon(1, 7.3F), 885347995);
-
-        testHash(session, DataComponentTypes.ENCHANTABLE, 3, -1834983819);
-
-        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC, null, null, null,
-            true, true, true, false,
-            false, BuiltinSound.ITEM_SHEARS_SNIP), 1294431019);
-        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.ITEM_ARMOR_EQUIP_CHAIN, MinecraftKey.key("testing"), null, null,
-            true, true, true, false,
-            true, BuiltinSound.ITEM_BONE_MEAL_USE), -801616214);
-        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.AMBIENT_CAVE, null, null, null,
-            false, true, false, false,
-            false, new CustomSound("testing_equippable", false, 10.0F)), -1145684769);
-        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.BODY, BuiltinSound.ENTITY_BREEZE_WIND_BURST, null, MinecraftKey.key("testing"),
-            new HolderSet(new int[]{EntityType.ACACIA_BOAT.ordinal()}), false, true, false, false,
-            true, BuiltinSound.BLOCK_NETHERITE_BLOCK_PLACE), -115079770);
-        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.HELMET, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC, null, null, null,
-            true, true, true, false,
-            false, BuiltinSound.ITEM_SHEARS_SNIP), 497790992);
-        testHash(session, DataComponentTypes.EQUIPPABLE, new Equippable(EquipmentSlot.HELMET, BuiltinSound.ITEM_ARMOR_EQUIP_GENERIC, null, null,
-            new HolderSet(MinecraftKey.key("aquatic")),
-            true, true, true, false,
-            false, BuiltinSound.ITEM_SHEARS_SNIP), 264760955);
-
-        testHash(session, DataComponentTypes.REPAIRABLE, new HolderSet(new int[]{Items.AMETHYST_BLOCK.javaId(), Items.PUMPKIN.javaId()}), -36715567);
-
-        NbtMap mapDecorations = NbtMap.builder()
-            .putCompound("test_decoration", NbtMap.builder()
-                .putString("type", "minecraft:player")
-                .putDouble("x", 45.0)
-                .putDouble("z", 67.4)
-                .putFloat("rotation", 39.5F)
-                .build())
-            .build();
-
-        testHash(session, DataComponentTypes.MAP_DECORATIONS, mapDecorations, -625782954);
-
-        ItemStack bundleStack1 = new ItemStack(Items.PUMPKIN.javaId());
-        ItemStack bundleStack2 = new ItemStack(Items.MELON.javaId(), 24);
-
-        DataComponents bundleStackComponents = new DataComponents(new HashMap<>());
-        bundleStackComponents.put(DataComponentTypes.CUSTOM_NAME, Component.text("magic potato!"));
-
-        ItemStack bundleStack3 = new ItemStack(Items.POTATO.javaId(), 30, bundleStackComponents);
-        testHash(session, DataComponentTypes.BUNDLE_CONTENTS, List.of(bundleStack1, bundleStack2, bundleStack3), 1817891504);
-
-        testHash(session, DataComponentTypes.POTION_CONTENTS, new PotionContents(Potion.FIRE_RESISTANCE.ordinal(), -1, List.of(), null), -772576502);
-        testHash(session, DataComponentTypes.POTION_CONTENTS, new PotionContents(-1, 20,
-            List.of(new MobEffectInstance(Effect.CONDUIT_POWER, new MobEffectDetails(0, 0, false, true, true, null))),
-            null), -902075187);
-        testHash(session, DataComponentTypes.POTION_CONTENTS, new PotionContents(-1, 96,
-            List.of(new MobEffectInstance(Effect.JUMP_BOOST, new MobEffectDetails(57, 17, true, false, false, null))),
-            null), -17231244);
-        testHash(session, DataComponentTypes.POTION_CONTENTS, new PotionContents(-1, 87,
-            List.of(new MobEffectInstance(Effect.SPEED, new MobEffectDetails(29, 1004, false, true, true, null))),
-            "testing"), 2007296036);
-
-        // TODO testing trim, instrument, trim material, jukebox playable requires registries
-
-        testHash(session, DataComponentTypes.LODESTONE_TRACKER,
-            new LodestoneTracker(new GlobalPos(MinecraftKey.key("overworld"), Vector3i.from(5, 6, 7)), true), 63561894);
-        testHash(session, DataComponentTypes.LODESTONE_TRACKER,
-            new LodestoneTracker(null, false), 1595667667);
-    }
-
-    private static <T> void testHash(GeyserSession session, DataComponentType<T> component, T value, int expected) {
-        int got = hash(session.getRegistryCache(), component, value).asInt();
-        System.out.println("Testing hashing component " + component.getKey() + ", expected " + expected + ", got " + got + " " + (got == expected ? "PASS" : "ERROR"));
     }
 }
