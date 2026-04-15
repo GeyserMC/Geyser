@@ -38,7 +38,7 @@ public final class ConnectionRequestEvent implements Event, Cancellable {
 
     private boolean cancelled;
     private final InetSocketAddress ip;
-    private final InetSocketAddress proxyIp;
+    private final @Nullable InetSocketAddress proxyIp;
 
     public ConnectionRequestEvent(InetSocketAddress ip, @Nullable InetSocketAddress proxyIp) {
         this.ip = ip;

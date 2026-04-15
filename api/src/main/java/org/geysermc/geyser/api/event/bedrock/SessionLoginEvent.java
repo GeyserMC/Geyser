@@ -42,7 +42,7 @@ import java.util.Objects;
 public final class SessionLoginEvent extends ConnectionEvent implements Cancellable {
     private RemoteServer remoteServer;
     private boolean cancelled;
-    private String disconnectReason;
+    private @Nullable String disconnectReason;
     private Map<String, byte[]> cookies;
     private boolean transferring;
 

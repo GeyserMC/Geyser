@@ -40,7 +40,7 @@ public final class ServerTransferEvent extends ConnectionEvent {
 
     private final String host;
     private final int port;
-    private String bedrockHost;
+    private @Nullable String bedrockHost;
     private int bedrockPort;
     private final Map<String, byte[]> cookies;
 
@@ -95,7 +95,7 @@ public final class ServerTransferEvent extends ConnectionEvent {
     /**
      * Sets the host for the Bedrock player to be transferred to
      */
-    public void bedrockHost(String host) {
+    public void bedrockHost(@Nullable String host) {
         if (host == null || host.isBlank()) {
             throw new IllegalArgumentException("Server address cannot be null or blank");
         }

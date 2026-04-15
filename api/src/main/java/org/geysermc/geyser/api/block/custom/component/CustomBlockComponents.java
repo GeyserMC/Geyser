@@ -221,7 +221,7 @@ public interface CustomBlockComponents {
          * @return this builder
          * @since 2.9.5
          */
-        @This Builder collisionBoxes(@Nullable BoxComponent... collisionBoxes);
+        @This Builder collisionBoxes(@Nullable BoxComponent @Nullable ... collisionBoxes);
 
         /**
          * Convenience method to set collision boxes for the block. Can be null to disable collisions.
