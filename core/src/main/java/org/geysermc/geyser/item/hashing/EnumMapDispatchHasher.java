@@ -80,10 +80,10 @@ import java.util.function.Supplier;
  *
  * @param <DistinctType> the distinct type used to indicate the implementation of a {@link ValueType}.
  * @param <ValueType> the abstract, base type to hash.
- * @see EnumMapDispatchHasher#dispatch(Supplier).
- * @see EnumMapDispatchHasher#dispatch(String, Supplier).
- * @see EnumMapDispatchHasher#dispatch(MinecraftHasher, Supplier).
- * @see EnumMapDispatchHasher#dispatch(String, MinecraftHasher, Supplier).
+ * @see EnumMapDispatchHasher#dispatch(Supplier)
+ * @see EnumMapDispatchHasher#dispatch(String, Supplier)
+ * @see EnumMapDispatchHasher#dispatch(MinecraftHasher, Supplier)
+ * @see EnumMapDispatchHasher#dispatch(String, MinecraftHasher, Supplier)
  */
 public interface EnumMapDispatchHasher<DistinctType, ValueType> {
 
@@ -130,8 +130,8 @@ public interface EnumMapDispatchHasher<DistinctType, ValueType> {
     /**
      * Delegates to {@link EnumMapDispatchHasher#dispatch(String, Supplier)}, uses {@code "type"} as {@code typeKey}.
      *
-     * @see EnumMapDispatchHasher#dispatch(String, Supplier).
-     * @see EnumMapDispatchHasher#dispatch(String, MinecraftHasher, Supplier).
+     * @see EnumMapDispatchHasher#dispatch(String, Supplier)
+     * @see EnumMapDispatchHasher#dispatch(String, MinecraftHasher, Supplier)
      */
     static <Value, HasherEnum extends Enum<HasherEnum> & EnumMapDispatchHasher<HasherEnum, Value>> MapBuilder<Value> dispatch(Supplier<HasherEnum[]> hashersSupplier) {
         return dispatch("type", hashersSupplier);
@@ -142,7 +142,7 @@ public interface EnumMapDispatchHasher<DistinctType, ValueType> {
      *
      * <p>Uses {@link MinecraftHasher#fromEnum()} as hasher for {@link HasherEnum}/the {@code Distinct} type, so be sure that the enum constants match what you want to appear in the map!</p>
      *
-     * @see EnumMapDispatchHasher#dispatch(String, MinecraftHasher, Supplier).
+     * @see EnumMapDispatchHasher#dispatch(String, MinecraftHasher, Supplier)
      */
     static <Value, HasherEnum extends Enum<HasherEnum> & EnumMapDispatchHasher<HasherEnum, Value>> MapBuilder<Value> dispatch(String typeKey, Supplier<HasherEnum[]> hashersSupplier) {
         return dispatch(typeKey, MinecraftHasher.fromEnum(), hashersSupplier);
@@ -151,7 +151,7 @@ public interface EnumMapDispatchHasher<DistinctType, ValueType> {
     /**
      * Delegates to {@link EnumMapDispatchHasher#dispatch(String, MinecraftHasher, Supplier)}, using {@code "type"} as {@code distinctTypeKey}.
      *
-     * @see EnumMapDispatchHasher#dispatch(String, MinecraftHasher, Supplier).
+     * @see EnumMapDispatchHasher#dispatch(String, MinecraftHasher, Supplier)
      */
     static <Distinct, Value, HasherEnum extends EnumMapDispatchHasher<Distinct, Value>> MapBuilder<Value> dispatch(MinecraftHasher<Distinct> distinctHasher, Supplier<HasherEnum[]> hashersSupplier) {
         return dispatch("type", distinctHasher, hashersSupplier);
