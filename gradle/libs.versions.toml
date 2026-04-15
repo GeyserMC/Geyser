@@ -24,6 +24,7 @@ adventure-platform = "4.4.1"
 junit = "6.0.0"
 checkerframework = "3.19.0"
 jetbrains-annotations = "24.0.0"
+jspecify = "1.0.0"
 log4j = "2.20.0"
 jline = "3.21.0"
 terminalconsoleappender = "1.2.0"
@@ -136,6 +137,7 @@ bungeecord-proxy = { group = "net.md-5", name = "bungeecord-proxy", version.ref 
 bungeecord-api = { group = "net.md-5", name = "bungeecord-api", version.ref = "bungeecord-api" }
 checker-qual = { group = "org.checkerframework", name = "checker-qual", version.ref = "checkerframework" }
 jetbrains-annotations = { group = "org.jetbrains", name = "annotations", version.ref = "jetbrains-annotations" }
+jspecify = { group = "org.jspecify", name = "jspecify", version.ref = "jspecify" }
 commodore = { group = "me.lucko", name = "commodore", version.ref = "commodore" }
 guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
