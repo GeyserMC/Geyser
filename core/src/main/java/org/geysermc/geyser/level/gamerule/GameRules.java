@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.level.gamerule;
 
+import org.geysermc.geyser.registry.Registries;
+
 public class GameRules {
     public static final GameRule<Boolean> ADVANCE_TIME = register(new GameRule.Bool("gamerule.minecraft.advance_time", "gamerule.doDaylightCycle", true));
     public static final GameRule<Boolean> ADVANCE_WEATHER = register(new GameRule.Bool("gamerule.minecraft.advance_weather", "gamerule.doWeatherCycle", true));
@@ -87,8 +89,11 @@ public class GameRules {
     public static final GameRule<Boolean> WATER_SOURCE_CONVERSION = register(new GameRule.Bool("gamerule.minecraft.water_source_conversion", "gamerule.waterSourceConversion", true));
 
     public static <T> GameRule<T> register(GameRule<T> gameRule) {
-        // TODO gamerule registry, by id pls
-        //ALL_RULES.add(gameRule);
+        Registries.GAME_RULES.register(gameRule.key(), gameRule);
         return gameRule;
+    }
+
+    public static void init() {
+        // no-op
     }
 }

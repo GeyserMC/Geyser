@@ -1766,6 +1766,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return this.upstream.getAddress();
     }
 
+    public void setOpPermissionLevel(int opPermissionLevel) {
+        this.opPermissionLevel = opPermissionLevel;
+        if (gameRuleHandler.getState() == GameRuleHandler.State.SHOWN || gameRuleHandler.getState() == GameRuleHandler.State.WAITING) {
+            closeForm();
+        }
+    }
+
     @Override
     public boolean sendForm(@NonNull Form form) {
         // First close any dialogs that are open. This won't execute the dialog's closing action.

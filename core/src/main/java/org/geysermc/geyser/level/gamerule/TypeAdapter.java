@@ -27,8 +27,18 @@ package org.geysermc.geyser.level.gamerule;
 
 import java.util.function.Function;
 
-public record TypeAdapter<T>(Function<String, T> parser, Class<T> type) {
-    public static final TypeAdapter<Boolean> BOOLEAN = new TypeAdapter<>(Boolean::parseBoolean, Boolean.class);
-    public static final TypeAdapter<Integer> INTEGER = new TypeAdapter<>(Integer::parseInt, Integer.class);
+public record TypeAdapter<T>(Class<T> type, Function<Object, T> parser) {
+    public static final TypeAdapter<Boolean> BOOLEAN = new TypeAdapter<>(Boolean.class, (object) -> {
+        if (object instanceof Boolean bool) {
+            return bool;
+        }
+        return Boolean.parseBoolean(object.toString());
+    });
+    public static final TypeAdapter<Integer> INTEGER = new TypeAdapter<>(Integer.class, (object) -> {
+        if (object instanceof Integer intValue) {
+            return intValue;
+        }
+        return Integer.parseInt(object.toString());
+    });
 }
 

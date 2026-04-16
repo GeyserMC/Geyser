@@ -25,19 +25,52 @@
 
 package org.geysermc.geyser.level.gamerule;
 
+import net.kyori.adventure.key.Key;
+import org.geysermc.cumulus.component.Component;
+import org.geysermc.cumulus.component.InputComponent;
+import org.geysermc.cumulus.component.ToggleComponent;
+import org.geysermc.geyser.util.MinecraftKey;
+
 /**
  * This enum stores each gamerule along with the value type and the default.
  * It is used to construct the list for the settings menu
  */
 public interface GameRule<T> {
-    String id();
-    // TODO yeet once we properly parse / handle deprecations in locale files
+
+    /**
+     * The id of the gamerule; without the minecraft namespace
+     */
+    Key key();
+
+    /**
+     * temp: the translation of the gamerule
+     * TODO remove once we properly parse / handle deprecations in locale files
+     */
     String translation();
+
+    /**
+     * magic
+     */
     TypeAdapter<T> adapter();
+
+    /**
+     * default value for the gamerule
+     */
     T defaultValue();
+
+    /**
+     * ensures gamerule values are within range
+     */
     boolean validate(T value);
 
-    record Int(String id, String translation, Integer defaultValue, int min, int max) implements GameRule<Integer> {
+    Component toComponent(String currentValue);
+
+    record Int(Key key, String translation, Integer defaultValue, int min, int max) implements GameRule<Integer> {
+
+        public Int(String key, String translation, Integer defaultValue, int min, int max) {
+            this(MinecraftKey.key(key), translation, defaultValue, min, max);
+        }
+
         @Override
         public TypeAdapter<Integer> adapter() {
             return TypeAdapter.INTEGER;
@@ -47,9 +80,19 @@ public interface GameRule<T> {
         public boolean validate(Integer value) {
             return value >= min && value <= max;
         }
+
+        @Override
+        public Component toComponent(String currentValue) {
+            return InputComponent.of(translation(), currentValue, currentValue);
+        }
     }
 
-    record Bool(String id, String translation, Boolean defaultValue) implements GameRule<Boolean> {
+    record Bool(Key key, String translation, Boolean defaultValue) implements GameRule<Boolean> {
+
+        public Bool(String key, String translation, Boolean defaultValue) {
+            this(MinecraftKey.key(key), translation, defaultValue);
+        }
+
         @Override
         public TypeAdapter<Boolean> adapter() {
             return TypeAdapter.BOOLEAN;
@@ -58,6 +101,11 @@ public interface GameRule<T> {
         @Override
         public boolean validate(Boolean value) {
             return value != null;
+        }
+
+        @Override
+        public Component toComponent(String currentValue) {
+            return ToggleComponent.of(translation(), adapter().parser().apply(currentValue));
         }
     }
 }

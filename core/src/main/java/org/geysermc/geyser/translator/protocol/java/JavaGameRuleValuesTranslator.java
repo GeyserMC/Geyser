@@ -34,13 +34,6 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.Clientbound
 public class JavaGameRuleValuesTranslator extends PacketTranslator<ClientboundGameRuleValuesPacket> {
     @Override
     public void translate(GeyserSession session, ClientboundGameRuleValuesPacket packet) {
-        // As of 26.1:
-        // ClientPacketListener#handleGameRuleValues checks whether we're currently in the gamerule screen.
-        // However, InWorldGameRulesScreen#onGameRuleValuesUpdated then checks whether those were already received
-        if (!session.isWaitingForGamerules()) {
-            return;
-        }
-
-        session.setWaitingForGamerules(false);
+        session.getGameRuleHandler().onGamerulesReceived(packet);
     }
 }
