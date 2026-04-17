@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry.MessageType;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateSubChunkBlocksPacket;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.block.Blocks;
@@ -42,6 +44,8 @@ import java.util.BitSet;
 
 @Translator(packet = ClientboundSectionBlocksUpdatePacket.class)
 public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<ClientboundSectionBlocksUpdatePacket> {
+
+    private static final int FLAG_ALL = 1 << UpdateBlockPacket.Flag.NEIGHBORS.ordinal() | 1 << UpdateBlockPacket.Flag.NETWORK.ordinal();
 
     @Override
     public void translate(GeyserSession session, ClientboundSectionBlocksUpdatePacket packet) {
@@ -91,9 +95,9 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
             updateSubChunkBlocksPacket.getStandardBlocks().add(new org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry(
                 entry.getPosition(),
                 session.getBlockMappings().getBedrockBlock(blockState),
-                3,
+                FLAG_ALL,
                 -1,
-                org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry.MessageType.NONE
+                MessageType.NONE
             ));
 
             boolean isWaterlogged = waterlogged.get(entry.getBlock());
@@ -103,7 +107,7 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
                     isWaterlogged ? session.getBlockMappings().getBedrockWater() : session.getBlockMappings().getBedrockAir(),
                     0,
                     -1,
-                    org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry.MessageType.NONE
+                    MessageType.NONE
                 ));
             }
         }
