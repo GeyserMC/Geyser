@@ -38,6 +38,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
+import java.util.BitSet;
+
 @Translator(packet = ClientboundSectionBlocksUpdatePacket.class)
 public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<ClientboundSectionBlocksUpdatePacket> {
 
@@ -51,6 +53,8 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
             }
         }
 
+        BitSet waterlogged = BlockRegistries.WATERLOGGED.get();
+
         UpdateSubChunkBlocksPacket updateSubChunkBlocksPacket = new UpdateSubChunkBlocksPacket();
 
         for (BlockChangeEntry entry : packet.getEntries()) {
@@ -58,18 +62,24 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
                 ? palette.get(entry.getPosition().getX() & 0xF, entry.getPosition().getY() & 0xF, entry.getPosition().getZ() & 0xF)
                 : session.getGeyser().getWorldManager().getBlockAt(session, entry.getPosition());
             if (entry.getBlock() == oldBlock) {
+                // Skip unchanged blocks which may occur with older versions of Minecraft
                 continue;
+            }
+
+            if (palette != null) {
+                palette.set(entry.getPosition().getX() & 0xF, entry.getPosition().getY() & 0xF, entry.getPosition().getZ() & 0xF, entry.getBlock());
             }
 
             BlockState blockState = BlockState.of(entry.getBlock());
             if (blockState.is(Blocks.AIR)) {
                 ItemFrameEntity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, entry.getPosition());
-                if (itemFrameEntity != null) {
+                if (itemFrameEntity != null) { // Item frame is still present and no block overrides that; refresh it
                     itemFrameEntity.updateBlock(true);
                     continue;
                 }
             }
             if (!(blockState.block() instanceof SkullBlock)) {
+                // Skull is gone
                 session.getSkullCache().removeSkull(entry.getPosition());
             }
 
@@ -81,8 +91,8 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
                 org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry.MessageType.NONE
             ));
 
-            boolean isWaterlogged = BlockRegistries.WATERLOGGED.get().get(entry.getBlock());
-            if (BlockRegistries.WATERLOGGED.get().get(oldBlock) != isWaterlogged) {
+            boolean isWaterlogged = waterlogged.get(entry.getBlock());
+            if (waterlogged.get(oldBlock) != isWaterlogged) {
                 updateSubChunkBlocksPacket.getExtraBlocks().add(new org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry(
                     entry.getPosition(),
                     isWaterlogged ? session.getBlockMappings().getBedrockWater() : session.getBlockMappings().getBedrockAir(),
@@ -90,10 +100,6 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
                     -1,
                     org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry.MessageType.NONE
                 ));
-            }
-
-            if (palette != null) {
-                palette.set(entry.getPosition().getX() & 0xF, entry.getPosition().getY() & 0xF, entry.getPosition().getZ() & 0xF, entry.getBlock());
             }
         }
 
