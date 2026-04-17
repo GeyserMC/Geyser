@@ -30,7 +30,6 @@ import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.level.block.type.SkullBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.DataPalette;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockChangeEntry;
@@ -109,6 +108,8 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
             }
         }
 
-        session.sendUpstreamPacket(updateSubChunkBlocksPacket);
+        if (!updateSubChunkBlocksPacket.getStandardBlocks().isEmpty()) {
+            session.sendUpstreamPacket(updateSubChunkBlocksPacket);
+        }
     }
 }
