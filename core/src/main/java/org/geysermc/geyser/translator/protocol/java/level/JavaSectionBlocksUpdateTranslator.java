@@ -47,7 +47,7 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
     public void translate(GeyserSession session, ClientboundSectionBlocksUpdatePacket packet) {
         DataPalette palette = null;
         if (session.getChunkCache().isCache()) {
-            palette = session.getChunkCache().getChunkSection(packet.getChunkX(), packet.getChunkY(), packet.getChunkZ());
+            palette = session.getChunkCache().getChunkSection(packet.getChunkX(), packet.getChunkY(), packet.getChunkZ(), true);
             if (palette == null) {
                 return;
             }

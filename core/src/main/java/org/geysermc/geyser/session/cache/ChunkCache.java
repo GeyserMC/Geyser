@@ -73,7 +73,7 @@ public class ChunkCache {
      * Doesn't check for cache enabled, so don't use this without checking that first!
      */
     @Deprecated
-    public DataPalette getChunkSection(int chunkX, int chunkY, int chunkZ) {
+    public DataPalette getChunkSection(int chunkX, int chunkY, int chunkZ, boolean createIfAbsent) {
         GeyserChunk chunk = this.getChunk(chunkX, chunkZ);
         if (chunk == null) {
             return null;
@@ -84,7 +84,7 @@ public class ChunkCache {
         }
 
         DataPalette palette = chunk.sections()[chunkY - getChunkMinY()];
-        if (palette == null) {
+        if (createIfAbsent && palette == null) {
             palette = DataPalette.createForBlockState(Block.JAVA_AIR_ID, BlockRegistries.BLOCK_STATES.get().size());
             chunk.sections()[chunkY - getChunkMinY()] = palette;
         }
@@ -97,7 +97,7 @@ public class ChunkCache {
             return;
         }
 
-        DataPalette palette = this.getChunkSection(x >> 4, y >> 4, z >> 4);
+        DataPalette palette = this.getChunkSection(x >> 4, y >> 4, z >> 4, true);
         if (palette == null) {
             return;
         }
@@ -110,22 +110,12 @@ public class ChunkCache {
             return Block.JAVA_AIR_ID;
         }
 
-        GeyserChunk column = this.getChunk(x >> 4, z >> 4);
-        if (column == null) {
+        DataPalette palette = this.getChunkSection(x >> 4, y >> 4, z >> 4, false);
+        if (palette == null) {
             return Block.JAVA_AIR_ID;
         }
 
-        if (y < minY || ((y - minY) >> 4) > column.sections().length - 1) {
-            // Y likely goes above or below the height limit of this world
-            return Block.JAVA_AIR_ID;
-        }
-
-        DataPalette chunk = column.sections()[(y - minY) >> 4];
-        if (chunk != null) {
-            return chunk.get(x & 0xF, y & 0xF, z & 0xF);
-        }
-
-        return Block.JAVA_AIR_ID;
+        return palette.get(x & 0xF, y & 0xF, z & 0xF);
     }
 
     public void removeChunk(int chunkX, int chunkZ) {
