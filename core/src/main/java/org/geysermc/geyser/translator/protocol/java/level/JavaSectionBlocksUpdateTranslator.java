@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateSubChunkBlocksPacket;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.block.Blocks;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.SkullBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -78,10 +79,15 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
                     continue;
                 }
             }
-            if (!(blockState.block() instanceof SkullBlock)) {
-                // Skull is gone
-                session.getSkullCache().removeSkull(entry.getPosition());
+
+            // Some block may have special handling, keep it that way
+            if (!(blockState.block().getClass().equals(Block.class))) {
+                blockState.block().updateBlock(session, blockState, entry.getPosition());
+                continue;
             }
+
+            // Skull is gone
+            session.getSkullCache().removeSkull(entry.getPosition());
 
             updateSubChunkBlocksPacket.getStandardBlocks().add(new org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry(
                 entry.getPosition(),
