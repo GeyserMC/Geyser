@@ -50,6 +50,12 @@ indra {
     }
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
 configurations {
     create("includeTransitive").isTransitive = true
     create("shadowBundle") {
