@@ -26,7 +26,6 @@
 package org.geysermc.geyser.translator.protocol.java.level;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -106,7 +105,6 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
         int maxBedrockSectionY = (bedrockDimension.height() >> 4) - 1;
 
         int sectionCount;
-        byte[] payload;
         ByteBuf byteBuf = null;
 
         // calculate the difference between the java dimension minY and the bedrock dimension minY as
@@ -340,7 +338,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             size += bedrockBlockEntities.size() * 64; // Conservative estimate of 64 bytes per tile entity
 
             // Allocate output buffer
-            byteBuf = ByteBufAllocator.DEFAULT.ioBuffer(size);
+            byteBuf = Unpooled.buffer(size);
             for (int i = 0; i < sectionCount; i++) {
                 GeyserChunkSection section = sections[i];
                 if (section != null) {
@@ -376,25 +374,22 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             for (NbtMap blockEntity : bedrockBlockEntities) {
                 nbtStream.writeTag(blockEntity);
             }
-            payload = new byte[byteBuf.readableBytes()];
-            byteBuf.readBytes(payload);
+            LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
+            levelChunkPacket.setSubChunksLength(sectionCount);
+            levelChunkPacket.setCachingEnabled(false);
+            levelChunkPacket.setChunkX(packet.getX());
+            levelChunkPacket.setChunkZ(packet.getZ());
+            levelChunkPacket.setData(byteBuf.retainedSlice());
+            levelChunkPacket.setDimension(session.getBedrockDimension().bedrockId());
+            session.sendUpstreamPacket(levelChunkPacket);
         } catch (IOException e) {
             session.getGeyser().getLogger().error("IO error while encoding chunk", e);
             return;
         } finally {
             if (byteBuf != null) {
-                byteBuf.release(); // Release buffer to allow buffer pooling to be useful
+                byteBuf.release();
             }
         }
-
-        LevelChunkPacket levelChunkPacket = new LevelChunkPacket();
-        levelChunkPacket.setSubChunksLength(sectionCount);
-        levelChunkPacket.setCachingEnabled(false);
-        levelChunkPacket.setChunkX(packet.getX());
-        levelChunkPacket.setChunkZ(packet.getZ());
-        levelChunkPacket.setData(Unpooled.wrappedBuffer(payload));
-        levelChunkPacket.setDimension(session.getBedrockDimension().bedrockId());
-        session.sendUpstreamPacket(levelChunkPacket);
 
         for (Map.Entry<Vector3i, ItemFrameEntity> entry : session.getItemFrameCache().entrySet()) {
             Vector3i position = entry.getKey();
