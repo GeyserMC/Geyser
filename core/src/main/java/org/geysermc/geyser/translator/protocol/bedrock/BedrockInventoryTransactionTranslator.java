@@ -237,9 +237,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             return;
                         }
 
-                        double clickPositionFullX = (double) packetBlockPosition.getX() + (double) packet.getClickPosition().getX();
-                        double clickPositionFullY = (double) packetBlockPosition.getY() + (double) packet.getClickPosition().getY();
-                        double clickPositionFullZ = (double) packetBlockPosition.getZ() + (double) packet.getClickPosition().getZ();
+                        float cursorX = fixCursorValue(packet.getClickPosition().getX());
+                        float cursorY = fixCursorValue(packet.getClickPosition().getY());
+                        float cursorZ = fixCursorValue(packet.getClickPosition().getZ());
+
+                        double clickPositionFullX = (double) packetBlockPosition.getX() + (double) cursorX;
+                        double clickPositionFullY = (double) packetBlockPosition.getY() + (double) cursorY;
+                        double clickPositionFullZ = (double) packetBlockPosition.getZ() + (double) cursorZ;
 
                         Vector3f blockCenter = Vector3f.from(packetBlockPosition.getX() + 0.5f, packetBlockPosition.getY() + 0.5f, packetBlockPosition.getZ() + 0.5f);
 
@@ -282,7 +286,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 packet.getBlockPosition(),
                                 Direction.getUntrusted(packet, InventoryTransactionPacket::getBlockFace).mcpl(),
                                 Hand.MAIN_HAND,
-                                packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
+                                cursorX, cursorY, cursorZ,
                                 false,
                                 false,
                                 sequence);
@@ -615,5 +619,27 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
         session.useItem(Hand.MAIN_HAND, useTouchRotation);
         return true;
+    }
+
+    /*
+     * In Bedrock Edition behavior(scaffolding-style bridging), the cursor position (packet.getClickPosition())
+     * is based on the player's foot position.
+     *
+     * When performing speed bridging (running/jumping while placing blocks), if there is a wall ahead,
+     * and the last 1–3 blocks are about to touch or are already touching the wall, the click position
+     * in that direction may become values like -1, -1.5, -2, 2, or 3.
+     *
+     * However, the normal max range should be between -0.5 and 1.5 (in java server that will not cancel place), so a temporary restriction is applied.
+     *
+     * This is a temporary fix, but I don’t have a better idea for now...
+     */
+    private float fixCursorValue(float value) {
+        if (value <= -0.5f) {
+            return -0.25f;
+        } else if (value >= 2.0f) {
+            return 1.25f;
+        } else {
+            return value;
+        }
     }
 }
