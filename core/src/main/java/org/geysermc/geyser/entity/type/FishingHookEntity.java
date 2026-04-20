@@ -42,7 +42,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEnt
 
 import java.util.concurrent.ThreadLocalRandom;
 
-public class FishingHookEntity extends ThrowableEntity {
+public class FishingHookEntity extends ProjectileEntity {
 
     private boolean hooked = false;
     private boolean castByPlayer = false;
@@ -138,7 +138,7 @@ public class FishingHookEntity extends ThrowableEntity {
             }
             PlaySoundPacket playSoundPacket = new PlaySoundPacket();
             playSoundPacket.setSound("random.splash");
-            playSoundPacket.setPosition(position);
+            playSoundPacket.setPosition(bedrockPosition());
             playSoundPacket.setVolume(volume);
             playSoundPacket.setPitch(1f + ThreadLocalRandom.current().nextFloat() * 0.3f);
             session.sendUpstreamPacket(playSoundPacket);

@@ -90,11 +90,9 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void spawnEntity() {
-        Vector3f javaPosition = position;
         // Apply the offset if we're the second entity
-        position = position.up(getYOffset());
+        setOffset(getYOffset());
         super.spawnEntity();
-        position = javaPosition;
     }
 
     @Override
@@ -107,7 +105,7 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveAbsoluteRaw(position.add(relX, relY, relZ), yaw, pitch, headYaw, onGround, false);
+        moveAbsoluteRaw(position.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
     }
 
     @Override
@@ -116,15 +114,14 @@ public class ArmorStandEntity extends LivingEntity {
             secondEntity.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
         }
         // Fake the height to be above where it is so the nametag appears in the right location
-        float yOffset = getYOffset();
-        super.moveAbsoluteRaw(yOffset != 0 ? position.up(yOffset) : position , yaw, yaw, yaw, isOnGround, teleported);
-        this.position = position;
+        setOffset(getYOffset());
+        super.moveAbsoluteRaw(position, yaw, yaw, yaw, isOnGround, teleported);
     }
 
     @Override
     public void updateNametag(@Nullable Team team) {
         // unlike all other LivingEntities, armor stands are not affected by team nametag visibility
-        super.updateNametag(team, true);
+        super.updateNametag(team, passengers.isEmpty());
     }
 
     @Override
@@ -438,7 +435,7 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
-    public Vector3f getBedrockRotation() {
+    public Vector3f bedrockRotation() {
         return Vector3f.from(getYaw(), getYaw(), getYaw());
     }
 }

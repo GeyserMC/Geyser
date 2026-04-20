@@ -30,7 +30,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
-import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType;
@@ -189,33 +188,12 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             }
                         }
 
-                        // Check if this is a double placement due to an extended collision block
-                        if (!session.getBlockMappings().getExtendedCollisionBoxes().isEmpty()) {
-                            Vector3i belowBlockPos = null;
-                            switch (packet.getBlockFace()) {
-                                case 1 -> belowBlockPos = blockPos.add(0, -2, 0);
-                                case 2 -> belowBlockPos = blockPos.add(0, -1, 1);
-                                case 3 -> belowBlockPos = blockPos.add(0, -1, -1);
-                                case 4 -> belowBlockPos = blockPos.add(1, -1, 0);
-                                case 5 -> belowBlockPos = blockPos.add(-1, -1, 0);
-                            }
-
-                            if (belowBlockPos != null) {
-                                int belowBlock = session.getGeyser().getWorldManager().getBlockAt(session, belowBlockPos);
-                                BlockDefinition extendedCollisionDefinition = session.getBlockMappings().getExtendedCollisionBoxes().get(belowBlock);
-                                if (extendedCollisionDefinition != null && (System.currentTimeMillis() - session.getLastInteractionTime()) < 200) {
-                                    BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
-                                    return;
-                                }
-                            }
-                        }
-
                         // Check to make sure the client isn't spamming interaction
                         // Based on Nukkit 1.0, with changes to ensure holding down still works
                         boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
                                 packetBlockPosition.distanceSquared(session.getLastInteractionBlockPosition()) < 0.00001;
                         session.setLastInteractionBlockPosition(packetBlockPosition);
-                        session.setLastInteractionPlayerPosition(session.getPlayerEntity().getPosition());
+                        session.setLastInteractionPlayerPosition(session.getPlayerEntity().position());
                         if (hasAlreadyClicked) {
                             session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
                             break;
@@ -250,9 +228,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         // As of 1.21, Paper does not have any additional range checks that would inconvenience normal players.
-                        Vector3f playerPosition = session.getPlayerEntity().getPosition();
-                        playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
-
+                        Vector3f playerPosition = session.getPlayerEntity().position().up(session.getEyeHeight());
                         if (!canInteractWithBlock(session, playerPosition, packetBlockPosition)) {
                             BlockUtils.restoreCorrectBlock(session, blockPos, packet.getHotbarSlot());
                             return;
@@ -417,7 +393,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                             // BDS uses a LevelSoundEvent2Packet, but that doesn't work here... (as of 1.21.20)
                                             LevelSoundEventPacket soundPacket = new LevelSoundEventPacket();
                                             soundPacket.setSound(SoundEvent.valueOf("GOAT_CALL_" + instrument.bedrockInstrument().ordinal()));
-                                            soundPacket.setPosition(session.getPlayerEntity().getPosition());
+                                            soundPacket.setPosition(session.getPlayerEntity().bedrockPosition());
                                             soundPacket.setIdentifier("minecraft:player");
                                             soundPacket.setExtraData(-1);
                                             session.sendUpstreamPacket(soundPacket);
@@ -524,13 +500,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     }
 
     private void processEntityInteraction(GeyserSession session, InventoryTransactionPacket packet, Entity entity) {
-        Vector3f entityPosition = entity.getPosition();
+        Vector3f entityPosition = entity.position();
         if (!session.getWorldBorder().isInsideBorderBoundaries(entityPosition)) {
             // No transaction is able to go through (as of Java Edition 1.18.1)
             return;
         }
 
-        Vector3f clickPosition = packet.getClickPosition().sub(entityPosition);
+        Vector3f clickPosition = packet.getClickPosition().sub(entity.bedrockPosition());
         boolean isSpectator = session.getGameMode() == GameMode.SPECTATOR;
         for (Hand hand : EntityUtils.HANDS) {
             session.sendDownstreamGamePacket(new ServerboundInteractPacket(entity.getEntityId(),

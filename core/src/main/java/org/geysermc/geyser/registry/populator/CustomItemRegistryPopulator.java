@@ -62,7 +62,6 @@ import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.NonVanillaItem;
-import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.populator.custom.CustomItemContext;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
@@ -297,26 +296,24 @@ public class CustomItemRegistryPopulator {
                 .build());
         }
 
-        if (GameProtocol.is1_21_130orHigher(context.protocolVersion())) {
-            AttackRange attackRange = context.components().getOrDefault(DataComponentTypes.ATTACK_RANGE, DEFAULT_ATTACK_RANGE);
+        AttackRange attackRange = context.components().getOrDefault(DataComponentTypes.ATTACK_RANGE, DEFAULT_ATTACK_RANGE);
 
-            KineticWeapon kineticWeapon = context.components().get(DataComponentTypes.KINETIC_WEAPON);
-            if (kineticWeapon != null) {
-                computeKineticWeaponProperties(componentBuilder, kineticWeapon, attackRange);
-            }
+        KineticWeapon kineticWeapon = context.components().get(DataComponentTypes.KINETIC_WEAPON);
+        if (kineticWeapon != null) {
+            computeKineticWeaponProperties(componentBuilder, kineticWeapon, attackRange);
+        }
 
-            PiercingWeapon piercingWeapon = context.components().get(DataComponentTypes.PIERCING_WEAPON);
-            if (piercingWeapon != null) {
-                computePiercingWeaponProperties(componentBuilder, attackRange);
-            }
+        PiercingWeapon piercingWeapon = context.components().get(DataComponentTypes.PIERCING_WEAPON);
+        if (piercingWeapon != null) {
+            computePiercingWeaponProperties(componentBuilder, attackRange);
+        }
 
-            // Please note that technically this component is present on all items in vanilla Minecraft, which, if we think about consistency, would mean
-            // we'd have to translate its default value if the component is removed using a patch or not present on a non-vanilla item
-            // It doesn't really matter though, since Bedrock has its own default values if the component isn't present
-            SwingAnimation swingAnimation = context.components().get(DataComponentTypes.SWING_ANIMATION);
-            if (swingAnimation != null) {
-                computeSwingAnimationProperties(componentBuilder, swingAnimation);
-            }
+        // Please note that technically this component is present on all items in vanilla Minecraft, which, if we think about consistency, would mean
+        // we'd have to translate its default value if the component is removed using a patch or not present on a non-vanilla item
+        // It doesn't really matter though, since Bedrock has its own default values if the component isn't present
+        SwingAnimation swingAnimation = context.components().get(DataComponentTypes.SWING_ANIMATION);
+        if (swingAnimation != null) {
+            computeSwingAnimationProperties(componentBuilder, swingAnimation);
         }
 
         Optional<Consumable> consumableComponent = Optional.ofNullable(context.components().get(DataComponentTypes.CONSUMABLE))

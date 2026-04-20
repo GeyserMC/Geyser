@@ -28,7 +28,7 @@ package org.geysermc.geyser.entity.type;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 
-public class FireballEntity extends ThrowableEntity {
+public class FireballEntity extends ProjectileEntity {
     private final Vector3f acceleration;
 
     /**

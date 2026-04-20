@@ -94,7 +94,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
 
         // Since 1.20.60, the nametag does not show properly if this is not set :/
         // The nametag does disappear properly when the player is invisible though.
-        dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
+        setNametagAlwaysShow(true);
     }
 
     @Override
@@ -249,11 +249,6 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
      */
     public UUID getTabListUuid() {
         return uuid();
-    }
-
-    @Override
-    public Vector3f position() {
-        return this.position.down(definition.offset());
     }
 
     // From 1.21.8 code, should be correct since some pose should be prioritized.

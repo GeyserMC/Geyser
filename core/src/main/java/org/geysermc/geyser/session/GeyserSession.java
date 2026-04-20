@@ -514,7 +514,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private Vector3i lastInteractionBlockPosition = Vector3i.ZERO;
 
     /**
-     * Stores the position of the player the last time they interacted.
+     * Stores the Java position of the player the last time they interacted.
      * Used to verify that the player did not move since their last interaction. <br>
      * Initialized as (0, 0, 0) so it is always not-null.
      */
@@ -833,7 +833,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.blockBreakHandler = new BlockBreakHandler(this);
 
         this.playerEntity = new SessionPlayerEntity(this);
-        collisionManager.updatePlayerBoundingBox(this.playerEntity.getPosition());
+        collisionManager.updatePlayerBoundingBox(this.playerEntity.position());
 
         this.playerInventoryHolder = new InventoryHolder<>(this, new PlayerInventory(this), InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         this.inventoryHolder = null;
@@ -887,8 +887,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values());
         upstream.sendPacket(componentPacket);
 
-        ChunkUtils.sendEmptyChunks(this, playerEntity.getPosition().toInt(), 0, false);
+        ChunkUtils.sendEmptyChunks(this, playerEntity.position().toInt(), 0, false);
 
+        sendRegistryDefinitions();
+        sendInitialPlayerState();
+        sendInitialGameRules();
+    }
+
+    /**
+     * Sends biome definitions, entity identifiers, camera presets, and creative content to the client.
+     */
+    private void sendRegistryDefinitions() {
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
         biomeDefinitionListPacket.setBiomes(Registries.BIOMES.get());
         upstream.sendPacket(biomeDefinitionListPacket);
@@ -905,7 +914,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         creativePacket.getContents().addAll(this.itemMappings.getCreativeItems());
         creativePacket.getGroups().addAll(this.itemMappings.getCreativeItemGroups());
         upstream.sendPacket(creativePacket);
+    }
 
+    /**
+     * Sends the initial player spawn status, command settings, and default movement attributes.
+     */
+    private void sendInitialPlayerState() {
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
         upstream.sendPacket(playStatusPacket);
@@ -921,7 +935,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         attributesPacket.setAttributes(Collections.singletonList(
             GeyserAttributeType.MOVEMENT_SPEED.getAttribute()));
         upstream.sendPacket(attributesPacket);
+    }
 
+    /**
+     * Sends the initial set of game rules to the Bedrock client during connection setup.
+     */
+    private void sendInitialGameRules() {
         GameRulesChangedPacket gamerulePacket = new GameRulesChangedPacket();
         // Only allow the server to send health information
         // Setting this to false allows natural regeneration to work false but doesn't break it being true
@@ -1801,6 +1820,25 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.upstream.getCodecHelper().setBlockDefinitions(this.blockMappings);
         this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
 
+        StartGamePacket startGamePacket = buildStartGamePacket();
+        configureExperiments(startGamePacket);
+
+        if (playerEntity.getPropertyManager() != null) {
+            startGamePacket.setPlayerPropertyData(playerEntity.getPropertyManager().toNbtMap("minecraft:player"));
+        }
+
+        startGamePacket.setServerId("");
+        startGamePacket.setWorldId("");
+        startGamePacket.setScenarioId("");
+        startGamePacket.setOwnerId("");
+
+        upstream.sendPacket(startGamePacket);
+    }
+
+    /**
+     * Builds and configures the initial StartGamePacket with world settings, player info, and item/block data.
+     */
+    private StartGamePacket buildStartGamePacket() {
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(playerEntity.geyserId());
         startGamePacket.setRuntimeEntityId(playerEntity.geyserId());
@@ -1856,14 +1894,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Needed for custom block mappings and custom skulls system
         startGamePacket.getBlockProperties().addAll(this.blockMappings.getBlockProperties());
 
-        // See https://learn.microsoft.com/en-us/minecraft/creator/documents/experimentalfeaturestoggle for info on each experiment
-        // data_driven_items (Holiday Creator Features) is needed for blocks and items
-        startGamePacket.getExperiments().add(new ExperimentData("data_driven_items", true));
-        // Needed for block properties for states
-        startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
-        // Needed for certain molang queries used in blocks and items
-        startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
-
         startGamePacket.setVanillaVersion("*");
         startGamePacket.setInventoriesServerAuthoritative(true);
         startGamePacket.setServerEngine(""); // Do we want to fill this in?
@@ -1880,16 +1910,20 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // It does *not* mean we can dictate the break speed server-sided :(
         startGamePacket.setServerAuthoritativeBlockBreaking(true);
 
-        if (playerEntity.getPropertyManager() != null) {
-            startGamePacket.setPlayerPropertyData(playerEntity.getPropertyManager().toNbtMap("minecraft:player"));
-        }
+        return startGamePacket;
+    }
 
-        startGamePacket.setServerId("");
-        startGamePacket.setWorldId("");
-        startGamePacket.setScenarioId("");
-        startGamePacket.setOwnerId("");
-
-        upstream.sendPacket(startGamePacket);
+    /**
+     * Adds required experimental feature toggles to the start game packet.
+     */
+    private void configureExperiments(StartGamePacket startGamePacket) {
+        // See https://learn.microsoft.com/en-us/minecraft/creator/documents/experimentalfeaturestoggle for info on each experiment
+        // data_driven_items (Holiday Creator Features) is needed for blocks and items
+        startGamePacket.getExperiments().add(new ExperimentData("data_driven_items", true));
+        // Needed for block properties for states
+        startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
+        // Needed for certain molang queries used in blocks and items
+        startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
     }
 
     private void syncEntityProperties() {
@@ -2141,28 +2175,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         if (spectator) {
-            AbilityLayer spectatorLayer = new AbilityLayer();
-            spectatorLayer.setLayerType(AbilityLayer.Type.SPECTATOR);
-            // Setting all abilitySet causes the zoom issue... BDS only sends these, so ig we will too
-            Set<Ability> abilitySet = spectatorLayer.getAbilitiesSet();
-            abilitySet.add(Ability.BUILD);
-            abilitySet.add(Ability.MINE);
-            abilitySet.add(Ability.DOORS_AND_SWITCHES);
-            abilitySet.add(Ability.OPEN_CONTAINERS);
-            abilitySet.add(Ability.ATTACK_PLAYERS);
-            abilitySet.add(Ability.ATTACK_MOBS);
-            abilitySet.add(Ability.INVULNERABLE);
-            abilitySet.add(Ability.FLYING);
-            abilitySet.add(Ability.MAY_FLY);
-            abilitySet.add(Ability.INSTABUILD);
-            abilitySet.add(Ability.NO_CLIP);
-
-            Set<Ability> abilityValues = spectatorLayer.getAbilityValues();
-            abilityValues.add(Ability.INVULNERABLE);
-            abilityValues.add(Ability.FLYING);
-            abilityValues.add(Ability.NO_CLIP);
-
-            updateAbilitiesPacket.getAbilityLayers().add(spectatorLayer);
+            updateAbilitiesPacket.getAbilityLayers().add(buildSpectatorAbilityLayer());
         }
 
         abilityLayer.setLayerType(AbilityLayer.Type.BASE);
@@ -2174,6 +2187,34 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         updateAbilitiesPacket.getAbilityLayers().add(abilityLayer);
         sendUpstreamPacket(updateAbilitiesPacket);
+    }
+
+    /**
+     * Builds the ability layer for spectator mode with the appropriate ability set and values.
+     */
+    private AbilityLayer buildSpectatorAbilityLayer() {
+        AbilityLayer spectatorLayer = new AbilityLayer();
+        spectatorLayer.setLayerType(AbilityLayer.Type.SPECTATOR);
+        // Setting all abilitySet causes the zoom issue... BDS only sends these, so ig we will too
+        Set<Ability> abilitySet = spectatorLayer.getAbilitiesSet();
+        abilitySet.add(Ability.BUILD);
+        abilitySet.add(Ability.MINE);
+        abilitySet.add(Ability.DOORS_AND_SWITCHES);
+        abilitySet.add(Ability.OPEN_CONTAINERS);
+        abilitySet.add(Ability.ATTACK_PLAYERS);
+        abilitySet.add(Ability.ATTACK_MOBS);
+        abilitySet.add(Ability.INVULNERABLE);
+        abilitySet.add(Ability.FLYING);
+        abilitySet.add(Ability.MAY_FLY);
+        abilitySet.add(Ability.INSTABUILD);
+        abilitySet.add(Ability.NO_CLIP);
+
+        Set<Ability> abilityValues = spectatorLayer.getAbilityValues();
+        abilityValues.add(Ability.INVULNERABLE);
+        abilityValues.add(Ability.FLYING);
+        abilityValues.add(Ability.NO_CLIP);
+
+        return spectatorLayer;
     }
 
     private int getRenderDistance() {
@@ -2431,7 +2472,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         packet.setLockComponentData(result);
-        packet.setServerPosition(this.playerEntity.getPosition());
+        packet.setServerPosition(this.playerEntity.bedrockPosition());
 
         sendUpstreamPacket(packet);
     }
