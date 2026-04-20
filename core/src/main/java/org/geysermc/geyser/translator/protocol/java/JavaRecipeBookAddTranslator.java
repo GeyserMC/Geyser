@@ -26,8 +26,6 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
-import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
@@ -109,7 +107,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             // Sending an empty list here will crash the client as of 1.20.60
             // This was definitely in the codebase the entire time and did not
             // accidentally get refactored out during Java 1.21.3. :)
-            session.sendUpstreamPacket(session.getCraftingDataPacket());
+            session.sendUpstreamPacket(session.createCraftingDataPacket());
             session.sendUpstreamPacket(recipesPacket);
         }
         session.getLastRecipeNetId().set(netId);

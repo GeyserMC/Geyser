@@ -2536,7 +2536,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return "Username: %s, DeviceOs: %s, Version: %s".formatted(bedrockUsername(), platform(), version());
     }
 
-    public CraftingDataPacket getCraftingDataPacket() {
+    public CraftingDataPacket createCraftingDataPacket() {
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
         craftingDataPacket.getCraftingData().addAll(RecipeUtil.CARTOGRAPHY_RECIPES);

@@ -30,7 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 
 /**
  * @param buttonId the button that needs to be pressed for Java Edition to accept this item.
- * @param input the input that this recipe accepts.
+ * @param input the java ingredient item id that this recipe accepts.
  * @param output the expected output of this item when cut.
  */
 public record GeyserStonecutterData(int buttonId, int input, @Nullable ItemStack output) {

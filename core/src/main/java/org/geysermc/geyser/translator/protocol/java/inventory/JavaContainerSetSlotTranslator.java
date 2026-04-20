@@ -179,7 +179,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 }
             }
 
-            CraftingDataPacket craftingDataPacket = session.getCraftingDataPacket();
+            CraftingDataPacket craftingDataPacket = session.createCraftingDataPacket();
             craftingDataPacket.getCraftingData().add(ShapedRecipeData.shaped(
                     uuid.toString(),
                     width,
@@ -248,7 +248,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
             UUID uuid = UUID.randomUUID();
 
-            CraftingDataPacket craftingDataPacket = session.getCraftingDataPacket();
+            CraftingDataPacket craftingDataPacket = session.createCraftingDataPacket();
             craftingDataPacket.getCraftingData().add(SmithingTransformRecipeData.of(
                 uuid.toString(),
                 ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, template.getItemStack())),

@@ -61,9 +61,9 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
                 session.getSmithingRecipes().clear();
                 session.getStonecutterRecipes().clear();
             }
-            session.getUpstream().sendPacket(session.getCraftingDataPacket());
+            session.getUpstream().sendPacket(session.createCraftingDataPacket());
         } else {
-            session.getUpstream().queuePostStartGamePacket(session.getCraftingDataPacket());
+            session.getUpstream().queuePostStartGamePacket(session.createCraftingDataPacket());
         }
 
         // while ClientboundLoginPacket holds the level, it doesn't hold the scoreboard.
