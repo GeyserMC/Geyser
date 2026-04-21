@@ -197,7 +197,6 @@ import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
-import org.geysermc.geyser.util.version.JavaVersion;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.network.BuiltinFlags;
 import org.geysermc.mcprotocollib.network.ClientSession;
@@ -559,9 +558,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private boolean oldSmithingTable = false;
 
-    @Getter @Setter
-    private JavaVersion javaProtocolVersion;
-
     /**
      * Whether to use the minecart_improvements experiment
      */
@@ -865,9 +861,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.emotes = new HashSet<>();
         geyser.getSessionManager().getSessions().values().forEach(player -> this.emotes.addAll(player.getEmotes()));
-
-        // Attempt to set if possible - will be -1 if we're on a proxy that doesn't know about the backend
-        this.setJavaProtocolVersion(geyser.getBootstrap().getJavaProtocolVersion());
 
         this.remoteServer = geyser.defaultRemoteServer();
     }

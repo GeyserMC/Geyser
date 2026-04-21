@@ -28,7 +28,6 @@ package org.geysermc.geyser.platform.mod;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import net.minecraft.SharedConstants;
 import net.minecraft.server.MinecraftServer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -46,7 +45,6 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
 import org.geysermc.geyser.platform.mod.world.GeyserModWorldManager;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.util.version.JavaVersion;
 
 import java.io.InputStream;
 import java.net.SocketAddress;
@@ -74,7 +72,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     private final GeyserModLogger geyserLogger = new GeyserModLogger();
     private IGeyserPingPassthrough geyserPingPassthrough;
     private WorldManager geyserWorldManager;
-    private JavaVersion javaVersion;
 
     @Override
     public void onGeyserInitialize() {
@@ -85,7 +82,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         if (geyserConfig == null) {
             return;
         }
-        this.javaVersion = JavaVersion.lookup(SharedConstants.getProtocolVersion());
         this.geyser = GeyserImpl.load(this);
     }
 
@@ -172,11 +168,6 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
     @Override
     public WorldManager getWorldManager() {
         return geyserWorldManager;
-    }
-
-    @Override
-    public JavaVersion getJavaProtocolVersion() {
-        return javaVersion;
     }
 
     @Override
