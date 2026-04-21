@@ -38,3 +38,8 @@ project(":spigot").projectDir = file("bootstrap/spigot")
 project(":standalone").projectDir = file("bootstrap/standalone")
 project(":velocity").projectDir = file("bootstrap/velocity")
 project(":viaproxy").projectDir = file("bootstrap/viaproxy")
+
+// Allow to download JVMs for toolchains
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version ("1.0.0")
+}
