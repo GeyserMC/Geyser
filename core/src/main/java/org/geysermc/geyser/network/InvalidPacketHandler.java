@@ -51,22 +51,14 @@ public class InvalidPacketHandler extends ChannelInboundHandlerAdapter {
 
         if (!(rootCause instanceof IllegalArgumentException)) {
             // Kick users that cause exceptions
-            if (session.authData() == null) {
-                logger.error("Exception caught in unknown session (pre-login)", cause);
-            } else {
-                logger.error("Exception caught in session of " + session.bedrockUsername(), cause);
-            }
+            logger.error("Exception caught in session of " + session.bedrockUsername(), cause);
             session.disconnect("An internal error occurred!");
             session.forciblyCloseUpstream();
             return;
         }
 
         // Kick users that try to send illegal packets
-        if (session.authData() == null) {
-            logger.error("Illegal packet from unknown session (pre-login)", cause);
-        } else {
-            logger.error("Illegal packet from " + session.bedrockUsername(), cause);
-        }
+        logger.error("Illegal packet from " + session.bedrockUsername(), cause);
         session.disconnect("Invalid packet received!");
         session.forciblyCloseUpstream();
     }
