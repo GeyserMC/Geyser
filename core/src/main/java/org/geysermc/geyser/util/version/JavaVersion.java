@@ -86,7 +86,8 @@ public enum JavaVersion {
     JAVA_1_21_6(771),
     JAVA_1_21_7(772),
     JAVA_1_21_9(773),
-    JAVA_1_21_11(774);
+    JAVA_1_21_11(774),
+    JAVA_26_1(775);
 
     private static final ImmutableMap<Integer, JavaVersion> LOOKUP;
 
