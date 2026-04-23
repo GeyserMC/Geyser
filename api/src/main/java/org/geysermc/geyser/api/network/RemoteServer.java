@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,6 @@
  */
 
 package org.geysermc.geyser.api.network;
-
-import org.checkerframework.checker.nullness.qual.NonNull;
 
 /**
  * Represents the Java server that Geyser is connecting to.
@@ -65,7 +63,6 @@ public interface RemoteServer {
      *
      * @return the auth type required by the remote server
      */
-    @NonNull
     AuthType authType();
 
     /**

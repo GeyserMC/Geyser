@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.item.custom;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.TriState;
 
@@ -43,21 +42,21 @@ public interface CustomItemOptions {
      *
      * @return if the item should be unbreakable
      */
-    @NonNull TriState unbreakable();
+    TriState unbreakable();
 
     /**
      * Gets the item's custom model data predicate.
      *
      * @return the item's custom model data
      */
-    @NonNull OptionalInt customModelData();
+    OptionalInt customModelData();
 
     /**
      * Gets the item's damage predicate.
      *
      * @return the item's damage predicate
      */
-    @NonNull OptionalInt damagePredicate();
+    OptionalInt damagePredicate();
 
     /**
      * Gets if this mapping should just translate to the default item.

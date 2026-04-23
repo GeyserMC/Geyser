@@ -1,5 +1,5 @@
 [versions]
-base-api = "1.0.2"
+base-api = "1.0.3"
 bstats = "3.1.0"
 cumulus = "1.1.2"
 configurate = "4.2.0-GeyserMC-20251111.004649-11"
