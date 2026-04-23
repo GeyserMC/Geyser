@@ -205,14 +205,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             return PacketSignal.HANDLED;
         }
 
-        // Set the block translation based off of version
-        session.setBlockMappings(BlockRegistries.BLOCKS.forVersion(loginPacket.getProtocolVersion()));
-        session.setItemMappings(Registries.ITEMS.forVersion(loginPacket.getProtocolVersion()));
-
         LoginEncryptionUtils.encryptPlayerConnection(session, loginPacket);
 
         if (session.isClosed()) {
             // Can happen if Xbox validation fails
+            session.forciblyCloseUpstream();
             return PacketSignal.HANDLED;
         }
 
@@ -220,6 +217,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             session.disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", session.bedrockUsername()));
             return PacketSignal.HANDLED;
         }
+
+        // Set the block translation based off of version
+        session.setBlockMappings(BlockRegistries.BLOCKS.forVersion(loginPacket.getProtocolVersion()));
+        session.setItemMappings(Registries.ITEMS.forVersion(loginPacket.getProtocolVersion()));
 
         geyser.getSessionManager().addPendingSession(session);
 
