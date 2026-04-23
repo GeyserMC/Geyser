@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.command;
 
-
 /**
  * Handles executing a command.
  *

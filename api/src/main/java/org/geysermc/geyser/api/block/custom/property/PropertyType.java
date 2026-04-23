@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.block.custom.property;
 
-
 /**
  * This class is used to define a custom block property's type.
  */

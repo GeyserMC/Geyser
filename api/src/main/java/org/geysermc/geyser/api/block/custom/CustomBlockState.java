@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.block.custom;
 
-
 import java.util.Map;
 
 /**

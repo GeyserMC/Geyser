@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.pack;
 
-
 import java.nio.file.Path;
 
 /**

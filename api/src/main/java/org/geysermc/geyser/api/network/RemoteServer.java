@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.network;
 
-
 /**
  * Represents the Java server that Geyser is connecting to.
  */

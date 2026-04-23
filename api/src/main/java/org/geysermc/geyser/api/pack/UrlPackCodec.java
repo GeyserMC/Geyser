@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.pack;
 
-
 /**
  * Represents a pack codec that creates a resource
  * pack from a URL.

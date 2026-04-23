@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.block.custom.property;
 
-
 import java.util.List;
 
 /**

@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.extension;
 
-
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;

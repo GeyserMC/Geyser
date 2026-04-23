@@ -9,7 +9,6 @@ dependencies {
     api(libs.base.api)
     api(libs.math)
     api(libs.jetbrains.annotations)
-    api(libs.jspecify)
 }
 
 version = property("version")!!

@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.block.custom.component;
 
-
 import java.util.LinkedHashMap;
 import java.util.Set;
 
