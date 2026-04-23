@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -128,7 +128,7 @@ public interface JavaConsumable {
          * Brush in 1st and 3rd person. Will look weird when not displayed handheld.
          * @since 2.9.3
          */
-        BRUSH;
+        BRUSH
     }
 
     /**
