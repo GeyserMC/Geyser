@@ -144,7 +144,10 @@ public final class FloodgateSkinUploader {
 
                                 byte[] bytes = (value + '\0' + signature)
                                         .getBytes(StandardCharsets.UTF_8);
-                                PluginMessageUtils.sendMessage(session, PluginMessageChannels.SKIN, bytes);
+                                // Wait until the session is actually spawned before sending, otherwise
+                                // the plugin message can land during the proxy's null-connection window
+                                // on initial join and be silently dropped by Velocity.
+                                sendSkinWhenSpawned(geyser, session, bytes, 0);
                             }
                             break;
                         case LOG_MESSAGE:
@@ -240,6 +243,19 @@ public final class FloodgateSkinUploader {
                 skinQueue.addLast(jsonString);
             }
         }
+    }
+
+    private void sendSkinWhenSpawned(GeyserImpl geyser, GeyserSession session, byte[] bytes, int attempt) {
+        if (session.isClosed() || attempt >= 10) {
+            return;
+        }
+        if (session.isSpawned()) {
+            PluginMessageUtils.sendMessage(session, PluginMessageChannels.SKIN, bytes);
+            return;
+        }
+        geyser.getScheduledThread().schedule(
+                () -> sendSkinWhenSpawned(geyser, session, bytes, attempt + 1),
+                500, TimeUnit.MILLISECONDS);
     }
 
     private void reconnectLater(GeyserImpl geyser) {
