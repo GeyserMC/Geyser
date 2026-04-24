@@ -2358,7 +2358,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public @NonNull String bedrockUsername() {
-        return authData.name();
+        return authData != null ? authData.name() : "unknown (pre-login)";
     }
 
     @Override
