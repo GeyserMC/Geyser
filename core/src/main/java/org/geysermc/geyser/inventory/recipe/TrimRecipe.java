@@ -70,7 +70,12 @@ public final class TrimRecipe {
         if (context.session().isPresent()) {
             for (Holder<ArmorTrim.TrimMaterial> provider : materialProviders().keySet()) {
                 if ((provider.isCustom() && context.id().asString().equals(provider.custom().assetBase())) || (provider.isId() && provider.id() == networkId)) {
-                    trimItem = context.session().get().getItemMappings().getMapping(materialProviders().get(provider));
+                    Item javaItem = materialProviders().get(provider);
+                    if (javaItem != null) {
+                        trimItem = context.session().get().getItemMappings().getMapping(javaItem);
+                    } else {
+                        GeyserImpl.getInstance().getLogger().debug("Could not find trim material provider! Network: %s, Provider: %s".formatted(context.id(), provider));
+                    }
                     break;
                 }
             }

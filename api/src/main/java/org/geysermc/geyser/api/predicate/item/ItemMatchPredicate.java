@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,6 @@
 package org.geysermc.geyser.api.predicate.item;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.predicate.MatchPredicate;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
@@ -35,6 +33,7 @@ import org.geysermc.geyser.api.predicate.context.item.ChargedProjectile;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Contains factories for often-used "match" predicates, that match for a value in {@link ItemPredicateContext}.
@@ -53,7 +52,7 @@ public interface ItemMatchPredicate extends MatchPredicate {
      * @see ChargeTypePredicate
      * @since 2.9.3
      */
-    static MinecraftPredicate<ItemPredicateContext> chargeType(ChargedProjectile.@NonNull ChargeType type) {
+    static MinecraftPredicate<ItemPredicateContext> chargeType(ChargedProjectile.ChargeType type) {
         return GeyserApi.api().provider(ChargeTypePredicate.class, type);
     }
 
@@ -64,7 +63,7 @@ public interface ItemMatchPredicate extends MatchPredicate {
      * @see TrimMaterialPredicate
      * @since 2.9.3
      */
-    static MinecraftPredicate<ItemPredicateContext> trimMaterial(@NonNull Identifier material) {
+    static MinecraftPredicate<ItemPredicateContext> trimMaterial(Identifier material) {
         return GeyserApi.api().provider(TrimMaterialPredicate.class, material);
     }
 

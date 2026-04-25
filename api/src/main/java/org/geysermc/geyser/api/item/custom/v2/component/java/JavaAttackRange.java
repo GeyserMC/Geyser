@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component.java;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.checkerframework.common.value.qual.IntRange;
 import org.geysermc.geyser.api.GeyserApi;
@@ -85,7 +84,7 @@ public interface JavaAttackRange {
      * @return a new builder
      * @since 2.9.3
      */
-    static @NonNull Builder builder() {
+    static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
     }
 
