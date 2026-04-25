@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry.MessageType;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateSubChunkBlocksPacket;
@@ -41,6 +42,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 
 import java.util.BitSet;
+import java.util.Objects;
 
 @Translator(packet = ClientboundSectionBlocksUpdatePacket.class)
 public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<ClientboundSectionBlocksUpdatePacket> {
@@ -57,11 +59,19 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
             }
         }
 
+        Vector3i clientBreakPos = session.getBlockBreakHandler().getCurrentBlockPos();
         BitSet waterlogged = BlockRegistries.WATERLOGGED.get();
 
         UpdateSubChunkBlocksPacket updateSubChunkBlocksPacket = new UpdateSubChunkBlocksPacket();
 
         for (BlockChangeEntry entry : packet.getEntries()) {
+            session.getWorldCache().removePrediction(entry.getPosition());
+
+            // Hack to avoid looking up blockstates for the currently broken position each tick
+            if (clientBreakPos != null && Objects.equals(clientBreakPos, entry.getPosition())) {
+                session.getBlockBreakHandler().setUpdatedServerBlockStateId(entry.getBlock());
+            }
+
             int oldBlock = palette != null
                 ? palette.get(entry.getPosition().getX() & 0xF, entry.getPosition().getY() & 0xF, entry.getPosition().getZ() & 0xF)
                 : session.getGeyser().getWorldManager().getBlockAt(session, entry.getPosition());
