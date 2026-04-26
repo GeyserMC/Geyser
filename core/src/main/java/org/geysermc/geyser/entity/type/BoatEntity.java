@@ -31,6 +31,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
+import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.vehicle.BoatVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
@@ -214,6 +215,14 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         if (isPaddlingLeft || isPaddlingRight) {
             updateBedrockMetadata();
         }
+    }
+
+    @Override
+    public Vector3f bedrockPosition() {
+        if (session.getPlayerEntity().getVehicle() == this && session.getPlayerEntity().isRidingInFront()) {
+            return position.up(EntityDefinitions.PLAYER.offset());
+        }
+        return super.bedrockPosition();
     }
 
     @Override
