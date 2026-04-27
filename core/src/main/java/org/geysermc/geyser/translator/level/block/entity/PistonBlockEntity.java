@@ -651,7 +651,7 @@ public class PistonBlockEntity {
             blockPos = blockPos.add(movement);
             // Don't place blocks that collide with the player
             if (!SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), playerBoundingBox)) {
-                ChunkUtils.updateBlock(session, state, blockPos);
+                ChunkUtils.updateBlock(session, session.getGeyser().getWorldManager().blockAt(session, blockPos), blockPos);
             }
         });
         if (action == PistonValueType.PUSHING) {
