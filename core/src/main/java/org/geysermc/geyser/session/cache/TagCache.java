@@ -94,7 +94,8 @@ public final class TagCache {
                 }
             } else if (registry == JavaRegistries.ITEM) {
                 // Hack btw
-                boolean emulatePost1_13Logic = registryTags.get(MinecraftKey.key("signs")).length > 1;
+                int[] signs = registryTags.get(MinecraftKey.key("signs"));
+                boolean emulatePost1_13Logic = signs != null && signs.length > 1;
                 session.setEmulatePost1_13Logic(emulatePost1_13Logic);
                 if (logger.isDebug()) {
                     logger.debug("Emulating post 1.13 villager logic for " + session.bedrockUsername() + "? " + emulatePost1_13Logic);
