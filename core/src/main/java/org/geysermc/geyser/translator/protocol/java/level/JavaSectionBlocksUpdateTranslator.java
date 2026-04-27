@@ -63,6 +63,9 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
         BitSet waterlogged = BlockRegistries.WATERLOGGED.get();
 
         UpdateSubChunkBlocksPacket updateSubChunkBlocksPacket = new UpdateSubChunkBlocksPacket();
+        updateSubChunkBlocksPacket.setPosition(Vector3i.from(
+            packet.getChunkX() << 4, packet.getChunkY() << 4, packet.getChunkZ() << 4
+        ));
 
         for (BlockChangeEntry entry : packet.getEntries()) {
             session.getWorldCache().removePrediction(entry.getPosition());
