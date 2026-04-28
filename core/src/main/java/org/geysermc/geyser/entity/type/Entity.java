@@ -152,6 +152,10 @@ public class Entity implements GeyserEntity {
 
     protected List<Entity> passengers = Collections.emptyList();
     protected Entity vehicle;
+
+    @Getter
+    private Vector3f riderSeatPosition = Vector3f.ZERO;
+
     /**
      * A container to store temporary metadata before it's sent to Bedrock.
      */
@@ -718,6 +722,7 @@ public class Entity implements GeyserEntity {
     }
 
     public void setRiderSeatPosition(Vector3f position) {
+        riderSeatPosition = position;
         dirtyMetadata.put(EntityDataTypes.SEAT_OFFSET, position);
     }
 
@@ -895,6 +900,16 @@ public class Entity implements GeyserEntity {
         packet.setType(type);
         packet.setData(data);
         session.sendUpstreamPacket(packet);
+    }
+
+    @Override
+    public @Nullable GeyserEntity vehicle() {
+        return this.vehicle;
+    }
+
+    @Override
+    public List<GeyserEntity> passengers() {
+        return List.copyOf(this.passengers);
     }
 
     @Override

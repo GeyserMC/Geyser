@@ -30,6 +30,8 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.geysermc.geyser.api.event.java.ServerUpdateEntityPassengersEvent;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
@@ -50,8 +52,10 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
 
+        List<Entity> currentPassengers = entity.getPassengers();
+
         // Handle new/existing passengers
-        List<Entity> newPassengers = new ArrayList<>();
+        entity.setPassengers(new ArrayList<>());
         int @NonNull [] passengerIds = packet.getPassengerIds();
         for (int i = 0; i < passengerIds.length; i++) {
             int passengerId = passengerIds[i];
@@ -76,7 +80,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             linkPacket.setEntityLink(new EntityLinkData(entity.geyserId(), passenger.geyserId(), type, false, false, 0f));
             session.sendUpstreamPacket(linkPacket);
-            newPassengers.add(passenger);
+            entity.getPassengers().add(passenger);
 
             passenger.setVehicle(entity);
             EntityUtils.updateRiderRotationLock(passenger, entity, true);
@@ -84,16 +88,27 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             // Force an update to the passenger metadata
             passenger.updateBedrockMetadata();
             passenger.setMotion(Vector3f.ZERO);
+
+            session.getGeyser().getEventBus().fire(new ServerUpdateEntityPassengersEvent.Mount(session) {
+                @Override
+                public @NonNull GeyserEntity addedPassenger() {
+                    return passenger;
+                }
+
+                @Override
+                public @NonNull GeyserEntity vehicle() {
+                    return entity;
+                }
+            });
         }
 
         // Handle passengers that were removed
-        List<Entity> passengers = entity.getPassengers();
-        for (int i = 0; i < passengers.size(); i++) {
-            Entity passenger = passengers.get(i);
+        for (int i = 0; i < currentPassengers.size(); i++) {
+            Entity passenger = currentPassengers.get(i);
             if (passenger == null) {
                 continue;
             }
-            if (!newPassengers.contains(passenger)) {
+            if (!entity.getPassengers().contains(passenger)) {
                 SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
                 linkPacket.setEntityLink(new EntityLinkData(entity.geyserId(), passenger.geyserId(), EntityLinkData.Type.REMOVE, false, false, 0f));
                 session.sendUpstreamPacket(linkPacket);
@@ -121,11 +136,22 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                         clientVehicle.getVehicleComponent().onDismount();
                     }
                 }
+
+                session.getGeyser().getEventBus().fire(new ServerUpdateEntityPassengersEvent.Dismount(session) {
+                    @Override
+                    public @NonNull GeyserEntity removedPassenger() {
+                        return passenger;
+                    }
+
+                    @Override
+                    public @NonNull GeyserEntity vehicle() {
+                        return entity;
+                    }
+                });
             }
         }
 
-        entity.setPassengers(newPassengers);
-
+        // TODO test if we can move this up
         if (entity.getJavaTypeDefinition().is(BuiltinEntityType.HORSE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.SKELETON_HORSE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.DONKEY)
             || entity.getJavaTypeDefinition().is(BuiltinEntityType.MULE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.RAVAGER)) {
             entity.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 181.0f);

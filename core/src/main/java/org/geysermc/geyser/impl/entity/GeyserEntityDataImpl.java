@@ -28,6 +28,7 @@ package org.geysermc.geyser.impl.entity;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -49,6 +50,7 @@ public class GeyserEntityDataImpl<T> implements GeyserEntityDataType<T> {
         TYPES.put("width", new GeyserEntityDataImpl<>(Float.class, "width", Entity::setCustomBoundingBoxWidth, Entity::getCustomBoundingBoxWidth));
         TYPES.put("height", new GeyserEntityDataImpl<>(Float.class, "height", Entity::setCustomBoundingBoxHeight, Entity::getCustomBoundingBoxHeight));
         TYPES.put("scale", new GeyserEntityDataImpl<>(Float.class, "scale", Entity::setScale, Entity::getScale));
+        TYPES.put("seat_offset", new GeyserEntityDataImpl<>(Vector3f.class, "seat_offset", Entity::setRiderSeatPosition, Entity::getRiderSeatPosition));
 
         // "custom"
         TYPES.put("vertical_offset", new GeyserEntityDataImpl<>(Float.class, "vertical_offset", (entity, value) -> entity.offset(value, true), Entity::getOffset));

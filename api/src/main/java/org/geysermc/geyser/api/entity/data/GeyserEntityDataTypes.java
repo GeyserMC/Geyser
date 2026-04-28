@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.api.entity.data;
 
+import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.entity.data.types.Hitbox;
 
 /**
@@ -80,6 +81,14 @@ public final class GeyserEntityDataTypes {
      */
     public static final GeyserListEntityDataType<Hitbox> HITBOXES =
         GeyserListEntityDataType.of(Hitbox.class, "hitboxes");
+
+    /**
+     * Represents the entity's seat offset. Applied when mounting an entity.
+     * Note: This can get overridden when a new entity is mounted, in which case, the seat offset
+     * would need to be updated again!
+     */
+    public static final GeyserEntityDataType<Vector3f> SEAT_OFFSET =
+        GeyserEntityDataType.of(Vector3f.class, "seat_offset");
 
     private GeyserEntityDataTypes() {
         // no-op

@@ -38,6 +38,7 @@ import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -77,6 +78,16 @@ public interface GeyserEntity {
      * @return the position of the entity, as it is known to the Java server.
      */
     @NonNull Vector3f position();
+
+    /**
+     * The vehicle this entity is currently on, or null if not present.
+     */
+    @Nullable GeyserEntity vehicle();
+
+    /**
+     * The passengers of this entity, or an empty list if none are present.
+     */
+    List<GeyserEntity> passengers();
 
     /**
      * Queries the current value of a given {@link GeyserEntityDataType}.
