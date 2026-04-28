@@ -471,17 +471,32 @@ public class SkinProvider {
                 image = newImage;
             }
         } else {
-            // Very rarely, skins can be larger than Minecraft's default.
-            // Bedrock will not render anything above a width of 128.
-            if (image.getWidth() > 128) {
-                // On Height: Scale by the amount we divided width by, or simply cut down to 128
-                image = scale(image, 128, image.getHeight() >= 256 ? (image.getHeight() / (image.getWidth() / 128)) : 128);
+            int height = image.getHeight();
+            int width = image.getWidth();
+            if (width == 64 && (height == 32 || height == 64)) {
+                boolean isLegacy = height == 32;
+                if (isLegacy) {
+                    setNoAlpha(image, 0, 0, 32, 32);
+                    setNoAlpha(image, 32, 16, 64, 32);
+                } else {
+                    setNoAlpha(image, 0, 0, 32, 16);
+                    setNoAlpha(image, 0, 16, 64, 32);
+                    setNoAlpha(image, 16, 48, 48, 64);
+                }
+            } else {
+                throw new IllegalStateException("Discarding incorrectly sized (" + width + "x" + height + ") skin texture from " + imageUrl);
             }
-
-            // TODO remove alpha channel
         }
 
         return image;
+    }
+
+    private static void setNoAlpha(final BufferedImage image, final int x0, final int y0, final int x1, final int y1) {
+        for (int x = x0; x < x1; x++) {
+            for (int y = y0; y < y1; y++) {
+                image.setRGB(x, y, image.getRGB(x, y) | 0xFF000000);
+            }
+        }
     }
 
     private static byte[] requestImageData(String imageUrl, boolean isCape) throws Exception {
