@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
+import org.cloudburstmc.protocol.bedrock.data.EmoteFlag;
 import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.ClientEmoteEvent;
@@ -79,6 +80,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             packet.setXuid(emoterXuid);
             packet.setPlatformId(""); // BDS sends empty
             packet.setEmoteId(emoteId);
+            packet.getFlags().add(EmoteFlag.SERVER_SIDE);
             session.sendUpstreamPacket(packet);
         }
     }

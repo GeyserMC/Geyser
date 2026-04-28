@@ -54,6 +54,7 @@ import org.cloudburstmc.protocol.bedrock.packet.CraftingEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreatePhotoPacket;
 import org.cloudburstmc.protocol.bedrock.packet.DebugInfoPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EditorNetworkPacket;
+import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityFallPacket;
 import org.cloudburstmc.protocol.bedrock.packet.GameTestRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
@@ -296,7 +297,8 @@ class CodecProcessor {
             // Ignored bidirectional packets
             .updateSerializer(ClientCacheStatusPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SimpleEventPacket.class, IGNORED_SERIALIZER)
-            .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER);
+            .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER)
+            .updateSerializer(EmoteListPacket.class, IGNORED_SERIALIZER);
 
             // These packets have been removed post 1.21.80.
             if (codec.getProtocolVersion() < 800) {

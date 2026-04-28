@@ -86,7 +86,6 @@ import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket;
-import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
@@ -237,7 +236,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -699,8 +697,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private boolean waitingForStatistics = false;
 
-    private final Set<UUID> emotes;
-
     /**
      * Whether advanced tooltips will be added to the player's items.
      */
@@ -833,9 +829,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.spawned = false;
         this.loggedIn = false;
-
-        this.emotes = new HashSet<>();
-        geyser.getSessionManager().getSessions().values().forEach(player -> this.emotes.addAll(player.getEmotes()));
 
         this.remoteServer = geyser.defaultRemoteServer();
     }
@@ -2245,23 +2238,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             }
         }
         this.statistics.putAll(statistics);
-    }
-
-    public void refreshEmotes(List<UUID> emotes) {
-        this.emotes.addAll(emotes);
-        for (GeyserSession player : geyser.getSessionManager().getSessions().values()) {
-            List<UUID> pieces = new ArrayList<>();
-            for (UUID piece : emotes) {
-                if (!player.getEmotes().contains(piece)) {
-                    pieces.add(piece);
-                }
-                player.getEmotes().add(piece);
-            }
-            EmoteListPacket emoteList = new EmoteListPacket();
-            emoteList.setRuntimeEntityId(player.getPlayerEntity().geyserId());
-            emoteList.getPieceIds().addAll(pieces);
-            player.sendUpstreamPacket(emoteList);
-        }
     }
 
     public boolean canUseCommandBlocks() {
