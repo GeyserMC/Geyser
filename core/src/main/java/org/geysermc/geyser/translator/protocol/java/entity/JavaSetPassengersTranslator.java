@@ -52,10 +52,10 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
 
-        List<Entity> currentPassengers = entity.getPassengers();
+        // TODO: ideally update the passengers on the entity directly
 
         // Handle new/existing passengers
-        entity.setPassengers(new ArrayList<>());
+        List<Entity> newPassengers = new ArrayList<>();
         int @NonNull [] passengerIds = packet.getPassengerIds();
         for (int i = 0; i < passengerIds.length; i++) {
             int passengerId = passengerIds[i];
@@ -80,7 +80,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             linkPacket.setEntityLink(new EntityLinkData(entity.geyserId(), passenger.geyserId(), type, false, false, 0f));
             session.sendUpstreamPacket(linkPacket);
-            entity.getPassengers().add(passenger);
+            newPassengers.add(passenger);
 
             passenger.setVehicle(entity);
             EntityUtils.updateRiderRotationLock(passenger, entity, true);
@@ -89,7 +89,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             passenger.updateBedrockMetadata();
             passenger.setMotion(Vector3f.ZERO);
 
-            session.getGeyser().getEventBus().fire(new ServerUpdateEntityPassengersEvent.Mount(session) {
+            session.getGeyser().eventBus().fire(new ServerUpdateEntityPassengersEvent.Mount(session) {
                 @Override
                 public @NonNull GeyserEntity addedPassenger() {
                     return passenger;
@@ -102,13 +102,13 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             });
         }
 
-        // Handle passengers that were removed
-        for (int i = 0; i < currentPassengers.size(); i++) {
-            Entity passenger = currentPassengers.get(i);
+        List<Entity> passengers = entity.getPassengers();
+        for (int i = 0; i < passengers.size(); i++) {
+            Entity passenger = passengers.get(i);
             if (passenger == null) {
                 continue;
             }
-            if (!entity.getPassengers().contains(passenger)) {
+            if (!newPassengers.contains(passenger)) {
                 SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
                 linkPacket.setEntityLink(new EntityLinkData(entity.geyserId(), passenger.geyserId(), EntityLinkData.Type.REMOVE, false, false, 0f));
                 session.sendUpstreamPacket(linkPacket);
@@ -137,7 +137,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                     }
                 }
 
-                session.getGeyser().getEventBus().fire(new ServerUpdateEntityPassengersEvent.Dismount(session) {
+                session.getGeyser().eventBus().fire(new ServerUpdateEntityPassengersEvent.Dismount(session) {
                     @Override
                     public @NonNull GeyserEntity removedPassenger() {
                         return passenger;
@@ -150,6 +150,8 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                 });
             }
         }
+
+        entity.setPassengers(newPassengers);
 
         // TODO test if we can move this up
         if (entity.getJavaTypeDefinition().is(BuiltinEntityType.HORSE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.SKELETON_HORSE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.DONKEY)
