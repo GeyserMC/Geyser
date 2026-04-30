@@ -105,6 +105,7 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateAdventureSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateSoftEnumPacket;
+import org.cloudburstmc.protocol.bedrock.packet.VoxelShapesPacket;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
@@ -155,6 +156,7 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -237,6 +239,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -1807,6 +1810,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.upstream.getCodecHelper().setItemDefinitions(this.itemMappings);
         this.upstream.getCodecHelper().setBlockDefinitions(this.blockMappings);
         this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
+
+        if (GameProtocol.is1_26_20orHigher(protocolVersion())) {
+            VoxelShapesPacket voxelShapesPacket = new VoxelShapesPacket();
+            voxelShapesPacket.setNameMap(new HashMap<>());
+            voxelShapesPacket.setShapes(new ArrayList<>());
+            upstream.sendPacket(voxelShapesPacket);
+        }
 
         StartGamePacket startGamePacket = buildStartGamePacket();
         configureExperiments(startGamePacket);
