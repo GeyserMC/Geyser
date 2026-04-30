@@ -68,6 +68,7 @@ import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MultiplayerSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NpcRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PartyChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoInfoRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoTransferPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
@@ -310,6 +311,7 @@ class CodecProcessor {
             if (!Boolean.getBoolean("Geyser.ReceiptPackets")) {
                 codecBuilder.updateSerializer(RefreshEntitlementsPacket.class, IGNORED_SERIALIZER);
                 codecBuilder.updateSerializer(PurchaseReceiptPacket.class, IGNORED_SERIALIZER);
+                codecBuilder.updateSerializer(PartyChangedPacket.class, IGNORED_SERIALIZER);
             }
 
             return codecBuilder.build();

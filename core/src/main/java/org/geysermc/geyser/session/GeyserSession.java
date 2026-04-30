@@ -70,6 +70,7 @@ import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
+import org.cloudburstmc.protocol.bedrock.data.ServerConfigurationJoinInfo;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.SpawnBiomeType;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
@@ -419,6 +420,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     // Exposed for GeyserConnect usage
     protected boolean sentSpawnPacket;
+
+    // Exposed for 3p server usage
+    @Setter
+    private @Nullable ServerConfigurationJoinInfo serverJoinInfo = null;
 
     boolean loggedIn;
     boolean loggingIn;
@@ -1805,6 +1810,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         StartGamePacket startGamePacket = buildStartGamePacket();
         configureExperiments(startGamePacket);
+        startGamePacket.setServerConfigurationJoinInfo(serverJoinInfo);
 
         if (playerEntity.getPropertyManager() != null) {
             startGamePacket.setPlayerPropertyData(playerEntity.getPropertyManager().toNbtMap("minecraft:player"));
