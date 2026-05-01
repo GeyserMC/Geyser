@@ -35,13 +35,14 @@ import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.PlayerHotbarSeria
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.SetEntityLinkSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v390.serializer.PlayerSkinSerializer_v390;
 import org.cloudburstmc.protocol.bedrock.codec.v419.serializer.MovePlayerSerializer_v419;
-import org.cloudburstmc.protocol.bedrock.codec.v486.serializer.BossEventSerializer_v486;
 import org.cloudburstmc.protocol.bedrock.codec.v557.serializer.SetEntityDataSerializer_v557;
 import org.cloudburstmc.protocol.bedrock.codec.v662.serializer.SetEntityMotionSerializer_v662;
 import org.cloudburstmc.protocol.bedrock.codec.v712.serializer.MobArmorEquipmentSerializer_v712;
 import org.cloudburstmc.protocol.bedrock.codec.v748.serializer.InventoryContentSerializer_v748;
 import org.cloudburstmc.protocol.bedrock.codec.v748.serializer.InventorySlotSerializer_v748;
 import org.cloudburstmc.protocol.bedrock.codec.v776.serializer.BossEventSerializer_v776;
+import org.cloudburstmc.protocol.bedrock.codec.v975.serializer.InventorySlotSerializer_v975;
+import org.cloudburstmc.protocol.bedrock.codec.v975.serializer.MoveEntityAbsoluteSerializer_v975;
 import org.cloudburstmc.protocol.bedrock.packet.AnvilDamagePacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BossEventPacket;
@@ -68,7 +69,6 @@ import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MultiplayerSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NpcRequestPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PartyChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoInfoRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoTransferPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
@@ -144,6 +144,13 @@ class CodecProcessor {
         }
     };
 
+    private static final BedrockPacketSerializer<InventorySlotPacket> INVENTORY_SLOT_SERIALIZER_V975 = new InventorySlotSerializer_v975() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
+            throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
+        }
+    };
+
     private static final BedrockPacketSerializer<MovePlayerPacket> MOVE_PLAYER_SERIALIZER = new MovePlayerSerializer_v419() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MovePlayerPacket packet) {
@@ -151,7 +158,14 @@ class CodecProcessor {
         }
     };
 
-    private static final BedrockPacketSerializer<MoveEntityAbsolutePacket> MOVE_ENTITY_SERIALIZER = new MoveEntityAbsoluteSerializer_v291() {
+    private static final BedrockPacketSerializer<MoveEntityAbsolutePacket> MOVE_ENTITY_SERIALIZER_V291 = new MoveEntityAbsoluteSerializer_v291() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MoveEntityAbsolutePacket packet) {
+            throw new IllegalArgumentException("Client cannot send MoveEntityAbsolutePacket in server-auth movement environment!");
+        }
+    };
+
+    private static final BedrockPacketSerializer<MoveEntityAbsolutePacket> MOVE_ENTITY_SERIALIZER_V975 = new MoveEntityAbsoluteSerializer_v975() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MoveEntityAbsolutePacket packet) {
             throw new IllegalArgumentException("Client cannot send MoveEntityAbsolutePacket in server-auth movement environment!");
@@ -161,16 +175,7 @@ class CodecProcessor {
     /**
      * Serializer that does nothing when trying to deserialize BossEventPacket since it is not used from the client.
      */
-    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER_486 = new BossEventSerializer_v486() {
-        @Override
-        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BossEventPacket packet) {
-        }
-    };
-
-    /**
-     * Serializer that does nothing when trying to deserialize BossEventPacket since it is not used from the client.
-     */
-    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER_776 = new BossEventSerializer_v776() {
+    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER = new BossEventSerializer_v776() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BossEventPacket packet) {
         }
@@ -233,6 +238,7 @@ class CodecProcessor {
     /**
      * Serializer that skips over the item when trying to deserialize MobEquipmentPacket since only the slot info is used.
      */
+    // TODO 26.20 seems to have changed
     private static final BedrockPacketSerializer<MobEquipmentPacket> MOB_EQUIPMENT_SERIALIZER = new MobEquipmentSerializer_v291() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobEquipmentPacket packet) {
@@ -246,12 +252,6 @@ class CodecProcessor {
 
     @SuppressWarnings("unchecked")
     static BedrockCodec processCodec(BedrockCodec codec) {
-        BedrockPacketSerializer<BossEventPacket> bossEventSerializer;
-        if (codec.getProtocolVersion() >= 776) {
-            bossEventSerializer = BOSS_EVENT_SERIALIZER_776;
-        } else {
-            bossEventSerializer = BOSS_EVENT_SERIALIZER_486;
-        }
 
         BedrockCodec.Builder codecBuilder = codec.toBuilder()
             // Illegal unused serverbound EDU packets
@@ -278,19 +278,15 @@ class CodecProcessor {
             .updateSerializer(AnvilDamagePacket.class, IGNORED_SERIALIZER)
             // Illegal when serverbound due to Geyser specific setup
             .updateSerializer(InventoryContentPacket.class, INVENTORY_CONTENT_SERIALIZER_V748)
-            .updateSerializer(InventorySlotPacket.class, INVENTORY_SLOT_SERIALIZER_V748)
             .updateSerializer(MovePlayerPacket.class, MOVE_PLAYER_SERIALIZER)
-            .updateSerializer(MoveEntityAbsolutePacket.class, MOVE_ENTITY_SERIALIZER)
             // Ignored only when serverbound
-            .updateSerializer(BossEventPacket.class, bossEventSerializer)
+            .updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER)
             .updateSerializer(MobArmorEquipmentPacket.class, MOB_ARMOR_EQUIPMENT_SERIALIZER)
             .updateSerializer(PlayerHotbarPacket.class, PLAYER_HOTBAR_SERIALIZER)
             .updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER)
             .updateSerializer(SetEntityDataPacket.class, SET_ENTITY_DATA_SERIALIZER)
             .updateSerializer(SetEntityMotionPacket.class, SET_ENTITY_MOTION_SERIALIZER)
             .updateSerializer(SetEntityLinkPacket.class, SET_ENTITY_LINK_SERIALIZER)
-            // Valid serverbound packets where reading of some fields can be skipped
-            .updateSerializer(MobEquipmentPacket.class, MOB_EQUIPMENT_SERIALIZER)
             // Illegal bidirectional packets
             .updateSerializer(DebugInfoPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(EditorNetworkPacket.class, ILLEGAL_SERIALIZER)
@@ -308,10 +304,21 @@ class CodecProcessor {
                     .updateSerializer(PlayerInputPacket.class, ILLEGAL_SERIALIZER);
             }
 
+            if (codec.getProtocolVersion() < 975) {
+                codecBuilder.updateSerializer(InventorySlotPacket.class, INVENTORY_SLOT_SERIALIZER_V748);
+                codecBuilder.updateSerializer(MoveEntityAbsolutePacket.class, MOVE_ENTITY_SERIALIZER_V291);
+                // Valid serverbound packets where reading of some fields can be skipped
+                codecBuilder.updateSerializer(MobEquipmentPacket.class, MOB_EQUIPMENT_SERIALIZER);
+            } else {
+                codecBuilder.updateSerializer(InventorySlotPacket.class, INVENTORY_SLOT_SERIALIZER_V975);
+                codecBuilder.updateSerializer(MoveEntityAbsolutePacket.class, MOVE_ENTITY_SERIALIZER_V975);
+                // TODO fakeItemRead for 975
+            }
+
             if (!Boolean.getBoolean("Geyser.ReceiptPackets")) {
                 codecBuilder.updateSerializer(RefreshEntitlementsPacket.class, IGNORED_SERIALIZER);
                 codecBuilder.updateSerializer(PurchaseReceiptPacket.class, IGNORED_SERIALIZER);
-                codecBuilder.updateSerializer(PartyChangedPacket.class, IGNORED_SERIALIZER);
+                //codecBuilder.updateSerializer(PartyChangedPacket.class, IGNORED_SERIALIZER);
             }
 
             return codecBuilder.build();
