@@ -40,6 +40,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescri
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BedrockRequiresTagItem;
 import org.geysermc.geyser.item.type.Item;
@@ -50,6 +51,8 @@ import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.DyedSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
@@ -91,6 +94,7 @@ public class RecipeUtil {
     private static final ThreadLocal<IntObjectPair<Map<int[], List<ItemDescriptorWithCount>>>> TAG_TO_ITEM_DESCRIPTOR_CACHE = ThreadLocal.withInitial(() -> IntObjectMutablePair.of(0, new Object2ObjectOpenHashMap<>()));
 
     public static List<ItemDescriptorWithCount> translateToInput(GeyserSession session, SlotDisplay slotDisplay) {
+        // TODO possible code duplication with InventoryUtils#acceptsAsInput?
         if (slotDisplay instanceof EmptySlotDisplay) {
             return Collections.singletonList(ItemDescriptorWithCount.EMPTY);
         }
@@ -172,6 +176,20 @@ public class RecipeUtil {
                 });
             }
         }
+        if (slotDisplay instanceof OnlyWithComponentSlotDisplay(SlotDisplay source, DataComponentType<?> ignored)) {
+            // FIXME I don't think there's a proper way to do this? How do we tell bedrock that the item has to have a certain component?
+            return translateToInput(session, source);
+        }
+        if (slotDisplay instanceof WithAnyPotionSlotDisplay(SlotDisplay display)) {
+            // Not sure how I feel about this...
+            GeyserItemStack stack = GeyserItemStack.from(session, display);
+            List<ItemDescriptorWithCount> itemDescriptors = new ArrayList<>();
+            for (Potion potion : Potion.VALUES) {
+                stack.getOrCreateComponents().put(DataComponentTypes.POTION_CONTENTS, potion.toComponent());
+                itemDescriptors.add(ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, stack)));
+            }
+            return Collections.unmodifiableList(itemDescriptors);
+        }
         session.getGeyser().getLogger().warning("Unimplemented slot display type for input: " + slotDisplay);
         return null;
     }
@@ -189,7 +207,7 @@ public class RecipeUtil {
         }
         if (slotDisplay instanceof DyedSlotDisplay || slotDisplay instanceof OnlyWithComponentSlotDisplay || slotDisplay instanceof WithAnyPotionSlotDisplay) {
             GeyserItemStack stack = GeyserItemStack.from(session, slotDisplay);
-            return Pair.of(stack.asItem(), ItemTranslator.translateToBedrock(session, stack));
+            return stack.isEmpty() ? null : Pair.of(stack.asItem(), ItemTranslator.translateToBedrock(session, stack));
         }
         session.getGeyser().getLogger().warning("Unimplemented slot display type for output: " + slotDisplay);
         return null;
