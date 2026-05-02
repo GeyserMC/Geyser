@@ -432,6 +432,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private GameMode gameMode = GameMode.SURVIVAL;
 
+    @Setter
+    private boolean hardcore = false;
+
     /**
      * Keeps track of the world name for respawning.
      */
@@ -1826,6 +1829,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setUniqueEntityId(playerEntity.geyserId());
         startGamePacket.setRuntimeEntityId(playerEntity.geyserId());
         startGamePacket.setPlayerGameType(EntityUtils.toBedrockGamemode(gameMode));
+        startGamePacket.setHardcore(hardcore);
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
