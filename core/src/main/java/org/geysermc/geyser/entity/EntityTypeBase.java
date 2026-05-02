@@ -100,7 +100,7 @@ public class EntityTypeBase<T extends Entity> {
     public static class Builder<T extends Entity> {
         protected float width;
         protected float height;
-        protected float offset = 0.00001f;
+        protected float offset;
         protected final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
 
         protected Builder() {
@@ -130,7 +130,7 @@ public class EntityTypeBase<T extends Entity> {
         }
 
         public Builder<T> offset(float offset) {
-            this.offset = offset + 0.00001f;
+            this.offset = offset;
             return this;
         }
 

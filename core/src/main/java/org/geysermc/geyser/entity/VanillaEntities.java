@@ -612,7 +612,7 @@ public final class VanillaEntities {
         {
             EntityTypeBase<BoatEntity> boatBase = EntityTypeBase.baseInherited(BoatEntity.class, entityBase)
                 .height(0.6f).width(1.6f)
-                .offset(0.35f)
+                .offset(0.375f)
                 .addTranslator(MetadataTypes.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_TICKS, entityMetadata.getValue())) // Time since last hit
                 .addTranslator(MetadataTypes.INT, (boatEntity, entityMetadata) -> boatEntity.getDirtyMetadata().put(EntityDataTypes.HURT_DIRECTION, entityMetadata.getValue())) // Rocking direction
                 .addTranslator(MetadataTypes.FLOAT, (boatEntity, entityMetadata) ->
