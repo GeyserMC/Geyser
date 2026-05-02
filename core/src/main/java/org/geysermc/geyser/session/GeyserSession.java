@@ -153,6 +153,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
+import org.geysermc.geyser.level.gamerule.GameRuleHandler;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
@@ -293,6 +294,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final EntityCache entityCache;
     private final EntityEffectCache effectCache;
     private final FormCache formCache;
+    private final GameRuleHandler gameRuleHandler;
     private final InputCache inputCache;
     private final LodestoneCache lodestoneCache;
     private final PistonCache pistonCache;
@@ -840,9 +842,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.cameraData = new GeyserCameraData(this);
         this.entityData = new GeyserEntityData(this);
 
-        this.worldBorder = new WorldBorder(this);
         this.collisionManager = new CollisionManager(this);
+        this.gameRuleHandler = new GameRuleHandler(this);
         this.blockBreakHandler = new BlockBreakHandler(this);
+        this.worldBorder = new WorldBorder(this);
 
         this.playerEntity = new SessionPlayerEntity(this);
         collisionManager.updatePlayerBoundingBox(this.playerEntity.position());
@@ -1754,6 +1757,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public InetSocketAddress getSocketAddress() {
         return this.upstream.getAddress();
+    }
+
+    public void setOpPermissionLevel(int opPermissionLevel) {
+        this.opPermissionLevel = opPermissionLevel;
+        if (gameRuleHandler.getState() == GameRuleHandler.State.SHOWN || gameRuleHandler.getState() == GameRuleHandler.State.WAITING) {
+            closeForm();
+        }
     }
 
     @Override
