@@ -27,29 +27,33 @@ package org.geysermc.geyser.translator.protocol.java.inventory;
 
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
+import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
-import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
-import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.SmithingInventoryTranslator;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundContainerSetSlotPacket;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Translator(packet = ClientboundContainerSetSlotPacket.class)
@@ -154,7 +158,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 return;
             }
 
-            int newRecipeId = session.getLastRecipeNetId().incrementAndGet();
+            UUID uuid = UUID.randomUUID();
 
             ItemData[] ingredients = new ItemData[height * width];
             //construct ingredient list and clear slots on client
@@ -175,13 +179,21 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 }
             }
 
-            GeyserRecipe geyserRecipe = new GeyserShapedRecipe(ThreadLocalRandom.current().nextInt(), newRecipeId,
-                    width, height, javaIngredients, new ItemStackSlotDisplay(item));
-            session.getCraftingRecipes().put(newRecipeId, geyserRecipe);
-
-            CraftingDataPacket craftPacket = new CraftingDataPacket();
-            craftPacket.getCraftingData().add(geyserRecipe.asRecipeData(session).get(0));
-            session.sendUpstreamPacket(craftPacket);
+            CraftingDataPacket craftingDataPacket = session.createCraftingDataPacket();
+            craftingDataPacket.getCraftingData().add(ShapedRecipeData.shaped(
+                    uuid.toString(),
+                    width,
+                    height,
+                    Arrays.stream(ingredients).map(ItemDescriptorWithCount::fromItem).toList(),
+                    Collections.singletonList(ItemTranslator.translateToBedrock(session, item)),
+                    uuid,
+                    "crafting_table",
+                    0,
+                    1,
+                    false,
+                    RecipeUnlockingRequirement.INVALID
+            ));
+            session.sendUpstreamPacket(craftingDataPacket);
 
             index = 0;
             for (int row = firstRow; row < height + firstRow; row++) {
@@ -234,19 +246,19 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 }
             }
 
-            GeyserSmithingRecipe geyserRecipe = new GeyserSmithingRecipe(
-                ThreadLocalRandom.current().nextInt(),
-                session.getLastRecipeNetId().incrementAndGet(),
-                template.asIngredient(),
-                input.asIngredient(),
-                material.asIngredient(),
-                new ItemStackSlotDisplay(output)
-            );
-            session.getSmithingRecipes().add(geyserRecipe);
+            UUID uuid = UUID.randomUUID();
 
-            CraftingDataPacket craftPacket = new CraftingDataPacket();
-            craftPacket.getCraftingData().add(geyserRecipe.asRecipeData(session).get(0));
-            session.sendUpstreamPacket(craftPacket);
+            CraftingDataPacket craftingDataPacket = session.createCraftingDataPacket();
+            craftingDataPacket.getCraftingData().add(SmithingTransformRecipeData.of(
+                uuid.toString(),
+                ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, template.getItemStack())),
+                ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, input.getItemStack())),
+                ItemDescriptorWithCount.fromItem(ItemTranslator.translateToBedrock(session, material.getItemStack())),
+                ItemTranslator.translateToBedrock(session, output),
+                "smithing_table",
+                1
+            ));
+            session.sendUpstreamPacket(craftingDataPacket);
 
             // Just set one of the slots to air, then right back to its proper item.
             InventorySlotPacket slotPacket = new InventorySlotPacket();

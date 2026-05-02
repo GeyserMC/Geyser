@@ -25,9 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
-import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -37,8 +35,6 @@ import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.Clie
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.geysermc.geyser.inventory.recipe.RecipeUtil.CARTOGRAPHY_RECIPES;
 
 @Translator(packet = ClientboundFinishConfigurationPacket.class)
 public class JavaFinishConfigurationTranslator extends PacketTranslator<ClientboundFinishConfigurationPacket> {
@@ -55,14 +51,7 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         }
         session.getEntityCache().removeAllPlayerEntities();
 
-        // Potion mixes are registered by default, as they are needed to be able to put ingredients into the brewing stand.
-        // (Also add it here so recipes get cleared on configuration - 1.21.3)
-        CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
-        craftingDataPacket.setCleanRecipes(true);
-        craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
-        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
         if (session.isSentSpawnPacket()) {
-            session.getUpstream().sendPacket(craftingDataPacket);
             // TODO proper fix to check if we've been online - in online mode (with auth screen),
             //  recipes are not yet known
             if (session.getStonecutterRecipes() != null) {
@@ -72,8 +61,9 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
                 session.getSmithingRecipes().clear();
                 session.getStonecutterRecipes().clear();
             }
+            session.getUpstream().sendPacket(session.createCraftingDataPacket());
         } else {
-            session.getUpstream().queuePostStartGamePacket(craftingDataPacket);
+            session.getUpstream().queuePostStartGamePacket(session.createCraftingDataPacket());
         }
 
         // while ClientboundLoginPacket holds the level, it doesn't hold the scoreboard.
