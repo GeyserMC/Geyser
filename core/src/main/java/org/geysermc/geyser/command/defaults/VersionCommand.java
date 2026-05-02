@@ -49,16 +49,16 @@ public class VersionCommand extends GeyserCommand {
     static {
         List<MinecraftVersion> bedrockVersions = GameProtocol.SUPPORTED_BEDROCK_VERSIONS;
         if (bedrockVersions.size() > 1) {
-            SUPPORTED_BEDROCK_RANGE = bedrockVersions.get(0).versionString() + " - " + bedrockVersions.get(bedrockVersions.size() - 1).versionString();
+            SUPPORTED_BEDROCK_RANGE = bedrockVersions.getFirst().versionString() + " - " + bedrockVersions.getLast().versionString();
         } else {
-            SUPPORTED_BEDROCK_RANGE = bedrockVersions.get(0).versionString();
+            SUPPORTED_BEDROCK_RANGE = bedrockVersions.getFirst().versionString();
         }
 
         List<String> javaVersions = GameProtocol.getJavaVersions();
         if (javaVersions.size() > 1) {
-            SUPPORTED_JAVA_RANGE = javaVersions.get(0) + " - " + javaVersions.get(javaVersions.size() - 1);
+            SUPPORTED_JAVA_RANGE = javaVersions.getFirst() + " - " + javaVersions.getLast();
         } else {
-            SUPPORTED_JAVA_RANGE = javaVersions.get(0);
+            SUPPORTED_JAVA_RANGE = javaVersions.getFirst();
         }
     }
 

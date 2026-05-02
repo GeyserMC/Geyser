@@ -1,0 +1,23 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:banner_patterns",
+  "value": [
+    [],
+    [
+      {
+        "pattern": "cross",
+        "color": "orange"
+      }
+    ],
+    [
+      {
+        "pattern": "circle",
+        "color": "red"
+      },
+      {
+        "pattern": "bricks",
+        "color": "yellow"
+      }
+    ]
+  ]
+}

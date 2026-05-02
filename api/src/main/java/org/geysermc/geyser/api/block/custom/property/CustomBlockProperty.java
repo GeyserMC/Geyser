@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.api.block.custom.property;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 import java.util.List;
 
 /**
@@ -38,19 +36,19 @@ public interface CustomBlockProperty<T> {
      *
      * @return The name of the property.
      */
-    @NonNull String name();
+    String name();
 
     /**
      * Gets the values of the property
      *
      * @return The values of the property.
      */
-    @NonNull List<T> values();
+    List<T> values();
 
     /**
      * Gets the type of the property
      *
      * @return The type of the property.
      */
-    @NonNull PropertyType type();
+    PropertyType type();
 }

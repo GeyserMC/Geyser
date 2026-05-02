@@ -37,7 +37,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityProperty;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
@@ -727,7 +726,7 @@ public class Entity implements GeyserEntity {
      */
     protected void updateMountOffset() {
         if (vehicle != null) {
-            boolean rider = vehicle.getPassengers().get(0) == this;
+            boolean rider = vehicle.getPassengers().getFirst() == this;
             EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().indexOf(this), vehicle.getPassengers().size());
             updateBedrockMetadata();
         }
@@ -860,10 +859,9 @@ public class Entity implements GeyserEntity {
             @Override
             public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
                 Objects.requireNonNull(property, "property must not be null!");
-                if (!(property instanceof PropertyType)) {
+                if (!(property instanceof PropertyType<T, ?> propertyType)) {
                     throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
                 }
-                PropertyType<T, ? extends EntityProperty> propertyType = (PropertyType<T, ?>) property;
                 int index = propertyDefinitions.getPropertyIndex(property.identifier().toString());
                 if (index < 0) {
                     throw new IllegalArgumentException("No property with the name " + property.identifier() + " has been registered.");

@@ -37,7 +37,6 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
@@ -170,11 +169,6 @@ public final class Registries {
     public static final VersionedDeferredRegistry<Set<PotionMixData>> POTION_MIXES = VersionedDeferredRegistry.create(VersionedRegistry::create, PotionMixRegistryLoader::new);
 
     /**
-     * A versioned registry holding all the recipes, with the net ID being the key, and {@link GeyserRecipe} as the value.
-     */
-    //public static final SimpleMappedDeferredRegistry<RecipeType, List<GeyserRecipe>> RECIPES = SimpleMappedDeferredRegistry.create("mappings/recipes.nbt", RecipeRegistryLoader::new);
-
-    /**
      * A mapped registry holding {@link ResourcePackHolder}'s with the pack uuid as keys.
      */
     public static final SimpleMappedDeferredRegistry<UUID, ResourcePackHolder> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
@@ -229,7 +223,6 @@ public final class Registries {
         BLOCK_ENTITIES.load();
         PARTICLES.load();
         // load potion mixes later
-        //RECIPES.load();
         SOUNDS.load();
         SOUND_LEVEL_EVENTS.load();
         SOUND_TRANSLATORS.load();

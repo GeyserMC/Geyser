@@ -262,8 +262,8 @@ public class DialogHolder {
 
                 session.sendCommand(command);
                 return true;
-            } else if (action instanceof DialogAction.OpenUrl openUrl) {
-                showUrl(openUrl.url());
+            } else if (action instanceof DialogAction.OpenUrl(String url)) {
+                showUrl(url);
                 return false;
             } else {
                 action.run(session, inputs);

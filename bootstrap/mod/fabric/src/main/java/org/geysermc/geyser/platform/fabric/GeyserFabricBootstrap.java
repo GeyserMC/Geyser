@@ -58,7 +58,7 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
                 this.setServer(server);
                 onGeyserEnable();
             });
-        } else {
+        } else if (!GeyserFabricPlatform.isGameTestServer()) {
             ClientLifecycleEvents.CLIENT_STOPPING.register(($)-> {
                 onGeyserShutdown();
             });
@@ -77,6 +77,11 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
 
         this.onGeyserInitialize();
 
+        if (GeyserFabricPlatform.isGameTestServer()) {
+            // Have to manually start Geyser for game test environment
+            GeyserImpl.start();
+        }
+
         var sourceConverter = CommandSourceConverter.layered(
                 CommandSourceStack.class,
                 id -> getServer().getPlayerList().getPlayer(id),
@@ -93,6 +98,6 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
 
     @Override
     public boolean isServer() {
-        return FabricLoader.getInstance().getEnvironmentType().equals(EnvType.SERVER);
+        return FabricLoader.getInstance().getEnvironmentType().equals(EnvType.SERVER) && !GeyserFabricPlatform.isGameTestServer();
     }
 }

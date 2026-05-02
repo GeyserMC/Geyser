@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.packet.SetDifficultyPacket;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.form.CustomForm;
@@ -36,6 +37,10 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundSetGameRulePacket;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class SettingsUtils {
     /**
@@ -122,19 +127,26 @@ public class SettingsUtils {
             }
 
             if (showGamerules) {
+                // TODO GameRule fetching via ClientboundGameRuleValuesPacket
+                //Map<Key, String> changedGamerules = new HashMap<>();
                 for (GameRule gamerule : GameRule.VALUES) {
                     if (Boolean.class.equals(gamerule.getType())) {
                         boolean value = response.next();
                         if (value != session.getGeyser().getWorldManager().getGameRuleBool(session, gamerule)) {
+                            //changedGamerules.put(null, String.valueOf(value));
                             session.getGeyser().getWorldManager().setGameRule(session, gamerule.getJavaID(), value);
                         }
                     } else if (Integer.class.equals(gamerule.getType())) {
                         int value = Integer.parseInt(response.next());
                         if (value != session.getGeyser().getWorldManager().getGameRuleInt(session, gamerule)) {
+                            //changedGamerules.put(null, String.valueOf(value));
                             session.getGeyser().getWorldManager().setGameRule(session, gamerule.getJavaID(), value);
                         }
                     }
                 }
+                //if (!changedGamerules.isEmpty()) {
+                //    session.sendDownstreamGamePacket(new ServerboundSetGameRulePacket(changedGamerules));
+                //}
             }
         });
 

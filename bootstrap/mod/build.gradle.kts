@@ -6,13 +6,9 @@ architectury {
     common("neoforge", "fabric")
 }
 
-loom {
-    mixin.defaultRefmapName.set("geyser-refmap.json")
-}
-
 afterEvaluate {
     // We don't need these
-    tasks.named("remapModrinthJar").configure {
+    tasks.named("mergeShadowAndJarJar").configure {
         enabled = false
     }
 }

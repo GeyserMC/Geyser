@@ -31,6 +31,7 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtUtils;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
@@ -42,6 +43,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.Filterable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
@@ -119,6 +121,8 @@ public interface MinecraftHasher<Type> {
 
     MinecraftHasher<Vector3i> POS = INT_ARRAY.cast(pos -> new int[]{pos.getX(), pos.getY(), pos.getZ()});
 
+    MinecraftHasher<Object> NBT_STRING = STRING.cast(MinecraftHasher::nbtObjectToCompressedString);
+
     MinecraftHasher<Key> KEY = STRING.cast(Key::asString);
 
     MinecraftHasher<Key> TAG = STRING.cast(key -> '#' + key.asString());
@@ -143,7 +147,9 @@ public interface MinecraftHasher<Type> {
         .optionalNullable("texture", KEY, ResolvableProfile::getBody)
         .optionalNullable("cape", KEY, ResolvableProfile::getCape)
         .optionalNullable("elytra", KEY, ResolvableProfile::getElytra)
-        .optional("model", STRING, resolvableProfile -> Optional.ofNullable(resolvableProfile.getModel()).map(GameProfile.TextureModel::name))
+        .optional("model", STRING, resolvableProfile -> Optional.ofNullable(resolvableProfile.getModel())
+            .map(GameProfile.TextureModel::name)
+            .map(model -> model.toLowerCase(Locale.ROOT)))
     );
 
     MinecraftHasher<Integer> RARITY = fromIdEnum(Rarity.values(), Rarity::getName);
@@ -186,6 +192,15 @@ public interface MinecraftHasher<Type> {
      */
     default MinecraftHasher<List<Type>> list() {
         return (list, encoder) -> encoder.list(list.stream().map(element -> hash(element, encoder)).toList());
+    }
+
+    /**
+     * Casts this hasher to a hasher for {@link Casted}. This cast is done unsafely without converting of any kind, only use this if you are sure the object being encoded is of the type being cast to!
+     *
+     * @param <Casted> the type to cast to.
+     */
+    default <Casted> MinecraftHasher<Casted> cast() {
+        return cast(casted -> (Type) casted);
     }
 
     /**
@@ -393,5 +408,47 @@ public interface MinecraftHasher<Type> {
      */
     static <Type> MinecraftHasher<Type> dispatch(Function<Type, MinecraftHasher<Type>> hashDispatch) {
         return (value, encoder) -> hashDispatch.apply(value).hash(value, encoder);
+    }
+
+    private static String nbtObjectToCompressedString(Object object) {
+        // Can't just use NbtUtils.toString for everything because there are some differences with how Mojang does it
+        if (object instanceof NbtMap map) {
+            // Mojang compares entries by key when converting a NbtMap to a string
+            // See StringTagVisitor#visitCompound
+            List<Map.Entry<String, Object>> entries = new ArrayList<>(map.entrySet());
+            entries.sort(Map.Entry.comparingByKey());
+
+            // Manually converting to string because Mojang does not do newlines or spaces/indents,
+            // and doesn't put quotes for keys without spaces
+            // This will break for keys with quotes, but honestly, Cloud should just expand for this
+            StringBuilder mapString = new StringBuilder("{");
+            for (int i = 0; i < entries.size(); i++) {
+                Map.Entry<String, Object> entry = entries.get(i);
+                if (entry.getKey().contains(" ")) {
+                    mapString.append('"').append(entry.getKey()).append('"');
+                } else {
+                    mapString.append(entry.getKey());
+                }
+                mapString.append(':');
+                mapString.append(nbtObjectToCompressedString(entry.getValue()));
+                if (i < entries.size() - 1) {
+                    mapString.append(',');
+                }
+            }
+            mapString.append('}');
+            return mapString.toString();
+        } else if (object instanceof NbtList<?> list) {
+            // Same as above
+            StringBuilder listString = new StringBuilder("[");
+            for (int i = 0; i < list.size(); i++) {
+                listString.append(nbtObjectToCompressedString(list.get(i)));
+                if (i < list.size() - 1) {
+                    listString.append(',');
+                }
+            }
+            listString.append(']');
+            return listString.toString();
+        }
+        return NbtUtils.toString(object).replaceAll("\\n *", "");
     }
 }

@@ -46,7 +46,7 @@ public class StatisticsCommand extends GeyserCommand {
         GeyserSession session = Objects.requireNonNull(context.sender().connection());
 
         session.setWaitingForStatistics(true);
-        ServerboundClientCommandPacket packet = new ServerboundClientCommandPacket(ClientCommand.STATS);
+        ServerboundClientCommandPacket packet = new ServerboundClientCommandPacket(ClientCommand.REQUEST_STATS);
         session.sendDownstreamGamePacket(packet);
     }
 }

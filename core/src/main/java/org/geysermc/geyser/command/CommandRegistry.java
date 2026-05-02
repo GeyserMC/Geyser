@@ -415,7 +415,7 @@ public class CommandRegistry implements EventRegistrar {
         for (var child : children) {
             collectiveData.addAll(createParamData(session, child));
         }
-        collectiveData.forEach(list -> list.add(0, data));
+        collectiveData.forEach(list -> list.addFirst(data));
         return collectiveData;
     }
 }
