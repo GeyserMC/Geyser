@@ -56,11 +56,13 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.java.inventory.JavaMerchantOffersTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.OnlyWithComponentSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithRemainderSlotDisplay;
@@ -381,6 +383,10 @@ public class InventoryUtils {
         if (slotDisplay instanceof TagSlotDisplay(Key tag)) {
             return itemStack.is(session, new Tag<>(JavaRegistries.ITEM, tag));
         }
+        if (slotDisplay instanceof OnlyWithComponentSlotDisplay(SlotDisplay source, DataComponentType<?> component)) {
+            return itemStack.has(component) && acceptsAsInput(session, source, itemStack);
+        }
+        // TODO WithAnyPotion?
         session.getGeyser().getLogger().warning("Unknown slot display type: " + slotDisplay);
         return false;
     }

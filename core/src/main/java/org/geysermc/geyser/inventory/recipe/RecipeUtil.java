@@ -39,6 +39,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeDa
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BedrockRequiresTagItem;
 import org.geysermc.geyser.item.type.Item;
@@ -50,11 +51,14 @@ import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.DyedSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.OnlyWithComponentSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithAnyPotionSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithRemainderSlotDisplay;
 
 import java.util.ArrayList;
@@ -172,7 +176,8 @@ public class RecipeUtil {
         return null;
     }
 
-    public static Pair<Item, ItemData> translateToOutput(GeyserSession session, SlotDisplay slotDisplay) {
+    public static @Nullable Pair<Item, ItemData> translateToOutput(GeyserSession session, SlotDisplay slotDisplay) {
+        // TODO possible code duplication with GeyserItemStack#from?
         if (slotDisplay instanceof EmptySlotDisplay) {
             return null;
         }
@@ -181,6 +186,10 @@ public class RecipeUtil {
         }
         if (slotDisplay instanceof ItemStackSlotDisplay(ItemStack stack)) {
             return Pair.of(Registries.JAVA_ITEMS.get(stack.getId()), ItemTranslator.translateToBedrock(session, stack));
+        }
+        if (slotDisplay instanceof DyedSlotDisplay || slotDisplay instanceof OnlyWithComponentSlotDisplay || slotDisplay instanceof WithAnyPotionSlotDisplay) {
+            GeyserItemStack stack = GeyserItemStack.from(session, slotDisplay);
+            return Pair.of(stack.asItem(), ItemTranslator.translateToBedrock(session, stack));
         }
         session.getGeyser().getLogger().warning("Unimplemented slot display type for output: " + slotDisplay);
         return null;
