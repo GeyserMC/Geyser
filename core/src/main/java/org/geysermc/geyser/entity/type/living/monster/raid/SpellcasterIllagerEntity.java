@@ -27,7 +27,7 @@ package org.geysermc.geyser.entity.type.living.monster.raid;
 
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 
@@ -39,7 +39,7 @@ public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
     public SpellcasterIllagerEntity(EntitySpawnContext context) {
         super(context);
         // OptionalPack usage
-        setFlag(EntityFlag.BRIBED, this.definition == EntityDefinitions.ILLUSIONER);
+        setFlag(EntityFlag.BRIBED, javaTypeDefinition == VanillaEntities.ILLUSIONER);
     }
 
     public void setSpellType(ByteEntityMetadata entityMetadata) {

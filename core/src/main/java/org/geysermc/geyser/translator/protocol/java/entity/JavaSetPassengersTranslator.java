@@ -30,12 +30,15 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.geysermc.geyser.api.event.java.ServerUpdateEntityPassengersEvent;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetPassengersPacket;
 
 import java.util.ArrayList;
@@ -48,6 +51,8 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
     public void translate(GeyserSession session, ClientboundSetPassengersPacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
+
+        // TODO: ideally update the passengers on the entity directly
 
         // Handle new/existing passengers
         List<Entity> newPassengers = new ArrayList<>();
@@ -83,9 +88,20 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             // Force an update to the passenger metadata
             passenger.updateBedrockMetadata();
             passenger.setMotion(Vector3f.ZERO);
+
+            session.getGeyser().eventBus().fire(new ServerUpdateEntityPassengersEvent.Mount(session) {
+                @Override
+                public @NonNull GeyserEntity addedPassenger() {
+                    return passenger;
+                }
+
+                @Override
+                public @NonNull GeyserEntity vehicle() {
+                    return entity;
+                }
+            });
         }
 
-        // Handle passengers that were removed
         List<Entity> passengers = entity.getPassengers();
         for (int i = 0; i < passengers.size(); i++) {
             Entity passenger = passengers.get(i);
@@ -120,16 +136,28 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                         clientVehicle.getVehicleComponent().onDismount();
                     }
                 }
+
+                session.getGeyser().eventBus().fire(new ServerUpdateEntityPassengersEvent.Dismount(session) {
+                    @Override
+                    public @NonNull GeyserEntity removedPassenger() {
+                        return passenger;
+                    }
+
+                    @Override
+                    public @NonNull GeyserEntity vehicle() {
+                        return entity;
+                    }
+                });
             }
         }
 
         entity.setPassengers(newPassengers);
 
-        switch (entity.getDefinition().entityType()) {
-            case HORSE, SKELETON_HORSE, DONKEY, MULE, RAVAGER -> {
-                entity.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 181.0f);
-                entity.updateBedrockMetadata();
-            }
+        // TODO test if we can move this up
+        if (entity.getJavaTypeDefinition().is(BuiltinEntityType.HORSE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.SKELETON_HORSE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.DONKEY)
+            || entity.getJavaTypeDefinition().is(BuiltinEntityType.MULE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.RAVAGER)) {
+            entity.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 181.0f);
+            entity.updateBedrockMetadata();
         }
     }
 }
