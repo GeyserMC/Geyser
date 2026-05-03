@@ -2536,7 +2536,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private void softEnumPacket(String name, SoftEnumUpdateType type, String enums) {
         // There is no need to send command enums if command suggestions are disabled
-        if (!this.geyser.config().gameplay().commandSuggestions() || true) {
+        if (!this.geyser.config().gameplay().commandSuggestions() || GameProtocol.is1_26_20orHigher(protocolVersion())) {
             return;
         }
         UpdateSoftEnumPacket packet = new UpdateSoftEnumPacket();
