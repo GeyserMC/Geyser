@@ -42,6 +42,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v748.serializer.InventoryContentS
 import org.cloudburstmc.protocol.bedrock.codec.v748.serializer.InventorySlotSerializer_v748;
 import org.cloudburstmc.protocol.bedrock.codec.v776.serializer.BossEventSerializer_v776;
 import org.cloudburstmc.protocol.bedrock.codec.v975.serializer.InventorySlotSerializer_v975;
+import org.cloudburstmc.protocol.bedrock.codec.v975.serializer.MobEquipmentSerializer_v975;
 import org.cloudburstmc.protocol.bedrock.codec.v975.serializer.MoveEntityAbsoluteSerializer_v975;
 import org.cloudburstmc.protocol.bedrock.packet.AnvilDamagePacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
@@ -69,6 +70,7 @@ import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MultiplayerSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.NpcRequestPacket;
+import org.cloudburstmc.protocol.bedrock.packet.PartyChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoInfoRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoTransferPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
@@ -238,12 +240,22 @@ class CodecProcessor {
     /**
      * Serializer that skips over the item when trying to deserialize MobEquipmentPacket since only the slot info is used.
      */
-    // TODO 26.20 seems to have changed
-    private static final BedrockPacketSerializer<MobEquipmentPacket> MOB_EQUIPMENT_SERIALIZER = new MobEquipmentSerializer_v291() {
+    private static final BedrockPacketSerializer<MobEquipmentPacket> MOB_EQUIPMENT_SERIALIZER_V291 = new MobEquipmentSerializer_v291() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobEquipmentPacket packet) {
             packet.setRuntimeEntityId(VarInts.readUnsignedLong(buffer));
             fakeItemRead(buffer);
+            packet.setInventorySlot(buffer.readUnsignedByte());
+            packet.setHotbarSlot(buffer.readUnsignedByte());
+            packet.setContainerId(buffer.readByte());
+        }
+    };
+
+    private static final BedrockPacketSerializer<MobEquipmentPacket> MOB_EQUIPMENT_SERIALIZER_V975 = new MobEquipmentSerializer_v975() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobEquipmentPacket packet) {
+            packet.setRuntimeEntityId(VarInts.readUnsignedLong(buffer));
+            fakeItemDescriptorRead(buffer);
             packet.setInventorySlot(buffer.readUnsignedByte());
             packet.setHotbarSlot(buffer.readUnsignedByte());
             packet.setContainerId(buffer.readByte());
@@ -308,17 +320,19 @@ class CodecProcessor {
                 codecBuilder.updateSerializer(InventorySlotPacket.class, INVENTORY_SLOT_SERIALIZER_V748);
                 codecBuilder.updateSerializer(MoveEntityAbsolutePacket.class, MOVE_ENTITY_SERIALIZER_V291);
                 // Valid serverbound packets where reading of some fields can be skipped
-                codecBuilder.updateSerializer(MobEquipmentPacket.class, MOB_EQUIPMENT_SERIALIZER);
+                codecBuilder.updateSerializer(MobEquipmentPacket.class, MOB_EQUIPMENT_SERIALIZER_V291);
             } else {
                 codecBuilder.updateSerializer(InventorySlotPacket.class, INVENTORY_SLOT_SERIALIZER_V975);
                 codecBuilder.updateSerializer(MoveEntityAbsolutePacket.class, MOVE_ENTITY_SERIALIZER_V975);
-                // TODO fakeItemRead for 975
+                codecBuilder.updateSerializer(MobEquipmentPacket.class, MOB_EQUIPMENT_SERIALIZER_V975);
             }
 
             if (!Boolean.getBoolean("Geyser.ReceiptPackets")) {
                 codecBuilder.updateSerializer(RefreshEntitlementsPacket.class, IGNORED_SERIALIZER);
                 codecBuilder.updateSerializer(PurchaseReceiptPacket.class, IGNORED_SERIALIZER);
-                //codecBuilder.updateSerializer(PartyChangedPacket.class, IGNORED_SERIALIZER);
+                if (codec.getProtocolVersion() >= 944) { // can't update a serializer if it doesn't exist on older versions
+                    codecBuilder.updateSerializer(PartyChangedPacket.class, IGNORED_SERIALIZER);
+                }
             }
 
             return codecBuilder.build();
@@ -326,8 +340,6 @@ class CodecProcessor {
 
     /**
      * Fake reading an item from the buffer to improve performance.
-     * 
-     * @param buffer
      */
     private static void fakeItemRead(ByteBuf buffer) {
         int id = VarInts.readInt(buffer); // Runtime ID
@@ -342,6 +354,32 @@ class CodecProcessor {
         }
 
         VarInts.readInt(buffer); // Block runtime ID
+        int streamSize = VarInts.readUnsignedInt(buffer);
+        buffer.skipBytes(streamSize);
+    }
+
+    /**
+     * Fake reading an item descriptor from the buffer to improve performance.
+     * Used after 26.20; apparently... yippie
+     */
+    private static void fakeItemDescriptorRead(ByteBuf buffer) {
+        buffer.readShortLE(); // runtimeId
+        buffer.readUnsignedShortLE(); // count
+        VarInts.readUnsignedInt(buffer); // damage / aux
+        boolean hasNetId = buffer.readBoolean();
+
+        if (hasNetId) {
+            int netIdVariant = VarInts.readUnsignedInt(buffer);
+            switch (netIdVariant) {
+                case 0: // ItemStackNetId
+                case 1: // ItemStackRequestId
+                case 2: // ItemStackLegacyRequestId
+                    break;
+                default:
+                    throw new IllegalArgumentException("Not oneOf<ItemStackNetId, ItemStackRequestId, ItemStackLegacyRequestId>");
+            }
+        }
+        VarInts.readUnsignedInt(buffer); // block runtime id
         int streamSize = VarInts.readUnsignedInt(buffer);
         buffer.skipBytes(streamSize);
     }
