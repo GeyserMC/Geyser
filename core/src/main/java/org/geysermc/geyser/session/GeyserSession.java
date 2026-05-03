@@ -2139,7 +2139,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
-     * Resets the Java game tick & time tick (time tick, partial tick, clock rate) counters to their initial values.
+     * Resets the Java game tick and time tick (time tick, partial tick, clock rate) counters to their initial values.
      *
      * <p>Please note that this also freezes time as the initial clock rate value is 0.</p>
      */

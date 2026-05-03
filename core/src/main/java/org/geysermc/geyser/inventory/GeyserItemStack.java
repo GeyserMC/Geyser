@@ -30,11 +30,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.DyeColor;
+import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
@@ -51,12 +53,14 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.DyedSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.OnlyWithComponentSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithAnyPotionSlotDisplay;
 
 import java.util.HashMap;
@@ -111,6 +115,19 @@ public class GeyserItemStack {
             case EmptySlotDisplay ignored -> GeyserItemStack.EMPTY;
             case ItemSlotDisplay(int itemId) -> GeyserItemStack.of(session, itemId, 1);
             case ItemStackSlotDisplay(ItemStack itemStack) -> GeyserItemStack.from(session, itemStack);
+            // Just create the first display
+            case CompositeSlotDisplay(List<SlotDisplay> contents) -> contents.isEmpty() ? GeyserItemStack.EMPTY : from(session, contents.getFirst());
+            case TagSlotDisplay(Key tag) -> {
+                // Again, just create an itemstack of the first item in the tag, if possible
+                if (session == null) {
+                    yield GeyserItemStack.EMPTY;
+                }
+                int[] itemTag = session.getTagCache().getRaw(new Tag<>(JavaRegistries.ITEM, tag));
+                if (itemTag.length == 0) {
+                    yield GeyserItemStack.EMPTY;
+                }
+                yield GeyserItemStack.of(session, itemTag[0], 1);
+            }
             case DyedSlotDisplay(SlotDisplay dye, SlotDisplay target) -> {
                 // This probably works... MC does it a little differently
                 // This whole method is kind of cursed anyway
@@ -126,7 +143,12 @@ public class GeyserItemStack {
                 }
                 yield GeyserItemStack.EMPTY;
             }
-            case WithAnyPotionSlotDisplay(SlotDisplay display) -> from(session, display);
+            case WithAnyPotionSlotDisplay(SlotDisplay display) -> {
+                GeyserItemStack stack = from(session, display);
+                // Just create one item stack with the first potion, WATER
+                stack.getOrCreateComponents().put(DataComponentTypes.POTION_CONTENTS, Potion.WATER.toComponent());
+                yield stack;
+            }
             default -> {
                 GeyserImpl.getInstance().getLogger().warning("Unsure how to convert to ItemStack: " + slotDisplay);
                 yield GeyserItemStack.EMPTY;
