@@ -58,7 +58,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             if (otherSession != session) {
                 if (otherSession.isClosed()) continue;
 
-                otherSession.ensureInEventLoop(() -> playEmote(otherSession, javaId, xuid, emote));
+                otherSession.ensureInEventLoop(() -> playEmote(otherSession, javaId, xuid, emote, event.silent()));
             }
         }
     }
@@ -72,7 +72,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
      * @param emoterXuid the xuid of the emoter
      * @param emoteId the emote to play
      */
-    private static void playEmote(GeyserSession session, int emoterJavaId, String emoterXuid, String emoteId) {
+    private static void playEmote(GeyserSession session, int emoterJavaId, String emoterXuid, String emoteId, boolean silent) {
         Entity emoter = session.getEntityCache().getEntityByJavaId(emoterJavaId); // Must be ran on same thread
         if (emoter instanceof PlayerEntity) {
             EmotePacket packet = new EmotePacket();
@@ -81,6 +81,9 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             packet.setPlatformId(""); // BDS sends empty
             packet.setEmoteId(emoteId);
             packet.getFlags().add(EmoteFlag.SERVER_SIDE);
+            if (silent) {
+                packet.getFlags().add(EmoteFlag.MUTE_EMOTE_CHAT);
+            }
             session.sendUpstreamPacket(packet);
         }
     }
