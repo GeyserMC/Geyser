@@ -67,6 +67,10 @@ public class EntityCache {
         this.session = session;
     }
 
+    public long nextEntityId() {
+        return nextEntityId.incrementAndGet();
+    }
+
     public void spawnEntity(Entity entity) {
         if (cacheEntity(entity)) {
             // start tracking newly spawned entities. Doing this before the actual entity spawn can result in combining

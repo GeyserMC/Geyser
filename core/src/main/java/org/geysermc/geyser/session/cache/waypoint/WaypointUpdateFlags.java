@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,29 +25,13 @@
 
 package org.geysermc.geyser.session.cache.waypoint;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.ChunkWaypointData;
-import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
+public final class WaypointUpdateFlags {
+    public static final int WORLD_POS = 1;
+    public static final int IS_VISIBLE = 1 << 1;
+    public static final int TEXTURE_ID = 1 << 2;
+    public static final int COLOR = 1 << 3;
+    public static final int CLIENT_POSITION_AUTHORITY = 1 << 4;
+    public static final int ALL = 0b11111;
 
-import java.awt.Color;
-import java.util.Optional;
-import java.util.UUID;
-
-public class ChunkWaypoint extends GeyserWaypoint {
-
-    public ChunkWaypoint(GeyserSession session, UUID uuid, Optional<Entity> entity, Color color) {
-        super(session, uuid, entity, color);
-    }
-
-    @Override
-    public void setData(WaypointData data) {
-        if (data instanceof ChunkWaypointData(int chunkX, int chunkZ)) {
-            // Set position in centre of chunk
-            setPosition(Vector3f.from(chunkX * 16.0F + 8.0F, session.getPlayerEntity().position().getY(), chunkZ * 16.0F + 8.0F));
-        } else {
-            session.getGeyser().getLogger().warning("Received incorrect waypoint data " + data.getClass() + " for chunk waypoint");
-        }
-    }
+    private WaypointUpdateFlags() {}
 }
