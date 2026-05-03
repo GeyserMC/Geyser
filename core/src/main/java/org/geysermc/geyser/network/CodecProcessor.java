@@ -374,6 +374,7 @@ class CodecProcessor {
                 case 0: // ItemStackNetId
                 case 1: // ItemStackRequestId
                 case 2: // ItemStackLegacyRequestId
+                    VarInts.readInt(buffer); // netId
                     break;
                 default:
                     throw new IllegalArgumentException("Not oneOf<ItemStackNetId, ItemStackRequestId, ItemStackLegacyRequestId>");
