@@ -71,6 +71,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
      * @param emoterJavaId the java id of the emoter
      * @param emoterXuid the xuid of the emoter
      * @param emoteId the emote to play
+     * @param silent whether to suppress the emote chat announcement
      */
     private static void playEmote(GeyserSession session, int emoterJavaId, String emoterXuid, String emoteId, boolean silent) {
         Entity emoter = session.getEntityCache().getEntityByJavaId(emoterJavaId); // Must be ran on same thread
