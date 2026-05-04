@@ -57,6 +57,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -103,10 +104,17 @@ public class SkinProvider {
     static final SkinGeometry WEARING_CUSTOM_SKULL_SLIM;
     public static final SerializedSkin EMPTY_SERIALIZED_SKIN;
 
+    private static final byte[] SKIN_MASK = Base64.getDecoder().decode(
+        "AP//AAAAAAAA//8AAAAAAAD//wAAAAAAAP//AAAAAAAA//8AAAAAAAD//wAAAAAAAP//AAAAAAAA//8AAAAAAP////8AAAAA/////wAAAAD/////AAAAAP////8AAAAA/////wAAAAD/////AAAAAP////8AAAAA/////wAAAADwD/D/D/8AAPAP8P8P/wAA8A/w/w//AADwD/D/D/8AAP///////w8A////////DwD///////8PAP///////w8A////////DwD///////8PAP///////w8A////////DwD///////8PAP///////w8A////////DwD///////8PAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwD/APAAAAAPAP8A8AAAAA8A/wDwAAAADwD/APAAAAAP////8AAAAA/////wAAAAD/////AAAAAP////8AAAAA/////wAAAAD/////AAAAAP////8AAAAA/////wAAAAD/////AAAAAP////8AAAAA/////wAAAAD/////AAA="
+    );
+    private static final byte[] SKIN_MASK_LEGACY = Base64.getDecoder().decode(
+        "AP//AAAAAAAA//8AAAAAAAD//wAAAAAAAP//AAAAAAAA//8AAAAAAAD//wAAAAAAAP//AAAAAAAA//8AAAAAAP////8AAAAA/////wAAAAD/////AAAAAP////8AAAAA/////wAAAAD/////AAAAAP////8AAAAA/////wAAAADwD/D/D/APAPAP8P8P8A8A8A/w/w/wDwDwD/D/D/APAP////////8A/////////wD/////////AP////////8A/////////wD/////////AP////////8A/////////wD/////////AP////////8A/////////wD/////////AA=="
+    );
+
     static {
         // Generate the empty texture to use as an emergency fallback
-        final int pink = -524040;
-        final int black = -16777216;
+        final int pink = 0xFFF800F8;
+        final int black = 0xFF000000;
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream(64 * 4 + 64 * 4);
         for (int y = 0; y < 64; y++) {
             for (int x = 0; x < 64; x++) {
@@ -475,28 +483,20 @@ public class SkinProvider {
             int width = image.getWidth();
             if (width == 64 && (height == 32 || height == 64)) {
                 boolean isLegacy = height == 32;
-                if (isLegacy) {
-                    setNoAlpha(image, 0, 0, 32, 32);
-                    setNoAlpha(image, 32, 16, 64, 32);
-                } else {
-                    setNoAlpha(image, 0, 0, 32, 16);
-                    setNoAlpha(image, 0, 16, 64, 32);
-                    setNoAlpha(image, 16, 48, 48, 64);
+                int[] pixels = image.getRGB(0, 0, width, height, null, 0, width);
+                byte[] mask = isLegacy ? SKIN_MASK_LEGACY : SKIN_MASK;
+                for (int i = 0; i < pixels.length; i++) {
+                    if ((((mask[i >> 3] & 0xFF) >> (i & 0x7)) & 1) != 0) {
+                        pixels[i] |= 0xFF000000;
+                    }
                 }
+                image.setRGB(0, 0, width, height, pixels, 0, width);
             } else {
                 throw new IllegalStateException("Discarding incorrectly sized (" + width + "x" + height + ") skin texture from " + imageUrl);
             }
         }
 
         return image;
-    }
-
-    private static void setNoAlpha(final BufferedImage image, final int x0, final int y0, final int x1, final int y1) {
-        for (int x = x0; x < x1; x++) {
-            for (int y = y0; y < y1; y++) {
-                image.setRGB(x, y, image.getRGB(x, y) | 0xFF000000);
-            }
-        }
     }
 
     private static byte[] requestImageData(String imageUrl, boolean isCape) throws Exception {
