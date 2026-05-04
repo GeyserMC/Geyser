@@ -71,7 +71,7 @@ public abstract class GeyserWaypoint {
 
     private void initialiseWaypointFromEntity(Optional<Entity> entity) {
         bedrockWaypoint.setClientPositionAuthority(entity.isPresent());
-        bedrockWaypoint.setEntityUniqueId(entity.map(Entity::geyserId).orElseGet(() -> session.getEntityCache().nextEntityId()));
+        bedrockWaypoint.setEntityUniqueId(entity.map(Entity::geyserId).orElseGet(() -> requiresNewWaypointPacket ? null : session.getEntityCache().nextEntityId()));
 
         if (requiresNewWaypointPacket) {
             this.sendListPackets = false;
@@ -85,12 +85,18 @@ public abstract class GeyserWaypoint {
     }
 
     public void track(WaypointData data) {
+        setData(data);
         sendTrackPackets(true);
-        update(data);
+        if (!requiresNewWaypointPacket) {
+            sendLocationPacket(false);
+        }
     }
 
     private void track() {
         sendTrackPackets(true);
+        if (!requiresNewWaypointPacket) {
+            sendLocationPacket(false);
+        }
     }
 
     public void update(WaypointData data) {
@@ -106,6 +112,7 @@ public abstract class GeyserWaypoint {
             session.sendUpstreamPacket(packet);
         }
         sendTrackPackets(false);
+        lastSentPosition = null;
     }
 
     public void setEntity(Entity entity) {
@@ -147,7 +154,6 @@ public abstract class GeyserWaypoint {
                 LocatorBarPacket packet = new LocatorBarPacket();
                 bedrockWaypoint.setUpdateFlag(WaypointUpdateFlags.WORLD_POS);
                 packet.setWaypoints(List.of(new LocatorBarPacket.Payload(LocatorBarPacket.Action.UPDATE, uuid, bedrockWaypoint)));
-                System.out.println("sending " + packet);
                 session.sendUpstreamPacket(packet);
             } else {
                 PlayerLocationPacket packet = new PlayerLocationPacket();
@@ -166,7 +172,6 @@ public abstract class GeyserWaypoint {
             LocatorBarPacket packet = new LocatorBarPacket();
             bedrockWaypoint.setUpdateFlag(add ? WaypointUpdateFlags.ALL : 0);
             packet.setWaypoints(List.of(new LocatorBarPacket.Payload(add ? LocatorBarPacket.Action.ADD : LocatorBarPacket.Action.REMOVE, uuid, bedrockWaypoint)));
-            System.out.println("sending " + packet);
             session.sendUpstreamPacket(packet);
         } else if (sendListPackets) {
             PlayerListPacket packet = new PlayerListPacket();

@@ -52,23 +52,16 @@ public final class WaypointCache {
     }
 
     public void handlePacket(ClientboundTrackedWaypointPacket packet) {
-        // FIXME
-        session.sendGameRule("locatorBar", true);
         switch (packet.getOperation()) {
             case TRACK -> track(packet.getWaypoint());
             case UNTRACK -> untrack(packet.getWaypoint());
             case UPDATE -> update(packet.getWaypoint());
         }
 
-        if (packet.getOperation() == WaypointOperation.TRACK || packet.getOperation()== WaypointOperation.UNTRACK) {
+        if ((packet.getOperation() == WaypointOperation.TRACK || packet.getOperation()== WaypointOperation.UNTRACK) && !GeyserWaypoint.requiresNewWaypointPacket(session)) {
             // Only show locator bar when there are waypoints on it
             // This is equivalent to Java, and the Java locator_bar game rule won't work otherwise
-            if (GameProtocol.is1_26_20orHigher(session.protocolVersion())) {
-                session.sendGameRule("playerWaypoints", !waypoints.isEmpty());
-            } else {
-                System.out.println(!waypoints.isEmpty());
-                session.sendGameRule("locatorBar", !waypoints.isEmpty());
-            }
+            session.sendGameRule("locatorBar", !waypoints.isEmpty());
         }
     }
 
@@ -178,7 +171,9 @@ public final class WaypointCache {
 
     public void clear() {
         waypoints.clear();
-        session.sendGameRule("locatorBar", false);
+        if (!GeyserWaypoint.requiresNewWaypointPacket(session)) {
+            session.sendGameRule("locatorBar", false);
+        }
     }
 
     private static void sendHidePlayerPacket(GeyserSession session, long playerId) {
