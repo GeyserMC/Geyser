@@ -212,6 +212,19 @@ public final class ItemTranslator {
             addAttributeLore(session, attributeModifiers, nbtBuilder, session.locale());
         }
 
+        if (components.contains(DataComponentTypes.UNBREAKABLE) && tooltip.showInTooltip(DataComponentTypes.UNBREAKABLE)) {
+            nbtBuilder.getOrCreateLore().add(
+                MessageTranslator.convertMessage(
+                    Component.text()
+                        .resetStyle()
+                        .color(NamedTextColor.BLUE)
+                        .append(Component.newline(), Component.translatable("item.unbreakable"))
+                        .build(),
+                    session.locale()
+                )
+            );
+        }
+
         if (session.isAdvancedTooltips() && !TooltipOptions.hideTooltip(components)) {
             addAdvancedTooltips(components, nbtBuilder, javaItem, session.locale());
         }
