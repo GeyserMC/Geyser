@@ -42,7 +42,6 @@ import org.geysermc.geyser.level.block.type.PistonBlock;
 import org.geysermc.geyser.level.block.type.SkullBlock;
 import org.geysermc.geyser.level.block.type.TrapDoorBlock;
 import org.geysermc.geyser.level.block.type.WallSkullBlock;
-import org.geysermc.geyser.level.block.type.WaterBlock;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.level.physics.PistonBehavior;
@@ -104,7 +103,7 @@ public final class Blocks {
         .intState(STAGE)
         .booleanState(WATERLOGGED)));
     public static final Block BEDROCK = register(new Block("bedrock", builder().destroyTime(-1.0f)));
-    public static final Block WATER = register(new WaterBlock("water", builder().destroyTime(100.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block WATER = register(new Block("water", builder().destroyTime(100.0f).pushReaction(PistonBehavior.DESTROY)
         .intState(LEVEL)));
     public static final Block LAVA = register(new Block("lava", builder().destroyTime(100.0f).pushReaction(PistonBehavior.DESTROY)
         .intState(LEVEL)));
