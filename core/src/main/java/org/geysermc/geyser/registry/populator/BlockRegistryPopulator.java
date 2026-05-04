@@ -46,6 +46,7 @@ import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
+import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -124,6 +125,7 @@ public final class BlockRegistryPopulator {
                 // 26.0 also doesn't have any changes, so we re-use the same file
                 .put(ObjectIntPair.of("1_21_130", Bedrock_v924.CODEC.getProtocolVersion()), GoldenDandelionConverter::convert)
                 .put(ObjectIntPair.of("1_26_10", Bedrock_v944.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_26_20", Bedrock_v975.CODEC.getProtocolVersion()), tag -> tag)
             .build();
 
         // We can keep this strong as nothing should be garbage collected
