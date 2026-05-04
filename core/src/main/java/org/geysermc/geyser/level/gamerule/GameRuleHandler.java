@@ -138,7 +138,7 @@ public class GameRuleHandler {
         try {
             value = gameRule.adapter().parser().apply(newValue);
         } catch (Throwable e) {
-            GeyserImpl.getInstance().getLogger().debug("Got invalid value for gamerule %s (old value: %s, new value: %s)", gameRule.key(), previous, newValue);
+            GeyserImpl.getInstance().getLogger().debug("Failed to parse value for gamerule %s (old value: %s, new value: %s)", gameRule.key(), previous, newValue);
             return;
         }
 

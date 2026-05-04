@@ -66,9 +66,9 @@ public interface GameRule<T> {
 
     Component toComponent(GeyserSession session, String currentValue);
 
-    record Int(Key key, GameRuleCategory category, Integer defaultValue, int min, int max) implements GameRule<Integer> {
-        public Int(String key, GameRuleCategory category, Integer defaultValue, int min, int max) {
-            this(MinecraftKey.key(key), category, defaultValue, min, max);
+    record Int(Key key, GameRuleCategory category, Integer defaultValue, int max, int min) implements GameRule<Integer> {
+        public Int(String key, GameRuleCategory category, Integer defaultValue, int max, int min) {
+            this(MinecraftKey.key(key), category, defaultValue, max, min);
         }
 
         @Override
@@ -78,7 +78,7 @@ public interface GameRule<T> {
 
         @Override
         public boolean validate(Integer value) {
-            return value >= min && value <= max;
+            return value <= max && value >= min;
         }
 
         @Override
