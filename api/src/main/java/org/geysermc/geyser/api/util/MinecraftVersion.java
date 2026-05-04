@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.util;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -40,7 +39,7 @@ public interface MinecraftVersion {
      *
      * @return the version string
      */
-    @NonNull String versionString();
+    String versionString();
 
     /**
      * Gets the protocol version of this Minecraft version.

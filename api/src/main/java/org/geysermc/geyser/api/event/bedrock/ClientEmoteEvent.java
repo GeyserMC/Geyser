@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event.bedrock;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Cancellable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
@@ -37,7 +36,7 @@ public final class ClientEmoteEvent extends ConnectionEvent implements Cancellab
     private final String emoteId;
     private boolean cancelled;
 
-    public ClientEmoteEvent(@NonNull GeyserConnection connection, @NonNull String emoteId) {
+    public ClientEmoteEvent(GeyserConnection connection, String emoteId) {
         super(connection);
         this.emoteId = emoteId;
     }
@@ -45,7 +44,6 @@ public final class ClientEmoteEvent extends ConnectionEvent implements Cancellab
     /**
      * @return the emote ID that the Bedrock player is attempting to perform.
      */
-    @NonNull
     public String emoteId() {
         return emoteId;
     }

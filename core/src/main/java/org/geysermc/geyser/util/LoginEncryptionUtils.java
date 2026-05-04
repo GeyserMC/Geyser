@@ -72,6 +72,13 @@ public class LoginEncryptionUtils {
                 return;
             }
 
+            IdentityData extraIdentityData = result.identityClaims().extraData;
+            if (extraIdentityData == null || extraIdentityData.xuid == null || extraIdentityData.displayName == null) {
+                GeyserImpl.getInstance().getLogger().debug("Missing identity data in login identity claims! " + extraIdentityData);
+                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+                return;
+            }
+
             // Should always be present, but hey, why not make it safe :D
             Long rawIssuedAt = (Long) result.rawIdentityClaims().get("iat");
             long issuedAt = rawIssuedAt != null ? rawIssuedAt : -1;
