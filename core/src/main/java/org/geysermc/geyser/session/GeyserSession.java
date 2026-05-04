@@ -750,9 +750,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private double partialTimeTick;
 
     /**
-     * How fast the world time should pass according to the server
+     * How fast the world time should pass according to the server. Starts at 0, server will tell us what it is when joining.
      */
-    private float clockRate = 1.0f;
+    private float clockRate = 0.0F;
 
     /**
      * Used to return players back to their vehicles if the server doesn't want them unmounting.
@@ -906,6 +906,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sendRegistryDefinitions();
         sendInitialPlayerState();
         sendInitialGameRules();
+        resetTimeParameters();
     }
 
     /**
@@ -1185,11 +1186,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         downstream.setFlag(BuiltinFlags.CLIENT_TRANSFERRING, loginEvent.transferring());
         downstream.connect(false);
-
-        if (shouldClientTickClock) {
-            // Java server will tell us to tick time if they want us to
-            setShouldClientTickClock(false);
-        }
     }
 
     public void disconnect(String reason) {
@@ -1820,7 +1816,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         // Disable time progression whilst the form is open
         // Once logged into the game this is set correctly when receiving a time packet from the server
-        setShouldClientTickClock(false);
+        resetTimeParameters();
     }
 
     public @NonNull PlayerInventory getPlayerInventory() {
@@ -2119,18 +2115,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
-     * Changes the daylight cycle gamerule on the client
-     * This is used in login and configuration screens along-side normal usage
+     * Changes the daylight cycle gamerule on the client.
+     * The gamerule is true whenever the clock rate is normal (1.0), and false otherwise (because then we keep track of time).
      *
-     * @param doCycle If the cycle should continue
+     * @param shouldTick if the client should tick its daylight cycle clock
      */
-    public void setShouldClientTickClock(boolean doCycle) {
-        if (this.shouldClientTickClock == doCycle) {
+    public void setShouldClientTickClock(boolean shouldTick) {
+        if (this.shouldClientTickClock == shouldTick) {
             return;
         }
-        sendGameRule("dodaylightcycle", doCycle);
+        System.out.println("ticking clock on client: " + shouldTick);
+        sendGameRule("dodaylightcycle", shouldTick);
         // Save the value so we don't have to constantly send a daylight cycle gamerule update
-        this.shouldClientTickClock = doCycle;
+        this.shouldClientTickClock = shouldTick;
     }
 
     /**
@@ -2148,6 +2145,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void setClockRate(float rate) {
         this.clockRate = rate;
         setShouldClientTickClock(this.clockRate == 1.0f);
+    }
+
+    /**
+     * Resets the Java game tick and time tick (time tick, partial tick, clock rate) counters to their initial values.
+     *
+     * <p>Please note that this also freezes time as the initial clock rate value is 0.</p>
+     */
+    public void resetTimeParameters() {
+        setGameTicks(0L);
+        setTimeTicks(0L, 0.0F);
+        setClockRate(0.0F);
     }
 
     /**

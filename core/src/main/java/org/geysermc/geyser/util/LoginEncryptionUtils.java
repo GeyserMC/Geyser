@@ -27,6 +27,7 @@ package org.geysermc.geyser.util;
 
 import net.raphimc.minecraftauth.msa.model.MsaDeviceCode;
 import org.cloudburstmc.protocol.bedrock.data.auth.AuthPayload;
+import org.cloudburstmc.protocol.bedrock.data.auth.AuthType;
 import org.cloudburstmc.protocol.bedrock.data.auth.CertificateChainPayload;
 import org.cloudburstmc.protocol.bedrock.data.auth.TokenPayload;
 import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
@@ -63,18 +64,16 @@ public class LoginEncryptionUtils {
         try {
             GeyserImpl geyser = session.getGeyser();
 
-            ChainValidationResult result = EncryptionUtils.validatePayload(authPayload);
-
-            geyser.getLogger().debug(String.format("Is player data signed? %s", result.signed()));
-
-            if (!result.signed() && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()) {
+            // Regardless of auth type, we don't support guest type accounts used for splitscreen
+            if (authPayload.getAuthType() == AuthType.GUEST) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
                 return;
             }
 
-            IdentityData extraIdentityData = result.identityClaims().extraData;
-            if (extraIdentityData == null || extraIdentityData.xuid == null || extraIdentityData.displayName == null) {
-                GeyserImpl.getInstance().getLogger().debug("Missing identity data in login identity claims! " + extraIdentityData);
+            ChainValidationResult result = EncryptionUtils.validatePayload(authPayload);
+
+            geyser.getLogger().debug(String.format("Is player data signed? %s", result.signed()));
+            if (!result.signed() && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
                 return;
             }
@@ -162,8 +161,8 @@ public class LoginEncryptionUtils {
             return;
         }
 
-        // Set DoDaylightCycle to false so the time doesn't accelerate while we're here
-        session.setShouldClientTickClock(false);
+        // So the time doesn't accelerate while we're here
+        session.resetTimeParameters();
 
         session.sendForm(
                 SimpleForm.builder()
