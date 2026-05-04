@@ -2124,7 +2124,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         if (this.shouldClientTickClock == shouldTick) {
             return;
         }
-        System.out.println("ticking clock on client: " + shouldTick);
         sendGameRule("dodaylightcycle", shouldTick);
         // Save the value so we don't have to constantly send a daylight cycle gamerule update
         this.shouldClientTickClock = shouldTick;
