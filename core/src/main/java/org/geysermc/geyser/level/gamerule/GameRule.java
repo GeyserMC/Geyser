@@ -29,6 +29,8 @@ import net.kyori.adventure.key.Key;
 import org.geysermc.cumulus.component.Component;
 import org.geysermc.cumulus.component.InputComponent;
 import org.geysermc.cumulus.component.ToggleComponent;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 
 /**
@@ -43,10 +45,9 @@ public interface GameRule<T> {
     Key key();
 
     /**
-     * temp: the translation of the gamerule
-     * TODO remove once we properly parse / handle deprecations in locale files
+     * The category of this gamerule
      */
-    String translation();
+    GameRuleCategory category();
 
     /**
      * magic
@@ -63,12 +64,11 @@ public interface GameRule<T> {
      */
     boolean validate(T value);
 
-    Component toComponent(String currentValue);
+    Component toComponent(GeyserSession session, String currentValue);
 
-    record Int(Key key, String translation, Integer defaultValue, int min, int max) implements GameRule<Integer> {
-
-        public Int(String key, String translation, Integer defaultValue, int min, int max) {
-            this(MinecraftKey.key(key), translation, defaultValue, min, max);
+    record Int(Key key, GameRuleCategory category, Integer defaultValue, int min, int max) implements GameRule<Integer> {
+        public Int(String key, GameRuleCategory category, Integer defaultValue, int min, int max) {
+            this(MinecraftKey.key(key), category, defaultValue, min, max);
         }
 
         @Override
@@ -82,15 +82,14 @@ public interface GameRule<T> {
         }
 
         @Override
-        public Component toComponent(String currentValue) {
-            return InputComponent.of(translation(), currentValue, currentValue);
+        public Component toComponent(GeyserSession session, String currentValue) {
+            return InputComponent.of(GameRule.translate(session, key), currentValue, currentValue);
         }
     }
 
-    record Bool(Key key, String translation, Boolean defaultValue) implements GameRule<Boolean> {
-
-        public Bool(String key, String translation, Boolean defaultValue) {
-            this(MinecraftKey.key(key), translation, defaultValue);
+    record Bool(Key key, GameRuleCategory category, Boolean defaultValue) implements GameRule<Boolean> {
+        public Bool(String key, GameRuleCategory category, Boolean defaultValue) {
+            this(MinecraftKey.key(key), category, defaultValue);
         }
 
         @Override
@@ -104,8 +103,13 @@ public interface GameRule<T> {
         }
 
         @Override
-        public Component toComponent(String currentValue) {
-            return ToggleComponent.of(translation(), adapter().parser().apply(currentValue));
+        public Component toComponent(GeyserSession session, String currentValue) {
+            return ToggleComponent.of(GameRule.translate(session, key), adapter().parser().apply(currentValue));
         }
+    }
+
+    private static String translate(GeyserSession session, Key key) {
+        String translatable = "gamerule." + key.namespace() + "." + key.value().replace('/', '.');
+        return MessageTranslator.convertMessage(net.kyori.adventure.text.Component.translatable(translatable), session.locale());
     }
 }

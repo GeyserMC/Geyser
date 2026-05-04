@@ -648,7 +648,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * The op permission level set by the server
      */
-    @Setter
     private int opPermissionLevel = 0;
 
     /**

@@ -204,22 +204,28 @@ public class MinecraftLocale {
 
     private static boolean loadDeprecations() {
         if (Files.exists(DEPRECATED) && Files.isReadable(DEPRECATED)) {
-            try (InputStream deprecatedStream = Files.newInputStream(DEPRECATED, StandardOpenOption.READ)) {
-                JsonNode deprecatedObject = GeyserImpl.JSON_MAPPER.readTree(deprecatedStream);
-
-                Iterator<JsonNode> removed = deprecatedObject.get("removed").elements();
-                while (removed.hasNext()) {
-                    REMOVED_KEYS.add(removed.next().asText());
+            try (InputStream localeStream = Files.newInputStream(DEPRECATED, StandardOpenOption.READ)) {
+                // Parse the file as json
+                JsonObject localeObj = JsonUtils.fromJson(localeStream);
+                JsonElement removed = localeObj.get("removed");
+                if (removed.isJsonArray()) {
+                    for (JsonElement removedElement : removed.getAsJsonArray()) {
+                        REMOVED_KEYS.add(removedElement.getAsString());
+                    }
                 }
 
-                Iterator<Map.Entry<String, JsonNode>> replaced = deprecatedObject.get("renamed").fields();
-                while (replaced.hasNext()) {
-                    Map.Entry<String, JsonNode> replacedString = replaced.next();
-                    REPLACED_KEYS.put(replacedString.getKey(), replacedString.getValue().asText());
+                JsonElement renamed = localeObj.get("renamed");
+                if (renamed.isJsonObject()) {
+                    for (Map.Entry<String, JsonElement> renamedElement : renamed.getAsJsonObject().entrySet()) {
+                        REPLACED_KEYS.put(renamedElement.getKey(), renamedElement.getValue().getAsString());
+                    }
                 }
+
                 return true;
-            } catch (IOException exception) {
-                throw new AssertionError("Failed to read deprecated locale file", exception);
+            } catch (FileNotFoundException e){
+                throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.locale.fail.file", DEPRECATED, e.getMessage()));
+            } catch (Exception e) {
+                throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.locale.fail.json", DEPRECATED), e);
             }
         }
         return false;
