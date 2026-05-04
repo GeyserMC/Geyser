@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.session.cache.waypoint;
 
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -37,8 +38,8 @@ import java.util.UUID;
 
 public class CoordinatesWaypoint extends GeyserWaypoint {
 
-    public CoordinatesWaypoint(GeyserSession session, UUID uuid, Optional<Entity> entity, Color color) {
-        super(session, uuid, entity, color);
+    public CoordinatesWaypoint(GeyserSession session, UUID uuid, Key style, Color color, Optional<Entity> entity) {
+        super(session, uuid, style, color, entity);
     }
 
     @Override

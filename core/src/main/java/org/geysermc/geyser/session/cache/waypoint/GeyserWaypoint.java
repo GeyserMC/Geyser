@@ -25,7 +25,9 @@
 
 package org.geysermc.geyser.session.cache.waypoint;
 
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LocatorBarWaypoint;
 import org.cloudburstmc.protocol.bedrock.packet.LocatorBarPacket;
@@ -36,6 +38,7 @@ import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinProvider;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.TrackedWaypoint;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
 
@@ -45,6 +48,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 public abstract class GeyserWaypoint {
+    // These 2 from: https://mcsrc.dev/1/26.1.2/net/minecraft/client/resources/WaypointStyle
+    // (DEFAULT_NEAR_DISTANCE and DEFAULT_FAR_DISTANCE squared)
+    private static final float VANILLA_NEAR_DISTANCE_SQUARED = 16384.0F;
+    private static final float VANILLA_FAR_DISTANCE_SQUARED = 110224.0F;
+    private static final Key VANILLA_WAYPOINT_STYLE = MinecraftKey.key("default");
+
     protected final GeyserSession session;
 
     // On 26.10 and above (new waypoint system): the waypoint group UUID
@@ -52,21 +61,26 @@ public abstract class GeyserWaypoint {
     // This is decided by the Java server. When Java sends us a waypoint with a String ID, we turn it into a UUID
     private final UUID uuid;
     private final LocatorBarWaypoint bedrockWaypoint;
+    private final Key style;
     private final boolean requiresNewWaypointPacket;
+    private final boolean requiresNewNewWaypointPacket;
     private boolean sendListPackets;
 
     private Vector3f lastSentPosition = null;
 
-    public GeyserWaypoint(GeyserSession session, UUID uuid, Optional<Entity> entity, Color color) {
+    public GeyserWaypoint(GeyserSession session, UUID uuid, Key style, Color color, Optional<Entity> entity) {
         this.session = session;
         this.uuid = uuid;
+        this.style = style;
         this.bedrockWaypoint = new LocatorBarWaypoint();
         this.requiresNewWaypointPacket = requiresNewWaypointPacket(session);
+        this.requiresNewNewWaypointPacket = requiresNewNewWaypointPacket(session);
         bedrockWaypoint.setVisible(true);
-        bedrockWaypoint.setWorldPosition(new LocatorBarWaypoint.WorldPosition(Vector3f.ZERO, 0));
-        bedrockWaypoint.setTextureId(2);
+        // I think this is always [1, 1]?
+        bedrockWaypoint.setIconSize(Vector2f.ONE);
         bedrockWaypoint.setColor(color);
         initialiseWaypointFromEntity(entity);
+        setPosition(Vector3f.ZERO);
     }
 
     private void initialiseWaypointFromEntity(Optional<Entity> entity) {
@@ -145,6 +159,14 @@ public abstract class GeyserWaypoint {
 
     protected void setPosition(Vector3f position) {
         bedrockWaypoint.setWorldPosition(new LocatorBarWaypoint.WorldPosition(position, session.getBedrockDimension().bedrockId()));
+        float distanceSquared = session.playerEntity().position().distanceSquared(position);
+        if (requiresNewWaypointPacket) {
+            if (requiresNewNewWaypointPacket) {
+                bedrockWaypoint.setTexturePath(getWaypointTexture(style, distanceSquared));
+            } else {
+                bedrockWaypoint.setTextureId(getLegacyWaypointTexture(distanceSquared));
+            }
+        }
     }
 
     protected void sendLocationPacket(boolean force) {
@@ -152,7 +174,7 @@ public abstract class GeyserWaypoint {
         if (force || lastSentPosition == null || position.distanceSquared(lastSentPosition) > 1.0F) {
             if (requiresNewWaypointPacket) {
                 LocatorBarPacket packet = new LocatorBarPacket();
-                bedrockWaypoint.setUpdateFlag(WaypointUpdateFlags.WORLD_POS);
+                bedrockWaypoint.setUpdateFlag(WaypointUpdateFlags.WORLD_POS | WaypointUpdateFlags.TEXTURE_ID);
                 packet.setWaypoints(List.of(new LocatorBarPacket.Payload(LocatorBarPacket.Action.UPDATE, uuid, bedrockWaypoint)));
                 session.sendUpstreamPacket(packet);
             } else {
@@ -200,17 +222,22 @@ public abstract class GeyserWaypoint {
             .or(() -> Optional.ofNullable(waypoint.id())
                 .map(UUID::fromString))
             .orElseThrow();
+        Key style = waypoint.icon().style();
         Color color = getWaypointColor(waypoint);
         return switch (waypoint.type()) {
             case EMPTY -> null;
-            case VEC3I -> new CoordinatesWaypoint(session, uuid, entity, color);
-            case CHUNK -> new ChunkWaypoint(session, uuid, entity, color);
-            case AZIMUTH -> new AzimuthWaypoint(session, uuid, entity, color);
+            case VEC3I -> new CoordinatesWaypoint(session, uuid, style, color, entity);
+            case CHUNK -> new ChunkWaypoint(session, uuid, style, color, entity);
+            case AZIMUTH -> new AzimuthWaypoint(session, uuid, style, color, entity);
         };
     }
 
     public static boolean requiresNewWaypointPacket(GeyserSession session) {
         return GameProtocol.is1_26_10orHigher(session.protocolVersion());
+    }
+
+    public static boolean requiresNewNewWaypointPacket(GeyserSession session) {
+        return GameProtocol.is1_26_20orHigher(session.protocolVersion());
     }
 
     private static Color getWaypointColor(TrackedWaypoint waypoint) {
@@ -221,5 +248,35 @@ public abstract class GeyserWaypoint {
             .or(() -> Optional.ofNullable(waypoint.id()).map(String::hashCode))
             .map(i -> new Color(i & 0xFFFFFF))
             .orElseThrow();
+    }
+
+    private static String getWaypointTexture(Key style, float distanceSquared) {
+        if (distanceSquared < VANILLA_NEAR_DISTANCE_SQUARED) {
+            return getWaypointTexture(style, 0);
+        } else if (distanceSquared >= VANILLA_FAR_DISTANCE_SQUARED) {
+            return getWaypointTexture(style, 3);
+        }
+        return getWaypointTexture(style, (int) (1 + Math.floor((distanceSquared - VANILLA_NEAR_DISTANCE_SQUARED) / (VANILLA_FAR_DISTANCE_SQUARED - VANILLA_NEAR_DISTANCE_SQUARED) * 2)));
+    }
+
+    private static String getWaypointTexture(Key style, int index) {
+        if (style.equals(VANILLA_WAYPOINT_STYLE)) {
+            return switch (index) {
+                case 0 -> "ui/locator_bar_dot_0";
+                case 1 -> "ui/locator_bar_dot_1";
+                case 2 -> "ui/locator_bar_dot_2";
+                default -> "ui/locator_bar_dot_3";
+            };
+        }
+        return "ui/" + style.namespace() + "/locator_bar_dot/" + style.value() + "_" + index;
+    }
+
+    private static int getLegacyWaypointTexture(float distanceSquared) {
+        if (distanceSquared < VANILLA_NEAR_DISTANCE_SQUARED) {
+            return 2;
+        } else if (distanceSquared >= VANILLA_FAR_DISTANCE_SQUARED) {
+            return 5;
+        }
+        return (int) (3 + Math.floor((distanceSquared - VANILLA_NEAR_DISTANCE_SQUARED) / (VANILLA_FAR_DISTANCE_SQUARED - VANILLA_NEAR_DISTANCE_SQUARED) * 2));
     }
 }

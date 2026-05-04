@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.session.cache.waypoint;
 
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -44,8 +45,8 @@ public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
     // The angle, in radians, where the waypoint should appear on the bar
     private float angle = 0.0F;
 
-    public AzimuthWaypoint(GeyserSession session, UUID uuid, Optional<Entity> entity, Color color) {
-        super(session, uuid, entity, color);
+    public AzimuthWaypoint(GeyserSession session, UUID uuid, Key style, Color color, Optional<Entity> entity) {
+        super(session, uuid, style, color, entity);
     }
 
     @Override
