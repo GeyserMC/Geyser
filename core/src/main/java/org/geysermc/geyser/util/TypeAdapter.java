@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.level.gamerule;
+package org.geysermc.geyser.util;
 
 import java.util.function.Function;
 

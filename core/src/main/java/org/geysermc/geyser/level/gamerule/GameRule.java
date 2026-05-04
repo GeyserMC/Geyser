@@ -32,6 +32,7 @@ import org.geysermc.cumulus.component.ToggleComponent;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
+import org.geysermc.geyser.util.TypeAdapter;
 
 /**
  * This enum stores each gamerule along with the value type and the default.
