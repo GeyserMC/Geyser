@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.item.type;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.ints.IntArrays;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtList;
@@ -53,10 +55,11 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
         // TODO can this be removed? does this have any client side functionality other than tooltip?
-        Fireworks fireworks = components.get(DataComponentTypes.FIREWORKS);
+        /*Fireworks fireworks = components.get(DataComponentTypes.FIREWORKS);
         if (fireworks == null) {
             return;
         }
+        // We still need to translate the explosion so this is still correct, and can be reverse translate in translateNbtToJava.
         NbtMapBuilder fireworksNbt = NbtMap.builder();
         fireworksNbt.putByte("Flight", (byte) fireworks.getFlightDuration());
 
@@ -72,6 +75,52 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
             fireworksNbt.put("Explosions", NbtList.EMPTY);
         }
         builder.putCompound("Fireworks", fireworksNbt.build());
+
+        // If the tooltip is hidden, don't add any lore.
+        if (!tooltip.showInTooltip(DataComponentTypes.FIREWORKS)) {
+            return;
+        }
+
+        // Then we translate everything into lore since the explosion tag and everything is not visible anymore due to this being a data driven item.
+        List<String> lore = builder.getOrCreateLore();
+        lore.add(withTranslation("§r", "item.fireworks.flight", " " + fireworks.getFlightDuration()));
+
+        for (Fireworks.FireworkExplosion explosion : explosions) {
+            lore.add(withTranslation("§r  ", "item.fireworksCharge.type." + explosion.getShapeId()));
+
+            final List<String> colors = new ArrayList<>();
+            colors.add("§r  ");
+            for (int color : explosion.getColors()) {
+                FireworkColor fireworkColor = FireworkColor.values()[FireworkColor.fromJavaRGB(color)];
+                colors.add("item.fireworksCharge." + fireworkColor.getName());
+                colors.add(" ");
+            }
+
+            if (explosion.getColors().length != 0) {
+                lore.add(withTranslation(colors.toArray(new String[0])));
+            }
+
+            colors.clear();
+            colors.add("§r  ");
+            colors.add("item.fireworksCharge.fadeTo");
+            colors.add(" ");
+            for (int color : explosion.getFadeColors()) {
+                FireworkColor fireworkColor = FireworkColor.values()[FireworkColor.fromJavaRGB(color)];
+                colors.add("item.fireworksCharge." + fireworkColor.getName());
+                colors.add(" ");
+            }
+            if (explosion.getFadeColors().length != 0) {
+                lore.add(withTranslation(colors.toArray(new String[0])));
+            }
+
+            if (explosion.isHasTrail()) {
+                lore.add(withTranslation("§r  ", "item.fireworksCharge.trail"));
+            }
+
+            if (explosion.isHasTwinkle()) {
+                lore.add(withTranslation("§r  ", "item.fireworksCharge.flicker"));
+            }
+       }*/
     }
 
     @Override
@@ -80,6 +129,11 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
 
         NbtMap fireworksTag = bedrockTag.getCompound("Fireworks");
         if (!fireworksTag.isEmpty()) {
+            int flightDuration = 1;
+            if (fireworksTag.containsKey("Flight")) {
+                flightDuration = fireworksTag.getByte("Flight");
+            }
+
             List<NbtMap> explosions = fireworksTag.getList("Explosions", NbtType.COMPOUND);
             if (!explosions.isEmpty()) {
                 List<Fireworks.FireworkExplosion> javaExplosions = new ArrayList<>();
@@ -89,7 +143,9 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
                         javaExplosions.add(javaExplosion);
                     }
                 }
-                components.put(DataComponentTypes.FIREWORKS, new Fireworks(1, javaExplosions));
+                components.put(DataComponentTypes.FIREWORKS, new Fireworks(flightDuration, javaExplosions));
+            } else {
+                components.put(DataComponentTypes.FIREWORKS, new Fireworks(flightDuration, List.of()));
             }
         }
     }
@@ -142,5 +198,19 @@ public class FireworkRocketItem extends Item implements BedrockRequiresTagItem {
         } else {
             return null;
         }
+    }
+
+    public static String withTranslation(String... strings) {
+        final JsonObject object = new JsonObject();
+        final JsonArray array = new JsonArray();
+
+        for (String s : strings) {
+            final JsonObject object1 = new JsonObject();
+            object1.addProperty("translate", s);
+            array.add(object1);
+        }
+
+        object.add("rawtext", array);
+        return object.toString();
     }
 }

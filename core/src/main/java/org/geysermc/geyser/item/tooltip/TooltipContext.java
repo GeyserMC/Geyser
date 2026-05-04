@@ -64,7 +64,7 @@ public record TooltipContext(Optional<GeyserSession> session, boolean advanced, 
     }
 
     public static TooltipContext createForCreativeMenu(Item item) {
-        DataComponents components = item.gatherComponents(null);
+        DataComponents components = item.gatherComponents(null, null);
         return new TooltipContext(Optional.empty(), false, true, item, components, TooltipOptions.fromComponents(components));
     }
 }

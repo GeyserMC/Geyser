@@ -25,19 +25,19 @@
 
 package org.geysermc.geyser.entity.type;
 
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
-import java.util.UUID;
+public class AbstractArrowEntity extends ProjectileEntity {
 
-public class AbstractArrowEntity extends Entity {
+    private boolean inGround;
 
-    public AbstractArrowEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public AbstractArrowEntity(EntitySpawnContext context) {
+        super(context);
 
         // Set the correct texture if using the resource pack
         setFlag(EntityFlag.BRIBED, definition.entityType() == EntityType.SPECTRAL_ARROW);
@@ -45,10 +45,22 @@ public class AbstractArrowEntity extends Entity {
         setMotion(motion);
     }
 
+    @Override
+    public void tick() {
+        if (inGround) {
+            return;
+        }
+        super.tick();
+    }
+
     public void setArrowFlags(ByteEntityMetadata entityMetadata) {
         byte data = entityMetadata.getPrimitiveValue();
 
         setFlag(EntityFlag.CRITICAL, (data & 0x01) == 0x01);
+    }
+
+    public void setInGround(BooleanEntityMetadata entityMetadata) {
+        this.inGround = entityMetadata.getPrimitiveValue();
     }
 
     // Ignore the rotation sent by the Java server since the
@@ -63,6 +75,16 @@ public class AbstractArrowEntity extends Entity {
 
     @Override
     public void setHeadYaw(float headYaw) {
+    }
+
+    @Override
+    protected float getGravity() {
+        return getFlag(EntityFlag.HAS_GRAVITY) ? 0.05f : 0f;
+    }
+
+    @Override
+    protected float getDrag() {
+        return isInWater() ? 0.6f : 0.99f;
     }
 
     @Override

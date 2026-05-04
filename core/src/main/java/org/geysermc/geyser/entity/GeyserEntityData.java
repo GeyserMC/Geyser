@@ -29,6 +29,7 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
+import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
@@ -44,7 +45,6 @@ import java.util.concurrent.CompletableFuture;
 public class GeyserEntityData implements EntityData {
 
     private final GeyserSession session;
-
     private final Set<UUID> movementLockOwners = new HashSet<>();
 
     public GeyserEntityData(GeyserSession session) {
@@ -67,7 +67,7 @@ public class GeyserEntityData implements EntityData {
         }
 
         EmotePacket packet = new EmotePacket();
-        packet.setRuntimeEntityId(entity.getGeyserId());
+        packet.setRuntimeEntityId(entity.geyserId());
         packet.setXuid("");
         packet.setPlatformId(""); // BDS sends empty
         packet.setEmoteId(emoteId);
@@ -88,7 +88,8 @@ public class GeyserEntityData implements EntityData {
             movementLockOwners.remove(owner);
         }
 
-        session.lockInputs(session.camera().isCameraLocked(), isMovementLocked());
+        session.setLockInput(InputLocksFlag.MOVEMENT, isMovementLocked());
+        session.updateInputLocks();
         return isMovementLocked();
     }
 

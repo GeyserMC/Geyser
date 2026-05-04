@@ -39,7 +39,7 @@ import java.util.*;
 @Value
 public class GeyserCustomBlockComponents implements CustomBlockComponents {
     BoxComponent selectionBox;
-    BoxComponent collisionBox;
+    Set<BoxComponent> collisionBoxes;
     String displayName;
     GeometryComponent geometry;
     Map<String, MaterialInstance> materialInstances;
@@ -54,7 +54,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
 
     private GeyserCustomBlockComponents(Builder builder) {
         this.selectionBox = builder.selectionBox;
-        this.collisionBox = builder.collisionBox;
+        this.collisionBoxes = builder.collisionBoxes;
         this.displayName = builder.displayName;
         GeometryComponent geo = builder.geometry;
         if (builder.unitCube && geo == null) {
@@ -83,13 +83,28 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
     }
 
     @Override
-    public BoxComponent selectionBox() {
+    public @Nullable BoxComponent selectionBox() {
         return selectionBox;
     }
 
     @Override
-    public BoxComponent collisionBox() {
-        return collisionBox;
+    public @Nullable BoxComponent collisionBox() {
+        if (collisionBoxes.isEmpty()) {
+            return null;
+        }
+
+        for (BoxComponent box : collisionBoxes) {
+            if (!box.isEmpty()) {
+                return box;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public @NonNull Set<BoxComponent> collisionBoxes() {
+        return Set.copyOf(collisionBoxes);
     }
 
     @Override
@@ -154,7 +169,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
 
     public static class Builder implements CustomBlockComponents.Builder {
         protected BoxComponent selectionBox;
-        protected BoxComponent collisionBox;
+        protected @NonNull Set<BoxComponent> collisionBoxes = new HashSet<>();
         protected String displayName;
         protected GeometryComponent geometry;
         protected final Object2ObjectMap<String, MaterialInstance> materialInstances = new Object2ObjectOpenHashMap<>();
@@ -168,7 +183,7 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
         protected boolean placeAir = false;
         protected Set<String> tags = new HashSet<>();
 
-        private void validateBox(BoxComponent box) {
+        private void validateBox(@Nullable BoxComponent box, boolean collision) {
             if (box == null) {
                 return;
             }
@@ -181,22 +196,77 @@ public class GeyserCustomBlockComponents implements CustomBlockComponents {
             float maxX = minX + box.sizeX();
             float maxY = minY + box.sizeY();
             float maxZ = minZ + box.sizeZ();
-            if (minX < 0 || minY < 0 || minZ < 0 || maxX > 16 || maxY > 16 || maxZ > 16) {
-                throw new IllegalArgumentException("Box bounds must be within (0, 0, 0) and (16, 16, 16). Recieved: (" + minX + ", " + minY + ", " + minZ + ") to (" + maxX + ", " + maxY + ", " + maxZ + ")");
+            if (collision) {
+                // Since 1.21.130, max y of collisions is 24
+                if (minX < 0 || minY < 0 || minZ < 0 || maxX > 16 || maxY > 24 || maxZ > 16) {
+                    throw new IllegalArgumentException("Collision box bounds must be within (0, 0, 0) and (16, 24, 16). Received: (" + minX + ", " + minY + ", " + minZ + ") to (" + maxX + ", " + maxY + ", " + maxZ + ")");
+                }
+            } else {
+                if (minX < 0 || minY < 0 || minZ < 0 || maxX > 16 || maxY > 16 || maxZ > 16) {
+                    throw new IllegalArgumentException("Box bounds must be within (0, 0, 0) and (16, 16, 16). Received: (" + minX + ", " + minY + ", " + minZ + ") to (" + maxX + ", " + maxY + ", " + maxZ + ")");
+                }
             }
         }
 
         @Override
-        public Builder selectionBox(BoxComponent selectionBox) {
-            validateBox(selectionBox);
+        public Builder selectionBox(@Nullable BoxComponent selectionBox) {
+            validateBox(selectionBox, false);
             this.selectionBox = selectionBox;
             return this;
         }
 
         @Override
-        public Builder collisionBox(BoxComponent collisionBox) {
-            validateBox(collisionBox);
-            this.collisionBox = collisionBox;
+        public Builder collisionBox(@Nullable BoxComponent collisionBox) {
+            validateBox(collisionBox, true);
+            this.collisionBoxes = collisionBox == null ? Collections.emptySet() : Collections.singleton(collisionBox);
+            return this;
+        }
+
+        @Override
+        public CustomBlockComponents.Builder collisionBoxes(@Nullable BoxComponent... collisionBoxes) {
+            if (collisionBoxes == null || collisionBoxes.length == 0) {
+                this.collisionBoxes = Collections.emptySet();
+                return this;
+            }
+
+            if (collisionBoxes.length > 16) {
+                throw new IllegalArgumentException("Cannot have more than 16 collision boxes");
+            }
+
+            Set<BoxComponent> boxes = new HashSet<>();
+            for (BoxComponent box : collisionBoxes) {
+                if (box == null) {
+                    throw new IllegalArgumentException("Collision box cannot be null");
+                }
+                validateBox(box, true);
+                boxes.add(box);
+            }
+
+            this.collisionBoxes = boxes;
+            return this;
+        }
+
+        @Override
+        public CustomBlockComponents.Builder collisionBoxes(@Nullable Collection<BoxComponent> collisionBoxes) {
+            if (collisionBoxes == null) {
+                this.collisionBoxes = Collections.emptySet();
+                return this;
+            }
+
+            if (collisionBoxes.size() > 16) {
+                throw new IllegalArgumentException("Cannot have more than 16 collision boxes");
+            }
+
+            Set<BoxComponent> boxes = new HashSet<>();
+            for (BoxComponent box : collisionBoxes) {
+                if (box == null) {
+                    throw new IllegalArgumentException("Collision box cannot be null");
+                }
+                validateBox(box, true);
+                boxes.add(box);
+            }
+
+            this.collisionBoxes = boxes;
             return this;
         }
 

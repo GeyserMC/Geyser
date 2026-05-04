@@ -25,10 +25,12 @@
 
 package org.geysermc.geyser.entity.properties;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityProperty;
 import org.cloudburstmc.protocol.bedrock.data.entity.FloatEntityProperty;
 import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
-import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
 
 import java.util.List;
@@ -36,34 +38,29 @@ import java.util.List;
 public class GeyserEntityPropertyManager {
 
     private final GeyserEntityProperties properties;
-
-    private final ObjectArrayList<IntEntityProperty> intEntityProperties = new ObjectArrayList<>();
-    private final ObjectArrayList<FloatEntityProperty> floatEntityProperties = new ObjectArrayList<>();
+    private final Object2ObjectMap<String, IntEntityProperty> intEntityProperties = new Object2ObjectArrayMap<>();
+    private final Object2ObjectMap<String, FloatEntityProperty> floatEntityProperties = new Object2ObjectArrayMap<>();
 
     public GeyserEntityPropertyManager(GeyserEntityProperties properties) {
         this.properties = properties;
+        for (PropertyType<?, ?> property : properties.getProperties()) {
+            String name = property.identifier().toString();
+            int index = properties.getPropertyIndex(name);
+            addProperty(name, property.defaultValue(index));
+        }
     }
 
-    public void add(String propertyName, int value) {
-        int index = properties.getPropertyIndex(propertyName);
-        intEntityProperties.add(new IntEntityProperty(index, value));
+    public <T> void addProperty(PropertyType<T, ? extends EntityProperty> propertyType, T value) {
+        int index = properties.getPropertyIndex(propertyType.identifier().toString());
+        this.addProperty(propertyType.identifier().toString(), propertyType.createValue(index, value));
     }
 
-    public void add(String propertyName, boolean value) {
-        int index = properties.getPropertyIndex(propertyName);
-        intEntityProperties.add(new IntEntityProperty(index, value ? 1 : 0));
-    }
-
-    public void add(String propertyName, String value) {
-        int index = properties.getPropertyIndex(propertyName);
-        PropertyType property = properties.getProperties().get(index);
-        int enumIndex = ((EnumProperty) property).getIndex(value);
-        intEntityProperties.add(new IntEntityProperty(index, enumIndex));
-    }
-
-    public void add(String propertyName, float value) {
-        int index = properties.getPropertyIndex(propertyName);
-        floatEntityProperties.add(new FloatEntityProperty(index, value));
+    private void addProperty(String propertyName, EntityProperty entityProperty) {
+        if (entityProperty instanceof FloatEntityProperty floatEntityProperty) {
+            floatEntityProperties.put(propertyName, floatEntityProperty);
+        } else if (entityProperty instanceof IntEntityProperty intEntityProperty) {
+            intEntityProperties.put(propertyName, intEntityProperty);
+        }
     }
 
     public boolean hasFloatProperties() {
@@ -78,21 +75,17 @@ public class GeyserEntityPropertyManager {
         return hasFloatProperties() || hasIntProperties();
     }
 
-    public ObjectArrayList<IntEntityProperty> intProperties() {
-        return this.intEntityProperties;
-    }
-
     public void applyIntProperties(List<IntEntityProperty> properties) {
-        properties.addAll(intEntityProperties);
+        properties.addAll(intEntityProperties.values());
         intEntityProperties.clear();
     }
 
-    public ObjectArrayList<FloatEntityProperty> floatProperties() {
-        return this.floatEntityProperties;
+    public void applyFloatProperties(List<FloatEntityProperty> properties) {
+        properties.addAll(floatEntityProperties.values());
+        floatEntityProperties.clear();
     }
 
-    public void applyFloatProperties(List<FloatEntityProperty> properties) {
-        properties.addAll(floatEntityProperties);
-        floatEntityProperties.clear();
+    public NbtMap toNbtMap(String entityType) {
+        return this.properties.toNbtMap(entityType);
     }
 }

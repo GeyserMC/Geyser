@@ -31,9 +31,6 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
@@ -43,7 +40,6 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundUpdateTagsPacket;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -52,8 +48,19 @@ import java.util.Map;
  * Manages information sent from the {@link ClientboundUpdateTagsPacket}. If that packet is not sent, all lists here
  * will remain empty, matching Java Edition behavior. Looking up a tag that wasn't listed in that packet will return an empty array.
  * Only tags from registries in {@link JavaRegistries} are stored. Read {@link JavaRegistryKey} for more information.
+ *
+ * <p>To simply check if an element is in a tag, it's preferred to use the element's "{@code is}" method, if available. For example:</p>
+ *
+ * <ul>
+ *     <li>{@link org.geysermc.geyser.level.block.type.Block#is(GeyserSession, Tag)}</li>
+ *     <li>{@link org.geysermc.geyser.level.block.type.Block#is(GeyserSession, HolderSet)}</li>
+ *     <li>{@link org.geysermc.geyser.item.type.Item#is(GeyserSession, Tag)}</li>
+ *     <li>{@link org.geysermc.geyser.item.type.Item#is(GeyserSession, HolderSet)}</li>
+ *     <li>{@link org.geysermc.geyser.inventory.GeyserItemStack#is(GeyserSession, Tag)}</li>
+ *     <li>{@link org.geysermc.geyser.inventory.GeyserItemStack#is(GeyserSession, HolderSet)}</li>
+ *     <li>{@link GeyserHolderSet#contains(GeyserSession, Object)}</li>
+ * </ul>
  */
-@ParametersAreNonnullByDefault
 public final class TagCache {
     private final GeyserSession session;
     private final Map<Tag<?>, int[]> tags = new Object2ObjectOpenHashMap<>();
@@ -87,7 +94,8 @@ public final class TagCache {
                 }
             } else if (registry == JavaRegistries.ITEM) {
                 // Hack btw
-                boolean emulatePost1_13Logic = registryTags.get(MinecraftKey.key("signs")).length > 1;
+                int[] signs = registryTags.get(MinecraftKey.key("signs"));
+                boolean emulatePost1_13Logic = signs != null && signs.length > 1;
                 session.setEmulatePost1_13Logic(emulatePost1_13Logic);
                 if (logger.isDebug()) {
                     logger.debug("Emulating post 1.13 villager logic for " + session.bedrockUsername() + "? " + emulatePost1_13Logic);
@@ -109,45 +117,40 @@ public final class TagCache {
         }
     }
 
-    public <T> boolean is(Tag<T> tag, T object) {
+    /**
+     * Should only be used when the network ID of an element is already known. If not, prefer using the {@link TagCache#is(Tag, Object)} shorthand method.
+     */
+    public boolean is(@NonNull Tag<?> tag, int id) {
+        return contains(getRaw(tag), id);
+    }
+
+    public <T> boolean is(@NonNull Tag<T> tag, @NonNull T object) {
         return contains(getRaw(tag), tag.registry().networkId(session, object));
     }
 
     /**
-     * @return true if the given tag is present and contains the given Java ID
+     * Prefer using {@link GeyserHolderSet#contains(GeyserSession, Object)}.
+     *
+     * @return true if the specified network ID is in the given {@link GeyserHolderSet}.
      */
-    public boolean is(Tag<?> tag, int id) {
-        return contains(getRaw(tag), id);
-    }
-
-    /**
-     * @return true if the item tag is present and contains this item stack's Java ID.
-     */
-    public boolean is(Tag<Item> tag, GeyserItemStack itemStack) {
-        return is(tag, itemStack.asItem());
-    }
-
-
-    /**
-     * @return true if the specified network ID is in the given holder set.
-     */
-    public <T> boolean is(@Nullable GeyserHolderSet<T> holderSet, @Nullable T object) {
-        if (holderSet == null || object == null) {
+    public <T> boolean is(@NonNull GeyserHolderSet<T> holderSet, @Nullable T object) {
+        if (object == null) {
             return false;
         }
         return contains(holderSet.resolveRaw(this), holderSet.getRegistry().networkId(session, object));
     }
 
     /**
-     * Accessible via the {@link #isItem(HolderSet, Item)} method.
      * @return true if the specified network ID is in the given {@link HolderSet} set.
      */
-    private  <T> boolean is(@Nullable HolderSet holderSet, @NonNull JavaRegistryKey<T, ?> registry, int id) {
+    public <T> boolean is(@Nullable HolderSet holderSet, @NonNull JavaRegistryKey<T, ?> registry, int id) {
         if (holderSet == null) {
             return false;
         }
 
         int[] entries = holderSet.resolve(key -> {
+            // This should never happen, since a key in a HolderSet is always a tag
+            // We check for it anyway
             if (key.value().startsWith("#")) {
                 key = Key.key(key.namespace(), key.value().substring(1));
             }
@@ -157,23 +160,14 @@ public final class TagCache {
         return contains(entries, id);
     }
 
-    public boolean isItem(@Nullable HolderSet holderSet, @NonNull Item item) {
-        return is(holderSet, JavaRegistries.ITEM, item.javaId());
-    }
-
-    public boolean isBlock(@Nullable HolderSet holderSet, @NonNull Block block) {
-        return is(holderSet, JavaRegistries.BLOCK, block.javaId());
-    }
-
-
-    public <T> List<T> get(Tag<T> tag) {
+    public <T> List<T> get(@NonNull Tag<T> tag) {
         return mapRawArray(session, getRaw(tag), tag.registry());
     }
 
     /**
-     * @return the network IDs in the given tag. This can be an empty list.
+     * @return the network IDs in the given tag. This can be an empty array.
      */
-    public int[] getRaw(Tag<?> tag) {
+    public int[] getRaw(@NonNull Tag<?> tag) {
         return this.tags.getOrDefault(tag, IntArrays.EMPTY_ARRAY);
     }
 

@@ -54,7 +54,8 @@ public record UtilMappings(List<Key> gameMasterBlocks, List<Key> dangerousBlockE
     private static UtilMappings get() {
         if (loaded == null) {
             try (InputStream utilInput = GeyserImpl.getInstance().getBootstrap().getResourceOrThrow(INPUT)) {
-                JsonObject utilJson = JsonParser.parseReader(new InputStreamReader(utilInput)).getAsJsonObject();
+                //noinspection deprecation - 1.16.5 breaks otherwise
+                JsonObject utilJson = new JsonParser().parse(new InputStreamReader(utilInput)).getAsJsonObject();
 
                 List<Key> gameMasterBlocks = new ArrayList<>();
                 List<Key> dangerousBlockEntities = new ArrayList<>();

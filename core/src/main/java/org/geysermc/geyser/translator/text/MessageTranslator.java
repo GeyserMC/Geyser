@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,6 @@
 
 package org.geysermc.geyser.translator.text;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -59,6 +54,13 @@ import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -107,6 +109,7 @@ public class MessageTranslator {
         formats.add(CharacterAndFormat.characterAndFormat('s', TextColor.color(44, 186, 168))); // Diamond
         formats.add(CharacterAndFormat.characterAndFormat('t', TextColor.color(33, 73, 123))); // Lapis
         formats.add(CharacterAndFormat.characterAndFormat('u', TextColor.color(154, 92, 198))); // Amethyst
+        formats.add(CharacterAndFormat.characterAndFormat('v', TextColor.color(235, 114, 20))); // Resin
 
         ComponentFlattener flattener = ComponentFlattener.basic().toBuilder()
             .nestingLimit(30)
@@ -252,6 +255,12 @@ public class MessageTranslator {
                     output.append(c);
 
                     if (c == ChatColor.ESCAPE) {
+                        // If the string ends with a formatting character, remove and skip
+                        if (i >= finalLegacyString.length() - 1) {
+                            output = output.deleteCharAt(output.length() - 1);
+                            continue;
+                        }
+
                         char newColor = finalLegacyString.charAt(i + 1);
                         if (newColor == 'r') {
                             lastColors = new StringBuilder();
@@ -349,19 +358,23 @@ public class MessageTranslator {
      * @param message Message to convert
      * @return The plain text of the message
      */
-    public static String convertToPlainText(String message) {
-        char[] input = message.toCharArray();
-        char[] output = new char[input.length];
-        int outputSize = 0;
-        for (int i = 0, inputLength = input.length; i < inputLength; i++) {
-            char c = input[i];
-            if (c == ChatColor.ESCAPE) {
-                i++;
-            } else {
-                output[outputSize++] = c;
+    public static String convertIncomingToPlainText(String message) {
+        GeyserImpl instance = GeyserImpl.getInstance();
+        if (instance == null || instance.config().gameplay().blockLegacyCodes()) {
+            char[] input = message.toCharArray();
+            char[] output = new char[input.length];
+            int outputSize = 0;
+            for (int i = 0, inputLength = input.length; i < inputLength; i++) {
+                char c = input[i];
+                if (c == ChatColor.ESCAPE) {
+                    i++;
+                } else {
+                    output[outputSize++] = c;
+                }
             }
+            return new String(output, 0, outputSize);
         }
-        return new String(output, 0, outputSize);
+        return message;
     }
 
     /**
@@ -437,7 +450,7 @@ public class MessageTranslator {
             textPacket.setMessage(MessageTranslator.convertMessage(withDecoration.build(), session.locale()));
         } else {
             session.getGeyser().getLogger().debug("Likely illegal chat type detection found.");
-            if (session.getGeyser().getConfig().isDebugMode()) {
+            if (session.getGeyser().config().debugMode()) {
                 Thread.dumpStack();
             }
             textPacket.setMessage(MessageTranslator.convertMessage(message, session.locale()));
@@ -495,11 +508,33 @@ public class MessageTranslator {
         return new String(newChars, 0, count - (whitespacesCount > 0 ? 1 : 0)).trim();
     }
 
-    public static @Nullable String convertFromNullableNbtTag(GeyserSession session, @Nullable Object nbtTag) {
+    /**
+     * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
+     */
+    public static String deserializeDescription(GeyserSession session, NbtMap tag) {
+        Object description = tag.get("description");
+        Component parsed = componentFromNbtTag(description);
+        return convertMessage(session, parsed);
+    }
+
+    /**
+     * Deserialize an NbtMap with a description text component (usually provided from a registry) into a Bedrock-formatted string.
+     */
+    public static String deserializeDescriptionForTooltip(GeyserSession session, NbtMap tag) {
+        Object description = tag.get("description");
+        Component parsed = componentFromNbtTag(description);
+        return convertMessageForTooltip(parsed, session.locale());
+    }
+
+    /**
+     * Should only be used by {@link org.geysermc.geyser.session.cache.RegistryCache.RegistryReader}s, as these do not always have a {@link GeyserSession} available.
+     */
+    public static @Nullable String convertFromNullableNbtTag(Optional<GeyserSession> session, @Nullable Object nbtTag) {
         if (nbtTag == null) {
             return null;
         }
-        return convertMessage(session, componentFromNbtTag(nbtTag));
+        return session.map(present -> convertMessage(present, componentFromNbtTag(nbtTag)))
+            .orElse("MISSING GEYSER SESSION");
     }
 
     public static Component componentFromNbtTag(Object nbtTag) {

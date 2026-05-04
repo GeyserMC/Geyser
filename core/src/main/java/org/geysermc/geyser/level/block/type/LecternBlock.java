@@ -28,17 +28,20 @@ package org.geysermc.geyser.level.block.type;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.geyser.level.WorldManager;
+import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.util.BlockEntityUtils;
 
-import java.util.Collections;
+import java.util.Objects;
 
 public class LecternBlock extends Block implements BedrockChunkWantsBlockEntityTag {
+
+    public static final NbtMap EMPTY_BOOK =  BedrockItemBuilder.createItemNbt("minecraft:writable_book", 1, 0).build();
+
     public LecternBlock(String javaIdentifier, Builder builder) {
         super(javaIdentifier, builder);
     }
@@ -50,44 +53,34 @@ public class LecternBlock extends Block implements BedrockChunkWantsBlockEntityT
 
     @Override
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
-        WorldManager worldManager = session.getGeyser().getWorldManager();
-        boolean currentHasBook = state.getValue(Properties.HAS_BOOK);
-        Boolean previousHasBook = worldManager.blockAt(session, position).getValueNullable(Properties.HAS_BOOK); // Can be null if not a lectern, watch out
-        if (previousHasBook == null || currentHasBook != previousHasBook) {
-            BlockEntityUtils.updateBlockEntity(session, getBaseLecternTag(position, currentHasBook), position);
+        // Prevent additional block updates while we're reading a book in the lectern
+        if (session.getOpenInventory() instanceof LecternContainer container) {
+            if (Objects.equals(container.getHolderPosition(), position)) {
+                // We'll update the block once we close the lectern
+                return;
+            }
         }
+
         super.updateBlock(session, state, position);
+        BlockEntityUtils.updateBlockEntity(session, getBaseLecternTag(position, state.getValue(Properties.HAS_BOOK)), position);
     }
 
     public static NbtMap getBaseLecternTag(Vector3i position, boolean hasBook) {
         if (hasBook) {
-            return getBaseLecternTag(position, 1)
-                    .putCompound("book", NbtMap.builder()
-                            .putByte("Count", (byte) 1)
-                            .putShort("Damage", (short) 0)
-                            .putString("Name", "minecraft:writable_book")
-                            .putCompound("tag", NbtMap.builder().putList("pages", NbtType.COMPOUND, Collections.singletonList(
-                                    NbtMap.builder()
-                                            .putString("photoname", "")
-                                            .putString("text", "")
-                                            .build()
-                            )).build())
-                            .build())
-                    .build();
-        } else {
-            return getBaseLecternTag(position, 0).build();
+            return createLecternTag(position, EMPTY_BOOK, 0, 0);
         }
+        return BlockEntityTranslator.getConstantBedrockTag("Lectern", position).build();
     }
 
-    public static NbtMapBuilder getBaseLecternTag(Vector3i position, int pages) {
+    public static NbtMap createLecternTag(Vector3i position, NbtMap book, int page, int total) {
         NbtMapBuilder builder = BlockEntityTranslator.getConstantBedrockTag("Lectern", position);
-        builder.putBoolean("isMovable", true);
-
-        if (pages != 0) {
+        if (book != null) {
+            builder.putCompound("book", book);
             builder.putByte("hasBook", (byte) 1);
-            builder.putInt("totalPages", 1); // we'll override it anyway
+            builder.putInt("page", page);
+            builder.putInt("totalPages", total);
         }
 
-        return builder;
+        return builder.build();
     }
 }

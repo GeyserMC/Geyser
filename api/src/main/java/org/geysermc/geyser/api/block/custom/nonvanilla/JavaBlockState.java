@@ -59,7 +59,9 @@ public interface JavaBlockState {
      * Gets the pick item of the block state
      * 
      * @return the pick item of the block state
+     * @deprecated the pick item is sent by the Java server
      */
+    @Deprecated
     @Nullable String pickItem();
 
     /**
@@ -103,6 +105,7 @@ public interface JavaBlockState {
 
         Builder canBreakWithHand(boolean canBreakWithHand);
 
+        @Deprecated
         Builder pickItem(@Nullable String pickItem);
 
         Builder pistonBehavior(@Nullable String pistonBehavior);

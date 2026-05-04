@@ -40,9 +40,11 @@ import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
+import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.level.block.Blocks;
@@ -129,8 +131,14 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Getter @Setter
     private float javaYaw;
 
+    /**
+     * If the player is colliding on the vertical axis or not according to the client.
+     */
+    @Getter @Setter
+    private boolean collidingVertically;
+
     public SessionPlayerEntity(GeyserSession session) {
-        super(session, -1, 1, null, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null, null);
+        super(new EntitySpawnContext(session, EntityDefinitions.PLAYER, -1, null), null, null);
 
         valid = true;
     }
@@ -160,9 +168,9 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
-        session.getCollisionManager().updatePlayerBoundingBox(this.position.down(definition.offset()));
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        session.getCollisionManager().updatePlayerBoundingBox(this.position);
     }
 
     @Override
@@ -174,7 +182,7 @@ public class SessionPlayerEntity extends PlayerEntity {
                 session.setNoClip(false);
             }
         }
-        this.position = position.add(0, definition.offset(), 0);
+        this.position = position;
     }
 
     /**
@@ -191,8 +199,8 @@ public class SessionPlayerEntity extends PlayerEntity {
         
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
-        movePlayerPacket.setPosition(position);
-        movePlayerPacket.setRotation(getBedrockRotation());
+        movePlayerPacket.setPosition(bedrockPosition());
+        movePlayerPacket.setRotation(bedrockRotation());
         movePlayerPacket.setOnGround(isOnGround());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
         movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
@@ -213,8 +221,15 @@ public class SessionPlayerEntity extends PlayerEntity {
      *
      * @param position the new position of the Bedrock player
      */
-    public void setPositionManual(Vector3f position) {
-        this.position = position;
+    public void setPositionFromBedrockPos(Vector3f position) {
+        // Special handling: position while sleeping
+        if (bedPosition != null && getFlag(EntityFlag.SLEEPING)) {
+            this.position = position.down(0.2f);
+        } else if (this.vehicle != null) {
+            this.position = position.down(this.vehicle.getOffset());
+        } else {
+            this.position = position.down(offset);
+        }
 
         // Player is "above" the void so they're not supposed to no clip.
         if (session.isNoClip() && position.getY() - EntityDefinitions.PLAYER.offset() >= session.getBedrockDimension().minY() - 5) {
@@ -235,11 +250,6 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    protected void setGliding(boolean value) {
-        session.setGliding(value);
-    }
-
-    @Override
     protected void setSneaking(boolean value) {
         if (value) {
             session.startSneaking(false);
@@ -250,8 +260,10 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
-    protected void setSpinAttack(boolean value) {
-        session.setSpinAttack(value);
+    protected void setAttributeScale(float scale) {
+        super.setAttributeScale(scale);
+        session.getCollisionManager().setScale(this.attributeScale);
+        session.getCollisionManager().updatePlayerBoundingBox();
     }
 
     /**
@@ -278,7 +290,16 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void setPose(Pose pose) {
         super.setPose(pose);
-        session.setPose(pose);
+
+        if (pose != session.getPose()) {
+            session.setPose(pose);
+            updateBedrockMetadata();
+        }
+    }
+
+    @Override
+    public void setPitch(float pitch) {
+        this.pitch = pitch;
     }
 
     public float getMaxHealth() {
@@ -322,9 +343,9 @@ public class SessionPlayerEntity extends PlayerEntity {
     protected boolean hasShield(boolean offhand) {
         // Must be overridden to point to the player's inventory cache
         if (offhand) {
-            return session.getPlayerInventory().getOffhand().asItem() == Items.SHIELD;
+            return session.getPlayerInventory().getOffhand().is(Items.SHIELD);
         } else {
-            return session.getPlayerInventory().getItemInHand().asItem() == Items.SHIELD;
+            return session.getPlayerInventory().getItemInHand().is(Items.SHIELD);
         }
     }
 
@@ -423,9 +444,9 @@ public class SessionPlayerEntity extends PlayerEntity {
                 GeyserAttributeType.ABSORPTION.getAttribute(0f)));
         session.sendUpstreamPacket(attributesPacket);
 
-        dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, 0);
         dirtyMetadata.put(EntityDataTypes.EFFECT_AMBIENCE, (byte) 0);
         dirtyMetadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, 0f);
+        dirtyMetadata.put(EntityDataTypes.VISIBLE_MOB_EFFECTS, 0L);
 
         silent = false;
     }
@@ -476,6 +497,10 @@ public class SessionPlayerEntity extends PlayerEntity {
             this.vehicle.updateBedrockMetadata();
         }
 
+        // Bedrock player can dismount by pressing jump while Java cannot, so we need to prevent player from jumping to match vanilla behaviour.
+        this.session.setLockInput(InputLocksFlag.JUMP, entity != null && entity.doesJumpDismount());
+        this.session.updateInputLocks();
+
         super.setVehicle(entity);
     }
   
@@ -485,7 +510,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     public float getJumpVelocity() {
         float velocity = 0.42F;
 
-        if (session.getGeyser().getWorldManager().blockAt(session, this.getPosition().sub(0, EntityDefinitions.PLAYER.offset() + 0.1F, 0).toInt()).is(Blocks.HONEY_BLOCK)) {
+        if (session.getGeyser().getWorldManager().blockAt(session, this.position.down(0.1F).toInt()).is(Blocks.HONEY_BLOCK)) {
             velocity *= 0.6F;
         }
 
@@ -496,9 +521,9 @@ public class SessionPlayerEntity extends PlayerEntity {
         if (session.getGameMode() == GameMode.SPECTATOR) {
             return false;
         }
-        Vector3i pos = getPosition().down(EntityDefinitions.PLAYER.offset()).toInt();
+        Vector3i pos = this.position.toInt();
         BlockState state = session.getGeyser().getWorldManager().blockAt(session, pos);
-        if (session.getTagCache().is(BlockTag.CLIMBABLE, state.block())) {
+        if (state.block().is(session, BlockTag.CLIMBABLE)) {
             return true;
         }
 
@@ -539,7 +564,7 @@ public class SessionPlayerEntity extends PlayerEntity {
             }
 
             // Bedrock will NOT allow flight when not wearing an elytra; even if it doesn't have a glider component
-            if (entry.getKey() == EquipmentSlot.CHESTPLATE && !entry.getValue().asItem().equals(Items.ELYTRA)) {
+            if (entry.getKey() == EquipmentSlot.CHESTPLATE && !entry.getValue().is(Items.ELYTRA)) {
                 return false;
             }
         }

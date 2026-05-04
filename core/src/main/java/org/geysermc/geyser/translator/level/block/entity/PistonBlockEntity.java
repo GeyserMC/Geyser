@@ -350,7 +350,7 @@ public class PistonBlockEntity {
 
         boolean onGround;
         BoundingBox playerBoundingBox;
-        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.shouldSimulateMovement()) {
             onGround = session.getPlayerEntity().getVehicle().isOnGround();
             playerBoundingBox = clientVehicle.getVehicleComponent().getBoundingBox();
         } else {
@@ -647,11 +647,12 @@ public class PistonBlockEntity {
 
         Vector3i movement = getMovement();
         BoundingBox playerBoundingBox = session.getCollisionManager().getActiveBoundingBox().clone();
-        attachedBlocks.forEach((blockPos, state) -> {
+        attachedBlocks.forEach((blockPos, unused) -> {
             blockPos = blockPos.add(movement);
             // Don't place blocks that collide with the player
             if (!SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), playerBoundingBox)) {
-                ChunkUtils.updateBlock(session, state, blockPos);
+                // Not using the cached block to ensure we don't override a possibly changed state
+                ChunkUtils.updateBlock(session, session.getGeyser().getWorldManager().blockAt(session, blockPos), blockPos);
             }
         });
         if (action == PistonValueType.PUSHING) {

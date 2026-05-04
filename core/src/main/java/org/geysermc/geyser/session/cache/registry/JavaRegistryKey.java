@@ -54,71 +54,117 @@ public record JavaRegistryKey<T, MCPL>(Key registryKey, RegistryLookup<T> lookup
      * Converts an object to its network ID, or -1 if it is not registered.
      */
     public int networkId(GeyserSession session, @Nullable T object) {
-        return entry(session, object).map(RegistryEntryData::id).orElse(-1);
+        return networkId(session.getRegistryCache(), object);
+    }
+
+    /**
+     * Converts an object to its network ID, or -1 if it is not registered.
+     */
+    public int networkId(JavaRegistryProvider registries, T object) {
+        return entry(registries, object).map(RegistryEntryData::id).orElse(-1);
     }
 
     /**
      * Converts a registered key to its network ID, or -1 if it is not registered.
      */
     public int networkId(GeyserSession session, @Nullable Key key) {
-        return entry(session, key).map(RegistryEntryData::id).orElse(-1);
+        return networkId(session.getRegistryCache(), key);
+    }
+
+    /**
+     * Converts a registered key to its network ID, or -1 if it is not registered.
+     */
+    public int networkId(JavaRegistryProvider registries, Key key) {
+        return entry(registries, key).map(RegistryEntryData::id).orElse(-1);
     }
 
     /**
      * Converts an object to its registered key, or null if it is not registered.
      */
     public @Nullable Key key(GeyserSession session, @Nullable T object) {
-        return entry(session, object).map(RegistryEntryData::key).orElse(null);
+        return key(session.getRegistryCache(), object);
+    }
+
+    /**
+     * Converts an object to its registered key, or null if it is not registered.
+     */
+    public @Nullable Key key(JavaRegistryProvider registries, T object) {
+        return entry(registries, object).map(RegistryEntryData::key).orElse(null);
     }
 
     /**
      * Converts a network ID to its registered key, or null if it is not registered.
      */
     public @Nullable Key key(GeyserSession session, int networkId) {
-        return entry(session, networkId).map(RegistryEntryData::key).orElse(null);
+        return key(session.getRegistryCache(), networkId);
+    }
+
+    /**
+     * Converts a network ID to its registered key, or null if it is not registered.
+     */
+    public @Nullable Key key(JavaRegistryProvider registries, int networkId) {
+        return entry(registries, networkId).map(RegistryEntryData::key).orElse(null);
     }
 
     /**
      * Converts a network ID to an object in this registry, or null if it is not registered.
      */
     public @Nullable T value(GeyserSession session, int networkId) {
-        return entry(session, networkId).map(RegistryEntryData::data).orElse(null);
+        return value(session.getRegistryCache(), networkId);
+    }
+
+    /**
+     * Converts a network ID to an object in this registry, or null if it is not registered.
+     */
+    public @Nullable T value(JavaRegistryProvider registries, int networkId) {
+        return entry(registries, networkId).map(RegistryEntryData::data).orElse(null);
     }
 
     /**
      * Converts a key to an object in this registry, or null if it is not registered.
      */
     public @Nullable T value(GeyserSession session, @Nullable Key key) {
-        return entry(session, key).map(RegistryEntryData::data).orElse(null);
+        return value(session.getRegistryCache(), key);
+    }
+
+    /**
+     * Converts a key to an object in this registry, or null if it is not registered.
+     */
+    public @Nullable T value(JavaRegistryProvider registries, Key key) {
+        return entry(registries, key).map(RegistryEntryData::data).orElse(null);
     }
 
     public @Nullable T value(GeyserSession session, @Nullable Holder<MCPL> holder) {
+        return value(session.getRegistryCache(), holder);
+    }
+
+    public @Nullable T value(JavaRegistryProvider registries, @Nullable Holder<MCPL> holder) {
         if (holder == null) {
             return null;
         } else if (holder.isId()) {
-            return value(session, holder.id());
+            return value(registries, holder.id());
         } else if (holderMapper == null) {
             throw new IllegalArgumentException("Tried to map a custom MCPL holder for a registry that does not have a holder mapper (" + this + ")");
         }
-        return holderMapper.map(session, this, holder.custom());
+        return holderMapper.map(registries, this, holder.custom());
     }
 
-    private Optional<RegistryEntryData<T>> entry(GeyserSession session, @Nullable T object) {
+    private Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, @Nullable T object) {
         if (object == null) {
             return Optional.empty();
         }
-        return lookup.entry(session, this, object);
+        return lookup.entry(registries, this, object);
     }
 
-    private Optional<RegistryEntryData<T>> entry(GeyserSession session, int networkId) {
-        return lookup.entry(session, this, networkId);
+    private Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, int networkId) {
+        return lookup.entry(registries, this, networkId);
     }
 
-    private Optional<RegistryEntryData<T>> entry(GeyserSession session, @Nullable Key key) {
+    private Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, @Nullable Key key) {
         if (key == null) {
             return Optional.empty();
         }
-        return lookup.entry(session, this, key);
+        return lookup.entry(registries, this, key);
     }
 
     /**
@@ -126,17 +172,17 @@ public record JavaRegistryKey<T, MCPL>(Key registryKey, RegistryLookup<T> lookup
      */
     public interface RegistryLookup<T> {
 
-        Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T, ?> registry, int networkId);
+        Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T, ?> registry, int networkId);
 
-        Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T, ?> registry, @NonNull Key key);
+        Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T, ?> registry, @NonNull Key key);
 
-        Optional<RegistryEntryData<T>> entry(GeyserSession session, JavaRegistryKey<T, ?> registry, @NonNull T object);
+        Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T, ?> registry, @NonNull T object);
     }
 
     @FunctionalInterface
     public interface HolderMapper<T, MCPL> {
 
-        T map(GeyserSession session, JavaRegistryKey<T, MCPL> registry, MCPL mcpl);
+        T map(JavaRegistryProvider registries, JavaRegistryKey<T, MCPL> registry, MCPL mcpl);
     }
 
     @Override

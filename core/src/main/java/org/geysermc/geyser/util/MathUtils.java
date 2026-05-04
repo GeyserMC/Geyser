@@ -47,6 +47,16 @@ public class MathUtils {
         return Vector3f.from(d1, e, i1);
     }
 
+    public static Vector3f calculateViewVector(float pitch, float yaw) {
+        float var3 = pitch * 0.017453292F;
+        float var4 = -yaw * 0.017453292F;
+        float var5 = TrigMath.cos(var4);
+        float var6 = TrigMath.sin(var4);
+        float var7 = TrigMath.cos(var3);
+        float var8 = TrigMath.sin(var3);
+        return Vector3f.from(var6 * var7, -var8, var5 * var7);
+    }
+
     /**
      * Wrap the given float degrees to be between -180.0 and 180.0.
      * 
@@ -166,6 +176,17 @@ public class MathUtils {
         }
 
         return num;
+    }
+
+    /**
+     * Clamps the value between 0 and the given maximum.
+     *
+     * @param x the value to clamp
+     * @param max the highest value the result can be
+     * @return 0 if x is less than 0, max if x is greater than max, or x otherwise
+     */
+    public static double restrain(double x, double max) {
+        return constrain(x, 0, max);
     }
 
     /**

@@ -64,7 +64,7 @@ public class ChargedProjectilesTooltip implements ComponentTooltipProvider<List<
     }
 
     private static void addProjectile(TooltipContext context, ItemStack stack, int count, Consumer<Component> adder) {
-        GeyserItemStack geyserStack = GeyserItemStack.from(stack);
+        GeyserItemStack geyserStack = GeyserItemStack.from(context.session().orElse(null), stack);
         if (count == 1) {
             adder.accept(Component.translatable("item.minecraft.crossbow.projectile.single", geyserStack.getName()));
         } else {

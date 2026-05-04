@@ -104,8 +104,8 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
         updateTradePacket.setSize(0);
         updateTradePacket.setNewTradingUi(true);
         updateTradePacket.setUsingEconomyTrade(true);
-        updateTradePacket.setPlayerUniqueEntityId(session.getPlayerEntity().getGeyserId());
-        updateTradePacket.setTraderUniqueEntityId(villager.getGeyserId());
+        updateTradePacket.setPlayerUniqueEntityId(session.getPlayerEntity().geyserId());
+        updateTradePacket.setTraderUniqueEntityId(villager.geyserId());
 
         NbtMapBuilder builder = NbtMap.builder();
         boolean addExtraTrade = packet.isShowProgress() && packet.getVillagerLevel() < 5;

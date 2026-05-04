@@ -48,6 +48,7 @@ import org.geysermc.geyser.api.bedrock.camera.CameraPerspective;
 import org.geysermc.geyser.api.bedrock.camera.CameraPosition;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.bedrock.camera.GuiElement;
+import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
@@ -251,7 +252,8 @@ public class GeyserCameraData implements CameraData {
             this.cameraLockOwners.remove(owner);
         }
 
-        session.lockInputs(isCameraLocked(), session.entities().isMovementLocked());
+        session.setLockInput(InputLocksFlag.CAMERA, isCameraLocked());
+        session.updateInputLocks();
         return isCameraLocked();
     }
 

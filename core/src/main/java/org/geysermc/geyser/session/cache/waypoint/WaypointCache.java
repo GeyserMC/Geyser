@@ -38,7 +38,6 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.Clien
 import java.awt.Color;
 import java.util.Map;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.UUID;
 
 public final class WaypointCache {
@@ -65,7 +64,7 @@ public final class WaypointCache {
     }
 
     public void listPlayer(PlayerEntity player) {
-        GeyserWaypoint waypoint = waypoints.get(player.getUuid().toString());
+        GeyserWaypoint waypoint = waypoints.get(player.uuid().toString());
         if (waypoint != null) {
             // This will remove the fake player packet previously sent to the client,
             // and change the waypoint to use the player's entity ID instead.
@@ -81,13 +80,13 @@ public final class WaypointCache {
             // distance
             PlayerLocationPacket locationPacket = new PlayerLocationPacket();
             locationPacket.setType(PlayerLocationPacket.Type.HIDE);
-            locationPacket.setTargetEntityId(player.getGeyserId());
+            locationPacket.setTargetEntityId(player.geyserId());
             session.sendUpstreamPacket(locationPacket);
         }
     }
 
     public void unlistPlayer(PlayerEntity player) {
-        GeyserWaypoint waypoint = waypoints.get(player.getUuid().toString());
+        GeyserWaypoint waypoint = waypoints.get(player.uuid().toString());
         if (waypoint != null) {
             // This will remove the player packet previously sent to the client,
             // and change the waypoint to use the player's entity ID instead.
@@ -114,9 +113,8 @@ public final class WaypointCache {
 
         Optional<UUID> uuid = Optional.ofNullable(waypoint.uuid());
         Optional<PlayerEntity> player = uuid.flatMap(id -> Optional.ofNullable(session.getEntityCache().getPlayerEntity(id)));
-        OptionalLong playerId = player.stream().mapToLong(PlayerEntity::getGeyserId).findFirst();
 
-        GeyserWaypoint tracked = GeyserWaypoint.create(session, uuid, playerId, waypoint);
+        GeyserWaypoint tracked = GeyserWaypoint.create(session, player, waypoint);
         if (tracked != null) {
             uuid.ifPresent(id -> waypointColors.put(id, tracked.color()));
             // Resend player entry with new waypoint colour
@@ -125,13 +123,13 @@ public final class WaypointCache {
             tracked.track(waypoint.data());
             waypoints.put(waypointId(waypoint), tracked);
         } else {
-            playerId.ifPresent(id -> {
+            player.ifPresent(playerEntity -> {
                 // When tracked waypoint is null, the waypoint shouldn't show up on the locator bar (Java type is EMPTY)
                 // If this waypoint is linked to a player, tell the bedrock client to hide it
                 // If we don't do this bedrock will show the waypoint anyway when the player is in render distance (read comments above in trackPlayer)
                 PlayerLocationPacket locationPacket = new PlayerLocationPacket();
                 locationPacket.setType(PlayerLocationPacket.Type.HIDE);
-                locationPacket.setTargetEntityId(id);
+                locationPacket.setTargetEntityId(playerEntity.geyserId());
                 session.sendUpstreamPacket(locationPacket);
             });
         }
@@ -163,16 +161,15 @@ public final class WaypointCache {
         if (!player.isListed()) {
             return;
         }
-        PlayerListPacket.Entry entry = SkinManager.buildCachedEntry(session, player);
 
         PlayerListPacket removePacket = new PlayerListPacket();
         removePacket.setAction(PlayerListPacket.Action.REMOVE);
-        removePacket.getEntries().add(entry);
+        removePacket.getEntries().add(new PlayerListPacket.Entry(player.uuid()));
         session.sendUpstreamPacket(removePacket);
 
         PlayerListPacket addPacket = new PlayerListPacket();
         addPacket.setAction(PlayerListPacket.Action.ADD);
-        addPacket.getEntries().add(entry);
+        addPacket.getEntries().add(SkinManager.buildEntryFromCachedSkin(session, player));
         session.sendUpstreamPacket(addPacket);
     }
 

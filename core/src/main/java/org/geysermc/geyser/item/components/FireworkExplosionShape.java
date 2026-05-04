@@ -40,4 +40,13 @@ public enum FireworkExplosionShape {
     public Component displayName() {
         return Component.translatable("item.minecraft.firework_star.shape." + name().toLowerCase(Locale.ROOT));
     }
+
+    public static FireworkExplosionShape fromJavaIdentifier(String identifier) {
+        for (FireworkExplosionShape shape : values()) {
+            if (shape.name().toLowerCase(Locale.ROOT).equals(identifier)) {
+                return shape;
+            }
+        }
+        return null;
+    }
 }

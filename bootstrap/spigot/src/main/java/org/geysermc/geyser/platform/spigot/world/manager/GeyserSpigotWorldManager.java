@@ -93,7 +93,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
             return gameRule.getDefaultBooleanValue();
         }
 
-        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUuid()));
+        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().uuid()));
         Object value = bukkitPlayer.getWorld().getGameRuleValue(bukkitGameRule);
         if (value instanceof Boolean booleanValue) {
             return booleanValue;
@@ -109,7 +109,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
             GeyserImpl.getInstance().getLogger().debug("Unknown game rule " + gameRule.getJavaID());
             return gameRule.getDefaultIntValue();
         }
-        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().getUuid()));
+        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().uuid()));
         Object value = bukkitPlayer.getWorld().getGameRuleValue(bukkitGameRule);
         if (value instanceof Integer intValue) {
             return intValue;
@@ -125,7 +125,7 @@ public class GeyserSpigotWorldManager extends WorldManager {
 
     public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
         Player bukkitPlayer;
-        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().getUuid())) == null) {
+        if ((bukkitPlayer = Bukkit.getPlayer(session.getPlayerEntity().uuid())) == null) {
             return;
         }
         Block block = bukkitPlayer.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ());

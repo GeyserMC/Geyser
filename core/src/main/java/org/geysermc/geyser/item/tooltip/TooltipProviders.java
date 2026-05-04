@@ -62,6 +62,7 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.TypedEntityData;
 
 import java.util.List;
 import java.util.Map;
@@ -206,7 +207,7 @@ public class TooltipProviders {
     }
 
     private static boolean shouldAddOpWarning(TooltipContext context) {
-        NbtMap entityData = null;
+        TypedEntityData<?> entityData = null;
         if (context.item() instanceof BlockItem) {
             entityData = context.components().get(DataComponentTypes.BLOCK_ENTITY_DATA);
         } else if (context.item() instanceof SpawnEggItem) {
@@ -214,7 +215,7 @@ public class TooltipProviders {
         }
         if (entityData != null) {
             try {
-                Key entityId = MinecraftKey.key(entityData.getString("id"));
+                Key entityId = MinecraftKey.key(entityData.tag().getString("id"));
                 return Registries.DANGEROUS_BLOCK_ENTITIES.get().contains(entityId) || Registries.DANGEROUS_ENTITIES.get().contains(entityId);
             } catch (InvalidKeyException ignored) {}
         }

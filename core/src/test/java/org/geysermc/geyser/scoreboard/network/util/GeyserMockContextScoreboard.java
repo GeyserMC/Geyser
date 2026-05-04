@@ -25,20 +25,13 @@
 
 package org.geysermc.geyser.scoreboard.network.util;
 
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketType;
-import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
-import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContext.mockContext;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-import java.util.UUID;
-import java.util.function.Consumer;
-import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -46,6 +39,17 @@ import org.geysermc.geyser.session.cache.EntityCache;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
 import org.mockito.stubbing.Answer;
+
+import java.util.UUID;
+import java.util.function.Consumer;
+
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacketType;
+import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
+import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContext.mockContext;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
 public class GeyserMockContextScoreboard {
     public static void mockContextScoreboard(Consumer<GeyserMockContext> geyserContext) {
@@ -72,7 +76,7 @@ public class GeyserMockContextScoreboard {
 
         // SessionPlayerEntity loads stuff in like blocks, which is not what we want
         var playerEntity = context.mock(SessionPlayerEntity.class);
-        when(playerEntity.getGeyserId()).thenReturn(1L);
+        when(playerEntity.geyserId()).thenReturn(1L);
         when(playerEntity.getUsername()).thenReturn("Tim203");
         when(session.getPlayerEntity()).thenReturn(playerEntity);
 
@@ -95,8 +99,24 @@ public class GeyserMockContextScoreboard {
         return player;
     }
 
+    public static ArmorStandEntity spawnArmorStand(GeyserMockContext context, long geyserId) {
+        var entitySpawnContext = EntitySpawnContext.DUMMY_CONTEXT.apply(context.session(), UUID.randomUUID(), EntityDefinitions.ARMOR_STAND);
+        entitySpawnContext.geyserId(geyserId);
+        entitySpawnContext.javaId((int) geyserId);
+        var armorStand = spy(new ArmorStandEntity(entitySpawnContext));
+
+        var entityCache = context.mockOrSpy(EntityCache.class);
+        entityCache.spawnEntity(armorStand);
+
+        assertNextPacketType(context, AddEntityPacket.class);
+        return armorStand;
+    }
+
     public static PlayerEntity spawnPlayer(GeyserMockContext context, String username, long geyserId) {
-        var playerEntity = spy(new PlayerEntity(context.session(), (int) geyserId, geyserId, UUID.randomUUID(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, username, null));
+        EntitySpawnContext entitySpawnContext = EntitySpawnContext.DUMMY_CONTEXT.apply(context.session(), UUID.randomUUID(), EntityDefinitions.PLAYER);
+        entitySpawnContext.geyserId(geyserId);
+        entitySpawnContext.javaId((int) geyserId);
+        var playerEntity = spy(new PlayerEntity(entitySpawnContext, username, null));
 
         var entityCache = context.mockOrSpy(EntityCache.class);
         entityCache.addPlayerEntity(playerEntity);

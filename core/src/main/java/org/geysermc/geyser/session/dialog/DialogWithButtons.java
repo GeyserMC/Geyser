@@ -40,7 +40,7 @@ public abstract class DialogWithButtons extends Dialog {
 
     protected final Optional<DialogButton> exitAction;
 
-    protected DialogWithButtons(GeyserSession session, NbtMap map, Optional<DialogButton> exitAction) {
+    protected DialogWithButtons(Optional<GeyserSession> session, NbtMap map, Optional<DialogButton> exitAction) {
         super(session, map);
         this.exitAction = exitAction;
     }
@@ -91,7 +91,7 @@ public abstract class DialogWithButtons extends Dialog {
         return exitAction;
     }
 
-    protected static Optional<DialogButton> readDefaultExitAction(GeyserSession session, NbtMap map, IdGetter idGetter) {
+    protected static Optional<DialogButton> readDefaultExitAction(Optional<GeyserSession> session, NbtMap map, IdGetter idGetter) {
         return DialogButton.read(session, map.get("exit_action"), idGetter);
     }
 }

@@ -43,7 +43,7 @@ public class BooleanInput extends DialogInput<Boolean> {
     private final String onTrue;
     private final String onFalse;
 
-    public BooleanInput(GeyserSession session, NbtMap map) {
+    public BooleanInput(Optional<GeyserSession> session, NbtMap map) {
         super(session, map);
         initial = map.getBoolean("initial", false);
         onTrue = map.getString("on_true", "true");

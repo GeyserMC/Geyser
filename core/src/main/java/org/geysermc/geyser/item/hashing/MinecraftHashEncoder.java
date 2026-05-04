@@ -32,7 +32,7 @@ import com.google.common.hash.Hashing;
 import org.cloudburstmc.nbt.NbtList;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -77,16 +77,16 @@ public class MinecraftHashEncoder {
     private static final byte[] TRUE = new byte[]{TAG_BOOLEAN, 1};
 
     private final HashFunction hasher;
-    private final GeyserSession session;
+    private final JavaRegistryProvider registries;
 
     private final HashCode empty;
     private final HashCode emptyMap;
     private final HashCode falseHash;
     private final HashCode trueHash;
 
-    public MinecraftHashEncoder(GeyserSession session) {
+    public MinecraftHashEncoder(JavaRegistryProvider registries) {
         hasher = Hashing.crc32c();
-        this.session = session;
+        this.registries = registries;
 
         empty = hasher.hashBytes(EMPTY);
         emptyMap = hasher.hashBytes(EMPTY_MAP);
@@ -94,8 +94,8 @@ public class MinecraftHashEncoder {
         trueHash = hasher.hashBytes(TRUE);
     }
 
-    public GeyserSession session() {
-        return session;
+    public JavaRegistryProvider registries() {
+        return registries;
     }
 
     public HashCode empty() {

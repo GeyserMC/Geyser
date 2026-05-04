@@ -26,19 +26,18 @@
 package org.geysermc.geyser.session.cache.waypoint;
 
 import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.ChunkWaypointData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
 
 import java.awt.Color;
 import java.util.Optional;
-import java.util.OptionalLong;
-import java.util.UUID;
 
 public class ChunkWaypoint extends GeyserWaypoint {
 
-    public ChunkWaypoint(GeyserSession session, Optional<UUID> uuid, OptionalLong entityId, Color color) {
-        super(session, uuid, entityId, color);
+    public ChunkWaypoint(GeyserSession session, Optional<PlayerEntity> player, Color color) {
+        super(session, player, color);
     }
 
     @Override

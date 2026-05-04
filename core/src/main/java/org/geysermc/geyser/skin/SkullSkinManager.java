@@ -27,13 +27,10 @@ package org.geysermc.geyser.skin;
 
 import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.skin.Skin;
-import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.PlayerListUtils;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -55,37 +52,19 @@ public class SkullSkinManager extends SkinManager {
             .build();
     }
 
-    public static void requestAndHandleSkin(SkullPlayerEntity entity, GeyserSession session,
-                                            Consumer<Skin> skinConsumer) {
+    public static void requestAndHandleSkin(SkullPlayerEntity entity, GeyserSession session, Consumer<Skin> skinConsumer) {
         BiConsumer<Skin, Throwable> applySkin = (skin, throwable) -> {
-            try {
-                PlayerSkinPacket packet = new PlayerSkinPacket();
-                packet.setUuid(entity.getUuid());
-                packet.setOldSkinName("");
-                packet.setNewSkinName(skin.textureUrl());
-                packet.setSkin(buildSkullEntryManually(session, skin.textureUrl(), skin.skinData()));
-                packet.setTrustedSkin(true);
-                session.sendUpstreamPacket(packet);
-            } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.getUuid()), e);
-            }
+            SerializedSkin serializedSkin = buildSkullEntryManually(session, skin.textureUrl(), skin.skinData());
+            // Since 1.21.130: PlayerSkinPacket only works if player entity is listed
+            PlayerListUtils.sendSkinUsingPlayerList(session, PlayerListUtils.forSkullPlayerEntity(entity, serializedSkin), entity, false);
 
             if (skinConsumer != null) {
                 skinConsumer.accept(skin);
             }
         };
 
-        GameProfileData data = GameProfileData.from(entity);
-        if (data == null) {
-            GeyserImpl.getInstance().getLogger().debug("Using fallback skin for skull at " + entity.getSkullPosition() +
-                    " with texture value: " + entity.getTexturesProperty() + " and UUID: " + entity.getSkullUUID());
-            // No texture available, fallback using the UUID
-            SkinData fallback = SkinProvider.determineFallbackSkinData(entity.getSkullUUID());
-            applySkin.accept(fallback.skin(), null);
-        } else {
-            SkinProvider.requestSkin(entity.getUuid(), data.skinUrl(), true)
-                    .whenCompleteAsync(applySkin);
-        }
+        SkinProvider.requestSkin(entity.uuid(), entity.getSkinUrl(), true)
+            .whenCompleteAsync(applySkin);
     }
 
 }

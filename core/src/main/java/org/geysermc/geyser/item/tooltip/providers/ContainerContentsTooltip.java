@@ -44,7 +44,7 @@ public class ContainerContentsTooltip implements ComponentTooltipProvider<List<I
         int total = 0;
 
         for (ItemStack stack : stacks) {
-            GeyserItemStack itemStack = GeyserItemStack.from(stack);
+            GeyserItemStack itemStack = GeyserItemStack.from(context.session().orElse(null), stack);
             if (itemStack.isEmpty()) {
                 continue;
             }

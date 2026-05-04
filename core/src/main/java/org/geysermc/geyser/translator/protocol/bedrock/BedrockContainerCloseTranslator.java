@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock;
 
+import java.util.concurrent.TimeUnit;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
-import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
@@ -35,10 +35,6 @@ import org.geysermc.geyser.translator.inventory.MerchantInventoryTranslator;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.geysermc.geyser.util.InventoryUtils.MAGIC_VIRTUAL_INVENTORY_HACK;
 
 @Translator(packet = ContainerClosePacket.class)
 public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerClosePacket> {
@@ -61,16 +57,14 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
             } else if (holder.bedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
                 // If virtual inventories are opened too quickly, they can be occasionally rejected
                 // We just try and queue a new one.
+                holder.inventory().setDisplayed(false);
                 // Before making another attempt to re-open, let's make sure we actually need this inventory open.
                 if (holder.containerOpenAttempts() < 7) {
                     holder.incrementContainerOpenAttempts();
                     holder.pending(true);
 
                     session.scheduleInEventLoop(() -> {
-                        NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-                        latencyPacket.setFromServer(true);
-                        latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
-                        session.sendUpstreamPacket(latencyPacket);
+                        InventoryUtils.scheduleInventoryOpen(session);
                         GeyserImpl.getInstance().getLogger().debug(session, "Unable to open a virtual inventory, sent another latency packet!");
                     }, 150, TimeUnit.MILLISECONDS);
                     return;
@@ -96,6 +90,10 @@ public class BedrockContainerCloseTranslator extends PacketTranslator<ContainerC
 
             // Try open a pending inventory
             InventoryUtils.openPendingInventory(session);
+        } else {
+            // We must wait until current inventory is closed to ensure the form displays
+            // and is not immediately closed by the client
+            session.getFormCache().resendAllForms();
         }
     }
 }

@@ -223,7 +223,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         if (!material.isEmpty()) {
             totalRepairCost += getRepairCost(material);
             if (isCombining(input, material)) {
-                if (hasDurability(input) && input.getJavaId() == material.getJavaId()) {
+                if (hasDurability(input) && input.isSameItem(material)) {
                     cost += calcMergeRepairCost(input, material);
                 }
 
@@ -312,7 +312,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         for (Object2IntMap.Entry<Enchantment> entry : getEnchantments(session, material).object2IntEntrySet()) {
             Enchantment enchantment = entry.getKey();
 
-            boolean canApply = isEnchantedBook(input) || session.getTagCache().is(enchantment.supportedItems(), input.asItem());
+            boolean canApply = isEnchantedBook(input) || enchantment.supportedItems().contains(session, input.asItem());
 
             List<Enchantment> incompatibleEnchantments = enchantment.exclusiveSet().resolve(session);
             for (Enchantment incompatible : incompatibleEnchantments) {
@@ -388,11 +388,11 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     private boolean isEnchantedBook(GeyserItemStack itemStack) {
-        return itemStack.asItem() == Items.ENCHANTED_BOOK;
+        return itemStack.is(Items.ENCHANTED_BOOK);
     }
 
     private boolean isCombining(GeyserItemStack input, GeyserItemStack material) {
-        return isEnchantedBook(material) || (input.getJavaId() == material.getJavaId() && hasDurability(input));
+        return isEnchantedBook(material) || (input.isSameItem(material) && hasDurability(input));
     }
 
     private boolean isRepairing(GeyserItemStack input, GeyserItemStack material, GeyserSession session) {
@@ -401,7 +401,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
             return false;
         }
 
-        return session.getTagCache().isItem(repairable, material.asItem());
+        return material.is(session, repairable);
     }
 
     private boolean isRenaming(GeyserSession session, AnvilContainer anvilContainer, boolean bedrock) {

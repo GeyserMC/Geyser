@@ -52,7 +52,7 @@ public interface PriorityOption extends ResourcePackOption<Integer> {
      */
     static PriorityOption priority(int priority) {
         if (priority < -100 || priority > 100) {
-            throw new IllegalArgumentException("Priority must be between 0 and 10 inclusive!");
+            throw new IllegalArgumentException("Priority must be between -100 and 100 inclusive!");
         }
         return GeyserApi.api().provider(PriorityOption.class, priority);
     }

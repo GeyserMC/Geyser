@@ -25,11 +25,14 @@
 
 package org.geysermc.geyser.text;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.JsonUtils;
 import org.geysermc.geyser.util.WebUtils;
 
 import java.io.FileNotFoundException;
@@ -40,7 +43,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -204,17 +206,16 @@ public class MinecraftLocale {
     private static boolean loadDeprecations() {
         if (Files.exists(DEPRECATED) && Files.isReadable(DEPRECATED)) {
             try (InputStream deprecatedStream = Files.newInputStream(DEPRECATED, StandardOpenOption.READ)) {
-                JsonNode deprecatedObject = GeyserImpl.JSON_MAPPER.readTree(deprecatedStream);
+                JsonObject deprecatedObject = JsonUtils.fromJson(deprecatedStream);
 
-                Iterator<JsonNode> removed = deprecatedObject.get("removed").elements();
-                while (removed.hasNext()) {
-                    REMOVED_KEYS.add(removed.next().asText());
+                JsonArray removed = deprecatedObject.get("removed").getAsJsonArray();
+                for (JsonElement removedKey : removed) {
+                    REMOVED_KEYS.add(removedKey.getAsString());
                 }
 
-                Iterator<Map.Entry<String, JsonNode>> replaced = deprecatedObject.get("renamed").fields();
-                while (replaced.hasNext()) {
-                    Map.Entry<String, JsonNode> replacedString = replaced.next();
-                    REPLACED_KEYS.put(replacedString.getKey(), replacedString.getValue().asText());
+                JsonObject replaced = deprecatedObject.get("renamed").getAsJsonObject();
+                for (String replacedKey : replaced.keySet()) {
+                    REPLACED_KEYS.put(replacedKey, replaced.get(replacedKey).getAsString());
                 }
                 return true;
             } catch (IOException exception) {
@@ -235,18 +236,16 @@ public class MinecraftLocale {
         // Read the localefile
         try (InputStream localeStream = Files.newInputStream(localeFile, StandardOpenOption.READ)) {
             // Parse the file as json
-            JsonNode localeObj = GeyserImpl.JSON_MAPPER.readTree(localeStream);
+            JsonObject localeObj = JsonUtils.fromJson(localeStream);
 
             // Parse all the locale fields
-            Iterator<Map.Entry<String, JsonNode>> localeIterator = localeObj.fields();
             Map<String, String> langMap = new HashMap<>();
-            while (localeIterator.hasNext()) {
-                Map.Entry<String, JsonNode> entry = localeIterator.next();
+            for (Map.Entry<String, JsonElement> entry : localeObj.entrySet()) {
                 if (REMOVED_KEYS.contains(entry.getKey())) {
                     continue;
                 }
 
-                langMap.put(REPLACED_KEYS.getOrDefault(entry.getKey(), entry.getKey()), entry.getValue().asText());
+                langMap.put(REPLACED_KEYS.getOrDefault(entry.getKey(), entry.getKey()), entry.getValue().getAsString());
             }
             return langMap;
         } catch (FileNotFoundException e){

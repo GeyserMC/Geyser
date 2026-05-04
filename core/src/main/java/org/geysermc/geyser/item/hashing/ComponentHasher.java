@@ -28,6 +28,7 @@ package org.geysermc.geyser.item.hashing;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.KeybindComponent;
 import net.kyori.adventure.text.NBTComponent;
+import net.kyori.adventure.text.ObjectComponent;
 import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.SelectorComponent;
 import net.kyori.adventure.text.TextComponent;
@@ -39,6 +40,9 @@ import net.kyori.adventure.text.format.ShadowColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.object.ObjectContents;
+import net.kyori.adventure.text.object.PlayerHeadObjectContents;
+import org.geysermc.geyser.item.hashing.data.ObjectContentsType;
 
 import java.util.function.Supplier;
 
@@ -53,6 +57,17 @@ public interface ComponentHasher {
             return ACTUAL_COMPONENT;
         }
     });
+
+    MinecraftHasher<PlayerHeadObjectContents.ProfileProperty> PROFILE_PROPERTY = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("name", MinecraftHasher.STRING, PlayerHeadObjectContents.ProfileProperty::name)
+        .accept("value", MinecraftHasher.STRING, PlayerHeadObjectContents.ProfileProperty::value)
+        .accept("signature", MinecraftHasher.STRING, PlayerHeadObjectContents.ProfileProperty::signature));
+
+    MinecraftHasher<PlayerHeadObjectContents> RESOLVABLE_PROFILE = MinecraftHasher.mapBuilder(builder -> builder
+        .optionalNullable("name", MinecraftHasher.STRING, PlayerHeadObjectContents::name)
+        .optionalNullable("id", MinecraftHasher.UUID, PlayerHeadObjectContents::id)
+        .optionalList("properties", PROFILE_PROPERTY, PlayerHeadObjectContents::profileProperties)
+        .optionalNullable("texture", MinecraftHasher.KEY, PlayerHeadObjectContents::texture));
 
     MinecraftHasher<NamedTextColor> NAMED_COLOR = MinecraftHasher.STRING.cast(NamedTextColor::toString);
 
@@ -151,6 +166,13 @@ public interface ComponentHasher {
         .optional("interpret", MinecraftHasher.BOOL, NBTComponent::interpret, false)
         .optionalNullable("separator", COMPONENT, NBTComponent::separator)); // TODO source key, needs kyori update?
 
+    MinecraftHasher<ObjectContentsType> OBJECT_CONTENTS_TYPE = MinecraftHasher.fromEnum(ObjectContentsType::getName);
+
+    MapBuilder<ObjectContents> OBJECT_CONTENTS = MapBuilder.dispatch("object", OBJECT_CONTENTS_TYPE, ObjectContentsType::fromContents, ObjectContentsType::mapBuilder);
+
+    MinecraftHasher<ObjectComponent> OBJECT_COMPONENT = component(builder -> builder
+        .accept(OBJECT_CONTENTS, ObjectComponent::contents));
+
     MinecraftHasher<Component> ACTUAL_COMPONENT = (component, encoder) -> {
         if (component instanceof TextComponent text) {
             return TEXT_COMPONENT.hash(text, encoder);
@@ -164,8 +186,10 @@ public interface ComponentHasher {
             return SELECTOR_COMPONENT.hash(selector, encoder);
         } else if (component instanceof NBTComponent<?,?> nbt) {
             return NBT_COMPONENT.hash(nbt, encoder);
+        } else if (component instanceof ObjectComponent object) {
+            return OBJECT_COMPONENT.hash(object, encoder);
         }
-        throw new IllegalStateException("Unimplemented component hasher: " + component);
+        throw new UnsupportedOperationException("Unimplemented component hasher: " + component);
     };
 
     private static <T extends Component> MinecraftHasher<T> component(MapBuilder<T> componentBuilder) {

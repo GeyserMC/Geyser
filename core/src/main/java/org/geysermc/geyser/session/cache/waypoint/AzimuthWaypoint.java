@@ -26,14 +26,13 @@
 package org.geysermc.geyser.session.cache.waypoint;
 
 import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.AzimuthWaypointData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
 
 import java.awt.Color;
 import java.util.Optional;
-import java.util.OptionalLong;
-import java.util.UUID;
 
 public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
 
@@ -44,8 +43,8 @@ public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
     // The angle, in radians, where the waypoint should appear on the bar
     private float angle = 0.0F;
 
-    public AzimuthWaypoint(GeyserSession session, Optional<UUID> uuid, OptionalLong entityId, Color color) {
-        super(session, uuid, entityId, color);
+    public AzimuthWaypoint(GeyserSession session, Optional<PlayerEntity> player, Color color) {
+        super(session, player, color);
     }
 
     @Override
@@ -68,8 +67,9 @@ public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
     private void updatePosition() {
         Vector3f playerPosition = session.getPlayerEntity().position();
         // Unit circle math!
-        float dx = (float) (Math.cos(angle) * WAYPOINT_DISTANCE);
-        float dz = (float) -(Math.sin(angle) * WAYPOINT_DISTANCE);
+        // Unintuitively, the delta x corresponds to the sin of the angle, and delta z to the cos
+        float dx = (float) -(Math.sin(angle) * WAYPOINT_DISTANCE);
+        float dz = (float) (Math.cos(angle) * WAYPOINT_DISTANCE);
         // Set Y to the player's Y since this waypoint always appears in the centre of the bar on Java
         position = Vector3f.from(playerPosition.getX() + dx, playerPosition.getY(), playerPosition.getZ() + dz);
     }

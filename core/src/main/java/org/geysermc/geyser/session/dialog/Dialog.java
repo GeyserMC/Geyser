@@ -71,7 +71,7 @@ public abstract class Dialog {
     @Getter
     private final ParsedInputs defaultInputs;
 
-    protected Dialog(GeyserSession session, NbtMap map) {
+    protected Dialog(Optional<GeyserSession> session, NbtMap map) {
         title = MessageTranslator.convertFromNullableNbtTag(session, map.get("title"));
         externalTitle = Optional.ofNullable(MessageTranslator.convertFromNullableNbtTag(session, map.get("external_title")));
         canCloseWithEscape = map.getBoolean("can_close_with_escape", true);
@@ -102,10 +102,10 @@ public abstract class Dialog {
         defaultInputs = inputs.isEmpty() ? ParsedInputs.EMPTY : new ParsedInputs(inputs);
     }
 
-    private static Optional<String> readBody(GeyserSession session, NbtMap tag) {
+    private static Optional<String> readBody(Optional<GeyserSession> session, NbtMap tag) {
         Key type = MinecraftKey.key(tag.getString("type"));
         if (type.equals(PLAIN_MESSAGE_BODY)) {
-            return Optional.of(MessageTranslator.convertFromNullableNbtTag(session, tag.get("contents")));
+            return Optional.ofNullable(MessageTranslator.convertFromNullableNbtTag(session, tag.get("contents")));
         }
         // Other type is item, can't display that in forms
         return Optional.empty();
@@ -163,7 +163,7 @@ public abstract class Dialog {
         return readDialogFromNbt(context.session(), context.data(), context::getNetworkId);
     }
 
-    public static Dialog readDialogFromNbt(GeyserSession session, NbtMap map, IdGetter idGetter) {
+    public static Dialog readDialogFromNbt(Optional<GeyserSession> session, NbtMap map, IdGetter idGetter) {
         Key type = MinecraftKey.key(map.getString("type"));
         if (type.equals(NoticeDialog.TYPE)) {
             return new NoticeDialog(session, map, idGetter);

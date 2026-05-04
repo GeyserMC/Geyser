@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundPlayerInfoRemovePacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.PlayerListUtils;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundPlayerInfoRemovePacket;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,17 +46,19 @@ public class JavaPlayerInfoRemoveTranslator extends PacketTranslator<Clientbound
         for (UUID id : packet.getProfileIds()) {
             // As the player entity is no longer present, we can remove the entry
             PlayerEntity entity = session.getEntityCache().removePlayerEntity(id);
-            UUID removeId;
             if (entity != null) {
+                // Only unlist entities that are actually listed
+                if (!entity.isListed()) {
+                    continue;
+                }
                 // Just remove the entity's player list status
                 // Don't despawn the entity - the Java server will also take care of that.
-                removeId = entity.getTabListUuid();
-            } else {
-                removeId = id;
+                entries.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
             }
-            entries.add(new PlayerListPacket.Entry(removeId));
         }
 
-        PlayerListUtils.batchSendPlayerList(session, entries, PlayerListPacket.Action.REMOVE);
+        if (!entries.isEmpty()) {
+            PlayerListUtils.batchSendPlayerList(session, entries, PlayerListPacket.Action.REMOVE);
+        }
     }
 }

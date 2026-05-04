@@ -90,6 +90,7 @@ public final class Properties {
     public static final BasicEnumProperty WEST_REDSTONE = BasicEnumProperty.create("west", "up", "side", "none");
     public static final BasicEnumProperty DOUBLE_BLOCK_HALF = BasicEnumProperty.create("half", "upper", "lower");
     public static final BasicEnumProperty HALF = BasicEnumProperty.create("half", "top", "bottom");
+    public static final BasicEnumProperty SIDE_CHAIN_PART = BasicEnumProperty.create("side_chain", "unconnected", "right", "center", "left");
     public static final BasicEnumProperty RAIL_SHAPE = BasicEnumProperty.create("shape", "north_south", "east_west", "ascending_east", "ascending_west", "ascending_north", "ascending_south", "south_east", "south_west", "north_west", "north_east");
     public static final BasicEnumProperty RAIL_SHAPE_STRAIGHT = BasicEnumProperty.create("shape", "north_south", "east_west", "ascending_east", "ascending_west", "ascending_north", "ascending_south");
     public static final IntegerProperty AGE_1 = IntegerProperty.create("age", 0, 1);
@@ -135,12 +136,12 @@ public final class Properties {
     public static final EnumProperty<Direction> VERTICAL_DIRECTION = EnumProperty.create("vertical_direction", Direction.UP, Direction.DOWN);
     public static final BasicEnumProperty DRIPSTONE_THICKNESS = BasicEnumProperty.create("thickness", "tip_merge", "tip", "frustum", "middle", "base");
     public static final BasicEnumProperty SCULK_SENSOR_PHASE = BasicEnumProperty.create("sculk_sensor_phase", "inactive", "active", "cooldown");
-    public static final BooleanProperty CHISELED_BOOKSHELF_SLOT_0_OCCUPIED = BooleanProperty.create("slot_0_occupied");
-    public static final BooleanProperty CHISELED_BOOKSHELF_SLOT_1_OCCUPIED = BooleanProperty.create("slot_1_occupied");
-    public static final BooleanProperty CHISELED_BOOKSHELF_SLOT_2_OCCUPIED = BooleanProperty.create("slot_2_occupied");
-    public static final BooleanProperty CHISELED_BOOKSHELF_SLOT_3_OCCUPIED = BooleanProperty.create("slot_3_occupied");
-    public static final BooleanProperty CHISELED_BOOKSHELF_SLOT_4_OCCUPIED = BooleanProperty.create("slot_4_occupied");
-    public static final BooleanProperty CHISELED_BOOKSHELF_SLOT_5_OCCUPIED = BooleanProperty.create("slot_5_occupied");
+    public static final BooleanProperty SLOT_0_OCCUPIED = BooleanProperty.create("slot_0_occupied");
+    public static final BooleanProperty SLOT_1_OCCUPIED = BooleanProperty.create("slot_1_occupied");
+    public static final BooleanProperty SLOT_2_OCCUPIED = BooleanProperty.create("slot_2_occupied");
+    public static final BooleanProperty SLOT_3_OCCUPIED = BooleanProperty.create("slot_3_occupied");
+    public static final BooleanProperty SLOT_4_OCCUPIED = BooleanProperty.create("slot_4_occupied");
+    public static final BooleanProperty SLOT_5_OCCUPIED = BooleanProperty.create("slot_5_occupied");
     public static final IntegerProperty DUSTED = IntegerProperty.create("dusted", 0, 3);
     public static final BooleanProperty CRACKED = BooleanProperty.create("cracked");
     public static final BooleanProperty CRAFTING = BooleanProperty.create("crafting");
@@ -150,4 +151,5 @@ public final class Properties {
     public static final BooleanProperty OMINOUS = BooleanProperty.create("ominous");
     public static final BasicEnumProperty TEST_BLOCK_MODE = BasicEnumProperty.create("mode", "start", "log", "fail", "accept");
     public static final BooleanProperty MAP = BooleanProperty.create("map");
+    public static final BasicEnumProperty COPPER_GOLEM_POSE = BasicEnumProperty.create("copper_golem_pose", "standing", "sitting", "running", "star");
 }

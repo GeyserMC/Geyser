@@ -55,14 +55,14 @@ public class JavaTakeItemEntityTranslator extends PacketTranslator<ClientboundTa
             // Player just picked up an experience orb
             LevelEventPacket xpPacket = new LevelEventPacket();
             xpPacket.setType(LevelEvent.SOUND_EXPERIENCE_ORB_PICKUP);
-            xpPacket.setPosition(collectedEntity.getPosition());
+            xpPacket.setPosition(collectedEntity.bedrockPosition());
             xpPacket.setData(0);
             session.sendUpstreamPacket(xpPacket);
         } else {
             // Item is being picked up (visual only)
             TakeItemEntityPacket takeItemEntityPacket = new TakeItemEntityPacket();
-            takeItemEntityPacket.setRuntimeEntityId(collectorEntity.getGeyserId());
-            takeItemEntityPacket.setItemRuntimeEntityId(collectedEntity.getGeyserId());
+            takeItemEntityPacket.setRuntimeEntityId(collectorEntity.geyserId());
+            takeItemEntityPacket.setItemRuntimeEntityId(collectedEntity.geyserId());
             session.sendUpstreamPacket(takeItemEntityPacket);
         }
     }

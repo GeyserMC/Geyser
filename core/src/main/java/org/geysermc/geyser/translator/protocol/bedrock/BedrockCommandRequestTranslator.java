@@ -26,8 +26,6 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.CommandRequestPacket;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -38,7 +36,7 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
 
     @Override
     public void translate(GeyserSession session, CommandRequestPacket packet) {
-        String command = MessageTranslator.convertToPlainText(packet.getCommand());
+        String command = MessageTranslator.convertIncomingToPlainText(packet.getCommand());
         session.sendCommand(MessageTranslator.normalizeSpace(command).substring(1));
     }
 }

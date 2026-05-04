@@ -43,7 +43,7 @@ public class TextInput extends DialogInput<String> {
     private final String initial;
     private final int maxLength;
 
-    public TextInput(GeyserSession session, NbtMap map) {
+    public TextInput(Optional<GeyserSession> session, NbtMap map) {
         super(session, map);
         labelVisible = map.getBoolean("label_visible", true);
         initial = map.getString("initial", "");

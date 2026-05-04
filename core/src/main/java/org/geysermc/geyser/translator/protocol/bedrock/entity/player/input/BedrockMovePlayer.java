@@ -31,7 +31,6 @@ import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -60,12 +59,12 @@ final class BedrockMovePlayer {
 
         // Ignore movement packets until Bedrock's position matches the teleported position
         if (session.getUnconfirmedTeleport() != null) {
-            session.confirmTeleport(packet.getPosition().sub(0, EntityDefinitions.PLAYER.offset(), 0));
+            session.confirmTeleport(packet.getPosition().down(EntityDefinitions.PLAYER.offset()));
             return;
         }
 
         // This is vanilla behaviour, LocalPlayer#sendPosition 1.21.8.
-        boolean actualPositionChanged = entity.getPosition().distanceSquared(packet.getPosition()) > 4e-8;
+        boolean actualPositionChanged = entity.bedrockPosition().distanceSquared(packet.getPosition()) > 4e-8;
 
         if (actualPositionChanged) {
             // Send book update before the player moves
@@ -110,6 +109,8 @@ final class BedrockMovePlayer {
             entity.setLastTickEndVelocity(Vector3f.from(entity.getLastTickEndVelocity().getX(), 0.2F, entity.getLastTickEndVelocity().getZ()));
         }
 
+        entity.setCollidingVertically(packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION));
+
         // Client is telling us it wants to move down, but something is blocking it from doing so.
         boolean isOnGround;
         if (hasVehicle || session.isNoClip()) {
@@ -118,7 +119,7 @@ final class BedrockMovePlayer {
             // Also do this if player have no clip ability since they shouldn't be able to collide with anything.
             isOnGround = false;
         } else {
-            isOnGround = packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION) && entity.getLastTickEndVelocity().getY() < 0;
+            isOnGround = entity.isCollidingVertically() && entity.getLastTickEndVelocity().getY() < 0;
         }
 
         // Resolve https://github.com/GeyserMC/Geyser/issues/3521, no void floor on java so player not supposed to collide with anything.
@@ -143,10 +144,7 @@ final class BedrockMovePlayer {
                     continue;
                 }
 
-                final BoundingBox entityBoundingBox = new BoundingBox(0, 0, 0, other.getBoundingBoxWidth(), other.getBoundingBoxHeight(), other.getBoundingBoxWidth());
-
-                // Also offset the position down for boat as their position is offset.
-                entityBoundingBox.translate(other.getPosition().down(other instanceof BoatEntity ? other.getDefinition().offset() : 0).toDouble());
+                final BoundingBox entityBoundingBox = new BoundingBox(other.position().up(other.getBoundingBoxHeight() / 2).toDouble(), other.getBoundingBoxWidth(), other.getBoundingBoxHeight(), other.getBoundingBoxWidth());
 
                 if (entityBoundingBox.checkIntersection(boundingBox)) {
                     possibleOnGround = true;
@@ -156,9 +154,6 @@ final class BedrockMovePlayer {
 
             session.setNoClip(!possibleOnGround);
         }
-
-        entity.setLastTickEndVelocity(packet.getDelta());
-        entity.setMotion(packet.getDelta());
 
         // This takes into account no movement sent from the client, but the player is trying to move anyway.
         // (Press into a wall in a corner - you're trying to move but nothing actually happens)
@@ -180,11 +175,11 @@ final class BedrockMovePlayer {
 
             // Player position MUST be updated on our end, otherwise e.g. chunk loading breaks
             if (hasVehicle) {
-                entity.setPositionManual(packet.getPosition());
+                entity.setPositionFromBedrockPos(packet.getPosition());
                 session.getSkullCache().updateVisibleSkulls();
             }
         } else if (positionChangedAndShouldUpdate) {
-            if (isValidMove(session, entity.getPosition(), packet.getPosition())) {
+            if (isValidMove(session, entity.bedrockPosition(), packet.getPosition())) {
                 CollisionResult result = session.getCollisionManager().adjustBedrockPosition(packet.getPosition(), isOnGround, packet.getInputData().contains(PlayerAuthInputData.HANDLE_TELEPORT));
                 if (result != null) { // A null return value cancels the packet
                     Vector3d position = result.correctedMovement();
@@ -208,7 +203,7 @@ final class BedrockMovePlayer {
                             movePacket = new ServerboundMovePlayerPosPacket(isOnGround, horizontalCollision, position.getX(), position.getY(), position.getZ());
                         }
 
-                        entity.setPositionManual(packet.getPosition());
+                        entity.setPositionFromBedrockPos(packet.getPosition());
 
                         // Send final movement changes
                         session.sendDownstreamGamePacket(movePacket);
@@ -231,12 +226,15 @@ final class BedrockMovePlayer {
         session.getInputCache().setLastHorizontalCollision(horizontalCollision);
         entity.setOnGround(isOnGround);
 
+        entity.setLastTickEndVelocity(packet.getDelta());
+        entity.setMotion(packet.getDelta());
+
         // Move parrots to match if applicable
         if (entity.getLeftParrot() != null) {
-            entity.getLeftParrot().moveAbsolute(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
+            entity.getLeftParrot().moveAbsoluteRaw(entity.position(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
         }
         if (entity.getRightParrot() != null) {
-            entity.getRightParrot().moveAbsolute(entity.getPosition(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
+            entity.getRightParrot().moveAbsoluteRaw(entity.position(), entity.getYaw(), entity.getPitch(), entity.getHeadYaw(), true, false);
         }
     }
 

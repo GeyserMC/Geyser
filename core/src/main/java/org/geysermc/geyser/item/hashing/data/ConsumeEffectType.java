@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.item.hashing.data;
 
-import lombok.Getter;
 import org.geysermc.geyser.item.hashing.MapBuilder;
 import org.geysermc.geyser.item.hashing.MinecraftHasher;
 import org.geysermc.geyser.item.hashing.RegistryHasher;
@@ -44,7 +43,6 @@ public enum ConsumeEffectType {
         .accept("sound", RegistryHasher.SOUND_EVENT, ConsumeEffect.PlaySound::sound));
 
     private final Class<? extends ConsumeEffect> clazz;
-    @Getter
     private final MapBuilder<? extends ConsumeEffect> builder;
 
     <T extends ConsumeEffect> ConsumeEffectType(Class<T> clazz) {
@@ -55,6 +53,10 @@ public enum ConsumeEffectType {
     <T extends ConsumeEffect> ConsumeEffectType(Class<T> clazz, MapBuilder<T> builder) {
         this.clazz = clazz;
         this.builder = builder;
+    }
+
+    public MapBuilder<ConsumeEffect> mapBuilder() {
+        return builder.cast();
     }
 
     public static ConsumeEffectType fromEffect(ConsumeEffect effect) {

@@ -68,6 +68,10 @@ public class JavaOpenBookTranslator extends PacketTranslator<ClientboundOpenBook
                 InventoryUtils.closeInventory(session, openInventory, true);
             }
 
+            if (session.hasFormOpen()) {
+                session.closeForm();
+            }
+
             //noinspection unchecked
             InventoryTranslator<LecternContainer> translator = (InventoryTranslator<LecternContainer>) InventoryTranslator.inventoryTranslator(ContainerType.LECTERN);
             Objects.requireNonNull(translator, "could not find lectern inventory translator!");

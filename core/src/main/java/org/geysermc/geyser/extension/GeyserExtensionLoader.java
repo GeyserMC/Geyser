@@ -54,16 +54,21 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 public class GeyserExtensionLoader extends ExtensionLoader {
-    private static final Pattern[] EXTENSION_FILTERS = new Pattern[] { Pattern.compile("^.+\\.jar$") };
+    private static final Pattern EXTENSION_FILTER = Pattern.compile("^.+\\.jar$");
 
     private final Object2ObjectMap<String, Class<?>> classes = new Object2ObjectOpenHashMap<>();
     private final Map<String, GeyserExtensionClassLoader> classLoaders = new HashMap<>();
@@ -133,8 +138,8 @@ public class GeyserExtensionLoader extends ExtensionLoader {
         }
     }
 
-    public Pattern[] extensionFilters() {
-        return EXTENSION_FILTERS;
+    public Pattern extensionFilter() {
+        return EXTENSION_FILTER;
     }
 
     public Class<?> classByName(final String name) throws ClassNotFoundException{
@@ -167,6 +172,8 @@ public class GeyserExtensionLoader extends ExtensionLoader {
 
             Map<String, Path> extensions = new LinkedHashMap<>();
             Map<String, GeyserExtensionContainer> loadedExtensions = new LinkedHashMap<>();
+            Map<String, GeyserExtensionDescription> descriptions = new LinkedHashMap<>();
+            Map<String, Path> extensionPaths = new LinkedHashMap<>();
 
             Path updateDirectory = extensionsDirectory.resolve("update");
             if (Files.isDirectory(updateDirectory)) {
@@ -195,10 +202,126 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                 });
             }
 
-            // Step 3: Load the extensions
+            // Step 3: Order the extensions to allow dependencies to load in the correct order
             this.processExtensionsFolder(extensionsDirectory, (path, description) -> {
-                String name = description.name();
                 String id = description.id();
+                descriptions.put(id, description);
+                extensionPaths.put(id, path);
+
+            }, (path, e) -> {
+                logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
+            });
+
+            // The graph to back out loading order (Funny I just learnt these too)
+            Map<String, List<String>> loadOrderGraph = new HashMap<>();
+
+            // Looks like the graph needs to be prepopulated otherwise issues happen
+            for (String id : descriptions.keySet()) {
+                loadOrderGraph.putIfAbsent(id, new ArrayList<>());
+            }
+
+            for (GeyserExtensionDescription description : descriptions.values()) {
+                for (Map.Entry<String, GeyserExtensionDescription.Dependency> dependency : description.dependencies().entrySet()) {
+                    String from = null;
+                    String to = null; // Java complains if this isn't initialised, but not from, so, both null.
+
+                    // Check if the extension is even loaded
+                    if (!descriptions.containsKey(dependency.getKey())) {
+                        if (dependency.getValue().isRequired()) { // Only disable the extension if this dependency is required
+                            // The extension we are checking is missing 1 or more dependencies
+                            logger.error(
+                                GeyserLocale.getLocaleStringLog(
+                                    "geyser.extensions.load.failed_dependency_missing",
+                                    description.id(),
+                                    dependency.getKey()
+                                )
+                            );
+
+                            descriptions.remove(description.id()); // Prevents it from being loaded later
+                        }
+
+                        continue;
+                    }
+
+                    if (
+                        !(description.humanApiVersion() >= 2 &&
+                            description.majorApiVersion() >= 9 &&
+                            description.minorApiVersion() >= 0)
+                    ) {
+                        logger.error(
+                            GeyserLocale.getLocaleStringLog(
+                                "geyser.extensions.load.failed_cannot_use_dependencies",
+                                description.id(),
+                                description.apiVersion()
+                            )
+                        );
+
+                        descriptions.remove(description.id()); // Prevents it from being loaded later
+
+                        continue;
+                    }
+
+                    // Determine which way they should go in the graph
+                    switch (dependency.getValue().getLoad()) {
+                        case BEFORE -> {
+                            from = dependency.getKey();
+                            to = description.id();
+                        }
+                        case AFTER -> {
+                            from = description.id();
+                            to = dependency.getKey();
+                        }
+                    }
+
+                    loadOrderGraph.get(from).add(to);
+                }
+            }
+
+            Set<String> visited = new HashSet<>();
+            List<String> visiting = new ArrayList<>();
+            List<String> loadOrder = new ArrayList<>();
+
+            AtomicReference<Consumer<String>> sortMethod = new AtomicReference<>(); // yay, lambdas. This doesn't feel to suited to be a method
+            sortMethod.set((node) -> {
+                if (visiting.contains(node)) {
+                    logger.error(
+                        GeyserLocale.getLocaleStringLog(
+                            "geyser.extensions.load.failed_cyclical_dependencies",
+                            node,
+                            visiting.get(visiting.indexOf(node) - 1)
+                        )
+                    );
+
+                    visiting.remove(node);
+                    return;
+                }
+
+                if (visited.contains(node)) return;
+
+                visiting.add(node);
+                for (String neighbor : loadOrderGraph.get(node)) {
+                    sortMethod.get().accept(neighbor);
+                }
+                visiting.remove(node);
+                visited.add(node);
+                loadOrder.add(node);
+            });
+
+            for (String ext : descriptions.keySet()) {
+                if (!visited.contains(ext)) {
+                    // Time to sort the graph to get a load order, this reveals any cycles we may have
+                    sortMethod.get().accept(ext);
+                }
+            }
+            Collections.reverse(loadOrder); // This is inverted due to how the graph is created
+
+            // Step 4: Load the extensions
+            for (String id : loadOrder) {
+                // Grab path and description found from before, since we want a custom load order now
+                Path path = extensionPaths.get(id);
+                GeyserExtensionDescription description = descriptions.get(id);
+
+                String name = description.name();
                 if (extensions.containsKey(id) || extensionManager.extension(id) != null) {
                     logger.warning(GeyserLocale.getLocaleStringLog("geyser.extensions.load.duplicate", name, path.toString()));
                     return;
@@ -222,20 +345,22 @@ public class GeyserExtensionLoader extends ExtensionLoader {
                     }
                 }
 
-                GeyserExtensionContainer container = this.loadExtension(path, description);
-                extensions.put(id, path);
-                loadedExtensions.put(id, container);
-            }, (path, e) -> {
-                logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
-            });
+                try {
+                    GeyserExtensionContainer container = this.loadExtension(path, description);
+                    extensions.put(id, path);
+                    loadedExtensions.put(id, container);
+                } catch (Throwable e) {
+                    logger.error(GeyserLocale.getLocaleStringLog("geyser.extensions.load.failed_with_name", path.getFileName(), path.toAbsolutePath()), e);
+                }
+            }
 
-            // Step 4: Register the extensions
+            // Step 5: Register the extensions
             for (GeyserExtensionContainer container : loadedExtensions.values()) {
                 this.extensionContainers.put(container.extension(), container);
                 this.register(container.extension(), extensionManager);
             }
         } catch (IOException ex) {
-            ex.printStackTrace();
+            logger.error("Unable to read extensions.", ex);
         }
     }
 
@@ -249,17 +374,15 @@ public class GeyserExtensionLoader extends ExtensionLoader {
      */
     private void processExtensionsFolder(Path directory, ThrowingBiConsumer<Path, GeyserExtensionDescription> accept, BiConsumer<Path, Throwable> reject) throws IOException {
         List<Path> extensionPaths = Files.list(directory).toList();
-        Pattern[] extensionFilters = this.extensionFilters();
+        Pattern extensionFilter = this.extensionFilter();
         extensionPaths.forEach(path -> {
             if (Files.isDirectory(path)) {
                 return;
             }
 
             // Only look at files that meet the extension filter
-            for (Pattern filter : extensionFilters) {
-                if (!filter.matcher(path.getFileName().toString()).matches()) {
-                    return;
-                }
+            if (!extensionFilter.matcher(path.getFileName().toString()).matches()) {
+                return;
             }
 
             try {
