@@ -218,7 +218,7 @@ public final class ItemTranslator {
                     Component.text()
                         .resetStyle()
                         .color(NamedTextColor.BLUE)
-                        .append(Component.newline(), Component.translatable("item.unbreakable"))
+                        .append(Component.translatable("item.unbreakable"))
                         .build(),
                     session.locale()
                 )
