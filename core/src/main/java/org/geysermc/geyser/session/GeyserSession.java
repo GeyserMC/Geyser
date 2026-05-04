@@ -904,6 +904,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sendRegistryDefinitions();
         sendInitialPlayerState();
         sendInitialGameRules();
+        resetTimeParameters();
     }
 
     /**
@@ -1183,8 +1184,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         downstream.setFlag(BuiltinFlags.CLIENT_TRANSFERRING, loginEvent.transferring());
         downstream.connect(false);
-
-        resetTimeParameters();
     }
 
     public void disconnect(String reason) {
@@ -2107,18 +2106,19 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
-     * Changes the daylight cycle gamerule on the client
-     * This is used in login and configuration screens along-side normal usage
+     * Changes the daylight cycle gamerule on the client.
+     * The gamerule is true whenever the clock rate is normal (1.0), and false otherwise (because then we keep track of time).
      *
-     * @param doCycle If the cycle should continue
+     * @param shouldTick if the client should tick its daylight cycle clock
      */
-    public void setShouldClientTickClock(boolean doCycle) {
-        if (this.shouldClientTickClock == doCycle) {
+    public void setShouldClientTickClock(boolean shouldTick) {
+        if (this.shouldClientTickClock == shouldTick) {
             return;
         }
-        sendGameRule("dodaylightcycle", doCycle);
+        System.out.println("ticking clock on client: " + shouldTick);
+        sendGameRule("dodaylightcycle", shouldTick);
         // Save the value so we don't have to constantly send a daylight cycle gamerule update
-        this.shouldClientTickClock = doCycle;
+        this.shouldClientTickClock = shouldTick;
     }
 
     /**
