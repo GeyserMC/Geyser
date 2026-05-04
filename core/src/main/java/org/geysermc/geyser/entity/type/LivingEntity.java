@@ -28,7 +28,6 @@ package org.geysermc.geyser.entity.type;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -200,24 +199,8 @@ public class LivingEntity extends Entity implements Tickable {
 
     @Override
     public void updateNametag(@Nullable Team team) {
-        // Java hides the name tag when a living entity has any passengers
         // if name not visible, don't mark it as visible
-        updateNametag(team, passengers.isEmpty() && (team == null || team.isVisibleFor(session.getPlayerEntity().getUsername())));
-    }
-
-    @Override
-    public void setPassengers(List<Entity> passengers) {
-        super.setPassengers(passengers);
-        updateNametag(session.getWorldCache().getScoreboard().getTeamFor(teamIdentifier()));
-    }
-
-    @Override
-    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // Update custom name, but reset nametag to be empty when there are passengers
-        super.setCustomName(entityMetadata);
-        if (!passengers.isEmpty()) {
-            setNametag("", false);
-        }
+        updateNametag(team, team == null || team.isVisibleFor(session.getPlayerEntity().getUsername()));
     }
 
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {

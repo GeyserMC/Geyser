@@ -121,7 +121,7 @@ public class ArmorStandEntity extends LivingEntity {
     @Override
     public void updateNametag(@Nullable Team team) {
         // unlike all other LivingEntities, armor stands are not affected by team nametag visibility
-        super.updateNametag(team, passengers.isEmpty());
+        super.updateNametag(team, true);
     }
 
     @Override

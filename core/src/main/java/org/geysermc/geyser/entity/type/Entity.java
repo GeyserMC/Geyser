@@ -587,16 +587,18 @@ public class Entity implements GeyserEntity {
     }
 
     protected void updateNametag(@Nullable Team team, boolean visible) {
-        if (!visible) {
-            // The name is not visible to the session player; clear name
-            setNametag("", false);
-            return;
-        } else if (team != null) {
+        if (team != null) {
+            String newNametag;
             // (team) visibility is LivingEntity+, team displayName is Entity+
-            setNametag(team.displayName(getDisplayName(true)), false);
+            if (visible) {
+                newNametag = team.displayName(getDisplayName(true));
+            } else {
+                // The name is not visible to the session player; clear name
+                newNametag = "";
+            }
+            setNametag(newNametag, false);
             return;
         }
-
         // The name might need to be reset: no more team!
         setNametag(getDisplayName(customNameVisible), false);
     }
