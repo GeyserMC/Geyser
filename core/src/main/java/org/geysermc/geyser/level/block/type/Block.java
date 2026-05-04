@@ -86,6 +86,8 @@ public class Block {
         this.defaultState = setDefaultState(firstState);
     }
 
+    // JavaSectionBlocksUpdateTranslator only calls updateBlock for specialized blocks,
+    // make sure to also update JavaSectionBlocksUpdateTranslator for general changes.
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
         checkForEmptySkull(session, state, position);
 

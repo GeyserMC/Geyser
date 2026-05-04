@@ -89,7 +89,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
         private String identifier;
         private float width;
         private float height;
-        private float offset = 0.00001f;
+        private float offset;
         private GeyserEntityProperties.Builder propertiesBuilder;
         private final List<EntityMetadataTranslator<? super T, ?, ?>> translators;
 
@@ -118,7 +118,7 @@ public record EntityDefinition<T extends Entity>(EntityFactory<T> factory, Entit
         }
 
         public Builder<T> offset(float offset) {
-            this.offset = offset + 0.00001f;
+            this.offset = offset;
             return this;
         }
 

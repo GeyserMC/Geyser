@@ -70,7 +70,7 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
                 }
             }
 
-            bedrockServerSession.setLogging(true);
+            bedrockServerSession.setLogging(this.geyser.config().debugMode());
             GeyserSession session = new GeyserSession(this.geyser, bedrockServerSession, this.eventLoopGroup.next());
 
             if (!bedrockServerSession.isSubClient()) {
