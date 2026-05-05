@@ -28,23 +28,10 @@ package org.geysermc.geyser.translator.protocol.java;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.kyori.adventure.key.Key;
-import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTransformRecipeData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.SmithingTrimRecipeData;
-import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
-import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
-import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.TrimDataPacket;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
-import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
-import org.geysermc.geyser.inventory.recipe.TrimRecipe;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
@@ -54,18 +41,12 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundUpdateRecipesPacket.SelectableRecipe;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
-import static org.geysermc.geyser.inventory.recipe.RecipeUtil.CARTOGRAPHY_RECIPES;
 
 /**
  * Used to send all valid recipes from Java to Bedrock.
@@ -75,18 +56,6 @@ import static org.geysermc.geyser.inventory.recipe.RecipeUtil.CARTOGRAPHY_RECIPE
 @Translator(packet = ClientboundUpdateRecipesPacket.class)
 public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpdateRecipesPacket> {
 
-    private static final List<String> NETHERITE_UPGRADES = List.of(
-            "minecraft:netherite_sword",
-            "minecraft:netherite_shovel",
-            "minecraft:netherite_pickaxe",
-            "minecraft:netherite_axe",
-            "minecraft:netherite_hoe",
-            "minecraft:netherite_helmet",
-            "minecraft:netherite_chestplate",
-            "minecraft:netherite_leggings",
-            "minecraft:netherite_boots"
-    );
-
     private static final Key SMITHING_BASE = MinecraftKey.key("smithing_base");
     private static final Key SMITHING_TEMPLATE = MinecraftKey.key("smithing_template");
     private static final Key SMITHING_ADDITION = MinecraftKey.key("smithing_addition");
@@ -94,16 +63,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     @Override
     public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
         int netId = session.getLastRecipeNetId().get();
-        CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
-        craftingDataPacket.setCleanRecipes(true);
-        craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
-        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
-        for (GeyserRecipe recipe : session.getCraftingRecipes().values()) {
-            craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(session));
-        }
-        for (GeyserSmithingRecipe recipe : session.getSmithingRecipes()) {
-            craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(session));
-        }
 
         boolean oldSmithingTable;
         int[] smithingBase = packet.getItemSets().get(SMITHING_BASE);
@@ -112,18 +71,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         if (smithingBase == null || smithingTemplate == null || smithingAddition == null) {
             // We're probably on a version before the smithing table got expanded functionality.
             oldSmithingTable = true;
-
-            ItemMapping template = session.getItemMappings().getStoredItems().upgradeTemplate();
-
-            for (String identifier : NETHERITE_UPGRADES) {
-                craftingDataPacket.getCraftingData().add(SmithingTransformRecipeData.of(identifier + "_smithing",
-                        getDescriptorFromId(session, template.getBedrockIdentifier()),
-                        getDescriptorFromId(session, identifier.replace("netherite", "diamond")),
-                        getDescriptorFromId(session, "minecraft:netherite_ingot"),
-                        ItemData.builder().definition(Objects.requireNonNull(session.getItemMappings().getDefinition(identifier))).count(1).build(),
-                        "smithing_table",
-                        netId++));
-            }
         } else {
             oldSmithingTable = false;
             // BDS sends armor trim templates and materials before the CraftingDataPacket
@@ -131,11 +78,6 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             trimDataPacket.getPatterns().addAll(session.getRegistryCache().registry(JavaRegistries.TRIM_PATTERN).values()); // TODO this is wrong!! See the TODOs in the registry readers
             trimDataPacket.getMaterials().addAll(session.getRegistryCache().registry(JavaRegistries.TRIM_MATERIAL).values());
             session.sendUpstreamPacket(trimDataPacket);
-
-            // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the
-            // approach of using many default-descriptors (which we do for smithing_transform)
-            craftingDataPacket.getCraftingData().add(SmithingTrimRecipeData.of(TrimRecipe.ID,
-                    TrimRecipe.BASE, TrimRecipe.ADDITION, TrimRecipe.TEMPLATE, "smithing_table", netId++));
         }
         session.getGeyser().getLogger().debug("Using old smithing table workaround? " + oldSmithingTable);
         session.setOldSmithingTable(oldSmithingTable);
@@ -165,15 +107,12 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             // See #5150.
             int buttonId = 0;
             for (SelectableRecipe recipe : data.getValue()) {
-                // As of 1.16.4, all stonecutter recipes have one ingredient option
-                HolderSet ingredient = recipe.input().getValues();
                 int javaInput = data.getIntKey();
                 ItemMapping mapping = session.getItemMappings().getMapping(javaInput);
                 if (mapping.getJavaItem() == Items.AIR) {
                     // Modded ?
                     continue;
                 }
-                ItemDescriptorWithCount descriptor = new ItemDescriptorWithCount(new DefaultDescriptor(mapping.getBedrockDefinition(), mapping.getBedrockData()), 1);
                 ItemStack javaOutput = ((ItemStackSlotDisplay) recipe.recipe()).itemStack();
                 ItemData output = ItemTranslator.translateToBedrock(session, javaOutput);
                 if (!output.isValid()) {
@@ -181,31 +120,17 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     continue;
                 }
                 int recipeNetId = netId++;
-                UUID uuid = UUID.randomUUID();
-                // We need to register stonecutting recipes, so they show up on Bedrock
-                // (Implementation note: recipe ID creates the order which stonecutting recipes are shown in stonecutter)
-                craftingDataPacket.getCraftingData().add(ShapelessRecipeData.shapeless("stonecutter_" + javaInput + "_" + buttonId,
-                    Collections.singletonList(descriptor), Collections.singletonList(output), uuid, "stonecutter", 0, recipeNetId, RecipeUnlockingRequirement.INVALID));
 
                 // Save the recipe list for reference when crafting
                 // Add the net ID as the key and the button required + output for the value
-                stonecutterRecipeMap.put(recipeNetId, new GeyserStonecutterData(buttonId++, javaOutput));
+                stonecutterRecipeMap.put(recipeNetId, new GeyserStonecutterData(buttonId++, javaInput, javaOutput));
 
                 // Currently, stone cutter recipes are not locked/unlocked on Bedrock; so no need to cache their identifiers.
             }
         }
 
-        session.sendUpstreamPacket(craftingDataPacket);
         session.setStonecutterRecipes(stonecutterRecipeMap);
         session.getLastRecipeNetId().set(netId);
-    }
-
-    private ItemDescriptorWithCount getDescriptorFromId(GeyserSession session, String bedrockId) {
-        ItemDefinition bedrockDefinition = session.getItemMappings().getDefinition(bedrockId);
-        if (bedrockDefinition != null) {
-            return ItemDescriptorWithCount.fromItem(ItemData.builder().definition(bedrockDefinition).count(1).build());
-        }
-        GeyserImpl.getInstance().getLogger().debug("Unable to find item with identifier " + bedrockId);
-        return ItemDescriptorWithCount.EMPTY;
+        session.sendUpstreamPacket(session.createCraftingDataPacket());
     }
 }
