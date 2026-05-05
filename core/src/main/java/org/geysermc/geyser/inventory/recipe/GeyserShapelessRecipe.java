@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeDa
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.FurnaceRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.ShapelessCraftingRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
@@ -42,10 +43,15 @@ import java.util.UUID;
 public record GeyserShapelessRecipe(int id,
                                     int netId,
                                     List<SlotDisplay> ingredients,
-                                    SlotDisplay result) implements GeyserRecipe {
+                                    SlotDisplay result,
+                                    String tag) implements GeyserRecipe {
 
     public GeyserShapelessRecipe(int id, int netId, ShapelessCraftingRecipeDisplay data) {
-        this(id, netId, data.ingredients(), data.result());
+        this(id, netId, data.ingredients(), data.result(), "crafting_table");
+    }
+
+    public GeyserShapelessRecipe(int id, int netId, FurnaceRecipeDisplay data, int category) {
+        this(id, netId, List.of(data.ingredient()), data.result(), tagFromFurnaceRecipeCategory(category));
     }
 
     @Override
@@ -66,10 +72,19 @@ public record GeyserShapelessRecipe(int id,
         int i = 0;
         for (List<ItemDescriptorWithCount> inputs : left) {
             recipeData.add(ShapelessRecipeData.shapeless(id + "_" + i, inputs,
-                    Collections.singletonList(output), UUID.randomUUID(), "crafting_table", 0,
+                    Collections.singletonList(output), UUID.randomUUID(), tag, 0,
                     netId + i, RecipeUnlockingRequirement.INVALID));
             i++;
         }
         return recipeData;
+    }
+
+    private static String tagFromFurnaceRecipeCategory(int group) {
+        return switch (group) {
+            case 4, 5, 6 -> "furnace"; // furnace
+            case 7, 8 -> "blast_furnace"; // blast_furnace_blocks, blast_furnace_misc
+            case 9, 12 -> "smoker"; // smoker_food, campfire
+            default -> throw new IllegalArgumentException("no furnace tag for category " + group);
+        };
     }
 }
