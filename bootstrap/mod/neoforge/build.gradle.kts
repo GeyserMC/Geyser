@@ -1,6 +1,5 @@
 plugins {
     id("geyser.modded-conventions")
-    id("geyser.modrinth-uploading-conventions")
 }
 
 architectury {
@@ -79,5 +78,4 @@ tasks {
 
 modrinth {
     loaders.add("neoforge")
-    uploadFile.set(tasks.getByName("renameModrinthJar"))
 }

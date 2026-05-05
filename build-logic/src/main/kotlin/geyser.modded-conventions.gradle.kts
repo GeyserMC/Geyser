@@ -4,6 +4,7 @@ plugins {
     id("geyser.platform-conventions")
     id("architectury-plugin")
     id("dev.architectury.loom-no-remap")
+    id("geyser.modrinth-uploading-conventions")
 }
 
 // These are provided by Minecraft/modded platforms already, no need to include them
@@ -85,26 +86,33 @@ tasks {
     // and the shadowJar for the final jar.
     // thanks bluemap
     // https://github.com/BlueMap-Minecraft/BlueMap/blob/cfe73115dc4d1bdd97bc659f41364da65a6a2179/implementations/fabric/build.gradle.kts#L93-L107
-    register<Jar>("mergeShadowAndJarJar") {
+    val mergeShadowAndJarJar = register<Jar>("mergeShadowAndJarJar") {
         dependsOn( tasks.shadowJar, tasks.jar )
         // from sources / final name are configured in the respective projects
         archiveVersion.set("")
         archiveClassifier.set("")
     }
 
-    tasks.register<Copy>("renameModrinthJar") {
-        val sourceJar = tasks.named<Jar>("mergeShadowAndJarJar")
-        dependsOn(sourceJar)
+    val renameModrinthJar = tasks.register<Copy>("renameModrinthJar") {
+        dependsOn(mergeShadowAndJarJar)
 
-        from(sourceJar.flatMap { it.archiveFile })
+        from(mergeShadowAndJarJar.flatMap { it.archiveFile })
         into(layout.buildDirectory.dir("libs"))
 
         rename { "${versionName(project)}.jar" }
     }
 
-    build {
-        dependsOn(tasks.getByName("mergeShadowAndJarJar"))
+    modrinth.configure {
+        dependsOn(renameModrinthJar)
     }
+
+    build {
+        dependsOn(mergeShadowAndJarJar)
+    }
+}
+
+modrinth {
+    uploadFile.set(layout.buildDirectory.file("libs/${versionName(project)}.jar"))
 }
 
 afterEvaluate {
