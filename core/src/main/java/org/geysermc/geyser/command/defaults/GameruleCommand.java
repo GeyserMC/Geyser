@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,40 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser;
+package org.geysermc.geyser.command.defaults;
 
-import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.util.TriState;
+import org.geysermc.geyser.command.GeyserCommand;
+import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.session.GeyserSession;
+import org.incendo.cloud.context.CommandContext;
 
-import java.util.HashMap;
-import java.util.Map;
+public class GameruleCommand extends GeyserCommand {
 
-/**
- * Permissions related to Geyser
- */
-public final class Permissions {
-    private static final Map<String, TriState> PERMISSIONS = new HashMap<>();
-
-    public static final String CHECK_UPDATE = register("geyser.update");
-    public static final String SERVER_SETTINGS = register("geyser.settings.server");
-
-    private Permissions() {
-        //no
+    public GameruleCommand(@NonNull String name, @NonNull String description, @NonNull String permission) {
+        super(name, description, permission, TriState.NOT_SET, true, true);
     }
 
-    private static String register(String permission) {
-        return register(permission, TriState.NOT_SET);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private static String register(String permission, TriState permissionDefault) {
-        PERMISSIONS.put(permission, permissionDefault);
-        return permission;
-    }
-
-    public static void register(GeyserRegisterPermissionsEvent event) {
-        for (Map.Entry<String, TriState> permission : PERMISSIONS.entrySet()) {
-            event.register(permission.getKey(), permission.getValue());
+    @Override
+    public void execute(CommandContext<GeyserCommandSource> context) {
+        GeyserSession session = context.sender().connection();
+        if (session != null) {
+            session.getGameRuleHandler().requestGamerules();
         }
     }
 }
