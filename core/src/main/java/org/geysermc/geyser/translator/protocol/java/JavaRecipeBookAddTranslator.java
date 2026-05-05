@@ -34,6 +34,7 @@ import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
+import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -44,11 +45,16 @@ import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.RecipeDispla
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.ShapedCraftingRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.ShapelessCraftingRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.SmithingRecipeDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.AnyFuelSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SmithingTrimDemoSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundRecipeBookAddPacket;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Translator(packet = ClientboundRecipeBookAddPacket.class)
 public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRecipeBookAddPacket> {
@@ -63,6 +69,9 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
         UnlockedRecipesPacket recipesPacket = new UnlockedRecipesPacket();
         recipesPacket.setAction(packet.isReplace() ? UnlockedRecipesPacket.ActionType.INITIALLY_UNLOCKED : UnlockedRecipesPacket.ActionType.NEWLY_UNLOCKED);
 
+        // Hacky fix, see below
+        Set<GeyserShapelessRecipe.FurnaceRecipeType> knownFurnaceRecipes = new HashSet<>();
+
         for (ClientboundRecipeBookAddPacket.Entry entry : packet.getEntries()) {
             RecipeDisplayEntry contents = entry.contents();
             if (javaToBedrockRecipeIds.containsKey(contents.id())) {
@@ -75,6 +84,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             // TODO rewrite this, but properly
             if (display instanceof FurnaceRecipeDisplay furnaceRecipe && GameProtocol.is1_26_20orHigher(session.protocolVersion())) {
                 GeyserRecipe geyserRecipe = new GeyserShapelessRecipe(contents.id(), netId, furnaceRecipe, contents.category());
+                knownFurnaceRecipes.add(GeyserShapelessRecipe.FurnaceRecipeType.fromCategory(contents.category()));
 
                 List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
                 craftingDataPacket.getCraftingData().addAll(recipeData);
@@ -137,6 +147,35 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 }
                 default -> {
                     GeyserImpl.getInstance().getLogger().debug("Ignoring unknown recipe display type! " + entry);
+                }
+            }
+        }
+
+        if (GameProtocol.is1_26_20orHigher(session.protocolVersion())) {
+            int placeholderRecipes = 0;
+
+            SlotDisplay stoneSlotDisplay = new ItemSlotDisplay(Items.STONE.javaId());
+            FurnaceRecipeDisplay placeholderFurnaceRecipe = new FurnaceRecipeDisplay(stoneSlotDisplay, new AnyFuelSlotDisplay(), stoneSlotDisplay, stoneSlotDisplay, 1, 1.0F);
+
+            for (GeyserShapelessRecipe.FurnaceRecipeType type : GeyserShapelessRecipe.FurnaceRecipeType.values()) {
+                // Bedrock HAS to have a recipe or else it will crash on 1.26.20 and above, so send a bogus recipe
+                // Again, very hacky, FIXME please
+                if (!knownFurnaceRecipes.contains(type)) {
+                    int id = Integer.MIN_VALUE + placeholderRecipes;
+                    GeyserRecipe geyserRecipe = new GeyserShapelessRecipe(id, netId, placeholderFurnaceRecipe, type.categories().getFirst());
+
+                    List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
+                    craftingDataPacket.getCraftingData().addAll(recipeData);
+
+                    List<String> bedrockRecipeIds = new ArrayList<>();
+                    for (int i = 0; i < recipeData.size(); i++) {
+                        String recipeId = id + "_" + i;
+                        recipesPacket.getUnlockedRecipes().add(recipeId);
+                        bedrockRecipeIds.add(recipeId);
+                        geyserRecipes.put(netId++, geyserRecipe);
+                    }
+                    javaToBedrockRecipeIds.put(id, List.copyOf(bedrockRecipeIds));
+                    placeholderRecipes++;
                 }
             }
         }

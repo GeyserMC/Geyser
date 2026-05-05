@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
+import it.unimi.dsi.fastutil.ints.IntList;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
@@ -51,7 +54,7 @@ public record GeyserShapelessRecipe(int id,
     }
 
     public GeyserShapelessRecipe(int id, int netId, FurnaceRecipeDisplay data, int category) {
-        this(id, netId, List.of(data.ingredient()), data.result(), tagFromFurnaceRecipeCategory(category));
+        this(id, netId, List.of(data.ingredient()), data.result(), FurnaceRecipeType.fromCategory(category).tag);
     }
 
     @Override
@@ -79,12 +82,29 @@ public record GeyserShapelessRecipe(int id,
         return recipeData;
     }
 
-    private static String tagFromFurnaceRecipeCategory(int group) {
-        return switch (group) {
-            case 4, 5, 6 -> "furnace"; // furnace
-            case 7, 8 -> "blast_furnace"; // blast_furnace_blocks, blast_furnace_misc
-            case 9, 12 -> "smoker"; // smoker_food, campfire
-            default -> "furnace"; // /shrug
-        };
+    public enum FurnaceRecipeType {
+        FURNACE("furnace", 4, 5, 6), // furnace
+        BLAST_FURNACE("blast_furnace", 7, 8), // blast_furnace_blocks, blast_furnace_misc
+        SMOKER("smoker", 9, 12); // smoker_food, campfire
+
+        private final String tag;
+        @Getter
+        @Accessors(fluent = true)
+        private final IntList categories;
+
+        FurnaceRecipeType(String tag, int... categories) {
+            this.tag = tag;
+            this.categories = IntList.of(categories);
+        }
+
+        public static FurnaceRecipeType fromCategory(int category) {
+            for (FurnaceRecipeType type : values()) {
+                if (type.categories.contains(category)) {
+                    return type;
+                }
+            }
+
+            return FURNACE; // /shrug
+        }
     }
 }
