@@ -91,7 +91,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
                 DimensionUtils.fastSwitchDimension(session, fakeDim);
             }
             session.setWorldName(spawnInfo.getWorldName());
-            session.setWorldTicks(0);
+            session.resetTimeParameters();
             DimensionUtils.switchDimension(session, newDimension);
 
             ChunkUtils.loadDimension(session);

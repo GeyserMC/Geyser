@@ -1,0 +1,47 @@
+{
+  "type": "geyser:component_hash",
+  "components": [
+    {
+      "component": "minecraft:can_place_on",
+      "value": [
+        {
+          "blocks": "#minecraft:infiniburn_overworld"
+        },
+        {
+          "blocks": "#minecraft:air",
+          "nbt": {
+            "wawawa": true,
+            "rarara": false,
+            "blah blah blah": 0.5,
+            "nanana": 5
+          }
+        },
+        [
+          {
+            "blocks": [
+              "minecraft:stone",
+              "minecraft:grass_block",
+              "minecraft:dirt"
+            ]
+          },
+          {
+            "blocks": "minecraft:chest",
+            "nbt": {
+              "Items": [
+                {
+                  "id": "minecraft:diamond"
+                }
+              ]
+            }
+          }
+        ]
+      ]
+    },
+    {
+      "component": "minecraft:can_break",
+      "value": {
+        "blocks": "#minecraft:flowers"
+      }
+    }
+  ]
+}

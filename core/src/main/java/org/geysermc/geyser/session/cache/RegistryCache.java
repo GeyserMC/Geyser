@@ -94,15 +94,20 @@ public final class RegistryCache implements JavaRegistryProvider {
         register(JavaRegistries.TRIM_PATTERN, TrimRecipe::readTrimPattern);
         register(JavaRegistries.DAMAGE_TYPE, RegistryReader.UNIT);
         register(JavaRegistries.DIALOG, Dialog::readDialog);
+        register(JavaRegistries.WORLD_CLOCK, RegistryReader.UNIT);
 
         register(JavaRegistries.CAT_VARIANT, VariantHolder.reader(CatEntity.BuiltInVariant.class, CatEntity.BuiltInVariant.BLACK));
+        register(JavaRegistries.CAT_SOUND_VARIANT, RegistryReader.UNIT);
         register(JavaRegistries.FROG_VARIANT, VariantHolder.reader(FrogEntity.BuiltInVariant.class, FrogEntity.BuiltInVariant.TEMPERATE));
         register(JavaRegistries.WOLF_VARIANT, VariantHolder.reader(WolfEntity.BuiltInVariant.class, WolfEntity.BuiltInVariant.PALE));
         register(JavaRegistries.WOLF_SOUND_VARIANT, RegistryReader.UNIT);
 
         register(JavaRegistries.PIG_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
+        register(JavaRegistries.PIG_SOUND_VARIANT, RegistryReader.UNIT);
         register(JavaRegistries.COW_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
+        register(JavaRegistries.COW_SOUND_VARIANT, RegistryReader.UNIT);
         register(JavaRegistries.CHICKEN_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
+        register(JavaRegistries.CHICKEN_SOUND_VARIANT, RegistryReader.UNIT);
         register(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT, ZombieNautilusEntity.VARIANT_READER);
 
         // Load from MCProtocolLib's classloader
@@ -188,7 +193,7 @@ public final class RegistryCache implements JavaRegistryProvider {
                 entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
             }
 
-            RegistryEntryContext context = new RegistryEntryContext(entry, entryIdMap, Optional.of(session));
+            RegistryEntryContext context = new RegistryEntryContext(entry, key -> entryIdMap.getOrDefault(key, -1), Optional.of(session));
             // This is what Geyser wants to keep as a value for this registry.
             T cacheEntry = reader.read(context);
             if (cacheEntry == null) {

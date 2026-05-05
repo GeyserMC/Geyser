@@ -40,7 +40,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -48,10 +50,14 @@ public class MinecraftLocale {
 
     public static final Map<String, Map<String, String>> LOCALE_MAPPINGS = new HashMap<>();
 
+    private static final List<String> REMOVED_KEYS = new ArrayList<>();
+    private static final Map<String, String> REPLACED_KEYS = new HashMap<>();
+
     // Check instance availability to avoid exception during testing
     private static final boolean IN_INSTANCE = GeyserImpl.getInstance() != null;
 
     private static final Path LOCALE_FOLDER = (IN_INSTANCE) ? GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("locales") : null;
+    private static final Path DEPRECATED = LOCALE_FOLDER == null ? null : getPath("deprecated");
 
     static {
         if (IN_INSTANCE) {
@@ -74,6 +80,18 @@ public class MinecraftLocale {
                         loadLocale("en_us");
                     }
                 }));
+    }
+
+    public static void downloadDeprecations() {
+        if (!loadDeprecations()) {
+            AssetUtils.addTask(!Files.exists(DEPRECATED), new AssetUtils.ClientJarTask("assets/minecraft/lang/deprecated.json",
+                stream -> AssetUtils.saveFile(DEPRECATED, stream),
+                () -> {
+                    if (!loadDeprecations()) {
+                        GeyserImpl.getInstance().getLogger().warning("Failed to load deprecated locale file: it doesn't exist?");
+                    }
+                }));
+        }
     }
 
     /**
@@ -184,6 +202,35 @@ public class MinecraftLocale {
         }
     }
 
+    private static boolean loadDeprecations() {
+        if (Files.exists(DEPRECATED) && Files.isReadable(DEPRECATED)) {
+            try (InputStream localeStream = Files.newInputStream(DEPRECATED, StandardOpenOption.READ)) {
+                // Parse the file as json
+                JsonObject localeObj = JsonUtils.fromJson(localeStream);
+                JsonElement removed = localeObj.get("removed");
+                if (removed.isJsonArray()) {
+                    for (JsonElement removedElement : removed.getAsJsonArray()) {
+                        REMOVED_KEYS.add(removedElement.getAsString());
+                    }
+                }
+
+                JsonElement renamed = localeObj.get("renamed");
+                if (renamed.isJsonObject()) {
+                    for (Map.Entry<String, JsonElement> renamedElement : renamed.getAsJsonObject().entrySet()) {
+                        REPLACED_KEYS.put(renamedElement.getKey(), renamedElement.getValue().getAsString());
+                    }
+                }
+
+                return true;
+            } catch (FileNotFoundException e){
+                throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.locale.fail.file", DEPRECATED, e.getMessage()));
+            } catch (Exception e) {
+                throw new AssertionError(GeyserLocale.getLocaleStringLog("geyser.locale.fail.json", DEPRECATED), e);
+            }
+        }
+        return false;
+    }
+
     /**
      * Load and parse a json lang file.
      *
@@ -200,7 +247,10 @@ public class MinecraftLocale {
             // Parse all the locale fields
             Map<String, String> langMap = new HashMap<>();
             for (Map.Entry<String, JsonElement> entry : localeObj.entrySet()) {
-                langMap.put(entry.getKey(), entry.getValue().getAsString());
+                if (REMOVED_KEYS.contains(entry.getKey())) {
+                    continue;
+                }
+                langMap.put(REPLACED_KEYS.getOrDefault(entry.getKey(), entry.getKey()), entry.getValue().getAsString());
             }
             return langMap;
         } catch (FileNotFoundException e){

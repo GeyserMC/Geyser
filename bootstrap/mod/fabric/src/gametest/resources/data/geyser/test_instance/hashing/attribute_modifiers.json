@@ -1,0 +1,76 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:attribute_modifiers",
+  "value": [
+    [
+      {
+        "type": "minecraft:attack_damage",
+        "id": "geyser:boom",
+        "amount": 500,
+        "operation": "add_value"
+      }
+    ],
+    [
+      {
+        "type": "minecraft:movement_speed",
+        "id": "geyser:nyooooom",
+        "amount": 420,
+        "operation": "add_multiplied_base",
+        "slot": "mainhand"
+      }
+    ],
+    [
+      {
+        "type": "minecraft:armor",
+        "id": "geyser:buff",
+        "amount": 42,
+        "operation": "add_multiplied_total",
+        "slot": "offhand",
+        "display": {
+          "type": "hidden"
+        }
+      }
+    ],
+    [
+      {
+        "type": "minecraft:armor_toughness",
+        "id": "geyser:tuff",
+        "amount": 70,
+        "operation": "add_value",
+        "display": {
+          "type": "default"
+        }
+      }
+    ],
+    [
+      {
+        "type": "minecraft:attack_knockback",
+        "id": "geyser:bye_bye",
+        "amount": 1024,
+        "operation": "add_value",
+        "display": {
+          "type": "override",
+          "value": {
+            "text": "bye bye bye when i attack u",
+            "bold": true,
+            "italic": true
+          }
+        }
+      }
+    ],
+    [
+      {
+        "type": "minecraft:attack_speed",
+        "id": "geyser:one_dot_eight_support",
+        "amount": 666,
+        "operation": "add_multiplied_total"
+      },
+      {
+        "type": "minecraft:step_height",
+        "id": "geyser:no_autojump",
+        "amount": -1,
+        "operation": "add_multiplied_total"
+      }
+    ]
+  ]
+}

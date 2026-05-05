@@ -143,9 +143,11 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
+        Map<Item, Item> dandelion = Map.of(Items.GOLDEN_DANDELION, Items.DANDELION);
+
         List<PaletteVersion> paletteVersions = new ArrayList<>(3);
-        paletteVersions.add(new PaletteVersion("1_21_130", Bedrock_v898.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("1_26_0", Bedrock_v924.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_130", Bedrock_v898.CODEC.getProtocolVersion(), dandelion));
+        paletteVersions.add(new PaletteVersion("1_26_0", Bedrock_v924.CODEC.getProtocolVersion(), dandelion));
         paletteVersions.add(new PaletteVersion("1_26_10", Bedrock_v944.CODEC.getProtocolVersion()));
         paletteVersions.add(new PaletteVersion("1_26_20", Bedrock_v975.CODEC.getProtocolVersion(), "1_26_10"));
 
@@ -930,23 +932,23 @@ public class ItemRegistryPopulator {
 
             // Loop through the predicates of the first definition and look for a range dispatch predicate
             for (MinecraftPredicate<? super ItemPredicateContext> predicate : first.predicates()) {
-                if (predicate instanceof GeyserRangeDispatchPredicate rangeDispatch) {
+                if (predicate instanceof GeyserRangeDispatchPredicate(GeyserRangeDispatchPredicate.GeyserRangeDispatchProperty rangeProperty, double threshold, int index, boolean normalized, boolean negated)) {
                     // Look for a similar predicate in the other definition's predicates
                     Optional<GeyserRangeDispatchPredicate> other = second.predicates().stream()
                         .filter(GeyserRangeDispatchPredicate.class::isInstance)
                         .map(GeyserRangeDispatchPredicate.class::cast)
                         .filter(otherPredicate ->
-                            otherPredicate.rangeProperty() == rangeDispatch.rangeProperty()
-                            && otherPredicate.index() == rangeDispatch.index()
-                            && otherPredicate.normalized() == rangeDispatch.normalized()
-                            && otherPredicate.negated() == rangeDispatch.negated())
+                            otherPredicate.rangeProperty() == rangeProperty
+                            && otherPredicate.index() == index
+                            && otherPredicate.normalized() == normalized
+                            && otherPredicate.negated() == negated)
                         .findFirst();
 
                     if (other.isPresent()) {
                         // If a similar predicate was found, check if they're negated
                         // If they are, prefer the one with the lowest threshold
                         // If they aren't, prefer the one with the highest threshold
-                        double thresholdComparison = rangeDispatch.negated() ? rangeDispatch.threshold() - other.get().threshold() : other.get().threshold() - rangeDispatch.threshold();
+                        double thresholdComparison = negated ? threshold - other.get().threshold() : other.get().threshold() - threshold;
                         if (thresholdComparison != 0.0) {
                             return thresholdComparison < 0 ? -1 : 1;
                         }

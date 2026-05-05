@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event.bedrock;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.event.java.ServerCodeOfConductEvent;
@@ -44,7 +43,7 @@ public class SessionAcceptCodeOfConductEvent extends ConnectionEvent {
     private final String codeOfConduct;
     private boolean skipSaving = false;
 
-    public SessionAcceptCodeOfConductEvent(@NonNull GeyserConnection connection, String codeOfConduct) {
+    public SessionAcceptCodeOfConductEvent(GeyserConnection connection, String codeOfConduct) {
         super(connection);
         this.codeOfConduct = codeOfConduct;
     }

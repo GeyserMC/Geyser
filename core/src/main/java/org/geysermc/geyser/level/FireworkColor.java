@@ -29,6 +29,7 @@ import lombok.Getter;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.util.HSVLike;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.util.ColorUtils;
 
 import java.util.Locale;
 
@@ -67,19 +68,12 @@ public enum FireworkColor {
         this.name = this.name().toLowerCase(Locale.ROOT);
     }
 
-    private static HSVLike toHSV(int rgbValue) {
-        int r = (rgbValue & (255 << 16)) >> 16;
-        int g = (rgbValue & (255 << 8)) >> 8;
-        int b = rgbValue & 255;
-        return HSVLike.fromRGB(r, g, b);
-    }
-
     public static byte fromJavaRGB(int rgbValue) {
-        HSVLike hsv = toHSV(rgbValue);
+        HSVLike hsv = ColorUtils.toHSV(rgbValue);
         return (byte) nearestTo(hsv).ordinal();
     }
 
-    // The following two methods were adapted from the Adventure project:
+    // Adapted from the Adventure project:
     // https://github.com/KyoriPowered/adventure/blob/09edf74409feb52d9147a5a811910de0721acf95/api/src/main/java/net/kyori/adventure/text/format/NamedTextColor.java#L193-L237
     /**
      * Find the firework color nearest to the provided color.
@@ -92,7 +86,7 @@ public enum FireworkColor {
         float matchedDistance = Float.MAX_VALUE;
         FireworkColor match = VALUES[0];
         for (final FireworkColor potential : VALUES) {
-            final float distance = distance(any, potential.color.asHSV());
+            final float distance = ColorUtils.distance(any, potential.color.asHSV());
             if (distance < matchedDistance) {
                 match = potential;
                 matchedDistance = distance;
@@ -102,22 +96,6 @@ public enum FireworkColor {
             }
         }
         return match;
-    }
-
-    /**
-     * Returns a distance metric to the other color.
-     *
-     * <p>This value is unitless and should only be used to compare with other firework colors.</p>
-     *
-     * @param other color to compare to
-     * @return distance metric
-     */
-    private static float distance(final HSVLike self, final HSVLike other) {
-        // weight hue more heavily than saturation and brightness. kind of magic numbers, but is fine for our use case of downsampling to a set of colors
-        final float hueDistance = 3 * Math.min(Math.abs(self.h() - other.h()), 1f - Math.abs(self.h() - other.h()));
-        final float saturationDiff = self.s() - other.s();
-        final float valueDiff = self.v() - other.v();
-        return hueDistance * hueDistance + saturationDiff * saturationDiff + valueDiff * valueDiff;
     }
 
     public static int fromBedrockId(int id) {

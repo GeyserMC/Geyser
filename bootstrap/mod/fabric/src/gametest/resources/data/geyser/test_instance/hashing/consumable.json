@@ -1,0 +1,138 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:consumable",
+  "value": [
+    {
+      "consume_seconds": 0.1,
+      "animation": "none",
+      "sound": "minecraft:entity.generic.explode",
+      "has_consume_particles": false
+    },
+    {
+      "consume_seconds": 1.6,
+      "animation": "eat",
+      "sound": {
+        "sound_id": "geyser:epic_custom_eating_sound",
+        "range": 128.0
+      }
+    },
+    {
+      "consume_seconds": 1.0,
+      "animation": "spear",
+      "has_consume_particles": true,
+      "on_consume_effects": []
+    },
+    {
+      "consume_seconds": 5.0,
+      "animation": "bundle",
+      "sound": "minecraft:entity.generic.death",
+      "has_consume_particles": false,
+      "on_consume_effects": [
+        {
+          "type": "apply_effects",
+          "effects": [
+            {
+              "id": "minecraft:speed",
+              "amplifier": 5,
+              "duration": 100,
+              "show_particles": false,
+              "show_icon": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "on_consume_effects": [
+        {
+          "type": "apply_effects",
+          "effects": [
+            {
+              "id": "minecraft:haste",
+              "show_icon": true
+            },
+            {
+              "id": "minecraft:haste",
+              "show_icon": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "on_consume_effects": [
+        {
+          "type": "apply_effects",
+          "effects": [
+            {
+              "id": "minecraft:regeneration",
+              "amplifier": 1,
+              "show_particles": true,
+              "show_icon": true
+            }
+          ],
+          "probability": 0.3
+        }
+      ]
+    },
+    {
+      "on_consume_effects": [
+        {
+          "type": "remove_effects",
+          "effects": [
+            "minecraft:speed",
+            "minecraft:haste",
+            "minecraft:regeneration"
+          ]
+        }
+      ]
+    },
+    {
+      "on_consume_effects": [
+        {
+          "type": "clear_all_effects"
+        }
+      ]
+    },
+    {
+      "on_consume_effects": [
+        {
+          "type": "teleport_randomly"
+        }
+      ]
+    },
+    {
+      "on_consume_effects": [
+        {
+          "type": "teleport_randomly",
+          "diameter": 5.0
+        }
+      ]
+    },
+    {
+      "on_consume_effects": [
+        {
+          "type": "play_sound",
+          "sound": {
+            "sound_id": "geyser:epic_consuming_sound",
+            "range": 16.0
+          }
+        }
+      ]
+    },
+    {
+      "on_consume_effects": [
+        {
+          "type": "clear_all_effects"
+        },
+        {
+          "type": "play_sound",
+          "sound": {
+            "sound_id": "geyser:epic_consuming_sound",
+            "range": 16.0
+          }
+        }
+      ]
+    }
+  ]
+}

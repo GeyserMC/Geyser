@@ -116,9 +116,9 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
             }
             // Remove empty pages at the end
             while (!pages.isEmpty()) {
-                String currentPage = pages.get(pages.size() - 1);
+                String currentPage = pages.getLast();
                 if (currentPage.isEmpty()) {
-                    pages.remove(pages.size() - 1);
+                    pages.removeLast();
                 } else {
                     break;
                 }

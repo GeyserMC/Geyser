@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
@@ -55,11 +56,13 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.java.inventory.JavaMerchantOffersTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.OnlyWithComponentSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithRemainderSlotDisplay;
@@ -360,27 +363,30 @@ public class InventoryUtils {
         if (slotDisplay instanceof EmptySlotDisplay) {
             return itemStack.isEmpty();
         }
-        if (slotDisplay instanceof CompositeSlotDisplay compositeSlotDisplay) {
-            if (compositeSlotDisplay.contents().size() == 1) {
-                return acceptsAsInput(session, compositeSlotDisplay.contents().get(0), itemStack);
+        if (slotDisplay instanceof CompositeSlotDisplay(List<SlotDisplay> contents)) {
+            if (contents.size() == 1) {
+                return acceptsAsInput(session, contents.getFirst(), itemStack);
             }
-            return compositeSlotDisplay.contents().stream().anyMatch(aSlotDisplay -> acceptsAsInput(session, aSlotDisplay, itemStack));
+            return contents.stream().anyMatch(aSlotDisplay -> acceptsAsInput(session, aSlotDisplay, itemStack));
         }
         if (slotDisplay instanceof WithRemainderSlotDisplay remainderSlotDisplay) {
             return acceptsAsInput(session, remainderSlotDisplay.input(), itemStack);
         }
-        if (slotDisplay instanceof ItemSlotDisplay itemSlotDisplay) {
-            return itemStack.getJavaId() == itemSlotDisplay.item();
+        if (slotDisplay instanceof ItemSlotDisplay(int item)) {
+            return itemStack.getJavaId() == item;
         }
-        if (slotDisplay instanceof ItemStackSlotDisplay itemStackSlotDisplay) {
-            ItemStack other = itemStackSlotDisplay.itemStack();
+        if (slotDisplay instanceof ItemStackSlotDisplay(ItemStack other)) {
             // Amount check might be flimsy?
             return itemStack.getJavaId() == other.getId() && itemStack.getAmount() >= other.getAmount()
                 && Objects.equals(itemStack.getComponents(), other.getDataComponentsPatch());
         }
-        if (slotDisplay instanceof TagSlotDisplay tagSlotDisplay) {
-            return itemStack.is(session, new Tag<>(JavaRegistries.ITEM, tagSlotDisplay.tag()));
+        if (slotDisplay instanceof TagSlotDisplay(Key tag)) {
+            return itemStack.is(session, new Tag<>(JavaRegistries.ITEM, tag));
         }
+        if (slotDisplay instanceof OnlyWithComponentSlotDisplay(SlotDisplay source, DataComponentType<?> component)) {
+            return itemStack.has(component) && acceptsAsInput(session, source, itemStack);
+        }
+        // TODO WithAnyPotion?
         session.getGeyser().getLogger().warning("Unknown slot display type: " + slotDisplay);
         return false;
     }

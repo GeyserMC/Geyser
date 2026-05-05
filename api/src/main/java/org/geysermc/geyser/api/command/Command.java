@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.command;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.lifecycle.GeyserRegisterPermissionsEvent;
@@ -45,7 +44,6 @@ public interface Command {
      *
      * @return the command name
      */
-    @NonNull
     String name();
 
     /**
@@ -53,7 +51,6 @@ public interface Command {
      *
      * @return the command description
      */
-    @NonNull
     String description();
 
     /**
@@ -62,7 +59,6 @@ public interface Command {
      *
      * @return the permission node for this command if defined, otherwise an empty string
      */
-    @NonNull
     String permission();
 
     /**
@@ -70,7 +66,6 @@ public interface Command {
      *
      * @return the aliases for this command as an unmodifiable list
      */
-    @NonNull
     List<String> aliases();
 
     /**
@@ -107,7 +102,6 @@ public interface Command {
      * @deprecated this method will always return an empty immutable list
      */
     @Deprecated(forRemoval = true)
-    @NonNull
     default List<String> subCommands() {
         return Collections.emptyList();
     }
@@ -119,7 +113,7 @@ public interface Command {
      * @param <T> the source type
      * @return a new command builder used to construct commands
      */
-    static <T extends CommandSource> Command.Builder<T> builder(@NonNull Extension extension) {
+    static <T extends CommandSource> Command.Builder<T> builder(Extension extension) {
         return GeyserApi.api().provider(Builder.class, extension);
     }
 
@@ -136,7 +130,7 @@ public interface Command {
          * @param sourceType the source type
          * @return this builder
          */
-        Builder<T> source(@NonNull Class<? extends T> sourceType);
+        Builder<T> source(Class<? extends T> sourceType);
 
         /**
          * Sets the command name.
@@ -144,7 +138,7 @@ public interface Command {
          * @param name the command name
          * @return this builder
          */
-        Builder<T> name(@NonNull String name);
+        Builder<T> name(String name);
 
         /**
          * Sets the command description.
@@ -152,7 +146,7 @@ public interface Command {
          * @param description the command description
          * @return this builder
          */
-        Builder<T> description(@NonNull String description);
+        Builder<T> description(String description);
 
         /**
          * Sets the permission node required to run this command. <br>
@@ -162,7 +156,7 @@ public interface Command {
          * @param permission the permission node
          * @return this builder
          */
-        Builder<T> permission(@NonNull String permission);
+        Builder<T> permission(String permission);
 
         /**
          * Sets the permission node and its default value. The usage of the default value is platform dependant
@@ -177,7 +171,7 @@ public interface Command {
          * @deprecated this method is experimental and may be removed in the future
          */
         @Deprecated
-        Builder<T> permission(@NonNull String permission, @NonNull TriState defaultValue);
+        Builder<T> permission(String permission, TriState defaultValue);
 
         /**
          * Sets the aliases.
@@ -185,7 +179,7 @@ public interface Command {
          * @param aliases the aliases
          * @return this builder
          */
-        Builder<T> aliases(@NonNull List<String> aliases);
+        Builder<T> aliases(List<String> aliases);
 
         /**
          * Sets if this command is designed to be used only by server operators.
@@ -231,7 +225,7 @@ public interface Command {
          * @deprecated this method has no effect
          */
         @Deprecated(forRemoval = true)
-        default Builder<T> subCommands(@NonNull List<String> subCommands) {
+        default Builder<T> subCommands(List<String> subCommands) {
             return this;
         }
 
@@ -241,14 +235,13 @@ public interface Command {
          * @param executor the command executor
          * @return this builder
          */
-        Builder<T> executor(@NonNull CommandExecutor<T> executor);
+        Builder<T> executor(CommandExecutor<T> executor);
 
         /**
          * Builds the command.
          *
          * @return a new command from this builder
          */
-        @NonNull
         Command build();
     }
 }
