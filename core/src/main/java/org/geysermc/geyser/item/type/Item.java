@@ -352,7 +352,7 @@ public class Item {
             this.baseComponents = Registries.DEFAULT_DATA_COMPONENTS.get(javaId);
         }
         if (this.resolvableComponents == null) {
-            loadResolvableComponents(); // TODO
+            loadResolvableComponents(Registries.RESOLVABLE_DEFAULT_DATA_COMPONENTS.get(javaId));
         }
     }
 

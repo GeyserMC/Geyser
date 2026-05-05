@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.item.components.resolvable;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -38,9 +39,12 @@ public interface ResolvableComponent<T> {
 
     DataComponentType<T> type();
 
-    T resolve(GeyserSession session);
+    @Nullable T resolve(GeyserSession session);
 
     default void resolve(GeyserSession session, DataComponents map) {
-        map.put(type(), resolve(session));
+        T value = resolve(session);
+        if (value != null) {
+            map.put(type(), value);
+        }
     }
 }
