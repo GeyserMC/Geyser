@@ -56,7 +56,7 @@ public class ZombieNautilusEntity extends AbstractNautilusEntity implements Vari
     }
 
     @Override
-    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
+    public JavaRegistryKey<BuiltInVariant, ?> variantRegistry() {
         return JavaRegistries.ZOMBIE_NAUTILUS_VARIANT;
     }
 

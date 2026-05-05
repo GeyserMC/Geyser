@@ -76,7 +76,7 @@ public class CowEntity extends TemperatureVariantAnimal {
     }
 
     @Override
-    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
+    public JavaRegistryKey<BuiltInVariant, ?> variantRegistry() {
         return JavaRegistries.COW_VARIANT;
     }
 }

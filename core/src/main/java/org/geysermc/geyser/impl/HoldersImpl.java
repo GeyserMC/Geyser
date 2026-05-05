@@ -40,7 +40,7 @@ import java.util.Objects;
 
 public record HoldersImpl(@Nullable List<@NonNull Identifier> identifiers, @Nullable Identifier tag) implements Holders {
 
-    public HolderSet toHolderSet(GeyserSession session, JavaRegistryKey<?> registry) {
+    public HolderSet toHolderSet(GeyserSession session, JavaRegistryKey<?, ?> registry) {
         if (identifiers != null) {
             return new HolderSet(identifiers.stream()
                 .map(MinecraftKey::identifierToKey)

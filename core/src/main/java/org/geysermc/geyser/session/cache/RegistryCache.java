@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
@@ -77,16 +78,16 @@ import java.util.Optional;
  * <p>Crafted as of 1.20.5 for easy "add new registry" functionality in the future.</p>
  */
 public final class RegistryCache implements JavaRegistryProvider {
-    private static final Map<JavaRegistryKey<?>, Map<Key, NbtMap>> DEFAULTS;
+    private static final Map<JavaRegistryKey<?, ?>, Map<Key, NbtMap>> DEFAULTS;
     @VisibleForTesting
-    public static final Map<JavaRegistryKey<?>, RegistryReader<?>> READERS = new HashMap<>();
+    public static final Map<JavaRegistryKey<?, ?>, RegistryReader<?>> READERS = new HashMap<>();
 
     static {
         register(JavaRegistries.CHAT_TYPE, ChatDecoration::readChatType);
         register(JavaRegistries.DIMENSION_TYPE, JavaDimension::read);
         register(JavaRegistries.BIOME, BiomeTranslator::loadServerBiome);
         register(JavaRegistries.ENCHANTMENT, Enchantment::read);
-        register(JavaRegistries.BANNER_PATTERN, context -> BannerPattern.getByJavaIdentifier(context.id()));
+        register(JavaRegistries.BANNER_PATTERN, BannerPattern::read);
         register(JavaRegistries.INSTRUMENT, GeyserInstrument::read);
         register(JavaRegistries.JUKEBOX_SONG, JukeboxSong::read);
         register(JavaRegistries.PAINTING_VARIANT, context -> PaintingType.getByName(context.id()));
@@ -107,7 +108,7 @@ public final class RegistryCache implements JavaRegistryProvider {
 
         // Load from MCProtocolLib's classloader
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();
-        Map<JavaRegistryKey<?>, Map<Key, NbtMap>> defaults = new HashMap<>();
+        Map<JavaRegistryKey<?, ?>, Map<Key, NbtMap>> defaults = new HashMap<>();
         // Don't create a keySet - no need to create the cached object in HashMap if we don't use it again
         READERS.forEach((key, $) -> {
             List<NbtMap> rawValues = tag.getCompound(key.registryKey().asString()).getList("value", NbtType.COMPOUND);
@@ -123,13 +124,14 @@ public final class RegistryCache implements JavaRegistryProvider {
         DEFAULTS = Map.copyOf(defaults);
     }
 
+    @Getter
     private final GeyserSession session;
-    private final Reference2ObjectMap<JavaRegistryKey<?>, SimpleJavaRegistry<?>> registries;
+    private final Reference2ObjectMap<JavaRegistryKey<?, ?>, SimpleJavaRegistry<?>> registries;
 
     public RegistryCache(GeyserSession session) {
         this.session = session;
         this.registries = new Reference2ObjectOpenHashMap<>(READERS.size());
-        for (JavaRegistryKey<?> registry : READERS.keySet()) {
+        for (JavaRegistryKey<?, ?> registry : READERS.keySet()) {
             registries.put(registry, new SimpleJavaRegistry<>());
         }
     }
@@ -157,14 +159,14 @@ public final class RegistryCache implements JavaRegistryProvider {
     }
 
     @Override
-    public <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey) {
+    public <T> JavaRegistry<T> registry(JavaRegistryKey<T, ?> registryKey) {
         if (!registries.containsKey(registryKey)) {
             throw new IllegalArgumentException("The given registry is not data-driven");
         }
         return (JavaRegistry<T>) registries.get(registryKey);
     }
 
-    private static <T> void readRegistry(GeyserSession session, JavaRegistryKey<T> registryKey, SimpleJavaRegistry<T> registry,
+    private static <T> void readRegistry(GeyserSession session, JavaRegistryKey<T, ?> registryKey, SimpleJavaRegistry<T> registry,
                                          RegistryReader<T> reader, List<RegistryEntry> entries) {
         Map<Key, NbtMap> localRegistry = null;
 
@@ -205,7 +207,7 @@ public final class RegistryCache implements JavaRegistryProvider {
      * @param reader converts the RegistryEntry NBT into an object. Should never return null, rather return a default value!
      * @param <T> the class that represents these entries.
      */
-    private static <T> void register(JavaRegistryKey<T> registryKey, RegistryReader<T> reader) {
+    private static <T> void register(JavaRegistryKey<T, ?> registryKey, RegistryReader<T> reader) {
         if (READERS.containsKey(registryKey)) {
             throw new IllegalStateException("Tried to register registry reader for " + registryKey + " twice!");
         }

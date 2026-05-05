@@ -38,7 +38,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.hashing.data.FireworkExplosionShape;
+import org.geysermc.geyser.item.components.FireworkExplosionShape;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;

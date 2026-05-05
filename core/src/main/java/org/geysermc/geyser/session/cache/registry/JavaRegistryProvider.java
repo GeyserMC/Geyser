@@ -28,5 +28,5 @@ package org.geysermc.geyser.session.cache.registry;
 @FunctionalInterface
 public interface JavaRegistryProvider {
 
-    <T> JavaRegistry<T> registry(JavaRegistryKey<T> registryKey);
+    <T> JavaRegistry<T> registry(JavaRegistryKey<T, ?> registryKey);
 }

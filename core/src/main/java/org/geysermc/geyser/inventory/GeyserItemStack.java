@@ -30,6 +30,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -49,6 +50,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.WrittenBookContent;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
@@ -196,6 +198,10 @@ public class GeyserItemStack {
         return value == null ? supplier.get() : value;
     }
 
+    public boolean hasComponent(@NonNull DataComponentType<?> type) {
+        return getComponent(type) != null;
+    }
+
     public int getNetId() {
         return isEmpty() ? 0 : netId;
     }
@@ -277,6 +283,17 @@ public class GeyserItemStack {
 
     public int getMaxStackSize() {
         return getComponentElseGet(DataComponentTypes.MAX_STACK_SIZE, () -> 1);
+    }
+
+    public Component getName() {
+        return getComponentElseGet(DataComponentTypes.CUSTOM_NAME, () -> {
+            WrittenBookContent book = getComponent(DataComponentTypes.WRITTEN_BOOK_CONTENT);
+            if (book != null) {
+                return Component.text(book.getTitle().getRaw());
+            }
+
+            return asItem().getName(this);
+        });
     }
 
     public int getMaxDamage() {

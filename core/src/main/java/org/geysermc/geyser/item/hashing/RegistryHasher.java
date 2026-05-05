@@ -29,7 +29,7 @@ import com.google.common.hash.HashCode;
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.hashing.data.ConsumeEffectType;
-import org.geysermc.geyser.item.hashing.data.FireworkExplosionShape;
+import org.geysermc.geyser.item.components.FireworkExplosionShape;
 import org.geysermc.geyser.item.hashing.data.ItemContainerSlot;
 import org.geysermc.geyser.item.hashing.data.entity.AxolotlVariant;
 import org.geysermc.geyser.item.hashing.data.entity.FoxVariant;
@@ -369,7 +369,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
      *
      * @param registry the registry to create a hasher for.
      */
-    static RegistryHasher<?> registry(JavaRegistryKey<?> registry) {
+    static RegistryHasher<?> registry(JavaRegistryKey<?, ?> registry) {
         MinecraftHasher<Integer> hasher = KEY.registryCast(registry::key);
         return hasher::hash;
     }
@@ -385,7 +385,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
      * @see RegistryHasher#holder()
      */
     // We don't use the registry generic type, because various registries don't use the MCPL type as their type
-    static <DirectType> RegistryHasher<DirectType> registry(JavaRegistryKey<?> registry, MinecraftHasher<DirectType> directHasher) {
+    static <DirectType> RegistryHasher<DirectType> registry(JavaRegistryKey<?, ?> registry, MinecraftHasher<DirectType> directHasher) {
         return new RegistryHasherWithDirectHasher<>(registry(registry), directHasher);
     }
 
@@ -472,7 +472,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
      * @param registry the registry the {@code Holder} is for.
      * @return a hasher that hashes a {@code Holder<Key>} for the given registry.
      */
-    static MinecraftHasher<Holder<Key>> eitherHolderHasher(JavaRegistryKey<?> registry) {
+    static MinecraftHasher<Holder<Key>> eitherHolderHasher(JavaRegistryKey<?, ?> registry) {
         return MinecraftHasher.KEY.registryCast((registries, holder) -> holder.getOrCompute(id -> registry.key(registries, id)));
     }
 

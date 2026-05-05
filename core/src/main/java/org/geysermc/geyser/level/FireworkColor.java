@@ -52,17 +52,20 @@ public enum FireworkColor {
 
     private static final FireworkColor[] VALUES = values();
 
+    private final int rgbValue;
     private final TextColor color;
 
     @Getter
     private final String name;
 
     FireworkColor(int rgbValue, String name) {
+        this.rgbValue = rgbValue;
         this.color = TextColor.color(rgbValue);
         this.name = name;
     }
 
     FireworkColor(int rgbValue) {
+        this.rgbValue = rgbValue;
         this.color = TextColor.color(rgbValue);
         this.name = this.name().toLowerCase(Locale.ROOT);
     }
@@ -74,7 +77,16 @@ public enum FireworkColor {
         return HSVLike.fromRGB(r, g, b);
     }
 
-    public static byte fromJavaRGB(int rgbValue) {
+    public static FireworkColor fromJavaRGB(int rgbValue) {
+        for (FireworkColor color : values()) {
+            if (color.rgbValue == rgbValue) {
+                return color;
+            }
+        }
+        return null;
+    }
+
+    public static byte bedrockIdFromJavaRGB(int rgbValue) {
         HSVLike hsv = toHSV(rgbValue);
         return (byte) nearestTo(hsv).ordinal();
     }

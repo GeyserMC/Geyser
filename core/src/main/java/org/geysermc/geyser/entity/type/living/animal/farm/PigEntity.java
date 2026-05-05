@@ -149,7 +149,7 @@ public class PigEntity extends TemperatureVariantAnimal implements Tickable, Cli
     }
 
     @Override
-    public JavaRegistryKey<BuiltInVariant> variantRegistry() {
+    public JavaRegistryKey<BuiltInVariant, ?> variantRegistry() {
         return JavaRegistries.PIG_VARIANT;
     }
 

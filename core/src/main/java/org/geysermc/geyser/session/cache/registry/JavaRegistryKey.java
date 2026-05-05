@@ -29,6 +29,7 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 
 import java.util.Optional;
 
@@ -43,14 +44,16 @@ import java.util.Optional;
  *
  * @param registryKey the registry key, as it appears on Java.
  * @param lookup an implementation of {@link RegistryLookup} that converts an object in this registry to its respective network ID or key, and back.
+ * @param holderMapper a function that maps the MCPL counterpart of an object in this registry to its Geyser counterpart. Can be null.
  * @param <T> the object type this registry holds.
+ * @param <MCPL> the MCPL counterpart of the type this registry holds. Can be {@code ?} when {@code holderMapper} is null.
  */
-public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> lookup) {
+public record JavaRegistryKey<T, MCPL>(Key registryKey, RegistryLookup<T> lookup, @Nullable HolderMapper<T, MCPL> holderMapper) {
 
     /**
      * Converts an object to its network ID, or -1 if it is not registered.
      */
-    public int networkId(GeyserSession session, T object) {
+    public int networkId(GeyserSession session, @Nullable T object) {
         return networkId(session.getRegistryCache(), object);
     }
 
@@ -64,7 +67,7 @@ public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> lookup) {
     /**
      * Converts a registered key to its network ID, or -1 if it is not registered.
      */
-    public int networkId(GeyserSession session, Key key) {
+    public int networkId(GeyserSession session, @Nullable Key key) {
         return networkId(session.getRegistryCache(), key);
     }
 
@@ -78,7 +81,7 @@ public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> lookup) {
     /**
      * Converts an object to its registered key, or null if it is not registered.
      */
-    public @Nullable Key key(GeyserSession session, T object) {
+    public @Nullable Key key(GeyserSession session, @Nullable T object) {
         return key(session.getRegistryCache(), object);
     }
 
@@ -120,7 +123,7 @@ public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> lookup) {
     /**
      * Converts a key to an object in this registry, or null if it is not registered.
      */
-    public @Nullable T value(GeyserSession session, Key key) {
+    public @Nullable T value(GeyserSession session, @Nullable Key key) {
         return value(session.getRegistryCache(), key);
     }
 
@@ -131,7 +134,25 @@ public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> lookup) {
         return entry(registries, key).map(RegistryEntryData::data).orElse(null);
     }
 
-    private Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, T object) {
+    public @Nullable T value(GeyserSession session, @Nullable Holder<MCPL> holder) {
+        return value(session.getRegistryCache(), holder);
+    }
+
+    public @Nullable T value(JavaRegistryProvider registries, @Nullable Holder<MCPL> holder) {
+        if (holder == null) {
+            return null;
+        } else if (holder.isId()) {
+            return value(registries, holder.id());
+        } else if (holderMapper == null) {
+            throw new IllegalArgumentException("Tried to map a custom MCPL holder for a registry that does not have a holder mapper (" + this + ")");
+        }
+        return holderMapper.map(registries, this, holder.custom());
+    }
+
+    private Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, @Nullable T object) {
+        if (object == null) {
+            return Optional.empty();
+        }
         return lookup.entry(registries, this, object);
     }
 
@@ -139,7 +160,10 @@ public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> lookup) {
         return lookup.entry(registries, this, networkId);
     }
 
-    private Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, Key key) {
+    private Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, @Nullable Key key) {
+        if (key == null) {
+            return Optional.empty();
+        }
         return lookup.entry(registries, this, key);
     }
 
@@ -148,11 +172,17 @@ public record JavaRegistryKey<T>(Key registryKey, RegistryLookup<T> lookup) {
      */
     public interface RegistryLookup<T> {
 
-        Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registry, int networkId);
+        Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T, ?> registry, int networkId);
 
-        Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registry, Key key);
+        Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T, ?> registry, @NonNull Key key);
 
-        Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T> registry, T object);
+        Optional<RegistryEntryData<T>> entry(JavaRegistryProvider registries, JavaRegistryKey<T, ?> registry, @NonNull T object);
+    }
+
+    @FunctionalInterface
+    public interface HolderMapper<T, MCPL> {
+
+        T map(JavaRegistryProvider registries, JavaRegistryKey<T, MCPL> registry, MCPL mcpl);
     }
 
     @Override
