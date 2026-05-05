@@ -84,7 +84,7 @@ public record GeyserShapelessRecipe(int id,
             case 4, 5, 6 -> "furnace"; // furnace
             case 7, 8 -> "blast_furnace"; // blast_furnace_blocks, blast_furnace_misc
             case 9, 12 -> "smoker"; // smoker_food, campfire
-            default -> throw new IllegalArgumentException("no furnace tag for category " + group);
+            default -> "furnace"; // /shrug
         };
     }
 }
