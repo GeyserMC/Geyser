@@ -70,6 +70,7 @@ import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
+import org.cloudburstmc.protocol.bedrock.data.ServerConfigurationJoinInfo;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.SpawnBiomeType;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
@@ -86,7 +87,6 @@ import org.cloudburstmc.protocol.bedrock.packet.CameraPresetsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.CreativeContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.DimensionDataPacket;
-import org.cloudburstmc.protocol.bedrock.packet.EmoteListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ItemComponentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
@@ -105,6 +105,7 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateAdventureSettingsPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateClientInputLocksPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateSoftEnumPacket;
+import org.cloudburstmc.protocol.bedrock.packet.VoxelShapesPacket;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.api.util.InputMode;
@@ -155,6 +156,7 @@ import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.physics.CollisionManager;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
@@ -237,7 +239,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -421,6 +423,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     // Exposed for GeyserConnect usage
     protected boolean sentSpawnPacket;
+
+    // Exposed for 3p server usage
+    @Setter
+    private @Nullable ServerConfigurationJoinInfo serverJoinInfo = null;
 
     boolean loggedIn;
     boolean loggingIn;
@@ -702,8 +708,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private boolean waitingForStatistics = false;
 
-    private final Set<UUID> emotes;
-
     /**
      * Whether advanced tooltips will be added to the player's items.
      */
@@ -836,9 +840,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.spawned = false;
         this.loggedIn = false;
-
-        this.emotes = new HashSet<>();
-        geyser.getSessionManager().getSessions().values().forEach(player -> this.emotes.addAll(player.getEmotes()));
 
         this.remoteServer = geyser.defaultRemoteServer();
     }
@@ -1813,8 +1814,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.upstream.getCodecHelper().setBlockDefinitions(this.blockMappings);
         this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
 
+        if (GameProtocol.is1_26_20orHigher(protocolVersion())) {
+            VoxelShapesPacket voxelShapesPacket = new VoxelShapesPacket();
+            voxelShapesPacket.setNameMap(new HashMap<>());
+            voxelShapesPacket.setShapes(new ArrayList<>());
+            upstream.sendPacket(voxelShapesPacket);
+        }
+
         StartGamePacket startGamePacket = buildStartGamePacket();
         configureExperiments(startGamePacket);
+        startGamePacket.setServerConfigurationJoinInfo(serverJoinInfo);
 
         if (playerEntity.getPropertyManager() != null) {
             startGamePacket.setPlayerPropertyData(playerEntity.getPropertyManager().toNbtMap("minecraft:player"));
@@ -1902,6 +1911,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // positions for block breaking actions, which is easier to validate
         // It does *not* mean we can dictate the break speed server-sided :(
         startGamePacket.setServerAuthoritativeBlockBreaking(true);
+
+        startGamePacket.setServerConfigurationJoinInfo(null);
 
         return startGamePacket;
     }
@@ -2250,23 +2261,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.statistics.putAll(statistics);
     }
 
-    public void refreshEmotes(List<UUID> emotes) {
-        this.emotes.addAll(emotes);
-        for (GeyserSession player : geyser.getSessionManager().getSessions().values()) {
-            List<UUID> pieces = new ArrayList<>();
-            for (UUID piece : emotes) {
-                if (!player.getEmotes().contains(piece)) {
-                    pieces.add(piece);
-                }
-                player.getEmotes().add(piece);
-            }
-            EmoteListPacket emoteList = new EmoteListPacket();
-            emoteList.setRuntimeEntityId(player.getPlayerEntity().geyserId());
-            emoteList.getPieceIds().addAll(pieces);
-            player.sendUpstreamPacket(emoteList);
-        }
-    }
-
     public boolean canUseCommandBlocks() {
         return instabuild && opPermissionLevel >= 2;
     }
@@ -2545,7 +2539,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private void softEnumPacket(String name, SoftEnumUpdateType type, String enums) {
         // There is no need to send command enums if command suggestions are disabled
-        if (!this.geyser.config().gameplay().commandSuggestions()) {
+        if (!this.geyser.config().gameplay().commandSuggestions() || GameProtocol.is1_26_20orHigher(protocolVersion())) {
             return;
         }
         UpdateSoftEnumPacket packet = new UpdateSoftEnumPacket();
