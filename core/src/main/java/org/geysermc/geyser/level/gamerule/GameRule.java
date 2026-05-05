@@ -35,8 +35,7 @@ import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.geyser.util.TypeAdapter;
 
 /**
- * This enum stores each gamerule along with the value type and the default.
- * It is used to construct the list for the settings menu
+ * GameRule types, used in the gamerule menu
  */
 public interface GameRule<T> {
 
@@ -51,7 +50,7 @@ public interface GameRule<T> {
     GameRuleCategory category();
 
     /**
-     * magic
+     * The {@link TypeAdapter} used for this gamerule
      */
     TypeAdapter<T> adapter();
 

@@ -57,7 +57,7 @@ public class MinecraftLocale {
     private static final boolean IN_INSTANCE = GeyserImpl.getInstance() != null;
 
     private static final Path LOCALE_FOLDER = (IN_INSTANCE) ? GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("locales") : null;
-    private static final Path DEPRECATED = getPath("deprecated");
+    private static final Path DEPRECATED = LOCALE_FOLDER == null ? null : getPath("deprecated");
 
     static {
         if (IN_INSTANCE) {
