@@ -98,19 +98,19 @@ public class GeyserItemStack {
         this.bundleData = bundleData;
     }
 
-    public static @NonNull GeyserItemStack of(@Nullable GeyserSession session, int javaId, int amount) {
+    public static @NonNull GeyserItemStack of(@NonNull GeyserSession session, int javaId, int amount) {
         return of(session, javaId, amount, null);
     }
 
-    public static @NonNull GeyserItemStack of(@Nullable GeyserSession session, int javaId, int amount, @Nullable DataComponents components) {
+    public static @NonNull GeyserItemStack of(@NonNull GeyserSession session, int javaId, int amount, @Nullable DataComponents components) {
         return new GeyserItemStack(session, javaId, amount, components);
     }
 
-    public static @NonNull GeyserItemStack from(@Nullable GeyserSession session, @Nullable ItemStack itemStack) {
+    public static @NonNull GeyserItemStack from(@NonNull GeyserSession session, @Nullable ItemStack itemStack) {
         return itemStack == null ? EMPTY : new GeyserItemStack(session, itemStack.getId(), itemStack.getAmount(), itemStack.getDataComponentsPatch());
     }
 
-    public static @NonNull GeyserItemStack from(@Nullable GeyserSession session, @NonNull SlotDisplay slotDisplay) {
+    public static @NonNull GeyserItemStack from(@NonNull GeyserSession session, @NonNull SlotDisplay slotDisplay) {
         // TODO possible code duplication with RecipeUtil#translateToOutput?
         return switch (slotDisplay) {
             case EmptySlotDisplay ignored -> GeyserItemStack.EMPTY;
@@ -120,9 +120,6 @@ public class GeyserItemStack {
             case CompositeSlotDisplay(List<SlotDisplay> contents) -> contents.isEmpty() ? GeyserItemStack.EMPTY : from(session, contents.getFirst());
             case TagSlotDisplay(Key tag) -> {
                 // Again, just create an itemstack of the first item in the tag, if possible
-                if (session == null) {
-                    yield GeyserItemStack.EMPTY;
-                }
                 int[] itemTag = session.getTagCache().getRaw(new Tag<>(JavaRegistries.ITEM, tag));
                 if (itemTag.length == 0) {
                     yield GeyserItemStack.EMPTY;

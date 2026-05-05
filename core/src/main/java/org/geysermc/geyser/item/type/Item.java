@@ -25,7 +25,8 @@
 
 package org.geysermc.geyser.item.type;
 
-import com.google.common.collect.ImmutableMap;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -38,6 +39,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.TooltipOptions;
+import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.Registries;
@@ -60,6 +62,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantm
 import org.jetbrains.annotations.UnmodifiableView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,13 +73,31 @@ public class Item {
     private int javaId = -1;
     private final int attackDamage;
     private DataComponents baseComponents; // unmodifiable
+    @Getter
+    @Accessors(fluent = true)
+    private List<ResolvableComponent<?>> resolvableComponents; // unmodifiable
+    private List<? extends DataComponentType<?>> resolvableComponentTypes; // unmodifiable
 
     public Item(String javaIdentifier, Builder builder) {
         this.javaIdentifier = MinecraftKey.key(javaIdentifier);
+        this.attackDamage = builder.attackDamage;
         if (builder.components != null) {
             this.baseComponents = builder.components;
         }
-        this.attackDamage = builder.attackDamage;
+        if (builder.resolvableComponents != null) {
+            loadResolvableComponents(builder.resolvableComponents);
+        }
+    }
+
+    private void loadResolvableComponents(List<ResolvableComponent<?>> resolvableComponents) {
+        if (this.resolvableComponents != null) {
+            throw new IllegalStateException("resolvableComponents was already initialised");
+        }
+
+        this.resolvableComponents = resolvableComponents;
+        resolvableComponentTypes = resolvableComponents.stream()
+            .map(ResolvableComponent::type)
+            .toList();
     }
 
     // TODO maybe deprecate?
@@ -120,19 +141,26 @@ public class Item {
      */
     @NonNull
     @UnmodifiableView
-    public DataComponents gatherComponents(@Nullable ComponentCache componentCache, @Nullable DataComponents others) {
-        if (others == null) {
-            return baseComponents;
+    public DataComponents gatherComponents(@Nullable ComponentCache componentCache/*TODO NOT NULLABLE?*/, @Nullable DataComponents others) {
+        // Start with the base components that always exist
+        DataComponents base = baseComponents;
+        // Add resolvable base components when possible
+        if (!resolvableComponents.isEmpty()) {
+            if (componentCache == null) {
+                GeyserImpl.getInstance().getLogger().debug("Unable to resolve components for item because componentCache is null");
+            } else {
+                base = baseComponents.clone();
+                base.getDataComponents().putAll(componentCache.getResolvedComponents(this).getDataComponents());
+            }
+        }
+        if (others != null) {
+            // Add all additional components; these can override base components!
+            // e.g. custom stack size
+            base.getDataComponents().putAll(others.getDataComponents());
         }
 
-        // Start with the base components that always exist
-        DataComponents components = baseComponents.clone();
-        // Add all additional components; these can override base components!
-        // e.g. custom stack size
-        components.getDataComponents().putAll(others.getDataComponents());
-
-        // Return an unmodified map of the merged components
-        return new DataComponents(ImmutableMap.copyOf(components.getDataComponents()));
+        // Return an unmodifiable map of the merged components
+        return new DataComponents(Collections.unmodifiableMap(base.getDataComponents()));
     }
 
     /**
@@ -141,7 +169,14 @@ public class Item {
      * to also query additional components that would override the default ones.
      */
     @Nullable
-    public <T> T getComponent(@Nullable ComponentCache componentCache, @NonNull DataComponentType<T> type) {
+    public <T> T getComponent(@Nullable ComponentCache componentCache/*TODO NOT NULLABLE*/, @NonNull DataComponentType<T> type) {
+        if (resolvableComponentTypes.contains(type)) {
+            if (componentCache == null) {
+                GeyserImpl.getInstance().getLogger().debug("Unable to resolve component " + type + " for item because componentCache is null");
+            } else {
+                return componentCache.getResolvedComponents(this).get(type);
+            }
+        }
         return baseComponents.get(type);
     }
 
@@ -316,6 +351,9 @@ public class Item {
         if (this.baseComponents == null) {
             this.baseComponents = Registries.DEFAULT_DATA_COMPONENTS.get(javaId);
         }
+        if (this.resolvableComponents == null) {
+            loadResolvableComponents(); // TODO
+        }
     }
 
     @Override
@@ -344,6 +382,7 @@ public class Item {
 
     public static final class Builder {
         private DataComponents components;
+        private List<ResolvableComponent<?>> resolvableComponents;
         private int attackDamage;
 
         public Builder attackDamage(double attackDamage) {
@@ -354,6 +393,11 @@ public class Item {
 
         public Builder components(DataComponents components) {
             this.components = components;
+            return this;
+        }
+
+        public Builder resolvableComponents(List<ResolvableComponent<?>> resolvableComponents) {
+            this.resolvableComponents = resolvableComponents;
             return this;
         }
 
