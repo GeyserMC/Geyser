@@ -111,6 +111,7 @@ public class GeyserItemStack {
     }
 
     public static @NonNull GeyserItemStack from(@Nullable GeyserSession session, @NonNull SlotDisplay slotDisplay) {
+        // TODO possible code duplication with RecipeUtil#translateToOutput?
         return switch (slotDisplay) {
             case EmptySlotDisplay ignored -> GeyserItemStack.EMPTY;
             case ItemSlotDisplay(int itemId) -> GeyserItemStack.of(session, itemId, 1);

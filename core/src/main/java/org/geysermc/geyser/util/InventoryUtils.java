@@ -57,14 +57,17 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.java.inventory.JavaMerchantOffersTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.DyedSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.OnlyWithComponentSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithAnyPotionSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithRemainderSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundOpenBookPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
@@ -360,6 +363,7 @@ public class InventoryUtils {
      * Returns if the provided item stack would be accepted by the slot display.
      */
     public static boolean acceptsAsInput(GeyserSession session, SlotDisplay slotDisplay, GeyserItemStack itemStack) {
+        // TODO possible code duplication with RecipeUtil#translateToInput
         if (slotDisplay instanceof EmptySlotDisplay) {
             return itemStack.isEmpty();
         }
@@ -386,7 +390,24 @@ public class InventoryUtils {
         if (slotDisplay instanceof OnlyWithComponentSlotDisplay(SlotDisplay source, DataComponentType<?> component)) {
             return itemStack.has(component) && acceptsAsInput(session, source, itemStack);
         }
-        // TODO WithAnyPotion?
+        if (slotDisplay instanceof DyedSlotDisplay(SlotDisplay ignored, SlotDisplay target)) {
+            return acceptsAsInput(session, target, itemStack);
+        }
+        if (slotDisplay instanceof WithAnyPotionSlotDisplay(SlotDisplay display)) {
+            if (display instanceof ItemStackSlotDisplay(ItemStack stack)) {
+                DataComponents clonedComponents = stack.getDataComponentsPatch() == null ? null : stack.getDataComponentsPatch().clone();
+                if (clonedComponents != null) {
+                    clonedComponents.remove(DataComponentTypes.POTION_CONTENTS);
+                }
+                ItemStack stackWithoutPotions = new ItemStack(stack.getId(), stack.getAmount(), clonedComponents);
+                GeyserItemStack originalWithoutPotions = itemStack.copy();
+                if (originalWithoutPotions.getComponents() != null) {
+                    originalWithoutPotions.getComponents().remove(DataComponentTypes.POTION_CONTENTS);
+                }
+                return acceptsAsInput(session, new ItemStackSlotDisplay(stackWithoutPotions), originalWithoutPotions);
+            }
+            return acceptsAsInput(session, display, itemStack);
+        }
         session.getGeyser().getLogger().warning("Unknown slot display type: " + slotDisplay);
         return false;
     }
