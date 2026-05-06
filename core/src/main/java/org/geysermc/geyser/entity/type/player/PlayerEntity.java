@@ -111,7 +111,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
             packet.setAction(PlayerListPacket.Action.REMOVE);
             session.sendUpstreamPacket(packet);
 
-            if (!GeyserWaypoint.requiresNewWaypointPacket(session)) {
+            if (!GeyserWaypoint.usesNewWaypointPacket(session)) {
                 // To ensure waypoints still remain, if any were added while the
                 // player had a valid player list entry
                 session.getWaypointCache().removeEntity(this);
