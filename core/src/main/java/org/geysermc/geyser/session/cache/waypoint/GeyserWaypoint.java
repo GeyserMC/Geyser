@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.data.LocatorBarWaypoint;
 import org.cloudburstmc.protocol.bedrock.packet.LocatorBarPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerLocationPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.network.GameProtocol;
@@ -140,8 +141,10 @@ public abstract class GeyserWaypoint {
             initialiseWaypointFromEntity(Optional.ofNullable(entity));
             track();
         } else {
-            // 26.0 and below does not support non-player entities as waypoint target
             if (!(entity instanceof PlayerEntity)) {
+                // 26.0 and below does not support non-player entities as waypoint target,
+                // as such, this method should never be called with non-player entities
+                GeyserImpl.getInstance().getLogger().warning("GeyserWaypoint#setEntity called for non-player entity!");
                 entity = null;
             }
 

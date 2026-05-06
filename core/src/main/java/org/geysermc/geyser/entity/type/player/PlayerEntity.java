@@ -42,6 +42,7 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
+import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
@@ -110,9 +111,11 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
             packet.setAction(PlayerListPacket.Action.REMOVE);
             session.sendUpstreamPacket(packet);
 
-            // To ensure waypoints still remain, if any were added while the
-            // player had a valid player list entry
-            session.getWaypointCache().unlistPlayer(this);
+            if (!GeyserWaypoint.requiresNewWaypointPacket(session)) {
+                // To ensure waypoints still remain, if any were added while the
+                // player had a valid player list entry
+                session.getWaypointCache().removeEntity(this);
+            }
         }
 
         // Since we re-use player entities: Clear flags, held item, etc
