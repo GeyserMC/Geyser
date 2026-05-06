@@ -180,6 +180,9 @@ public class RecipeUtil {
             // FIXME I don't think there's a proper way to do this? How do we tell bedrock that the item has to have a certain component?
             return translateToInput(session, source);
         }
+        if (slotDisplay instanceof DyedSlotDisplay(SlotDisplay ignored, SlotDisplay target)) {
+            return translateToInput(session, target);
+        }
         if (slotDisplay instanceof WithAnyPotionSlotDisplay(SlotDisplay display)) {
             // Not sure how I feel about this...
             GeyserItemStack stack = GeyserItemStack.from(session, display);
