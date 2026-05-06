@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.session.cache.waypoint;
 
+import it.unimi.dsi.fastutil.Pair;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector2f;
@@ -53,6 +54,10 @@ public abstract class GeyserWaypoint {
     private static final float VANILLA_NEAR_DISTANCE_SQUARED = 16384.0F;
     private static final float VANILLA_FAR_DISTANCE_SQUARED = 110224.0F;
     private static final Key VANILLA_WAYPOINT_STYLE = MinecraftKey.key("default");
+
+    // These are hardcoded on Java, extracted from BDS
+    private static final Vector2f MEDIUM_WAYPOINT_ICON_SIZE = Vector2f.from(0.6F, 0.6F);
+    private static final Vector2f SMALL_WAYPOINT_ICON_SIZE = Vector2f.from(0.2F, 0.2F);
 
     protected final GeyserSession session;
 
@@ -162,7 +167,9 @@ public abstract class GeyserWaypoint {
         float distanceSquared = session.playerEntity().position().distanceSquared(position);
         if (requiresNewWaypointPacket) {
             if (requiresNewNewWaypointPacket) {
-                bedrockWaypoint.setTexturePath(getWaypointTexture(style, distanceSquared));
+                Pair<String, Vector2f> texture = getWaypointTexture(style, distanceSquared);
+                bedrockWaypoint.setTexturePath(texture.first());
+                bedrockWaypoint.setIconSize(texture.second());
             } else {
                 bedrockWaypoint.setTextureId(getLegacyWaypointTexture(distanceSquared));
             }
@@ -174,7 +181,7 @@ public abstract class GeyserWaypoint {
         if (force || lastSentPosition == null || position.distanceSquared(lastSentPosition) > 1.0F) {
             if (requiresNewWaypointPacket) {
                 LocatorBarPacket packet = new LocatorBarPacket();
-                bedrockWaypoint.setUpdateFlag(WaypointUpdateFlags.WORLD_POS | WaypointUpdateFlags.TEXTURE_ID);
+                bedrockWaypoint.setUpdateFlag(WaypointUpdateFlags.WORLD_POS | (requiresNewNewWaypointPacket ? WaypointUpdateFlags.TEXTURE_PATH | WaypointUpdateFlags.ICON_SIZE : WaypointUpdateFlags.TEXTURE_ID));
                 packet.setWaypoints(List.of(new LocatorBarPacket.Payload(LocatorBarPacket.Action.UPDATE, uuid, bedrockWaypoint)));
                 session.sendUpstreamPacket(packet);
             } else {
@@ -250,25 +257,27 @@ public abstract class GeyserWaypoint {
             .orElseThrow();
     }
 
-    private static String getWaypointTexture(Key style, float distanceSquared) {
+    private static Pair<String, Vector2f> getWaypointTexture(Key style, float distanceSquared) {
+        // Small size is only used for the smallest icon, medium only for the second-smallest
         if (distanceSquared < VANILLA_NEAR_DISTANCE_SQUARED) {
-            return getWaypointTexture(style, 0);
+            return Pair.of(getWaypointTexture(style, 0), Vector2f.ONE);
         } else if (distanceSquared >= VANILLA_FAR_DISTANCE_SQUARED) {
-            return getWaypointTexture(style, 3);
+            return Pair.of(getWaypointTexture(style, 3), SMALL_WAYPOINT_ICON_SIZE);
         }
-        return getWaypointTexture(style, (int) (1 + Math.floor((distanceSquared - VANILLA_NEAR_DISTANCE_SQUARED) / (VANILLA_FAR_DISTANCE_SQUARED - VANILLA_NEAR_DISTANCE_SQUARED) * 2)));
+        int index = (int) (1 + Math.floor((distanceSquared - VANILLA_NEAR_DISTANCE_SQUARED) / (VANILLA_FAR_DISTANCE_SQUARED - VANILLA_NEAR_DISTANCE_SQUARED) * 2));
+        return Pair.of(getWaypointTexture(style, index), index > 1  ? MEDIUM_WAYPOINT_ICON_SIZE : Vector2f.ONE);
     }
 
     private static String getWaypointTexture(Key style, int index) {
         if (style.equals(VANILLA_WAYPOINT_STYLE)) {
             return switch (index) {
-                case 0 -> "ui/locator_bar_dot_0";
-                case 1 -> "ui/locator_bar_dot_1";
-                case 2 -> "ui/locator_bar_dot_2";
-                default -> "ui/locator_bar_dot_3";
+                case 0 -> "textures/ui/locator_bar_dot_0";
+                case 1 -> "textures/ui/locator_bar_dot_1";
+                case 2 -> "textures/ui/locator_bar_dot_2";
+                default -> "textures/ui/locator_bar_dot_3";
             };
         }
-        return "ui/" + style.namespace() + "/locator_bar_dot/" + style.value() + "_" + index;
+        return "textures/ui/" + style.namespace() + "/locator_bar_dot/" + style.value() + "_" + index;
     }
 
     private static int getLegacyWaypointTexture(float distanceSquared) {

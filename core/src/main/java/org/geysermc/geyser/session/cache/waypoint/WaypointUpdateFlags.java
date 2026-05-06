@@ -29,9 +29,13 @@ public final class WaypointUpdateFlags {
     public static final int WORLD_POS = 1;
     public static final int IS_VISIBLE = 1 << 1;
     public static final int TEXTURE_ID = 1 << 2;
+    public static final int TEXTURE_PATH = 1 << 2;
+    public static final int ICON_SIZE = 1 << 3;
     public static final int COLOR = 1 << 3;
+    public static final int COLOR_NEW = 1 << 4;
     public static final int CLIENT_POSITION_AUTHORITY = 1 << 4;
-    public static final int ALL = 0b11111;
+    public static final int CLIENT_POSITION_AUTHORITY_NEW = 1 << 5;
+    public static final int ALL = 0b111111;
 
     private WaypointUpdateFlags() {}
 }
