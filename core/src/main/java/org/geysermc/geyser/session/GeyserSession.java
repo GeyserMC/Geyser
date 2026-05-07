@@ -881,7 +881,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         minY = Math.max(minY, -512);
         maxY = Math.min(maxY, 512);
 
-        if (minY < BedrockDimension.OVERWORLD.minY() || maxY > BedrockDimension.OVERWORLD.maxY()) {
+        /*if (minY < BedrockDimension.OVERWORLD.minY() || maxY > BedrockDimension.OVERWORLD.maxY()) {
             final boolean isInOverworld = this.bedrockDimension == this.bedrockOverworldDimension;
             this.bedrockOverworldDimension = new BedrockDimension(minY, maxY - minY, true, BedrockDimension.OVERWORLD_ID);
             if (isInOverworld) {
@@ -890,9 +890,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
 
             DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
-            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5 /* Void */));
+            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5 *//* Void *//*));
             upstream.sendPacket(dimensionDataPacket);
-        }
+        }*/
 
         startGame();
         sentSpawnPacket = true;
