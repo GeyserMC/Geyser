@@ -878,10 +878,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 maxY = Math.max(maxY, javaDimension.minY() + javaDimension.height());
             }
         }
-        minY = Math.max(minY, -512);
+        /*minY = Math.max(minY, -512);
         maxY = Math.min(maxY, 512);
 
-        /*if (minY < BedrockDimension.OVERWORLD.minY() || maxY > BedrockDimension.OVERWORLD.maxY()) {
+        if (minY < BedrockDimension.OVERWORLD.minY() || maxY > BedrockDimension.OVERWORLD.maxY()) {
             final boolean isInOverworld = this.bedrockDimension == this.bedrockOverworldDimension;
             this.bedrockOverworldDimension = new BedrockDimension(minY, maxY - minY, true, BedrockDimension.OVERWORLD_ID);
             if (isInOverworld) {
