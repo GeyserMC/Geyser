@@ -878,21 +878,24 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 maxY = Math.max(maxY, javaDimension.minY() + javaDimension.height());
             }
         }
-        /*minY = Math.max(minY, -512);
-        maxY = Math.min(maxY, 512);
 
-        if (minY < BedrockDimension.OVERWORLD.minY() || maxY > BedrockDimension.OVERWORLD.maxY()) {
-            final boolean isInOverworld = this.bedrockDimension == this.bedrockOverworldDimension;
-            this.bedrockOverworldDimension = new BedrockDimension(minY, maxY - minY, true, BedrockDimension.OVERWORLD_ID);
-            if (isInOverworld) {
-                this.bedrockDimension = this.bedrockOverworldDimension;
+        if (GameProtocol.is1_26_20orHigher(protocolVersion())) {
+            minY = Math.max(minY, -512);
+            maxY = Math.min(maxY, 512);
+
+            if (minY < BedrockDimension.OVERWORLD.minY() || maxY > BedrockDimension.OVERWORLD.maxY()) {
+                final boolean isInOverworld = this.bedrockDimension == this.bedrockOverworldDimension;
+                this.bedrockOverworldDimension = new BedrockDimension(minY, maxY - minY, true, BedrockDimension.OVERWORLD_ID);
+                if (isInOverworld) {
+                    this.bedrockDimension = this.bedrockOverworldDimension;
+                }
+                geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
+
+                DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
+                dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5 /* Void */));
+                upstream.sendPacket(dimensionDataPacket);
             }
-            geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
-
-            DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
-            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5 *//* Void *//*));
-            upstream.sendPacket(dimensionDataPacket);
-        }*/
+        }
 
         startGame();
         sentSpawnPacket = true;
