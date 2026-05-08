@@ -1223,12 +1223,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             // Remove from session manager
             geyser.getSessionManager().removeSession(this);
-            if (authData != null) {
-                PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(authData.xuid());
-                if (task != null) {
-                    task.resetRunningFlow();
-                }
-            }
+            // Don't cancel any pending Microsoft auth here - the whole point of PendingMicrosoftAuthentication
+            // is to let mobile users disconnect to finish auth in the browser. Task cleans up on timeout.
         }
 
         if (tickThread != null) {
