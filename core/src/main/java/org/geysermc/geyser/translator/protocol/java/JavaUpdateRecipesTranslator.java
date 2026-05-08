@@ -95,15 +95,22 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
     public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
         int netId = session.getLastRecipeNetId().get();
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
-        craftingDataPacket.setCleanRecipes(true);
-        craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
-        craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
-        for (GeyserRecipe recipe : session.getCraftingRecipes().values()) {
-            craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(session));
+        // See JavaFinishConfigurationTranslator - avoid re-sending base recipe data in quick succession
+        if (session.isCleanRecipesRequired()) {
+            craftingDataPacket.setCleanRecipes(true);
+            craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
+            craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
+
+            for (GeyserRecipe recipe : session.getCraftingRecipes().values()) {
+                craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(session));
+            }
+            for (GeyserSmithingRecipe recipe : session.getSmithingRecipes()) {
+                craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(session));
+            }
         }
-        for (GeyserSmithingRecipe recipe : session.getSmithingRecipes()) {
-            craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(session));
-        }
+
+        // As we now populate recipes that can differ, we need to ensure the next crafting packet resets the clients known recipes
+        session.setCleanRecipesRequired(true);
 
         boolean oldSmithingTable;
         int[] smithingBase = packet.getItemSets().get(SMITHING_BASE);
