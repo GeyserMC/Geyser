@@ -92,6 +92,9 @@ public class Item {
     private void loadResolvableComponents(List<ResolvableComponent<?>> resolvableComponents) {
         if (this.resolvableComponents != null) {
             throw new IllegalStateException("resolvableComponents was already initialised");
+        } else if (resolvableComponents == null) {
+            GeyserImpl.getInstance().getLogger().warning("Tried to load null resolvableComponents. If this is a testing environment, you can ignore this message.");
+            return;
         }
 
         this.resolvableComponents = resolvableComponents;
