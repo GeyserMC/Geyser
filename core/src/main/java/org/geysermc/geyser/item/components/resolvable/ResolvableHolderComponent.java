@@ -36,15 +36,15 @@ import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 
-public record ResolvableRegistryComponent<T>(DataComponentType<Holder<T>> type, JavaRegistryKey<?> registry, Key reference) implements ResolvableComponent<Holder<T>> {
+public record ResolvableHolderComponent<T>(DataComponentType<Holder<T>> type, JavaRegistryKey<?> registry, Key reference) implements ResolvableComponent<Holder<T>> {
 
-    public static ResolvableRegistryComponent<?> parse(JsonObject object) {
+    public static ResolvableHolderComponent<?> parse(DataComponentType<Holder<?>> type, JsonObject object) {
         //noinspection unchecked
         DataComponentType<Holder<?>> component = (DataComponentType<Holder<?>>) DataComponentTypes.fromKey(MinecraftKey.key(object.get("component").getAsString()));
         JavaRegistryKey<?> registry = JavaRegistries.fromKey(MinecraftKey.key(object.get("registry").getAsString()));
         Key reference = MinecraftKey.key(object.get("reference").getAsString());
-        //noinspection rawtypes
-        return new ResolvableRegistryComponent(component, registry, reference);
+        //noinspection rawtypes,unchecked
+        return new ResolvableHolderComponent(type, registry, reference);
     }
 
     @Override
