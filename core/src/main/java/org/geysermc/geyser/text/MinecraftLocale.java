@@ -291,7 +291,10 @@ public class MinecraftLocale {
             }
         }
         localeStrings = LOCALE_MAPPINGS.get("en_us");
-        return localeStrings.get(messageText);
+        if (localeStrings != null) {
+            return localeStrings.get(messageText);
+        }
+        return null;
     }
 
     /**
