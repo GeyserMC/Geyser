@@ -186,36 +186,34 @@ final class BedrockMovePlayer {
                 if (result != null) { // A null return value cancels the packet
                     Vector3d position = result.correctedMovement();
 
-                    /*if (!session.getWorldBorder().isPassingIntoBorderBoundaries(position.toFloat(), true)) { */
-                        Packet movePacket;
-                        if (rotationChanged) {
-                            // Send rotation updates as well
-                            movePacket = new ServerboundMovePlayerPosRotPacket(
-                                isOnGround,
-                                horizontalCollision,
-                                position.getX(), position.getY(), position.getZ(),
-                                javaYaw, pitch
-                            );
-                            entity.setYaw(yaw);
-                            entity.setJavaYaw(javaYaw);
-                            entity.setPitch(pitch);
-                            entity.setHeadYaw(headYaw);
-                        } else {
-                            // Rotation did not change; don't send an update with rotation
-                            movePacket = new ServerboundMovePlayerPosPacket(isOnGround, horizontalCollision, position.getX(), position.getY(), position.getZ());
-                        }
-
-                        entity.setPositionFromBedrockPos(packet.getPosition());
-
-                        // Send final movement changes
-                        session.sendDownstreamGamePacket(movePacket);
-
-                        session.getInputCache().markPositionPacketSent();
-                        session.getSkullCache().updateVisibleSkulls();
+                    Packet movePacket;
+                    if (rotationChanged) {
+                        // Send rotation updates as well
+                        movePacket = new ServerboundMovePlayerPosRotPacket(
+                            isOnGround,
+                            horizontalCollision,
+                            position.getX(), position.getY(), position.getZ(),
+                            javaYaw, pitch
+                        );
+                        entity.setYaw(yaw);
+                        entity.setJavaYaw(javaYaw);
+                        entity.setPitch(pitch);
+                        entity.setHeadYaw(headYaw);
                     } else {
-                        session.getCollisionManager().recalculatePosition();
+                        // Rotation did not change; don't send an update with rotation
+                        movePacket = new ServerboundMovePlayerPosPacket(isOnGround, horizontalCollision, position.getX(), position.getY(), position.getZ());
                     }
-                /*} */
+
+                    entity.setPositionFromBedrockPos(packet.getPosition());
+
+                    // Send final movement changes
+                    session.sendDownstreamGamePacket(movePacket);
+
+                    session.getInputCache().markPositionPacketSent();
+                    session.getSkullCache().updateVisibleSkulls();
+                } else {
+                    session.getCollisionManager().recalculatePosition();
+                }
             } else {
                 // Not a valid move
                 session.getGeyser().getLogger().debug("Recalculating position...");
