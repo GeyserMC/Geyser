@@ -72,14 +72,11 @@ public class MinecraftLocale {
     }
 
     public static void ensureEN_US() {
+        // en_us requires special treatment since it's included in Minecraft's JAR file
         Path localeFile = getPath("en_us");
         AssetUtils.addTask(!Files.exists(localeFile), new AssetUtils.ClientJarTask("assets/minecraft/lang/en_us.json",
                 (stream) -> AssetUtils.saveFile(localeFile, stream),
-                () -> {
-                    if ("en_us".equals(GeyserLocale.getDefaultLocale())) {
-                        loadLocale("en_us");
-                    }
-                }));
+                () -> loadLocale("en_us")));
     }
 
     public static void downloadDeprecations() {
@@ -136,6 +133,7 @@ public class MinecraftLocale {
      * @param locale Locale to download
      */
     private static void downloadLocale(String locale) {
+        // Don't download en_us, it's included in the JAR file
         if (locale.equals("en_us")) {
             return;
         }
@@ -261,28 +259,24 @@ public class MinecraftLocale {
     }
 
     /**
-     * Translate the given language string into the given locale, or falls back to the default locale
+     * Translate the given Java language string into the given locale, or falls back to American English.
      *
      * @param messageText Language string to translate
      * @param locale Locale to translate to
      * @return Translated string or the original message if it was not found in the given locale
      */
     public static String getLocaleString(String messageText, String locale) {
-        Map<String, String> localeStrings = LOCALE_MAPPINGS.get(locale.toLowerCase(Locale.ROOT));
-        if (localeStrings == null) {
-            localeStrings = LOCALE_MAPPINGS.get(GeyserLocale.getDefaultLocale());
-            if (localeStrings == null) {
-                // Don't cause a NPE if the locale is STILL missing
-                GeyserImpl.getInstance().getLogger().debug("MISSING DEFAULT LOCALE: " + GeyserLocale.getDefaultLocale());
-                return messageText;
-            }
+        String translated = getLocaleStringIfPresent(messageText, locale);
+        if (translated == null) {
+            // Don't cause a NPE if the string is missing
+            GeyserImpl.getInstance().getLogger().debug("MISSING JAVA TRANSLATION STRING: " + messageText);
+            return messageText;
         }
-
-        return localeStrings.getOrDefault(messageText, messageText);
+        return translated;
     }
 
     /**
-     * Translate the given language string into the given locale, or returns null.
+     * Translate the given Java language string into the given locale, falls back to American English, or returns null.
      *
      * @param messageText Language string to translate
      * @param locale Locale to translate to
@@ -291,10 +285,13 @@ public class MinecraftLocale {
     public static @Nullable String getLocaleStringIfPresent(String messageText, String locale) {
         Map<String, String> localeStrings = LOCALE_MAPPINGS.get(locale.toLowerCase(Locale.ROOT));
         if (localeStrings != null) {
-            return localeStrings.get(messageText);
+            String translated = localeStrings.get(messageText);
+            if (translated != null) {
+                return translated;
+            }
         }
-
-        return null;
+        localeStrings = LOCALE_MAPPINGS.get("en_us");
+        return localeStrings.get(messageText);
     }
 
     /**

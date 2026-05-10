@@ -264,11 +264,6 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
             MinecraftLocale.downloadDeprecations();
             MinecraftLocale.ensureEN_US();
-            String locale = GeyserLocale.getDefaultLocale();
-            if (!"en_us".equals(locale)) {
-                // English will be loaded after assets are downloaded, if necessary
-                MinecraftLocale.downloadAndLoadLocale(locale);
-            }
 
             ProvidedSkins.init();
 
