@@ -1762,7 +1762,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public boolean sendForm(@NonNull Form form) {
         // First close any dialogs that are open. This won't execute the dialog's closing action.
         dialogManager.close();
-        // Also close all currently open forms.
+        return doSendForm(form);
+    }
+
+    /**
+     * Sends a form without first closing any open dialog. This should only be used by {@link org.geysermc.geyser.session.dialog.Dialog}s.
+     */
+    public void sendDialogForm(@NonNull Form form) {
+        doSendForm(form);
+    }
+
+    private boolean doSendForm(@NonNull Form form) {
+        // Close all currently open forms.
         if (formCache.hasFormOpen()) {
             closeForm();
         }
@@ -1784,18 +1795,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             formCache.resendAllForms();
         }
 
-        return true;
-    }
-
-    /**
-     * Sends a form without first closing any open dialog. This should only be used by {@link org.geysermc.geyser.session.dialog.Dialog}s.
-     */
-    public void sendDialogForm(@NonNull Form form) {
-        doSendForm(form);
-    }
-
-    private boolean doSendForm(@NonNull Form form) {
-        formCache.showForm(form);
         return true;
     }
 
