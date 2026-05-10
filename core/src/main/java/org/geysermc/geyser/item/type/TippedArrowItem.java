@@ -50,7 +50,7 @@ public class TippedArrowItem extends ArrowItem {
                     return ItemData.builder()
                             .definition(mapping.getBedrockDefinition())
                             .damage(potion.tippedArrowId())
-                            .count(count);
+                            .count(Math.min(count, BEDROCK_MAX_STACK_SIZE));
                 }
                 GeyserImpl.getInstance().getLogger().debug("Unknown Java potion (tipped arrow): " + potionContents.getPotionId());
             }

@@ -468,6 +468,10 @@ public class CustomItemRegistryPopulator {
                 stackSize = 1;
             }
         }
+        // Bedrock's stack size can be at most 64
+        if (stackSize > 64) {
+            stackSize = 64;
+        }
 
         itemProperties.putInt("max_stack_size", stackSize);
 
