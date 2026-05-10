@@ -105,6 +105,9 @@ public record CustomItemContext(CustomItemDefinition definition, DataComponents 
         if (equippable != null && stackSize > 1 && firstPass) {
             GeyserImpl.getInstance().getLogger().warning("Bedrock doesn't support stackable equippable items! Custom item %s with stack size %s and equippable component for slot %s will not work as expected!"
                 .formatted(definition.bedrockIdentifier(), stackSize, equippable.slot()));
+        } else if (stackSize > 64 && firstPass) {
+            GeyserImpl.getInstance().getLogger().warning("Bedrock doesn't support stack sizes above 64! Custom item %s with stack size %s will be clamped to 64!"
+                .formatted(definition.bedrockIdentifier(), stackSize));
         } else if (stackSize > 1 && maxDamage > 0) {
             throw new InvalidItemComponentsException("Stack size must be 1 when max damage is above 0");
         }
