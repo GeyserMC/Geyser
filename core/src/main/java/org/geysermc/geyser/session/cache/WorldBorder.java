@@ -300,6 +300,7 @@ public class WorldBorder {
         if (!resizing) {
             return;
         }
+
         this.lerpProgress++;
         this.size = this.calculateSize();
         if (this.lerpProgress >= this.lerpDuration) {
@@ -418,8 +419,8 @@ public class WorldBorder {
     public void moveWorldBorderCollision(Vector3f playerPosition) {
         final boolean insideCloseToBorder = isInsideCloseToBorder();
 
-        boolean closeToX = !(playerPosition.getX() > minX + CLOSE_TO_BORDER && playerPosition.getX() < maxX - CLOSE_TO_BORDER) && insideCloseToBorder;
-        boolean closeToZ = !(playerPosition.getZ() > minZ + CLOSE_TO_BORDER && playerPosition.getZ() < maxZ - CLOSE_TO_BORDER) && insideCloseToBorder;
+        boolean closeToX = !(playerPosition.getX() > minX + CLOSE_TO_BORDER && playerPosition.getX() < maxX - CLOSE_TO_BORDER) && insideCloseToBorder && !isResizing();
+        boolean closeToZ = !(playerPosition.getZ() > minZ + CLOSE_TO_BORDER && playerPosition.getZ() < maxZ - CLOSE_TO_BORDER) && insideCloseToBorder && !isResizing();
 
         // If the player isn't close enough, then despawn the border since we don't need it.
         if (xCollisionEntity != null && !closeToX) {
