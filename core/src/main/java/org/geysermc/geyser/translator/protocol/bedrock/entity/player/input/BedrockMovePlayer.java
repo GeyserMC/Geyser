@@ -155,6 +155,8 @@ final class BedrockMovePlayer {
             session.setNoClip(!possibleOnGround);
         }
 
+        session.getWorldBorder().moveWorldBorderCollision(packet.getPosition().down(EntityDefinitions.PLAYER.offset()));
+
         // This takes into account no movement sent from the client, but the player is trying to move anyway.
         // (Press into a wall in a corner - you're trying to move but nothing actually happens)
         // This isn't sent when a player is riding a vehicle (as of 1.21.62)
@@ -184,7 +186,7 @@ final class BedrockMovePlayer {
                 if (result != null) { // A null return value cancels the packet
                     Vector3d position = result.correctedMovement();
 
-                    if (!session.getWorldBorder().isPassingIntoBorderBoundaries(position.toFloat(), true)) {
+                    /*if (!session.getWorldBorder().isPassingIntoBorderBoundaries(position.toFloat(), true)) { */
                         Packet movePacket;
                         if (rotationChanged) {
                             // Send rotation updates as well
@@ -213,7 +215,7 @@ final class BedrockMovePlayer {
                     } else {
                         session.getCollisionManager().recalculatePosition();
                     }
-                }
+                /*} */
             } else {
                 // Not a valid move
                 session.getGeyser().getLogger().debug("Recalculating position...");

@@ -33,8 +33,14 @@ import org.cloudburstmc.math.vector.Vector2d;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
+import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
@@ -122,6 +128,11 @@ public class WorldBorder {
 
     private final GeyserSession session;
 
+    /**
+     * To simulate collision with the world border.
+     */
+    private Entity xCollisionEntity, zCollisionEntity;
+
     public WorldBorder(GeyserSession session) {
         this.session = session;
         // Initialize all min/max/warning variables
@@ -140,6 +151,27 @@ public class WorldBorder {
     }
 
     private static final int CLOSE_TO_BORDER = 5;
+
+    private double getDistanceToBorder(final double x, final double z) {
+        double fromNorth = z - minZ;
+        double fromSouth = maxZ - z;
+        double fromWest = x - minX;
+        double fromEast = maxX - x;
+        double min = Math.min(fromWest, fromEast);
+        min = Math.min(min, fromNorth);
+        return Math.min(min, fromSouth);
+    }
+
+    private boolean isWithinBounds(final double x, final double z, final double margin) {
+        return x >= this.minX - margin && x < maxX + margin && z >= minZ - margin && z < maxZ + margin;
+    }
+
+    public boolean isInsideCloseToBorder() {
+        SessionPlayerEntity player = session.getPlayerEntity();
+        double bbMax = Math.max(Math.max(player.getBoundingBoxWidth(), player.getBoundingBoxHeight()), 1.0);
+        return this.getDistanceToBorder(player.position().getX(), player.position().getZ())
+            < bbMax * 2.0 && this.isWithinBounds(player.position().getX(), player.position().getZ(), bbMax);
+    }
 
     /**
      * @return if the player is close to the border boundaries. Used to always indicate a border even if there is no
@@ -272,6 +304,64 @@ public class WorldBorder {
         this.warningMaxZ = this.maxZ - this.warningBlocks;
     }
 
+    public void resetCollisionEntity() {
+        this.xCollisionEntity = this.zCollisionEntity = null;
+    }
+
+    public void moveWorldBorderCollision(Vector3f playerPosition) {
+        if (!isCloseToBorderBoundaries()) {
+            return;
+        }
+
+        boolean closeToX =
+            !(playerPosition.getX() > minX + CLOSE_TO_BORDER && playerPosition.getX() < maxX - CLOSE_TO_BORDER) && isInsideCloseToBorder();
+        boolean closeToZ =
+            !(playerPosition.getZ() > minZ + CLOSE_TO_BORDER && playerPosition.getZ() < maxZ - CLOSE_TO_BORDER) && isInsideCloseToBorder();
+
+        if (xCollisionEntity != null && !closeToX) {
+            xCollisionEntity.despawnEntity();
+            xCollisionEntity = null;
+        }
+        if (zCollisionEntity != null && !closeToZ) {
+            zCollisionEntity.despawnEntity();
+            zCollisionEntity = null;
+        }
+
+        if ((xCollisionEntity == null || xCollisionEntity.position().distance(playerPosition) > 300) && closeToX) {
+            xCollisionEntity = buildCollisionEntity();
+        }
+        if ((zCollisionEntity == null || zCollisionEntity.position().distance(playerPosition) > 300) && closeToZ) {
+            zCollisionEntity = buildCollisionEntity();
+        }
+
+        if (xCollisionEntity != null && playerPosition.getX() < Math.max(warningMinX, minX + CLOSE_TO_BORDER)) {
+            xCollisionEntity.moveAbsolute(Vector3f.from(minX - 4.999, playerPosition.getY() - 20, playerPosition.getZ()), 0, 0, false, true);
+        }
+
+        if (xCollisionEntity != null && playerPosition.getX() > Math.min(warningMaxX, maxX - CLOSE_TO_BORDER)) {
+            xCollisionEntity.moveAbsolute(Vector3f.from(maxX + 4.999, playerPosition.getY() - 20, playerPosition.getZ()), 0, 0, false, true);
+        }
+
+        if (zCollisionEntity != null && playerPosition.getZ() > Math.min(warningMaxZ, maxZ - CLOSE_TO_BORDER)) {
+            zCollisionEntity.moveAbsolute(Vector3f.from(playerPosition.getX(), playerPosition.getY() - 20, maxZ + 4.999), 0, 0, false, true);
+        }
+        if (zCollisionEntity != null && playerPosition.getZ() < Math.max(warningMinZ, minZ + CLOSE_TO_BORDER)) {
+            zCollisionEntity.moveAbsolute(Vector3f.from(playerPosition.getX(), playerPosition.getY() - 20, minZ - 4.999), 0, 0, false, true);
+        }
+    }
+
+    private Entity buildCollisionEntity() {
+        Entity entity = new Entity(new EntitySpawnContext(session, EntityDefinitions.ARMOR_STAND, 0, null));
+        entity.setPosition(session.getPlayerEntity().getPosition().up(5)); // Initial position, will change.
+        entity.setFlag(EntityFlag.COLLIDABLE, true);
+        entity.setFlag(EntityFlag.INVISIBLE, true);
+        entity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 100f);
+        entity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 10f);
+
+        entity.spawnEntity();
+        return entity;
+    }
+
     public void tick() {
         if (!resizing) {
             return;
@@ -330,16 +420,16 @@ public class WorldBorder {
         float particlePosZ = entityPosition.getZ();
 
         if (particlePosX > Math.min(warningMaxX, maxX - CLOSE_TO_BORDER)) {
-            drawWall(Vector3f.from(maxX, particlePosY, particlePosZ), true);
+            drawWall(Vector3f.from(maxX + 0.5f, particlePosY, particlePosZ), true);
         }
         if (particlePosX < Math.max(warningMinX, minX + CLOSE_TO_BORDER)) {
-            drawWall(Vector3f.from(minX, particlePosY, particlePosZ), true);
+            drawWall(Vector3f.from(minX - 0.5, particlePosY, particlePosZ), true);
         }
         if (particlePosZ > Math.min(warningMaxZ, maxZ - CLOSE_TO_BORDER)) {
-            drawWall(Vector3f.from(particlePosX, particlePosY, maxZ), false);
+            drawWall(Vector3f.from(particlePosX, particlePosY, maxZ + 0.5f), false);
         }
         if (particlePosZ < Math.max(warningMinZ, minZ + CLOSE_TO_BORDER)) {
-            drawWall(Vector3f.from(particlePosX, particlePosY, minZ), false);
+            drawWall(Vector3f.from(particlePosX, particlePosY, minZ - 0.5f), false);
         }
     }
 
