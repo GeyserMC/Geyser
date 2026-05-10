@@ -73,6 +73,8 @@ public enum BedrockEnchantment {
     BREACH,
     LUNGE;
 
+    public static final int INVALID = 43;
+
     private static final BedrockEnchantment[] VALUES = values();
 
     private final String javaIdentifier;
