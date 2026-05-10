@@ -56,13 +56,13 @@ public class PotionItem extends Item {
                     return ItemData.builder()
                             .definition(mapping.getBedrockDefinition())
                             .damage(potion.getBedrockId())
-                            .count(count);
+                            .count(Math.min(count, BEDROCK_MAX_STACK_SIZE));
                 }
                 GeyserImpl.getInstance().getLogger().debug("Unknown Java potion: " + potionContents.getPotionId());
             } else {
                 return ItemData.builder()
                         .definition(customItemDefinition)
-                        .count(count);
+                        .count(Math.min(count, BEDROCK_MAX_STACK_SIZE));
             }
         }
         return super.translateToBedrock(session, count, components, mapping, mappings);
