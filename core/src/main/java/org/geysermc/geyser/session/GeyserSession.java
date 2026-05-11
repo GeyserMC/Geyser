@@ -185,6 +185,7 @@ import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.DialogTag;
+import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
 import org.geysermc.geyser.session.dialog.BuiltInDialog;
 import org.geysermc.geyser.session.dialog.Dialog;
@@ -968,10 +969,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         // Recipe unlocking
         gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
-        // We disable the locator bar until we are certain that the server wants us to enable it
-        // See WaypointCache for details
-        gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
-        
+
+        if (!GeyserWaypoint.uses26_10WaypointPacket(this)) {
+            // We disable the locator bar until we are certain that the server wants us to enable it
+            // See WaypointCache for details
+            gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
+        }
+
         upstream.sendPacket(gamerulePacket);
     }
 
