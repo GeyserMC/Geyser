@@ -112,9 +112,11 @@ public final class SoundUtils {
             return;
         }
 
-        if (soundMapping.playsound() != null) {
+        String playsound = session.integratedPackActive() ? soundMapping.integratedPlaySound() : soundMapping.playsound();
+
+        if (playsound != null) {
             // We always prefer the PlaySound mapping because we can control volume and pitch
-            playSound(session, soundMapping.playsound(), position, volume, pitch * soundMapping.pitchAdjust());
+            playSound(session, playsound, position, volume, pitch * soundMapping.pitchAdjust());
             return;
         }
 
