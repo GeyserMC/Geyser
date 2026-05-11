@@ -30,6 +30,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -526,19 +527,26 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Stores all Java recipes by ID, and matches them to all possible Bedrock recipe identifiers.
      */
-    private final Int2ObjectMap<List<String>> javaToBedrockRecipeIds;
+    private final Int2ObjectMap<List<String>> javaToBedrockRecipeIds = new Int2ObjectOpenHashMap<>();
 
-    private final Int2ObjectMap<GeyserRecipe> craftingRecipes;
+    private final Int2ObjectMap<GeyserRecipe> craftingRecipes = new Int2ObjectOpenHashMap<>();
     @Setter
     private Pair<CraftingRecipeData, GeyserRecipe> lastCreatedRecipe = null; // TODO try to prevent sending duplicate recipes
     private final AtomicInteger lastRecipeNetId;
+
+    /**
+     * Used to minimize the amount of recipes sent to the client, as the packet is quite heavy
+     * when sent in rapid succession
+     */
+    @Setter
+    private boolean cleanRecipesRequired = true;
 
     /**
      * Saves a list of all stonecutter recipes, for use in a stonecutter inventory.
      * The key is the Bedrock recipe net ID; the values are their respective output and button ID.
      */
     @Setter
-    private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes;
+    private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes = Int2ObjectMaps.emptyMap();
     private final List<GeyserSmithingRecipe> smithingRecipes = new ArrayList<>();
 
     /**
@@ -856,8 +864,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.playerInventoryHolder = new InventoryHolder<>(this, new PlayerInventory(this), InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         this.inventoryHolder = null;
-        this.craftingRecipes = new Int2ObjectOpenHashMap<>();
-        this.javaToBedrockRecipeIds = new Int2ObjectOpenHashMap<>();
         this.lastRecipeNetId = new AtomicInteger(InventoryUtils.LAST_RECIPE_NET_ID + 1);
 
         this.spawned = false;
