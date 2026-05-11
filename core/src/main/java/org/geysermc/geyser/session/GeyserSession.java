@@ -186,6 +186,7 @@ import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.DialogTag;
+import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
 import org.geysermc.geyser.session.dialog.BuiltInDialog;
 import org.geysermc.geyser.session.dialog.Dialog;
@@ -896,7 +897,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
 
             DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
-            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5 /* Void */));
+            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5, 3));
             upstream.sendPacket(dimensionDataPacket);
         }
 
@@ -974,10 +975,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         // Recipe unlocking
         gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
-        // We disable the locator bar until we are certain that the server wants us to enable it
-        // See WaypointCache for details
-        gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
-        
+
+        if (!GeyserWaypoint.uses26_10WaypointPacket(this)) {
+            // We disable the locator bar until we are certain that the server wants us to enable it
+            // See WaypointCache for details
+            gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
+        }
+
         upstream.sendPacket(gamerulePacket);
     }
 
@@ -1229,12 +1233,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             // Remove from session manager
             geyser.getSessionManager().removeSession(this);
-            if (authData != null) {
-                PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(authData.xuid());
-                if (task != null) {
-                    task.resetRunningFlow();
-                }
-            }
+            // Don't cancel any pending Microsoft auth here - the whole point of PendingMicrosoftAuthentication
+            // is to let mobile users disconnect to finish auth in the browser. Task cleans up on timeout.
         }
 
         if (tickThread != null) {
@@ -1772,7 +1772,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public boolean sendForm(@NonNull Form form) {
         // First close any dialogs that are open. This won't execute the dialog's closing action.
         dialogManager.close();
-        // Also close all currently open forms.
+        return doSendForm(form);
+    }
+
+    /**
+     * Sends a form without first closing any open dialog. This should only be used by {@link org.geysermc.geyser.session.dialog.Dialog}s.
+     */
+    public void sendDialogForm(@NonNull Form form) {
+        doSendForm(form);
+    }
+
+    private boolean doSendForm(@NonNull Form form) {
+        // Close all currently open forms.
         if (formCache.hasFormOpen()) {
             closeForm();
         }
@@ -1794,18 +1805,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             formCache.resendAllForms();
         }
 
-        return true;
-    }
-
-    /**
-     * Sends a form without first closing any open dialog. This should only be used by {@link org.geysermc.geyser.session.dialog.Dialog}s.
-     */
-    public void sendDialogForm(@NonNull Form form) {
-        doSendForm(form);
-    }
-
-    private boolean doSendForm(@NonNull Form form) {
-        formCache.showForm(form);
         return true;
     }
 
