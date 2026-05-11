@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@
 package org.geysermc.geyser.api.connection;
 
 import org.checkerframework.checker.index.qual.Positive;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.api.connection.Connection;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
@@ -34,6 +33,7 @@ import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.skin.SkinData;
+import org.jspecify.annotations.Nullable;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -50,7 +50,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @return the CameraData for this connection.
      */
-    @NonNull CameraData camera();
+    CameraData camera();
 
     /**
      * Exposes the {@link EntityData} for this connection.
@@ -58,7 +58,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @return the EntityData for this connection.
      */
-    @NonNull EntityData entities();
+    EntityData entities();
 
     /**
      * Returns the current ping of the connection.
@@ -131,7 +131,6 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @return the ip address or hostname string the player used to join 
      * @since 2.8.3
      */
-    @NonNull
     String joinAddress();
 
     /**
@@ -160,7 +159,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @param skinData the skin data to apply
      * @since 2.8.3
      */
-    void sendSkin(@NonNull UUID player, @NonNull SkinData skinData);
+    void sendSkin(UUID player, SkinData skinData);
 
     /**
      * Displays a player entity as emoting to this client.
@@ -168,7 +167,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @param emoter the player entity emoting.
      * @param emoteId the emote ID to send to this client.
      */
-    void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
+    void showEmote(GeyserPlayerEntity emoter, String emoteId);
 
     /**
      * Shakes the client's camera.
@@ -185,7 +184,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @deprecated Use {@link CameraData#shakeCamera(float, float, CameraShake)} instead.
      */
     @Deprecated
-    void shakeCamera(float intensity, float duration, @NonNull CameraShake type);
+    void shakeCamera(float intensity, float duration, CameraShake type);
 
     /**
      * Stops all camera shake of any type.
@@ -221,7 +220,6 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @deprecated Use {@link CameraData#fogEffects()} instead.
      */
     @Deprecated
-    @NonNull
     Set<String> fogEffects();
 
     /**
@@ -230,7 +228,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @return the {@link GeyserPlayerEntity} for this connection
      * @since 2.9.3
      */
-    @NonNull GeyserPlayerEntity playerEntity();
+    GeyserPlayerEntity playerEntity();
 
     /**
      * Requests an offhand swap from the Java server.
@@ -245,5 +243,5 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @since 2.9.4
      */
-    @NonNull String playFabId();
+    String playFabId();
 }

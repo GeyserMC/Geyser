@@ -31,6 +31,7 @@ import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -94,13 +95,17 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                     if (!PlayerListUtils.shouldLimitPlayerListEntries(session)) {
                         PlayerListPacket.Entry playerListEntry = SkinManager.buildEntryFromCachedSkin(session, entity);
                         toAdd.add(playerListEntry);
-                        session.getWaypointCache().listPlayer(entity);
+                        if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
+                            session.getWaypointCache().addEntity(entity);
+                        }
                     }
                 } else {
                     // No need to unlist players that were never listed
                     if (entity.isListed()) {
                         toRemove.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
-                        session.getWaypointCache().unlistPlayer(entity);
+                        if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
+                            session.getWaypointCache().removeEntity(entity);
+                        }
                     }
                 }
                 entity.setListed(entry.isListed());

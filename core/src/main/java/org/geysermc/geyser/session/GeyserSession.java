@@ -61,7 +61,6 @@ import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
 import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
-import org.cloudburstmc.protocol.bedrock.data.AuthoritativeMovementMode;
 import org.cloudburstmc.protocol.bedrock.data.ChatRestrictionLevel;
 import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.GamePublishSetting;
@@ -153,6 +152,7 @@ import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
+import org.geysermc.geyser.level.gamerule.GameRuleHandler;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
@@ -183,6 +183,7 @@ import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.DialogTag;
+import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
 import org.geysermc.geyser.session.dialog.BuiltInDialog;
 import org.geysermc.geyser.session.dialog.Dialog;
@@ -296,6 +297,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final EntityCache entityCache;
     private final EntityEffectCache effectCache;
     private final FormCache formCache;
+    private final GameRuleHandler gameRuleHandler;
     private final InputCache inputCache;
     private final LodestoneCache lodestoneCache;
     private final PistonCache pistonCache;
@@ -646,14 +648,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Controls whether the daylight cycle gamerule has been sent to the client, so the sun/moon remain motionless.
      */
-    private boolean daylightCycle = true;
+    private boolean shouldClientTickClock = true;
 
     private boolean reducedDebugInfo = false;
 
     /**
      * The op permission level set by the server
      */
-    @Setter
     private int opPermissionLevel = 0;
 
     /**
@@ -728,12 +729,35 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private long clientTicks;
 
     /**
-     * The world time in ticks according to the server
-     * <p>
-     * Note: The TickingStatePacket is currently ignored.
+     * The game ticks counter according to the server.
+     *
+     * <p>This is probably the counter you want to use when dealing with ticks on the server. The day time counters can
+     * change and can have a custom rate, however this counter never changes in a dimension, and always has the same rate (1 tick every 20th of a second),
+     * pending any server lag.</p>
+     *
+     * <p>Note: The TickingStatePacket is currently ignored.</p>
      */
     @Setter
-    private long worldTicks;
+    private long gameTicks;
+
+    /**
+     * The day time in ticks according to the server.
+     *
+     * <p>Note: The TickingStatePacket is currently ignored.</p>
+     */
+    private long dayTimeTicks;
+
+    /**
+     * The partial day time tick according to the server.
+     *
+     * <p>Note: The TickingStatePacket is currently ignored.</p>
+     */
+    private double partialTimeTick;
+
+    /**
+     * How fast the world time should pass according to the server. Starts at 0, server will tell us what it is when joining.
+     */
+    private float clockRate = 0.0F;
 
     /**
      * Used to return players back to their vehicles if the server doesn't want them unmounting.
@@ -768,7 +792,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private final GeyserEntityData entityData;
 
-    @Getter(AccessLevel.MODULE)
+    @Getter(AccessLevel.PACKAGE)
     private MinecraftProtocol protocol;
 
     private int nanosecondsPerTick = 50000000;
@@ -822,9 +846,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.cameraData = new GeyserCameraData(this);
         this.entityData = new GeyserEntityData(this);
 
-        this.worldBorder = new WorldBorder(this);
         this.collisionManager = new CollisionManager(this);
+        this.gameRuleHandler = new GameRuleHandler(this);
         this.blockBreakHandler = new BlockBreakHandler(this);
+        this.worldBorder = new WorldBorder(this);
 
         this.playerEntity = new SessionPlayerEntity(this);
         collisionManager.updatePlayerBoundingBox(this.playerEntity.position());
@@ -866,7 +891,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
 
             DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
-            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5 /* Void */));
+            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5, 3));
             upstream.sendPacket(dimensionDataPacket);
         }
 
@@ -883,6 +908,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sendRegistryDefinitions();
         sendInitialPlayerState();
         sendInitialGameRules();
+        resetTimeParameters();
     }
 
     /**
@@ -943,10 +969,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         // Recipe unlocking
         gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
-        // We disable the locator bar until we are certain that the server wants us to enable it
-        // See WaypointCache for details
-        gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
-        
+
+        if (!GeyserWaypoint.uses26_10WaypointPacket(this)) {
+            // We disable the locator bar until we are certain that the server wants us to enable it
+            // See WaypointCache for details
+            gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
+        }
+
         upstream.sendPacket(gamerulePacket);
     }
 
@@ -1162,10 +1191,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         downstream.setFlag(BuiltinFlags.CLIENT_TRANSFERRING, loginEvent.transferring());
         downstream.connect(false);
-
-        if (!daylightCycle) {
-            setDaylightCycle(true);
-        }
     }
 
     public void disconnect(String reason) {
@@ -1202,12 +1227,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             // Remove from session manager
             geyser.getSessionManager().removeSession(this);
-            if (authData != null) {
-                PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(authData.xuid());
-                if (task != null) {
-                    task.resetRunningFlow();
-                }
-            }
+            // Don't cancel any pending Microsoft auth here - the whole point of PendingMicrosoftAuthentication
+            // is to let mobile users disconnect to finish auth in the browser. Task cleans up on timeout.
         }
 
         if (tickThread != null) {
@@ -1370,7 +1391,26 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         ticks++;
-        worldTicks++;
+        partialTimeTick += clockRate;
+        if (partialTimeTick >= 1.0F) {
+            long flooredPartialTick = (long) Math.floor(partialTimeTick);
+            dayTimeTicks += flooredPartialTick;
+            partialTimeTick -= flooredPartialTick;
+
+            if (!isShouldClientTickClock()) {
+                synchronizeTime();
+            }
+        }
+    }
+
+    public void synchronizeTime() {
+        // https://minecraft.wiki/w/Day-night_cycle#24-hour_Minecraft_day
+        SetTimePacket setTimePacket = new SetTimePacket();
+        // We use modulus to prevent an integer overflow
+        // 24000 is the range of ticks that a Minecraft day can be; we times by 8 so all moon phases are visible
+        // (Last verified behavior: Bedrock 1.18.12 / Java 1.18.2)
+        setTimePacket.setTime((int) (Math.abs(dayTimeTicks) % (24000 * 8)));
+        this.sendUpstreamPacket(setTimePacket);
     }
 
     public void sendJsonUIData(String key, String value) {
@@ -1668,7 +1708,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 dialogManager.openDialog(BuiltInDialog.SERVER_LINKS);
             }
         } else if (additions.size() == 1) {
-            dialogManager.openDialog(additions.get(0));
+            dialogManager.openDialog(additions.getFirst());
         } else {
             dialogManager.openDialog(BuiltInDialog.CUSTOM_OPTIONS);
         }
@@ -1677,12 +1717,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Override
     public void openQuickActions() {
         List<Dialog> quickActions = tagCache.get(DialogTag.QUICK_ACTIONS);
-        if (quickActions.isEmpty()) {
-            return;
-        } else if (quickActions.size() == 1) {
-            dialogManager.openDialog(quickActions.get(0));
-        } else {
-            dialogManager.openDialog(BuiltInDialog.QUICK_ACTIONS);
+        if (!quickActions.isEmpty()) {
+            if (quickActions.size() == 1) {
+                dialogManager.openDialog(quickActions.getFirst());
+            } else {
+                dialogManager.openDialog(BuiltInDialog.QUICK_ACTIONS);
+            }
         }
     }
 
@@ -1720,11 +1760,29 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return this.upstream.getAddress();
     }
 
+    public void setOpPermissionLevel(int opPermissionLevel) {
+        this.opPermissionLevel = opPermissionLevel;
+        if (gameRuleHandler.getState() == GameRuleHandler.State.SHOWN || gameRuleHandler.getState() == GameRuleHandler.State.WAITING) {
+            closeForm();
+        }
+    }
+
     @Override
     public boolean sendForm(@NonNull Form form) {
         // First close any dialogs that are open. This won't execute the dialog's closing action.
         dialogManager.close();
-        // Also close all currently open forms.
+        return doSendForm(form);
+    }
+
+    /**
+     * Sends a form without first closing any open dialog. This should only be used by {@link org.geysermc.geyser.session.dialog.Dialog}s.
+     */
+    public void sendDialogForm(@NonNull Form form) {
+        doSendForm(form);
+    }
+
+    private boolean doSendForm(@NonNull Form form) {
+        // Close all currently open forms.
         if (formCache.hasFormOpen()) {
             closeForm();
         }
@@ -1749,18 +1807,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         return true;
     }
 
-    /**
-     * Sends a form without first closing any open dialog. This should only be used by {@link org.geysermc.geyser.session.dialog.Dialog}s.
-     */
-    public void sendDialogForm(@NonNull Form form) {
-        doSendForm(form);
-    }
-
-    private boolean doSendForm(@NonNull Form form) {
-        formCache.showForm(form);
-        return true;
-    }
-
     public void acceptCodeOfConduct() {
         if (hasAcceptedCodeOfConduct) {
             return;
@@ -1775,7 +1821,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
         // Disable time progression whilst the form is open
         // Once logged into the game this is set correctly when receiving a time packet from the server
-        setDaylightCycle(false);
+        resetTimeParameters();
     }
 
     public @NonNull PlayerInventory getPlayerInventory() {
@@ -1893,8 +1939,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
 
-        startGamePacket.getItemDefinitions().addAll(this.itemMappings.getItemDefinitions().values());
-
         // Needed for custom block mappings and custom skulls system
         startGamePacket.getBlockProperties().addAll(this.blockMappings.getBlockProperties());
 
@@ -1907,7 +1951,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         startGamePacket.setChatRestrictionLevel(ChatRestrictionLevel.NONE);
 
-        startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.SERVER);
         startGamePacket.setRewindHistorySize(0);
         // Server authorative block breaking results in the client always sending
         // positions for block breaking actions, which is easier to validate
@@ -2085,15 +2128,46 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
-     * Changes the daylight cycle gamerule on the client
-     * This is used in login and configuration screens along-side normal usage
+     * Changes the daylight cycle gamerule on the client.
+     * The gamerule is true whenever the clock rate is normal (1.0), and false otherwise (because then we keep track of time).
      *
-     * @param doCycle If the cycle should continue
+     * @param shouldTick if the client should tick its daylight cycle clock
      */
-    public void setDaylightCycle(boolean doCycle) {
-        sendGameRule("dodaylightcycle", doCycle);
+    public void setShouldClientTickClock(boolean shouldTick) {
+        if (this.shouldClientTickClock == shouldTick) {
+            return;
+        }
+        sendGameRule("dodaylightcycle", shouldTick);
         // Save the value so we don't have to constantly send a daylight cycle gamerule update
-        this.daylightCycle = doCycle;
+        this.shouldClientTickClock = shouldTick;
+    }
+
+    /**
+     * Sets the current Java tick counters
+     *
+     * @param timeTicks the current day time ticks according to the server (minecraft:overworld clock)
+     * @param partialTick the current partial day time tick according to the server (minecraft:overworld clock)
+     */
+    public void setTimeTicks(long timeTicks, float partialTick) {
+        this.dayTimeTicks = timeTicks;
+        this.partialTimeTick = partialTick;
+        synchronizeTime();
+    }
+
+    public void setClockRate(float rate) {
+        this.clockRate = rate;
+        setShouldClientTickClock(this.clockRate == 1.0f);
+    }
+
+    /**
+     * Resets the Java game tick and time tick (time tick, partial tick, clock rate) counters to their initial values.
+     *
+     * <p>Please note that this also freezes time as the initial clock rate value is 0.</p>
+     */
+    public void resetTimeParameters() {
+        setGameTicks(0L);
+        setTimeTicks(0L, 0.0F);
+        setClockRate(0.0F);
     }
 
     /**
@@ -2534,7 +2608,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     private void softEnumPacket(String name, SoftEnumUpdateType type, String enums) {
         // There is no need to send command enums if command suggestions are disabled
-        if (!this.geyser.config().gameplay().commandSuggestions() || GameProtocol.is1_26_20orHigher(protocolVersion())) {
+        if (!this.geyser.config().gameplay().commandSuggestions()) {
             return;
         }
         UpdateSoftEnumPacket packet = new UpdateSoftEnumPacket();

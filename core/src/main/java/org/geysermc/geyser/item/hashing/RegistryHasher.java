@@ -64,17 +64,17 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Fireworks;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.InstrumentComponent;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemAttributeModifiers;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ItemEnchantments;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.JukeboxPlayable;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.JukeboxSong;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.KineticWeapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectDetails;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectInstance;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.ProvidesTrimMaterial;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SuspiciousStewEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.TypedEntityData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
@@ -86,6 +86,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
@@ -138,7 +139,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<CustomSound> CUSTOM_SOUND = MinecraftHasher.mapBuilder(builder -> builder
         .accept("sound_id", KEY, sound -> MinecraftKey.key(sound.getName()))
-        .optional("range", FLOAT, CustomSound::getRange, 16.0F));
+        .optionalTypePredicate("range", FLOAT, CustomSound::getRange, CustomSound::isNewSystem));
 
     MinecraftHasher<Sound> SOUND_EVENT = (sound, encoder) -> {
         if (sound instanceof BuiltinSound builtin) {
@@ -149,13 +150,13 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     RegistryHasher<?> DAMAGE_TYPE = registry(JavaRegistries.DAMAGE_TYPE);
 
-    MinecraftHasher<InstrumentComponent.Instrument> DIRECT_INSTRUMENT = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("sound_event", SOUND_EVENT, InstrumentComponent.Instrument::soundEvent)
-        .accept("use_duration", FLOAT, InstrumentComponent.Instrument::useDuration)
-        .accept("range", FLOAT, InstrumentComponent.Instrument::range)
-        .accept("description", ComponentHasher.COMPONENT, InstrumentComponent.Instrument::description));
+    MinecraftHasher<Instrument> DIRECT_INSTRUMENT = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("sound_event", SOUND_EVENT, Instrument::soundEvent)
+        .accept("use_duration", FLOAT, Instrument::useDuration)
+        .accept("range", FLOAT, Instrument::range)
+        .accept("description", ComponentHasher.COMPONENT, Instrument::description));
 
-    RegistryHasher<InstrumentComponent.Instrument> INSTRUMENT = registry(JavaRegistries.INSTRUMENT, DIRECT_INSTRUMENT);
+    RegistryHasher<Instrument> INSTRUMENT = registry(JavaRegistries.INSTRUMENT, DIRECT_INSTRUMENT);
 
     MinecraftHasher<ArmorTrim.TrimMaterial> DIRECT_TRIM_MATERIAL = MinecraftHasher.mapBuilder(builder -> builder
         .accept("asset_name", MinecraftHasher.STRING, ArmorTrim.TrimMaterial::assetBase)
@@ -171,13 +172,13 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     RegistryHasher<ArmorTrim.TrimPattern> TRIM_PATTERN = registry(JavaRegistries.TRIM_PATTERN, DIRECT_TRIM_PATTERN);
 
-    MinecraftHasher<JukeboxPlayable.JukeboxSong> DIRECT_JUKEBOX_SONG = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("sound_event", SOUND_EVENT, JukeboxPlayable.JukeboxSong::soundEvent)
-        .accept("description", ComponentHasher.COMPONENT, JukeboxPlayable.JukeboxSong::description)
-        .accept("length_in_seconds", FLOAT, JukeboxPlayable.JukeboxSong::lengthInSeconds)
-        .accept("comparator_output", INT, JukeboxPlayable.JukeboxSong::comparatorOutput));
+    MinecraftHasher<JukeboxSong> DIRECT_JUKEBOX_SONG = MinecraftHasher.mapBuilder(builder -> builder
+        .accept("sound_event", SOUND_EVENT, JukeboxSong::soundEvent)
+        .accept("description", ComponentHasher.COMPONENT, JukeboxSong::description)
+        .accept("length_in_seconds", FLOAT, JukeboxSong::lengthInSeconds)
+        .accept("comparator_output", INT, JukeboxSong::comparatorOutput));
 
-    RegistryHasher<JukeboxPlayable.JukeboxSong> JUKEBOX_SONG = registry(JavaRegistries.JUKEBOX_SONG, DIRECT_JUKEBOX_SONG);
+    RegistryHasher<JukeboxSong> JUKEBOX_SONG = registry(JavaRegistries.JUKEBOX_SONG, DIRECT_JUKEBOX_SONG);
 
     MinecraftHasher<BannerPatternLayer.BannerPattern> DIRECT_BANNER_PATTERN = MinecraftHasher.mapBuilder(builder -> builder
         .accept("asset_id", KEY, BannerPatternLayer.BannerPattern::getAssetId)
@@ -191,13 +192,25 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     RegistryHasher<?> PIG_VARIANT = registry(JavaRegistries.PIG_VARIANT);
 
+    RegistryHasher<?> PIG_SOUND_VARIANT = registry(JavaRegistries.PIG_SOUND_VARIANT);
+
     RegistryHasher<?> COW_VARIANT = registry(JavaRegistries.COW_VARIANT);
+
+    RegistryHasher<?> COW_SOUND_VARIANT = registry(JavaRegistries.COW_SOUND_VARIANT);
+
+    RegistryHasher<?> CHICKEN_VARIANT = registry(JavaRegistries.CHICKEN_VARIANT);
+
+    RegistryHasher<?> CHICKEN_SOUND_VARIANT = registry(JavaRegistries.CHICKEN_SOUND_VARIANT);
+
+    RegistryHasher<?> ZOMBIE_NAUTILUS_VARIANT = registry(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT);
 
     RegistryHasher<?> FROG_VARIANT = registry(JavaRegistries.FROG_VARIANT);
 
     RegistryHasher<?> PAINTING_VARIANT = registry(JavaRegistries.PAINTING_VARIANT);
 
     RegistryHasher<?> CAT_VARIANT = registry(JavaRegistries.CAT_VARIANT);
+
+    RegistryHasher<?> CAT_SOUND_VARIANT = registry(JavaRegistries.CAT_SOUND_VARIANT);
 
     // Entity variants
     // These are all not registries on Java, meaning they serialise as just literal strings, not namespaced IDs
@@ -228,6 +241,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
     @SuppressWarnings({"unchecked", "rawtypes"}) // Java generics :(
     MinecraftHasher<DataComponent<?, ?>> DATA_COMPONENT_VALUE = (component, encoder) -> {
         if (component.getValue() == null) {
+            // Component removal
             return UNIT.hash(Unit.INSTANCE, encoder);
         }
         MinecraftHasher hasher = DataComponentHashers.hasher(component.getType());
@@ -238,7 +252,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<ItemStack> ITEM_STACK = MinecraftHasher.mapBuilder(builder -> builder
         .accept("id", ITEM, ItemStack::getId)
-        .accept("count", INT, ItemStack::getAmount)
+        .optional("count", INT, ItemStack::getAmount, 1)
         .optionalNullable("components", DATA_COMPONENTS, ItemStack::getDataComponentsPatch));
 
     // Encoding of hidden effects is unfortunately not possible
@@ -267,12 +281,12 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .accept("slot", INT, ItemContainerSlot::index)
         .accept("item", ITEM_STACK, ItemContainerSlot::item));
 
-    MinecraftHasher<List<ItemStack>> ITEM_CONTAINER_CONTENTS = CONTAINER_SLOT.list().cast(stacks -> {
+    MinecraftHasher<List<Optional<ItemStack>>> ITEM_CONTAINER_CONTENTS = CONTAINER_SLOT.list().cast(stacks -> {
         List<ItemContainerSlot> slots = new ArrayList<>();
         for (int i = 0; i < stacks.size(); i++) {
-            ItemStack stack = stacks.get(i);
-            if (stack != null) {
-                slots.add(new ItemContainerSlot(i, stacks.get(i)));
+            Optional<ItemStack> stack = stacks.get(i);
+            if (stack.isPresent()) {
+                slots.add(new ItemContainerSlot(i, stack.get()));
             }
         }
         return slots;
@@ -280,11 +294,11 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<AdventureModePredicate.BlockPredicate> BLOCK_PREDICATE = MinecraftHasher.mapBuilder(builder -> builder
         .optionalNullable("blocks", BLOCK.holderSet(), AdventureModePredicate.BlockPredicate::getBlocks)
-        .optionalNullable("nbt", NBT_MAP, AdventureModePredicate.BlockPredicate::getNbt)); // Property and data component matchers are, unfortunately, too complicated to include here
+        .optionalNullable("nbt", NBT_STRING, AdventureModePredicate.BlockPredicate::getNbt)); // Property and data component matchers are, unfortunately, too complicated to include here
 
     // Encode as a single element if the list only has one element
     MinecraftHasher<AdventureModePredicate> ADVENTURE_MODE_PREDICATE = MinecraftHasher.either(BLOCK_PREDICATE,
-        predicate -> predicate.getPredicates().size() == 1 ? predicate.getPredicates().get(0) : null, BLOCK_PREDICATE.list(), AdventureModePredicate::getPredicates);
+        predicate -> predicate.getPredicates().size() == 1 ? predicate.getPredicates().getFirst() : null, BLOCK_PREDICATE.list(), AdventureModePredicate::getPredicates);
 
     MinecraftHasher<ItemAttributeModifiers.DisplayType> ATTRIBUTE_MODIFIER_DISPLAY_TYPE = MinecraftHasher.fromEnum();
 
@@ -305,15 +319,11 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<Consumable.ItemUseAnimation> ITEM_USE_ANIMATION = MinecraftHasher.fromEnum();
 
-    MinecraftHasher<ConsumeEffectType> CONSUME_EFFECT_TYPE = enumRegistry();
-
-    MinecraftHasher<ConsumeEffect> CONSUME_EFFECT = CONSUME_EFFECT_TYPE.dispatch(ConsumeEffectType::fromEffect, ConsumeEffectType::mapBuilder);
+    MinecraftHasher<ConsumeEffect> CONSUME_EFFECT = ConsumeEffectType.CONSUME_EFFECT_HASHER;
 
     MinecraftHasher<SuspiciousStewEffect> SUSPICIOUS_STEW_EFFECT = MinecraftHasher.mapBuilder(builder -> builder
         .accept("id", EFFECT_ID, SuspiciousStewEffect::getMobEffectId)
         .optional("duration", INT, SuspiciousStewEffect::getDuration, 160));
-
-    MinecraftHasher<InstrumentComponent> INSTRUMENT_COMPONENT = MinecraftHasher.either(INSTRUMENT.holder(), InstrumentComponent::instrumentHolder, KEY, InstrumentComponent::instrumentLocation);
 
     MinecraftHasher<ToolData.Rule> TOOL_RULE = MinecraftHasher.mapBuilder(builder -> builder
         .accept("blocks", RegistryHasher.BLOCK.holderSet(), ToolData.Rule::getBlocks)
@@ -338,13 +348,9 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<SwingAnimation.Type> SWING_ANIMATION_TYPE = MinecraftHasher.fromEnum();
 
-    MinecraftHasher<ProvidesTrimMaterial> PROVIDES_TRIM_MATERIAL = MinecraftHasher.either(TRIM_MATERIAL.holder(), ProvidesTrimMaterial::materialHolder, KEY, ProvidesTrimMaterial::materialLocation);
-
     MinecraftHasher<ArmorTrim> ARMOR_TRIM = MinecraftHasher.mapBuilder(builder -> builder
         .accept("material", TRIM_MATERIAL.holder(), ArmorTrim::material)
         .accept("pattern", TRIM_PATTERN.holder(), ArmorTrim::pattern));
-
-    MinecraftHasher<JukeboxPlayable> JUKEBOX_PLAYABLE = MinecraftHasher.either(JUKEBOX_SONG.holder(), JukeboxPlayable::songHolder, KEY, JukeboxPlayable::songLocation);
 
     MinecraftHasher<BannerPatternLayer> BANNER_PATTERN_LAYER = MinecraftHasher.mapBuilder(builder -> builder
         .accept("pattern", BANNER_PATTERN.holder(), BannerPatternLayer::getPattern)
@@ -360,8 +366,9 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .optional("has_twinkle", BOOL, Fireworks.FireworkExplosion::isHasTwinkle, false));
 
     MinecraftHasher<BeehiveOccupant> BEEHIVE_OCCUPANT = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("id", RegistryHasher.ENTITY_TYPE_KEY, beehiveOccupant -> beehiveOccupant.getEntityData().type())
-        .accept(beehiveOccupant -> beehiveOccupant.getEntityData().tag(), MapBuilder.inlineNbtMap())
+        .accept("entity_data", BeehiveOccupant::getEntityData, entityDataBuilder -> entityDataBuilder
+            .accept("id", ENTITY_TYPE_KEY, TypedEntityData::type)
+            .accept(TypedEntityData::tag, MapBuilder.inlineNbtMap()))
         .accept("ticks_in_hive", INT, BeehiveOccupant::getTicksInHive)
         .accept("min_ticks_in_hive", INT, BeehiveOccupant::getMinTicksInHive));
 
@@ -463,18 +470,6 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
     static <EnumConstant extends Enum<EnumConstant>> RegistryHasher<?> enumIdRegistry(EnumConstant[] values, Function<EnumConstant, Key> toKey) {
         MinecraftHasher<Integer> hasher = KEY.cast(i -> toKey.apply(values[i]));
         return hasher::hash;
-    }
-
-    /**
-     * Creates a hasher that hashes a {@code Holder<Key>}, also known as an {@code EitherHolder} in Mojmap.
-     *
-     * <p>Please note that a {@code Holder<Key>} is only a valid representation of an {@code EitherHolder} in MCPL if the stream codec of the {@code EitherHolder} does not support directly encoding unregistered values.</p>
-     *
-     * @param registry the registry the {@code Holder} is for.
-     * @return a hasher that hashes a {@code Holder<Key>} for the given registry.
-     */
-    static MinecraftHasher<Holder<Key>> eitherHolderHasher(JavaRegistryKey<?> registry) {
-        return MinecraftHasher.KEY.registryCast((registries, holder) -> holder.getOrCompute(id -> registry.key(registries, id)));
     }
 
     class RegistryHasherWithDirectHasher<DirectType> implements RegistryHasher<DirectType> {

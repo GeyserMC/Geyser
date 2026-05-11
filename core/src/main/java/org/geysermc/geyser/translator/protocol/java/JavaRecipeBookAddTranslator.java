@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
@@ -99,47 +100,54 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 continue;
             }
 
-            if (display instanceof ShapedCraftingRecipeDisplay shapedRecipe) {
-                GeyserRecipe geyserRecipe = new GeyserShapedRecipe(contents.id(), netId, shapedRecipe);
+            switch (display) {
+                case ShapedCraftingRecipeDisplay shapedRecipe -> {
+                    GeyserRecipe geyserRecipe = new GeyserShapedRecipe(contents.id(), netId, shapedRecipe);
 
-                List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
-                craftingDataPacket.getCraftingData().addAll(recipeData);
+                    List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
+                    craftingDataPacket.getCraftingData().addAll(recipeData);
 
-                List<String> bedrockRecipeIds = new ArrayList<>();
-                for (int i = 0; i < recipeData.size(); i++) {
-                    String recipeId = contents.id() + "_" + i;
-                    recipesPacket.getUnlockedRecipes().add(recipeId);
-                    bedrockRecipeIds.add(recipeId);
-                    geyserRecipes.put(netId++, geyserRecipe);
+                    List<String> bedrockRecipeIds = new ArrayList<>();
+                    for (int i = 0; i < recipeData.size(); i++) {
+                        String recipeId = contents.id() + "_" + i;
+                        recipesPacket.getUnlockedRecipes().add(recipeId);
+                        bedrockRecipeIds.add(recipeId);
+                        geyserRecipes.put(netId++, geyserRecipe);
+                    }
+                    javaToBedrockRecipeIds.put(contents.id(), List.copyOf(bedrockRecipeIds));
                 }
-                javaToBedrockRecipeIds.put(contents.id(), List.copyOf(bedrockRecipeIds));
-            } else if (display instanceof ShapelessCraftingRecipeDisplay shapelessRecipe) {
-                GeyserRecipe geyserRecipe = new GeyserShapelessRecipe(contents.id(), netId, shapelessRecipe);
+                case ShapelessCraftingRecipeDisplay shapelessRecipe -> {
+                    GeyserRecipe geyserRecipe = new GeyserShapelessRecipe(contents.id(), netId, shapelessRecipe);
 
-                List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
-                craftingDataPacket.getCraftingData().addAll(recipeData);
+                    List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
+                    craftingDataPacket.getCraftingData().addAll(recipeData);
 
-                List<String> bedrockRecipeIds = new ArrayList<>();
-                for (int i = 0; i < recipeData.size(); i++) {
-                    String recipeId = contents.id() + "_" + i;
-                    recipesPacket.getUnlockedRecipes().add(recipeId);
-                    bedrockRecipeIds.add(recipeId);
-                    geyserRecipes.put(netId++, geyserRecipe);
+                    List<String> bedrockRecipeIds = new ArrayList<>();
+                    for (int i = 0; i < recipeData.size(); i++) {
+                        String recipeId = contents.id() + "_" + i;
+                        recipesPacket.getUnlockedRecipes().add(recipeId);
+                        bedrockRecipeIds.add(recipeId);
+                        geyserRecipes.put(netId++, geyserRecipe);
+                    }
+                    javaToBedrockRecipeIds.put(contents.id(), List.copyOf(bedrockRecipeIds));
                 }
-                javaToBedrockRecipeIds.put(contents.id(), List.copyOf(bedrockRecipeIds));
-            } else if (display instanceof SmithingRecipeDisplay smithingRecipe) {
-                if (display.result() instanceof SmithingTrimDemoSlotDisplay) {
-                    // Skip these - Bedrock already knows about them from the TrimDataPacket
-                    continue;
+                case SmithingRecipeDisplay smithingRecipe -> {
+                    if (contents.display().result() instanceof SmithingTrimDemoSlotDisplay) {
+                        // Skip these - Bedrock already knows about them from the TrimDataPacket
+                        continue;
+                    }
+
+                    GeyserSmithingRecipe geyserRecipe = new GeyserSmithingRecipe(contents.id(), netId, smithingRecipe);
+                    session.getSmithingRecipes().add(geyserRecipe);
+
+                    List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
+                    craftingDataPacket.getCraftingData().addAll(recipeData);
+
+                    netId += recipeData.size();
                 }
-
-                GeyserSmithingRecipe geyserRecipe = new GeyserSmithingRecipe(contents.id(), netId, smithingRecipe);
-                session.getSmithingRecipes().add(geyserRecipe);
-
-                List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
-                craftingDataPacket.getCraftingData().addAll(recipeData);
-
-                netId += recipeData.size();
+                default -> {
+                    GeyserImpl.getInstance().getLogger().debug("Ignoring unknown recipe display type! " + entry);
+                }
             }
         }
 
@@ -154,7 +162,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                 // Again, very hacky, FIXME please
                 if (!knownFurnaceRecipes.contains(type)) {
                     int id = Integer.MIN_VALUE + placeholderRecipes;
-                    GeyserRecipe geyserRecipe = new GeyserShapelessRecipe(id, netId, placeholderFurnaceRecipe, type.categories().get(0));
+                    GeyserRecipe geyserRecipe = new GeyserShapelessRecipe(id, netId, placeholderFurnaceRecipe, type.categories().getFirst());
 
                     List<RecipeData> recipeData = geyserRecipe.asRecipeData(session);
                     craftingDataPacket.getCraftingData().addAll(recipeData);

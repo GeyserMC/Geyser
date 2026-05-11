@@ -1,0 +1,19 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:repairable",
+  "value": [
+    {
+      "items": "minecraft:stone"
+    },
+    {
+      "items": "#minecraft:anvil"
+    },
+    {
+      "items": [
+        "minecraft:stone",
+        "minecraft:coal",
+        "minecraft:diamond"
+      ]
+    }
+  ]
+}

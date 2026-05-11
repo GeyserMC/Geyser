@@ -1,0 +1,22 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:jukebox_playable",
+  "value": [
+    "minecraft:cat",
+    "minecraft:blocks",
+    "minecraft:chirp",
+    "minecraft:far",
+    "minecraft:mall",
+    "minecraft:mellohi",
+    "minecraft:stal",
+    "minecraft:strad",
+    "minecraft:ward",
+    "minecraft:wait",
+    "minecraft:pigstep",
+    "minecraft:otherside",
+    "minecraft:creator",
+    "minecraft:relic",
+    "minecraft:precipice",
+    "minecraft:tears"
+  ]
+}

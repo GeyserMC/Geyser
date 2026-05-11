@@ -81,6 +81,11 @@ public class ArmadilloEntity extends AnimalEntity {
     }
 
     @Override
+    protected float getBabySize() {
+        return 0.6f;
+    }
+
+    @Override
     @Nullable
     protected Tag<Item> getFoodTag() {
         return ItemTag.ARMADILLO_FOOD;

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.item.hashing;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.KeybindComponent;
 import net.kyori.adventure.text.NBTComponent;
 import net.kyori.adventure.text.ObjectComponent;
@@ -33,6 +34,7 @@ import net.kyori.adventure.text.ScoreComponent;
 import net.kyori.adventure.text.SelectorComponent;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.TranslationArgument;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -40,10 +42,11 @@ import net.kyori.adventure.text.format.ShadowColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.object.ObjectContents;
 import net.kyori.adventure.text.object.PlayerHeadObjectContents;
+import org.geysermc.geyser.item.hashing.data.NbtComponentType;
 import org.geysermc.geyser.item.hashing.data.ObjectContentsType;
 
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -57,6 +60,8 @@ public interface ComponentHasher {
             return ACTUAL_COMPONENT;
         }
     });
+
+    MinecraftHasher<ComponentLike> COMPONENT_LIKE = COMPONENT.cast(ComponentLike::asComponent);
 
     MinecraftHasher<PlayerHeadObjectContents.ProfileProperty> PROFILE_PROPERTY = MinecraftHasher.mapBuilder(builder -> builder
         .accept("name", MinecraftHasher.STRING, PlayerHeadObjectContents.ProfileProperty::name)
@@ -148,14 +153,17 @@ public interface ComponentHasher {
 
     MinecraftHasher<TranslatableComponent> TRANSLATABLE_COMPONENT = component(builder -> builder
         .accept("translate", MinecraftHasher.STRING, TranslatableComponent::key)
-        .optionalNullable("fallback", MinecraftHasher.STRING, TranslatableComponent::fallback)); // Arguments are probably not possible
+        .optionalNullable("fallback", MinecraftHasher.STRING, TranslatableComponent::fallback)
+        .optionalList("with", COMPONENT_LIKE.cast(TranslationArgument::asTranslationArgument), TranslatableComponent::arguments));
 
     MinecraftHasher<KeybindComponent> KEYBIND_COMPONENT = component(builder -> builder
         .accept("keybind", MinecraftHasher.STRING, component -> component.keybind()));
 
     MinecraftHasher<ScoreComponent> SCORE_COMPONENT = component(builder -> builder
-        .accept("name", MinecraftHasher.STRING, ScoreComponent::name)
-        .accept("objective", MinecraftHasher.STRING, ScoreComponent::objective));
+        .accept("score", Function.identity(), childBuilder -> childBuilder
+            .accept("name", MinecraftHasher.STRING, ScoreComponent::name)
+            .accept("objective", MinecraftHasher.STRING, ScoreComponent::objective)
+        ));
 
     MinecraftHasher<SelectorComponent> SELECTOR_COMPONENT = component(builder -> builder
         .accept("selector", MinecraftHasher.STRING, SelectorComponent::pattern)
@@ -164,14 +172,11 @@ public interface ComponentHasher {
     MinecraftHasher<NBTComponent<?, ?>> NBT_COMPONENT = component(builder -> builder
         .accept("nbt", MinecraftHasher.STRING, NBTComponent::nbtPath)
         .optional("interpret", MinecraftHasher.BOOL, NBTComponent::interpret, false)
-        .optionalNullable("separator", COMPONENT, NBTComponent::separator)); // TODO source key, needs kyori update?
-
-    MinecraftHasher<ObjectContentsType> OBJECT_CONTENTS_TYPE = MinecraftHasher.fromEnum(ObjectContentsType::getName);
-
-    MapBuilder<ObjectContents> OBJECT_CONTENTS = MapBuilder.dispatch("object", OBJECT_CONTENTS_TYPE, ObjectContentsType::fromContents, ObjectContentsType::mapBuilder);
+        .optionalNullable("separator", COMPONENT, NBTComponent::separator)
+        .accept(NbtComponentType.NBT_COMPONENT_SOURCE_MAP_BUILDER, Function.identity()));
 
     MinecraftHasher<ObjectComponent> OBJECT_COMPONENT = component(builder -> builder
-        .accept(OBJECT_CONTENTS, ObjectComponent::contents));
+        .accept(ObjectContentsType.OBJECT_CONTENTS_MAP_BUILDER, ObjectComponent::contents));
 
     MinecraftHasher<Component> ACTUAL_COMPONENT = (component, encoder) -> {
         if (component instanceof TextComponent text) {
@@ -184,7 +189,7 @@ public interface ComponentHasher {
             return SCORE_COMPONENT.hash(score, encoder);
         } else if (component instanceof SelectorComponent selector) {
             return SELECTOR_COMPONENT.hash(selector, encoder);
-        } else if (component instanceof NBTComponent<?,?> nbt) {
+        } else if (component instanceof NBTComponent<?, ?> nbt) {
             return NBT_COMPONENT.hash(nbt, encoder);
         } else if (component instanceof ObjectComponent object) {
             return OBJECT_COMPONENT.hash(object, encoder);

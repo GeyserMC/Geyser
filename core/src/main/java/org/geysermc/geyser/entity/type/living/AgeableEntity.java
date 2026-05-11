@@ -62,7 +62,7 @@ public class AgeableEntity extends CreatureEntity {
      * The scale that should be used when this entity is a baby.
      */
     protected float getBabySize() {
-        return 0.55f;
+        return 0.5f;
     }
 
     public boolean isBaby() {

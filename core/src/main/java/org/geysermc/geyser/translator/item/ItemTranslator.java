@@ -206,10 +206,25 @@ public final class ItemTranslator {
             nbtBuilder.setCustomName(customName);
         }
 
-        ItemAttributeModifiers attributeModifiers = components.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-        if (attributeModifiers != null && tooltip.showInTooltip(DataComponentTypes.ATTRIBUTE_MODIFIERS )) {
-            // only add if attribute modifiers do not indicate to hide them
-            addAttributeLore(session, attributeModifiers, nbtBuilder, session.locale());
+        if (customComponents != null) {
+            ItemAttributeModifiers attributeModifiers = customComponents.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
+            if (attributeModifiers != null && tooltip.showInTooltip(DataComponentTypes.ATTRIBUTE_MODIFIERS)) {
+                // only add if attribute modifiers do not indicate to hide them
+                addAttributeLore(session, attributeModifiers, nbtBuilder, session.locale());
+            }
+        }
+
+        if (components.contains(DataComponentTypes.UNBREAKABLE) && tooltip.showInTooltip(DataComponentTypes.UNBREAKABLE)) {
+            nbtBuilder.getOrCreateLore().add(
+                MessageTranslator.convertMessage(
+                    Component.text()
+                        .resetStyle()
+                        .color(NamedTextColor.BLUE)
+                        .append(Component.translatable("item.unbreakable"))
+                        .build(),
+                    session.locale()
+                )
+            );
         }
 
         if (session.isAdvancedTooltips() && !TooltipOptions.hideTooltip(components)) {

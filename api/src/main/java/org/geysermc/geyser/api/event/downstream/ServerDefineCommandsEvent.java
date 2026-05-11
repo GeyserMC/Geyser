@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event.downstream;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Cancellable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
@@ -41,7 +40,7 @@ public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancel
     private final Set<? extends CommandInfo> commands;
     private boolean cancelled;
 
-    public ServerDefineCommandsEvent(@NonNull GeyserConnection connection, @NonNull Set<? extends CommandInfo> commands) {
+    public ServerDefineCommandsEvent(GeyserConnection connection, Set<? extends CommandInfo> commands) {
         super(connection);
         this.commands = commands;
     }
@@ -52,7 +51,6 @@ public class ServerDefineCommandsEvent extends ConnectionEvent implements Cancel
      *
      * @return a collection of the commands sent over
      */
-    @NonNull
     public Set<? extends CommandInfo> commands() {
         return this.commands;
     }

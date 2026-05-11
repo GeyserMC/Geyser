@@ -1,0 +1,34 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:bees",
+  "value": [
+    [],
+    [
+      {
+        "entity_data": {
+          "id": "minecraft:bee"
+        },
+        "ticks_in_hive": 60,
+        "min_ticks_in_hive": 40
+      }
+    ],
+    [
+      {
+        "entity_data": {
+          "id": "minecraft:bee",
+          "Health": 10.0
+        },
+        "ticks_in_hive": 345,
+        "min_ticks_in_hive": 436
+      },
+      {
+        "entity_data": {
+          "id": "minecraft:bee",
+          "Health": 4.0
+        },
+        "ticks_in_hive": 647,
+        "min_ticks_in_hive": 312
+      }
+    ]
+  ]
+}

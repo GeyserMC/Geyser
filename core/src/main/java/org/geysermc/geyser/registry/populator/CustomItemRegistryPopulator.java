@@ -468,6 +468,10 @@ public class CustomItemRegistryPopulator {
                 stackSize = 1;
             }
         }
+        // Bedrock's stack size can be at most 64
+        if (stackSize > 64) {
+            stackSize = 64;
+        }
 
         itemProperties.putInt("max_stack_size", stackSize);
 
@@ -711,8 +715,8 @@ public class CustomItemRegistryPopulator {
 
     private static NbtMapBuilder addAttackRangeProperties(NbtMapBuilder component, AttackRange attackRange) {
         return component
-            .putCompound("reach", createReachMap(attackRange.minRange(), attackRange.maxRange()))
-            .putCompound("creative_reach", createReachMap(attackRange.minCreativeRange(), attackRange.maxCreativeRange()))
+            .putCompound("reach", createReachMap(attackRange.minReach(), attackRange.maxReach()))
+            .putCompound("creative_reach", createReachMap(attackRange.minCreativeReach(), attackRange.maxCreativeReach()))
             .putFloat("hitbox_margin", attackRange.hitboxMargin()); // TODO is this 1-to-1 with Java?
     }
 

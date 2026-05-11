@@ -219,7 +219,7 @@ public class HappyGhastEntity extends AnimalEntity implements ClientVehicle {
     }
 
     private Entity getFirstPassenger() {
-        return passengers.isEmpty() ? null : passengers.get(0);
+        return passengers.isEmpty() ? null : passengers.getFirst();
     }
 
     @Override

@@ -176,7 +176,7 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
     }
 
     private @Nullable PlayerEntity getPlayerPassenger() {
-        if (getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.get(0) instanceof PlayerEntity playerEntity) {
+        if (getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.getFirst() instanceof PlayerEntity playerEntity) {
             return playerEntity;
         }
 

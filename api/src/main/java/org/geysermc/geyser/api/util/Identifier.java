@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.util;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -69,7 +68,7 @@ public interface Identifier {
      * @throws IllegalArgumentException if either namespace or path are invalid.
      * @since 2.9.0
      */
-    static Identifier of(@NonNull String namespace, @NonNull String path) {
+    static Identifier of(String namespace, String path) {
         return GeyserApi.api().provider(Identifier.class, namespace, path);
     }
 

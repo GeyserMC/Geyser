@@ -1,12 +1,10 @@
 @file:Suppress("UnstableApiUsage")
 
-import net.fabricmc.loom.task.RemapJarTask
-import org.gradle.kotlin.dsl.dependencies
-
 plugins {
     id("geyser.platform-conventions")
     id("architectury-plugin")
-    id("dev.architectury.loom")
+    id("dev.architectury.loom-no-remap")
+    id("geyser.modrinth-uploading-conventions")
 }
 
 // These are provided by Minecraft/modded platforms already, no need to include them
@@ -49,13 +47,13 @@ loom {
 
 indra {
     javaVersions {
-        target(21)
+        target(25)
     }
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -80,24 +78,41 @@ tasks {
     shadowJar {
         // Mirrors the example fabric project, otherwise tons of dependencies are shaded that shouldn't be
         configurations = listOf(project.configurations.getByName("shadowBundle"))
-        // The remapped shadowJar is the final desired mod jar
-        archiveVersion.set(project.version.toString())
-        archiveClassifier.set("shaded")
+        archiveBaseName.set("${project.name}-shaded")
+        mergeServiceFiles()
     }
 
-    remapJar {
-        dependsOn(shadowJar)
-        inputFile.set(shadowJar.get().archiveFile)
-        archiveClassifier.set("")
+    // This task combines the output of the "jar" task, which includes JiJ dependencies,
+    // and the shadowJar for the final jar.
+    // thanks bluemap
+    // https://github.com/BlueMap-Minecraft/BlueMap/blob/cfe73115dc4d1bdd97bc659f41364da65a6a2179/implementations/fabric/build.gradle.kts#L93-L107
+    val mergeShadowAndJarJar = register<Jar>("mergeShadowAndJarJar") {
+        dependsOn( tasks.shadowJar, tasks.jar )
+        // from sources / final name are configured in the respective projects
         archiveVersion.set("")
-    }
-
-    register("remapModrinthJar", RemapJarTask::class) {
-        dependsOn(shadowJar)
-        inputFile.set(shadowJar.get().archiveFile)
-        archiveVersion.set(versionName(project))
         archiveClassifier.set("")
     }
+
+    val renameModrinthJar = tasks.register<Copy>("renameModrinthJar") {
+        dependsOn(mergeShadowAndJarJar)
+
+        from(mergeShadowAndJarJar.flatMap { it.archiveFile })
+        into(layout.buildDirectory.dir("libs"))
+
+        rename { "${versionName(project)}.jar" }
+    }
+
+    modrinth.configure {
+        dependsOn(renameModrinthJar)
+    }
+
+    build {
+        dependsOn(mergeShadowAndJarJar)
+    }
+}
+
+modrinth {
+    uploadFile.set(layout.buildDirectory.file("libs/${versionName(project)}.jar"))
 }
 
 afterEvaluate {
@@ -121,5 +136,4 @@ afterEvaluate {
 
 dependencies {
     minecraft(libs.minecraft)
-    mappings(loom.officialMojangMappings())
 }

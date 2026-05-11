@@ -1,0 +1,29 @@
+{
+  "type": "geyser:component_hash",
+  "components": [
+    {
+      "component": "minecraft:wolf/collar",
+      "value": "red"
+    },
+    {
+      "component": "minecraft:tropical_fish/base_color",
+      "value": "orange"
+    },
+    {
+      "component": "minecraft:tropical_fish/pattern_color",
+      "value": "yellow"
+    },
+    {
+      "component": "minecraft:cat/collar",
+      "value": "green"
+    },
+    {
+      "component": "minecraft:sheep/color",
+      "value": "blue"
+    },
+    {
+      "component": "minecraft:shulker/color",
+      "value": "purple"
+    }
+  ]
+}

@@ -982,6 +982,7 @@ public final class VanillaEntities {
 
         EntityTypeBase<AgeableEntity> ageableEntityBase = EntityTypeBase.baseInherited(AgeableEntity.class, mobEntityBase)
                 .addTranslator(MetadataTypes.BOOLEAN, AgeableEntity::setBaby)
+                .addTranslator(null) // Age locked
                 .build();
 
         // Extends ageable
@@ -1011,12 +1012,14 @@ public final class VanillaEntities {
                     .height(0.7f).width(0.4f)
                     .property(TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY)
                     .addTranslator(MetadataTypes.CHICKEN_VARIANT, ChickenEntity::setVariant)
+                    .addTranslator(null) // Sound variant
                     .build();
             COW = VanillaEntityType.inherited(CowEntity::new, ageableEntityBase)
                     .type(BuiltinEntityType.COW)
                     .height(1.4f).width(0.9f)
                     .property(TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY)
                     .addTranslator(MetadataTypes.COW_VARIANT, CowEntity::setVariant)
+                    .addTranslator(null) // Sound variant
                     .build();
             FOX = VanillaEntityType.inherited(FoxEntity::new, ageableEntityBase)
                     .type(BuiltinEntityType.FOX)
@@ -1077,6 +1080,7 @@ public final class VanillaEntities {
                     .property(TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY)
                     .addTranslator(MetadataTypes.INT, PigEntity::setBoost)
                     .addTranslator(MetadataTypes.PIG_VARIANT, PigEntity::setVariant)
+                    .addTranslator(null) // Sound variant
                     .build();
             POLAR_BEAR = VanillaEntityType.inherited(PolarBearEntity::new, ageableEntityBase)
                     .type(BuiltinEntityType.POLAR_BEAR)
@@ -1231,6 +1235,7 @@ public final class VanillaEntities {
                 .addTranslator(MetadataTypes.BOOLEAN, CatEntity::setResting)
                 .addTranslator(null) // "resting state one" //TODO
                 .addTranslator(MetadataTypes.INT, CatEntity::setCollarColor)
+                .addTranslator(null) // Sound variant
                 .build();
         PARROT = VanillaEntityType.inherited(ParrotEntity::new, tameableEntityBase)
                 .type(BuiltinEntityType.PARROT)

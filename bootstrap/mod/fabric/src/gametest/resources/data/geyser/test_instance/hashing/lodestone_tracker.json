@@ -1,0 +1,23 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:lodestone_tracker",
+  "value": [
+    {},
+    {
+      "tracked": false
+    },
+    {
+      "target": {
+        "pos": [21, 3, 25],
+        "dimension": "minecraft:the_end"
+      },
+      "tracked": false
+    },
+    {
+      "target": {
+        "pos": [1, 1, 26],
+        "dimension": "minecraft:overworld"
+      }
+    }
+  ]
+}

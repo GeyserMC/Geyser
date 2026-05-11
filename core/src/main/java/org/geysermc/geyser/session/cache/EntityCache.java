@@ -48,6 +48,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import lombok.Getter;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.Tickable;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 
 /**
  * Each session has its own EntityCache in the occasion that an entity packet is sent specifically
@@ -76,6 +82,10 @@ public class EntityCache {
         this.session = session;
     }
 
+    public long nextEntityId() {
+        return nextEntityId.incrementAndGet();
+    }
+
     public void spawnEntity(Entity entity) {
         if (cacheEntity(entity)) {
             // start tracking newly spawned entities. Doing this before the actual entity spawn can result in combining
@@ -88,6 +98,9 @@ public class EntityCache {
             if (entity instanceof Tickable) {
                 // Start ticking it
                 tickableEntities.add((Tickable) entity);
+            }
+            if (GeyserWaypoint.uses26_10WaypointPacket(session)) {
+                session.getWaypointCache().addEntity(entity);
             }
         }
     }
@@ -128,6 +141,11 @@ public class EntityCache {
         if (entity instanceof Tickable) {
             tickableEntities.remove(entity);
         }
+
+        if (GeyserWaypoint.uses26_10WaypointPacket(session)) {
+            session.getWaypointCache().removeEntity(entity);
+        }
+
         dirtyEntities.remove(entity);
     }
 

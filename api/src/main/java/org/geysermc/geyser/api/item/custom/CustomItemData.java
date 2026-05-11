@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,8 @@
 
 package org.geysermc.geyser.api.item.custom;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
+import org.jspecify.annotations.Nullable;
 
 import java.util.OptionalInt;
 import java.util.Set;
@@ -44,7 +43,7 @@ public interface CustomItemData {
      *
      * @return the item's name
      */
-    @NonNull String name();
+    String name();
 
     /**
      * Gets the custom item options of the item.
@@ -58,14 +57,14 @@ public interface CustomItemData {
      *
      * @return the item's display name
      */
-    @NonNull String displayName();
+    String displayName();
 
     /**
      * Gets the item's icon. By default, this is the item's name.
      *
      * @return the item's icon
      */
-    @NonNull String icon();
+    String icon();
 
     /**
      * Gets if the item is allowed to be put into the offhand.
@@ -86,7 +85,7 @@ public interface CustomItemData {
      *
      * @return the item's creative category
      */
-    @NonNull OptionalInt creativeCategory();
+    OptionalInt creativeCategory();
 
     /**
      * Gets the item's creative group.
@@ -119,7 +118,7 @@ public interface CustomItemData {
      *
      * @return the item's tags, if they exist
      */
-    @NonNull Set<String> tags();
+    Set<String> tags();
 
     static CustomItemData.Builder builder() {
         return GeyserApi.api().provider(CustomItemData.Builder.class);
@@ -129,13 +128,13 @@ public interface CustomItemData {
         /**
          * Will also set the display name and icon to the provided parameter, if it is currently not set.
          */
-        Builder name(@NonNull String name);
+        Builder name(String name);
 
-        Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);
+        Builder customItemOptions(CustomItemOptions customItemOptions);
 
-        Builder displayName(@NonNull String displayName);
+        Builder displayName(String displayName);
 
-        Builder icon(@NonNull String icon);
+        Builder icon(String icon);
 
         Builder allowOffhand(boolean allowOffhand);
 

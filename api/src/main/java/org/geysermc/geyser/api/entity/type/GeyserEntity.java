@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,8 +27,6 @@ package org.geysermc.geyser.api.entity.type;
 
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.index.qual.Positive;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
@@ -37,6 +35,7 @@ import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
@@ -69,7 +68,7 @@ public interface GeyserEntity {
     /**
      * @return the Bedrock entity definition
      */
-    @NonNull GeyserEntityDefinition definition();
+    GeyserEntityDefinition definition();
 
     /**
      * The position of this entity, without the Bedrock edition offset
@@ -77,7 +76,7 @@ public interface GeyserEntity {
      *
      * @return the position of the entity, as it is known to the Java server.
      */
-    @NonNull Vector3f position();
+    Vector3f position();
 
     /**
      * The vehicle this entity is currently on, or null if not present.
@@ -97,7 +96,7 @@ public interface GeyserEntity {
      * @return the value, or null if not set
      * @param <T> the type of the value
      */
-    <T> @Nullable T value(@NonNull GeyserEntityDataType<T> dataType);
+    <T> @Nullable T value(GeyserEntityDataType<T> dataType);
 
     /**
      * Updates an entity property with a new value.
@@ -107,7 +106,7 @@ public interface GeyserEntity {
      * @param value the new property value
      * @param <T> the type of the value
      */
-     <T> void update(@NonNull GeyserEntityDataType<T> dataType, @Nullable T value);
+     <T> void update(GeyserEntityDataType<T> dataType, @Nullable T value);
 
     /**
      * Updates an entity property with a new value.
@@ -118,7 +117,7 @@ public interface GeyserEntity {
      * @param <T> the type of the value
      * @since 2.9.0
      */
-    default <T> void updateProperty(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
+    default <T> void updateProperty(GeyserEntityProperty<T> property, @Nullable T value) {
         this.updatePropertiesBatched(consumer -> consumer.update(property, value));
     }
 

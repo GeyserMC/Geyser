@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
+import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.InteractPacket;
@@ -38,9 +39,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerState;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundAttackPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
 
@@ -67,12 +67,11 @@ public class BedrockInteractTranslator extends PacketTranslator<InteractPacket> 
                     break;
                 }
                 ServerboundInteractPacket interactPacket = new ServerboundInteractPacket(entity.getEntityId(),
-                        InteractAction.INTERACT, Hand.MAIN_HAND, session.isSneaking());
+                    Vector3d.ZERO, session.isSneaking());
                 session.sendDownstreamGamePacket(interactPacket);
                 break;
             case DAMAGE:
-                ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(entity.getEntityId(),
-                        InteractAction.ATTACK, Hand.MAIN_HAND, session.isSneaking());
+                ServerboundAttackPacket attackPacket = new ServerboundAttackPacket(entity.getEntityId());
                 session.sendDownstreamGamePacket(attackPacket);
                 break;
             case LEAVE_VEHICLE:

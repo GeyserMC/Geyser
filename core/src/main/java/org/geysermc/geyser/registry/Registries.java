@@ -41,8 +41,9 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
-import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.level.gamerule.GameRule;
+import org.geysermc.geyser.level.gamerule.GameRules;
 import org.geysermc.geyser.pack.ResourcePackHolder;
 import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.registry.loader.BlockEntityRegistryLoader;
@@ -174,11 +175,6 @@ public final class Registries {
     public static final VersionedDeferredRegistry<Set<PotionMixData>> POTION_MIXES = VersionedDeferredRegistry.create(VersionedRegistry::create, PotionMixRegistryLoader::new);
 
     /**
-     * A versioned registry holding all the recipes, with the net ID being the key, and {@link GeyserRecipe} as the value.
-     */
-    //public static final SimpleMappedDeferredRegistry<RecipeType, List<GeyserRecipe>> RECIPES = SimpleMappedDeferredRegistry.create("mappings/recipes.nbt", RecipeRegistryLoader::new);
-
-    /**
      * A mapped registry holding {@link ResourcePackHolder}'s with the pack uuid as keys.
      */
     public static final SimpleMappedDeferredRegistry<UUID, ResourcePackHolder> RESOURCE_PACKS = SimpleMappedDeferredRegistry.create(GeyserImpl.getInstance().packDirectory(), RegistryLoaders.RESOURCE_PACKS);
@@ -218,6 +214,12 @@ public final class Registries {
      */
     public static final ListDeferredRegistry<Key> DANGEROUS_ENTITIES = ListDeferredRegistry.create(UtilMappings::dangerousEntities, RegistryLoaders.UTIL_MAPPINGS_KEYS);
 
+    /**
+     * A registry containing all the Java game rules.
+     * Loaded through {@link GameRules}
+     */
+    public static final SimpleMappedRegistry<Key, GameRule<?>> GAME_RULES = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
+
     public static void load() {
         if (loaded) return;
         loaded = true;
@@ -233,7 +235,6 @@ public final class Registries {
         BLOCK_ENTITIES.load();
         PARTICLES.load();
         // load potion mixes later
-        //RECIPES.load();
         SOUNDS.load();
         SOUND_LEVEL_EVENTS.load();
         SOUND_TRANSLATORS.load();
@@ -241,6 +242,7 @@ public final class Registries {
         GAME_MASTER_BLOCKS.load();
         DANGEROUS_BLOCK_ENTITIES.load();
         DANGEROUS_ENTITIES.load();
+        GameRules.init();
     }
 
     public static void populate() {
