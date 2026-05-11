@@ -109,7 +109,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             }
         }
 
-        // As we now populate recipes that can differ, we need to ensure the next crafting packet resets the clients known recipes
+        // As we now populate recipes that can differ,
+        // we need to ensure the next crafting packet resets the client's known recipes
         session.setCleanRecipesRequired(true);
 
         boolean oldSmithingTable;

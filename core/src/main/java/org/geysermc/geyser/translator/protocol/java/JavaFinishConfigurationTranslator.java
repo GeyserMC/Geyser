@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.registry.Registries;
@@ -67,7 +68,7 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
             session.getCraftingRecipes().clear();
             session.getJavaToBedrockRecipeIds().clear();
             session.getSmithingRecipes().clear();
-            session.getStonecutterRecipes().clear();
+            session.setStonecutterRecipes(Int2ObjectMaps.emptyMap());
         } else {
             session.getUpstream().queuePostStartGamePacket(craftingDataPacket);
         }
