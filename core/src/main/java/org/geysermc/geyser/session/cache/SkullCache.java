@@ -44,6 +44,8 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,9 +82,9 @@ public class SkullCache {
     }
 
     public @Nullable Skull putSkull(Vector3i position, GameProfile resolved, BlockState blockState) {
-        GameProfile.Texture texture;
+        Texture texture;
         try {
-            texture = resolved.getTexture(GameProfile.TextureType.SKIN, false);
+            texture = resolved.getTexture(TextureType.SKIN, false);
         } catch (IllegalStateException e) {
             session.getGeyser().getLogger().debug("Player skull with invalid skin found at " + position + " with texture payload " + resolved.getProperty("textures"));
             return null;

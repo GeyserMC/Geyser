@@ -41,7 +41,8 @@ import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.JsonUtils;
-import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 import org.geysermc.mcprotocollib.auth.util.TextureUrlChecker;
 
 import java.io.File;
@@ -212,7 +213,7 @@ public class CustomSkullRegistryPopulator {
         }
 
         if (result != null && result.textures != null) {
-            for (GameProfile.Texture texture : result.textures.values()) {
+            for (Texture texture : result.textures.values()) {
                 if (TextureUrlChecker.isAllowedTextureDomain(texture.getURL())) {
                     continue;
                 }
@@ -221,7 +222,7 @@ public class CustomSkullRegistryPopulator {
                 return null;
             }
 
-            GameProfile.Texture skin = result.textures.get(GameProfile.TextureType.SKIN);
+            Texture skin = result.textures.get(TextureType.SKIN);
             if (skin == null) {
                 GeyserImpl.getInstance().getLogger().warning("Textures payload contains no skin!");
                 return null;
@@ -237,6 +238,6 @@ public class CustomSkullRegistryPopulator {
      * We only need the textures, and e.g. profileId throws due to missing uuid conversion
      */
     private static class MinimalTexturesPayload {
-        public Map<GameProfile.TextureType, GameProfile.Texture> textures;
+        public Map<TextureType, Texture> textures;
     }
 }
