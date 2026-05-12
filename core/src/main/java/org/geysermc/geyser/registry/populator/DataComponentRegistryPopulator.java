@@ -94,7 +94,7 @@ public final class DataComponentRegistryPopulator {
         }
 
         List<List<ResolvableComponent<?>>> resolvableComponents;
-        try(InputStream stream = bootstrap.getResourceOrThrow("mappings/resolvable_item_data_components.json")) {
+        try (InputStream stream = bootstrap.getResourceOrThrow("mappings/resolvable_item_data_components.json")) {
             //noinspection deprecation
             JsonElement rootElement = new JsonParser().parse(new InputStreamReader(stream));
             JsonArray items = rootElement.getAsJsonObject().get("value").getAsJsonArray();

@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Optional;
 
 public record ResolvableHolderSetComponent(DataComponentType<HolderSet> type, Optional<JavaRegistryKey<?>> registry, List<Key> references) implements ResolvableComponent<HolderSet> {
+    private static final HolderSet EMPTY = new HolderSet(new int[0]);
 
     public static ResolvableHolderSetComponent parse(DataComponentType<HolderSet> type, JsonObject object) {
         Optional<JavaRegistryKey<?>> registry = Optional.ofNullable(object.get("registry"))
@@ -62,6 +63,6 @@ public record ResolvableHolderSetComponent(DataComponentType<HolderSet> type, Op
             .mapToInt(key -> theRegistry.networkId(session, key))
             .toArray())
             .map(HolderSet::new)
-            .orElseGet(() -> new HolderSet(new int[0]));
+            .orElse(EMPTY);
     }
 }
