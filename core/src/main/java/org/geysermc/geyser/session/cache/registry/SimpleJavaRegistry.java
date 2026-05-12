@@ -26,8 +26,12 @@
 package org.geysermc.geyser.session.cache.registry;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import org.jspecify.annotations.NonNull;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 
 public class SimpleJavaRegistry<T> implements JavaRegistry<T> {
     protected final ObjectArrayList<RegistryEntryData<T>> entries = new ObjectArrayList<>();
@@ -36,6 +40,21 @@ public class SimpleJavaRegistry<T> implements JavaRegistry<T> {
         this.entries.clear();
         this.entries.addAll(entries);
         this.entries.trim();
+    }
+
+    @Override
+    public @NonNull Iterator<RegistryEntryData<T>> iterator() {
+        return entries.iterator();
+    }
+
+    @Override
+    public void forEach(Consumer<? super RegistryEntryData<T>> action) {
+        entries.forEach(action);
+    }
+
+    @Override
+    public Spliterator<RegistryEntryData<T>> spliterator() {
+        return entries.spliterator();
     }
 
     @Override

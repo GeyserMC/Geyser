@@ -25,66 +25,78 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.kyori.adventure.text.Component;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.item.components.resolvable.ResolvableComponentGetter;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryData;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Stores information on trim materials and patterns, including smithing armor hacks for pre-1.20.
  */
-public final class TrimRecipe {
-    private static final Map<Holder<ArmorTrim.TrimMaterial>, Item> trimMaterialProviders = new HashMap<>();
-
+@Accessors(fluent = true)
+public final class TrimRecipes {
     // For CraftingDataPacket
     public static final String ID = "minecraft:smithing_armor_trim";
     public static final ItemDescriptorWithCount BASE = tagDescriptor("minecraft:trimmable_armors");
     public static final ItemDescriptorWithCount ADDITION = tagDescriptor("minecraft:trim_materials");
     public static final ItemDescriptorWithCount TEMPLATE = tagDescriptor("minecraft:trim_templates");
 
-    public static TrimMaterial readTrimMaterial(RegistryEntryContext context) {
-        String key = context.id().asMinimalString();
+    @Getter
+    private final List<TrimMaterial> bedrockTrimMaterials = new ObjectArrayList<>();
+    @Getter
+    private final List<TrimPattern> bedrockTrimPatterns = new ObjectArrayList<>();
+
+    public void initializeBedrockTrimRecipes(GeyserSession session) {
+        bedrockTrimMaterials.clear();
+        bedrockTrimPatterns.clear();
+
+        Map<Holder<ArmorTrim.TrimMaterial>, Item> trimMaterialProviders = getTrimMaterialProviders(session);
+
+        session.getRegistryCache().registry(JavaRegistries.TRIM_MATERIAL).forEach(material -> bedrockTrimMaterials.add(translateJavaTrimMaterial(session, material, trimMaterialProviders)));
+        session.getRegistryCache().registry(JavaRegistries.TRIM_PATTERN).forEach(pattern -> bedrockTrimPatterns.add(translateJavaTrimPattern(session, pattern)));
+    }
+
+    private static TrimMaterial translateJavaTrimMaterial(GeyserSession session, RegistryEntryData<ArmorTrim.TrimMaterial> java, Map<Holder<ArmorTrim.TrimMaterial>, Item> trimMaterialProviders) {
+        String key = java.key().asMinimalString();
 
         // Color is used when hovering over the item
         // Find the nearest legacy color from the style Java gives us to work with
-        Component description = MessageTranslator.componentFromNbtTag(context.data().get("description"));
-        String legacy = MessageTranslator.convertMessage(Component.space().style(description.style()));
+        String legacy = MessageTranslator.convertMessage(Component.space().style(java.data().description().style()));
         String color = legacy.isBlank() ? ChatColor.WHITE : legacy.substring(2).trim();
 
-        int networkId = context.getNetworkId(context.id());
         ItemMapping trimItem = null;
-        if (context.session().isPresent()) {
-            for (Holder<ArmorTrim.TrimMaterial> provider : materialProviders().keySet()) {
-                if ((provider.isCustom() && context.id().asString().equals(provider.custom().assetBase())) || (provider.isId() && provider.id() == networkId)) {
-                    Item javaItem = materialProviders().get(provider);
-                    if (javaItem != null) {
-                        trimItem = context.session().get().getItemMappings().getMapping(javaItem);
-                    } else {
-                        GeyserImpl.getInstance().getLogger().debug("Could not find trim material provider! Network: %s, Provider: %s".formatted(context.id(), provider));
-                    }
-                    break;
-                }
+        for (Holder<ArmorTrim.TrimMaterial> provider : trimMaterialProviders.keySet()) {
+            if ((provider.isCustom() && java.data().assetBase().equals(provider.custom().assetBase())) || (provider.isId() && provider.id() == java.id())) {
+                trimItem = session.getItemMappings().getMapping(trimMaterialProviders.get(provider));
+                break;
             }
         }
 
         if (trimItem == null) {
             // This happens in testing and for custom trim materials, not sure what to do for the latter.
-            GeyserImpl.getInstance().getLogger().debug("Unable to found trim material item for material " + context.id());
+            GeyserImpl.getInstance().getLogger().debug("Unable to found trim material item for material " + java.key());
             trimItem = ItemMapping.AIR;
         }
 
@@ -92,36 +104,36 @@ public final class TrimRecipe {
         return new TrimMaterial(key, color, trimItem.getBedrockIdentifier());
     }
 
-    public static TrimPattern readTrimPattern(RegistryEntryContext context) {
-        String key = context.id().asMinimalString();
+    private static TrimPattern translateJavaTrimPattern(GeyserSession session, RegistryEntryData<ArmorTrim.TrimPattern> java) {
+        String key = java.key().asMinimalString();
 
         // Not ideal, Java edition also gives us a translatable description... Bedrock wants the template item
-        String identifier = context.id().asString() + "_armor_trim_smithing_template";
+        String identifier = java.key().asString() + "_armor_trim_smithing_template";
         ItemMapping itemMapping = ItemMapping.AIR;
-        if (context.session().isPresent()) {
-            itemMapping = context.session().get().getItemMappings().getMapping(identifier);
-            if (itemMapping == null) {
-                // This should never happen so not sure what to do here.
-                GeyserImpl.getInstance().getLogger().debug("Unable to found trim pattern item for pattern " + context.id());
-                itemMapping = ItemMapping.AIR;
-            }
+        itemMapping = session.getItemMappings().getMapping(identifier);
+        if (itemMapping == null) {
+            // This should never happen so not sure what to do here.
+            GeyserImpl.getInstance().getLogger().debug("Unable to found trim pattern item for pattern " + java.key());
+            itemMapping = ItemMapping.AIR;
         }
         return new TrimPattern(itemMapping.getBedrockIdentifier(), key);
     }
 
-    private TrimRecipe() {
-        //no-op
+    public static ArmorTrim.TrimMaterial readTrimMaterial(RegistryEntryContext context) {
+        // Not parsing override_armor_assets as we don't use it and can safely pass an empty map instead
+        return new ArmorTrim.TrimMaterial(context.data().getString("asset_name"), Map.of(), MessageTranslator.componentFromNbtTag(context.data().get("description")));
     }
 
-    // Lazy initialise
-    private static Map<Holder<ArmorTrim.TrimMaterial>, Item> materialProviders() {
-        if (trimMaterialProviders.isEmpty()) {
-            for (Item item : Registries.JAVA_ITEMS.get()) {
-                // FIXME FIXME FIXME
-                Holder<ArmorTrim.TrimMaterial> provider = item.getComponent(ResolvableComponentGetter.EMPTY, DataComponentTypes.PROVIDES_TRIM_MATERIAL);
-                if (provider != null) {
-                    trimMaterialProviders.put(provider, item);
-                }
+    public static ArmorTrim.TrimPattern readTrimPattern(RegistryEntryContext context) {
+        return new ArmorTrim.TrimPattern(MinecraftKey.key(context.data().getString("asset_id")), MessageTranslator.componentFromNbtTag(context.data().get("description")), context.data().getBoolean("decal", false));
+    }
+
+    private static Map<Holder<ArmorTrim.TrimMaterial>, Item> getTrimMaterialProviders(GeyserSession session) {
+        Map<Holder<ArmorTrim.TrimMaterial>, Item> trimMaterialProviders = new HashMap<>();
+        for (Item item : Registries.JAVA_ITEMS.get()) {
+            Holder<ArmorTrim.TrimMaterial> provider = item.getComponent(session.getComponentCache(), DataComponentTypes.PROVIDES_TRIM_MATERIAL);
+            if (provider != null) {
+                trimMaterialProviders.put(provider, item);
             }
         }
         return trimMaterialProviders;
