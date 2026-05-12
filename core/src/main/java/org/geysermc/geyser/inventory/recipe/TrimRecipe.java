@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.item.components.resolvable.ResolvableComponentGetter;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -116,7 +117,8 @@ public final class TrimRecipe {
     private static Map<Holder<ArmorTrim.TrimMaterial>, Item> materialProviders() {
         if (trimMaterialProviders.isEmpty()) {
             for (Item item : Registries.JAVA_ITEMS.get()) {
-                Holder<ArmorTrim.TrimMaterial> provider = item.getComponent(null, DataComponentTypes.PROVIDES_TRIM_MATERIAL);
+                // FIXME FIXME FIXME
+                Holder<ArmorTrim.TrimMaterial> provider = item.getComponent(ResolvableComponentGetter.EMPTY, DataComponentTypes.PROVIDES_TRIM_MATERIAL);
                 if (provider != null) {
                     trimMaterialProviders.put(provider, item);
                 }

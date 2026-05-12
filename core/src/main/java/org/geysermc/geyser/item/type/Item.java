@@ -40,13 +40,13 @@ import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
+import org.geysermc.geyser.item.components.resolvable.ResolvableComponentGetter;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.ComponentCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.text.ChatColor;
@@ -144,16 +144,18 @@ public class Item {
      */
     @NonNull
     @UnmodifiableView
-    public DataComponents gatherComponents(@Nullable ComponentCache componentCache/*TODO NOT NULLABLE?*/, @Nullable DataComponents others) {
+    public DataComponents gatherComponents(@NonNull ResolvableComponentGetter resolvableGetter, @Nullable DataComponents others) {
         // Start with the base components that always exist
         DataComponents base = baseComponents;
         // Add resolvable base components when possible
         if (!resolvableComponents.isEmpty()) {
-            if (componentCache == null) {
-                GeyserImpl.getInstance().getLogger().debug("Unable to resolve components for item because componentCache is null");
-            } else {
+            DataComponents resolvedComponents = resolvableGetter.getResolvedComponents(this);
+            // Can be null if for some reason components weren't resolved - usually when outside a session context
+            if (resolvedComponents != null) {
                 base = baseComponents.clone();
-                base.getDataComponents().putAll(componentCache.getResolvedComponents(this).getDataComponents());
+                base.getDataComponents().putAll(resolvedComponents.getDataComponents());
+            } else {
+                GeyserImpl.getInstance().getLogger().debug("Unable to resolve components for item because resolvableGetter didn't have any for it");
             }
         }
         if (others != null) {
@@ -172,12 +174,14 @@ public class Item {
      * to also query additional components that would override the default ones.
      */
     @Nullable
-    public <T> T getComponent(@Nullable ComponentCache componentCache/*TODO NOT NULLABLE*/, @NonNull DataComponentType<T> type) {
+    public <T> T getComponent(@NonNull ResolvableComponentGetter resolvableGetter, @NonNull DataComponentType<T> type) {
         if (resolvableComponentTypes.contains(type)) {
-            if (componentCache == null) {
-                GeyserImpl.getInstance().getLogger().debug("Unable to resolve component " + type + " for item because componentCache is null");
+            DataComponents resolvedComponents = resolvableGetter.getResolvedComponents(this);
+            // Can be null - same as above method
+            if (resolvedComponents == null) {
+                GeyserImpl.getInstance().getLogger().debug("Unable to resolve component " + type + " for item because resolvableGetter didn't have any for it");
             } else {
-                return componentCache.getResolvedComponents(this).get(type);
+                return resolvedComponents.get(type);
             }
         }
         return baseComponents.get(type);

@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
+import org.geysermc.geyser.item.components.resolvable.ResolvableComponentGetter;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -36,7 +37,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 
 import java.util.List;
 
-public class ComponentCache {
+public class ComponentCache implements ResolvableComponentGetter {
     private final GeyserSession session;
     private final Reference2ObjectMap<Item, DataComponents> resolvedComponents = new Reference2ObjectOpenHashMap<>();
 
@@ -44,6 +45,7 @@ public class ComponentCache {
         this.session = session;
     }
 
+    @Override
     public DataComponents getResolvedComponents(Item item) {
         return resolvedComponents.get(item);
     }

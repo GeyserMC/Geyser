@@ -38,12 +38,12 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.components.resolvable.ResolvableComponentGetter;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.BundleCache;
-import org.geysermc.geyser.session.cache.ComponentCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.translator.item.ItemTranslator;
@@ -72,7 +72,7 @@ public class GeyserItemStack {
     public static final GeyserItemStack EMPTY = new GeyserItemStack(null, Items.AIR_ID, 0, null); // session can be null because air is a vanilla item
 
     @Nullable
-    private final ComponentCache componentCache;
+    private final ResolvableComponentGetter resolvableComponentGetter;
     private final int javaId;
     private int amount;
     private DataComponents components;
@@ -89,8 +89,8 @@ public class GeyserItemStack {
         this(session == null ? null : session.getComponentCache(), javaId, amount, components, 1, null);
     }
 
-    private GeyserItemStack(@Nullable ComponentCache componentCache, int javaId, int amount, DataComponents components, int netId, BundleCache.BundleData bundleData) {
-        this.componentCache = componentCache;
+    private GeyserItemStack(@Nullable ResolvableComponentGetter componentGetter, int javaId, int amount, DataComponents components, int netId, BundleCache.BundleData bundleData) {
+        this.resolvableComponentGetter = componentGetter;
         this.javaId = javaId;
         this.amount = amount;
         this.components = components;
@@ -185,7 +185,7 @@ public class GeyserItemStack {
      * @return the item's base data components and the "additional" ones that may exist.
      */
     public @Nullable DataComponents getAllComponents() {
-        return isEmpty() ? null : asItem().gatherComponents(componentCache, components);
+        return isEmpty() ? null : asItem().gatherComponents(resolvableComponentGetter, components);
     }
 
     /**
@@ -199,7 +199,7 @@ public class GeyserItemStack {
      * @return whether this GeyserItemStack has the given {@code component}.
      */
     public boolean has(DataComponentType<?> component) {
-        return !isEmpty() && asItem().gatherComponents(componentCache, components).contains(component);
+        return !isEmpty() && asItem().gatherComponents(resolvableComponentGetter, components).contains(component);
     }
 
     /**
@@ -235,7 +235,7 @@ public class GeyserItemStack {
             return components.get(type);
         }
 
-        return asItem().getComponent(componentCache, type);
+        return asItem().getComponent(resolvableComponentGetter, type);
     }
 
     public <T> T getComponentElseGet(@NonNull DataComponentType<T> type, Supplier<T> supplier) {
@@ -367,6 +367,6 @@ public class GeyserItemStack {
     }
 
     public GeyserItemStack copy(int newAmount) {
-        return isEmpty() ? EMPTY : new GeyserItemStack(componentCache, javaId, newAmount, components == null ? null : components.clone(), netId, bundleData == null ? null : bundleData.copy());
+        return isEmpty() ? EMPTY : new GeyserItemStack(resolvableComponentGetter, javaId, newAmount, components == null ? null : components.clone(), netId, bundleData == null ? null : bundleData.copy());
     }
 }

@@ -30,6 +30,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
+import org.geysermc.geyser.item.components.resolvable.ResolvableComponentGetter;
 import org.geysermc.geyser.item.custom.ComponentConverters;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
@@ -123,8 +124,8 @@ public record CustomItemContext(CustomItemDefinition definition, DataComponents 
     private static DataComponents patchDataComponents(@Nullable Item javaItem, CustomItemDefinition definition, Consumer<ResolvableComponent<?>> resolvableConsumer) throws InvalidItemComponentsException {
         DataComponents convertedComponents = ComponentConverters.convertComponentPatch(definition.components(), definition.removedComponents(), resolvableConsumer);
         if (javaItem != null) {
-            // componentCache can be null here because javaItem will always be a vanilla item
-            return javaItem.gatherComponents(null, convertedComponents);
+            // We can use an empty resolvable component getter here, since we won't need to use any resolvable components
+            return javaItem.gatherComponents(ResolvableComponentGetter.EMPTY, convertedComponents);
         }
         return convertedComponents;
     }
