@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.mappings.versions;
+package org.geysermc.geyser.registry.mappings.versions.block;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -34,22 +34,11 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
-import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
-import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
-import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
-import org.geysermc.geyser.api.block.custom.component.PlacementConditions.BlockFilterType;
-import org.geysermc.geyser.api.block.custom.component.PlacementConditions.Face;
-import org.geysermc.geyser.api.block.custom.component.TransformationComponent;
-import org.geysermc.geyser.api.item.custom.CustomItemData;
-import org.geysermc.geyser.api.item.custom.CustomItemOptions;
-import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.util.CreativeCategory;
-import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
 import org.geysermc.geyser.level.block.GeyserCustomBlockData;
@@ -57,8 +46,8 @@ import org.geysermc.geyser.level.block.GeyserGeometryComponent;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.mappings.MappingsReader;
 import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
-import org.geysermc.geyser.registry.populator.CustomBlockRegistryPopulator;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.MathUtils;
@@ -78,174 +67,25 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-/**
- * A class responsible for reading custom item and block mappings from a JSON file
- */
-public class MappingsReader_v1 extends MappingsReader {
+public class BlockMappingsReader_v1 implements MappingsReader<String, CustomBlockMapping> {
 
     @Override
-    @Deprecated
-    public void readItemMappings(Path file, JsonObject mappingsRoot, BiConsumer<Identifier, CustomItemDefinition> consumer) {
-        this.readItemMappingsV1(file, mappingsRoot, consumer);
-    }
-
-    /**
-     * Read item block from a JSON node
-     *
-     * @param file The path to the file
-     * @param mappingsRoot The {@link JsonObject} containing the mappings
-     * @param consumer The consumer to accept the mappings
-     * @see #readBlockMappingsV1(Path, JsonObject, BiConsumer)
-     */
-    @Override
-    public void readBlockMappings(Path file, JsonObject mappingsRoot, BiConsumer<String, CustomBlockMapping> consumer) {
-        this.readBlockMappingsV1(file, mappingsRoot, consumer);
-    }
-
-    @Deprecated
-    public void readItemMappingsV1(Path file, JsonObject mappingsRoot, BiConsumer<Identifier, CustomItemDefinition> consumer) {
-        JsonObject itemsNode = mappingsRoot.getAsJsonObject("items");
-
-        if (itemsNode != null) {
-            itemsNode.entrySet().forEach(entry -> {
-                if (entry.getValue() instanceof JsonArray array) {
-                    array.forEach(data -> {
-                        try {
-                            Identifier vanillaItemIdentifier = Identifier.of(entry.getKey());
-                            CustomItemDefinition customItemData = this.readItemMappingEntry(vanillaItemIdentifier, data);
-                            consumer.accept(vanillaItemIdentifier, customItemData);
-                        } catch (InvalidCustomMappingsFileException e) {
-                            GeyserImpl.getInstance().getLogger().error("Error in registering items for custom mapping file: " + file.toString(), e);
-                        }
-                    });
+    public void read(Path file, JsonObject mappings, BiConsumer<String, CustomBlockMapping> consumer) {
+        mappings.entrySet().forEach(entry -> {
+            if (entry.getValue() instanceof JsonObject jsonObject) {
+                try {
+                    String identifier = MinecraftKey.key(entry.getKey()).asString();
+                    CustomBlockMapping customBlockMapping = this.readBlockMappingEntry(identifier, jsonObject);
+                    consumer.accept(identifier, customBlockMapping);
+                } catch (Exception e) {
+                    GeyserImpl.getInstance().getLogger().error("Error in registering blocks for custom mapping file: " + file.toString());
+                    GeyserImpl.getInstance().getLogger().error("due to entry: " + entry, e);
                 }
-            });
-        }
+            }
+        });
     }
 
-    /**
-     * Read block mappings from a JSON node
-     *
-     * @param file The path to the file
-     * @param mappingsRoot The {@link JsonObject} containing the mappings
-     * @param consumer The consumer to accept the mappings
-     * @see #readBlockMappings(Path, JsonObject, BiConsumer)
-     */
-    public void readBlockMappingsV1(Path file, JsonObject mappingsRoot, BiConsumer<String, CustomBlockMapping> consumer) {
-        if (mappingsRoot.get("blocks") instanceof JsonObject blocksNode) {
-            blocksNode.entrySet().forEach(entry -> {
-                if (entry.getValue() instanceof JsonObject jsonObject) {
-                    try {
-                        String identifier = MinecraftKey.key(entry.getKey()).asString();
-                        CustomBlockMapping customBlockMapping = this.readBlockMappingEntry(identifier, jsonObject);
-                        consumer.accept(identifier, customBlockMapping);
-                    } catch (Exception e) {
-                        GeyserImpl.getInstance().getLogger().error("Error in registering blocks for custom mapping file: " + file.toString());
-                        GeyserImpl.getInstance().getLogger().error("due to entry: " + entry, e);
-                    }
-                }
-            });
-        }
-    }
-
-    @Deprecated
-    private CustomItemOptions readItemCustomItemOptions(JsonObject node) {
-        CustomItemOptions.Builder customItemOptions = CustomItemOptions.builder();
-
-        JsonElement customModelData = node.get("custom_model_data");
-        if (customModelData != null && customModelData.isJsonPrimitive()) {
-            customItemOptions.customModelData(customModelData.getAsInt());
-        }
-
-        JsonElement damagePredicate = node.get("damage_predicate");
-        if (damagePredicate != null && damagePredicate.isJsonPrimitive()) {
-            customItemOptions.damagePredicate(damagePredicate.getAsInt());
-        }
-
-        JsonElement unbreakable = node.get("unbreakable");
-        if (unbreakable != null && unbreakable.isJsonPrimitive()) {
-            customItemOptions.unbreakable(unbreakable.getAsBoolean());
-        }
-
-        JsonElement defaultItem = node.get("default");
-        if (defaultItem != null && defaultItem.isJsonPrimitive()) {
-            customItemOptions.defaultItem(defaultItem.getAsBoolean());
-        }
-
-        return customItemOptions.build();
-    }
-
-    @Override
-    @Deprecated
-    public CustomItemDefinition readItemMappingEntry(Identifier identifier, JsonElement element) throws InvalidCustomMappingsFileException {
-        if (element == null || !element.isJsonObject()) {
-            throw new InvalidCustomMappingsFileException("Invalid item mappings entry");
-        }
-        JsonObject object = element.getAsJsonObject();
-
-        JsonElement name = object.get("name");
-        if (name == null || !name.isJsonPrimitive() || name.getAsString().isEmpty()) {
-            throw new InvalidCustomMappingsFileException("An item entry has no name");
-        }
-
-        CustomItemData.Builder customItemData = CustomItemData.builder()
-            .name(name.getAsString())
-            .customItemOptions(this.readItemCustomItemOptions(object));
-
-        //The next entries are optional
-        if (object.has("display_name")) {
-            customItemData.displayName(object.get("display_name").getAsString());
-        }
-
-        if (object.has("icon")) {
-            customItemData.icon(object.get("icon").getAsString());
-        }
-
-        if (object.has("creative_category")) {
-            customItemData.creativeCategory(object.get("creative_category").getAsInt());
-        }
-
-        if (object.has("creative_group")) {
-            customItemData.creativeGroup(object.get("creative_group").getAsString());
-        }
-
-        if (object.has("allow_offhand")) {
-            customItemData.allowOffhand(object.get("allow_offhand").getAsBoolean());
-        }
-
-        if (object.has("display_handheld")) {
-            customItemData.displayHandheld(object.get("display_handheld").getAsBoolean());
-        }
-
-        if (object.has("texture_size")) {
-            customItemData.textureSize(object.get("texture_size").getAsInt());
-        }
-
-        if (object.has("render_offsets")) {
-            JsonObject tmpNode = object.getAsJsonObject("render_offsets");
-
-            customItemData.renderOffsets(fromJsonObject(tmpNode));
-        }
-
-        if (object.get("tags") instanceof JsonArray tags) {
-            Set<String> tagsSet = new ObjectOpenHashSet<>();
-            tags.forEach(tag -> tagsSet.add(tag.getAsString()));
-            customItemData.tags(tagsSet);
-        }
-
-        return ((GeyserCustomItemData) customItemData.build()).toDefinition(identifier).build();
-    }
-
-    /**
-     * Read a block mapping entry from a JSON node and Java identifier
-     *
-     * @param identifier The Java identifier of the block
-     * @param element The {@link JsonObject} containing the block mapping entry
-     * @return The {@link CustomBlockMapping} record to be read by {@link CustomBlockRegistryPopulator}
-     * @throws InvalidCustomMappingsFileException If the JSON node is invalid
-     */
-    @Override
-    public CustomBlockMapping readBlockMappingEntry(String identifier, JsonElement element) throws InvalidCustomMappingsFileException {
+    private CustomBlockMapping readBlockMappingEntry(String identifier, JsonElement element) throws InvalidCustomMappingsFileException {
         if (element == null || !element.isJsonObject()) {
             throw new InvalidCustomMappingsFileException("Invalid block mappings entry:" + element);
         }
@@ -800,5 +640,4 @@ public class MappingsReader_v1 extends MappingsReader {
         String states = state.substring(openBracketIndex + 1, state.length() - 1);
         return states.split(",");
     }
-
 }
