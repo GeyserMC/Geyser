@@ -25,17 +25,15 @@
 
 package org.geysermc.geyser.item.type;
 
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
-import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
-import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
@@ -52,17 +50,17 @@ public class ArmorItem extends Item {
 
         ArmorTrim trim = components.get(DataComponentTypes.TRIM);
         if (trim != null) {
-            TrimMaterial material;
+            Key material;
             if (trim.material().isId()) {
-                material = session.getRegistryCache().registry(JavaRegistries.TRIM_MATERIAL).byId(trim.material().id());
+                material = JavaRegistries.TRIM_MATERIAL.key(session, trim.material().id());
             } else {
                 GeyserImpl.getInstance().getLogger().debug("Unable to translate non-id trim material: " + trim);
                 return;
             }
 
-            TrimPattern pattern;
+            Key pattern;
             if (trim.pattern().isId()) {
-                pattern = session.getRegistryCache().registry(JavaRegistries.TRIM_PATTERN).byId(trim.pattern().id());
+                pattern = JavaRegistries.TRIM_PATTERN.key(session, trim.pattern().id());
             } else {
                 GeyserImpl.getInstance().getLogger().debug("Unable to translate non-id trim pattern: " + trim);
                 return;
@@ -72,17 +70,8 @@ public class ArmorItem extends Item {
                 NbtMapBuilder trimBuilder = NbtMap.builder();
                 // Strip namespace from identifiers - Bedrock expects just the path part
                 // e.g., "minecraft:iron" -> "iron", "civilization:frost_trim" -> "frost_trim"
-                String materialId = material.getMaterialId();
-                String patternId = pattern.getPatternId();
-                int colonIdx;
-                if ((colonIdx = materialId.indexOf(':')) >= 0) {
-                    materialId = materialId.substring(colonIdx + 1);
-                }
-                if ((colonIdx = patternId.indexOf(':')) >= 0) {
-                    patternId = patternId.substring(colonIdx + 1);
-                }
-                trimBuilder.put("Material", materialId);
-                trimBuilder.put("Pattern", patternId);
+                trimBuilder.put("Material", material.value());
+                trimBuilder.put("Pattern", pattern.value());
                 builder.putCompound("Trim", trimBuilder.build());
             } else {
                 GeyserImpl.getInstance().getLogger().debug("Unknown trim material/pattern: ", trim);

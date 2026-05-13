@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,25 +26,13 @@
 package org.geysermc.geyser.item.components.resolvable;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-/**
- * A resolvable component is a default item component that has to be loaded into its MCPL equivalent when registering
- * the item, but was unable to because it needed registry access. As such, an instance of this interface was created, added to the list of the {@link org.geysermc.geyser.item.type.Item}'s resolvable components,
- * and will be resolved by {@link org.geysermc.geyser.session.cache.ComponentCache} whenever the session finishes the configuration phase.
- */
-public interface ResolvableComponent<T> {
+@FunctionalInterface
+public interface ResolvableComponentGetter {
 
-    DataComponentType<T> type();
+    ResolvableComponentGetter EMPTY = item -> null;
 
-    @Nullable T resolve(GeyserSession session);
-
-    default void resolve(GeyserSession session, DataComponents map) {
-        T value = resolve(session);
-        if (value != null) {
-            map.put(type(), value);
-        }
-    }
+    @Nullable DataComponents getResolvedComponents(Item item);
 }
