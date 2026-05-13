@@ -34,10 +34,14 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.api.block.custom.component.BoxComponent;
 import org.geysermc.geyser.api.block.custom.component.CustomBlockComponents;
 import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
+import org.geysermc.geyser.api.block.custom.component.PlacementConditions;
+import org.geysermc.geyser.api.block.custom.component.TransformationComponent;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.level.block.GeyserCustomBlockComponents;
@@ -599,24 +603,24 @@ public class BlockMappingsReader_v1 implements MappingsReader<String, CustomBloc
             if (!(json instanceof JsonObject condition)) {
                 return;
             }
-            Set<Face> faces = EnumSet.noneOf(Face.class);
+            Set<PlacementConditions.Face> faces = EnumSet.noneOf(PlacementConditions.Face.class);
             if (condition.has("allowed_faces")) {
                 if (condition.get("allowed_faces") instanceof JsonArray allowedFaces) {
-                    allowedFaces.forEach(face -> faces.add(Face.valueOf(face.getAsString().toUpperCase())));
+                    allowedFaces.forEach(face -> faces.add(PlacementConditions.Face.valueOf(face.getAsString().toUpperCase())));
                 }
             }
 
-            LinkedHashMap<String, BlockFilterType> blockFilters = new LinkedHashMap<>();
+            LinkedHashMap<String, PlacementConditions.BlockFilterType> blockFilters = new LinkedHashMap<>();
             if (condition.has("block_filter")) {
                 if (condition.get("block_filter") instanceof JsonArray blockFilter) {
                     blockFilter.forEach(filter -> {
                         if (filter instanceof JsonObject jsonObject) {
                             if (jsonObject.has("tags")) {
                                 JsonElement tags = jsonObject.get("tags");
-                                blockFilters.put(tags.getAsString(), BlockFilterType.TAG);
+                                blockFilters.put(tags.getAsString(), PlacementConditions.BlockFilterType.TAG);
                             }
                         } else if (filter instanceof JsonPrimitive primitive && primitive.isString()) {
-                            blockFilters.put(filter.getAsString(), BlockFilterType.BLOCK);
+                            blockFilters.put(filter.getAsString(), PlacementConditions.BlockFilterType.BLOCK);
                         }
                     });
                 }
