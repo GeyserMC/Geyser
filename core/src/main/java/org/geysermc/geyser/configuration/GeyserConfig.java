@@ -250,6 +250,21 @@ public interface GeyserConfig {
     }
 
     @ConfigSerializable
+    interface IntegratedPackConfig {
+        @Comment("""
+            Whether to automatically serve a resource pack that is required for some Geyser features to all connecting Bedrock players.
+            If enabled, force-resource-packs will be enabled.""")
+        @DefaultBoolean(true)
+        boolean enabled();
+
+        @Comment("""
+            Whether or not to show non-vanilla inventories on bedrock, for example, a 2 row chest. This option is ignored when the IntegratedPack is disabled.
+            """)
+        @DefaultBoolean(true)
+        boolean nonVanillaInventories();
+    }
+
+    @ConfigSerializable
     interface GameplayConfig {
 
         @Comment("The server name that will be sent to Minecraft: Bedrock Edition clients. This is visible in both the pause menu and the settings menu.")
@@ -293,6 +308,13 @@ public interface GeyserConfig {
         boolean emotesEnabled();
 
         @Comment("""
+            Whether to show the world as in hardcore mode to Bedrock Edition players.
+            """)
+        @DefaultBoolean(false)
+        @ExcludePlatform(platforms = {"Spigot", "Fabric", "NeoForge"})
+        boolean hardcoreMode();
+
+        @Comment("""
             Whether to remove legacy text formatting codes sent by Bedrock players.
             Unlike on Java Edition, typing section signs for legacy color codes is possible on Bedrock Edition.
             See https://minecraft.wiki/w/Formatting_codes for further information.
@@ -325,10 +347,9 @@ public interface GeyserConfig {
         boolean forceResourcePacks();
 
         @Comment("""
-            Whether to automatically serve a resource pack that is required for some Geyser features to all connecting Bedrock players.
-            If enabled, force-resource-packs will be enabled.""")
-        @DefaultBoolean(true)
-        boolean enableIntegratedPack();
+            Options related to the GeyserIntegratedPack.
+            """)
+        IntegratedPackConfig integratedPack();
 
         @Comment("""
             Whether to forward player ping to the server. While enabling this will allow Bedrock players to have more accurate
