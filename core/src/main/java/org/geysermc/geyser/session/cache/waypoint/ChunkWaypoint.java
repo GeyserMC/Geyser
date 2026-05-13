@@ -25,8 +25,8 @@
 
 package org.geysermc.geyser.session.cache.waypoint;
 
-import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.ChunkWaypointData;
@@ -38,7 +38,7 @@ import java.util.UUID;
 
 public class ChunkWaypoint extends GeyserWaypoint {
 
-    public ChunkWaypoint(GeyserSession session, UUID uuid, Key style, Color color, Optional<Entity> entity) {
+    public ChunkWaypoint(GeyserSession session, UUID uuid, Identifier style, Color color, Optional<Entity> entity) {
         super(session, uuid, style, color, entity);
     }
 
