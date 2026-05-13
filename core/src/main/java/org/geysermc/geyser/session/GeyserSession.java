@@ -980,6 +980,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             // We disable the locator bar until we are certain that the server wants us to enable it
             // See WaypointCache for details
             gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
+        } else {
+            // On bedrock 26.10 and above, the client only shows the locator bar when there are
+            // waypoints on it, so we're fine doing this
+            gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", true));
         }
 
         upstream.sendPacket(gamerulePacket);
