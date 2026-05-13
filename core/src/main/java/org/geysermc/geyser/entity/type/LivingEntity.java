@@ -28,7 +28,6 @@ package org.geysermc.geyser.entity.type;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -95,12 +94,6 @@ public class LivingEntity extends Entity implements Tickable {
      */
     private boolean isMaxFrozenState = false;
 
-    /**
-     * The base scale entity data, without attributes applied. Used for such cases as baby variants.
-     */
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    private float scale;
     /**
      * The scale sent through the Java attributes packet
      */
@@ -206,24 +199,8 @@ public class LivingEntity extends Entity implements Tickable {
 
     @Override
     public void updateNametag(@Nullable Team team) {
-        // Java hides the name tag when a living entity has any passengers
         // if name not visible, don't mark it as visible
-        updateNametag(team, passengers.isEmpty() && (team == null || team.isVisibleFor(session.getPlayerEntity().getUsername())));
-    }
-
-    @Override
-    public void setPassengers(List<Entity> passengers) {
-        super.setPassengers(passengers);
-        updateNametag(session.getWorldCache().getScoreboard().getTeamFor(teamIdentifier()));
-    }
-
-    @Override
-    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // Update custom name, but reset nametag to be empty when there are passengers
-        super.setCustomName(entityMetadata);
-        if (!passengers.isEmpty()) {
-            setNametag("", false);
-        }
+        updateNametag(team, team == null || team.isVisibleFor(session.getPlayerEntity().getUsername()));
     }
 
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
@@ -360,17 +337,13 @@ public class LivingEntity extends Entity implements Tickable {
         return freezingPercentage;
     }
 
-    protected void setScale(float scale) {
-        this.scale = scale;
-        applyScale();
-    }
-
     protected void setAttributeScale(float scale) {
         this.attributeScale = MathUtils.clamp(scale, GeyserAttributeType.SCALE.getMinimum(), GeyserAttributeType.SCALE.getMaximum());
         applyScale();
     }
 
-    private void applyScale() {
+    @Override
+    protected void applyScale() {
         // Take any adjustments Bedrock requires, and compute it alongside the attribute's additional changes
         this.dirtyMetadata.put(EntityDataTypes.SCALE, scale * attributeScale);
     }
@@ -706,7 +679,7 @@ public class LivingEntity extends Entity implements Tickable {
             if (equippable != null) {
                 return slot == equippable.slot() &&
                     canUseSlot(slot) &&
-                    EntityUtils.equipmentUsableByEntity(session, equippable, this.definition.entityType());
+                    EntityUtils.equipmentUsableByEntity(session, equippable, javaTypeDefinition.type());
             } else {
                 return slot == EquipmentSlot.MAIN_HAND && canUseSlot(EquipmentSlot.MAIN_HAND);
             }
@@ -720,7 +693,7 @@ public class LivingEntity extends Entity implements Tickable {
         if (equippable == null) {
             return slot == EquipmentSlot.MAIN_HAND && this.canUseSlot(EquipmentSlot.MAIN_HAND);
         } else {
-            return slot == equippable.slot() && this.canUseSlot(equippable.slot()) && EntityUtils.equipmentUsableByEntity(session, equippable, this.definition.entityType());
+            return slot == equippable.slot() && this.canUseSlot(equippable.slot()) && EntityUtils.equipmentUsableByEntity(session, equippable, javaTypeDefinition.type());
         }
     }
 

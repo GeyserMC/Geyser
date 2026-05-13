@@ -33,10 +33,18 @@ import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
+import lombok.Getter;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.Tickable;
+import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.session.GeyserSession;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
@@ -64,6 +72,8 @@ public class EntityCache {
     private final Object2LongMap<UUID> entityUuidTranslations = new Object2LongOpenHashMap<>();
     private final Map<UUID, PlayerEntity> playerEntities = new Object2ObjectOpenHashMap<>();
     private final Map<UUID, BossBar> bossBars = new Object2ObjectOpenHashMap<>();
+    @Getter
+    private final Set<Entity> dirtyEntities = new ObjectOpenHashSet<>();
 
     @Getter
     private final AtomicLong nextEntityId = new AtomicLong(2L);
@@ -135,6 +145,12 @@ public class EntityCache {
         if (GeyserWaypoint.uses26_10WaypointPacket(session)) {
             session.getWaypointCache().removeEntity(entity);
         }
+
+        dirtyEntities.remove(entity);
+    }
+
+    public void markDirty(Entity entity) {
+        dirtyEntities.add(entity);
     }
 
     public void removeAllEntities() {

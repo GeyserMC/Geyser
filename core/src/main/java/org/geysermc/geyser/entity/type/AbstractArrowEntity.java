@@ -30,7 +30,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 
 public class AbstractArrowEntity extends ProjectileEntity {
 
@@ -40,7 +40,7 @@ public class AbstractArrowEntity extends ProjectileEntity {
         super(context);
 
         // Set the correct texture if using the resource pack
-        setFlag(EntityFlag.BRIBED, definition.entityType() == EntityType.SPECTRAL_ARROW);
+        setFlag(EntityFlag.BRIBED, javaTypeDefinition.type().is(BuiltinEntityType.SPECTRAL_ARROW));
 
         setMotion(motion);
     }

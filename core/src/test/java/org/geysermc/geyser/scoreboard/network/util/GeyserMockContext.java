@@ -28,6 +28,7 @@ package org.geysermc.geyser.scoreboard.network.util;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.mockito.Mockito;
@@ -57,6 +58,9 @@ public class GeyserMockContext {
 
         var logger = context.storeObject(new EmptyGeyserLogger());
         when(geyserImpl.getLogger()).thenReturn(logger);
+
+        var eventBus = new GeyserEventBus();
+        when(geyserImpl.eventBus()).thenReturn(eventBus);
 
         try (var geyserImplMock = mockStatic(GeyserImpl.class)) {
             geyserImplMock.when(GeyserImpl::getInstance).thenReturn(geyserImpl);
