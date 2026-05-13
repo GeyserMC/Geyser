@@ -76,8 +76,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
-        session.getBlockBreakHandler().handlePlayerAuthInputPacket(packet);
-
         ServerboundPlayerCommandPacket sprintPacket = null;
 
         Set<PlayerAuthInputData> inputData = packet.getInputData();
@@ -208,7 +206,8 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             session.sendDownstreamGamePacket(sprintPacket);
         }
 
-        BedrockMovePlayer.translate(session, packet);
+        BedrockMovePlayer.translate(session, packet); 
+        session.getBlockBreakHandler().handlePlayerAuthInputPacket(packet);
 
         // This is the best way send this since most modern anticheat will expect this to be in sync with the player movement packet.
         if (session.isSpawned()) {
