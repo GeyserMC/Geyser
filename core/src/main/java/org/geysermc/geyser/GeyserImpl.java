@@ -314,7 +314,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfig config = bootstrap.config();
 
-        ScoreboardUpdater.init();
+        ScoreboardUpdater.init(this);
 
         SkinProvider.registerCacheImageTask(this);
 
@@ -519,6 +519,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         newsHandler.handleNews(null, NewsItemAction.ON_SERVER_STARTED);
 
         if (isReloading) {
+            isReloading = false;
             this.eventBus.fire(new GeyserPostReloadEvent(this.extensionManager, this.eventBus));
         } else {
             this.eventBus.fire(new GeyserPostInitializeEvent(this.extensionManager, this.eventBus));
@@ -594,6 +595,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.done"));
         }
 
+        runIfNonNull(metrics, MetricsBase::shutdown);
         runIfNonNull(scheduledThread, ScheduledExecutorService::shutdown);
         runIfNonNull(geyserServer, GeyserServer::shutdown);
         runIfNonNull(skinUploader, FloodgateSkinUploader::close);
@@ -631,8 +633,6 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
         bootstrap.onGeyserDisable();
         bootstrap.onGeyserEnable();
-
-        isReloading = false;
     }
 
     /**
