@@ -30,6 +30,8 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomWaypointsEvent;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
+import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
+import org.geysermc.geyser.registry.mappings.MappingsType;
 import org.geysermc.geyser.session.cache.waypoint.VanillaWaypoint;
 
 import java.util.Collections;
@@ -43,8 +45,7 @@ public class WaypointStyleLoader implements RegistryLoader<Object, Map<Identifie
     public Map<Identifier, CustomWaypointStyle> load(Object ignored) {
         Map<Identifier, CustomWaypointStyle> styles = new Object2ObjectOpenHashMap<>();
 
-        GeyserImpl.getInstance().eventBus().fire(new GeyserDefineCustomWaypointsEvent() {
-
+        GeyserDefineCustomWaypointsEvent event = new GeyserDefineCustomWaypointsEvent() {
             @Override
             public Map<Identifier, CustomWaypointStyle> customWaypointStyles() {
                 return Collections.unmodifiableMap(styles);
@@ -55,11 +56,17 @@ public class WaypointStyleLoader implements RegistryLoader<Object, Map<Identifie
                 Objects.requireNonNull(identifier, "identifier may not be null");
                 Objects.requireNonNull(style, "style may not be null");
                 if (styles.containsKey(identifier)) {
-                    throw new IllegalArgumentException("Waypoint style with identifier "+ identifier + " was already registered");
+                    GeyserImpl.getInstance().getLogger().error("Not registering waypoint style with identifier " + identifier + " as it was already registered");
+                } else {
+                    styles.put(identifier, style);
                 }
-                styles.put(identifier, style);
             }
-        });
+        };
+
+        // First, read the mappings
+        MappingsConfigReader.loadCustomMappingsFromJson(MappingsType.WAYPOINT_STYLES, event::register);
+        // Then, fire the event to the API
+        GeyserImpl.getInstance().eventBus().fire(event);
 
         // Include the vanilla default waypoint style if it was not overridden
         if (!styles.containsKey(VANILLA_WAYPOINT_STYLE)) {

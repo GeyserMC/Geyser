@@ -59,7 +59,7 @@ public interface CustomWaypointStyle {
         CustomWaypointStyle build();
     }
 
-    static CustomWaypointStyle vanillaLike(@NonNegative int nearDistance, @Positive int farDistance) {
+    static CustomWaypointStyle.VanillaBuilder vanillaLike(@NonNegative int nearDistance, @Positive int farDistance) {
         return GeyserApi.api().provider(VanillaBuilder.class, nearDistance, farDistance);
     }
 }
