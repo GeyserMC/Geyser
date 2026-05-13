@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,31 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.waypoint;
+package org.geysermc.geyser.api.event.lifecycle;
 
-import org.cloudburstmc.math.vector.Vector3i;
+import org.geysermc.event.Event;
 import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.Vec3iWaypointData;
-import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
+import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
+import org.jetbrains.annotations.ApiStatus;
 
-import java.awt.Color;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.Map;
 
-public class CoordinatesWaypoint extends GeyserWaypoint {
+@ApiStatus.NonExtendable
+public interface GeyserDefineCustomWaypointsEvent extends Event {
 
-    public CoordinatesWaypoint(GeyserSession session, UUID uuid, Identifier style, Color color, Optional<Entity> entity) {
-        super(session, uuid, style, color, entity);
-    }
+    Map<Identifier, CustomWaypointStyle> customWaypointStyles();
 
-    @Override
-    public void setData(WaypointData data) {
-        if (data instanceof Vec3iWaypointData(Vector3i vector)) {
-            setPosition(vector.toFloat());
-        } else {
-            session.getGeyser().getLogger().warning("Received incorrect waypoint data " + data.getClass() + " for coordinates waypoint");
-        }
-    }
+    void register(Identifier identifier, CustomWaypointStyle style);
 }
