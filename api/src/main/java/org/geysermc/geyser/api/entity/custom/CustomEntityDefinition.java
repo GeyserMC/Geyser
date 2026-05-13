@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.entity.custom;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.util.Identifier;
@@ -46,7 +45,7 @@ public interface CustomEntityDefinition extends GeyserEntityDefinition {
      * @param identifier the Bedrock entity identifier
      * @return the CustomEntityDefinition
      */
-    static @NonNull CustomEntityDefinition of(@NonNull Identifier identifier) {
+    static CustomEntityDefinition of(Identifier identifier) {
         if (identifier.vanilla()) {
             throw new IllegalArgumentException("Use GeyserEntityDefinition#of for vanilla entity lookups!");
         }
@@ -59,7 +58,7 @@ public interface CustomEntityDefinition extends GeyserEntityDefinition {
      * @param identifier the Bedrock entity identifier, in string format
      * @return the CustomEntityDefinition
      */
-    static @NonNull CustomEntityDefinition of(@NonNull String identifier) {
+    static CustomEntityDefinition of(String identifier) {
         return of(Identifier.of(identifier));
     }
 }

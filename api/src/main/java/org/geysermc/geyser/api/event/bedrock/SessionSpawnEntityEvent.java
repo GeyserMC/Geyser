@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.api.event.bedrock;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.event.Cancellable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
@@ -35,6 +33,7 @@ import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.event.java.ServerAttachParrotsEvent;
 import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -43,7 +42,7 @@ import java.util.function.Consumer;
  */
 public abstract class SessionSpawnEntityEvent extends ConnectionEvent implements Cancellable {
 
-    public SessionSpawnEntityEvent(@NonNull GeyserConnection connection) {
+    public SessionSpawnEntityEvent(GeyserConnection connection) {
         super(connection);
     }
 
@@ -70,5 +69,5 @@ public abstract class SessionSpawnEntityEvent extends ConnectionEvent implements
      *
      * @param consumer the consumer for the new GeyserEntity
      */
-    public abstract void preSpawnConsumer(Consumer<@NonNull GeyserEntity> consumer);
+    public abstract void preSpawnConsumer(Consumer<GeyserEntity> consumer);
 }

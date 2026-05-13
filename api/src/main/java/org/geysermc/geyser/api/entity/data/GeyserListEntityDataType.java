@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.entity.data;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 
 import java.util.List;
@@ -41,12 +40,12 @@ public interface GeyserListEntityDataType<T> extends GeyserEntityDataType<List<T
     /**
      * @return the class of the list entries
      */
-    @NonNull Class<T> listEntryClass();
+    Class<T> listEntryClass();
 
     /**
      * API usage only, use the types defined in {@link GeyserEntityDataTypes}
      */
-    static <T> GeyserListEntityDataType<T> of(@NonNull Class<T> typeClass, @NonNull String name) {
+    static <T> GeyserListEntityDataType<T> of(Class<T> typeClass, String name) {
         return GeyserApi.api().provider(GeyserListEntityDataType.class, List.class, typeClass, name);
     }
 }

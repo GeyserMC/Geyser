@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.entity.definition;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
@@ -43,12 +42,12 @@ public interface GeyserEntityDefinition {
     /**
      * @return the Bedrock entity identifier
      */
-    @NonNull Identifier identifier();
+    Identifier identifier();
 
     /**
      * @return the properties registered for this entity type
      */
-    @NonNull List<GeyserEntityProperty<?>> properties();
+    List<GeyserEntityProperty<?>> properties();
 
     /**
      * @return whether this entity is a vanilla entity
@@ -66,7 +65,7 @@ public interface GeyserEntityDefinition {
      * @param identifier the Bedrock entity identifier
      * @return the GeyserEntityDefinition
      */
-    static @NonNull GeyserEntityDefinition of(@NonNull Identifier identifier) {
+    static GeyserEntityDefinition of(Identifier identifier) {
         return GeyserApi.api().provider(GeyserEntityDefinition.class, identifier);
     }
 }

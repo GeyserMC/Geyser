@@ -81,7 +81,8 @@ public interface GeyserEntity {
     /**
      * The vehicle this entity is currently on, or null if not present.
      */
-    @Nullable GeyserEntity vehicle();
+    @Nullable
+    GeyserEntity vehicle();
 
     /**
      * The passengers of this entity, or an empty list if none are present.

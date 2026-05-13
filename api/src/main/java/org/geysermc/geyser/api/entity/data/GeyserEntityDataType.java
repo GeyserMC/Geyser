@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.entity.data;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 
@@ -47,7 +46,7 @@ public interface GeyserEntityDataType<T> {
      *
      * @return the class of the value used by this entity data type
      */
-    @NonNull Class<T> typeClass();
+    Class<T> typeClass();
 
     /**
      * Gets the unique name of this data type.
@@ -57,12 +56,12 @@ public interface GeyserEntityDataType<T> {
      *
      * @return the name of this entity data type
      */
-    @NonNull String name();
+    String name();
 
     /**
      * For API usage only; use the types defined in {@link GeyserEntityDataTypes}
      */
-    static <T> GeyserEntityDataType<T> of(@NonNull Class<T> typeClass, @NonNull String name) {
+    static <T> GeyserEntityDataType<T> of(Class<T> typeClass, String name) {
         return GeyserApi.api().provider(GeyserEntityDataType.class, typeClass, name);
     }
 }

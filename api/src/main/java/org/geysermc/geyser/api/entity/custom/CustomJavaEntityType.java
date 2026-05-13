@@ -26,13 +26,12 @@
 package org.geysermc.geyser.api.entity.custom;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.definition.JavaEntityType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
 import org.geysermc.geyser.api.util.Identifier;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a custom Minecraft: Java Edition entity type.
@@ -54,7 +53,7 @@ public interface CustomJavaEntityType extends JavaEntityType {
          * @param entityType the identifier
          * @return this builder
          */
-        @This Builder type(@NonNull Identifier entityType);
+        @This Builder type(Identifier entityType);
 
         /**
          * The entity type's numeric network id.

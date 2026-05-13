@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,33 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.java;
+@NullMarked
+package org.geysermc.geyser.api.entity.custom;
 
-import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
-import org.geysermc.geyser.api.event.bedrock.SessionSpawnEntityEvent;
-
-/**
- * Called when the Java server attaches parrots to a player.
- */
-public abstract class ServerAttachParrotsEvent extends SessionSpawnEntityEvent {
-
-    public ServerAttachParrotsEvent(GeyserConnection connection) {
-        super(connection);
-    }
-
-    /**
-     * @return the player with bird friends
-     */
-    public abstract GeyserPlayerEntity player();
-
-    /**
-     * @return the parrot variant
-     */
-    public abstract int variant();
-
-    /**
-     * @return true if parrot is on the right shoulder, left otherwise
-     */
-    public abstract boolean right();
-}
+import org.jspecify.annotations.NullMarked;

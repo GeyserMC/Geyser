@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event.java;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
@@ -41,31 +40,31 @@ public abstract class ServerUpdateEntityPassengersEvent extends ConnectionEvent 
      *
      * @return the vehicle entity
      */
-    public abstract @NonNull GeyserEntity vehicle();
+    public abstract GeyserEntity vehicle();
 
-    public ServerUpdateEntityPassengersEvent(@NonNull GeyserConnection connection) {
+    public ServerUpdateEntityPassengersEvent(GeyserConnection connection) {
         super(connection);
     }
 
     public abstract static class Mount extends ServerUpdateEntityPassengersEvent {
-        public Mount(@NonNull GeyserConnection connection) {
+        public Mount(GeyserConnection connection) {
             super(connection);
         }
 
         /**
          * @return the passenger that was added to the vehicle
          */
-        public abstract @NonNull GeyserEntity addedPassenger();
+        public abstract GeyserEntity addedPassenger();
     }
 
     public abstract static class Dismount extends ServerUpdateEntityPassengersEvent {
-        public Dismount(@NonNull GeyserConnection connection) {
+        public Dismount(GeyserConnection connection) {
             super(connection);
         }
 
         /**
          * @return the passenger that was removed from the vehicle
          */
-        public abstract @NonNull GeyserEntity removedPassenger();
+        public abstract GeyserEntity removedPassenger();
     }
 }

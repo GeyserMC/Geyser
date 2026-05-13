@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event.java;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.event.Cancellable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.definition.JavaEntityType;
@@ -38,7 +37,7 @@ import java.util.UUID;
  */
 public abstract class ServerSpawnEntityEvent extends SessionSpawnEntityEvent implements Cancellable {
 
-    public ServerSpawnEntityEvent(@NonNull GeyserConnection connection) {
+    public ServerSpawnEntityEvent(GeyserConnection connection) {
         super(connection);
     }
 
@@ -54,12 +53,12 @@ public abstract class ServerSpawnEntityEvent extends SessionSpawnEntityEvent imp
      *
      * @return the uuid of the entity being spawned
      */
-    public abstract @NonNull UUID uuid();
+    public abstract UUID uuid();
 
     /**
      * Gets the Java entity type sent by the server
      *
      * @return the Java edition entity type of the entity being spawned
      */
-    public abstract @NonNull JavaEntityType entityType();
+    public abstract JavaEntityType entityType();
 }
