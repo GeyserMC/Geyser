@@ -59,6 +59,18 @@ public interface NodeReader<T> {
 
     NodeReader<Integer> POSITIVE_INT = INT.validate(i -> i > 0, "integer must be positive");
 
+    NodeReader<Integer> HEX_INT = node -> {
+        String s = node.getAsString();
+        if (s.startsWith("#")) {
+            s = s.substring(1);
+        }
+        try {
+            return Integer.parseInt(s, 16);
+        } catch (NumberFormatException exception) {
+            throw new InvalidCustomMappingsFileException("failed to parse hexadecimal string: " + s);
+        }
+    };
+
     NodeReader<Double> DOUBLE = JsonPrimitive::getAsDouble;
 
     NodeReader<Double> NON_NEGATIVE_DOUBLE = DOUBLE.validate(d -> d >= 0, "number must be non-negative");
