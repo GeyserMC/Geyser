@@ -438,4 +438,17 @@ public class ArmorStandEntity extends LivingEntity {
     public Vector3f bedrockRotation() {
         return Vector3f.from(getYaw(), getYaw(), getYaw());
     }
+
+    /**
+     * Called when this armor stand is a passenger and its vehicle's yaw changes.
+     * Java clients render passengers as rotating with the vehicle automatically, but on Bedrock
+     * the armor stand keeps its last yaw unless its own rotation packet is sent. Plugins like
+     * HMCCosmetics rely on this to keep an attached cosmetic facing the same way as the player.
+     */
+    public void followVehicleYaw(float vehicleYaw) {
+        if (vehicleYaw == this.yaw) {
+            return;
+        }
+        moveAbsoluteRaw(this.position, vehicleYaw, this.pitch, vehicleYaw, this.onGround, false);
+    }
 }

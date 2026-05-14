@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -83,6 +84,9 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             // Force an update to the passenger metadata
             passenger.updateBedrockMetadata();
             passenger.setMotion(Vector3f.ZERO);
+            if (passenger instanceof ArmorStandEntity stand) {
+                stand.followVehicleYaw(entity.getYaw());
+            }
         }
 
         // Handle passengers that were removed

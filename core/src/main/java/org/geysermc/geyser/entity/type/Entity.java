@@ -52,6 +52,7 @@ import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
@@ -321,6 +322,10 @@ public class Entity implements GeyserEntity {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
             }
             session.sendUpstreamPacket(moveEntityPacket);
+
+            if (dirtyYaw || dirtyHeadYaw) {
+                updatePassengerRotation();
+            }
         }
     }
 
@@ -349,6 +354,8 @@ public class Entity implements GeyserEntity {
             moveEntityPacket.setTeleported(teleported);
 
             session.sendUpstreamPacket(moveEntityPacket);
+
+            updatePassengerRotation();
         }
     }
 
@@ -717,6 +724,23 @@ public class Entity implements GeyserEntity {
                 boolean rider = i == 0;
                 EntityUtils.updateMountOffset(passenger, this, rider, true, i, passengers.size());
                 passenger.updateBedrockMetadata();
+            }
+        }
+    }
+
+    /**
+     * Propagate this vehicle's yaw to passengers that should visually rotate with it.
+     * Java clients render passengers as rotating with the vehicle automatically, but Bedrock
+     * needs the passenger's own rotation packet. Plugins like HMCCosmetics attach an invisible
+     * armor stand as a passenger; without this the cosmetic stays facing one direction.
+     */
+    protected void updatePassengerRotation() {
+        if (passengers.isEmpty()) {
+            return;
+        }
+        for (Entity passenger : passengers) {
+            if (passenger instanceof ArmorStandEntity stand && stand.isValid()) {
+                stand.followVehicleYaw(this.yaw);
             }
         }
     }
