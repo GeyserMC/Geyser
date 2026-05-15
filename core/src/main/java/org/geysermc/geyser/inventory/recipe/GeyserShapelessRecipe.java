@@ -25,16 +25,12 @@
 
 package org.geysermc.geyser.inventory.recipe;
 
-import it.unimi.dsi.fastutil.ints.IntList;
-import lombok.Getter;
-import lombok.experimental.Accessors;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.RecipeUnlockingRequirement;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapelessRecipeData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.FurnaceRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.ShapelessCraftingRecipeDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 
@@ -46,15 +42,10 @@ import java.util.UUID;
 public record GeyserShapelessRecipe(int id,
                                     int netId,
                                     List<SlotDisplay> ingredients,
-                                    SlotDisplay result,
-                                    String tag) implements GeyserRecipe {
+                                    SlotDisplay result) implements GeyserRecipe {
 
     public GeyserShapelessRecipe(int id, int netId, ShapelessCraftingRecipeDisplay data) {
-        this(id, netId, data.ingredients(), data.result(), "crafting_table");
-    }
-
-    public GeyserShapelessRecipe(int id, int netId, FurnaceRecipeDisplay data, int category) {
-        this(id, netId, List.of(data.ingredient()), data.result(), FurnaceRecipeType.fromCategory(category).tag);
+        this(id, netId, data.ingredients(), data.result());
     }
 
     @Override
@@ -75,36 +66,10 @@ public record GeyserShapelessRecipe(int id,
         int i = 0;
         for (List<ItemDescriptorWithCount> inputs : left) {
             recipeData.add(ShapelessRecipeData.shapeless(id + "_" + i, inputs,
-                    Collections.singletonList(output), UUID.randomUUID(), tag, 0,
+                    Collections.singletonList(output), UUID.randomUUID(), "crafting_table", 0,
                     netId + i, RecipeUnlockingRequirement.INVALID));
             i++;
         }
         return recipeData;
-    }
-
-    public enum FurnaceRecipeType {
-        FURNACE("furnace", 4, 5, 6), // furnace
-        BLAST_FURNACE("blast_furnace", 7, 8), // blast_furnace_blocks, blast_furnace_misc
-        SMOKER("smoker", 9, 12); // smoker_food, campfire
-
-        private final String tag;
-        @Getter
-        @Accessors(fluent = true)
-        private final IntList categories;
-
-        FurnaceRecipeType(String tag, int... categories) {
-            this.tag = tag;
-            this.categories = IntList.of(categories);
-        }
-
-        public static FurnaceRecipeType fromCategory(int category) {
-            for (FurnaceRecipeType type : values()) {
-                if (type.categories.contains(category)) {
-                    return type;
-                }
-            }
-
-            return FURNACE; // /shrug
-        }
     }
 }
