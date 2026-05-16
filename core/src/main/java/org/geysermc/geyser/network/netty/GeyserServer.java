@@ -37,9 +37,8 @@ import io.netty.channel.uring.IoUring;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
-import net.jodah.expiringmap.ExpirationPolicy;
-import net.jodah.expiringmap.ExpiringMap;
 import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
+import org.cloudburstmc.netty.channel.raknet.config.DefaultRakServerThrottle;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.netty.channel.raknet.config.RakServerCookieMode;
 import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandler;
@@ -54,9 +53,7 @@ import org.geysermc.geyser.network.CIDRMatcher;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.GeyserServerInitializer;
 import org.geysermc.geyser.network.netty.handler.RakConnectionRequestHandler;
-import org.geysermc.geyser.network.netty.handler.RakGeyserRateLimiter;
 import org.geysermc.geyser.network.netty.handler.RakPingHandler;
-import org.geysermc.geyser.network.netty.proxy.ProxyServerHandler;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.skin.SkinProvider;
@@ -107,8 +104,6 @@ public final class GeyserServer {
     private final ServerBootstrap bootstrap;
     private EventLoopGroup playerGroup;
 
-    @Getter
-    private final ExpiringMap<InetSocketAddress, InetSocketAddress> proxiedAddresses;
     private int listenCount;
 
     private ChannelFuture[] bootstrapFutures;
@@ -134,14 +129,6 @@ public final class GeyserServer {
         // otherwise, we try to bind multiple times which wont work if so_reuseport is not valid
         if (listenCount > 1 && !Bootstraps.setupBootstrap(this.bootstrap, TRANSPORT)) {
             this.listenCount = 1;
-        }
-
-        if (this.geyser.config().advanced().bedrock().useHaproxyProtocol() || this.geyser.config().advanced().bedrock().useWaterdogpeForwarding()) {
-            this.proxiedAddresses = ExpiringMap.builder()
-                    .expiration(30 + 1, TimeUnit.MINUTES)
-                    .expirationPolicy(ExpirationPolicy.ACCESSED).build();
-        } else {
-            this.proxiedAddresses = null;
         }
 
         this.broadcastPort = geyser.config().advanced().bedrock().broadcastPort();
@@ -171,19 +158,9 @@ public final class GeyserServer {
                 .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
                 .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
 
-            // Add proxy handler
-            boolean isProxyProtocol = this.geyser.config().advanced().bedrock().useHaproxyProtocol();
-            if (isProxyProtocol) {
-                channel.pipeline().addFirst("proxy-protocol-decoder", new ProxyServerHandler());
-            }
-
-            boolean isWhitelistedProxyProtocol = isProxyProtocol && !this.geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps().isEmpty();
-            if (Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false")) || isWhitelistedProxyProtocol) {
+            if (Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false"))) {
                 // We would already block any non-whitelisted IP addresses in onConnectionRequest so we can remove the rate limiter
                 channel.pipeline().remove(RakServerRateLimiter.NAME);
-            } else {
-                // Use our own rate limiter to allow multiple players from the same IP
-                channel.pipeline().replace(RakServerRateLimiter.NAME, RakGeyserRateLimiter.NAME, new RakGeyserRateLimiter(channel));
             }
         });
     }
@@ -237,6 +214,9 @@ public final class GeyserServer {
         boolean rakSendCookie = Boolean.parseBoolean(System.getProperty("Geyser.RakSendCookie", "true"));
         this.geyser.getLogger().debug("Setting RakNet send cookie to " + rakSendCookie);
 
+        int maxConnectionsPerAddress =  positivePropOrDefault("Geyser.MaxConnectionsPerAddress", 10);
+        this.geyser.getLogger().debug("Setting max connection per address " + maxConnectionsPerAddress);
+
         GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser, rakSendCookie);
         playerGroup = serverInitializer.getEventLoopGroup();
 
@@ -248,6 +228,8 @@ public final class GeyserServer {
             .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
             .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
             .option(RakChannelOption.RAK_SERVER_COOKIE_MODE, rakSendCookie ? RakServerCookieMode.ACTIVE : RakServerCookieMode.INVALID)
+            .option(RakChannelOption.RAK_PROXY_PROTOCOL, this.geyser.config().advanced().bedrock().useHaproxyProtocol())
+            .option(RakChannelOption.RAK_THROTTLE, new DefaultRakServerThrottle(maxConnectionsPerAddress, 4_000, 3))
             .childHandler(serverInitializer);
     }
 
@@ -268,20 +250,11 @@ public final class GeyserServer {
             }
         }
 
-        String ip;
-        if (geyser.config().logPlayerIpAddresses()) {
-            if (this.proxiedAddresses != null) {
-                ip = this.proxiedAddresses.getOrDefault(inetSocketAddress, inetSocketAddress).toString();
-            } else {
-                ip = inetSocketAddress.toString();
-            }
-        } else {
-            ip = "<IP address withheld>";
-        }
+        String ip = geyser.config().logPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
 
         ConnectionRequestEvent requestEvent = new ConnectionRequestEvent(
-            inetSocketAddress, 
-            this.proxiedAddresses != null ? this.proxiedAddresses.get(inetSocketAddress) : null
+            inetSocketAddress,
+            null // TODO
         );
         geyser.eventBus().fire(requestEvent);
         if (requestEvent.isCancelled()) {
@@ -297,16 +270,7 @@ public final class GeyserServer {
 
     public BedrockPong onQuery(Channel channel, InetSocketAddress inetSocketAddress) {
         if (geyser.config().debugMode() && PRINT_DEBUG_PINGS) {
-            String ip;
-            if (geyser.config().logPlayerIpAddresses()) {
-                if (this.proxiedAddresses != null) {
-                    ip = this.proxiedAddresses.getOrDefault(inetSocketAddress, inetSocketAddress).toString();
-                } else {
-                    ip = inetSocketAddress.toString();
-                }
-            } else {
-                ip = "<IP address withheld>";
-            }
+            String ip = geyser.config().logPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
             geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", ip));
         }
 
