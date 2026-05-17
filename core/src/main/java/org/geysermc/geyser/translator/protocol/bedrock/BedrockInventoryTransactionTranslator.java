@@ -632,6 +632,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
      * However, the normal max range should be between -0.5 and 1.5 (in java server that will not cancel place), so a temporary restriction is applied.
      *
      * This is a temporary fix, but I don’t have a better idea for now...
+     *
+     * Test with client version: 1.21.5x, 1.21.9x, 26.21.
      */
     private float fixCursorValue(float value) {
         if (value <= -0.5f) {
