@@ -51,10 +51,13 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
         }
 
         // Books on java can only be 100 pages so clamp the page number to that
+        // This also forces requested pages to be sequential
         // This is 25 for showing page 49/50, and 50 for 99/100
-        int page = MathUtils.constrain(packet.getPage(), 0, 50);
+        int currentPage = lecternContainer.getCurrentBedrockPage();
+        int page = MathUtils.constrain(MathUtils.constrain(packet.getPage(), currentPage - 1, currentPage + 1), 0, 50);
+        session.getGeyser().getLogger().debug("Page: " + packet.getPage() + " -> " + page + " (" + (currentPage - 1) + " " + (currentPage + 1) + ")");
 
-        if (lecternContainer.getCurrentBedrockPage() == page) {
+        if (currentPage == page) {
             // The same page means Bedrock is closing the window
             InventoryUtils.sendJavaContainerClose(holder);
             InventoryUtils.closeInventory(session, holder, false);
@@ -62,7 +65,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
             // Each "page" Bedrock gives to us actually represents two pages (think opening a book and seeing two pages)
             // Each "page" on Java is just one page (think a spiral notebook folded back to only show one page)
             int newJavaPage = (page * 2);
-            int currentJavaPage = (lecternContainer.getCurrentBedrockPage() * 2);
+            int currentJavaPage = (currentPage * 2);
 
             // So, fun fact: We need to separately handle fake lecterns!
             // Since those are not actually a real lectern... the Java server won't respond to our requests.
