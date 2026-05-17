@@ -87,7 +87,7 @@ public final class GameProtocol {
         register(Bedrock_v944.CODEC, "26.10");
         register(Bedrock_v975.CODEC, "26.20");
 
-        MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.get(SUPPORTED_BEDROCK_VERSIONS.size() - 1);
+        MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.getLast();
         DEFAULT_BEDROCK_VERSION = latestBedrock.versionString();
         DEFAULT_BEDROCK_PROTOCOL = latestBedrock.protocolVersion();
     }

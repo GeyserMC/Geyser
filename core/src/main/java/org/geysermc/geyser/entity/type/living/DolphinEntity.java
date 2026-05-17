@@ -43,6 +43,11 @@ public class DolphinEntity extends AgeableWaterEntity {
         return true;
     }
 
+    @Override
+    protected float getBabySize() {
+        return 0.65f;
+    }
+
     @NonNull
     @Override
     protected InteractiveTag testMobInteraction(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {

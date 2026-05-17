@@ -39,7 +39,6 @@ public final class Permissions {
 
     public static final String CHECK_UPDATE = register("geyser.update");
     public static final String SERVER_SETTINGS = register("geyser.settings.server");
-    public static final String SETTINGS_GAMERULES = register("geyser.settings.gamerules");
 
     private Permissions() {
         //no

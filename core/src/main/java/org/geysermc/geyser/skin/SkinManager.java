@@ -248,7 +248,7 @@ public class SkinManager {
                 geyser.getLogger().debug("The size of '" + playerEntity.getUsername() + "' skin is: " + clientData.getSkinImageWidth() + "x" + clientData.getSkinImageHeight());
             }
 
-            if (!clientData.getCapeId().equals("")) {
+            if (!clientData.getCapeId().isEmpty()) {
                 SkinProvider.storeBedrockCape(clientData.getCapeId(), capeBytes);
             }
         } catch (Exception e) {

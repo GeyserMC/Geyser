@@ -149,7 +149,7 @@ public class CamelEntity extends AbstractHorseEntity implements ClientVehicle {
 
     @Override
     public boolean shouldSimulateMovement() {
-        return getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.get(0) == session.getPlayerEntity();
+        return getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.getFirst() == session.getPlayerEntity();
     }
 
     @Override

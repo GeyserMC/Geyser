@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.api.pack;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 import java.nio.file.Path;
 
 /**
@@ -42,6 +40,5 @@ public abstract class PathPackCodec extends PackCodec {
      * @return the path of the resource pack
      * @since 2.1.1
      */
-    @NonNull
     public abstract Path path();
 }

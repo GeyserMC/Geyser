@@ -1,0 +1,27 @@
+{
+    "schemaVersion": 1,
+    "id": "${id}-gametest",
+    "version": "${version}",
+    "name": "${name}-Gametest",
+    "description": "A bridge/proxy allowing you to connect to Minecraft: Java Edition servers with Minecraft: Bedrock Edition. ",
+    "authors": [
+        "${author}"
+    ],
+    "contact": {
+        "website": "${url}",
+        "repo": "https://github.com/GeyserMC/Geyser"
+    },
+    "license": "MIT",
+    "icon": "assets/geyser/icon.png",
+    "environment": "*",
+    "entrypoints": {
+        "main": [
+            "org.geysermc.geyser.gametest.GeyserGameTestBootstrap"
+        ]
+    },
+    "depends": {
+        "fabricloader": ">=0.18.2",
+        "fabric-api": "*",
+        "minecraft": "~26.1"
+    }
+}

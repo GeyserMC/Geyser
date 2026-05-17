@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponents;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
@@ -54,7 +53,6 @@ public interface ItemDataComponent<T> {
      * @return the identifier
      * @since 2.9.3
      */
-    @NonNull
     Identifier identifier();
 
     /**
@@ -63,7 +61,6 @@ public interface ItemDataComponent<T> {
      * @return the validator
      * @since 2.9.3
      */
-    @NonNull
     Predicate<T> validator();
 
     /**

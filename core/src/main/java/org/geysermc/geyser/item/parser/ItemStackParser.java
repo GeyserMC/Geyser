@@ -151,6 +151,7 @@ public final class ItemStackParser {
             List<Integer> colours = raw.getList("colors", NbtType.INT);
             return new CustomModelData(floats, flags, strings, colours);
         });
+        registerSimple(DataComponentTypes.DYE, String.class, raw -> DyeColor.getByJavaIdentifier(raw).ordinal());
         registerSimple(DataComponentTypes.DYED_COLOR, Integer.class);
         registerSimple(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, Boolean.class);
         register(DataComponentTypes.ENCHANTMENTS, NbtMap.class, ItemStackParser::parseEnchantments);

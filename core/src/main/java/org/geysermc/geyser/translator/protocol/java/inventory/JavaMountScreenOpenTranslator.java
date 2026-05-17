@@ -130,32 +130,37 @@ public class JavaMountScreenOpenTranslator extends PacketTranslator<ClientboundM
         int slotCount = 2; // Don't depend on slot count sent from server
 
         InventoryTranslator<Container> inventoryTranslator;
-        if (entity instanceof LlamaEntity llamaEntity) {
-            if (entity.getFlag(EntityFlag.CHESTED)) {
-                slotCount += llamaEntity.getStrength() * 3;
+        switch (entity) {
+            case LlamaEntity llamaEntity -> {
+                if (entity.getFlag(EntityFlag.CHESTED)) {
+                    slotCount += llamaEntity.getStrength() * 3;
+                }
+                inventoryTranslator = new LlamaInventoryTranslator(slotCount);
+                slots.add(CARPET_SLOT);
             }
-            inventoryTranslator = new LlamaInventoryTranslator(slotCount);
-            slots.add(CARPET_SLOT);
-        } else if (entity instanceof ChestedHorseEntity) {
-            if (entity.getFlag(EntityFlag.CHESTED)) {
-                slotCount += 15;
+            case ChestedHorseEntity ignored -> {
+                if (entity.getFlag(EntityFlag.CHESTED)) {
+                    slotCount += 15;
+                }
+                inventoryTranslator = new DonkeyInventoryTranslator(slotCount);
+                slots.add(SADDLE_SLOT);
             }
-            inventoryTranslator = new DonkeyInventoryTranslator(slotCount);
-            slots.add(SADDLE_SLOT);
-        } else if (entity instanceof CamelEntity) {
-            if (entity.getFlag(EntityFlag.CHESTED)) {
-                slotCount += 15;
+            case CamelEntity ignored -> {
+                if (entity.getFlag(EntityFlag.CHESTED)) {
+                    slotCount += 15;
+                }
+                // The camel has an invisible armor slot and needs special handling, same as the donkey
+                inventoryTranslator = new DonkeyInventoryTranslator(slotCount);
+                slots.add(SADDLE_SLOT);
             }
-            // The camel has an invisible armor slot and needs special handling, same as the donkey
-            inventoryTranslator = new DonkeyInventoryTranslator(slotCount);
-            slots.add(SADDLE_SLOT);
-        } else {
-            inventoryTranslator = new MountInventoryTranslator(slotCount);
-            slots.add(SADDLE_SLOT);
-            if (entity instanceof NautilusEntity) {
-                slots.add(NAUTILUS_ARMOR_SLOT);
-            } else if (!(entity instanceof SkeletonHorseEntity || entity instanceof ZombieHorseEntity)) {
-                slots.add(HORSE_ARMOR_SLOT);
+            default -> {
+                inventoryTranslator = new MountInventoryTranslator(slotCount);
+                slots.add(SADDLE_SLOT);
+                if (entity instanceof NautilusEntity) {
+                    slots.add(NAUTILUS_ARMOR_SLOT);
+                } else if (!(entity instanceof SkeletonHorseEntity || entity instanceof ZombieHorseEntity)) {
+                    slots.add(HORSE_ARMOR_SLOT);
+                }
             }
         }
 

@@ -103,7 +103,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
             case WIN_GAME:
                 switch ((EnterCreditsValue) packet.getValue()) {
                     case SEEN_BEFORE -> {
-                        ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientCommand.RESPAWN);
+                        ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientCommand.PERFORM_RESPAWN);
                         session.sendDownstreamGamePacket(javaRespawnPacket);
                     }
                     case FIRST_TIME -> {

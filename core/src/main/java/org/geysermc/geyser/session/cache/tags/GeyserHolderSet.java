@@ -195,7 +195,7 @@ public final class GeyserHolderSet<T> {
         } else if (holderSet instanceof List<?> list) {
             if (list.isEmpty()) {
                 return new GeyserHolderSet<>(registry);
-            } else if (list.get(0) instanceof NbtMap) {
+            } else if (list.getFirst() instanceof NbtMap) {
                 if (reader != null) {
                     return new GeyserHolderSet<>(registry, list.stream().map(o -> (NbtMap) o).map(reader).toList());
                 }

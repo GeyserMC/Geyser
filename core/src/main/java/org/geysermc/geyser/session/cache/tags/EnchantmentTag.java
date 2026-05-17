@@ -63,13 +63,6 @@ public final class EnchantmentTag {
     public static final Tag<Enchantment> TRADES_SNOW_COMMON = create("trades/snow_common");
     public static final Tag<Enchantment> TRADES_SWAMP_COMMON = create("trades/swamp_common");
     public static final Tag<Enchantment> TRADES_TAIGA_COMMON = create("trades/taiga_common");
-    public static final Tag<Enchantment> TRADES_DESERT_SPECIAL = create("trades/desert_special");
-    public static final Tag<Enchantment> TRADES_JUNGLE_SPECIAL = create("trades/jungle_special");
-    public static final Tag<Enchantment> TRADES_PLAINS_SPECIAL = create("trades/plains_special");
-    public static final Tag<Enchantment> TRADES_SAVANNA_SPECIAL = create("trades/savanna_special");
-    public static final Tag<Enchantment> TRADES_SNOW_SPECIAL = create("trades/snow_special");
-    public static final Tag<Enchantment> TRADES_SWAMP_SPECIAL = create("trades/swamp_special");
-    public static final Tag<Enchantment> TRADES_TAIGA_SPECIAL = create("trades/taiga_special");
 
     private EnchantmentTag() {}
 

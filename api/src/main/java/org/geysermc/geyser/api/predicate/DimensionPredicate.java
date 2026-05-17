@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.predicate;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 import org.geysermc.geyser.api.util.GeyserProvided;
 import org.geysermc.geyser.api.util.Identifier;
@@ -50,7 +49,7 @@ public interface DimensionPredicate extends MinecraftPredicate<MinecraftPredicat
      * @return the dimension to test for
      * @since 2.9.3
      */
-    @NonNull Identifier dimension();
+    Identifier dimension();
 
     /**
      * @return whether this predicate is negated

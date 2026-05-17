@@ -59,6 +59,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.populator.conversion.GoldenDandelionConverter;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.util.JsonUtils;
@@ -120,9 +121,9 @@ public final class BlockRegistryPopulator {
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
                 // This is technically the same 1.21.111 palette; there have been no changes
-                .put(ObjectIntPair.of("1_21_130", Bedrock_v898.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_21_130", Bedrock_v898.CODEC.getProtocolVersion()), GoldenDandelionConverter::convert)
                 // 26.0 also doesn't have any changes, so we re-use the same file
-                .put(ObjectIntPair.of("1_21_130", Bedrock_v924.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("1_21_130", Bedrock_v924.CODEC.getProtocolVersion()), GoldenDandelionConverter::convert)
                 .put(ObjectIntPair.of("1_26_10", Bedrock_v944.CODEC.getProtocolVersion()), tag -> tag)
                 .put(ObjectIntPair.of("1_26_20", Bedrock_v975.CODEC.getProtocolVersion()), tag -> tag)
             .build();
