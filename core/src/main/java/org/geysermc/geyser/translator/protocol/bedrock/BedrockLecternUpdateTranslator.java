@@ -32,6 +32,7 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerButtonClickPacket;
 
 /**
@@ -51,7 +52,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
 
         // Books on java can only be 100 pages so clamp the page number to that
         // This is 25 for showing page 49/50, and 50 for 99/100
-        int page = Math.clamp(packet.getPage(), 0, 50);
+        int page = MathUtils.constrain(packet.getPage(), 0, 50);
 
         if (lecternContainer.getCurrentBedrockPage() == page) {
             // The same page means Bedrock is closing the window
