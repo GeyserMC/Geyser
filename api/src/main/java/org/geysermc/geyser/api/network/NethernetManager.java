@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.network;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -81,4 +82,13 @@ public interface NethernetManager {
      */
     @NonNull
     String getConnectionId();
+
+    /**
+     * Gets the PlayFab Messaging ID (pmid) from the MCToken used for signaling.
+     * Required for ConnectionType 7 (JSON-RPC) Xbox session discovery.
+     *
+     * @return the pmsgId, or null if the server hasn't authenticated yet
+     */
+    @Nullable
+    String getPmsgId();
 }

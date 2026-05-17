@@ -80,6 +80,12 @@ public class NethernetManagerImpl implements NethernetManager {
         return connectionId;
     }
 
+    @Override
+    public String getPmsgId() {
+        NetherNetServer s = server;
+        return s != null ? s.getPmsgId() : null;
+    }
+
     /**
      * Called during Geyser shutdown to release all Nethernet resources.
      */

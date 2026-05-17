@@ -35,6 +35,7 @@ public class PlayFabTokenManager {
     private volatile @Nullable String sessionTicket;
     private volatile @Nullable String mcToken;
     private volatile @Nullable String mcTokenExpiry;
+    private volatile @Nullable String pmsgId;
 
     public PlayFabTokenManager(GeyserLogger logger) {
         this.logger = logger;
@@ -59,6 +60,26 @@ public class PlayFabTokenManager {
 
     public @Nullable String getMCToken() {
         return mcToken;
+    }
+
+    public @Nullable String getPmsgId() {
+        return pmsgId;
+    }
+
+    private @Nullable String extractPmsgId(String token) {
+        // MCToken format: "MCToken eyJ..." — decode the JWT payload
+        String[] parts = token.split(" ", 2);
+        if (parts.length < 2) return null;
+        String[] jwtParts = parts[1].split("\\.");
+        if (jwtParts.length < 2) return null;
+        try {
+            String payload = new String(java.util.Base64.getUrlDecoder().decode(jwtParts[1]), StandardCharsets.UTF_8);
+            JsonObject claims = JsonParser.parseString(payload).getAsJsonObject();
+            return claims.has("pmid") ? claims.get("pmid").getAsString() : null;
+        } catch (Exception e) {
+            logger.debug("[Nethernet] Failed to extract pmid from MCToken: " + e.getMessage());
+            return null;
+        }
     }
 
     private void loginToPlayFab() throws IOException {
@@ -131,6 +152,9 @@ public class PlayFabTokenManager {
         if (result.has("validUntil")) {
             this.mcTokenExpiry = result.get("validUntil").getAsString();
         }
+
+        // Extract pmid from the MCToken JWT payload
+        this.pmsgId = extractPmsgId(this.mcToken);
 
         logger.debug("[Nethernet] MCToken obtained");
     }
