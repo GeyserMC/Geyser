@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,14 +49,18 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
             return;
         }
 
-        if (lecternContainer.getCurrentBedrockPage() == packet.getPage()) {
+        // Books on java can only be 100 pages so clamp the page number to that
+        // This is 25 for showing page 49/50, and 50 for 99/100
+        int page = Math.clamp(packet.getPage(), 0, 50);
+
+        if (lecternContainer.getCurrentBedrockPage() == page) {
             // The same page means Bedrock is closing the window
             InventoryUtils.sendJavaContainerClose(holder);
             InventoryUtils.closeInventory(session, holder, false);
         } else {
             // Each "page" Bedrock gives to us actually represents two pages (think opening a book and seeing two pages)
             // Each "page" on Java is just one page (think a spiral notebook folded back to only show one page)
-            int newJavaPage = (packet.getPage() * 2);
+            int newJavaPage = (page * 2);
             int currentJavaPage = (lecternContainer.getCurrentBedrockPage() * 2);
 
             // So, fun fact: We need to separately handle fake lecterns!
