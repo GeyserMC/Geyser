@@ -54,12 +54,15 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
         // This also forces requested pages to be sequential
         // This is 25 for showing page 49/50, and 50 for 99/100
         int currentPage = lecternContainer.getCurrentBedrockPage();
-        int page = MathUtils.constrain(MathUtils.constrain(packet.getPage(), currentPage - 1, currentPage + 1), 0, 50);
+        int requestedPage = packet.getPage();
+        int page = MathUtils.constrain(MathUtils.constrain(requestedPage, currentPage - 1, currentPage + 1), 0, 50);
 
-        if (currentPage == page) {
+        if (currentPage == requestedPage) {
             // The same page means Bedrock is closing the window
             InventoryUtils.sendJavaContainerClose(holder);
             InventoryUtils.closeInventory(session, holder, false);
+        } else if (currentPage == page) {
+            // The requested page was clamped back to the current page so do nothing
         } else {
             // Each "page" Bedrock gives to us actually represents two pages (think opening a book and seeing two pages)
             // Each "page" on Java is just one page (think a spiral notebook folded back to only show one page)
