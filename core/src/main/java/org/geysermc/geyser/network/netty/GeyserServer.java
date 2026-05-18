@@ -157,11 +157,6 @@ public final class GeyserServer {
             channel.pipeline()
                 .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
                 .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
-
-            if (Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false"))) {
-                // We would already block any non-whitelisted IP addresses in onConnectionRequest so we can remove the rate limiter
-                channel.pipeline().remove(RakServerRateLimiter.NAME);
-            }
         });
     }
 
@@ -217,6 +212,9 @@ public final class GeyserServer {
         int maxConnectionsPerAddress =  positivePropOrDefault("Geyser.MaxConnectionsPerAddress", 10);
         this.geyser.getLogger().debug("Setting max connection per address " + maxConnectionsPerAddress);
 
+        boolean rakRateLimitingDisabled = Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false"));
+        this.geyser.getLogger().debug("Disabling RakNet rate limiting " + rakRateLimitingDisabled);
+
         GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser, rakSendCookie);
         playerGroup = serverInitializer.getEventLoopGroup();
 
@@ -225,11 +223,11 @@ public final class GeyserServer {
             .group(group, childGroup)
             .option(RakChannelOption.RAK_HANDLE_PING, true)
             .option(RakChannelOption.RAK_MAX_MTU, this.geyser.config().advanced().bedrock().mtu())
-            .option(RakChannelOption.RAK_PACKET_LIMIT, rakPacketLimit)
+            .option(RakChannelOption.RAK_PACKET_LIMIT, rakRateLimitingDisabled ? 0 : rakPacketLimit)
             .option(RakChannelOption.RAK_GLOBAL_PACKET_LIMIT, rakGlobalPacketLimit)
             .option(RakChannelOption.RAK_SERVER_COOKIE_MODE, rakSendCookie ? RakServerCookieMode.ACTIVE : RakServerCookieMode.INVALID)
             .option(RakChannelOption.RAK_PROXY_PROTOCOL, this.geyser.config().advanced().bedrock().useHaproxyProtocol())
-            .option(RakChannelOption.RAK_THROTTLE, new DefaultRakServerThrottle(maxConnectionsPerAddress, 4_000, 3))
+            .option(RakChannelOption.RAK_THROTTLE, rakRateLimitingDisabled ? null : new DefaultRakServerThrottle(maxConnectionsPerAddress, 4_000, 3))
             .childHandler(serverInitializer);
     }
 
