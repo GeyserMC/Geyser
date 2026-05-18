@@ -108,10 +108,7 @@ public class LoginEncryptionUtils {
                 String waterdogXuid = data.getWaterdogXuid();
                 if (waterdogXuid != null && !waterdogXuid.isBlank() && waterdogIp != null && !waterdogIp.isBlank()) {
                     xuid = waterdogXuid;
-                    InetSocketAddress originalAddress = session.getUpstream().getAddress();
-                    InetSocketAddress proxiedAddress = new InetSocketAddress(waterdogIp, originalAddress.getPort());
-                    session.getGeyser().getGeyserServer().getProxiedAddresses().put(originalAddress, proxiedAddress);
-                    session.getUpstream().setInetAddress(proxiedAddress);
+                    session.getUpstream().setInetAddress(new InetSocketAddress(waterdogIp, 0));
                 } else {
                     session.disconnect("Did not receive IP and xuid forwarded from the proxy!");
                     return;
