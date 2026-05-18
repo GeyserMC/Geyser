@@ -210,9 +210,12 @@ public final class GeyserServer {
         this.geyser.getLogger().debug("Setting RakNet send cookie to " + rakSendCookie);
 
         int maxConnectionsPerAddress =  positivePropOrDefault("Geyser.MaxConnectionsPerAddress", 10);
-        this.geyser.getLogger().debug("Setting max connection per address " + maxConnectionsPerAddress);
+        this.geyser.getLogger().debug("Setting max connections per address to " + maxConnectionsPerAddress);
 
-        boolean rakRateLimitingDisabled = Boolean.parseBoolean(System.getProperty("Geyser.RakRateLimitingDisabled", "false"));
+        boolean rakRateLimitingDisabled = Boolean.parseBoolean(System.getProperty(
+            "Geyser.RakRateLimitingDisabled",
+            Boolean.toString(this.geyser.config().advanced().bedrock().useWaterdogpeForwarding())
+        ));
         this.geyser.getLogger().debug("Disabling RakNet rate limiting " + rakRateLimitingDisabled);
 
         GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser, rakSendCookie);
