@@ -233,7 +233,7 @@ public final class GeyserServer {
             .childHandler(serverInitializer);
     }
 
-    public boolean onConnectionRequest(InetSocketAddress inetSocketAddress) {
+    public boolean onConnectionRequest(InetSocketAddress inetSocketAddress, InetSocketAddress clientAddress) {
         List<String> allowedProxyIPs = geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps();
         if (geyser.config().advanced().bedrock().useHaproxyProtocol() && !allowedProxyIPs.isEmpty()) {
             boolean isWhitelistedIP = false;
@@ -250,11 +250,11 @@ public final class GeyserServer {
             }
         }
 
-        String ip = geyser.config().logPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
+        String ip = geyser.config().logPlayerIpAddresses() ? clientAddress.toString() : "<IP address withheld>";
 
         ConnectionRequestEvent requestEvent = new ConnectionRequestEvent(
-            inetSocketAddress,
-            null // TODO
+            clientAddress,
+            geyser.config().advanced().bedrock().useHaproxyProtocol() ? inetSocketAddress : null
         );
         geyser.eventBus().fire(requestEvent);
         if (requestEvent.isCancelled()) {
