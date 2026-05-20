@@ -59,9 +59,7 @@ public class BedrockServerSettingsRequestTranslator extends PacketTranslator<Ser
         }
 
         FormCache formCache = session.getFormCache();
-        if (formCache.hasFormOpen()) {
-            formCache.closeForms();
-        }
+        formCache.closeForms();
 
         CustomForm form = SettingsUtils.buildForm(session);
         int formId = formCache.addForm(form);
