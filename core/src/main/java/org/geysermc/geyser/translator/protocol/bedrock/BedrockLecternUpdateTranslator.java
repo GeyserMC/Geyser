@@ -55,7 +55,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
         // This is 25 for showing page 49/50, and 50 for 99/100
         int currentPage = lecternContainer.getCurrentBedrockPage();
         int requestedPage = packet.getPage();
-        int page = MathUtils.constrain(MathUtils.constrain(requestedPage, currentPage - 1, currentPage + 1), 0, 50);
+        int page = MathUtils.constrain(MathUtils.constrain(requestedPage, currentPage - 1, currentPage + 1), 0, lecternContainer.getMaxPages());
 
         if (currentPage == requestedPage) {
             // The same page means Bedrock is closing the window
