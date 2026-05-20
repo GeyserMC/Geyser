@@ -38,6 +38,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
@@ -51,9 +52,14 @@ import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.TrapDoorBlock;
+import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.tags.BlockTag;
+import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.AttributeUtils;
+import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
@@ -167,6 +173,57 @@ public class SessionPlayerEntity extends PlayerEntity {
         this.javaYaw = yaw;
     }
 
+    public Vector3f adjustPositionForBedrock(Vector3f position) {
+        // Checks for Bedrock collision differences and adjust the position sent to Bedrock if needed
+        // For example: Java teleports to 72.875 on top of a chest, but Bedrock believes chests are 72.95 high... so we fall through instead
+        // ...which leads the server to teleport again, et voila.
+        BoundingBox playerBox = session.getCollisionManager().getPlayerBoundingBox().clone();
+        playerBox.setMiddleX(position.getX());
+        playerBox.setMiddleY(position.getY() + (playerBox.getSizeY() / 2.0));
+        playerBox.setMiddleZ(position.getZ());
+
+        // Check blocks which we're on top off, according to the Java server
+        BlockPositionIterator iter = CollisionManager.collidableBlocksIterator(session, playerBox);
+        double totalPushUp = 0;
+        while (iter.hasNext()) {
+            int blockId = session.getGeyser().getWorldManager().getBlockAt(session, iter.getX(), iter.getY(), iter.getZ());
+            BlockCollision collision = BlockUtils.getCollision(blockId);
+            if (collision != null) {
+                for (BoundingBox box : collision.getBoundingBoxes()) {
+                    // Check if the player is within the block's X/Z bounds
+                    if (Math.abs((box.getMiddleX() + iter.getX()) - playerBox.getMiddleX()) * 2 < (box.getSizeX() + playerBox.getSizeX()) &&
+                        Math.abs((box.getMiddleZ() + iter.getZ()) - playerBox.getMiddleZ()) * 2 < (box.getSizeZ() + playerBox.getSizeZ())) {
+
+                        double pushUp = collision.pushUpForTeleport();
+                        if (pushUp > 0) {
+                            double blockMaxY = iter.getY() + box.getMiddleY() + (box.getSizeY() / 2.0);
+                            double playerMinY = playerBox.getMiddleY() - (playerBox.getSizeY() / 2.0);
+                            // If the player is on top of or slightly inside the Bedrock collision zone
+                            if (playerMinY >= blockMaxY - 0.05 && playerMinY < blockMaxY + pushUp) {
+                                totalPushUp = Math.max(totalPushUp, blockMaxY + pushUp - playerMinY);
+                            }
+                        }
+                    }
+                }
+            }
+            iter.next();
+        }
+
+        if (totalPushUp > 0) {
+            return Vector3f.from(position.getX(), (float) (position.getY() + totalPushUp), position.getZ());
+        }
+        return position;
+    }
+
+    @Override
+    public Vector3f bedrockPosition() {
+        TeleportCache unconfirmedTeleport = session.getUnconfirmedTeleport();
+        if (unconfirmedTeleport != null) {
+            return unconfirmedTeleport.getAdjustedPosition().up(EntityDefinitions.PLAYER.offset());
+        }
+        return super.bedrockPosition();
+    }
+
     @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
@@ -232,7 +289,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         }
 
         // Player is "above" the void so they're not supposed to no clip.
-        if (session.isNoClip() && position.getY() - EntityDefinitions.PLAYER.offset() >= session.getBedrockDimension().minY() - 5) {
+        if (session.isNoClip() && this.position.getY() >= session.getBedrockDimension().minY() - 5) {
             session.setNoClip(false);
         }
     }

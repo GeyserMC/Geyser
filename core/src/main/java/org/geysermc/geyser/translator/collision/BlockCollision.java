@@ -27,7 +27,9 @@ package org.geysermc.geyser.translator.collision;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
@@ -89,6 +91,14 @@ public class BlockCollision {
     }
 
     protected void correctPosition(GeyserSession session, int x, int y, int z, BoundingBox blockCollision, BoundingBox playerCollision, double ulpX, double ulpZ) {
+    }
+
+    /**
+     * See {@link SessionPlayerEntity#adjustPositionForBedrock(Vector3f)}
+     * @return the distance to push the player up by, if they are on this block on Java, but "in" the block on Bedrock
+     */
+    public double pushUpForTeleport() {
+        return 0;
     }
 
     public boolean checkIntersection(double x, double y, double z, BoundingBox playerCollision) {

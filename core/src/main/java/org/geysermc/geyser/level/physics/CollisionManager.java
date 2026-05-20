@@ -232,7 +232,7 @@ public class CollisionManager {
         session.sendUpstreamPacket(movePlayerPacket);
     }
 
-    public BlockPositionIterator collidableBlocksIterator(BoundingBox box) {
+    public static BlockPositionIterator collidableBlocksIterator(GeyserSession session, BoundingBox box) {
         Vector3d position = Vector3d.from(box.getMiddleX(), box.getMiddleY() - (box.getSizeY() / 2), box.getMiddleZ());
 
         // Expand volume by 1 in each direction to include moving blocks
@@ -253,7 +253,7 @@ public class CollisionManager {
     }
 
     public BlockPositionIterator playerCollidableBlocksIterator() {
-        return collidableBlocksIterator(playerBoundingBox);
+        return collidableBlocksIterator(session, playerBoundingBox);
     }
 
     /**
@@ -354,7 +354,7 @@ public class CollisionManager {
 
         BoundingBox movementBoundingBox = boundingBox.clone();
         movementBoundingBox.extend(movement);
-        BlockPositionIterator iter = collidableBlocksIterator(movementBoundingBox);
+        BlockPositionIterator iter = collidableBlocksIterator(session, movementBoundingBox);
         if (Math.abs(movementY) > CollisionManager.COLLISION_TOLERANCE) {
             movementY = computeCollisionOffset(boundingBox, Axis.Y, movementY, iter, checkWorld, walkOnLava);
             boundingBox.translate(0, movementY, 0);
