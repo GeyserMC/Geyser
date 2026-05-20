@@ -45,6 +45,8 @@ import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
 import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
@@ -83,7 +85,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         }
     }
 
-    public PlayerEntity(EntitySpawnContext context, String username, @Nullable Map<GameProfile.TextureType, GameProfile.Texture> textureMap) {
+    public PlayerEntity(EntitySpawnContext context, String username, @Nullable Map<TextureType, Texture> textureMap) {
         super(context, username);
         this.customNameVisible = true;
         this.textures = textureMap;
