@@ -51,7 +51,7 @@ public class TeleportCache {
 
     public TeleportCache(GeyserSession session, Vector3f position, float pitch, float yaw, int teleportConfirmId) {
         this.position = position;
-        this.adjustedPosition = session.getPlayerEntity().adjustPositionForBedrock(position);
+        this.adjustedPosition = session.getCollisionManager().adjustPositionForBedrock(position);
         this.velocity = Vector3f.ZERO;
         this.pitch = pitch;
         this.yaw = yaw;
@@ -61,7 +61,7 @@ public class TeleportCache {
 
     public TeleportCache(GeyserSession session, Vector3f position, Vector3f velocity, float pitch, float yaw, int teleportConfirmId, TeleportType teleportType) {
         this.position = position;
-        this.adjustedPosition = session.getPlayerEntity().adjustPositionForBedrock(position);
+        this.adjustedPosition = session.getCollisionManager().adjustPositionForBedrock(position);
         this.velocity = velocity;
         this.pitch = pitch;
         this.yaw = yaw;

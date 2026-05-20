@@ -135,14 +135,14 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         TeleportCache.TeleportType type = (deltaMovement.distanceSquared(Vector3f.ZERO) > 1.0E-8F) ?
             TeleportCache.TeleportType.KEEP_VELOCITY : TeleportCache.TeleportType.NORMAL;
 
+        // We need to set the unconfirmed teleport to ensure we use the proper Bedrock position in moveAbsolute (see SessionPlayerEntity#adjustPositionForBedrock)
+        session.setUnconfirmedTeleport(new TeleportCache(session, teleportDestination, deltaMovement, newPitch, newYaw, teleportId, type));
+        entity.moveAbsolute(teleportDestination, newYaw, newPitch, false, true);
+
         // Bedrock ignores teleports that are extremely close to the player's original position and orientation, so check if we need to cache the teleport
         if (lastPlayerPosition.distanceSquared(teleportDestination) < 0.001 && Math.abs(newPitch - lastPlayerPitch) < 5 && Math.abs(newYaw - lastPlayerYaw) < 5) {
             session.setUnconfirmedTeleport(null);
-        } else {
-            session.setUnconfirmedTeleport(new TeleportCache(session, teleportDestination, deltaMovement, newPitch, newYaw, teleportId, type));
         }
-
-        entity.moveAbsolute(teleportDestination, newYaw, newPitch, false, true);
 
         if (type == TeleportCache.TeleportType.KEEP_VELOCITY) {
             entity.setMotion(deltaMovement);

@@ -29,7 +29,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.CollisionManager;
@@ -94,7 +93,7 @@ public class BlockCollision {
     }
 
     /**
-     * See {@link SessionPlayerEntity#adjustPositionForBedrock(Vector3f)}
+     * See {@link CollisionManager#adjustPositionForBedrock(Vector3f)}
      * @return the distance to push the player up by, if they are on this block on Java, but "in" the block on Bedrock
      */
     public double pushUpForTeleport() {
