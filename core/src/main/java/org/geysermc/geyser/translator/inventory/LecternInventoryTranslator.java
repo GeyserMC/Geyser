@@ -185,12 +185,14 @@ public class LecternInventoryTranslator extends AbstractBlockInventoryTranslator
                 }
 
                 currentPage = (int) MathUtils.clamp(container.getCurrentBedrockPage(), 0, pages - 1);
+                container.setMaxPages(pages == 0 ? 0 : pages / 2);
                 ItemData itemData = book.getItemData(session);
                 blockEntityTag = LecternBlock.createLecternTag(position, BedrockItemBuilder.createItemNbt(itemData).build(), currentPage, pages);
             } else {
                 // There is *a* book here, but... no book component?.
                 blockEntityTag = LecternBlock.getBaseLecternTag(position, true);
                 currentPage = 0;
+                container.setMaxPages(0);
             }
 
             container.setCurrentBookHash(book.hashCode());
