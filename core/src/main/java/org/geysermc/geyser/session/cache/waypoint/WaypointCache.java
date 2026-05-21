@@ -66,7 +66,12 @@ public final class WaypointCache {
     }
 
     public void addEntity(Entity entity) {
-        GeyserWaypoint waypoint = waypoints.get(entity.uuid().toString());
+        UUID uuid = entity.uuid();
+        if (uuid == null) {
+            return;
+        }
+
+        GeyserWaypoint waypoint = waypoints.get(uuid.toString());
         if (waypoint != null) {
             // On 1.26.0 and below:
             // This will remove the fake player packet previously sent to the client,
@@ -91,6 +96,11 @@ public final class WaypointCache {
     }
 
     public void removeEntity(Entity entity) {
+        UUID uuid = entity.uuid();
+        if (uuid == null) {
+            return;
+        }
+
         GeyserWaypoint waypoint = waypoints.get(entity.uuid().toString());
         if (waypoint != null) {
             // On 1.26.0 and below:
