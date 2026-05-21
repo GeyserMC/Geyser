@@ -101,7 +101,7 @@ public final class WaypointCache {
             return;
         }
 
-        GeyserWaypoint waypoint = waypoints.get(uuid().toString());
+        GeyserWaypoint waypoint = waypoints.get(uuid.toString());
         if (waypoint != null) {
             // On 1.26.0 and below:
             // This will remove the player packet previously sent to the client,
