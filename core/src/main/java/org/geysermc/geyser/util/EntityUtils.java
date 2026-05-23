@@ -433,7 +433,7 @@ public final class EntityUtils {
 
                 var type = GeyserEntityType.createCustomAndRegister(builder);
 
-                var defaultBedrockDefinition = type.defaultBedrockDefinition();
+                var defaultBedrockDefinition = builder.getDefaultBedrockDefinition();
                 if (defaultBedrockDefinition != null && !isRegistered(defaultBedrockDefinition)) {
                     throw new IllegalStateException("Default bedrock entity definition has not been registered!");
                 }
