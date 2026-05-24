@@ -50,6 +50,12 @@ public class RakPingHandler extends SimpleChannelInboundHandler<RakPing> {
 
         InetSocketAddress address = msg.getSender();
         InetSocketAddress clientAddress = ((RakServerChannel) ctx.channel()).getClientAddress(address);
+        if (clientAddress == null) {
+            // Drop silently when no PROXY header was resolved. Responding with the raw sender (the
+            // proxy's IP) would leak that address to ping passthrough. GeyserServer#onConnectionRequest
+            // surfaces the misconfiguration via a warning when a client actually tries to connect.
+            return;
+        }
         RakPong pong = msg.reply(guid, this.server.onQuery(ctx.channel(), clientAddress).toByteBuf());
         ctx.writeAndFlush(pong);
     }

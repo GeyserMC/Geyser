@@ -37,6 +37,7 @@ import io.netty.channel.uring.IoUring;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.concurrent.Future;
 import lombok.Getter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.netty.channel.raknet.RakChannelFactory;
 import org.cloudburstmc.netty.channel.raknet.config.DefaultRakServerThrottle;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
@@ -234,9 +235,24 @@ public final class GeyserServer {
             .childHandler(serverInitializer);
     }
 
-    public boolean onConnectionRequest(InetSocketAddress inetSocketAddress, InetSocketAddress clientAddress) {
+    public boolean onConnectionRequest(InetSocketAddress inetSocketAddress, @Nullable InetSocketAddress clientAddress) {
+        boolean haproxyEnabled = geyser.config().advanced().bedrock().useHaproxyProtocol();
+
+        if (clientAddress == null) {
+            // getClientAddress returns null when no PROXY header has been cached for this sender:
+            // upstream not emitting a header per UDP datagram, a PROXY v2 LOCAL frame the upstream
+            // library mishandles, or the cached entry expired.
+            if (haproxyEnabled) {
+                geyser.getLogger().warning(
+                    "Rejecting Bedrock connection from " + inetSocketAddress + ": use-haproxy-protocol is enabled but no PROXY header was received. Verify your reverse proxy sends a PROXY v2 header on every UDP datagram."
+                );
+            }
+            connectionAttempts++;
+            return false;
+        }
+
         List<String> allowedProxyIPs = geyser.config().advanced().bedrock().haproxyProtocolWhitelistedIps();
-        if (geyser.config().advanced().bedrock().useHaproxyProtocol() && !allowedProxyIPs.isEmpty()) {
+        if (haproxyEnabled && !allowedProxyIPs.isEmpty()) {
             boolean isWhitelistedIP = false;
             for (CIDRMatcher matcher : getWhitelistedIPsMatchers()) {
                 if (matcher.matches(inetSocketAddress.getAddress())) {
@@ -255,7 +271,7 @@ public final class GeyserServer {
 
         ConnectionRequestEvent requestEvent = new ConnectionRequestEvent(
             clientAddress,
-            geyser.config().advanced().bedrock().useHaproxyProtocol() ? inetSocketAddress : null
+            haproxyEnabled ? inetSocketAddress : null
         );
         geyser.eventBus().fire(requestEvent);
         if (requestEvent.isCancelled()) {
