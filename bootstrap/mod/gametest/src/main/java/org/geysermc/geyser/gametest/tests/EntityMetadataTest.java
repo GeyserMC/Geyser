@@ -93,7 +93,8 @@ public class EntityMetadataTest extends GameTestInstance {
                 int translators = synchedEntityData.itemsById.length;
 
                 if (definition.translators().size() != translators) {
-                    GeyserImpl.getInstance().getLogger().warning("Expected " + definition.translators().size() + " translators, found " + translators + " for " + geyserEntityType);
+                    GeyserImpl.getInstance().getLogger().warning("Expected " + translators + " translators, found " + definition.translators().size() + " for " + geyserEntityType);
+                    errors.getAndIncrement();
                 }
 
             } finally {
