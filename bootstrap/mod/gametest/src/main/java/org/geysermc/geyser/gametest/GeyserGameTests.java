@@ -31,6 +31,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestInstance;
 import net.minecraft.resources.Identifier;
 import org.geysermc.geyser.gametest.tests.ComponentHashTestInstance;
+import org.geysermc.geyser.gametest.tests.EntityMetadataTest;
 import org.geysermc.geyser.gametest.tests.RequiredComponentsForHashingTestInstance;
 
 public class GeyserGameTests {
@@ -46,5 +47,6 @@ public class GeyserGameTests {
     public static void bootstrap() {
         register("component_hash", ComponentHashTestInstance.MAP_CODEC);
         register("required_components_for_hashing", RequiredComponentsForHashingTestInstance.MAP_CODEC);
+        register("entity_metadata", EntityMetadataTest.MAP_CODEC);
     }
 }

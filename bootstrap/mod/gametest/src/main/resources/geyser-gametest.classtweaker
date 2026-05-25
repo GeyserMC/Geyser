@@ -1,0 +1,3 @@
+classTweaker  v1  official
+
+accessible field net/minecraft/network/syncher/SynchedEntityData itemsById [Lnet/minecraft/network/syncher/SynchedEntityData$DataItem;

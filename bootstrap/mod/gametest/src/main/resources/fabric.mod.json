@@ -22,6 +22,7 @@
     "mixins": [
       "geyser.mixins.json"
     ],
+    "accessWidener": "geyser-gametest.classtweaker",
     "depends": {
         "fabricloader": ">=0.18.2",
         "fabric-api": "*",

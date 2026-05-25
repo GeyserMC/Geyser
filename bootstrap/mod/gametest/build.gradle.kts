@@ -15,6 +15,7 @@ loom {
             sourceSet("main", projects.core)
         }
     }
+    accessWidenerPath = file("src/main/resources/geyser-gametest.classtweaker")
 }
 
 dependencies {
@@ -42,7 +43,7 @@ tasks {
     shadowJar.get().enabled = false
     mergeShadowAndJarJar.get().enabled = false
 
-    // processGametestResources
+    // it'd be processGametestResources if we had a separate source set for tests
     getByName("processResources", ProcessResources::class) {
         filesMatching("fabric.mod.json") {
             expand(

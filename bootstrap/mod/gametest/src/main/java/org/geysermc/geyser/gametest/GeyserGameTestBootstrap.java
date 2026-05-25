@@ -56,7 +56,7 @@ public class GeyserGameTestBootstrap extends GeyserModBootstrap implements ModIn
         });
 
         ServerPlayConnectionEvents.JOIN.register((handler, _, _) -> {
-            GeyserModUpdateListener.onPlayReady(handler.getPlayer())
+            GeyserModUpdateListener.onPlayReady(handler.getPlayer());
         });
 
         GeyserGameTests.bootstrap();
