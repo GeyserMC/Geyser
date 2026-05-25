@@ -40,6 +40,8 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.gametest.GameTestUtil;
+import org.geysermc.geyser.gametest.mixin.SynchedEntityDataAccessor;
+import org.geysermc.geyser.gametest.util.SynchedEntityDataDebugger;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTypes;
@@ -90,10 +92,11 @@ public class EntityMetadataTest extends GameTestInstance {
                 }
 
                 SynchedEntityData synchedEntityData = javaEntity.getEntityData();
-                int translators = synchedEntityData.itemsById.length;
+                SynchedEntityData.DataItem<?>[] dataItems = ((SynchedEntityDataAccessor) synchedEntityData).getItemsById();
 
-                if (definition.translators().size() != translators) {
-                    GeyserImpl.getInstance().getLogger().warning("Expected " + translators + " translators, found " + definition.translators().size() + " for " + geyserEntityType);
+                if (definition.translators().size() != dataItems.length) {
+                    GeyserImpl.getInstance().getLogger().warning("Expected " + definition.translators().size() + " translators, found " + dataItems.length + " for " + geyserEntityType);
+                    GeyserImpl.getInstance().getLogger().warning(SynchedEntityDataDebugger.prettyPrintEntityDataAccessors(javaEntity.getClass(), dataItems));
                     errors.getAndIncrement();
                 }
 

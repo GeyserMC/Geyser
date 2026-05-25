@@ -15,7 +15,6 @@ loom {
             sourceSet("main", projects.core)
         }
     }
-    accessWidenerPath = file("src/main/resources/geyser-gametest.classtweaker")
 }
 
 dependencies {

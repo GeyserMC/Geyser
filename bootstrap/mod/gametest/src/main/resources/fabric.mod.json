@@ -20,9 +20,9 @@
         ]
     },
     "mixins": [
-      "geyser.mixins.json"
+      "geyser.mixins.json",
+      "geyser-gametest.mixins.json"
     ],
-    "accessWidener": "geyser-gametest.classtweaker",
     "depends": {
         "fabricloader": ">=0.18.2",
         "fabric-api": "*",

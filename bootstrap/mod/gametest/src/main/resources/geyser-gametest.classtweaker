@@ -1,5 +1,0 @@
-classTweaker  v1  official
-
-accessible field net/minecraft/network/syncher/SynchedEntityData itemsById [Lnet/minecraft/network/syncher/SynchedEntityData$DataItem;
-accessible field net/minecraft/network/syncher/SynchedEntityData ID_REGISTRY Lnet/minecraft/util/ClassTreeIdRegistry;
-accessible field net/minecraft/util/ClassTreeIdRegistry classToLastIdCache Lit/unimi/dsi/fastutil/objects/Object2IntMap;
