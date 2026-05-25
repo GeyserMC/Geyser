@@ -23,52 +23,53 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.fabric;
+package org.geysermc.geyser.gametest;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.server.MinecraftServer;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.dump.BootstrapDumpInfo;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
+import org.geysermc.geyser.util.InternalPlatformType;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Optional;
 
-public class GeyserFabricPlatform implements GeyserModPlatform {
+public class GeyserGameTestPlatform implements GeyserModPlatform {
+    
     private final ModContainer mod;
 
-    public GeyserFabricPlatform() {
-        this.mod = FabricLoader.getInstance().getModContainer("geyser-fabric").orElseThrow();
+    public GeyserGameTestPlatform() {
+        this.mod = FabricLoader.getInstance().getModContainer("geyser-gametest").orElseThrow();
     }
 
     @Override
-    public @NonNull PlatformType platformType() {
-        return PlatformType.FABRIC;
+    public PlatformType platformType() {
+        return InternalPlatformType.GAMETEST;
     }
 
     @Override
-    public @NonNull String configPath() {
-        return "Geyser-Fabric";
+    public String configPath() {
+        return "Geyser-Gametest";
     }
 
     @Override
-    public @NonNull Path dataFolder(@NonNull String modId) {
+    public Path dataFolder(String modId) {
         return FabricLoader.getInstance().getConfigDir().resolve(modId);
     }
 
     @Override
-    public @NonNull BootstrapDumpInfo dumpInfo(@NonNull MinecraftServer server) {
-        return new GeyserFabricDumpInfo(server);
+    public BootstrapDumpInfo dumpInfo(MinecraftServer server) {
+        return new BootstrapDumpInfo();
     }
 
     @Override
-    public boolean testFloodgatePluginPresent(@NonNull GeyserModBootstrap bootstrap) {
+    public boolean testFloodgatePluginPresent(GeyserModBootstrap bootstrap) {
         Optional<ModContainer> floodgate = FabricLoader.getInstance().getModContainer("floodgate");
         if (floodgate.isPresent()) {
             Path floodgateDataFolder = FabricLoader.getInstance().getConfigDir().resolve("floodgate");
@@ -80,7 +81,7 @@ public class GeyserFabricPlatform implements GeyserModPlatform {
     }
 
     @Override
-    public @Nullable InputStream resolveResource(@NonNull String resource) {
+    public @Nullable InputStream resolveResource(String resource) {
         // We need to handle this differently, because Fabric shares the classloader across multiple mods
         Path path = this.mod.findPath(resource).orElse(null);
         if (path == null) {
@@ -89,8 +90,8 @@ public class GeyserFabricPlatform implements GeyserModPlatform {
 
         try {
             return path.getFileSystem()
-                .provider()
-                .newInputStream(path);
+                    .provider()
+                    .newInputStream(path);
         } catch (IOException e) {
             return null;
         }

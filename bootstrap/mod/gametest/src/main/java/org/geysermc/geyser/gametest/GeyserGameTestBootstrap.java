@@ -23,16 +23,14 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.platform.fabric;
+package org.geysermc.geyser.gametest;
 
-import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
@@ -40,42 +38,30 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
 import org.geysermc.geyser.platform.mod.command.ModCommandSource;
+import org.geysermc.geyser.util.metrics.MetricsPlatform;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.fabric.FabricServerCommandManager;
 
-public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInitializer {
+public class GeyserGameTestBootstrap extends GeyserModBootstrap implements ModInitializer {
 
-    public GeyserFabricBootstrap() {
-        super(new GeyserFabricPlatform());
+    public GeyserGameTestBootstrap() {
+        super(new GeyserGameTestPlatform());
     }
 
     @Override
     public void onInitialize() {
-        if (isServer()) {
-            // Set as an event, so we can get the proper IP and port if needed
-            ServerLifecycleEvents.SERVER_STARTED.register((server) -> {
-                this.setServer(server);
-                onGeyserEnable();
-            });
-        } else {
-            ClientLifecycleEvents.CLIENT_STOPPING.register((_)-> {
-                onGeyserShutdown();
-            });
-        }
-
-        // These are only registered once
-        ServerLifecycleEvents.SERVER_STOPPING.register((_) -> {
-            if (isServer()) {
-                onGeyserShutdown();
-            } else {
-                onGeyserDisable();
-            }
+        ServerLifecycleEvents.SERVER_STOPPING.register((server) -> {
+            onGeyserShutdown();
         });
 
-        ServerPlayConnectionEvents.JOIN.register((handler, _, _) -> GeyserModUpdateListener.onPlayReady(handler.getPlayer()));
+        ServerPlayConnectionEvents.JOIN.register((handler, _, _) -> {
+            GeyserModUpdateListener.onPlayReady(handler.getPlayer())
+        });
 
+        GeyserGameTests.bootstrap();
         this.onGeyserInitialize();
+
 
         var sourceConverter = CommandSourceConverter.layered(
                 CommandSourceStack.class,
@@ -89,10 +75,18 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
                 sourceConverter
         );
         this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud, false)); // applying root permission would be a breaking change because we can't register permission defaults
+
+        // Have to manually start Geyser for game test environment
+        GeyserImpl.start();
     }
 
     @Override
     public boolean isServer() {
-        return FabricLoader.getInstance().getEnvironmentType().equals(EnvType.SERVER);
+        return false;
+    }
+
+    @Override
+    public @Nullable MetricsPlatform createMetricsPlatform() {
+        return null;
     }
 }

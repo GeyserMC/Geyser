@@ -19,6 +19,9 @@
             "org.geysermc.geyser.gametest.GeyserGameTestBootstrap"
         ]
     },
+    "mixins": [
+      "geyser.mixins.json"
+    ],
     "depends": {
         "fabricloader": ">=0.18.2",
         "fabric-api": "*",
