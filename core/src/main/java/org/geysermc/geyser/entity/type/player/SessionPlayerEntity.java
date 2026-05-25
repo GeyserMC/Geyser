@@ -172,7 +172,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     public Vector3f bedrockPosition() {
         TeleportCache unconfirmedTeleport = session.getUnconfirmedTeleport();
         if (unconfirmedTeleport != null) {
-            return unconfirmedTeleport.getAdjustedPosition().up(EntityDefinitions.PLAYER.offset());
+            return unconfirmedTeleport.getAdjustedPosition().up(getOffset());
         }
         return super.bedrockPosition();
     }
@@ -232,13 +232,11 @@ public class SessionPlayerEntity extends PlayerEntity {
      * @param position the new position of the Bedrock player
      */
     public void setPositionFromBedrockPos(Vector3f position) {
-        // Special handling: position while sleeping
-        if (bedPosition != null && getFlag(EntityFlag.SLEEPING)) {
-            this.position = position.down(0.2f);
-        } else if (this.vehicle != null) {
+        if (this.vehicle != null) {
             this.position = position.down(this.vehicle.getOffset());
         } else {
-            this.position = position.down(offset);
+            // getOffset will also account for a reduced offset (0.2) when sleeping
+            this.position = position.down(getOffset());
         }
 
         // Player is "above" the void so they're not supposed to no clip.
