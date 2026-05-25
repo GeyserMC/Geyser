@@ -45,6 +45,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTyp
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class EntityMetadataTest extends GameTestInstance {
     private static final Int2ObjectMap<MetadataType<?>> ID_MAP_MCPL = new Int2ObjectOpenHashMap<>();
 
@@ -70,6 +72,8 @@ public class EntityMetadataTest extends GameTestInstance {
 
     @Override
     public void run(GameTestHelper helper) {
+        AtomicInteger errors = new AtomicInteger();
+
         BuiltInRegistries.ENTITY_TYPE.stream().forEach(entityType -> {
             Entity javaEntity = entityType.create(helper.getLevel().getLevel(), EntitySpawnReason.COMMAND);
             if (javaEntity == null) {
@@ -96,7 +100,12 @@ public class EntityMetadataTest extends GameTestInstance {
                 javaEntity.discard();
             }
         });
-        helper.succeed();
+
+        if (errors.get() > 0) {
+            helper.fail("Failed to validate " + errors.get() + " entity types");
+        } else {
+            helper.succeed();
+        }
     }
 
     @Override
