@@ -35,7 +35,12 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import org.geysermc.geyser.gametest.tests.EntityMetadataTest;
 
-public interface GeyserGameTests {
+import java.util.List;
+
+public final  class GeyserGameTests {
+    private static final List<EntityType<?>> UNSUPPORTED_ENTITY_TYPES = List.of(EntityType.BLOCK_DISPLAY, EntityType.ITEM_DISPLAY, EntityType.MARKER);
+
+    private GeyserGameTests() {}
 
     private static ResourceKey<GameTestInstance> createKey(String name) {
         return ResourceKey.create(Registries.TEST_INSTANCE, Identifier.fromNamespaceAndPath("geyser", name));
@@ -59,11 +64,12 @@ public interface GeyserGameTests {
 
     private static void registerEntityTypeTests(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries) {
         for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
-            entries.add(createKey(GeyserGameTestTypes.ENTITY_METADATA, BuiltInRegistries.ENTITY_TYPE.getKey(entityType).getPath()), new EntityMetadataTest(registries, true, entityType));
+            entries.add(createKey(GeyserGameTestTypes.ENTITY_METADATA, BuiltInRegistries.ENTITY_TYPE.getKey(entityType).getPath()),
+                new EntityMetadataTest(registries, !UNSUPPORTED_ENTITY_TYPES.contains(entityType), entityType));
         }
     }
 
-    static void bootstrap(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries) {
+    public static void bootstrap(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries) {
         registerEntityTypeTests(registries, entries);
         registerSingletonTest(registries, entries, GeyserGameTestTypes.REQUIRED_COMPONENTS_FOR_HASHING);
         registerSingletonTest(registries, entries, GeyserGameTestTypes.MINECRAFT_VERSION);

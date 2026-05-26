@@ -1,4 +1,5 @@
 {
   "type": "geyser:entity_metadata",
-  "entity_type": "minecraft:item_display"
+  "entity_type": "minecraft:item_display",
+  "required": false
 }

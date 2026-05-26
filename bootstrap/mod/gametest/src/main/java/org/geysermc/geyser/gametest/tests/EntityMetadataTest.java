@@ -75,10 +75,11 @@ public class EntityMetadataTest extends GeyserTestInstance {
         if (definition == null) {
             helper.fail("No entity definition found for type " + entityType);
         } else {
-            Entity javaEntity = entityType.create(helper.getLevel().getLevel(), EntitySpawnReason.COMMAND);
-            if (javaEntity == null) {
-                // FIXME?
-                return;
+            Entity javaEntity;
+            if (entityType == EntityType.PLAYER) {
+                javaEntity = helper.makeMockPlayer(GameType.SURVIVAL);
+            } else {
+                javaEntity = entityType.create(helper.getLevel(), EntitySpawnReason.COMMAND);
             }
 
             SynchedEntityData synchedEntityData = javaEntity.getEntityData();
