@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.gametest.tests;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.HolderLookup;
@@ -33,37 +32,37 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInstance;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.GameType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.gametest.GameTestUtil;
 import org.geysermc.geyser.gametest.mixin.SynchedEntityDataAccessor;
 import org.geysermc.geyser.gametest.util.SynchedEntityDataDebugger;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
 
-public class EntityMetadataTest extends GameTestInstance {
+public class EntityMetadataTest extends GeyserTestInstance {
     public static final MapCodec<EntityMetadataTest> MAP_CODEC = RecordCodecBuilder.mapCodec(instance ->
-            instance.group(
-                GameTestUtil.registryOpsGetter(),
-                Codec.BOOL.optionalFieldOf("required", true).forGetter(GameTestInstance::required),
-                EntityType.CODEC.fieldOf("entity_type").forGetter(test -> test.entityType)
-            ).apply(instance, EntityMetadataTest::new)
+        commonFields(instance)
+            .and(EntityType.CODEC.fieldOf("entity_type").forGetter(test -> test.entityType))
+            .apply(instance, EntityMetadataTest::new)
     );
     private final EntityType<?> entityType;
 
     private EntityMetadataTest(RegistryOps<?> ops, boolean required, EntityType<?> entityType) {
-        super(GameTestUtil.createEmptyTestData(ops, required));
+        super(ops, required);
         this.entityType = entityType;
     }
 
     public EntityMetadataTest(HolderLookup.Provider registries, boolean required, EntityType<?> entityType) {
-        super(GameTestUtil.createEmptyTestData(registries, required));
+        super(registries, required);
         this.entityType = entityType;
     }
 
@@ -117,7 +116,7 @@ public class EntityMetadataTest extends GameTestInstance {
     }
 
     @Override
-    protected net.minecraft.network.chat.MutableComponent typeDescription() {
-        return net.minecraft.network.chat.Component.literal("Geyser Entity Metadata Test");
+    protected MutableComponent typeDescription() {
+        return Component.literal("Geyser Entity Metadata Test for " + entityType);
     }
 }

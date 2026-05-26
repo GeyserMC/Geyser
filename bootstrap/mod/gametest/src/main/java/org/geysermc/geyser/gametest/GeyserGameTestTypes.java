@@ -26,30 +26,51 @@
 package org.geysermc.geyser.gametest;
 
 import com.mojang.serialization.MapCodec;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestInstance;
 import net.minecraft.resources.Identifier;
 import org.geysermc.geyser.gametest.tests.ComponentHashTestInstance;
 import org.geysermc.geyser.gametest.tests.EntityMetadataTest;
+import org.geysermc.geyser.gametest.tests.MinecraftVersionTestInstance;
 import org.geysermc.geyser.gametest.tests.RequiredComponentsForHashingTestInstance;
 
 public interface GeyserGameTestTypes {
     Identifier COMPONENT_HASH = createKey("component_hash");
-    Identifier REQUIRED_COMPONENTS_FOR_HASHING = createKey("required_components_for_hashing");
+    SingletonTestType REQUIRED_COMPONENTS_FOR_HASHING = createSingleton("required_components_for_hashing", RequiredComponentsForHashingTestInstance::new);
     Identifier ENTITY_METADATA = createKey("entity_metadata");
+    SingletonTestType MINECRAFT_VERSION = createSingleton("minecraft_version", MinecraftVersionTestInstance::new);
 
     private static Identifier createKey(String name) {
         return Identifier.fromNamespaceAndPath("geyser", name);
+    }
+
+    private static SingletonTestType createSingleton(String name, SingletonTestType.Constructor constructor) {
+        return new SingletonTestType(createKey(name), constructor);
     }
 
     private static void register(Identifier identifier, MapCodec<? extends GameTestInstance> codec) {
         Registry.register(BuiltInRegistries.TEST_INSTANCE_TYPE, identifier, codec);
     }
 
+    private static void register(SingletonTestType type, MapCodec<? extends GameTestInstance> codec) {
+        register(type.type, codec);
+    }
+
     static void bootstrap() {
         register(COMPONENT_HASH, ComponentHashTestInstance.MAP_CODEC);
         register(REQUIRED_COMPONENTS_FOR_HASHING, RequiredComponentsForHashingTestInstance.MAP_CODEC);
         register(ENTITY_METADATA, EntityMetadataTest.MAP_CODEC);
+        register(MINECRAFT_VERSION, MinecraftVersionTestInstance.MAP_CODEC);
+    }
+
+    record SingletonTestType(Identifier type, Constructor constructor) {
+
+        @FunctionalInterface
+        interface Constructor {
+
+            GameTestInstance create(HolderLookup.Provider registries, boolean required);
+        }
     }
 }

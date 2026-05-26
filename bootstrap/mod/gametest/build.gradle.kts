@@ -35,7 +35,9 @@ fabricApi {
         eula = true
     }
 
-    configureDataGeneration()
+    configureDataGeneration {
+        client = true
+    }
 }
 
 tasks {

@@ -25,9 +25,11 @@
 
 package org.geysermc.geyser.gametest;
 
+import net.fabricmc.api.EnvType;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerPlayer;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -51,6 +53,12 @@ public class GeyserGameTestBootstrap extends GeyserModBootstrap implements ModIn
 
     @Override
     public void onInitialize() {
+        GeyserGameTestTypes.bootstrap();
+        if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+            // client == datagen, don't run Geyser
+            return;
+        }
+
         ServerLifecycleEvents.SERVER_STOPPING.register((server) -> {
             onGeyserShutdown();
         });
@@ -59,7 +67,6 @@ public class GeyserGameTestBootstrap extends GeyserModBootstrap implements ModIn
             GeyserModUpdateListener.onPlayReady(handler.getPlayer());
         });
 
-        GeyserGameTestTypes.bootstrap();
         this.onGeyserInitialize();
 
 

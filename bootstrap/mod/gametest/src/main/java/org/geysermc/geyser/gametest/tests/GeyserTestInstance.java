@@ -23,8 +23,10 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.gametest;
+package org.geysermc.geyser.gametest.tests;
 
+import com.mojang.datafixers.Products;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
@@ -35,6 +37,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestEnvironments;
+import net.minecraft.gametest.framework.GameTestInstance;
 import net.minecraft.gametest.framework.TestData;
 import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.resources.Identifier;
@@ -42,7 +45,7 @@ import net.minecraft.resources.RegistryOps;
 
 import java.util.stream.Stream;
 
-public class GameTestUtil {
+public abstract class GeyserTestInstance extends GameTestInstance {
     // Cursed codec to extract a RegistryOps
     private static final MapCodec<RegistryOps<?>> REGISTRY_OPS_MAP_CODEC = new MapCodec<>() {
         @Override
@@ -65,16 +68,27 @@ public class GameTestUtil {
         }
     };
 
-    public static <O> RecordCodecBuilder<O, RegistryOps<?>> registryOpsGetter() {
-        return REGISTRY_OPS_MAP_CODEC.forGetter(ignored -> null);
+    protected GeyserTestInstance(RegistryOps<?> ops, boolean required) {
+        super(createEmptyTestData(ops, required));
     }
 
-    public static TestData<Holder<TestEnvironmentDefinition<?>>> createEmptyTestData(HolderLookup.Provider registries, boolean required) {
+    protected GeyserTestInstance(HolderLookup.Provider registries, boolean required) {
+        super(createEmptyTestData(registries, required));
+    }
+
+    protected static <T extends GeyserTestInstance> Products.P2<RecordCodecBuilder.Mu<T>, RegistryOps<?>, Boolean> commonFields(RecordCodecBuilder.Instance<T> instance) {
+        return instance.group(
+            REGISTRY_OPS_MAP_CODEC.forGetter(_ -> null),
+            Codec.BOOL.optionalFieldOf("required", true).forGetter(GameTestInstance::required)
+        );
+    }
+
+    private static TestData<Holder<TestEnvironmentDefinition<?>>> createEmptyTestData(HolderLookup.Provider registries, boolean required) {
         return new TestData<>(registries.lookupOrThrow(Registries.TEST_ENVIRONMENT).getOrThrow(GameTestEnvironments.DEFAULT_KEY),
             Identifier.withDefaultNamespace("empty"), 1, 1, required);
     }
 
-    public static TestData<Holder<TestEnvironmentDefinition<?>>> createEmptyTestData(RegistryOps<?> ops, boolean required) {
+    private static TestData<Holder<TestEnvironmentDefinition<?>>> createEmptyTestData(RegistryOps<?> ops, boolean required) {
         return new TestData<>(ops.getter(Registries.TEST_ENVIRONMENT)
             .flatMap(getter -> getter.get(GameTestEnvironments.DEFAULT_KEY)).orElseThrow(),
             Identifier.withDefaultNamespace("empty"), 1, 1, required);

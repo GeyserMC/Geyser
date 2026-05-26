@@ -45,13 +45,27 @@ public interface GeyserGameTests {
         return createKey(testType.getPath() + "/" + name);
     }
 
-    private static void addEntityTypeTests(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries) {
+    private static ResourceKey<GameTestInstance> createSingletonKey(Identifier testType) {
+        return createKey(testType.getPath());
+    }
+
+    private static void registerSingletonTest(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries, GeyserGameTestTypes.SingletonTestType type, boolean required) {
+        entries.add(createSingletonKey(type.type()), type.constructor().create(registries, required));
+    }
+
+    private static void registerSingletonTest(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries, GeyserGameTestTypes.SingletonTestType type) {
+        registerSingletonTest(registries, entries, type, true);
+    }
+
+    private static void registerEntityTypeTests(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries) {
         for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
             entries.add(createKey(GeyserGameTestTypes.ENTITY_METADATA, BuiltInRegistries.ENTITY_TYPE.getKey(entityType).getPath()), new EntityMetadataTest(registries, true, entityType));
         }
     }
 
     static void bootstrap(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries) {
-        addEntityTypeTests(registries, entries);
+        registerEntityTypeTests(registries, entries);
+        registerSingletonTest(registries, entries, GeyserGameTestTypes.REQUIRED_COMPONENTS_FOR_HASHING);
+        registerSingletonTest(registries, entries, GeyserGameTestTypes.MINECRAFT_VERSION);
     }
 }

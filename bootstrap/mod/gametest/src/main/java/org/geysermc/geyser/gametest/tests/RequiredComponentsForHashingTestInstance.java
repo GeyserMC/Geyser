@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.gametest.tests;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -37,23 +37,23 @@ import net.minecraft.gametest.framework.GameTestInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.RegistryOps;
-import org.geysermc.geyser.gametest.GameTestUtil;
 import org.geysermc.geyser.item.hashing.DataComponentHashers;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class RequiredComponentsForHashingTestInstance extends GameTestInstance {
+public class RequiredComponentsForHashingTestInstance extends GeyserTestInstance {
     public static final MapCodec<RequiredComponentsForHashingTestInstance> MAP_CODEC = RecordCodecBuilder.mapCodec(instance ->
-        instance.group(
-            GameTestUtil.registryOpsGetter(),
-            Codec.BOOL.optionalFieldOf("required", true).forGetter(GameTestInstance::required)
-        ).apply(instance, RequiredComponentsForHashingTestInstance::new)
+        commonFields(instance).apply(instance, RequiredComponentsForHashingTestInstance::new)
     );
 
-    public RequiredComponentsForHashingTestInstance(RegistryOps<?> ops, boolean required) {
-        super(GameTestUtil.createEmptyTestData(ops, required));
+    private RequiredComponentsForHashingTestInstance(RegistryOps<?> ops, boolean required) {
+        super(ops, required);
+    }
+
+    public RequiredComponentsForHashingTestInstance(HolderLookup.Provider registries, boolean required) {
+        super(registries, required);
     }
 
     @Override
