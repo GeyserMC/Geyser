@@ -59,6 +59,8 @@ import java.util.Locale;
 public class CollisionManager {
     public static final BlockCollision SOLID_COLLISION = new SolidCollision(null);
     public static final BlockCollision FLUID_COLLISION = new OtherCollision(new BoundingBox[]{new BoundingBox(0.5, 0.25, 0.5, 1, 0.5, 1)});
+    // If you read this, feel free to suggest a more proper way to detect the Bedrock player's own onGround status instead of using a margin
+    private static final double POSITION_ADJUSTMENT_MARGIN = 0.05;
 
     private final GeyserSession session;
 
@@ -232,7 +234,7 @@ public class CollisionManager {
         session.sendUpstreamPacket(movePlayerPacket);
     }
 
-    public BlockPositionIterator collidableBlocksIterator(BoundingBox box) {
+    public static BlockPositionIterator collidableBlocksIterator(GeyserSession session, BoundingBox box) {
         Vector3d position = Vector3d.from(box.getMiddleX(), box.getMiddleY() - (box.getSizeY() / 2), box.getMiddleZ());
 
         // Expand volume by 1 in each direction to include moving blocks
@@ -253,7 +255,7 @@ public class CollisionManager {
     }
 
     public BlockPositionIterator playerCollidableBlocksIterator() {
-        return collidableBlocksIterator(playerBoundingBox);
+        return collidableBlocksIterator(session, playerBoundingBox);
     }
 
     /**
@@ -354,7 +356,7 @@ public class CollisionManager {
 
         BoundingBox movementBoundingBox = boundingBox.clone();
         movementBoundingBox.extend(movement);
-        BlockPositionIterator iter = collidableBlocksIterator(movementBoundingBox);
+        BlockPositionIterator iter = collidableBlocksIterator(session, movementBoundingBox);
         if (Math.abs(movementY) > CollisionManager.COLLISION_TOLERANCE) {
             movementY = computeCollisionOffset(boundingBox, Axis.Y, movementY, iter, checkWorld, walkOnLava);
             boundingBox.translate(0, movementY, 0);
@@ -459,5 +461,47 @@ public class CollisionManager {
         if (updateMetadata) {
             session.getPlayerEntity().updateBedrockMetadata();
         }
+    }
+
+    public Vector3f adjustPositionForBedrock(Vector3f position) {
+        // Checks for Bedrock collision differences and adjusts the position sent to Bedrock, if needed
+        // For example: Java teleports to 72.875 on top of a chest, but Bedrock believes chests are 72.95 high - so we fall through instead
+        // ...which leads the server to teleport again, et voila, players get stuck.
+        BoundingBox playerBox = playerBoundingBox.clone();
+        playerBox.setMiddleX(position.getX());
+        playerBox.setMiddleY(position.getY() + (playerBox.getSizeY() / 2.0));
+        playerBox.setMiddleZ(position.getZ());
+
+        // Check blocks which we're on top of, according to the Java server
+        BlockPositionIterator iter = CollisionManager.collidableBlocksIterator(session, playerBox);
+        double totalPushUp = 0;
+        while (iter.hasNext()) {
+            int blockId = session.getGeyser().getWorldManager().getBlockAt(session, iter.getX(), iter.getY(), iter.getZ());
+            BlockCollision collision = BlockUtils.getCollision(blockId);
+            if (collision != null) {
+                for (BoundingBox box : collision.getBoundingBoxes()) {
+                    // Check if the player is within the block's X/Z bounds
+                    if (Math.abs((box.getMiddleX() + iter.getX()) - playerBox.getMiddleX()) * 2 < (box.getSizeX() + playerBox.getSizeX()) &&
+                        Math.abs((box.getMiddleZ() + iter.getZ()) - playerBox.getMiddleZ()) * 2 < (box.getSizeZ() + playerBox.getSizeZ())) {
+
+                        double pushUp = collision.pushUpForTeleport();
+                        if (pushUp > 0) {
+                            double blockMaxY = iter.getY() + box.getMiddleY() + (box.getSizeY() / 2.0);
+                            double playerMinY = playerBox.getMiddleY() - (playerBox.getSizeY() / 2.0);
+                            // If the player is on top of or slightly inside the Bedrock collision zone
+                            if (playerMinY >= blockMaxY - POSITION_ADJUSTMENT_MARGIN && playerMinY < blockMaxY + pushUp) {
+                                totalPushUp = Math.max(totalPushUp, blockMaxY + pushUp - playerMinY);
+                            }
+                        }
+                    }
+                }
+            }
+            iter.next();
+        }
+
+        if (totalPushUp > 0) {
+            return Vector3f.from(position.getX(), (float) (position.getY() + totalPushUp), position.getZ());
+        }
+        return position;
     }
 }
