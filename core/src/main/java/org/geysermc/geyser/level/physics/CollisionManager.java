@@ -464,9 +464,9 @@ public class CollisionManager {
     }
 
     public Vector3f adjustPositionForBedrock(Vector3f position) {
-        // Checks for Bedrock collision differences and adjust the position sent to Bedrock if needed
-        // For example: Java teleports to 72.875 on top of a chest, but Bedrock believes chests are 72.95 high... so we fall through instead
-        // ...which leads the server to teleport again, et voila.
+        // Checks for Bedrock collision differences and adjusts the position sent to Bedrock, if needed
+        // For example: Java teleports to 72.875 on top of a chest, but Bedrock believes chests are 72.95 high - so we fall through instead
+        // ...which leads the server to teleport again, et voila, players get stuck.
         BoundingBox playerBox = playerBoundingBox.clone();
         playerBox.setMiddleX(position.getX());
         playerBox.setMiddleY(position.getY() + (playerBox.getSizeY() / 2.0));
