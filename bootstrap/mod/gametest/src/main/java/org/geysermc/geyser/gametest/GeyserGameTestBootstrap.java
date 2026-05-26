@@ -59,7 +59,7 @@ public class GeyserGameTestBootstrap extends GeyserModBootstrap implements ModIn
             GeyserModUpdateListener.onPlayReady(handler.getPlayer());
         });
 
-        GeyserGameTests.bootstrap();
+        GeyserGameTestTypes.bootstrap();
         this.onGeyserInitialize();
 
 

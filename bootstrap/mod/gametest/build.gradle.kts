@@ -34,6 +34,8 @@ fabricApi {
         enableClientGameTests = false
         eula = true
     }
+
+    configureDataGeneration()
 }
 
 tasks {

@@ -30,7 +30,9 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.MapLike;
 import com.mojang.serialization.RecordBuilder;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestEnvironments;
 import net.minecraft.gametest.framework.TestData;
@@ -42,7 +44,7 @@ import java.util.stream.Stream;
 
 public class GameTestUtil {
     // Cursed codec to extract a RegistryOps
-    public static final MapCodec<RegistryOps<?>> REGISTRY_OPS_MAP_CODEC = new MapCodec<>() {
+    private static final MapCodec<RegistryOps<?>> REGISTRY_OPS_MAP_CODEC = new MapCodec<>() {
         @Override
         public <T> Stream<T> keys(DynamicOps<T> ops) {
             return Stream.empty();
@@ -62,6 +64,15 @@ public class GameTestUtil {
             return prefix;
         }
     };
+
+    public static <O> RecordCodecBuilder<O, RegistryOps<?>> registryOpsGetter() {
+        return REGISTRY_OPS_MAP_CODEC.forGetter(ignored -> null);
+    }
+
+    public static TestData<Holder<TestEnvironmentDefinition<?>>> createEmptyTestData(HolderLookup.Provider registries, boolean required) {
+        return new TestData<>(registries.lookupOrThrow(Registries.TEST_ENVIRONMENT).getOrThrow(GameTestEnvironments.DEFAULT_KEY),
+            Identifier.withDefaultNamespace("empty"), 1, 1, required);
+    }
 
     public static TestData<Holder<TestEnvironmentDefinition<?>>> createEmptyTestData(RegistryOps<?> ops, boolean required) {
         return new TestData<>(ops.getter(Registries.TEST_ENVIRONMENT)

@@ -79,7 +79,7 @@ public class ComponentHashTestInstance extends GameTestInstance {
         .xmap(Either::unwrap, Either::left);
     public static final MapCodec<ComponentHashTestInstance> MAP_CODEC = RecordCodecBuilder.mapCodec(instance ->
         instance.group(
-            GameTestUtil.REGISTRY_OPS_MAP_CODEC.forGetter(ignored -> null),
+            GameTestUtil.registryOpsGetter(),
             MERGED_AND_SINGLE_COMPONENT_MAP_CODEC.forGetter(testInstance -> testInstance.testCases),
             Codec.BOOL.optionalFieldOf("required", true).forGetter(GameTestInstance::required)
         ).apply(instance, ComponentHashTestInstance::new)
@@ -119,11 +119,11 @@ public class ComponentHashTestInstance extends GameTestInstance {
             try {
                 helper.assertValueEqual(expected, geyser, "hash for component " + encodedJavaValue);
             } catch (GameTestAssertException assertException) {
-                GeyserImpl.getInstance().getLogger().info("Hash failed for component " + testCase.type() + " (" + testCase.value() + "), printing values of MapHasher");
+                GeyserImpl.getInstance().getLogger().warning("Hash failed for component " + testCase.type() + " (" + testCase.value() + "), printing values of MapHasher");
                 MapHasher.debug = true;
                 DataComponentHashers.hash(registries, mcplComponent);
                 MapHasher.debug = false;
-                GeyserImpl.getInstance().getLogger().info("The Mojang encoded/expected value is printed in the exception message");
+                GeyserImpl.getInstance().getLogger().warning("The Mojang encoded/expected value is printed in the exception message");
                 throw assertException;
             }
         }

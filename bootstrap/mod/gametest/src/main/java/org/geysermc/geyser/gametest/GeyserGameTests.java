@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,28 +25,33 @@
 
 package org.geysermc.geyser.gametest;
 
-import com.mojang.serialization.MapCodec;
-import net.minecraft.core.Registry;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricDynamicRegistryProvider;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestInstance;
 import net.minecraft.resources.Identifier;
-import org.geysermc.geyser.gametest.tests.ComponentHashTestInstance;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.EntityType;
 import org.geysermc.geyser.gametest.tests.EntityMetadataTest;
-import org.geysermc.geyser.gametest.tests.RequiredComponentsForHashingTestInstance;
 
-public class GeyserGameTests {
+public interface GeyserGameTests {
 
-    private static Identifier createKey(String name) {
-        return Identifier.fromNamespaceAndPath("geyser", name);
+    private static ResourceKey<GameTestInstance> createKey(String name) {
+        return ResourceKey.create(Registries.TEST_INSTANCE, Identifier.fromNamespaceAndPath("geyser", name));
     }
 
-    private static void register(String name, MapCodec<? extends GameTestInstance> codec) {
-        Registry.register(BuiltInRegistries.TEST_INSTANCE_TYPE, createKey(name), codec);
+    private static ResourceKey<GameTestInstance> createKey(Identifier testType, String name) {
+        return createKey(testType.getPath() + "/" + name);
     }
 
-    public static void bootstrap() {
-        register("component_hash", ComponentHashTestInstance.MAP_CODEC);
-        register("required_components_for_hashing", RequiredComponentsForHashingTestInstance.MAP_CODEC);
-        register("entity_metadata", EntityMetadataTest.MAP_CODEC);
+    private static void addEntityTypeTests(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries) {
+        for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
+            entries.add(createKey(GeyserGameTestTypes.ENTITY_METADATA, BuiltInRegistries.ENTITY_TYPE.getKey(entityType).getPath()), new EntityMetadataTest(registries, true, entityType));
+        }
+    }
+
+    static void bootstrap(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries) {
+        addEntityTypeTests(registries, entries);
     }
 }

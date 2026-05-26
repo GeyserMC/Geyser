@@ -28,9 +28,9 @@ package org.geysermc.geyser.gametest.tests;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInstance;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -38,6 +38,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.gametest.GameTestUtil;
@@ -45,88 +46,69 @@ import org.geysermc.geyser.gametest.mixin.SynchedEntityDataAccessor;
 import org.geysermc.geyser.gametest.util.SynchedEntityDataDebugger;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTypes;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class EntityMetadataTest extends GameTestInstance {
-    private static final Int2ObjectMap<MetadataType<?>> ID_MAP_MCPL = new Int2ObjectOpenHashMap<>();
-
-    static {
-        // Load all known entity metadata
-        int size = MetadataTypes.size();
-        for (int i = 0; i < size; i++) {
-            MetadataType<?> type = MetadataTypes.from(i);
-            ID_MAP_MCPL.put(i, type);
-        }
-    }
-
     public static final MapCodec<EntityMetadataTest> MAP_CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
-                GameTestUtil.REGISTRY_OPS_MAP_CODEC.forGetter(ignored -> null),
-                Codec.BOOL.optionalFieldOf("required", true).forGetter(GameTestInstance::required)
+                GameTestUtil.registryOpsGetter(),
+                Codec.BOOL.optionalFieldOf("required", true).forGetter(GameTestInstance::required),
+                EntityType.CODEC.fieldOf("entity_type").forGetter(test -> test.entityType)
             ).apply(instance, EntityMetadataTest::new)
     );
+    private final EntityType<?> entityType;
 
-    public EntityMetadataTest(RegistryOps<?> ops, boolean required) {
+    private EntityMetadataTest(RegistryOps<?> ops, boolean required, EntityType<?> entityType) {
         super(GameTestUtil.createEmptyTestData(ops, required));
+        this.entityType = entityType;
+    }
+
+    public EntityMetadataTest(HolderLookup.Provider registries, boolean required, EntityType<?> entityType) {
+        super(GameTestUtil.createEmptyTestData(registries, required));
+        this.entityType = entityType;
     }
 
     @Override
     public void run(GameTestHelper helper) {
-        AtomicInteger errors = new AtomicInteger();
+        // Nice full qualified name, lovely
+        org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType geyserEntityType = org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType.valueOf(BuiltInRegistries.ENTITY_TYPE.getKey(entityType).getPath().toUpperCase());
+        EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(geyserEntityType);
 
-        BuiltInRegistries.ENTITY_TYPE.stream().forEach(entityType -> {
+        if (definition == null) {
+            helper.fail("No entity definition found for type " + entityType);
+        } else {
             Entity javaEntity = entityType.create(helper.getLevel().getLevel(), EntitySpawnReason.COMMAND);
             if (javaEntity == null) {
+                // FIXME?
                 return;
             }
 
+            SynchedEntityData synchedEntityData = javaEntity.getEntityData();
+            SynchedEntityData.DataItem<?>[] dataItems = ((SynchedEntityDataAccessor) synchedEntityData).getItemsById();
+
             try {
-                EntityType geyserEntityType = EntityType.valueOf(BuiltInRegistries.ENTITY_TYPE.getKey(entityType).getPath().toUpperCase());
-                EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(geyserEntityType);
+                helper.assertValueEqual(definition.translators().size(), dataItems.length, "metadata translators for entity type " + entityType);
 
-                if (definition == null) {
-                    GeyserImpl.getInstance().getLogger().warning("No definition found for entity type " + geyserEntityType);
-                    return;
-                }
-
-                SynchedEntityData synchedEntityData = javaEntity.getEntityData();
-                SynchedEntityData.DataItem<?>[] dataItems = ((SynchedEntityDataAccessor) synchedEntityData).getItemsById();
-
-                if (definition.translators().size() != dataItems.length) {
-                    GeyserImpl.getInstance().getLogger().warning("Expected " + dataItems.length + " metadata translators, found " + definition.translators().size() + " for " + geyserEntityType);
-                    GeyserImpl.getInstance().getLogger().warning("The entity type's metadata are as follows:\n" + SynchedEntityDataDebugger.prettyPrintEntityDataAccessors(javaEntity.getClass(), dataItems));
-                    errors.getAndIncrement();
-                } else {
-                    for (int i = 0; i < dataItems.length; i++) {
-                        EntityMetadataTranslator<?, ?, ?> translator = definition.translators().get(i);
-                        if (translator == null) {
-                            continue;
-                        }
-                        int expectedId = EntityDataSerializers.getSerializedId(dataItems[i].getAccessor().serializer());
-                        int geyserId = translator.acceptedType().getId();
-                        if (geyserId != expectedId) {
-                            GeyserImpl.getInstance().getLogger().warning("Expected serializer for " + geyserEntityType + " at metadata index " + i + " to be of ID " + expectedId
-                                + " (" + SynchedEntityDataDebugger.findNameOfSerializer(dataItems[i].getAccessor().serializer()) + "), was " + geyserId);
-                            errors.getAndIncrement();
-                            break;
-                        }
+                for (int i = 0; i < dataItems.length; i++) {
+                    EntityMetadataTranslator<?, ?, ?> translator = definition.translators().get(i);
+                    if (translator == null) {
+                        // TODO warn for this ? somehow?
+                        continue;
                     }
-                }
 
+                    int expectedId = EntityDataSerializers.getSerializedId(dataItems[i].getAccessor().serializer());
+                    int geyserId = translator.acceptedType().getId();
+                    helper.assertValueEqual(geyserId, expectedId, "serializer for " + entityType + " at metadata index " + i + " ("
+                        + SynchedEntityDataDebugger.findNameOfSerializer(dataItems[i].getAccessor().serializer()) + ")");
+                }
+            } catch (GameTestAssertException exception) {
+                GeyserImpl.getInstance().getLogger().warning("Metadata for entity type " + entityType + " are as follows:\n" + SynchedEntityDataDebugger.prettyPrintEntityDataAccessors(javaEntity.getClass(), dataItems));
+                throw exception;
             } finally {
                 javaEntity.discard();
             }
-        });
-
-        if (errors.get() > 0) {
-            helper.fail("Failed to validate " + errors.get() + " entity types");
-        } else {
-            helper.succeed();
         }
+
+        helper.succeed();
     }
 
     @Override

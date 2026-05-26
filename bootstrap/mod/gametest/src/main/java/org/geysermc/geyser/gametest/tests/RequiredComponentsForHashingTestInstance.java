@@ -47,7 +47,7 @@ import java.util.Set;
 public class RequiredComponentsForHashingTestInstance extends GameTestInstance {
     public static final MapCodec<RequiredComponentsForHashingTestInstance> MAP_CODEC = RecordCodecBuilder.mapCodec(instance ->
         instance.group(
-            GameTestUtil.REGISTRY_OPS_MAP_CODEC.forGetter(ignored -> null),
+            GameTestUtil.registryOpsGetter(),
             Codec.BOOL.optionalFieldOf("required", true).forGetter(GameTestInstance::required)
         ).apply(instance, RequiredComponentsForHashingTestInstance::new)
     );
