@@ -59,8 +59,8 @@ import java.util.Locale;
 public class CollisionManager {
     public static final BlockCollision SOLID_COLLISION = new SolidCollision(null);
     public static final BlockCollision FLUID_COLLISION = new OtherCollision(new BoundingBox[]{new BoundingBox(0.5, 0.25, 0.5, 1, 0.5, 1)});
-    // If you read this, feel free to suggest a more proper way to detect the Bedrock player's own onGround status here
-    public static final double POSITION_ADJUSTMENT_MARGIN = 0.05;
+    // If you read this, feel free to suggest a more proper way to detect the Bedrock player's own onGround status instead of using a margin
+    private static final double POSITION_ADJUSTMENT_MARGIN = 0.05;
 
     private final GeyserSession session;
 
