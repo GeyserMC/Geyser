@@ -33,6 +33,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInstance;
+import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.entity.Entity;
@@ -43,6 +44,7 @@ import org.geysermc.geyser.gametest.GameTestUtil;
 import org.geysermc.geyser.gametest.mixin.SynchedEntityDataAccessor;
 import org.geysermc.geyser.gametest.util.SynchedEntityDataDebugger;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
@@ -95,9 +97,24 @@ public class EntityMetadataTest extends GameTestInstance {
                 SynchedEntityData.DataItem<?>[] dataItems = ((SynchedEntityDataAccessor) synchedEntityData).getItemsById();
 
                 if (definition.translators().size() != dataItems.length) {
-                    GeyserImpl.getInstance().getLogger().warning("Expected " + definition.translators().size() + " translators, found " + dataItems.length + " for " + geyserEntityType);
-                    GeyserImpl.getInstance().getLogger().warning(SynchedEntityDataDebugger.prettyPrintEntityDataAccessors(javaEntity.getClass(), dataItems));
+                    GeyserImpl.getInstance().getLogger().warning("Expected " + dataItems.length + " metadata translators, found " + definition.translators().size() + " for " + geyserEntityType);
+                    GeyserImpl.getInstance().getLogger().warning("The entity type's metadata are as follows:\n" + SynchedEntityDataDebugger.prettyPrintEntityDataAccessors(javaEntity.getClass(), dataItems));
                     errors.getAndIncrement();
+                } else {
+                    for (int i = 0; i < dataItems.length; i++) {
+                        EntityMetadataTranslator<?, ?, ?> translator = definition.translators().get(i);
+                        if (translator == null) {
+                            continue;
+                        }
+                        int expectedId = EntityDataSerializers.getSerializedId(dataItems[i].getAccessor().serializer());
+                        int geyserId = translator.acceptedType().getId();
+                        if (geyserId != expectedId) {
+                            GeyserImpl.getInstance().getLogger().warning("Expected serializer for " + geyserEntityType + " at metadata index " + i + " to be of ID " + expectedId
+                                + " (" + SynchedEntityDataDebugger.findNameOfSerializer(dataItems[i].getAccessor().serializer()) + "), was " + geyserId);
+                            errors.getAndIncrement();
+                            break;
+                        }
+                    }
                 }
 
             } finally {
