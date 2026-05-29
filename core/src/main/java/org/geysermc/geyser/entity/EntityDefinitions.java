@@ -68,6 +68,7 @@ import org.geysermc.geyser.entity.type.LeashKnotEntity;
 import org.geysermc.geyser.entity.type.LightningEntity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.MinecartEntity;
+import org.geysermc.geyser.entity.type.OminousItemSpawnerEntity;
 import org.geysermc.geyser.entity.type.PaintingEntity;
 import org.geysermc.geyser.entity.type.SpawnerMinecartEntity;
 import org.geysermc.geyser.entity.type.TNTEntity;
@@ -271,6 +272,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<BoatEntity> OAK_BOAT;
     public static final EntityDefinition<ChestBoatEntity> OAK_CHEST_BOAT;
     public static final EntityDefinition<OcelotEntity> OCELOT;
+    public static final EntityDefinition<OminousItemSpawnerEntity> OMINOUS_ITEM_SPAWNER;
     public static final EntityDefinition<PaintingEntity> PAINTING;
     public static final EntityDefinition<BoatEntity> PALE_OAK_BOAT;
     public static final EntityDefinition<ChestBoatEntity> PALE_OAK_CHEST_BOAT;
@@ -428,6 +430,11 @@ public final class EntityDefinitions {
             LLAMA_SPIT = EntityDefinition.inherited(ProjectileEntity::new, entityBase)
                     .type(EntityType.LLAMA_SPIT)
                     .heightAndWidth(0.25f)
+                    .build();
+            OMINOUS_ITEM_SPAWNER = EntityDefinition.inherited(OminousItemSpawnerEntity::new, entityBase)
+                    .type(EntityType.OMINOUS_ITEM_SPAWNER)
+                    .heightAndWidth(0.25f)
+                    .addTranslator(MetadataTypes.ITEM_STACK, OminousItemSpawnerEntity::setItem)
                     .build();
             SHULKER_BULLET = EntityDefinition.inherited(ProjectileEntity::new, entityBase)
                     .type(EntityType.SHULKER_BULLET)
