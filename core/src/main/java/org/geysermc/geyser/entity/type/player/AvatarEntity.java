@@ -349,12 +349,12 @@ public abstract class AvatarEntity extends LivingEntity {
     }
 
     @Override
-    public Vector3f bedrockPosition() {
-        // Don't apply the full bedrock y offset when le player is sleeping
+    public float getOffset() {
+        // Don't apply the full bedrock y offset when the player is sleeping
         if (bedPosition != null && getFlag(EntityFlag.SLEEPING)) {
-            return position.up(0.2f);
+            return 0.2f;
         }
-        return super.bedrockPosition();
+        return super.getOffset();
     }
 
     public @Nullable String getSkinId() {

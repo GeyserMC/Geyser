@@ -104,7 +104,7 @@ public class Entity implements GeyserEntity {
 
     protected Vector3f position;
     protected Vector3f motion;
-    protected float offset;
+    private float offset;
 
     /**
      * x = Yaw, y = Pitch, z = HeadYaw
@@ -701,6 +701,7 @@ public class Entity implements GeyserEntity {
      * Gets the Bedrock edition position with the offset applied
      */
     public Vector3f bedrockPosition() {
+        float offset = getOffset();
         if (offset == 0f) {
             return position;
         }

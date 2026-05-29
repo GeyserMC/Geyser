@@ -52,6 +52,7 @@ import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.TrapDoorBlock;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -168,6 +169,15 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
+    public Vector3f bedrockPosition() {
+        TeleportCache unconfirmedTeleport = session.getUnconfirmedTeleport();
+        if (unconfirmedTeleport != null) {
+            return unconfirmedTeleport.getAdjustedPosition().up(getOffset());
+        }
+        return super.bedrockPosition();
+    }
+
+    @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
         session.getCollisionManager().updatePlayerBoundingBox(this.position);
@@ -222,17 +232,15 @@ public class SessionPlayerEntity extends PlayerEntity {
      * @param position the new position of the Bedrock player
      */
     public void setPositionFromBedrockPos(Vector3f position) {
-        // Special handling: position while sleeping
-        if (bedPosition != null && getFlag(EntityFlag.SLEEPING)) {
-            this.position = position.down(0.2f);
-        } else if (this.vehicle != null) {
+        if (this.vehicle != null) {
             this.position = position.down(this.vehicle.getOffset());
         } else {
-            this.position = position.down(offset);
+            // getOffset will also account for a reduced offset (0.2) when sleeping
+            this.position = position.down(getOffset());
         }
 
         // Player is "above" the void so they're not supposed to no clip.
-        if (session.isNoClip() && position.getY() - EntityDefinitions.PLAYER.offset() >= session.getBedrockDimension().minY() - 5) {
+        if (session.isNoClip() && this.position.getY() >= session.getBedrockDimension().minY() - 5) {
             session.setNoClip(false);
         }
     }
