@@ -159,6 +159,8 @@ public class CollisionManager {
         return playerBoundingBox;
     }
 
+    private static final double PLAYER_OFFSET = Double.parseDouble(Float.toString(EntityDefinitions.PLAYER.offset()));
+
     /**
      * Adjust the Bedrock position before sending to the Java server to account for inaccuracies in movement between
      * the two versions. Will also send corrected movement packets back to Bedrock if they collide with pistons.
@@ -174,9 +176,11 @@ public class CollisionManager {
         if (pistonCache.isPlayerAttachedToHoney()) {
             return null;
         }
+
         // We need to parse the float as a string since casting a float to a double causes us to
         // lose precision and thus, causes players to get stuck when walking near walls
-        double javaY = Double.parseDouble(Float.toString(bedrockPosition.getY())) - EntityDefinitions.PLAYER.offset();
+        double rawY = Double.parseDouble(Float.toString(bedrockPosition.getY()));
+        double javaY = rawY - PLAYER_OFFSET;
 
         Vector3d position = Vector3d.from(Double.parseDouble(Float.toString(bedrockPosition.getX())), javaY, Double.parseDouble(Float.toString(bedrockPosition.getZ())));
 
