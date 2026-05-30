@@ -501,7 +501,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         box.translate(vehicle.getMotion().toDouble().up(0.6f - ctx.centerPos().getY() + originalY));
         box.expand(-1.0E-7);
 
-        BlockPositionIterator iter = vehicle.getSession().getCollisionManager().collidableBlocksIterator(box);
+        BlockPositionIterator iter = CollisionManager.collidableBlocksIterator(vehicle.getSession(), box);
         for (iter.reset(); iter.hasNext(); iter.next()) {
             int blockId = ctx.getBlockId(iter);
 

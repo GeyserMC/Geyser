@@ -201,12 +201,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         }
         receivedLoginPacket = true;
 
-        if (!BedrockEncryptionControl.isEncryptionDisabled(session.getUpstream().getSession().getPeer().getChannel())
-                && geyser.getSessionManager().reachedMaxConnectionsPerAddress(session)) {
-            session.disconnect("Too many connections are originating from this location!");
-            return PacketSignal.HANDLED;
-        }
-
         LoginEncryptionUtils.encryptPlayerConnection(session, loginPacket);
 
         if (session.isClosed()) {

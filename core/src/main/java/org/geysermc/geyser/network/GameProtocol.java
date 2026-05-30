@@ -92,7 +92,7 @@ public final class GameProtocol {
         register(Bedrock_v898.CODEC, "1.21.130", "1.21.131", "1.21.132", "1.21.133");
         register(Bedrock_v924.CODEC, "26.0", "26.1", "26.2", "26.3");
         register(Bedrock_v944.CODEC, "26.10");
-        register(Bedrock_v975.CODEC, "26.20");
+        register(Bedrock_v975.CODEC, "26.20", "26.21", "26.22", "26.23");
 
         registerEducation(Bedrock_v898.EDUCATION_CODEC);
 
@@ -190,7 +190,7 @@ public final class GameProtocol {
      * @return the supported Minecraft: Java Edition version names
      */
     public static List<String> getJavaVersions() {
-        return List.of(DEFAULT_JAVA_CODEC.getMinecraftVersion());
+        return List.of(DEFAULT_JAVA_CODEC.getMinecraftVersion(), "26.1.1", "26.1.2");
     }
 
     /**

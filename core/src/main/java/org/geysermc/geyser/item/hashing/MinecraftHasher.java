@@ -36,6 +36,7 @@ import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.item.components.Rarity;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.TextureModel;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.EquipmentSlot;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.GlobalPos;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
@@ -148,7 +149,7 @@ public interface MinecraftHasher<Type> {
         .optionalNullable("cape", KEY, ResolvableProfile::getCape)
         .optionalNullable("elytra", KEY, ResolvableProfile::getElytra)
         .optional("model", STRING, resolvableProfile -> Optional.ofNullable(resolvableProfile.getModel())
-            .map(GameProfile.TextureModel::name)
+            .map(TextureModel::name)
             .map(model -> model.toLowerCase(Locale.ROOT)))
     );
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,27 +23,19 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network.netty.handler;
+package org.geysermc.geyser.session.cache.waypoint;
 
-import io.netty.channel.Channel;
-import org.cloudburstmc.netty.channel.raknet.RakServerChannel;
-import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerRateLimiter;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.SessionManager;
+public final class WaypointUpdateFlags {
+    public static final int WORLD_POS = 1;
+    public static final int IS_VISIBLE = 1 << 1;
+    public static final int TEXTURE_ID = 1 << 2;
+    public static final int TEXTURE_PATH = 1 << 2;
+    public static final int ICON_SIZE = 1 << 3;
+    public static final int COLOR = 1 << 3;
+    public static final int COLOR_NEW = 1 << 4;
+    public static final int CLIENT_POSITION_AUTHORITY = 1 << 4;
+    public static final int CLIENT_POSITION_AUTHORITY_NEW = 1 << 5;
+    public static final int ALL = 0b111111;
 
-import java.net.InetAddress;
-
-public class RakGeyserRateLimiter extends RakServerRateLimiter {
-    public static final String NAME = "rak-geyser-rate-limiter";
-    private final SessionManager sessionManager;
-
-    public RakGeyserRateLimiter(Channel channel) {
-        super((RakServerChannel) channel);
-        this.sessionManager = GeyserImpl.getInstance().getSessionManager();
-    }
-
-    @Override
-    protected int getAddressMaxPacketCount(InetAddress address) {
-        return super.getAddressMaxPacketCount(address) * sessionManager.getAddressMultiplier(address);
-    }
+    private WaypointUpdateFlags() {}
 }

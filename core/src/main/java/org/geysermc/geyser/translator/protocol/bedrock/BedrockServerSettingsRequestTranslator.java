@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SetDifficultyPacket;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.FormCache;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.SettingsUtils;
@@ -57,8 +58,11 @@ public class BedrockServerSettingsRequestTranslator extends PacketTranslator<Ser
             session.sendUpstreamPacket(setDifficultyPacket);
         }
 
+        FormCache formCache = session.getFormCache();
+        formCache.closeForms();
+
         CustomForm form = SettingsUtils.buildForm(session);
-        int formId = session.getFormCache().addForm(form);
+        int formId = formCache.addForm(form);
 
         String jsonData = formDefinitions.codecFor(form).jsonData(form);
 

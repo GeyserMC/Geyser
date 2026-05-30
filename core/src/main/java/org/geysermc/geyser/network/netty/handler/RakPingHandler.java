@@ -31,8 +31,11 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.netty.channel.raknet.RakPing;
 import org.cloudburstmc.netty.channel.raknet.RakPong;
+import org.cloudburstmc.netty.channel.raknet.RakServerChannel;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.geysermc.geyser.network.netty.GeyserServer;
+
+import java.net.InetSocketAddress;
 
 @ChannelHandler.Sharable
 @RequiredArgsConstructor
@@ -45,7 +48,9 @@ public class RakPingHandler extends SimpleChannelInboundHandler<RakPing> {
     protected void channelRead0(ChannelHandlerContext ctx, RakPing msg) {
         long guid = ctx.channel().config().getOption(RakChannelOption.RAK_GUID);
 
-        RakPong pong = msg.reply(guid, this.server.onQuery(ctx.channel(), msg.getSender()).toByteBuf());
+        InetSocketAddress address = msg.getSender();
+        InetSocketAddress clientAddress = ((RakServerChannel) ctx.channel()).getClientAddress(address);
+        RakPong pong = msg.reply(guid, this.server.onQuery(ctx.channel(), clientAddress).toByteBuf());
         ctx.writeAndFlush(pong);
     }
 }
