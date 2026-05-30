@@ -180,7 +180,6 @@ public class NetherNetServer {
     }
 
     private boolean bind(String mcToken) {
-        PeerConnectionFactory factory = new PeerConnectionFactory();
         this.legacySignaling = new NetherNetXboxSignaling(connectionId, mcToken);
         this.rpcSignaling = new NetherNetXboxRpcSignaling(connectionId, mcToken);
         this.bossGroup = new NioEventLoopGroup(1);
@@ -188,27 +187,44 @@ public class NetherNetServer {
 
         NetherNetServerInitializer childHandler = new NetherNetServerInitializer(geyser, playerEventLoopGroup);
 
+        // Each channel owns and disposes its own factory in NetherNetServerChannel#doClose.
+        // Give each signaling endpoint a separate factory so closing both channels doesn't
+        // dispose one shared native handle twice (which throws on the second dispose).
+        PeerConnectionFactory legacyFactory = new PeerConnectionFactory();
+        PeerConnectionFactory rpcFactory = new PeerConnectionFactory();
+
         try {
             ServerBootstrap legacyBootstrap = new ServerBootstrap();
             legacyBootstrap.group(bossGroup, workerGroup)
-                    .channelFactory(NetherNetChannelFactory.server(factory, legacySignaling))
+                    .channelFactory(NetherNetChannelFactory.server(legacyFactory, legacySignaling))
                     .childHandler(childHandler);
             this.legacyChannel = legacyBootstrap.bind(new InetSocketAddress(0)).sync().channel();
 
             ServerBootstrap rpcBootstrap = new ServerBootstrap();
             rpcBootstrap.group(bossGroup, workerGroup)
-                    .channelFactory(NetherNetChannelFactory.server(factory, rpcSignaling))
+                    .channelFactory(NetherNetChannelFactory.server(rpcFactory, rpcSignaling))
                     .childHandler(childHandler);
             this.rpcChannel = rpcBootstrap.bind(new InetSocketAddress(0)).sync().channel();
 
             return true;
         } catch (Exception e) {
             logger.error(LOG_PREFIX + "Failed to bind: " + e.getMessage());
-            try { factory.dispose(); } catch (Exception ignored) {}
             this.legacySignaling = null;
             this.rpcSignaling = null;
-            if (legacyChannel != null) { legacyChannel.close(); legacyChannel = null; }
-            if (rpcChannel != null) { rpcChannel.close(); rpcChannel = null; }
+            // A created channel disposes its own factory on close; dispose any factory
+            // whose channel was never created.
+            if (legacyChannel != null) {
+                legacyChannel.close();
+                legacyChannel = null;
+            } else {
+                try { legacyFactory.dispose(); } catch (Exception ignored) {}
+            }
+            if (rpcChannel != null) {
+                rpcChannel.close();
+                rpcChannel = null;
+            } else {
+                try { rpcFactory.dispose(); } catch (Exception ignored) {}
+            }
             if (bossGroup != null) { bossGroup.shutdownGracefully(); bossGroup = null; }
             if (workerGroup != null) { workerGroup.shutdownGracefully(); workerGroup = null; }
             return false;
