@@ -46,6 +46,10 @@ tasks {
     shadowJar.get().enabled = false
     mergeShadowAndJarJar.get().enabled = false
 
+    withType(PublishToMavenRepository::class).configureEach {
+        enabled = false
+    }
+
     // it'd be processGametestResources if we had a separate source set for tests
     getByName("processResources", ProcessResources::class) {
         filesMatching("fabric.mod.json") {
