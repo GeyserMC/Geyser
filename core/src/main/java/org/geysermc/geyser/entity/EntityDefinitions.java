@@ -692,7 +692,7 @@ public final class EntityDefinitions {
 
         EntityDefinition<AvatarEntity> avatarEntityBase = EntityDefinition.<AvatarEntity>inherited(null, livingEntityBase)
             .height(1.8f).width(0.6f)
-            .offset(1.62f)
+            .offset(1.62001f)
             .addTranslator(null) // Player main hand
             .addTranslator(MetadataTypes.BYTE, AvatarEntity::setSkinVisibility)
             .build();
