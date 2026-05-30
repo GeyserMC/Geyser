@@ -28,6 +28,7 @@ package org.geysermc.geyser.network.nethernet;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.DefaultEventLoopGroup;
+import io.netty.channel.group.ChannelGroup;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.PacketDirection;
@@ -61,14 +62,20 @@ public class NetherNetServerInitializer extends ChannelInitializer<Channel> {
 
     private final GeyserImpl geyser;
     private final DefaultEventLoopGroup eventLoopGroup;
+    private final ChannelGroup playerChannels;
 
-    public NetherNetServerInitializer(GeyserImpl geyser, DefaultEventLoopGroup eventLoopGroup) {
+    public NetherNetServerInitializer(GeyserImpl geyser, DefaultEventLoopGroup eventLoopGroup, ChannelGroup playerChannels) {
         this.geyser = geyser;
         this.eventLoopGroup = eventLoopGroup;
+        this.playerChannels = playerChannels;
     }
 
     @Override
     protected void initChannel(Channel channel) throws Exception {
+        // Register for clean disconnect on a signaling rebuild. The group removes
+        // the channel automatically when it closes.
+        playerChannels.add(channel);
+
         // Disable Bedrock encryption - Nethernet uses DTLS for transport encryption
         BedrockEncryptionControl.disableEncryption(channel);
 

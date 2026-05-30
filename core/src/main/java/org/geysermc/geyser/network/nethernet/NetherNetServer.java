@@ -33,7 +33,10 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.util.concurrent.GlobalEventExecutor;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 
@@ -65,6 +68,11 @@ public class NetherNetServer {
     private final DefaultEventLoopGroup playerEventLoopGroup;
     private final PlayFabTokenManager tokenManager;
     private final String connectionId;
+
+    // Tracks live player connections so a signaling rebuild can cleanly disconnect
+    // them before tearing down the event loops they run on. Self-managing: channels
+    // are removed automatically when they close.
+    private final ChannelGroup playerChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
 
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
@@ -185,7 +193,7 @@ public class NetherNetServer {
         this.bossGroup = new NioEventLoopGroup(1);
         this.workerGroup = new NioEventLoopGroup(2);
 
-        NetherNetServerInitializer childHandler = new NetherNetServerInitializer(geyser, playerEventLoopGroup);
+        NetherNetServerInitializer childHandler = new NetherNetServerInitializer(geyser, playerEventLoopGroup, playerChannels);
 
         // Each channel owns and disposes its own factory in NetherNetServerChannel#doClose.
         // Give each signaling endpoint a separate factory so closing both channels doesn't
@@ -232,6 +240,15 @@ public class NetherNetServer {
     }
 
     private void closeChannels() {
+        // Cleanly disconnect live players first. Closing each child channel fires
+        // channelInactive, which disconnects the GeyserSession and synchronously
+        // cancels its tick — so nothing is left ticking against the event loops we
+        // shut down below (which would otherwise flood RejectedExecutionException).
+        if (!playerChannels.isEmpty()) {
+            logger.info(LOG_PREFIX + "Disconnecting " + playerChannels.size() + " player(s) for rebuild");
+            playerChannels.close().awaitUninterruptibly(3, TimeUnit.SECONDS);
+        }
+
         if (legacyChannel != null) {
             legacyChannel.close().syncUninterruptibly();
             legacyChannel = null;
