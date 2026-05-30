@@ -50,6 +50,8 @@ import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
@@ -72,7 +74,7 @@ public abstract class AvatarEntity extends LivingEntity {
     @Getter
     @Setter
     @Nullable
-    Map<GameProfile.TextureType, GameProfile.Texture> textures;
+    Map<TextureType, Texture> textures;
 
     private String cachedScore = "";
     private boolean scoreVisible = true;
@@ -206,7 +208,7 @@ public abstract class AvatarEntity extends LivingEntity {
     }
 
     public void setSkin(GameProfile profile, @Nullable Runnable after) {
-        Map<GameProfile.TextureType, GameProfile.Texture> textures;
+        Map<TextureType, Texture> textures;
         try {
             textures = profile.getTextures(false);
         } catch (IllegalStateException e) {
@@ -216,7 +218,7 @@ public abstract class AvatarEntity extends LivingEntity {
         setSkin(textures, after);
     }
 
-    public void setSkin(@Nullable Map<GameProfile.TextureType, GameProfile.Texture> textures, @Nullable Runnable after) {
+    public void setSkin(@Nullable Map<TextureType, Texture> textures, @Nullable Runnable after) {
         if (Objects.equals(textures, this.textures)) {
             return;
         }
@@ -347,17 +349,17 @@ public abstract class AvatarEntity extends LivingEntity {
     }
 
     @Override
-    public Vector3f bedrockPosition() {
-        // Don't apply the full bedrock y offset when le player is sleeping
+    public float getOffset() {
+        // Don't apply the full bedrock y offset when the player is sleeping
         if (bedPosition != null && getFlag(EntityFlag.SLEEPING)) {
-            return position.up(0.2f);
+            return 0.2f;
         }
-        return super.bedrockPosition();
+        return super.getOffset();
     }
 
     public @Nullable String getSkinId() {
         if (textures != null) {
-            GameProfile.Texture texture = textures.get(GameProfile.TextureType.SKIN);
+            Texture texture = textures.get(TextureType.SKIN);
             if (texture != null) {
                 return texture.getHash();
             }

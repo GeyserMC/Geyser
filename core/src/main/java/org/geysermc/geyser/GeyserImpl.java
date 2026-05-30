@@ -605,9 +605,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
 
         ResourcePackLoader.clear();
-        if (platformType() != InternalPlatformType.GAMETEST) {
-            CodeOfConductManager.trySave();
-        }
+        CodeOfConductManager.trySave();
 
         this.setEnabled(false);
     }

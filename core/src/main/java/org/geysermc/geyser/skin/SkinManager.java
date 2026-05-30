@@ -45,6 +45,9 @@ import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.geyser.util.WebUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureModel;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 
 import java.awt.*;
@@ -200,8 +203,8 @@ public class SkinManager {
         });
     }
 
-    public static GameProfile.@Nullable Texture getTextureDataFromProfile(GameProfile profile, GameProfile.TextureType type) {
-        Map<GameProfile.TextureType, GameProfile.Texture> textures;
+    public static @Nullable Texture getTextureDataFromProfile(GameProfile profile, TextureType type) {
+        Map<TextureType, Texture> textures;
         try {
             textures = profile.getTextures(false);
         } catch (IllegalStateException e) {
@@ -268,14 +271,14 @@ public class SkinManager {
          * @return The built GameProfileData
          */
         public static @Nullable GameProfileData from(AvatarEntity entity) {
-            Map<GameProfile.TextureType, GameProfile.Texture> textures = entity.getTextures();
+            Map<TextureType, Texture> textures = entity.getTextures();
             if (textures == null) {
                 // Likely offline mode or failed to load
                 // We'll fall back to default skins
                 return null;
             }
 
-            GameProfile.Texture skin = textures.get(GameProfile.TextureType.SKIN);
+            Texture skin = textures.get(TextureType.SKIN);
             if (skin == null) {
                 return null;
             }
@@ -290,9 +293,9 @@ public class SkinManager {
                 return null;
             }
 
-            GameProfile.Texture cape = textures.get(GameProfile.TextureType.CAPE);
+            Texture cape = textures.get(TextureType.CAPE);
             String capeUrl = cape == null ? null : WebUtils.toHttps(cape.getURL());
-            return new GameProfileData(skinUrl, capeUrl, skin.getModel() == GameProfile.TextureModel.SLIM);
+            return new GameProfileData(skinUrl, capeUrl, skin.getModel() == TextureModel.SLIM);
         }
 
         private static final String DEFAULT_FLOODGATE_STEVE = "https://textures.minecraft.net/texture/31f477eb1a7beee631c2ca64d06f8f68fa93a3386d04452ab27f43acdf1b60cb";

@@ -54,6 +54,7 @@ import org.geysermc.geyser.entity.type.LeashKnotEntity;
 import org.geysermc.geyser.entity.type.LightningEntity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.MinecartEntity;
+import org.geysermc.geyser.entity.type.OminousItemSpawnerEntity;
 import org.geysermc.geyser.entity.type.PaintingEntity;
 import org.geysermc.geyser.entity.type.SpawnerMinecartEntity;
 import org.geysermc.geyser.entity.type.TNTEntity;
@@ -256,6 +257,7 @@ public final class VanillaEntities {
     public static final VanillaEntityType<BoatEntity> OAK_BOAT;
     public static final VanillaEntityType<ChestBoatEntity> OAK_CHEST_BOAT;
     public static final VanillaEntityType<OcelotEntity> OCELOT;
+    public static final VanillaEntityType<OminousItemSpawnerEntity> OMINOUS_ITEM_SPAWNER;
     public static final VanillaEntityType<PaintingEntity> PAINTING;
     public static final VanillaEntityType<BoatEntity> PALE_OAK_BOAT;
     public static final VanillaEntityType<ChestBoatEntity> PALE_OAK_CHEST_BOAT;
@@ -412,6 +414,11 @@ public final class VanillaEntities {
                     .type(BuiltinEntityType.LLAMA_SPIT)
                     .heightAndWidth(0.25f)
                     .build();
+            OMINOUS_ITEM_SPAWNER = VanillaEntityType.inherited(OminousItemSpawnerEntity::new, entityBase)
+                    .type(BuiltinEntityType.OMINOUS_ITEM_SPAWNER)
+                    .heightAndWidth(0.25f)
+                    .addTranslator(MetadataTypes.ITEM_STACK, OminousItemSpawnerEntity::setItem)
+                    .build();
             SHULKER_BULLET = VanillaEntityType.inherited(ProjectileEntity::new, entityBase)
                     .type(BuiltinEntityType.SHULKER_BULLET)
                     .heightAndWidth(0.3125f)
@@ -421,6 +428,7 @@ public final class VanillaEntities {
                     .heightAndWidth(0.98f)
                     .offset(0.49f)
                     .addTranslator(MetadataTypes.INT, TNTEntity::setFuseLength)
+                    .addTranslator(null) // Block state id
                     .build();
 
             EntityTypeBase<DisplayBaseEntity> displayBase = EntityTypeBase.baseInherited(DisplayBaseEntity.class, entityBase)
@@ -866,6 +874,7 @@ public final class VanillaEntities {
                     .bedrockIdentifier("minecraft:zombie_villager_v2")
                     .addTranslator(MetadataTypes.BOOLEAN, ZombieVillagerEntity::setTransforming)
                     .addTranslator(MetadataTypes.VILLAGER_DATA, ZombieVillagerEntity::setZombieVillagerData)
+                    .addTranslator(null) // Villager data finalized
                     .build();
             ZOMBIFIED_PIGLIN = VanillaEntityType.inherited(ZombifiedPiglinEntity::new, ZOMBIE) //TODO test how zombie entity metadata is handled?
                     .type(BuiltinEntityType.ZOMBIFIED_PIGLIN)
@@ -921,6 +930,7 @@ public final class VanillaEntities {
             TADPOLE = VanillaEntityType.inherited(TadpoleEntity::new, abstractFishEntityBase)
                     .type(BuiltinEntityType.TADPOLE)
                     .height(0.3f).width(0.4f)
+                    .addTranslator(null) // Age locked
                     .build();
             TROPICAL_FISH = VanillaEntityType.inherited(TropicalFishEntity::new, abstractFishEntityBase)
                     .type(BuiltinEntityType.TROPICAL_FISH)
@@ -1112,12 +1122,8 @@ public final class VanillaEntities {
             TURTLE = VanillaEntityType.inherited(TurtleEntity::new, ageableEntityBase)
                     .type(BuiltinEntityType.TURTLE)
                     .height(0.4f).width(1.2f)
-                    .addTranslator(null) // Home position
                     .addTranslator(MetadataTypes.BOOLEAN, TurtleEntity::setPregnant)
                     .addTranslator(MetadataTypes.BOOLEAN, TurtleEntity::setLayingEgg)
-                    .addTranslator(null) // Travel position
-                    .addTranslator(null) // Going home
-                    .addTranslator(null) // Travelling
                     .build();
 
             VanillaEntityType<AbstractMerchantEntity> abstractVillagerEntityBase = VanillaEntityType.inherited(AbstractMerchantEntity::new, ageableEntityBase)
@@ -1128,6 +1134,7 @@ public final class VanillaEntities {
                     .height(1.8f).width(0.6f)
                     .bedrockIdentifier("minecraft:villager_v2")
                     .addTranslator(MetadataTypes.VILLAGER_DATA, VillagerEntity::setVillagerData)
+                    .addTranslator(null) // Villager data finalized
                     .build();
             WANDERING_TRADER = VanillaEntityType.inherited(abstractVillagerEntityBase.factory(), abstractVillagerEntityBase)
                     .type(BuiltinEntityType.WANDERING_TRADER)
@@ -1140,8 +1147,6 @@ public final class VanillaEntities {
             DOLPHIN = VanillaEntityType.inherited(DolphinEntity::new, ageableEntityBase)
                 .type(BuiltinEntityType.DOLPHIN)
                 .height(0.6f).width(0.9f)
-                //TODO check
-                .addTranslator(null) // treasure position
                 .addTranslator(null) // "got fish"
                 .addTranslator(null) // "moistness level"
                 .build();
