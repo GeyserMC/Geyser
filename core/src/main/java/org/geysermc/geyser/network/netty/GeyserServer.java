@@ -153,9 +153,9 @@ public final class GeyserServer {
             }
 
             Channel channel = f.channel();
-            // Add our ping handler
+            // Add our handlers
             channel.pipeline()
-                .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
+                .addBefore(RakServerOfflineHandler.NAME, RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
                 .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
         });
     }
