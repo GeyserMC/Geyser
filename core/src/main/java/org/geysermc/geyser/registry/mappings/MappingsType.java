@@ -41,14 +41,12 @@ import java.util.function.UnaryOperator;
 
 public record MappingsType<K, V>(String name, Int2ObjectMap<MappingsReader<K, V>> readers) {
     public static final MappingsType<String, CustomBlockMapping> BLOCKS = create("blocks", builder -> builder
-        .with(1, new BlockMappingsReader_v1())
-        .with(2, new BlockMappingsReader_v1()));
+        .with(1, new BlockMappingsReader_v1()));
     public static final MappingsType<Identifier, CustomItemDefinition> ITEMS = create("items", builder -> builder
         .with(1, new ItemMappingsReader_v1())
         .with(2, new ItemMappingsReader_v2()));
     public static final MappingsType<Identifier, CustomWaypointStyle> WAYPOINT_STYLES = create("waypoint_styles", builder -> builder
-        .with(1, new WaypointStyleMappingsReader_v1())
-        .with(2, new WaypointStyleMappingsReader_v1()));
+        .with(1, new WaypointStyleMappingsReader_v1()));
     
     private static <K, V> MappingsType<K, V> create(String name, UnaryOperator<Builder<K, V>> builder) {
         return new MappingsType<>(name, Int2ObjectMaps.unmodifiable(builder.apply(new Builder<>()).readers));

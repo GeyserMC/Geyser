@@ -166,8 +166,13 @@ public abstract class GeyserWaypoint {
         if (uses26_10WaypointPacket) {
             if (uses26_20WaypointPacket) {
                 float distance = session.playerEntity().position().distance(position);
-                String texture = style.getTexturePath(session, styleIdentifier, distance);
-                Vector2f iconSize = style.getTextureSize(session, styleIdentifier, distance);
+                String texture = style.texturePath(session, styleIdentifier, distance);
+                Vector2f iconSize = style.textureSize(session, styleIdentifier, distance);
+
+                if (texture == null) {
+                    GeyserImpl.getInstance().getLogger().warning("custom waypoint style for " + styleIdentifier + " returned null texture!");
+                    texture = "ui/locator_bar_dot_0";
+                }
                 if (iconSize.lengthSquared() < 0.0F) {
                     iconSize = Vector2f.ZERO;
                 }

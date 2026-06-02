@@ -39,9 +39,9 @@ import java.util.Objects;
 
 public interface CustomWaypointStyle {
 
-    String getTexturePath(GeyserConnection connection, Identifier style, float distance);
+    String texturePath(GeyserConnection connection, Identifier style, float distance);
 
-    Vector2f getTextureSize(GeyserConnection connection, Identifier style, float distance);
+    Vector2f textureSize(GeyserConnection connection, Identifier style, float distance);
 
     @ApiStatus.NonExtendable
     interface VanillaBuilder extends GenericBuilder<CustomWaypointStyle> {

@@ -38,7 +38,7 @@ import java.util.Objects;
 public record VanillaWaypoint(int nearDistance, int farDistance, List<String> textures) implements CustomWaypointStyle {
     // Default near and far distance: https://mcsrc.dev/1/26.1.2/net/minecraft/client/resources/WaypointStyle#L15-16
     // Default textures from bedrock's resourcepack (26.20)
-    public static CustomWaypointStyle VANILLA_DEFAULT = new Builder(128, 332)
+    public static final CustomWaypointStyle VANILLA_DEFAULT = new Builder(128, 332)
         .withTexture("ui/locator_bar_dot_0")
         .withTexture("ui/locator_bar_dot_1")
         .withTexture("ui/locator_bar_dot_2")
@@ -51,7 +51,7 @@ public record VanillaWaypoint(int nearDistance, int farDistance, List<String> te
 
     // inspired by: https://mcsrc.dev/1/26.1.2/net/minecraft/client/resources/WaypointStyle#L45-59
     @Override
-    public String getTexturePath(GeyserConnection connection, Identifier style, float distance) {
+    public String texturePath(GeyserConnection connection, Identifier style, float distance) {
         if (distance < nearDistance) {
             return textures.getFirst();
         } else if (distance >= farDistance) {
@@ -67,7 +67,7 @@ public record VanillaWaypoint(int nearDistance, int farDistance, List<String> te
     }
 
     @Override
-    public Vector2f getTextureSize(GeyserConnection connection, Identifier style, float distance) {
+    public Vector2f textureSize(GeyserConnection connection, Identifier style, float distance) {
         if (distance < nearDistance) {
             return Vector2f.ONE;
         } else if (distance >= farDistance) {
@@ -79,7 +79,7 @@ public record VanillaWaypoint(int nearDistance, int farDistance, List<String> te
     }
 
     // inspired by: https://mcsrc.dev/1/26.1.2/net/minecraft/util/Mth#L523-525
-    private static int lerpInt(final float alpha1, final int p0, final int p1) {
+    private static int lerpInt(float alpha1, int p0, int p1) {
         return p0 + (int) Math.floor(alpha1 * (p1 - p0));
     }
 
