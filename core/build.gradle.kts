@@ -68,6 +68,10 @@ dependencies {
     // Network dependencies we are updating ourselves
     api(libs.netty.handler)
     implementation(libs.netty.codec.haproxy)
+    // Required by the Nethernet signaling WebSocket (TextWebSocketFrame etc.).
+    // The nethernet library excludes all io.netty deps above, so platforms that
+    // do not provide their own netty-codec-http (e.g. Standalone) need it bundled.
+    api(libs.netty.codec.http)
 
     api(libs.netty.transport.native.epoll) { artifact { classifier = "linux-x86_64" } }
     implementation(libs.netty.transport.native.epoll) { artifact { classifier = "linux-aarch_64" } }

@@ -97,6 +97,7 @@ adventure-text-serializer-plain = { group = "net.kyori", name = "adventure-text-
 adventure-text-serializer-bungeecord = { group = "net.kyori", name = "adventure-text-serializer-bungeecord", version.ref = "adventure-platform" }
 
 netty-codec-haproxy = { group = "io.netty", name = "netty-codec-haproxy", version.ref = "netty" }
+netty-codec-http = { group = "io.netty", name = "netty-codec-http", version.ref = "netty" }
 netty-handler = { group = "io.netty", name = "netty-handler", version.ref = "netty" }
 netty-transport-native-epoll = { group = "io.netty", name = "netty-transport-native-epoll", version.ref = "netty" }
 netty-transport-native-kqueue = { group = "io.netty", name = "netty-transport-native-kqueue", version.ref = "netty" }
