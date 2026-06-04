@@ -1870,7 +1870,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.upstream.getCodecHelper().setBlockDefinitions(this.blockMappings);
         this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
 
-        if (GameProtocol.is1_26_20orHigher(protocolVersion())) {
+        if (GameProtocol.is26_20orHigher(protocolVersion())) {
             VoxelShapesPacket voxelShapesPacket = new VoxelShapesPacket();
             voxelShapesPacket.setNameMap(new HashMap<>());
             voxelShapesPacket.setShapes(new ArrayList<>());
