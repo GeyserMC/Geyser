@@ -59,7 +59,7 @@ public class BossBar {
         BossEventPacket bossEventPacket = new BossEventPacket();
         bossEventPacket.setBossUniqueEntityId(entityId);
         bossEventPacket.setAction(BossEventPacket.Action.CREATE);
-        bossEventPacket.setTitle(MessageTranslator.convertMessage(title, session.locale()));
+        bossEventPacket.setTitle(MessageTranslator.convertMessage(title, session.locale()).replace("%", "%%%%"));
         bossEventPacket.setHealthPercentage(health);
         bossEventPacket.setColor(color);
         bossEventPacket.setOverlay(overlay);
@@ -73,7 +73,7 @@ public class BossBar {
         BossEventPacket bossEventPacket = new BossEventPacket();
         bossEventPacket.setBossUniqueEntityId(entityId);
         bossEventPacket.setAction(BossEventPacket.Action.UPDATE_NAME);
-        bossEventPacket.setTitle(MessageTranslator.convertMessage(title, session.locale()));
+        bossEventPacket.setTitle(MessageTranslator.convertMessage(title, session.locale()).replace("%", "%%%%"));
 
         session.sendUpstreamPacket(bossEventPacket);
     }

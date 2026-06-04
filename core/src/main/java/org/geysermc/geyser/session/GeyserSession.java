@@ -510,6 +510,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Vector3i lastInteractionBlockPosition = Vector3i.ZERO;
 
+    @Setter
+    private int lastInteractionBlockFace = -1;
+
     /**
      * Stores the Java position of the player the last time they interacted.
      * Used to verify that the player did not move since their last interaction. <br>
@@ -980,6 +983,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             // We disable the locator bar until we are certain that the server wants us to enable it
             // See WaypointCache for details
             gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
+        } else {
+            // On bedrock 26.10 and above, the client only shows the locator bar when there are
+            // waypoints on it, so we're fine doing this
+            gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", true));
         }
 
         upstream.sendPacket(gamerulePacket);
