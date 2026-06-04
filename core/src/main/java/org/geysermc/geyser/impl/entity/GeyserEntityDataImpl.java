@@ -47,10 +47,10 @@ public class GeyserEntityDataImpl<T> implements GeyserEntityDataType<T> {
         TYPES = new Object2ObjectOpenHashMap<>();
         TYPES.put("color", new GeyserEntityDataImpl<>(Byte.class, "color", EntityDataTypes.COLOR));
         TYPES.put("variant", new GeyserEntityDataImpl<>(Integer.class, "variant", EntityDataTypes.VARIANT));
-        TYPES.put("width", new GeyserEntityDataImpl<>(Float.class, "width", Entity::setCustomBoundingBoxWidth, Entity::getCustomBoundingBoxWidth));
-        TYPES.put("height", new GeyserEntityDataImpl<>(Float.class, "height", Entity::setCustomBoundingBoxHeight, Entity::getCustomBoundingBoxHeight));
-        TYPES.put("scale", new GeyserEntityDataImpl<>(Float.class, "scale", Entity::setScale, Entity::getScale));
-        TYPES.put("seat_offset", new GeyserEntityDataImpl<>(Vector3f.class, "seat_offset", Entity::setRiderSeatPosition, Entity::getRiderSeatPosition));
+        TYPES.put("width", new GeyserEntityDataImpl<>(Float.class, "width", EntityDataTypes.WIDTH));
+        TYPES.put("height", new GeyserEntityDataImpl<>(Float.class, "height", EntityDataTypes.HEIGHT));
+        TYPES.put("scale", new GeyserEntityDataImpl<>(Float.class, "scale", EntityDataTypes.SCALE));
+        TYPES.put("seat_offset", new GeyserEntityDataImpl<>(Vector3f.class, "seat_offset", EntityDataTypes.SEAT_OFFSET));
 
         // "custom"
         TYPES.put("vertical_offset", new GeyserEntityDataImpl<>(Float.class, "vertical_offset", (entity, value) -> entity.offset(value, true), Entity::getOffset));
@@ -75,16 +75,8 @@ public class GeyserEntityDataImpl<T> implements GeyserEntityDataType<T> {
     public GeyserEntityDataImpl(Class<T> typeClass, String name, EntityDataType<T> type) {
         this.typeClass = typeClass;
         this.name = name;
-        this.consumer = (entity, data) -> entity.getDirtyMetadata().put(type, data);
-        this.getter = entity -> {
-            var value = entity.getMetadata().get(type);
-            // Always the case!
-            if (typeClass.isInstance(value)) {
-                return typeClass.cast(value);
-            } else {
-                return null;
-            }
-        };
+        this.consumer = (entity, data) -> entity.getDirtyMetadata().updateOverride(type, data);
+        this.getter = entity -> entity.getDirtyMetadata().value(type);
     }
 
     public GeyserEntityDataImpl(Class<T> typeClass, String name, EntityFlag flag) {

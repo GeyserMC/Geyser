@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.entity.type;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,7 +34,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -52,7 +50,7 @@ import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
-import org.geysermc.geyser.entity.GeyserDirtyMetadata;
+import org.geysermc.geyser.entity.GeyserEntityDataManager;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
@@ -81,7 +79,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -144,26 +141,13 @@ public class Entity implements GeyserEntity {
     protected boolean silent = false;
     /* Metadata end */
 
-    // hacky temp solution till i can think of something better
-    // this would be the height / width of the bounding box regardless of pose etc
-    private Float customBoundingBoxHeight;
-    private Float customBoundingBoxWidth;
-
     protected List<Entity> passengers = Collections.emptyList();
     protected Entity vehicle;
-
-    @Getter
-    private Vector3f riderSeatPosition = Vector3f.ZERO;
 
     /**
      * A container to store temporary metadata before it's sent to Bedrock.
      */
-    protected final GeyserDirtyMetadata dirtyMetadata = new GeyserDirtyMetadata();
-    /**
-     * A container storing all current metadata for an entity.
-     */
-    // TODO only store what is needed for API
-    protected final Map<EntityDataType<?>, Object> metadata = new Object2ObjectLinkedOpenHashMap<>();
+    protected final GeyserEntityDataManager dirtyMetadata = new GeyserEntityDataManager();
 
     /**
      * The entity flags for the Bedrock entity.
@@ -677,30 +661,6 @@ public class Entity implements GeyserEntity {
         }
     }
 
-    public float getBoundingBoxHeight() {
-        if (customBoundingBoxHeight != null) {
-            return customBoundingBoxHeight;
-        }
-        return boundingBoxHeight;
-    }
-
-    public float getBoundingBoxWidth() {
-        if (customBoundingBoxWidth != null) {
-            return customBoundingBoxWidth;
-        }
-        return boundingBoxWidth;
-    }
-
-    public void setCustomBoundingBoxWidth(float width) {
-        this.customBoundingBoxWidth = width;
-        dirtyMetadata.put(EntityDataTypes.WIDTH, customBoundingBoxWidth);
-    }
-
-    public void setCustomBoundingBoxHeight(float height) {
-        this.customBoundingBoxHeight = height;
-        dirtyMetadata.put(EntityDataTypes.HEIGHT, customBoundingBoxHeight);
-    }
-
     public void setScale(float scale) {
         this.scale = scale;
         applyScale();
@@ -723,7 +683,6 @@ public class Entity implements GeyserEntity {
     }
 
     public void setRiderSeatPosition(Vector3f position) {
-        riderSeatPosition = position;
         dirtyMetadata.put(EntityDataTypes.SEAT_OFFSET, position);
     }
 
@@ -770,11 +729,9 @@ public class Entity implements GeyserEntity {
     protected void updatePassengerOffsets() {
         for (int i = 0; i < passengers.size(); i++) {
             Entity passenger = passengers.get(i);
-            if (passenger != null) {
-                boolean rider = i == 0;
-                EntityUtils.updateMountOffset(passenger, this, rider, true, i, passengers.size());
-                passenger.updateBedrockMetadata();
-            }
+            boolean rider = i == 0;
+            EntityUtils.updateMountOffset(passenger, this, rider, true, i, passengers.size());
+            passenger.updateBedrockMetadata();
         }
     }
 

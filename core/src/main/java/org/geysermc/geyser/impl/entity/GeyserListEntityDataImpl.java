@@ -27,7 +27,6 @@ package org.geysermc.geyser.impl.entity;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.api.entity.data.GeyserListEntityDataType;
 import org.geysermc.geyser.api.entity.data.types.Hitbox;
@@ -45,8 +44,8 @@ public class GeyserListEntityDataImpl<ListType> extends GeyserEntityDataImpl<Lis
     static {
         TYPES = new Object2ObjectOpenHashMap<>();
         TYPES.put("hitboxes", new GeyserListEntityDataImpl<>(Hitbox.class, "hitboxes",
-            (entity, hitboxes) -> entity.getDirtyMetadata().put(EntityDataTypes.HITBOX, HitboxImpl.toNbtMap(hitboxes)),
-            (entity -> HitboxImpl.fromMetaData((NbtMap) entity.getMetadata().get(EntityDataTypes.HITBOX)))));
+            (entity, hitboxes) -> entity.getDirtyMetadata().updateOverride(EntityDataTypes.HITBOX, HitboxImpl.toNbtMap(hitboxes)),
+            (entity -> HitboxImpl.fromMetaData(entity.getDirtyMetadata().value(EntityDataTypes.HITBOX)))));
     }
 
     private final Class<ListType> listTypeClass;

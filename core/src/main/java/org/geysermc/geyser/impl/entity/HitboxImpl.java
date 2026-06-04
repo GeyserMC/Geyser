@@ -87,21 +87,21 @@ public record HitboxImpl(Vector3f min, Vector3f max, Vector3f pivot) implements 
         Vector3f min, max, pivot;
 
         @Override
-        public Hitbox.Builder min(@NonNull Vector3f min) {
+        public Hitbox.@NonNull Builder min(@NonNull Vector3f min) {
             Objects.requireNonNull(min, "min");
             this.min = min;
             return this;
         }
 
         @Override
-        public Hitbox.Builder max(@NonNull Vector3f max) {
+        public Hitbox.@NonNull Builder max(@NonNull Vector3f max) {
             Objects.requireNonNull(max, "max");
             this.max = max;
             return this;
         }
 
         @Override
-        public Hitbox.Builder pivot(@NonNull Vector3f pivot) {
+        public Hitbox.@NonNull Builder pivot(@NonNull Vector3f pivot) {
             Objects.requireNonNull(pivot, "pivot");
             this.pivot = pivot;
             return this;
