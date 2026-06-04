@@ -164,7 +164,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataTyp
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 public final class VanillaEntities {
     public static final VanillaEntityType<BoatEntity> ACACIA_BOAT;

@@ -104,7 +104,7 @@ public interface GeyserEntity {
      * If the new value is null, the property is reset to the default value.
      *
      * @param dataType an entity data type, such as from {@link GeyserEntityDataTypes}
-     * @param value the new property value
+     * @param value the new property value or null
      * @param <T> the type of the value
      */
      <T> void update(GeyserEntityDataType<T> dataType, @Nullable T value);
@@ -114,7 +114,7 @@ public interface GeyserEntity {
      * If the new value is null, the property is reset to the default value.
      *
      * @param property a {@link GeyserEntityProperty} registered for this type in the {@link GeyserDefineEntityPropertiesEvent}
-     * @param value the new property value
+     * @param value the new property value or null
      * @param <T> the type of the value
      * @since 2.9.0
      */

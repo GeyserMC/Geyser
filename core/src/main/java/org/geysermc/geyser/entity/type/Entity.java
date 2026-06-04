@@ -876,41 +876,43 @@ public class Entity implements GeyserEntity {
         if (this.propertyManager == null) {
             throw new IllegalArgumentException("Given entity has no registered properties!");
         }
-
         Objects.requireNonNull(consumer);
-        GeyserEntityProperties propertyDefinitions = bedrockDefinition.registeredProperties();
-        consumer.accept(new BatchPropertyUpdater() {
-            @Override
-            public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
-                Objects.requireNonNull(property, "property must not be null!");
-                if (!(property instanceof PropertyType<T, ?> propertyType)) {
-                    throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
-                }
-                int index = propertyDefinitions.getPropertyIndex(property.identifier().toString());
-                if (index < 0) {
-                    throw new IllegalArgumentException("No property with the name " + property.identifier() + " has been registered.");
-                }
 
-                var expectedProperty = propertyDefinitions.getProperties().get(index);
-                if (!expectedProperty.equals(propertyType)) {
-                    throw new IllegalArgumentException("The supplied property was not registered with this entity type!");
-                }
+        session.ensureInEventLoop(() -> {
+            GeyserEntityProperties propertyDefinitions = bedrockDefinition.registeredProperties();
+            consumer.accept(new BatchPropertyUpdater() {
+                @Override
+                public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
+                    Objects.requireNonNull(property, "property must not be null!");
+                    if (!(property instanceof PropertyType<T, ?> propertyType)) {
+                        throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
+                    }
+                    int index = propertyDefinitions.getPropertyIndex(property.identifier().toString());
+                    if (index < 0) {
+                        throw new IllegalArgumentException("No property with the name " + property.identifier() + " has been registered.");
+                    }
 
-                propertyType.apply(propertyManager, value);
+                    var expectedProperty = propertyDefinitions.getProperties().get(index);
+                    if (!expectedProperty.equals(propertyType)) {
+                        throw new IllegalArgumentException("The supplied property was not registered with this entity type!");
+                    }
+
+                    propertyType.apply(propertyManager, value);
+                }
+            });
+
+            if (propertyManager.hasProperties()) {
+                if (immediate) {
+                    SetEntityDataPacket packet = new SetEntityDataPacket();
+                    packet.setRuntimeEntityId(geyserId());
+                    propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
+                    propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
+                    session.sendUpstreamPacketImmediately(packet);
+                } else {
+                    session.getEntityCache().markDirty(this);
+                }
             }
         });
-
-        if (propertyManager.hasProperties()) {
-            if (immediate) {
-                SetEntityDataPacket packet = new SetEntityDataPacket();
-                packet.setRuntimeEntityId(geyserId());
-                propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
-                propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
-                session.sendUpstreamPacketImmediately(packet);
-            } else {
-                session.getEntityCache().markDirty(this);
-            }
-        }
     }
 
     public void offset(float offset, boolean teleport) {
@@ -934,8 +936,10 @@ public class Entity implements GeyserEntity {
     @Override
     public <T> void update(@NonNull GeyserEntityDataType<T> dataType, @Nullable T value) {
         if (dataType instanceof GeyserEntityDataImpl<T> geyserEntityDataImpl) {
-            geyserEntityDataImpl.update(this, value);
-            session.getEntityCache().markDirty(this);
+            session.ensureInEventLoop(() -> {
+                geyserEntityDataImpl.update(this, value);
+                session.getEntityCache().markDirty(this);
+            });
         } else {
             throw new IllegalArgumentException("Invalid data type: " + dataType.getClass().getSimpleName());
         }

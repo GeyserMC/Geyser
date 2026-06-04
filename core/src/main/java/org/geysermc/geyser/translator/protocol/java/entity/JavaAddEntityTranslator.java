@@ -101,7 +101,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         }
 
         if (!context.callServerSpawnEvent()) {
-            GeyserImpl.getInstance().getLogger().debug(session, "Cancelled entity spawn (%s) at (%s)".formatted(type.identifier(), context.position()));
+            GeyserImpl.getInstance().getLogger().debug(session, "Cancelled entity spawn (%s) at (%s)", type.identifier(), context.position());
             return;
         }
 

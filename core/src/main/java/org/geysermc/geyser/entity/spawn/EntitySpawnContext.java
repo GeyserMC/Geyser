@@ -118,16 +118,17 @@ public class EntitySpawnContext {
             return true;
         }
 
-        GeyserImpl.getInstance().getEventBus().fire(new ServerSpawnEntityEvent(session) {
+        ServerSpawnEntityEvent event = new ServerSpawnEntityEvent(session) {
+            private boolean cancelled = false;
 
             @Override
             public boolean isCancelled() {
-                return bedrockEntityDefinition == null;
+                return cancelled || bedrockEntityDefinition == null;
             }
 
             @Override
             public void setCancelled(boolean cancelled) {
-                bedrockEntityDefinition = null;
+                this.cancelled = cancelled;
             }
 
             @Override
@@ -154,6 +155,7 @@ public class EntitySpawnContext {
             public void definition(@Nullable GeyserEntityDefinition entityDefinition) {
                 if (entityDefinition == null) {
                     bedrockEntityDefinition = null;
+                    cancelled = true;
                     return;
                 }
 
@@ -175,9 +177,10 @@ public class EntitySpawnContext {
                 }
                 consumers.add(consumer);
             }
-        });
+        };
 
-        return bedrockEntityDefinition != null;
+        GeyserImpl.getInstance().eventBus().fire(event);
+        return bedrockEntityDefinition != null && !event.isCancelled();
     }
 
     /**
@@ -188,7 +191,9 @@ public class EntitySpawnContext {
             return true;
         }
 
-        GeyserImpl.getInstance().eventBus().fire(new ServerAttachParrotsEvent(session) {
+        ServerAttachParrotsEvent event = new ServerAttachParrotsEvent(session) {
+            private boolean cancelled = false;
+
             @Override
             public GeyserPlayerEntity player() {
                 return player;
@@ -229,12 +234,12 @@ public class EntitySpawnContext {
 
             @Override
             public boolean isCancelled() {
-                return bedrockEntityDefinition == null;
+                return cancelled || bedrockEntityDefinition == null;
             }
 
             @Override
             public void setCancelled(boolean cancelled) {
-                bedrockEntityDefinition = null;
+                this.cancelled = cancelled;
             }
 
             @Override
@@ -244,9 +249,10 @@ public class EntitySpawnContext {
                 }
                 consumers.add(consumer);
             }
-        });
+        };
 
-        return bedrockEntityDefinition != null;
+        GeyserImpl.getInstance().eventBus().fire(event);
+        return bedrockEntityDefinition != null && !event.isCancelled();
     }
 
     // Not assigned by default - preparation for cancellable entity spawning
