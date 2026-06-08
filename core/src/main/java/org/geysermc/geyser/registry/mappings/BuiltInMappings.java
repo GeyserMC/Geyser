@@ -39,6 +39,7 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,14 +56,14 @@ public class BuiltInMappings {
                 .tags(Set.of("is_pickaxe_item_destructible", "diamond_tier_destructible"))
                 .destructibleByMining(50.0f)
                 .build())
-            .build(), null);
+            .build(), false, null);
         registerBlock(event, CustomBlockData.builder()
             .name("crying_obsidian")
             .components(CustomBlockComponents.builder()
                 .tags(Set.of("is_pickaxe_item_destructible", "diamond_tier_destructible"))
                 .destructibleByMining(50.0f)
                 .build())
-            .build(), null);
+            .build(), false, null);
 
         // Bedrock only has brown_mushroom_block and red_mushroom_block with 16 different variants (nine-slice + stem) but Java allows to toggle each face individually
         registerBlock(event, CustomBlockData.builder()
@@ -76,7 +77,7 @@ public class BuiltInMappings {
             .booleanProperty("south")
             .booleanProperty("up")
             .booleanProperty("west")
-            .build(), mushroomComponentsFromState("mushroom_block_inside", "mushroom_block_skin_brown"));
+            .build(), false, mushroomComponentsFromState("mushroom_block_inside", "mushroom_block_skin_brown"));
         registerBlock(event, CustomBlockData.builder()
             .name("red_mushroom_block")
             .components(CustomBlockComponents.builder()
@@ -88,7 +89,7 @@ public class BuiltInMappings {
             .booleanProperty("south")
             .booleanProperty("up")
             .booleanProperty("west")
-            .build(), mushroomComponentsFromState("mushroom_block_inside", "mushroom_block_skin_red"));
+            .build(), false, mushroomComponentsFromState("mushroom_block_inside", "mushroom_block_skin_red"));
         registerBlock(event, CustomBlockData.builder()
             .name("mushroom_stem")
             .components(CustomBlockComponents.builder()
@@ -100,16 +101,22 @@ public class BuiltInMappings {
             .booleanProperty("south")
             .booleanProperty("up")
             .booleanProperty("west")
-            .build(), mushroomComponentsFromState("mushroom_block_inside", "mushroom_block_skin_stem"));
+            .build(), false, mushroomComponentsFromState("mushroom_block_inside", "mushroom_block_skin_stem"));
 
         // Test blocks don't exist in Bedrock
         registerBlock(event, CustomBlockData.builder()
             .name("test_block")
+            .components(CustomBlockComponents.builder()
+                .destructibleByMining(Float.MAX_VALUE)
+                .build())
             .stringProperty("mode", List.of("start", "log", "fail", "accept"))
-            .build(), (state) -> CustomBlockComponents.builder().build());
+            .build(), true, null);
         registerBlock(event, CustomBlockData.builder()
             .name("test_instance_block")
-            .build(), null);
+            .components(CustomBlockComponents.builder()
+                .destructibleByMining(Float.MAX_VALUE)
+                .build())
+            .build(), true, null);
     }
 
     public static void registerItems(GeyserDefineCustomItemsEvent event) {
@@ -123,34 +130,10 @@ public class BuiltInMappings {
             .build());
     }
 
-    private static void registerBlock(GeyserDefineCustomBlocksEvent event, CustomBlockData block, Function<CustomBlockState, CustomBlockComponents> function) {
+    private static void registerBlock(GeyserDefineCustomBlocksEvent event, CustomBlockData block, boolean item, @Nullable Function<CustomBlockState, CustomBlockComponents> permutationsMapper) {
         List<Map.Entry<String, CustomBlockProperty<?>>> properties = block.properties().entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
 
         int propertyCount = properties.size();
-
-        if (propertyCount == 0) {
-            event.register(block);
-            event.registerOverride("minecraft:" + block.name(), block.defaultBlockState());
-            return;
-        }
-
-        CustomBlockData.Builder builder = CustomBlockData.builder()
-            .name(block.name())
-            .includedInCreativeInventory(block.includedInCreativeInventory())
-            .creativeCategory(block.creativeCategory())
-            .creativeGroup(block.creativeGroup())
-            .components(block.components());
-
-        for (CustomBlockProperty<?> property : block.properties().values()) {
-            if (property.type() == PropertyType.booleanProp()) {
-                builder.booleanProperty(property.name());
-            } else if (property.type() == PropertyType.integerProp()) {
-                builder.intProperty(property.name(), (List<Integer>) property.values());
-            } else if (property.type() == PropertyType.stringProp()) {
-                builder.stringProperty(property.name(), (List<String>) property.values());
-            }
-        }
-
         List<List<?>> propertyValues = new ArrayList<>(propertyCount);
         int statesCount = 1;
 
@@ -160,52 +143,76 @@ public class BuiltInMappings {
         }
 
         int[] propertyIndices = new int[propertyCount];
-        List<CustomBlockPermutation> permutations = new ArrayList<>(statesCount);
 
-        for (int stateIndex = 0; stateIndex < statesCount; stateIndex++) {
-            CustomBlockState.Builder stateBuilder = block.blockStateBuilder();
+        if (permutationsMapper != null) {
+            CustomBlockData.Builder builder = CustomBlockData.builder()
+                .name(block.name())
+                .includedInCreativeInventory(block.includedInCreativeInventory())
+                .creativeCategory(block.creativeCategory())
+                .creativeGroup(block.creativeGroup())
+                .components(block.components());
 
-            StringBuilder conditionBuilder = new StringBuilder();
-
-            for (int propertyIndex = 0; propertyIndex < propertyCount; propertyIndex++) {
-                String name = properties.get(propertyIndex).getKey();
-                Object value = propertyValues.get(propertyIndex).get(propertyIndices[propertyIndex]);
-
-                if (propertyIndex != 0) {
-                    conditionBuilder.append("&&");
+            for (CustomBlockProperty<?> property : block.properties().values()) {
+                if (property.type() == PropertyType.booleanProp()) {
+                    builder.booleanProperty(property.name());
+                } else if (property.type() == PropertyType.integerProp()) {
+                    builder.intProperty(property.name(), (List<Integer>) property.values());
+                } else if (property.type() == PropertyType.stringProp()) {
+                    builder.stringProperty(property.name(), (List<String>) property.values());
                 }
+            }
 
-                if (value instanceof Byte booleanValue) {
-                    stateBuilder.booleanProperty(name, booleanValue != 0);
-                    if (booleanValue == 0) {
-                        conditionBuilder.append('!');
+            List<CustomBlockPermutation> permutations = new ArrayList<>(statesCount);
+
+            for (int stateIndex = 0; stateIndex < statesCount; stateIndex++) {
+                CustomBlockState.Builder stateBuilder = block.blockStateBuilder();
+
+                StringBuilder conditionBuilder = new StringBuilder();
+
+                for (int propertyIndex = 0; propertyIndex < propertyCount; propertyIndex++) {
+                    String name = properties.get(propertyIndex).getKey();
+                    Object value = propertyValues.get(propertyIndex).get(propertyIndices[propertyIndex]);
+
+                    if (propertyIndex != 0) {
+                        conditionBuilder.append("&&");
                     }
-                    conditionBuilder.append("query.block_property('").append(name).append("')");
 
-                } else if (value instanceof Integer integerValue) {
-                    stateBuilder.intProperty(name, integerValue);
-                    conditionBuilder.append("query.block_property('").append(name).append("')==").append(integerValue);
-                } else if (value instanceof String stringValue) {
-                    stateBuilder.stringProperty(name, stringValue);
-                    conditionBuilder.append("query.block_property('").append(name).append("')=='").append(stringValue).append("'");
+                    if (value instanceof Byte booleanValue) {
+                        stateBuilder.booleanProperty(name, booleanValue != 0);
+                        if (booleanValue == 0) {
+                            conditionBuilder.append('!');
+                        }
+                        conditionBuilder.append("query.block_property('").append(name).append("')");
+
+                    } else if (value instanceof Integer integerValue) {
+                        stateBuilder.intProperty(name, integerValue);
+                        conditionBuilder.append("query.block_property('").append(name).append("')==").append(integerValue);
+                    } else if (value instanceof String stringValue) {
+                        stateBuilder.stringProperty(name, stringValue);
+                        conditionBuilder.append("query.block_property('").append(name).append("')=='").append(stringValue).append("'");
+                    }
+                }
+
+                permutations.add(new CustomBlockPermutation(permutationsMapper.apply(stateBuilder.build()), conditionBuilder.toString()));
+
+                for (int propertyIndex = propertyCount - 1; propertyIndex >= 0; propertyIndex--) {
+                    propertyIndices[propertyIndex]++;
+
+                    if (propertyIndices[propertyIndex] < propertyValues.get(propertyIndex).size()) {
+                        break;
+                    }
+
+                    propertyIndices[propertyIndex] = 0;
                 }
             }
 
-            permutations.add(new CustomBlockPermutation(function.apply(stateBuilder.build()), conditionBuilder.toString()));
-
-            for (int propertyIndex = propertyCount - 1; propertyIndex >= 0; propertyIndex--) {
-                propertyIndices[propertyIndex]++;
-
-                if (propertyIndices[propertyIndex] < propertyValues.get(propertyIndex).size()) {
-                    break;
-                }
-
-                propertyIndices[propertyIndex] = 0;
-            }
+            block = builder.permutations(permutations).build();
         }
 
-        block = builder.permutations(permutations).build();
         event.register(block);
+        if (item) {
+            event.registerItemOverride("minecraft:" + block.name(), block);
+        }
 
         propertyIndices = new int[propertyCount];
 
@@ -213,7 +220,9 @@ public class BuiltInMappings {
             CustomBlockState.Builder stateBuilder = block.blockStateBuilder();
             StringBuilder javaStateBuilder = new StringBuilder("minecraft:");
             javaStateBuilder.append(block.name());
-            javaStateBuilder.append('[');
+            if (propertyCount != 0) {
+                javaStateBuilder.append('[');
+            }
 
             for (int propertyIndex = 0; propertyIndex < propertyCount; propertyIndex++) {
                 String name = properties.get(propertyIndex).getKey();
@@ -236,7 +245,9 @@ public class BuiltInMappings {
                 }
             }
 
-            javaStateBuilder.append(']');
+            if (propertyCount != 0) {
+                javaStateBuilder.append(']');
+            }
 
             event.registerOverride(javaStateBuilder.toString(), stateBuilder.build());
 
