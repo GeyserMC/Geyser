@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.registry.mappings;
 
-import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
@@ -36,7 +35,9 @@ import org.geysermc.geyser.api.block.custom.property.CustomBlockProperty;
 import org.geysermc.geyser.api.block.custom.property.PropertyType;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
+import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.ArrayList;
@@ -63,8 +64,7 @@ public class BuiltInMappings {
                 .build())
             .build(), null);
 
-        // Bedrock only has brown_mushroom_block and red_mushroom_block with 16 different variants (nine-slice + stem),
-        // but Java allows to toggle each face individually
+        // Bedrock only has brown_mushroom_block and red_mushroom_block with 16 different variants (nine-slice + stem) but Java allows to toggle each face individually
         registerBlock(event, CustomBlockData.builder()
             .name("brown_mushroom_block")
             .components(CustomBlockComponents.builder()
@@ -115,6 +115,11 @@ public class BuiltInMappings {
     public static void registerItems(GeyserDefineCustomItemsEvent event) {
         // Furnace minecarts don't exist in Bedrock
         event.register(Identifier.of("furnace_minecart"), CustomItemDefinition.builder(Identifier.of("geysermc", "furnace_minecart"), Identifier.of("furnace_minecart"))
+                .displayName("item.minecartFurnace.name")
+                .bedrockOptions(CustomItemBedrockOptions.builder()
+                    .icon("minecart_furnace")
+                    .creativeCategory(CreativeCategory.ITEMS)
+                    .creativeGroup("itemGroup.name.minecart"))
             .build());
     }
 
@@ -125,11 +130,16 @@ public class BuiltInMappings {
 
         if (propertyCount == 0) {
             event.register(block);
-            event.registerOverride(block.name(), block.defaultBlockState());
+            event.registerOverride("minecraft:" + block.name(), block.defaultBlockState());
             return;
         }
 
-        CustomBlockData.Builder builder = CustomBlockData.builder().name(block.name());
+        CustomBlockData.Builder builder = CustomBlockData.builder()
+            .name(block.name())
+            .includedInCreativeInventory(block.includedInCreativeInventory())
+            .creativeCategory(block.creativeCategory())
+            .creativeGroup(block.creativeGroup())
+            .components(block.components());
 
         for (CustomBlockProperty<?> property : block.properties().values()) {
             if (property.type() == PropertyType.booleanProp()) {
@@ -174,10 +184,10 @@ public class BuiltInMappings {
 
                 } else if (value instanceof Integer integerValue) {
                     stateBuilder.intProperty(name, integerValue);
-                    conditionBuilder.append("query.block_property('").append(name).append("') == ").append(integerValue);
+                    conditionBuilder.append("query.block_property('").append(name).append("')==").append(integerValue);
                 } else if (value instanceof String stringValue) {
                     stateBuilder.stringProperty(name, stringValue);
-                    conditionBuilder.append("query.block_property('").append(name).append("') == '").append(stringValue).append('\'');
+                    conditionBuilder.append("query.block_property('").append(name).append("')=='").append(stringValue).append("'");
                 }
             }
 
