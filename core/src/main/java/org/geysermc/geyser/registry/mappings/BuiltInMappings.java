@@ -177,7 +177,7 @@ public class BuiltInMappings {
                     conditionBuilder.append("query.block_property('").append(name).append("') == ").append(integerValue);
                 } else if (value instanceof String stringValue) {
                     stateBuilder.stringProperty(name, stringValue);
-                    conditionBuilder.append("query.block_property('").append(name).append("') == ").append(stringValue);
+                    conditionBuilder.append("query.block_property('").append(name).append("') == '").append(stringValue).append('\'');
                 }
             }
 
