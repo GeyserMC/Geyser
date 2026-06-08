@@ -284,6 +284,9 @@ public class ItemRegistryPopulator {
             Set<Item> javaOnlyItems = new ObjectOpenHashSet<>();
             Collections.addAll(javaOnlyItems, Items.SPECTRAL_ARROW, Items.DEBUG_STICK,
                     Items.KNOWLEDGE_BOOK, Items.TIPPED_ARROW);
+            if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
+                javaOnlyItems.add(Items.FURNACE_MINECART);
+            }
             // Java-only items for this version
             javaOnlyItems.addAll(palette.javaOnlyItems().keySet());
 
