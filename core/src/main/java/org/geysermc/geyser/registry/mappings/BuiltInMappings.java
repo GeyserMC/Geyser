@@ -114,7 +114,7 @@ public class BuiltInMappings {
 
     public static void registerItems(GeyserDefineCustomItemsEvent event) {
         // Furnace minecarts don't exist in Bedrock
-        event.register(Identifier.of("furnace_minecart"), CustomItemDefinition.builder(Identifier.of(Constants.GEYSER_CUSTOM_NAMESPACE, "furnace_minecart"), Identifier.of("furnace_minecart"))
+        event.register(Identifier.of("furnace_minecart"), CustomItemDefinition.builder(Identifier.of("geysermc", "furnace_minecart"), Identifier.of("furnace_minecart"))
             .build());
     }
 
