@@ -40,6 +40,8 @@ import org.geysermc.geyser.registry.mappings.versions.MappingsReader_v2;
 
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.BiConsumer;
@@ -83,9 +85,15 @@ public class MappingsConfigReader {
             return;
         }
 
+        readItemMappingsFromJson(new InputStreamReader(GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("mappings/custom.json")), null, consumer);
+
         Path[] mappingsFiles = this.getCustomMappingsFiles();
         for (Path mappingsFile : mappingsFiles) {
-            this.readItemMappingsFromJson(mappingsFile, consumer);
+            try (FileReader reader = new FileReader(mappingsFile.toFile())) {
+                this.readItemMappingsFromJson(reader, mappingsFile, consumer);
+            } catch (IOException e) {
+                GeyserImpl.getInstance().getLogger().error("Failed to read custom mapping file: " + mappingsFile, e);
+            }
         }
     }
 
@@ -94,20 +102,20 @@ public class MappingsConfigReader {
             return;
         }
 
+        readBlockMappingsFromJson(new InputStreamReader(GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("mappings/custom.json")), null, consumer);
+
         Path[] mappingsFiles = this.getCustomMappingsFiles();
         for (Path mappingsFile : mappingsFiles) {
-            this.readBlockMappingsFromJson(mappingsFile, consumer);
+            try (FileReader reader = new FileReader(mappingsFile.toFile())) {
+                this.readBlockMappingsFromJson(reader, mappingsFile, consumer);
+            } catch (IOException e) {
+                GeyserImpl.getInstance().getLogger().error("Failed to read custom mapping file: " + mappingsFile, e);
+            }
         }
     }
 
-    public @Nullable JsonObject getMappingsRoot(Path file) {
-        JsonObject mappingsRoot;
-        try (FileReader reader = new FileReader(file.toFile())) {
-            mappingsRoot = (JsonObject) new JsonParser().parse(reader);
-        } catch (IOException e) {
-            GeyserImpl.getInstance().getLogger().error("Failed to read custom mapping file: " + file, e);
-            return null;
-        }
+    public @Nullable JsonObject getMappingsRoot(Reader reader, Path file) {
+        JsonObject mappingsRoot = (JsonObject) new JsonParser().parse(reader);
 
         if (!mappingsRoot.has("format_version")) {
             GeyserImpl.getInstance().getLogger().error("Mappings file " + file + " is missing the format version field!");
@@ -126,8 +134,8 @@ public class MappingsConfigReader {
         return formatVersion;
     }
 
-    public void readItemMappingsFromJson(Path file, BiConsumer<Identifier, CustomItemDefinition> consumer) {
-        JsonObject mappingsRoot = getMappingsRoot(file);
+    public void readItemMappingsFromJson(Reader reader, Path file, BiConsumer<Identifier, CustomItemDefinition> consumer) {
+        JsonObject mappingsRoot = getMappingsRoot(reader, file);
 
         if (mappingsRoot == null) {
             return;
@@ -142,8 +150,8 @@ public class MappingsConfigReader {
         this.mappingReaders.get(formatVersion).readItemMappings(file, mappingsRoot, consumer);
     }
 
-    public void readBlockMappingsFromJson(Path file, BiConsumer<String, CustomBlockMapping> consumer) {
-        JsonObject mappingsRoot = getMappingsRoot(file);
+    public void readBlockMappingsFromJson(Reader reader, Path file, BiConsumer<String, CustomBlockMapping> consumer) {
+        JsonObject mappingsRoot = getMappingsRoot(reader, file);
 
         if (mappingsRoot == null) {
             return;

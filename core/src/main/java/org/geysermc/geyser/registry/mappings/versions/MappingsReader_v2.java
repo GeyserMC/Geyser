@@ -33,12 +33,11 @@ import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
 import org.geysermc.geyser.registry.mappings.definition.ItemDefinitionReaders;
-import org.geysermc.geyser.registry.mappings.util.CustomBlockMapping;
 
 import java.nio.file.Path;
 import java.util.function.BiConsumer;
 
-public class MappingsReader_v2 extends MappingsReader {
+public class MappingsReader_v2 extends MappingsReader_v1 {
 
     @Override
     public void readItemMappings(Path file, JsonObject mappingsRoot, BiConsumer<Identifier, CustomItemDefinition> consumer) {
@@ -58,7 +57,7 @@ public class MappingsReader_v2 extends MappingsReader {
                                 "item definition(s) for vanilla Java item " + vanillaItem);
                         } catch (InvalidCustomMappingsFileException exception) {
                             GeyserImpl.getInstance().getLogger().error(
-                                "Error reading definition(s) for vanilla Java item " + entry.getKey() + " in custom mappings file: " + file.toString(), exception);
+                                "Error reading definition(s) for vanilla Java item " + entry.getKey() + " in custom mappings file: " + file, exception);
                         }
                     });
                 } else {
@@ -69,20 +68,7 @@ public class MappingsReader_v2 extends MappingsReader {
     }
 
     @Override
-    public void readBlockMappings(Path file, JsonObject mappingsRoot, BiConsumer<String, CustomBlockMapping> consumer) {
-        JsonElement blocks = mappingsRoot.get("blocks");
-        if (blocks != null) {
-            throw new UnsupportedOperationException("Unimplemented; use the v1 format for block mappings");
-        }
-    }
-
-    @Override
     public CustomItemDefinition readItemMappingEntry(Identifier parentModel, JsonElement element) {
         throw new UnsupportedOperationException("Replaced by ItemDefinitionReaders enum");
-    }
-
-    @Override
-    public CustomBlockMapping readBlockMappingEntry(String identifier, JsonElement node) throws InvalidCustomMappingsFileException {
-        throw new InvalidCustomMappingsFileException("Unimplemented; use the v1 format for block mappings");
     }
 }
