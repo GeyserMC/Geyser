@@ -47,6 +47,7 @@ import java.util.function.Function;
 
 public class BuiltInMappings {
     public static void registerBlocks(GeyserDefineCustomBlocksEvent event) {
+        // Obsidian and crying obsidian mining speed differ from Java
         registerBlock(event, CustomBlockData.builder()
             .name("obsidian")
             .components(CustomBlockComponents.builder()
@@ -61,6 +62,9 @@ public class BuiltInMappings {
                 .destructibleByMining(50.0f)
                 .build())
             .build(), null);
+
+        // Bedrock only has brown_mushroom_block and red_mushroom_block with 16 different variants (nine-slice + stem),
+        // but Java allows to toggle each face individually
         registerBlock(event, CustomBlockData.builder()
             .name("brown_mushroom_block")
             .components(CustomBlockComponents.builder()
@@ -97,6 +101,8 @@ public class BuiltInMappings {
             .booleanProperty("up")
             .booleanProperty("west")
             .build(), mushroomComponentsFromState("mushroom_block_inside", "mushroom_block_skin_stem"));
+
+        // Test blocks don't exist in Bedrock
         registerBlock(event, CustomBlockData.builder()
             .name("test_block")
             .stringProperty("mode", List.of("start", "log", "fail", "accept"))
@@ -107,6 +113,7 @@ public class BuiltInMappings {
     }
 
     public static void registerItems(GeyserDefineCustomItemsEvent event) {
+        // Furnace minecarts don't exist in Bedrock
         event.register(Identifier.of("furnace_minecart"), CustomItemDefinition.builder(Identifier.of(Constants.GEYSER_CUSTOM_NAMESPACE, "furnace_minecart"), Identifier.of("furnace_minecart"))
             .build());
     }
