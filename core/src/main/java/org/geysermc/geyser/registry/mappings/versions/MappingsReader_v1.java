@@ -115,7 +115,8 @@ public class MappingsReader_v1 extends MappingsReader {
                             CustomItemDefinition customItemData = this.readItemMappingEntry(vanillaItemIdentifier, data);
                             consumer.accept(vanillaItemIdentifier, customItemData);
                         } catch (InvalidCustomMappingsFileException e) {
-                            GeyserImpl.getInstance().getLogger().error("Error in registering items for custom mapping file: " + file.toString(), e);
+                            GeyserImpl.getInstance().getLogger().error("Error in registering items for custom mapping file: " + file, e);
+                            GeyserImpl.getInstance().getLogger().error("due to entry: " + entry, e);
                         }
                     });
                 }
@@ -140,7 +141,7 @@ public class MappingsReader_v1 extends MappingsReader {
                         CustomBlockMapping customBlockMapping = this.readBlockMappingEntry(identifier, jsonObject);
                         consumer.accept(identifier, customBlockMapping);
                     } catch (Exception e) {
-                        GeyserImpl.getInstance().getLogger().error("Error in registering blocks for custom mapping file: " + file.toString());
+                        GeyserImpl.getInstance().getLogger().error("Error in registering blocks for custom mapping file: " + file);
                         GeyserImpl.getInstance().getLogger().error("due to entry: " + entry, e);
                     }
                 }
