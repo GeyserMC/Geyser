@@ -127,7 +127,7 @@ public class CreativeItemRegistryPopulator {
             throw new AssertionError("Unable to load creative items", e);
         }
 
-        BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
+        BlockMappings blockMappings = BlockRegistries.BLOCKS.get();
         for (JsonElement itemNode : creativeItemEntries) {
             ItemData.Builder itemBuilder = createItemData((JsonObject) itemNode, items, blockMappings, definitions);
             if (itemBuilder == null) {

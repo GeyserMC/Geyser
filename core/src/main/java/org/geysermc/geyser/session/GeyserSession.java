@@ -1967,6 +1967,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         startGamePacket.setServerConfigurationJoinInfo(null);
 
+        startGamePacket.setBlockNetworkIdsHashed(true);
+
         return startGamePacket;
     }
 

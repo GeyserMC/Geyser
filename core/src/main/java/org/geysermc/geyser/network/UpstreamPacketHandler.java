@@ -214,7 +214,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         }
 
         // Set the block translation based off of version
-        session.setBlockMappings(BlockRegistries.BLOCKS.forVersion(loginPacket.getProtocolVersion()));
+        session.setBlockMappings(BlockRegistries.BLOCKS.get());
         session.setItemMappings(Registries.ITEMS.forVersion(loginPacket.getProtocolVersion()));
 
         geyser.getSessionManager().addPendingSession(session);

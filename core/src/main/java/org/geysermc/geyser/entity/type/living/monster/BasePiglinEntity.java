@@ -36,8 +36,8 @@ public class BasePiglinEntity extends MonsterEntity {
 
     public BasePiglinEntity(EntitySpawnContext context) {
         super(context);
-        // Both TARGET_EID and BLOCK are needed for melee attack animation
-        dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(1));
+        // Both TARGET_EID and VARIANT are needed for melee attack animation
+        dirtyMetadata.put(EntityDataTypes.VARIANT, 1);
         setFlag(EntityFlag.SHAKING, isShaking());
     }
 

@@ -56,10 +56,9 @@ import java.util.BitSet;
  */
 public class BlockRegistries {
     /**
-     * A versioned registry which holds {@link BlockMappings} for each version. These block mappings contain
-     * primarily Bedrock version-specific data.
+     * A registry which holds {@link BlockMappings}.
      */
-    public static final VersionedRegistry<BlockMappings> BLOCKS = VersionedRegistry.create(RegistryLoaders.empty(Int2ObjectOpenHashMap::new));
+    public static final SimpleRegistry<BlockMappings> BLOCKS = SimpleRegistry.create(RegistryLoaders.uninitialized());
 
     /**
      * A registry which stores Java IDs to Java {@link BlockState}s, each with their specific state differences and a link
