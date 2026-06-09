@@ -103,7 +103,7 @@ public class BuiltInMappings {
             .booleanProperty("west")
             .build(), false, mushroomComponentsFromState("mushroom_block_inside", "mushroom_block_skin_stem"));
 
-        // Test blocks don't exist in Bedrock
+        // Test blocks don't exist on Bedrock
         registerBlock(event, CustomBlockData.builder()
             .name("test_block")
             .components(CustomBlockComponents.builder()
@@ -120,7 +120,7 @@ public class BuiltInMappings {
     }
 
     public static void registerItems(GeyserDefineCustomItemsEvent event) {
-        // Furnace minecarts don't exist in Bedrock
+        // Furnace minecarts don't exist on Bedrock
         event.register(Identifier.of("furnace_minecart"), CustomItemDefinition.builder(Identifier.of("geysermc", "furnace_minecart"), Identifier.of("furnace_minecart"))
                 .displayName("item.minecartFurnace.name")
                 .bedrockOptions(CustomItemBedrockOptions.builder()
