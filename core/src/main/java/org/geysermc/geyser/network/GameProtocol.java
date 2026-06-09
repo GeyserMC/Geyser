@@ -51,7 +51,7 @@ public final class GameProtocol {
     /**
      * All Bedrock protocol codecs that Geyser uses
      */
-    private static final List<BedrockCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
+    static final List<BedrockCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
 
     /**
      * All bedrock protocol versions that Geyser supports
