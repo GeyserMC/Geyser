@@ -81,11 +81,13 @@ public class Block {
         this.destroyTime = builder.destroyTime;
         this.pushReaction = builder.pushReaction;
 
-        BlockState firstState = builder.build(this).get(0);
+        BlockState firstState = builder.build(this).getFirst();
         this.propertyKeys = builder.propertyKeys; // Ensure this is not null before iterating over states
         this.defaultState = setDefaultState(firstState);
     }
 
+    // JavaSectionBlocksUpdateTranslator only calls updateBlock for specialized blocks,
+    // make sure to also update JavaSectionBlocksUpdateTranslator for general changes.
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
         checkForEmptySkull(session, state, position);
 

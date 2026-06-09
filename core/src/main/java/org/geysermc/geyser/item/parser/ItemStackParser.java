@@ -151,6 +151,7 @@ public final class ItemStackParser {
             List<Integer> colours = raw.getList("colors", NbtType.INT);
             return new CustomModelData(floats, flags, strings, colours);
         });
+        registerSimple(DataComponentTypes.DYE, String.class, raw -> DyeColor.getByJavaIdentifier(raw).ordinal());
         registerSimple(DataComponentTypes.DYED_COLOR, Integer.class);
         registerSimple(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, Boolean.class);
         register(DataComponentTypes.ENCHANTMENTS, NbtMap.class, ItemStackParser::parseEnchantments);
@@ -190,9 +191,9 @@ public final class ItemStackParser {
         try {
             patch.put((DataComponentType<Parsed>) type, parser.parse(session, (Raw) raw));
         } catch (ClassCastException exception) {
-            GeyserImpl.getInstance().getLogger().debug("Received incorrect object type for component " + type + "!", exception);
+            GeyserImpl.getInstance().getLogger().debug("Received incorrect object type for component " + type + "! Exception: %s", exception);
         } catch (Exception exception) {
-            GeyserImpl.getInstance().getLogger().debug("Failed to parse component" + type + " from " + raw + "!", exception);
+            GeyserImpl.getInstance().getLogger().debug("Failed to parse component" + type + " from " + raw + "! Exception: %s", exception);
         }
     }
 

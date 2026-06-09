@@ -20,6 +20,7 @@ include(":ap")
 include(":api")
 include(":bungeecord")
 include(":fabric")
+include(":gametest")
 include(":neoforge")
 include(":mod")
 include(":spigot")
@@ -32,9 +33,15 @@ include(":core")
 // Specify project dirs
 project(":bungeecord").projectDir = file("bootstrap/bungeecord")
 project(":fabric").projectDir = file("bootstrap/mod/fabric")
+project(":gametest").projectDir = file("bootstrap/mod/gametest")
 project(":neoforge").projectDir = file("bootstrap/mod/neoforge")
 project(":mod").projectDir = file("bootstrap/mod")
 project(":spigot").projectDir = file("bootstrap/spigot")
 project(":standalone").projectDir = file("bootstrap/standalone")
 project(":velocity").projectDir = file("bootstrap/velocity")
 project(":viaproxy").projectDir = file("bootstrap/viaproxy")
+
+// Allow to download JVMs for toolchains
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version ("1.0.0")
+}

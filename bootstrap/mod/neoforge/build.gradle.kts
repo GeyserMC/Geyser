@@ -1,6 +1,5 @@
 plugins {
     id("geyser.modded-conventions")
-    id("geyser.modrinth-uploading-conventions")
 }
 
 architectury {
@@ -33,7 +32,7 @@ dependencies {
 
     neoForge(libs.neoforge.minecraft)
 
-    api(project(":mod", configuration = "namedElements"))
+    api(project(":mod"))
     shadowBundle(project(path = ":mod", configuration = "transformProductionNeoForge"))
     shadowBundle(projects.core)
 
@@ -51,7 +50,7 @@ dependencies {
     // Include all transitive deps of core via JiJ
     includeTransitive(projects.core)
 
-    modImplementation(libs.cloud.neoforge)
+    implementation(libs.cloud.neoforge)
     include(libs.cloud.neoforge)
 }
 
@@ -62,20 +61,21 @@ tasks.withType<Jar> {
 }
 
 tasks {
-    remapJar {
+    named<Jar>("mergeShadowAndJarJar") {
+        from (
+            zipTree( shadowJar.map { it.outputs.files.singleFile } ).matching {
+                exclude("LICENSE")
+            },
+            zipTree( jar.map { it.outputs.files.singleFile } ).matching {
+                include("META-INF/jars/**")
+                include("META-INF/jarjar/**")
+                include("LICENSE")
+            }
+        )
         archiveBaseName.set("Geyser-NeoForge")
-    }
-
-    remapModrinthJar {
-        archiveBaseName.set("geyser-neoforge")
-    }
-
-    shadowJar {
-        mergeServiceFiles()
     }
 }
 
 modrinth {
     loaders.add("neoforge")
-    uploadFile.set(tasks.getByPath("remapModrinthJar"))
 }

@@ -58,12 +58,14 @@ public class ThrowableEggEntity extends ThrowableItemEntity {
     }
 
     private static TemperatureVariantAnimal.BuiltInVariant getVariantOrFallback(GeyserSession session, GeyserItemStack stack) {
-        Holder<Key> holder = stack.getComponent(DataComponentTypes.CHICKEN_VARIANT);
-        if (holder != null) {
-            Key chickenVariant = holder.getOrCompute(id -> JavaRegistries.CHICKEN_VARIANT.key(session, id));
-            for (var variant : TemperatureVariantAnimal.BuiltInVariant.values()) {
-                if (chickenVariant.asMinimalString().equalsIgnoreCase(variant.name())) {
-                    return variant;
+        Integer id = stack.getComponent(DataComponentTypes.CHICKEN_VARIANT);
+        if (id != null) {
+            Key chickenVariant = JavaRegistries.CHICKEN_VARIANT.key(session, id);
+            if (chickenVariant != null) {
+                for (var variant : TemperatureVariantAnimal.BuiltInVariant.values()) {
+                    if (chickenVariant.asMinimalString().equalsIgnoreCase(variant.name())) {
+                        return variant;
+                    }
                 }
             }
         }

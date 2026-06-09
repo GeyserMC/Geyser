@@ -49,6 +49,7 @@ import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
+import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
@@ -112,18 +113,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ItemRegistryPopulator {
 
     @SuppressWarnings("unused") // kept here for convenience when updating
-    record PaletteVersion(String version, int protocolVersion, Map<Item, Item> javaOnlyItems, Remapper remapper) {
+    record PaletteVersion(String version, int protocolVersion, String creativeVersion, Map<Item, Item> javaOnlyItems, Remapper remapper) {
 
         public PaletteVersion(String version, int protocolVersion) {
-            this(version, protocolVersion, Collections.emptyMap(), (item, mapping) -> mapping);
+            this(version, protocolVersion, null, Collections.emptyMap(), (item, mapping) -> mapping);
         }
 
         public PaletteVersion(String version, int protocolVersion, Map<Item, Item> javaOnlyItems) {
-            this(version, protocolVersion, javaOnlyItems, (item, mapping) -> mapping);
+            this(version, protocolVersion, null, javaOnlyItems, (item, mapping) -> mapping);
         }
 
         public PaletteVersion(String version, int protocolVersion, Remapper remapper) {
-            this(version, protocolVersion, Collections.emptyMap(), remapper);
+            this(version, protocolVersion, null, Collections.emptyMap(), remapper);
+        }
+
+        public PaletteVersion(String version, int protocolVersion, String creativeVersion) {
+            this(version, protocolVersion, creativeVersion, Collections.emptyMap(), (item, mapping) -> mapping);
+        }
+
+        public String creativeVersion() {
+            return creativeVersion == null ? version : creativeVersion;
         }
     }
 
@@ -134,10 +143,13 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
+        Map<Item, Item> dandelion = Map.of(Items.GOLDEN_DANDELION, Items.DANDELION);
+
         List<PaletteVersion> paletteVersions = new ArrayList<>(3);
-        paletteVersions.add(new PaletteVersion("1_21_130", Bedrock_v898.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("1_26_0", Bedrock_v924.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_21_130", Bedrock_v898.CODEC.getProtocolVersion(), dandelion));
+        paletteVersions.add(new PaletteVersion("1_26_0", Bedrock_v924.CODEC.getProtocolVersion(), dandelion));
         paletteVersions.add(new PaletteVersion("1_26_10", Bedrock_v944.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("1_26_20", Bedrock_v975.CODEC.getProtocolVersion(), "1_26_10"));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -912,31 +924,34 @@ public class ItemRegistryPopulator {
                 return second.priority() - first.priority();
             }
 
-            if (first.predicates().isEmpty() ^ second.predicates().isEmpty()) {
-                // If one has no predicates, and the other has at least one, there's no need to check for range dispatch predicates.
+            if (first.predicates().size() != second.predicates().size()) {
+                // If predicate size differs, there's no need to check for range dispatch predicates.
                 // Prefer the one with the most amount of predicates
                 return second.predicates().size() - first.predicates().size();
             }
 
             // Loop through the predicates of the first definition and look for a range dispatch predicate
             for (MinecraftPredicate<? super ItemPredicateContext> predicate : first.predicates()) {
-                if (predicate instanceof GeyserRangeDispatchPredicate rangeDispatch) {
+                if (predicate instanceof GeyserRangeDispatchPredicate(GeyserRangeDispatchPredicate.GeyserRangeDispatchProperty rangeProperty, double threshold, int index, boolean normalized, boolean negated)) {
                     // Look for a similar predicate in the other definition's predicates
                     Optional<GeyserRangeDispatchPredicate> other = second.predicates().stream()
                         .filter(GeyserRangeDispatchPredicate.class::isInstance)
                         .map(GeyserRangeDispatchPredicate.class::cast)
                         .filter(otherPredicate ->
-                            otherPredicate.rangeProperty() == rangeDispatch.rangeProperty()
-                            && otherPredicate.index() == rangeDispatch.index()
-                            && otherPredicate.normalized() == rangeDispatch.normalized()
-                            && otherPredicate.negated() == rangeDispatch.negated())
+                            otherPredicate.rangeProperty() == rangeProperty
+                            && otherPredicate.index() == index
+                            && otherPredicate.normalized() == normalized
+                            && otherPredicate.negated() == negated)
                         .findFirst();
 
                     if (other.isPresent()) {
                         // If a similar predicate was found, check if they're negated
                         // If they are, prefer the one with the lowest threshold
                         // If they aren't, prefer the one with the highest threshold
-                        return (int) (rangeDispatch.negated() ? rangeDispatch.threshold() - other.get().threshold() : other.get().threshold() - rangeDispatch.threshold());
+                        double thresholdComparison = negated ? threshold - other.get().threshold() : other.get().threshold() - threshold;
+                        if (thresholdComparison != 0.0) {
+                            return thresholdComparison < 0 ? -1 : 1;
+                        }
                     }
                 }
             }

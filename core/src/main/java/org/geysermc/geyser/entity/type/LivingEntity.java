@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity.type;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -205,8 +206,24 @@ public class LivingEntity extends Entity implements Tickable {
 
     @Override
     public void updateNametag(@Nullable Team team) {
+        // Java hides the name tag when a living entity has any passengers
         // if name not visible, don't mark it as visible
-        updateNametag(team, team == null || team.isVisibleFor(session.getPlayerEntity().getUsername()));
+        updateNametag(team, passengers.isEmpty() && (team == null || team.isVisibleFor(session.getPlayerEntity().getUsername())));
+    }
+
+    @Override
+    public void setPassengers(List<Entity> passengers) {
+        super.setPassengers(passengers);
+        updateNametag(session.getWorldCache().getScoreboard().getTeamFor(teamIdentifier()));
+    }
+
+    @Override
+    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        // Update custom name, but reset nametag to be empty when there are passengers
+        super.setCustomName(entityMetadata);
+        if (!passengers.isEmpty()) {
+            setNametag("", false);
+        }
     }
 
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
@@ -303,6 +320,9 @@ public class LivingEntity extends Entity implements Tickable {
         if (optionalPos.isPresent()) {
             Vector3i bedPosition = optionalPos.get();
             dirtyMetadata.put(EntityDataTypes.BED_POSITION, bedPosition);
+            // Required to sync position of entity to bed
+            // 1.21.11 MojMap see LivingEntity#setPosToBed
+            this.setPosition(bedPosition.toFloat().add(0.5, 0.6875, 0.5));
             return bedPosition;
         } else {
             return null;
@@ -392,7 +412,7 @@ public class LivingEntity extends Entity implements Tickable {
     @Override
     public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         if (this instanceof ClientVehicle clientVehicle) {
-            if (clientVehicle.isClientControlled()) {
+            if (clientVehicle.shouldSimulateMovement()) {
                 return;
             }
             clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
@@ -436,9 +456,9 @@ public class LivingEntity extends Entity implements Tickable {
     }
 
     public boolean shouldLerp() {
-        // We'll already send movement of these on our end every tick
+        // We shouldn't lerp the vehicle if the client is controlling is, or we're controlling it.
         if (this instanceof ClientVehicle clientVehicle) {
-            return !clientVehicle.isClientControlled();
+            return !clientVehicle.shouldSimulateMovement() && !session.isInClientPredictedVehicle();
         }
         return true;
     }
@@ -452,6 +472,8 @@ public class LivingEntity extends Entity implements Tickable {
             float lerpZTotal = GenericMath.lerp(this.position.getZ(), this.lerpPosition.getZ(), time);
 
             MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
+            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
+            moveEntityPacket.setRuntimeEntityId(geyserId);
             if (onGround) {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
             }
@@ -473,11 +495,11 @@ public class LivingEntity extends Entity implements Tickable {
             if (this.dirtyPitch) {
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
             }
-            moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.TELEPORTING);
-            moveEntityPacket.setRuntimeEntityId(geyserId);
-            moveEntityPacket.setX(lerpXTotal);
-            moveEntityPacket.setY(lerpYTotal);
-            moveEntityPacket.setZ(lerpZTotal);
+            this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
+            Vector3f bedrockPosition = bedrockPosition();
+            moveEntityPacket.setX(bedrockPosition.getX());
+            moveEntityPacket.setY(bedrockPosition.getY());
+            moveEntityPacket.setZ(bedrockPosition.getZ());
             moveEntityPacket.setYaw(getYaw());
             moveEntityPacket.setPitch(getPitch());
             moveEntityPacket.setHeadYaw(getHeadYaw());
@@ -487,7 +509,6 @@ public class LivingEntity extends Entity implements Tickable {
             // Queue this and send it immediately later with the rest.
             session.getQueuedImmediatelyPackets().add(moveEntityPacket);
 
-            this.position = Vector3f.from(lerpXTotal, lerpYTotal, lerpZTotal);
             this.lerpSteps--;
         }
     }

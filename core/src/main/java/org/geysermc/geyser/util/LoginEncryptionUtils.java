@@ -27,6 +27,7 @@ package org.geysermc.geyser.util;
 
 import net.raphimc.minecraftauth.msa.model.MsaDeviceCode;
 import org.cloudburstmc.protocol.bedrock.data.auth.AuthPayload;
+import org.cloudburstmc.protocol.bedrock.data.auth.AuthType;
 import org.cloudburstmc.protocol.bedrock.data.auth.CertificateChainPayload;
 import org.cloudburstmc.protocol.bedrock.data.auth.TokenPayload;
 import org.cloudburstmc.protocol.bedrock.packet.LoginPacket;
@@ -63,10 +64,15 @@ public class LoginEncryptionUtils {
         try {
             GeyserImpl geyser = session.getGeyser();
 
+            // Regardless of auth type, we don't support guest type accounts used for splitscreen
+            if (authPayload.getAuthType() == AuthType.GUEST) {
+                session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
+                return;
+            }
+
             ChainValidationResult result = EncryptionUtils.validatePayload(authPayload);
 
             geyser.getLogger().debug(String.format("Is player data signed? %s", result.signed()));
-
             if (!result.signed() && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
                 return;
@@ -102,10 +108,7 @@ public class LoginEncryptionUtils {
                 String waterdogXuid = data.getWaterdogXuid();
                 if (waterdogXuid != null && !waterdogXuid.isBlank() && waterdogIp != null && !waterdogIp.isBlank()) {
                     xuid = waterdogXuid;
-                    InetSocketAddress originalAddress = session.getUpstream().getAddress();
-                    InetSocketAddress proxiedAddress = new InetSocketAddress(waterdogIp, originalAddress.getPort());
-                    session.getGeyser().getGeyserServer().getProxiedAddresses().put(originalAddress, proxiedAddress);
-                    session.getUpstream().setInetAddress(proxiedAddress);
+                    session.getUpstream().setInetAddress(new InetSocketAddress(waterdogIp, 0));
                 } else {
                     session.disconnect("Did not receive IP and xuid forwarded from the proxy!");
                     return;
@@ -155,8 +158,8 @@ public class LoginEncryptionUtils {
             return;
         }
 
-        // Set DoDaylightCycle to false so the time doesn't accelerate while we're here
-        session.setDaylightCycle(false);
+        // So the time doesn't accelerate while we're here
+        session.resetTimeParameters();
 
         session.sendForm(
                 SimpleForm.builder()

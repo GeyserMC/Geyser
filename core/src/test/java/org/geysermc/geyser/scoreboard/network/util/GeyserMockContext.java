@@ -125,7 +125,7 @@ public class GeyserMockContext {
         if (packets.isEmpty()) {
             return null;
         }
-        return packets.remove(0);
+        return packets.removeFirst();
     }
 
     public List<BedrockPacket> packets() {

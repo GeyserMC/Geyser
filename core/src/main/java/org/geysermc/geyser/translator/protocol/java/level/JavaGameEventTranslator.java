@@ -89,8 +89,8 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                     // Fix a bug where the player has glitched movement and thinks they are still on the ground
                     MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
                     movePlayerPacket.setRuntimeEntityId(entity.geyserId());
-                    movePlayerPacket.setPosition(entity.getPosition());
-                    movePlayerPacket.setRotation(entity.getBedrockRotation());
+                    movePlayerPacket.setPosition(entity.bedrockPosition());
+                    movePlayerPacket.setRotation(entity.bedrockRotation());
                     movePlayerPacket.setOnGround(false);
                     movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
                     movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.UNKNOWN);
@@ -103,7 +103,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
             case WIN_GAME:
                 switch ((EnterCreditsValue) packet.getValue()) {
                     case SEEN_BEFORE -> {
-                        ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientCommand.RESPAWN);
+                        ServerboundClientCommandPacket javaRespawnPacket = new ServerboundClientCommandPacket(ClientCommand.PERFORM_RESPAWN);
                         session.sendDownstreamGamePacket(javaRespawnPacket);
                     }
                     case FIRST_TIME -> {
@@ -139,7 +139,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 arrowSoundPacket.setSound("random.orb");
                 arrowSoundPacket.setPitch(0.5f);
                 arrowSoundPacket.setVolume(0.5f);
-                arrowSoundPacket.setPosition(entity.getPosition());
+                arrowSoundPacket.setPosition(entity.bedrockPosition());
                 session.sendUpstreamPacket(arrowSoundPacket);
                 break;
             default:

@@ -180,9 +180,7 @@ public final class WorldCache {
     }
 
     public void updateServerCorrectBlockState(Vector3i position, int blockState) {
-        if (!this.unverifiedPredictions.isEmpty()) {
-            this.unverifiedPredictions.removeInt(position);
-        }
+        this.unverifiedPredictions.removeInt(position);
 
         // Hack to avoid looking up blockstates for the currently broken position each tick
         Vector3i clientBreakPos = session.getBlockBreakHandler().getCurrentBlockPos();
@@ -191,6 +189,10 @@ public final class WorldCache {
         }
 
         ChunkUtils.updateBlock(session, blockState, position);
+    }
+
+    public void removePrediction(Vector3i position) {
+        this.unverifiedPredictions.removeInt(position);
     }
 
     public void endPredictionsUpTo(int sequence) {

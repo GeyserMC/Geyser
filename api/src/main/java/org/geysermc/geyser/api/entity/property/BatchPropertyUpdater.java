@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,8 @@
 
 package org.geysermc.geyser.api.entity.property;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Collects property changes to be applied as a single, batched update to an entity.
@@ -65,5 +64,5 @@ public interface BatchPropertyUpdater {
      *
      * @since 2.9.0
      */
-    <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value);
+    <T> void update(GeyserEntityProperty<T> property, @Nullable T value);
 }

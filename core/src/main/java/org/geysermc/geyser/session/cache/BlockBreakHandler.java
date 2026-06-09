@@ -43,7 +43,6 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -64,12 +63,11 @@ import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.BlockBreakStage;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.player.InteractAction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureModePredicate;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundAttackPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
@@ -450,8 +448,7 @@ public class BlockBreakHandler {
 
         Entity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, position);
         if (itemFrameEntity != null) {
-            ServerboundInteractPacket attackPacket = new ServerboundInteractPacket(itemFrameEntity.getEntityId(),
-                InteractAction.ATTACK, session.isSneaking());
+            ServerboundAttackPacket attackPacket = new ServerboundAttackPacket(itemFrameEntity.getEntityId());
             session.sendDownstreamGamePacket(attackPacket);
             interactPosition = position;
             return true;
@@ -537,8 +534,7 @@ public class BlockBreakHandler {
             }
         }
 
-        Vector3f playerPosition = session.getPlayerEntity().getPosition();
-        playerPosition = playerPosition.down(EntityDefinitions.PLAYER.offset() - session.getEyeHeight());
+        Vector3f playerPosition = session.getPlayerEntity().position().up(session.getEyeHeight());
         return BedrockInventoryTransactionTranslator.canInteractWithBlock(session, playerPosition, vector);
     }
 

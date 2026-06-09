@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.item.custom.v2.component.java;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
@@ -43,14 +42,14 @@ public interface JavaEquippable {
      *
      * @return the equipment slot
      */
-    @NonNull EquipmentSlot slot();
+    EquipmentSlot slot();
 
     /**
      * Creates a builder for the equippable component.
      *
      * @return a new builder
      */
-    static @NonNull Builder builder() {
+    static Builder builder() {
         return GeyserApi.api().provider(JavaEquippable.Builder.class);
     }
 
@@ -60,7 +59,7 @@ public interface JavaEquippable {
      * @param slot the slot in which the item can be equipped
      * @return the Equippable component
      */
-    static @NonNull JavaEquippable of(EquipmentSlot slot) {
+    static JavaEquippable of(EquipmentSlot slot) {
         return builder().slot(slot).build();
     }
 
@@ -77,7 +76,7 @@ public interface JavaEquippable {
          * @return this builder
          */
         @This
-        Builder slot(@NonNull EquipmentSlot slot);
+        Builder slot(EquipmentSlot slot);
 
         /**
          * Creates the equippable component.

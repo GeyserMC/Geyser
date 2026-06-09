@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@
 package org.geysermc.geyser.api.item.custom.v2.component.java;
 
 import org.checkerframework.checker.index.qual.Positive;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
@@ -53,7 +52,7 @@ public interface JavaSwingAnimation {
      * @return a new builder
      * @since 2.9.3
      */
-    static @NonNull Builder builder() {
+    static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
     }
 
@@ -64,7 +63,7 @@ public interface JavaSwingAnimation {
      * @return the new swing animation component
      * @since 2.9.3
      */
-    static @NonNull JavaSwingAnimation of(@Positive int duration) {
+    static JavaSwingAnimation of(@Positive int duration) {
         return builder()
             .duration(duration)
             .build();

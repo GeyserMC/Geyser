@@ -37,7 +37,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityProperty;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
@@ -105,6 +104,7 @@ public class Entity implements GeyserEntity {
 
     protected Vector3f position;
     protected Vector3f motion;
+    private float offset;
 
     /**
      * x = Yaw, y = Pitch, z = HeadYaw
@@ -168,6 +168,7 @@ public class Entity implements GeyserEntity {
         this.geyserId = context.geyserId();
         this.uuid = context.uuid();
         this.motion = context.motion();
+        this.offset = context.offset();
         this.yaw = context.yaw();
         this.pitch = context.pitch();
         this.headYaw = context.headYaw();
@@ -206,7 +207,7 @@ public class Entity implements GeyserEntity {
         addEntityPacket.setIdentifier(definition.identifier());
         addEntityPacket.setRuntimeEntityId(geyserId);
         addEntityPacket.setUniqueEntityId(geyserId);
-        addEntityPacket.setPosition(position);
+        addEntityPacket.setPosition(bedrockPosition());
         addEntityPacket.setMotion(motion);
         addEntityPacket.setRotation(Vector2f.from(pitch, yaw));
         addEntityPacket.setHeadRotation(headYaw);
@@ -264,13 +265,13 @@ public class Entity implements GeyserEntity {
 
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         if (this instanceof ClientVehicle clientVehicle) {
-            if (clientVehicle.isClientControlled()) {
+            if (clientVehicle.shouldSimulateMovement()) {
                 return;
             }
             clientVehicle.getVehicleComponent().moveRelative(relX, relY, relZ);
         }
 
-        position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+        setPosition(position.add(relX, relY, relZ));
         setOnGround(isOnGround);
 
         boolean dirtyPitch = false, dirtyYaw = false, dirtyHeadYaw = false;
@@ -293,15 +294,15 @@ public class Entity implements GeyserEntity {
             MoveEntityDeltaPacket moveEntityPacket = new MoveEntityDeltaPacket();
             moveEntityPacket.setRuntimeEntityId(geyserId);
             if (relX != 0.0) {
-                moveEntityPacket.setX(position.getX());
+                moveEntityPacket.setX(bedrockPosition().getX());
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
             }
             if (relY != 0.0) {
-                moveEntityPacket.setY(position.getY());
+                moveEntityPacket.setY(bedrockPosition().getY());
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
             }
             if (relZ != 0.0) {
-                moveEntityPacket.setZ(position.getZ());
+                moveEntityPacket.setZ(bedrockPosition().getZ());
                 moveEntityPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
             }
             if (dirtyPitch) {
@@ -333,7 +334,7 @@ public class Entity implements GeyserEntity {
 
     public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         setPosition(position);
-        // Setters are intentional so it can be overridden in places like AbstractArrowEntity
+        // Setters are intentional, so it can be overridden in places like AbstractArrowEntity
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
@@ -342,13 +343,17 @@ public class Entity implements GeyserEntity {
         if (isValid()) {
             MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
             moveEntityPacket.setRuntimeEntityId(geyserId);
-            moveEntityPacket.setPosition(position);
-            moveEntityPacket.setRotation(getBedrockRotation());
+            moveEntityPacket.setPosition(bedrockPosition());
+            moveEntityPacket.setRotation(bedrockRotation());
             moveEntityPacket.setOnGround(isOnGround);
             moveEntityPacket.setTeleported(teleported);
 
             session.sendUpstreamPacket(moveEntityPacket);
         }
+    }
+
+    public Vector3f position() {
+        return position;
     }
 
     /**
@@ -561,18 +566,16 @@ public class Entity implements GeyserEntity {
     }
 
     protected void updateNametag(@Nullable Team team, boolean visible) {
-        if (team != null) {
-            String newNametag;
+        if (!visible) {
+            // The name is not visible to the session player; clear name
+            setNametag("", false);
+            return;
+        } else if (team != null) {
             // (team) visibility is LivingEntity+, team displayName is Entity+
-            if (visible) {
-                newNametag = team.displayName(getDisplayName(true));
-            } else {
-                // The name is not visible to the session player; clear name
-                newNametag = "";
-            }
-            setNametag(newNametag, false);
+            setNametag(team.displayName(getDisplayName(true)), false);
             return;
         }
+
         // The name might need to be reset: no more team!
         setNametag(getDisplayName(customNameVisible), false);
     }
@@ -690,8 +693,19 @@ public class Entity implements GeyserEntity {
      *
      * @return the bedrock rotation
      */
-    public Vector3f getBedrockRotation() {
+    public Vector3f bedrockRotation() {
         return Vector3f.from(getPitch(), getYaw(), getHeadYaw());
+    }
+
+    /**
+     * Gets the Bedrock edition position with the offset applied
+     */
+    public Vector3f bedrockPosition() {
+        float offset = getOffset();
+        if (offset == 0f) {
+            return position;
+        }
+        return position.up(offset);
     }
 
     /**
@@ -713,7 +727,7 @@ public class Entity implements GeyserEntity {
      */
     protected void updateMountOffset() {
         if (vehicle != null) {
-            boolean rider = vehicle.getPassengers().get(0) == this;
+            boolean rider = vehicle.getPassengers().getFirst() == this;
             EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().indexOf(this), vehicle.getPassengers().size());
             updateBedrockMetadata();
         }
@@ -797,7 +811,7 @@ public class Entity implements GeyserEntity {
         List<Leashable> leashedInRange = session.getEntityCache().getEntities().values().stream()
             .filter(entity -> entity instanceof Leashable leashablex && leashablex.leashHolderBedrockId() == this.geyserId())
             .filter(entity -> {
-                BoundingBox leashedBB = new BoundingBox(entity.position.toDouble(), entity.boundingBoxWidth, entity.boundingBoxHeight, entity.boundingBoxWidth);
+                BoundingBox leashedBB = new BoundingBox(entity.position().toDouble(), entity.boundingBoxWidth, entity.boundingBoxHeight, entity.boundingBoxWidth);
                 return searchBB.checkIntersection(leashedBB);
             }).map(Leashable.class::cast).toList();
 
@@ -846,10 +860,9 @@ public class Entity implements GeyserEntity {
             @Override
             public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
                 Objects.requireNonNull(property, "property must not be null!");
-                if (!(property instanceof PropertyType)) {
+                if (!(property instanceof PropertyType<T, ?> propertyType)) {
                     throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
                 }
-                PropertyType<T, ? extends EntityProperty> propertyType = (PropertyType<T, ?>) property;
                 int index = propertyDefinitions.getPropertyIndex(property.identifier().toString());
                 if (index < 0) {
                     throw new IllegalArgumentException("No property with the name " + property.identifier() + " has been registered.");

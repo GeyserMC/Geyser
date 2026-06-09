@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,9 +26,8 @@
 package org.geysermc.geyser.api.item.custom;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.GeyserApi;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
@@ -44,7 +43,7 @@ public interface NonVanillaCustomItemData extends CustomItemData {
      *
      * @return The java identifier for this item.
      */
-    @NonNull String identifier();
+    String identifier();
 
     /**
      * Gets the java item id of the item.
@@ -175,9 +174,9 @@ public interface NonVanillaCustomItemData extends CustomItemData {
 
     interface Builder extends CustomItemData.Builder {
         @Override
-        Builder name(@NonNull String name);
+        Builder name(String name);
 
-        Builder identifier(@NonNull String identifier);
+        Builder identifier(String identifier);
 
         Builder javaId(@NonNegative int javaId);
 
@@ -226,13 +225,13 @@ public interface NonVanillaCustomItemData extends CustomItemData {
         Builder creativeGroup(@Nullable String creativeGroup);
 
         @Override
-        Builder customItemOptions(@NonNull CustomItemOptions customItemOptions);
+        Builder customItemOptions(CustomItemOptions customItemOptions);
 
         @Override
-        Builder displayName(@NonNull String displayName);
+        Builder displayName(String displayName);
 
         @Override
-        Builder icon(@NonNull String icon);
+        Builder icon(String icon);
 
         @Override
         Builder allowOffhand(boolean allowOffhand);

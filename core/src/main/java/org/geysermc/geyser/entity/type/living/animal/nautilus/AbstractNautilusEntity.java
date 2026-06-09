@@ -167,8 +167,8 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
     }
 
     @Override
-    public boolean isClientControlled() {
-        return getFlag(EntityFlag.SADDLED) && !this.passengers.isEmpty() && this.passengers.get(0) == session.getPlayerEntity();
+    public boolean shouldSimulateMovement() {
+        return getFlag(EntityFlag.SADDLED) && !this.passengers.isEmpty() && this.passengers.getFirst() == session.getPlayerEntity();
     }
 
     @Override

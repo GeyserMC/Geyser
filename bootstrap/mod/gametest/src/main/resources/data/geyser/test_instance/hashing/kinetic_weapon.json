@@ -1,0 +1,62 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:kinetic_weapon",
+  "value": [
+    {},
+    {
+      "contact_cooldown_ticks": 5
+    },
+    {
+      "delay_ticks": 3
+    },
+    {
+      "dismount_conditions": {
+        "max_duration_ticks": 5
+      }
+    },
+    {
+      "damage_conditions": {
+        "max_duration_ticks": 5,
+        "min_speed": 12.5
+      }
+    },
+    {
+      "knockback_conditions": {
+        "max_duration_ticks": 5,
+        "min_relative_speed": 4.3
+      }
+    },
+    {
+      "dismount_conditions": {
+        "max_duration_ticks": 5,
+        "min_speed": 3.4,
+        "min_relative_speed": 4.3
+      }
+    },
+    {
+      "forward_movement": 4.3
+    },
+    {
+      "damage_multiplier": 3.2
+    },
+    {
+      "sound": "minecraft:entity.arrow.hit_player"
+    },
+    {
+      "hit_sound": {
+        "sound_id": "geyser:growling_eclipse"
+      }
+    },
+    {
+      "contact_cooldown_ticks": 5,
+      "delay_ticks": 3,
+      "dismount_conditions": {
+        "max_duration_ticks": 5,
+        "min_speed": 3.4,
+        "min_relative_speed": 4.3
+      },
+      "forward_movement": 4.3,
+      "sound": "minecraft:entity.arrow.hit_player"
+    }
+  ]
+}

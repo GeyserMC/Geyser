@@ -44,6 +44,8 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,9 +82,9 @@ public class SkullCache {
     }
 
     public @Nullable Skull putSkull(Vector3i position, GameProfile resolved, BlockState blockState) {
-        GameProfile.Texture texture;
+        Texture texture;
         try {
-            texture = resolved.getTexture(GameProfile.TextureType.SKIN, false);
+            texture = resolved.getTexture(TextureType.SKIN, false);
         } catch (IllegalStateException e) {
             session.getGeyser().getLogger().debug("Player skull with invalid skin found at " + position + " with texture payload " + resolved.getProperty("textures"));
             return null;
@@ -155,10 +157,10 @@ public class SkullCache {
     public void updateVisibleSkulls() {
         if (cullingEnabled) {
             // No need to recheck skull visibility for small movements
-            if (lastPlayerPosition != null && session.getPlayerEntity().getPosition().distanceSquared(lastPlayerPosition) < 4) {
+            if (lastPlayerPosition != null && session.getPlayerEntity().position().distanceSquared(lastPlayerPosition) < 4) {
                 return;
             }
-            lastPlayerPosition = session.getPlayerEntity().getPosition();
+            lastPlayerPosition = session.getPlayerEntity().position();
 
             inRangeSkulls.clear();
             for (Skull skull : skulls.values()) {

@@ -52,6 +52,7 @@ import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.TrapDoorBlock;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -168,9 +169,18 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
+    public Vector3f bedrockPosition() {
+        TeleportCache unconfirmedTeleport = session.getUnconfirmedTeleport();
+        if (unconfirmedTeleport != null) {
+            return unconfirmedTeleport.getAdjustedPosition().up(getOffset());
+        }
+        return super.bedrockPosition();
+    }
+
+    @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
-        session.getCollisionManager().updatePlayerBoundingBox(this.position.down(definition.offset()));
+        session.getCollisionManager().updatePlayerBoundingBox(this.position);
     }
 
     @Override
@@ -182,7 +192,7 @@ public class SessionPlayerEntity extends PlayerEntity {
                 session.setNoClip(false);
             }
         }
-        this.position = position.add(0, definition.offset(), 0);
+        this.position = position;
     }
 
     /**
@@ -199,8 +209,8 @@ public class SessionPlayerEntity extends PlayerEntity {
         
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
-        movePlayerPacket.setPosition(position);
-        movePlayerPacket.setRotation(getBedrockRotation());
+        movePlayerPacket.setPosition(bedrockPosition());
+        movePlayerPacket.setRotation(bedrockRotation());
         movePlayerPacket.setOnGround(isOnGround());
         movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
         movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
@@ -221,11 +231,16 @@ public class SessionPlayerEntity extends PlayerEntity {
      *
      * @param position the new position of the Bedrock player
      */
-    public void setPositionManual(Vector3f position) {
-        this.position = position;
+    public void setPositionFromBedrockPos(Vector3f position) {
+        if (this.vehicle != null) {
+            this.position = position.down(this.vehicle.getOffset());
+        } else {
+            // getOffset will also account for a reduced offset (0.2) when sleeping
+            this.position = position.down(getOffset());
+        }
 
         // Player is "above" the void so they're not supposed to no clip.
-        if (session.isNoClip() && position.getY() - EntityDefinitions.PLAYER.offset() >= session.getBedrockDimension().minY() - 5) {
+        if (session.isNoClip() && this.position.getY() >= session.getBedrockDimension().minY() - 5) {
             session.setNoClip(false);
         }
     }
@@ -503,7 +518,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     public float getJumpVelocity() {
         float velocity = 0.42F;
 
-        if (session.getGeyser().getWorldManager().blockAt(session, this.getPosition().sub(0, EntityDefinitions.PLAYER.offset() + 0.1F, 0).toInt()).is(Blocks.HONEY_BLOCK)) {
+        if (session.getGeyser().getWorldManager().blockAt(session, this.position.down(0.1F).toInt()).is(Blocks.HONEY_BLOCK)) {
             velocity *= 0.6F;
         }
 
@@ -514,7 +529,7 @@ public class SessionPlayerEntity extends PlayerEntity {
         if (session.getGameMode() == GameMode.SPECTATOR) {
             return false;
         }
-        Vector3i pos = getPosition().down(EntityDefinitions.PLAYER.offset()).toInt();
+        Vector3i pos = this.position.toInt();
         BlockState state = session.getGeyser().getWorldManager().blockAt(session, pos);
         if (state.block().is(session, BlockTag.CLIMBABLE)) {
             return true;
