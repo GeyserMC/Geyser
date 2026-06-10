@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,46 +23,46 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity;
+package org.geysermc.geyser.api.event.java;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
-
-import java.util.Map;
+import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.event.bedrock.SessionSpawnEntityEvent;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
- * A wrapper for temporarily storing entity metadata that will be sent to Bedrock.
+ * Called when the Java server attaches parrots to a player.
+ *
+ * @since 2.11.0
  */
-public final class GeyserDirtyMetadata {
-    private final Map<EntityDataType<?>, Object> metadata = new Object2ObjectLinkedOpenHashMap<>();
+public abstract class ServerAttachParrotsEvent extends SessionSpawnEntityEvent {
 
-    public <T> void put(EntityDataType<T> entityData, T value) {
-        metadata.put(entityData, value);
+    @ApiStatus.Internal
+    public ServerAttachParrotsEvent(GeyserConnection connection) {
+        super(connection);
     }
 
     /**
-     * Applies the contents of the dirty metadata into the input and clears the contents of our map.
+     * The player for which the Java server attached parrots.
+     *
+     * @return the player with bird friends
+     * @since 2.11.0
      */
-    public void apply(EntityDataMap map) {
-        map.putAll(metadata);
-        metadata.clear();
-    }
-
-    public boolean hasEntries() {
-        return !metadata.isEmpty();
-    }
+    public abstract GeyserPlayerEntity player();
 
     /**
-     * Intended for testing purposes only
+     * The variant of the parrot.
+     *
+     * @return the parrot variant
+     * @since 2.11.0
      */
-    public <T> T get(EntityDataType<T> entityData) {
-        //noinspection unchecked
-        return (T) metadata.get(entityData);
-    }
+    public abstract int variant();
 
-    @Override
-    public String toString() {
-        return metadata.toString();
-    }
+    /**
+     * Whether this parrot is on the right shoulder of the player.
+     *
+     * @return true if parrot is on the right shoulder, left otherwise
+     * @since 2.11.0
+     */
+    public abstract boolean right();
 }

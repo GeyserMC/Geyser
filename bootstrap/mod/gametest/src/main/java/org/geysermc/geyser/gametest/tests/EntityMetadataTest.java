@@ -42,7 +42,8 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.GameType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
+import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.gametest.mixin.SynchedEntityDataAccessor;
 import org.geysermc.geyser.gametest.util.SynchedEntityDataDebugger;
 import org.geysermc.geyser.registry.Registries;
@@ -68,9 +69,8 @@ public class EntityMetadataTest extends GeyserTestInstance {
 
     @Override
     public void run(GameTestHelper helper) {
-        // Nice full qualified name, lovely
-        org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType geyserEntityType = org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType.valueOf(BuiltInRegistries.ENTITY_TYPE.getKey(entityType).getPath().toUpperCase());
-        EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(geyserEntityType);
+        GeyserEntityType geyserEntityType = GeyserEntityType.of(BuiltInRegistries.ENTITY_TYPE.getId(entityType));
+        EntityTypeDefinition<?> definition = Registries.JAVA_ENTITY_TYPES.get(geyserEntityType);
 
         if (definition == null) {
             helper.fail("No entity definition found for type " + entityType);

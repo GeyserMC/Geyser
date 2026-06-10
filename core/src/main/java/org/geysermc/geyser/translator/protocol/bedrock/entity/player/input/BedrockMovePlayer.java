@@ -30,7 +30,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -59,7 +59,7 @@ final class BedrockMovePlayer {
 
         // Ignore movement packets until Bedrock's position matches the teleported position
         if (session.getUnconfirmedTeleport() != null) {
-            session.confirmTeleport(packet.getPosition().down(EntityDefinitions.PLAYER.offset()));
+            session.confirmTeleport(packet.getPosition().down(VanillaEntities.PLAYER_ENTITY_OFFSET));
             return;
         }
 
@@ -126,7 +126,7 @@ final class BedrockMovePlayer {
         // Therefore, we're fixing this by allowing player to no clip to clip through the floor, not only this fixed the issue but
         // player y velocity should match java perfectly, much better than teleport player right down :)
         // Shouldn't mess with anything because beyond this point there is nothing to collide and not even entities since they're prob dead.
-        if (packet.getPosition().getY() - EntityDefinitions.PLAYER.offset() < session.getBedrockDimension().minY() - 5) {
+        if (packet.getPosition().getY() - VanillaEntities.PLAYER_ENTITY_OFFSET < session.getBedrockDimension().minY() - 5) {
             // Ensuring that we still can collide with collidable entity that are also in the void (eg: boat, shulker)
             boolean possibleOnGround = false;
 

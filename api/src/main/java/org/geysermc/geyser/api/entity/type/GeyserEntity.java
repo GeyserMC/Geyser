@@ -26,12 +26,19 @@
 package org.geysermc.geyser.api.entity.type;
 
 import org.checkerframework.checker.index.qual.NonNegative;
+import org.checkerframework.checker.index.qual.Positive;
+import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
+import org.geysermc.geyser.api.entity.data.GeyserEntityDataTypes;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.jspecify.annotations.Nullable;
 
+import java.util.List;
+import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
@@ -40,17 +47,90 @@ import java.util.function.Consumer;
  */
 public interface GeyserEntity {
     /**
-     * @return the entity ID that the server has assigned to this entity.
+     * @return the entity ID that the server has assigned to this entity, or 0 if none is present
      */
     @NonNegative
     int javaId();
+
+    /**
+     * The entity id used by Geyser to identify this entity with the Bedrock client.
+     *
+     * @return the Geyser entity id that the Bedrock client sees
+     * @since 2.11.0
+     */
+    @Positive
+    long geyserId();
+
+    /**
+     * @return the entity uuid that the server has assigned to this entity,
+     * or null if this entity isn't known to the Java server
+     * @since 2.11.0
+     */
+    @Nullable
+    UUID uuid();
+
+    /**
+     * The Bedrock entity definition for this entity.
+     *
+     * @return the Bedrock entity definition
+     * @since 2.11.0
+     */
+    GeyserEntityDefinition definition();
+
+    /**
+     * The position of this entity, without the Bedrock edition offset
+     * defined in the Bedrock entity definition.
+     *
+     * @return the position of the entity, as it is known to the Java server.
+     * @since 2.11.0
+     */
+    Vector3f position();
+
+    /**
+     * The vehicle this entity is currently mounted on.
+     *
+     * @return the vehicle of this entity or null if missing
+     * @since 2.11.0
+     */
+    @Nullable
+    GeyserEntity vehicle();
+
+    /**
+     * The passengers riding on this entity.
+     *
+     * @return the passengers of this entity, or empty if this entity has no passengers
+     * @since 2.11.0
+     */
+    List<GeyserEntity> passengers();
+
+    /**
+     * Queries the current value of a given {@link GeyserEntityDataType}.
+     *
+     * @see GeyserEntityDataTypes
+     * @param dataType the entity data type to query
+     * @return the current value, or null if not set
+     * @param <T> the type of the value
+     * @since 2.11.0
+     */
+    <T> @Nullable T value(GeyserEntityDataType<T> dataType);
+
+    /**
+     * Updates an entity property with a new value.
+     * If the new value is null, the property is reset to the default value.
+     *
+     * @param dataType an entity data type, such as from {@link GeyserEntityDataTypes}
+     * @param value the new property value or null to reset the custom override
+     * @param <T> the type of the value
+     * @since 2.11.0
+     */
+     <T> void update(GeyserEntityDataType<T> dataType, @Nullable T value);
 
     /**
      * Updates an entity property with a new value.
      * If the new value is null, the property is reset to the default value.
      *
      * @param property a {@link GeyserEntityProperty} registered for this type in the {@link GeyserDefineEntityPropertiesEvent}
-     * @param value the new property value
+     * @param value the new property value or null
      * @param <T> the type of the value
      * @since 2.9.0
      */
@@ -59,12 +139,9 @@ public interface GeyserEntity {
     }
 
     /**
-     * Updates multiple properties with just one update packet.
-     * @see BatchPropertyUpdater
-     *
-     * @param consumer a batch updater
-     * @since 2.9.0
+     * @deprecated - use {@link #updateProperty(GeyserEntityProperty, Object)} instead
      */
+    @Deprecated
     default void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer) {
         this.updatePropertiesBatched(consumer, false);
     }
@@ -73,10 +150,10 @@ public interface GeyserEntity {
      * Updates multiple properties with just one update packet, which can be sent immediately to the client.
      * Usually, sending updates immediately is not required except for specific situations where packet batching
      * would result in update order issues.
-     * @see BatchPropertyUpdater
      *
      * @param consumer a batch updater
      * @param immediate whether this update should be sent immediately
+     * @see BatchPropertyUpdater
      * @since 2.9.1
      */
     void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer, boolean immediate);

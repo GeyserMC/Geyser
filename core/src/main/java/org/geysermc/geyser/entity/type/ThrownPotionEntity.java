@@ -69,7 +69,7 @@ public class ThrownPotionEntity extends ThrowableItemEntity {
                     }
                 }
 
-                boolean isLingering = definition.entityType() == EntityType.LINGERING_POTION;
+                boolean isLingering = javaDefinition.type().is(EntityType.LINGERING_POTION);
                 setFlag(EntityFlag.LINGERING, isLingering);
             }
         }

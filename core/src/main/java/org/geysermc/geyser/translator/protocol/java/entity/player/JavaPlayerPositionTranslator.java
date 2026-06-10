@@ -53,9 +53,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         }
 
         final SessionPlayerEntity entity = session.getPlayerEntity();
-        Vector3d position = packet.getPosition();
-
-        position = position.add(
+        Vector3d position = packet.getPosition().add(
             packet.getRelatives().contains(PositionElement.X) ? entity.position().getX() : 0,
             packet.getRelatives().contains(PositionElement.Y) ? entity.position().getY() : 0,
             packet.getRelatives().contains(PositionElement.Z) ? entity.position().getZ() : 0);
@@ -115,9 +113,8 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             return;
         }
 
-        session.getGeyser().getLogger().debug("Teleport (" + teleportId + ") from " + entity.position());
-
         Vector3f lastPlayerPosition = entity.position();
+        session.getGeyser().getLogger().debug("Teleport (" + teleportId + ") from " + lastPlayerPosition);
         float lastPlayerPitch = entity.getPitch();
         float lastPlayerYaw = entity.getYaw();
         Vector3f teleportDestination = position.toFloat();

@@ -274,7 +274,7 @@ public abstract class AvatarEntity extends LivingEntity {
     /**
      * Whether this entity is listed on the player list.
      * Since player entities are used for e.g. custom skulls too, we need to hack around
-     * limitations introduced in 1.21.130 to ensure skins are correctly applied. 
+     * limitations introduced in 1.21.130 to ensure skins are correctly applied.
      * @see SkinManager#sendSkinPacket(GeyserSession, AvatarEntity, SkinData)
      * @return whether this player entity is listed
      */
@@ -329,11 +329,11 @@ public abstract class AvatarEntity extends LivingEntity {
         switch (pose) {
             case SNEAKING -> {
                 height = SNEAKING_POSE_HEIGHT;
-                width = definition.width();
+                width = javaDefinition.width();
             }
             case FALL_FLYING, SPIN_ATTACK, SWIMMING -> {
                 height = 0.6f;
-                width = definition.width();
+                width = javaDefinition.width();
             }
             case DYING -> {
                 height = 0.2f;

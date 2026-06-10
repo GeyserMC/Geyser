@@ -34,7 +34,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftRecipeAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
@@ -98,7 +98,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
     @Override
     public boolean prepareInventory(GeyserSession session, MerchantContainer container) {
         if (container.getVillager() == null) {
-            var context = EntitySpawnContext.DUMMY_CONTEXT.apply(session, null, EntityDefinitions.VILLAGER);
+            var context = EntitySpawnContext.DUMMY_CONTEXT.apply(session, null, VanillaEntities.VILLAGER);
             context.position(session.getPlayerEntity().position().sub(0, 3, 0));
 
             Entity villager = new Entity(context) {
