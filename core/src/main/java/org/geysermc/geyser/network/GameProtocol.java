@@ -29,7 +29,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
-import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
+import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
 import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
@@ -51,7 +51,7 @@ public final class GameProtocol {
     /**
      * All Bedrock protocol codecs that Geyser uses
      */
-    private static final List<BedrockCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
+    static final List<BedrockCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
 
     /**
      * All bedrock protocol versions that Geyser supports
@@ -82,10 +82,10 @@ public final class GameProtocol {
 
     static {
         // Strict ordering
-        register(Bedrock_v898.CODEC, "1.21.130", "1.21.131", "1.21.132");
         register(Bedrock_v924.CODEC, "26.0", "26.1", "26.2", "26.3");
         register(Bedrock_v944.CODEC, "26.10");
         register(Bedrock_v975.CODEC, "26.20", "26.21", "26.22", "26.23");
+        register(Bedrock_v1001.CODEC, "26.30");
 
         MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.getLast();
         DEFAULT_BEDROCK_VERSION = latestBedrock.versionString();
@@ -137,11 +137,11 @@ public final class GameProtocol {
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
 
-    public static boolean is1_26_10orHigher(int protocolVersion) {
+    public static boolean is26_10orHigher(int protocolVersion) {
         return protocolVersion >= Bedrock_v944.CODEC.getProtocolVersion();
     }
 
-    public static boolean is1_26_20orHigher(int protocolVersion) {
+    public static boolean is26_20orHigher(int protocolVersion) {
         return protocolVersion >= Bedrock_v975.CODEC.getProtocolVersion();
     }
 

@@ -1105,6 +1105,36 @@
             "block_state_b64": "CgAAAwgAYmxvY2tfaWT4BAAACAQAbmFtZRoAbWluZWNyYWZ0OnJlc2luX2JyaWNrX3dhbGwECQBuYW1lX2hhc2iUkvfZlSl8+gMKAG5ldHdvcmtfaWSYW394CgYAc3RhdGVzCBkAd2FsbF9jb25uZWN0aW9uX3R5cGVfZWFzdAQAbm9uZQgaAHdhbGxfY29ubmVjdGlvbl90eXBlX25vcnRoBABub25lCBoAd2FsbF9jb25uZWN0aW9uX3R5cGVfc291dGgEAG5vbmUIGQB3YWxsX2Nvbm5lY3Rpb25fdHlwZV93ZXN0BABub25lAQ0Ad2FsbF9wb3N0X2JpdAAAAwcAdmVyc2lvbiE8FQEA"
         },
         {
+            "id": "minecraft:cinnabar_wall",
+            "groupId": 1,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRYBQAACAQAbmFtZRcAbWluZWNyYWZ0OmNpbm5hYmFyX3dhbGwECQBuYW1lX2hhc2ijKWo6B5rCFAMKAG5ldHdvcmtfaWQUsEgKCgYAc3RhdGVzCBkAd2FsbF9jb25uZWN0aW9uX3R5cGVfZWFzdAQAbm9uZQgaAHdhbGxfY29ubmVjdGlvbl90eXBlX25vcnRoBABub25lCBoAd2FsbF9jb25uZWN0aW9uX3R5cGVfc291dGgEAG5vbmUIGQB3YWxsX2Nvbm5lY3Rpb25fdHlwZV93ZXN0BABub25lAQ0Ad2FsbF9wb3N0X2JpdAAAAwcAdmVyc2lvbiE8FQEA"
+        },
+        {
+            "id": "minecraft:polished_cinnabar_wall",
+            "groupId": 1,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRdBQAACAQAbmFtZSAAbWluZWNyYWZ0OnBvbGlzaGVkX2Npbm5hYmFyX3dhbGwECQBuYW1lX2hhc2hqghPFeMnvWwMKAG5ldHdvcmtfaWSQPGtgCgYAc3RhdGVzCBkAd2FsbF9jb25uZWN0aW9uX3R5cGVfZWFzdAQAbm9uZQgaAHdhbGxfY29ubmVjdGlvbl90eXBlX25vcnRoBABub25lCBoAd2FsbF9jb25uZWN0aW9uX3R5cGVfc291dGgEAG5vbmUIGQB3YWxsX2Nvbm5lY3Rpb25fdHlwZV93ZXN0BABub25lAQ0Ad2FsbF9wb3N0X2JpdAAAAwcAdmVyc2lvbiE8FQEA"
+        },
+        {
+            "id": "minecraft:cinnabar_brick_wall",
+            "groupId": 1,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRiBQAACAQAbmFtZR0AbWluZWNyYWZ0OmNpbm5hYmFyX2JyaWNrX3dhbGwECQBuYW1lX2hhc2hdNJvsqxtU8AMKAG5ldHdvcmtfaWRYOXD9CgYAc3RhdGVzCBkAd2FsbF9jb25uZWN0aW9uX3R5cGVfZWFzdAQAbm9uZQgaAHdhbGxfY29ubmVjdGlvbl90eXBlX25vcnRoBABub25lCBoAd2FsbF9jb25uZWN0aW9uX3R5cGVfc291dGgEAG5vbmUIGQB3YWxsX2Nvbm5lY3Rpb25fdHlwZV93ZXN0BABub25lAQ0Ad2FsbF9wb3N0X2JpdAAAAwcAdmVyc2lvbiE8FQEA"
+        },
+        {
+            "id": "minecraft:sulfur_wall",
+            "groupId": 1,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRHBQAACAQAbmFtZRUAbWluZWNyYWZ0OnN1bGZ1cl93YWxsBAkAbmFtZV9oYXNo7pzbbOhZCWwDCgBuZXR3b3JrX2lkjTaDWwoGAHN0YXRlcwgZAHdhbGxfY29ubmVjdGlvbl90eXBlX2Vhc3QEAG5vbmUIGgB3YWxsX2Nvbm5lY3Rpb25fdHlwZV9ub3J0aAQAbm9uZQgaAHdhbGxfY29ubmVjdGlvbl90eXBlX3NvdXRoBABub25lCBkAd2FsbF9jb25uZWN0aW9uX3R5cGVfd2VzdAQAbm9uZQENAHdhbGxfcG9zdF9iaXQAAAMHAHZlcnNpb24hPBUBAA=="
+        },
+        {
+            "id": "minecraft:polished_sulfur_wall",
+            "groupId": 1,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRMBQAACAQAbmFtZR4AbWluZWNyYWZ0OnBvbGlzaGVkX3N1bGZ1cl93YWxsBAkAbmFtZV9oYXNoc81wa8UOxfsDCgBuZXR3b3JrX2lkUZNfSgoGAHN0YXRlcwgZAHdhbGxfY29ubmVjdGlvbl90eXBlX2Vhc3QEAG5vbmUIGgB3YWxsX2Nvbm5lY3Rpb25fdHlwZV9ub3J0aAQAbm9uZQgaAHdhbGxfY29ubmVjdGlvbl90eXBlX3NvdXRoBABub25lCBkAd2FsbF9jb25uZWN0aW9uX3R5cGVfd2VzdAQAbm9uZQENAHdhbGxfcG9zdF9iaXQAAAMHAHZlcnNpb24hPBUBAA=="
+        },
+        {
+            "id": "minecraft:sulfur_brick_wall",
+            "groupId": 1,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRRBQAACAQAbmFtZRsAbWluZWNyYWZ0OnN1bGZ1cl9icmlja193YWxsBAkAbmFtZV9oYXNoAFvM4qNqGsMDCgBuZXR3b3JrX2lklRZR/goGAHN0YXRlcwgZAHdhbGxfY29ubmVjdGlvbl90eXBlX2Vhc3QEAG5vbmUIGgB3YWxsX2Nvbm5lY3Rpb25fdHlwZV9ub3J0aAQAbm9uZQgaAHdhbGxfY29ubmVjdGlvbl90eXBlX3NvdXRoBABub25lCBkAd2FsbF9jb25uZWN0aW9uX3R5cGVfd2VzdAQAbm9uZQENAHdhbGxfcG9zdF9iaXQAAAMHAHZlcnNpb24hPBUBAA=="
+        },
+        {
             "id": "minecraft:oak_fence",
             "groupId": 2,
             "block_state_b64": "CgAAAwgAYmxvY2tfaWRVAAAACAQAbmFtZRMAbWluZWNyYWZ0Om9ha19mZW5jZQQJAG5hbWVfaGFzaGEmid7AaCWRAwoAbmV0d29ya19pZDvPEXcKBgBzdGF0ZXMAAwcAdmVyc2lvbiE8FQEA"
@@ -1518,6 +1548,36 @@
             "id": "minecraft:resin_brick_stairs",
             "groupId": 4,
             "block_state_b64": "CgAAAwgAYmxvY2tfaWT3BAAACAQAbmFtZRwAbWluZWNyYWZ0OnJlc2luX2JyaWNrX3N0YWlycwQJAG5hbWVfaGFzaGJwsbVlApWmAwoAbmV0d29ya19pZCPz+A0KBgBzdGF0ZXMBDwB1cHNpZGVfZG93bl9iaXQAAxAAd2VpcmRvX2RpcmVjdGlvbgAAAAAAAwcAdmVyc2lvbiE8FQEA"
+        },
+        {
+            "id": "minecraft:cinnabar_stairs",
+            "groupId": 4,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRXBQAACAQAbmFtZRkAbWluZWNyYWZ0OmNpbm5hYmFyX3N0YWlycwQJAG5hbWVfaGFzaHGrCoywQka2AwoAbmV0d29ya19pZB/c/1oKBgBzdGF0ZXMBDwB1cHNpZGVfZG93bl9iaXQAAxAAd2VpcmRvX2RpcmVjdGlvbgAAAAAAAwcAdmVyc2lvbiE8FQEA"
+        },
+        {
+            "id": "minecraft:polished_cinnabar_stairs",
+            "groupId": 4,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRcBQAACAQAbmFtZSIAbWluZWNyYWZ0OnBvbGlzaGVkX2Npbm5hYmFyX3N0YWlycwQJAG5hbWVfaGFzaND0HvpqAZ7oAwoAbmV0d29ya19pZIOjeeIKBgBzdGF0ZXMBDwB1cHNpZGVfZG93bl9iaXQAAxAAd2VpcmRvX2RpcmVjdGlvbgAAAAAAAwcAdmVyc2lvbiE8FQEA"
+        },
+        {
+            "id": "minecraft:cinnabar_brick_stairs",
+            "groupId": 4,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRhBQAACAQAbmFtZR8AbWluZWNyYWZ0OmNpbm5hYmFyX2JyaWNrX3N0YWlycwQJAG5hbWVfaGFzaIsereBN2lenAwoAbmV0d29ya19pZM+XkrEKBgBzdGF0ZXMBDwB1cHNpZGVfZG93bl9iaXQAAxAAd2VpcmRvX2RpcmVjdGlvbgAAAAAAAwcAdmVyc2lvbiE8FQEA"
+        },
+        {
+            "id": "minecraft:sulfur_stairs",
+            "groupId": 4,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRGBQAACAQAbmFtZRcAbWluZWNyYWZ0OnN1bGZ1cl9zdGFpcnMECQBuYW1lX2hhc2ikN406RCSoVwMKAG5ldHdvcmtfaWRYwMPtCgYAc3RhdGVzAQ8AdXBzaWRlX2Rvd25fYml0AAMQAHdlaXJkb19kaXJlY3Rpb24AAAAAAAMHAHZlcnNpb24hPBUBAA=="
+        },
+        {
+            "id": "minecraft:polished_sulfur_stairs",
+            "groupId": 4,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRLBQAACAQAbmFtZSAAbWluZWNyYWZ0OnBvbGlzaGVkX3N1bGZ1cl9zdGFpcnMECQBuYW1lX2hhc2jhxVySSzPSYAMKAG5ldHdvcmtfaWQkoW9LCgYAc3RhdGVzAQ8AdXBzaWRlX2Rvd25fYml0AAMQAHdlaXJkb19kaXJlY3Rpb24AAAAAAAMHAHZlcnNpb24hPBUBAA=="
+        },
+        {
+            "id": "minecraft:sulfur_brick_stairs",
+            "groupId": 4,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRQBQAACAQAbmFtZR0AbWluZWNyYWZ0OnN1bGZ1cl9icmlja19zdGFpcnMECQBuYW1lX2hhc2jufPIxHxhGbAMKAG5ldHdvcmtfaWQMfcNfCgYAc3RhdGVzAQ8AdXBzaWRlX2Rvd25fYml0AAMQAHdlaXJkb19kaXJlY3Rpb24AAAAAAAMHAHZlcnNpb24hPBUBAA=="
         },
         {
             "id": "minecraft:wooden_door",
@@ -2249,6 +2309,36 @@
             "block_state_b64": "CgAAAwgAYmxvY2tfaWT1BAAACAQAbmFtZRoAbWluZWNyYWZ0OnJlc2luX2JyaWNrX3NsYWIECQBuYW1lX2hhc2hAGu/Hlaa12QMKAG5ldHdvcmtfaWSyDq8CCgYAc3RhdGVzCBcAbWluZWNyYWZ0OnZlcnRpY2FsX2hhbGYGAGJvdHRvbQADBwB2ZXJzaW9uITwVAQA="
         },
         {
+            "id": "minecraft:cinnabar_slab",
+            "groupId": 11,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRVBQAACAQAbmFtZRcAbWluZWNyYWZ0OmNpbm5hYmFyX3NsYWIECQBuYW1lX2hhc2g/ZvwoB+Wy9AMKAG5ldHdvcmtfaWTOgJKnCgYAc3RhdGVzCBcAbWluZWNyYWZ0OnZlcnRpY2FsX2hhbGYGAGJvdHRvbQADBwB2ZXJzaW9uITwVAQA="
+        },
+        {
+            "id": "minecraft:polished_cinnabar_slab",
+            "groupId": 11,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRaBQAACAQAbmFtZSAAbWluZWNyYWZ0OnBvbGlzaGVkX2Npbm5hYmFyX3NsYWIECQBuYW1lX2hhc2hSg3nZeH5/fwMKAG5ldHdvcmtfaWR6ChSJCgYAc3RhdGVzCBcAbWluZWNyYWZ0OnZlcnRpY2FsX2hhbGYGAGJvdHRvbQADBwB2ZXJzaW9uITwVAQA="
+        },
+        {
+            "id": "minecraft:cinnabar_brick_slab",
+            "groupId": 11,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRfBQAACAQAbmFtZR0AbWluZWNyYWZ0OmNpbm5hYmFyX2JyaWNrX3NsYWIECQBuYW1lX2hhc2jNYqnXq44gzAMKAG5ldHdvcmtfaWRyK5CaCgYAc3RhdGVzCBcAbWluZWNyYWZ0OnZlcnRpY2FsX2hhbGYGAGJvdHRvbQADBwB2ZXJzaW9uITwVAQA="
+        },
+        {
+            "id": "minecraft:sulfur_slab",
+            "groupId": 11,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWREBQAACAQAbmFtZRUAbWluZWNyYWZ0OnN1bGZ1cl9zbGFiBAkAbmFtZV9oYXNo5pvvV+ie3EcDCgBuZXR3b3JrX2lkcfhkWAoGAHN0YXRlcwgXAG1pbmVjcmFmdDp2ZXJ0aWNhbF9oYWxmBgBib3R0b20AAwcAdmVyc2lvbiE8FQEA"
+        },
+        {
+            "id": "minecraft:polished_sulfur_slab",
+            "groupId": 11,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRJBQAACAQAbmFtZR4AbWluZWNyYWZ0OnBvbGlzaGVkX3N1bGZ1cl9zbGFiBAkAbmFtZV9oYXNoz6lmVsWZddcDCgBuZXR3b3JrX2lkJUC7mAoGAHN0YXRlcwgXAG1pbmVjcmFmdDp2ZXJ0aWNhbF9oYWxmBgBib3R0b20AAwcAdmVyc2lvbiE8FQEA"
+        },
+        {
+            "id": "minecraft:sulfur_brick_slab",
+            "groupId": 11,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWROBQAACAQAbmFtZRsAbWluZWNyYWZ0OnN1bGZ1cl9icmlja19zbGFiBAkAbmFtZV9oYXNonE4y96MXquYDCgBuZXR3b3JrX2lk6cjxXAoGAHN0YXRlcwgXAG1pbmVjcmFmdDp2ZXJ0aWNhbF9oYWxmBgBib3R0b20AAwcAdmVyc2lvbiE8FQEA"
+        },
+        {
             "id": "minecraft:stone_bricks",
             "groupId": 12,
             "block_state_b64": "CgAAAwgAYmxvY2tfaWRiAAAACAQAbmFtZRYAbWluZWNyYWZ0OnN0b25lX2JyaWNrcwQJAG5hbWVfaGFzaGAiQu8VWVJRAwoAbmV0d29ya19pZH2DjXUKBgBzdGF0ZXMAAwcAdmVyc2lvbiE8FQEA"
@@ -2337,6 +2427,26 @@
             "id": "minecraft:chiseled_tuff_bricks",
             "groupId": 12,
             "block_state_b64": "CgAAAwgAYmxvY2tfaWT2AwAACAQAbmFtZR4AbWluZWNyYWZ0OmNoaXNlbGVkX3R1ZmZfYnJpY2tzBAkAbmFtZV9oYXNo3oQw6gmxYuADCgBuZXR3b3JrX2lkm3D8AgoGAHN0YXRlcwADBwB2ZXJzaW9uITwVAQA="
+        },
+        {
+            "id": "minecraft:cinnabar_bricks",
+            "groupId": 12,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWReBQAACAQAbmFtZRkAbWluZWNyYWZ0OmNpbm5hYmFyX2JyaWNrcwQJAG5hbWVfaGFzaN3QUOJifDqWAwoAbmV0d29ya19pZBXnYQ8KBgBzdGF0ZXMAAwcAdmVyc2lvbiE8FQEA"
+        },
+        {
+            "id": "minecraft:chiseled_cinnabar",
+            "groupId": 12,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRjBQAACAQAbmFtZRsAbWluZWNyYWZ0OmNoaXNlbGVkX2Npbm5hYmFyBAkAbmFtZV9oYXNoTJ0+rrND1q8DCgBuZXR3b3JrX2lk2t1G4QoGAHN0YXRlcwADBwB2ZXJzaW9uITwVAQA="
+        },
+        {
+            "id": "minecraft:sulfur_bricks",
+            "groupId": 12,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRNBQAACAQAbmFtZRcAbWluZWNyYWZ0OnN1bGZ1cl9icmlja3MECQBuYW1lX2hhc2iw3jYWsWLSKwMKAG5ldHdvcmtfaWTKyCZ9CgYAc3RhdGVzAAMHAHZlcnNpb24hPBUBAA=="
+        },
+        {
+            "id": "minecraft:chiseled_sulfur",
+            "groupId": 12,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRSBQAACAQAbmFtZRkAbWluZWNyYWZ0OmNoaXNlbGVkX3N1bGZ1cgQJAG5hbWVfaGFzaENEqCw0rGF/AwoAbmV0d29ya19pZNeXpXkKBgBzdGF0ZXMAAwcAdmVyc2lvbiE8FQEA"
         },
         {
             "id": "minecraft:cobblestone",
@@ -3519,6 +3629,31 @@
             "block_state_b64": "CgAAAwgAYmxvY2tfaWR4AgAACAQAbmFtZRcAbWluZWNyYWZ0OnNtb290aF9iYXNhbHQECQBuYW1lX2hhc2jKPUdz89kuNAMKAG5ldHdvcmtfaWTkb/oVCgYAc3RhdGVzAAMHAHZlcnNpb24hPBUBAA=="
         },
         {
+            "id": "minecraft:cinnabar",
+            "groupId": 27,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRUBQAACAQAbmFtZRIAbWluZWNyYWZ0OmNpbm5hYmFyBAkAbmFtZV9oYXNoLCA0LcYrDqwDCgBuZXR3b3JrX2lkZSagvQoGAHN0YXRlcwADBwB2ZXJzaW9uITwVAQA="
+        },
+        {
+            "id": "minecraft:polished_cinnabar",
+            "groupId": 27,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRZBQAACAQAbmFtZRsAbWluZWNyYWZ0OnBvbGlzaGVkX2Npbm5hYmFyBAkAbmFtZV9oYXNoR5aC3zX9FdADCgBuZXR3b3JrX2lkMekoqgoGAHN0YXRlcwADBwB2ZXJzaW9uITwVAQA="
+        },
+        {
+            "id": "minecraft:sulfur",
+            "groupId": 27,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRDBQAACAQAbmFtZRAAbWluZWNyYWZ0OnN1bGZ1cgQJAG5hbWVfaGFzaCN+t2Hu6rHYAwoAbmV0d29ya19pZNiNZS0KBgBzdGF0ZXMAAwcAdmVyc2lvbiE8FQEA"
+        },
+        {
+            "id": "minecraft:polished_sulfur",
+            "groupId": 27,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRIBQAACAQAbmFtZRkAbWluZWNyYWZ0OnBvbGlzaGVkX3N1bGZ1cgQJAG5hbWVfaGFzaBw8CnPc8T0IAwoAbmV0d29ya19pZKTrH8gKBgBzdGF0ZXMAAwcAdmVyc2lvbiE8FQEA"
+        },
+        {
+            "id": "minecraft:potent_sulfur",
+            "groupId": 27,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRTBQAACAQAbmFtZRcAbWluZWNyYWZ0OnBvdGVudF9zdWxmdXIECQBuYW1lX2hhc2gQceqavaD5lgMKAG5ldHdvcmtfaWRrI6XYCgYAc3RhdGVzCBMAcG90ZW50X3N1bGZ1cl9zdGF0ZQMAZHJ5AAMHAHZlcnNpb24hPBUBAA=="
+        },
+        {
             "id": "minecraft:gravel",
             "groupId": 28,
             "block_state_b64": "CgAAAwgAYmxvY2tfaWQNAAAACAQAbmFtZRAAbWluZWNyYWZ0OmdyYXZlbAQJAG5hbWVfaGFzaOFxz8XJd2r/AwoAbmV0d29ya19pZBpfI1sKBgBzdGF0ZXMAAwcAdmVyc2lvbiE8FQEA"
@@ -4133,6 +4268,11 @@
             "block_state_b64": "CgAAAwgAYmxvY2tfaWQlAAAACAQAbmFtZRMAbWluZWNyYWZ0OmRhbmRlbGlvbgQJAG5hbWVfaGFzaBJ3bEUi+Nn/AwoAbmV0d29ya19pZBjjC44KBgBzdGF0ZXMAAwcAdmVyc2lvbiE8FQEA"
         },
         {
+            "id": "minecraft:golden_dandelion",
+            "groupId": 39,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRCBQAACAQAbmFtZRoAbWluZWNyYWZ0OmdvbGRlbl9kYW5kZWxpb24ECQBuYW1lX2hhc2i0V079Fvb7GAMKAG5ldHdvcmtfaWRZcMXSCgYAc3RhdGVzAAMHAHZlcnNpb24hPBUBAA=="
+        },
+        {
             "id": "minecraft:poppy",
             "groupId": 39,
             "block_state_b64": "CgAAAwgAYmxvY2tfaWQmAAAACAQAbmFtZQ8AbWluZWNyYWZ0OnBvcHB5BAkAbmFtZV9oYXNocMF8pITMbkcDCgBuZXR3b3JrX2lk8im6ywoGAHN0YXRlcwADBwB2ZXJzaW9uITwVAQA="
@@ -4519,6 +4659,11 @@
             "id": "minecraft:calcite",
             "groupId": 41,
             "block_state_b64": "CgAAAwgAYmxvY2tfaWRFAgAACAQAbmFtZREAbWluZWNyYWZ0OmNhbGNpdGUECQBuYW1lX2hhc2ixKLu8ZIdzDQMKAG5ldHdvcmtfaWQlSbJDCgYAc3RhdGVzAAMHAHZlcnNpb24hPBUBAA=="
+        },
+        {
+            "id": "minecraft:sulfur_spike",
+            "groupId": 41,
+            "block_state_b64": "CgAAAwgAYmxvY2tfaWRkBQAACAQAbmFtZRYAbWluZWNyYWZ0OnN1bGZ1cl9zcGlrZQQJAG5hbWVfaGFzaMQ3hODMj0wWAwoAbmV0d29ya19pZD5aeLAKBgBzdGF0ZXMIEwBkcmlwc3RvbmVfdGhpY2tuZXNzAwB0aXABBwBoYW5naW5nAQADBwB2ZXJzaW9uITwVAQA="
         },
         {
             "id": "minecraft:chicken",
@@ -4985,6 +5130,10 @@
             "groupId": 47
         },
         {
+            "id": "minecraft:sulfur_cube_spawn_egg",
+            "groupId": 47
+        },
+        {
             "id": "minecraft:warden_spawn_egg",
             "groupId": 47
         },
@@ -5033,11 +5182,11 @@
             "groupId": 47
         },
         {
-            "id": "minecraft:piglin_brute_spawn_egg",
+            "id": "minecraft:piglin_spawn_egg",
             "groupId": 47
         },
         {
-            "id": "minecraft:piglin_spawn_egg",
+            "id": "minecraft:piglin_brute_spawn_egg",
             "groupId": 47
         },
         {
@@ -7585,6 +7734,10 @@
             "groupId": 97
         },
         {
+            "id": "minecraft:music_disc_bounce",
+            "groupId": 97
+        },
+        {
             "id": "minecraft:disc_fragment_5",
             "groupId": 98
         },
@@ -7769,6 +7922,10 @@
         },
         {
             "id": "minecraft:tadpole_bucket",
+            "groupId": 101
+        },
+        {
+            "id": "minecraft:sulfur_cube_bucket",
             "groupId": 101
         },
         {
