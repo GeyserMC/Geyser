@@ -46,7 +46,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.FallingBlockData;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.ProjectileData;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.WardenData;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 
 @Translator(packet = ClientboundAddEntityPacket.class)
@@ -69,7 +69,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         }
 
         EntitySpawnContext context = EntitySpawnContext.fromPacket(session, definition, packet);
-        if (type.is(BuiltinEntityType.PLAYER)) {
+        if (type.is(EntityType.PLAYER)) {
             PlayerEntity entity;
             if (packet.getUuid().equals(session.getPlayerEntity().uuid())) {
                 // Server is sending a fake version of the current player
@@ -106,9 +106,9 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         }
 
         Entity entity;
-        if (type.is(BuiltinEntityType.FALLING_BLOCK)) {
+        if (type.is(EntityType.FALLING_BLOCK)) {
             entity = new FallingBlockEntity(context, ((FallingBlockData) packet.getData()).getId());
-        } else if (type.is(BuiltinEntityType.FISHING_BOBBER)) {
+        } else if (type.is(EntityType.FISHING_BOBBER)) {
             // Fishing bobbers need the owner for the line
             int ownerEntityId = ((ProjectileData) packet.getData()).getOwnerId();
             Entity owner = session.getEntityCache().getEntityByJavaId(ownerEntityId);
@@ -127,7 +127,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             }
         }
 
-        if (type.is(BuiltinEntityType.WARDEN)) {
+        if (type.is(EntityType.WARDEN)) {
             WardenData wardenData = (WardenData) packet.getData();
             if (wardenData.isEmerging()) {
                 entity.setPose(Pose.EMERGING);

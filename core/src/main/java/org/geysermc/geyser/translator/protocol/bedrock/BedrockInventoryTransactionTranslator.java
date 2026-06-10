@@ -81,7 +81,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
@@ -484,7 +484,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         int entityId;
-                        if (entity.getJavaTypeDefinition().is(BuiltinEntityType.ENDER_DRAGON)) {
+                        if (entity.getJavaDefinition().is(EntityType.ENDER_DRAGON)) {
                             // Redirects the attack to its body entity, this only happens when
                             // attacking the underbelly of the ender dragon
                             entityId = entity.getEntityId() + 3;

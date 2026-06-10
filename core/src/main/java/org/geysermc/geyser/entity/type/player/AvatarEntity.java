@@ -329,11 +329,11 @@ public abstract class AvatarEntity extends LivingEntity {
         switch (pose) {
             case SNEAKING -> {
                 height = SNEAKING_POSE_HEIGHT;
-                width = javaTypeDefinition.width();
+                width = javaDefinition.width();
             }
             case FALL_FLYING, SPIN_ATTACK, SWIMMING -> {
                 height = 0.6f;
-                width = javaTypeDefinition.width();
+                width = javaDefinition.width();
             }
             case DYING -> {
                 height = 0.2f;

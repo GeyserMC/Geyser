@@ -500,9 +500,8 @@ public class SessionPlayerEntity extends PlayerEntity {
             entity.setBoundingBoxHeight(0.5625F);
             entity.updateBedrockMetadata();
         } else if (entity == null && this.vehicle instanceof BoatEntity) {
-            // TODO this should respect custom offsets
-            this.vehicle.setBoundingBoxWidth(this.vehicle.getJavaTypeDefinition().width());
-            this.vehicle.setBoundingBoxHeight(this.vehicle.getJavaTypeDefinition().height());
+            this.vehicle.setBoundingBoxWidth(this.vehicle.getJavaDefinition().width());
+            this.vehicle.setBoundingBoxHeight(this.vehicle.getJavaDefinition().height());
             this.vehicle.updateBedrockMetadata();
         }
 

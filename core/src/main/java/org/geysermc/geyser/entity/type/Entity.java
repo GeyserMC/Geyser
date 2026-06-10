@@ -75,6 +75,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Boolea
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.Collections;
 import java.util.EnumMap;
@@ -92,7 +93,7 @@ public class Entity implements GeyserEntity {
     protected final GeyserSession session;
     @Accessors(fluent = true)
     protected BedrockEntityDefinition bedrockDefinition;
-    protected EntityTypeDefinition<?> javaTypeDefinition;
+    protected EntityTypeDefinition<?> javaDefinition;
 
     protected int entityId;
     @Accessors(fluent = true)
@@ -169,7 +170,7 @@ public class Entity implements GeyserEntity {
 
     public Entity(EntitySpawnContext context) {
         this.session = context.session();
-        this.javaTypeDefinition = context.entityTypeDefinition();
+        this.javaDefinition = context.entityTypeDefinition();
         this.bedrockDefinition = context.bedrockEntityDefinition();
 
         this.entityId = context.javaId();
@@ -182,7 +183,7 @@ public class Entity implements GeyserEntity {
         this.valid = false;
         this.propertyManager = bedrockDefinition.registeredProperties().isEmpty() ? null : new GeyserEntityPropertyManager(bedrockDefinition.registeredProperties());
 
-        setOffset(javaTypeDefinition.offset());
+        setOffset(javaDefinition.offset());
         setPosition(context.position());
         setAirSupply(getMaxAir());
 
@@ -197,8 +198,8 @@ public class Entity implements GeyserEntity {
         dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
         dirtyMetadata.put(EntityDataTypes.AIR_SUPPLY_MAX, getMaxAir());
         setDimensionsFromPose(Pose.STANDING);
-        dirtyMetadata.put(EntityDataTypes.WIDTH, getBoundingBoxWidth());
-        dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
+        dirtyMetadata.put(EntityDataTypes.WIDTH, boundingBoxWidth);
+        dirtyMetadata.put(EntityDataTypes.HEIGHT, boundingBoxHeight);
         setFlag(EntityFlag.HAS_GRAVITY, true);
         setFlag(EntityFlag.HAS_COLLISION, true);
         setFlag(EntityFlag.CAN_SHOW_NAME, true);
@@ -237,7 +238,7 @@ public class Entity implements GeyserEntity {
         flagsDirty = false;
 
         if (session.getGeyser().config().debugMode() && PRINT_ENTITY_SPAWN_DEBUG) {
-            session.getGeyser().getLogger().debug("Spawned entity " + javaTypeDefinition.type() + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
+            session.getGeyser().getLogger().debug("Spawned entity " + javaDefinition.type() + " at location " + position + " with id " + geyserId + " (java id " + entityId + ")");
         }
     }
 
@@ -531,7 +532,7 @@ public class Entity implements GeyserEntity {
     }
 
     protected String standardDisplayName() {
-        return EntityUtils.translatedEntityName(javaTypeDefinition.type(), session);
+        return EntityUtils.translatedEntityName(javaDefinition.type(), session);
     }
 
     protected void setNametag(@Nullable String nametag, boolean applyTeamStyling) {
@@ -637,14 +638,14 @@ public class Entity implements GeyserEntity {
      */
     protected void setDimensionsFromPose(Pose pose) {
         // No flexibility options for basic entities
-        setBoundingBoxHeight(javaTypeDefinition.height());
-        setBoundingBoxWidth(javaTypeDefinition.width());
+        setBoundingBoxHeight(javaDefinition.height());
+        setBoundingBoxWidth(javaDefinition.width());
     }
 
     public boolean setBoundingBoxHeight(float height) {
         if (height != boundingBoxHeight) {
             boundingBoxHeight = height;
-            dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
+            dirtyMetadata.put(EntityDataTypes.HEIGHT, boundingBoxHeight);
 
             updatePassengerOffsets();
             return true;
@@ -655,7 +656,7 @@ public class Entity implements GeyserEntity {
     public void setBoundingBoxWidth(float width) {
         if (width != boundingBoxWidth) {
             boundingBoxWidth = width;
-            dirtyMetadata.put(EntityDataTypes.WIDTH, getBoundingBoxWidth());
+            dirtyMetadata.put(EntityDataTypes.WIDTH, boundingBoxWidth);
         }
     }
 
@@ -727,9 +728,11 @@ public class Entity implements GeyserEntity {
     protected void updatePassengerOffsets() {
         for (int i = 0; i < passengers.size(); i++) {
             Entity passenger = passengers.get(i);
-            boolean rider = i == 0;
-            EntityUtils.updateMountOffset(passenger, this, rider, true, i, passengers.size());
-            passenger.updateBedrockMetadata();
+            if (passenger != null) {
+                boolean rider = i == 0;
+                EntityUtils.updateMountOffset(passenger, this, rider, true, i, passengers.size());
+                passenger.updateBedrockMetadata();
+            }
         }
     }
 
@@ -950,5 +953,9 @@ public class Entity implements GeyserEntity {
         } else {
             throw new IllegalArgumentException("Invalid data type: " + dataType.getClass().getSimpleName());
         }
+    }
+
+    public EntityType getEntityType() {
+        return javaDefinition.type().mcpl();
     }
 }

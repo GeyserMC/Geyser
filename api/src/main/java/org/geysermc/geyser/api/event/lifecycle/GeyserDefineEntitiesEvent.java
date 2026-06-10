@@ -27,11 +27,9 @@ package org.geysermc.geyser.api.event.lifecycle;
 
 import org.geysermc.event.Event;
 import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
-import org.geysermc.geyser.api.entity.custom.CustomJavaEntityType;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 
 import java.util.Collection;
-import java.util.function.Consumer;
 
 /**
  * Called when entities are defined within Geyser.
@@ -55,11 +53,4 @@ public interface GeyserDefineEntitiesEvent extends Event {
      * @param definition the custom entity definition to register
      */
     void register(CustomEntityDefinition definition);
-
-    /**
-     * Registers a non-vanilla Java entity type.
-     *
-     * @param builderConsumer the builder for the non-vanilla type
-     */
-    void registerEntityType(Consumer<CustomJavaEntityType.Builder> builderConsumer);
 }

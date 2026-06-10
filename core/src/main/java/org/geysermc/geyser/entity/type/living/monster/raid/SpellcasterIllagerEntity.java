@@ -39,7 +39,7 @@ public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
     public SpellcasterIllagerEntity(EntitySpawnContext context) {
         super(context);
         // OptionalPack usage
-        setFlag(EntityFlag.BRIBED, javaTypeDefinition == VanillaEntities.ILLUSIONER);
+        setFlag(EntityFlag.BRIBED, javaDefinition == VanillaEntities.ILLUSIONER);
     }
 
     public void setSpellType(ByteEntityMetadata entityMetadata) {

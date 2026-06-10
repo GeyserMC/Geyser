@@ -39,7 +39,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -57,7 +57,7 @@ public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T>
     }
 
     @Override
-    public boolean is(BuiltinEntityType builtin) {
+    public boolean is(EntityType builtin) {
         return entityType.is(builtin);
     }
 
@@ -84,7 +84,7 @@ public class VanillaEntityType<T extends Entity> extends EntityTypeDefinition<T>
         /**
          * Resets the bedrock identifier as well
          */
-        public Builder<T> type(BuiltinEntityType type) {
+        public Builder<T> type(EntityType type) {
             this.type = GeyserEntityType.ofVanilla(type);
             this.bedrockIdentifier = null;
             return this;

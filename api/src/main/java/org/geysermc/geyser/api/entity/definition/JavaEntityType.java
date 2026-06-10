@@ -39,22 +39,17 @@ public interface JavaEntityType {
     Identifier identifier();
 
     /**
-     * @return the numeric Java entity type id
-     */
-    int javaId();
-
-    /**
      * @return whether this entity exists in the vanilla base game
      */
     boolean vanilla();
 
     /**
-     * @return the width of the Java entity
+     * @return the default width of the Java entity type
      */
     float width();
 
     /**
-     * @return the height of the Java entity
+     * @return the default height of the Java entity type
      */
     float height();
 

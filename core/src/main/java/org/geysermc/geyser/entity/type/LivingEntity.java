@@ -696,7 +696,7 @@ public class LivingEntity extends Entity implements Tickable {
             if (equippable != null) {
                 return slot == equippable.slot() &&
                     canUseSlot(slot) &&
-                    EntityUtils.equipmentUsableByEntity(session, equippable, javaTypeDefinition.type());
+                    EntityUtils.equipmentUsableByEntity(session, equippable, javaDefinition.type());
             } else {
                 return slot == EquipmentSlot.MAIN_HAND && canUseSlot(EquipmentSlot.MAIN_HAND);
             }
@@ -710,7 +710,7 @@ public class LivingEntity extends Entity implements Tickable {
         if (equippable == null) {
             return slot == EquipmentSlot.MAIN_HAND && this.canUseSlot(EquipmentSlot.MAIN_HAND);
         } else {
-            return slot == equippable.slot() && this.canUseSlot(equippable.slot()) && EntityUtils.equipmentUsableByEntity(session, equippable, javaTypeDefinition.type());
+            return slot == equippable.slot() && this.canUseSlot(equippable.slot()) && EntityUtils.equipmentUsableByEntity(session, equippable, javaDefinition.type());
         }
     }
 

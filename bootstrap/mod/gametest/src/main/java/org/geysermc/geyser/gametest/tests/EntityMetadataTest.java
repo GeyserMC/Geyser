@@ -48,7 +48,6 @@ import org.geysermc.geyser.gametest.mixin.SynchedEntityDataAccessor;
 import org.geysermc.geyser.gametest.util.SynchedEntityDataDebugger;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.entity.EntityMetadataTranslator;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 
 public class EntityMetadataTest extends GeyserTestInstance {
     public static final MapCodec<EntityMetadataTest> MAP_CODEC = RecordCodecBuilder.mapCodec(instance ->
@@ -70,7 +69,7 @@ public class EntityMetadataTest extends GeyserTestInstance {
 
     @Override
     public void run(GameTestHelper helper) {
-        GeyserEntityType geyserEntityType = GeyserEntityType.of(BuiltinEntityType.valueOf(BuiltInRegistries.ENTITY_TYPE.getKey(entityType).getPath().toUpperCase()));
+        GeyserEntityType geyserEntityType = GeyserEntityType.of(BuiltInRegistries.ENTITY_TYPE.getId(entityType));
         EntityTypeDefinition<?> definition = Registries.JAVA_ENTITY_TYPES.get(geyserEntityType);
 
         if (definition == null) {

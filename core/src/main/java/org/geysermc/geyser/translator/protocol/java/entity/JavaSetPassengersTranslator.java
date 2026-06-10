@@ -38,7 +38,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.EntityUtils;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundSetPassengersPacket;
 
 import java.util.ArrayList;
@@ -51,8 +50,6 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
     public void translate(GeyserSession session, ClientboundSetPassengersPacket packet) {
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getEntityId());
         if (entity == null) return;
-
-        // TODO: ideally update the passengers on the entity directly
 
         // Handle new/existing passengers
         List<Entity> newPassengers = new ArrayList<>();
@@ -102,6 +99,7 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             });
         }
 
+        // Handle passengers that were removed
         List<Entity> passengers = entity.getPassengers();
         for (int i = 0; i < passengers.size(); i++) {
             Entity passenger = passengers.get(i);
@@ -152,12 +150,11 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
         }
 
         entity.setPassengers(newPassengers);
-
-        // TODO test if we can move this up
-        if (entity.getJavaTypeDefinition().is(BuiltinEntityType.HORSE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.SKELETON_HORSE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.DONKEY)
-            || entity.getJavaTypeDefinition().is(BuiltinEntityType.MULE) || entity.getJavaTypeDefinition().is(BuiltinEntityType.RAVAGER)) {
-            entity.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 181.0f);
-            entity.updateBedrockMetadata();
+        switch (entity.getEntityType()) {
+            case HORSE, SKELETON_HORSE, DONKEY, MULE, RAVAGER -> {
+                entity.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 181.0f);
+                entity.updateBedrockMetadata();
+            }
         }
     }
 }

@@ -44,7 +44,6 @@ import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.util.EnvironmentUtils;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 
 import java.util.Collection;
@@ -113,11 +112,6 @@ public class EntitySpawnContext {
      * @return true if an entity should be spawned
      */
     public boolean callServerSpawnEvent() {
-        // TODO add tests
-        if (EnvironmentUtils.IS_UNIT_TESTING) {
-            return true;
-        }
-
         ServerSpawnEntityEvent event = new ServerSpawnEntityEvent(session) {
             private boolean cancelled = false;
 
@@ -187,10 +181,6 @@ public class EntitySpawnContext {
      * @return true if the parrot should be spawned
      */
     public boolean callParrotEvent(PlayerEntity player, int variant, boolean right) {
-        if (EnvironmentUtils.IS_UNIT_TESTING) {
-            return true;
-        }
-
         ServerAttachParrotsEvent event = new ServerAttachParrotsEvent(session) {
             private boolean cancelled = false;
 

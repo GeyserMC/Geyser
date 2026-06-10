@@ -169,7 +169,7 @@ public class InteractionEntity extends Entity {
         }
 
         if (this.secondEntity == null) {
-            secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, VanillaEntities.ARMOR_STAND, this, position().up(getBoundingBoxHeight())));
+            secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, VanillaEntities.ARMOR_STAND, this, position.up(getBoundingBoxHeight())));
         }
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
         secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, customNameVisible ? (byte) 1 : (byte) 0);

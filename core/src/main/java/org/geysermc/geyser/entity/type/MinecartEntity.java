@@ -315,10 +315,10 @@ public class MinecartEntity extends Entity implements Tickable {
 
     @Override
     protected InteractiveTag testInteraction(Hand hand) {
-        if (javaTypeDefinition == VanillaEntities.CHEST_MINECART || javaTypeDefinition == VanillaEntities.HOPPER_MINECART) {
+        if (javaDefinition == VanillaEntities.CHEST_MINECART || javaDefinition == VanillaEntities.HOPPER_MINECART) {
             return InteractiveTag.OPEN_CONTAINER;
         } else {
-            if (session.isSneaking() || javaTypeDefinition == VanillaEntities.TNT_MINECART) {
+            if (session.isSneaking() || javaDefinition == VanillaEntities.TNT_MINECART) {
                 return InteractiveTag.NONE;
             } else if (!passengers.isEmpty()) {
                 // Can't enter if someone is inside
@@ -332,7 +332,7 @@ public class MinecartEntity extends Entity implements Tickable {
 
     @Override
     public InteractionResult interact(Hand hand) {
-        if (javaTypeDefinition == VanillaEntities.CHEST_MINECART || javaTypeDefinition == VanillaEntities.HOPPER_MINECART) {
+        if (javaDefinition == VanillaEntities.CHEST_MINECART || javaDefinition == VanillaEntities.HOPPER_MINECART) {
             // Opening the UI of this minecart
             return InteractionResult.SUCCESS;
         } else {

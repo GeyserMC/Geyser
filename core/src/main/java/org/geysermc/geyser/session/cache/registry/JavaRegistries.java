@@ -196,7 +196,7 @@ public class JavaRegistries {
         }
 
         private static RegistryEntryData<GeyserEntityType> wrap(GeyserEntityType type) {
-            return new RegistryEntryData<>(type.javaId(), MinecraftKey.identifierToKey(type.identifier()), type);
+            return new RegistryEntryData<>(type.mcpl().ordinal(), MinecraftKey.identifierToKey(type.identifier()), type);
         }
     }
 

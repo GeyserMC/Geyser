@@ -150,8 +150,8 @@ public class ArmorStandEntity extends LivingEntity {
                 setBoundingBoxWidth(0.0f);
                 setBoundingBoxHeight(0.0f);
             } else {
-                setBoundingBoxWidth(javaTypeDefinition.width());
-                setBoundingBoxHeight(javaTypeDefinition.height());
+                setBoundingBoxWidth(javaDefinition.width());
+                setBoundingBoxHeight(javaDefinition.height());
             }
 
             updateMountOffset();

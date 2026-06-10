@@ -36,7 +36,6 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
-import org.geysermc.geyser.api.entity.custom.CustomJavaEntityType;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
@@ -45,9 +44,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
-import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
-import org.geysermc.geyser.entity.NonVanillaEntityTypeDefinition;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.properties.type.BooleanProperty;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
@@ -73,7 +70,7 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.BuiltinEntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
 import java.util.ArrayList;
@@ -84,7 +81,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 public final class EntityUtils {
 
@@ -114,73 +110,61 @@ public final class EntityUtils {
 
         float height = mount.getBoundingBoxHeight();
         float mountedHeightOffset = height * 0.75f;
-        EntityTypeDefinition<?> definition = mount.getJavaTypeDefinition();
-        if (definition.is(BuiltinEntityType.CAMEL)) {
-            boolean isBaby = mount.getFlag(EntityFlag.BABY);
-            mountedHeightOffset = height - (isBaby ? 0.35f : 0.6f);
-        } else if (definition.is(BuiltinEntityType.CAVE_SPIDER) || definition.is(BuiltinEntityType.CHICKEN) || definition.is(BuiltinEntityType.SPIDER)) {
-            mountedHeightOffset = height * 0.5f;
-        } else if (definition.is(BuiltinEntityType.DONKEY) || definition.is(BuiltinEntityType.MULE)) {
-            mountedHeightOffset -= 0.25f;
-        } else if (definition.is(BuiltinEntityType.TRADER_LLAMA) || definition.is(BuiltinEntityType.LLAMA)) {
-            mountedHeightOffset = height * 0.6f;
-        } else if (definition.is(BuiltinEntityType.MINECART) || definition.is(BuiltinEntityType.HOPPER_MINECART) || definition.is(BuiltinEntityType.TNT_MINECART)
-            || definition.is(BuiltinEntityType.CHEST_MINECART) || definition.is(BuiltinEntityType.FURNACE_MINECART)
-            || definition.is(BuiltinEntityType.SPAWNER_MINECART) || definition.is(BuiltinEntityType.COMMAND_BLOCK_MINECART)) {
-            mountedHeightOffset = 0;
-        } else if (definition.is(BuiltinEntityType.BAMBOO_RAFT) || definition.is(BuiltinEntityType.BAMBOO_CHEST_RAFT)) {
-            mountedHeightOffset = 0.25f;
-        } else if (definition.is(BuiltinEntityType.HOGLIN) || definition.is(BuiltinEntityType.ZOGLIN)) {
-            boolean isBaby = mount.getFlag(EntityFlag.BABY);
-            mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
-        } else if (definition.is(BuiltinEntityType.PIGLIN)) {
-            mountedHeightOffset = height * 0.92f;
-        } else if (definition.is(BuiltinEntityType.PHANTOM)) {
-            mountedHeightOffset = height * 0.35f;
-        } else if (definition.is(BuiltinEntityType.RAVAGER)) {
-            mountedHeightOffset = 2.1f;
-        } else if (definition.is(BuiltinEntityType.SKELETON_HORSE)) {
-            mountedHeightOffset -= 0.1875f;
-        } else if (definition.is(BuiltinEntityType.SNIFFER)) {
-            mountedHeightOffset = 1.8f;
-        } else if (definition.is(BuiltinEntityType.STRIDER)) {
-            mountedHeightOffset = height - 0.19f;
+        switch (mount.getEntityType()) {
+            case CAMEL -> {
+                boolean isBaby = mount.getFlag(EntityFlag.BABY);
+                mountedHeightOffset = height - (isBaby ? 0.35f : 0.6f);
+            }
+            case CAVE_SPIDER, CHICKEN, SPIDER -> mountedHeightOffset = height * 0.5f;
+            case DONKEY, MULE -> mountedHeightOffset -= 0.25f;
+            case TRADER_LLAMA, LLAMA -> mountedHeightOffset = height * 0.6f;
+            case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
+                    COMMAND_BLOCK_MINECART -> mountedHeightOffset = 0;
+            case BAMBOO_RAFT, BAMBOO_CHEST_RAFT -> mountedHeightOffset = 0.25f;
+            case HOGLIN, ZOGLIN -> {
+                boolean isBaby = mount.getFlag(EntityFlag.BABY);
+                mountedHeightOffset = height - (isBaby ? 0.2f : 0.15f);
+            }
+            case PIGLIN -> mountedHeightOffset = height * 0.92f;
+            case PHANTOM -> mountedHeightOffset = height * 0.35f;
+            case RAVAGER -> mountedHeightOffset = 2.1f;
+            case SKELETON_HORSE -> mountedHeightOffset -= 0.1875f;
+            case SNIFFER -> mountedHeightOffset = 1.8f;
+            case STRIDER -> mountedHeightOffset = height - 0.19f;
         }
         return mountedHeightOffset;
     }
 
     private static float getHeightOffset(Entity passenger) {
         boolean isBaby;
-        EntityTypeDefinition<?> definition = passenger.getJavaTypeDefinition();
-        if (definition.is(BuiltinEntityType.ALLAY) || definition.is(BuiltinEntityType.VEX)) {
-            return 0.4f;
-        } else if (definition.is(BuiltinEntityType.SKELETON) || definition.is(BuiltinEntityType.STRAY) || definition.is(BuiltinEntityType.WITHER_SKELETON)) {
-            return -0.6f;
-        } else if (definition.is(BuiltinEntityType.ARMOR_STAND)) {
-            if (((ArmorStandEntity) passenger).isMarker()) {
-                return 0.0f;
-            } else {
+        switch (passenger.getEntityType()) {
+            case ALLAY, VEX:
+                return 0.4f;
+            case SKELETON, STRAY, WITHER_SKELETON:
+                return -0.6f;
+            case ARMOR_STAND:
+                if (((ArmorStandEntity) passenger).isMarker()) {
+                    return 0.0f;
+                } else {
+                    return 0.1f;
+                }
+            case ENDERMITE, SILVERFISH:
                 return 0.1f;
-            }
-        } else if (definition.is(BuiltinEntityType.ENDERMITE) || definition.is(BuiltinEntityType.SILVERFISH)) {
-            return 0.1f;
-        } else if (definition.is(BuiltinEntityType.PIGLIN) || definition.is(BuiltinEntityType.PIGLIN_BRUTE) || definition.is(BuiltinEntityType.ZOMBIFIED_PIGLIN)) {
-            isBaby = passenger.getFlag(EntityFlag.BABY);
-            return isBaby ? -0.05f : -0.45f;
-        } else if (definition.is(BuiltinEntityType.DROWNED) || definition.is(BuiltinEntityType.HUSK) || definition.is(BuiltinEntityType.ZOMBIE_VILLAGER)
-            || definition.is(BuiltinEntityType.ZOMBIE)) {
-            isBaby = passenger.getFlag(EntityFlag.BABY);
-            return isBaby ? 0.0f : -0.45f;
-        } else if (definition.is(BuiltinEntityType.EVOKER) || definition.is(BuiltinEntityType.ILLUSIONER) || definition.is(BuiltinEntityType.PILLAGER)
-            || definition.is(BuiltinEntityType.RAVAGER) || definition.is(BuiltinEntityType.VINDICATOR) || definition.is(BuiltinEntityType.WITCH)) {
-            return -0.45f;
-        } else if (definition.is(BuiltinEntityType.PLAYER)) {
-            return -0.35f;
-        } else if (definition.is(BuiltinEntityType.SHULKER)) {
-            Entity vehicle = passenger.getVehicle();
-            if (vehicle instanceof BoatEntity || vehicle.getJavaTypeDefinition() == VanillaEntities.MINECART) {
-                return 0.1875f - getMountedHeightOffset(vehicle);
-            }
+            case PIGLIN, PIGLIN_BRUTE, ZOMBIFIED_PIGLIN:
+                isBaby = passenger.getFlag(EntityFlag.BABY);
+                return isBaby ? -0.05f : -0.45f;
+            case DROWNED, HUSK, ZOMBIE_VILLAGER, ZOMBIE:
+                isBaby = passenger.getFlag(EntityFlag.BABY);
+                return isBaby ? 0.0f : -0.45f;
+            case EVOKER, ILLUSIONER, PILLAGER, RAVAGER, VINDICATOR, WITCH:
+                return -0.45f;
+            case PLAYER:
+                return -0.35f;
+            case SHULKER:
+                Entity vehicle = passenger.getVehicle();
+                if (vehicle instanceof BoatEntity || vehicle.getJavaDefinition() == VanillaEntities.MINECART) {
+                    return 0.1875f - getMountedHeightOffset(vehicle);
+                }
         }
         if (passenger instanceof AnimalEntity) {
             return 0.14f;
@@ -201,55 +185,57 @@ public final class EntityUtils {
             float xOffset = 0;
             float yOffset = mountedHeightOffset + heightOffset;
             float zOffset = 0;
-            EntityTypeDefinition<?> mountDefinition = mount.getJavaTypeDefinition();
-            if (mountDefinition.is(BuiltinEntityType.CAMEL)) {
-                zOffset = 0.5f;
-                if (passengers > 1) {
-                    if (!rider) {
-                        zOffset = -0.7f;
+            switch (mount.getEntityType()) {
+                case CAMEL -> {
+                    zOffset = 0.5f;
+                    if (passengers > 1) {
+                        if (!rider) {
+                            zOffset = -0.7f;
+                        }
+                        if (passenger instanceof AnimalEntity) {
+                            zOffset += 0.2f;
+                        }
                     }
-                    if (passenger instanceof AnimalEntity) {
-                        zOffset += 0.2f;
+                    if (mount.getFlag(EntityFlag.SITTING)) {
+                        if (mount.getFlag(EntityFlag.BABY)) {
+                            yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE * 0.5f;
+                        } else {
+                            yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE;
+                        }
                     }
                 }
-                if (mount.getFlag(EntityFlag.SITTING)) {
-                    if (mount.getFlag(EntityFlag.BABY)) {
-                        yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE * 0.5f;
-                    } else {
-                        yOffset += CamelEntity.SITTING_HEIGHT_DIFFERENCE;
-                    }
-                }
-            } else if (mountDefinition.is(BuiltinEntityType.CHICKEN)) {
-                zOffset = -0.1f;
-            } else if (mountDefinition.is(BuiltinEntityType.TRADER_LLAMA) || mountDefinition.is(BuiltinEntityType.LLAMA)) {
-                zOffset = -0.3f;
-            } else if (mountDefinition.is(BuiltinEntityType.TEXT_DISPLAY)) {
-                if (passenger instanceof TextDisplayEntity textDisplay) {
-                    Vector3f displayTranslation = textDisplay.getTranslation();
-                    if (displayTranslation == null) {
-                        return;
-                    }
+                case CHICKEN -> zOffset = -0.1f;
+                case TRADER_LLAMA, LLAMA -> zOffset = -0.3f;
+                case TEXT_DISPLAY -> {
+                    if (passenger instanceof TextDisplayEntity textDisplay) {
+                        Vector3f displayTranslation = textDisplay.getTranslation();
+                        if (displayTranslation == null) {
+                            return;
+                        }
 
-                    xOffset = displayTranslation.getX();
-                    yOffset = displayTranslation.getY() + 0.2f;
-                    zOffset = displayTranslation.getZ();
-                }
-            } else if (mountDefinition.is(BuiltinEntityType.PLAYER)) {
-                if (passenger instanceof TextDisplayEntity textDisplay) {
-                    Vector3f displayTranslation = textDisplay.getTranslation();
-                    int lines = textDisplay.getLineCount();
-                    if (displayTranslation != null && lines != 0) {
-                        float multiplier = .1414f;
                         xOffset = displayTranslation.getX();
-                        yOffset += displayTranslation.getY() + multiplier * lines;
+                        yOffset = displayTranslation.getY() + 0.2f;
                         zOffset = displayTranslation.getZ();
                     }
                 }
-            } else if (mountDefinition.is(BuiltinEntityType.HAPPY_GHAST)) {
-                int seatingIndex = Math.min(index, 3);
-                xOffset = HappyGhastEntity.X_OFFSETS[seatingIndex];
-                yOffset = 3.4f;
-                zOffset = HappyGhastEntity.Z_OFFSETS[seatingIndex];
+                case PLAYER -> {
+                    if (passenger instanceof TextDisplayEntity textDisplay) {
+                        Vector3f displayTranslation = textDisplay.getTranslation();
+                        int lines = textDisplay.getLineCount();
+                        if (displayTranslation != null && lines != 0) {
+                            float multiplier = .1414f;
+                            xOffset = displayTranslation.getX();
+                            yOffset += displayTranslation.getY() + multiplier * lines;
+                            zOffset = displayTranslation.getZ();
+                        }
+                    }
+                }
+                case HAPPY_GHAST -> {
+                    int seatingIndex = Math.min(index, 4);
+                    xOffset = HappyGhastEntity.X_OFFSETS[seatingIndex];
+                    yOffset = 3.4f;
+                    zOffset = HappyGhastEntity.Z_OFFSETS[seatingIndex];
+                }
             }
             if (mount instanceof ChestBoatEntity) {
                 xOffset = 0.15F;
@@ -262,37 +248,32 @@ public final class EntityUtils {
                     }
                 }
             }
-
             /*
              * Bedrock Differences
              * Zoglin & Hoglin seem to be taller in Bedrock edition
              * Horses are tinier
              * Players, Minecarts, and Boats have different origins
              */
-            EntityTypeDefinition<?> passengerDefinition = passenger.getJavaTypeDefinition();
-            if (mountDefinition.is(BuiltinEntityType.PLAYER)) {
-                yOffset -= VanillaEntities.PLAYER_ENTITY_OFFSET;
+            if (mount.getJavaDefinition() == VanillaEntities.PLAYER) {
+                yOffset -= VanillaEntities.PLAYER.offset();
             }
-            if (passengerDefinition.is(BuiltinEntityType.PLAYER)) {
-                yOffset += VanillaEntities.PLAYER_ENTITY_OFFSET;
+            if (passenger.getJavaDefinition() == VanillaEntities.PLAYER) {
+                yOffset += VanillaEntities.PLAYER.offset();
             }
-            if (mountDefinition.is(BuiltinEntityType.MINECART) || mountDefinition.is(BuiltinEntityType.HOPPER_MINECART) || mountDefinition.is(BuiltinEntityType.TNT_MINECART)
-                || mountDefinition.is(BuiltinEntityType.CHEST_MINECART) || mountDefinition.is(BuiltinEntityType.FURNACE_MINECART)
-                || mountDefinition.is(BuiltinEntityType.SPAWNER_MINECART) || mountDefinition.is(BuiltinEntityType.COMMAND_BLOCK_MINECART)) {
-                yOffset -= mount.getBoundingBoxHeight() * 0.5f;
+            switch (mount.getEntityType()) {
+                case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
+                        COMMAND_BLOCK_MINECART -> yOffset -= mount.getJavaDefinition().height() * 0.5f;
             }
-            if (passengerDefinition.is(BuiltinEntityType.MINECART) || passengerDefinition.is(BuiltinEntityType.HOPPER_MINECART) || passengerDefinition.is(BuiltinEntityType.TNT_MINECART)
-                || passengerDefinition.is(BuiltinEntityType.CHEST_MINECART) || passengerDefinition.is(BuiltinEntityType.FURNACE_MINECART) || passengerDefinition.is(BuiltinEntityType.SPAWNER_MINECART)
-                || passengerDefinition.is(BuiltinEntityType.COMMAND_BLOCK_MINECART) || passengerDefinition.is(BuiltinEntityType.SHULKER)) {
-                yOffset += passenger.getBoundingBoxHeight() * 0.5f;
-            } else if (passengerDefinition.is(BuiltinEntityType.FALLING_BLOCK)) {
-                yOffset += 0.995f;
+            switch (passenger.getEntityType()) {
+                case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
+                     COMMAND_BLOCK_MINECART, SHULKER -> yOffset += passenger.getJavaDefinition().height() * 0.5f;
+                case FALLING_BLOCK -> yOffset += 0.995f;
             }
             if (mount instanceof BoatEntity) {
-                yOffset -= mount.getBoundingBoxHeight() * 0.5f;
+                yOffset -= mount.getJavaDefinition().height() * 0.5f;
             }
             if (passenger instanceof BoatEntity) {
-                yOffset += passenger.getBoundingBoxHeight() * 0.5f;
+                yOffset += passenger.getJavaDefinition().height() * 0.5f;
             }
             if (mount instanceof ArmorStandEntity armorStand) {
                 yOffset -= armorStand.getYOffset();
@@ -367,7 +348,7 @@ public final class EntityUtils {
         // default fallback value as used in Minecraft Java
         if (type == null || type.isUnregistered()) {
             return "entity.unregistered_sadface";
-        } else if (type.is(BuiltinEntityType.PLAYER)) {
+        } else if (type.is(EntityType.PLAYER)) {
             return "Player"; // the player's name is always shown instead
         }
         // this works at least with all 1.20.5 entities, except the killer bunny since that's not an entity type.
@@ -424,28 +405,6 @@ public final class EntityUtils {
                 Registries.BEDROCK_ENTITY_DEFINITIONS.register(bedrockEntityDefinition.identifier(), bedrockEntityDefinition);
                 customEntities.add(bedrockEntityDefinition);
             }
-
-            @Override
-            public void registerEntityType(@NonNull Consumer<CustomJavaEntityType.Builder> consumer) {
-                Objects.requireNonNull(consumer);
-                var builder = new GeyserEntityType.GeyserJavaEntityTypeBuild();
-                consumer.accept(builder);
-
-                var type = GeyserEntityType.createCustomAndRegister(builder);
-
-                var defaultBedrockDefinition = type.defaultBedrockDefinition();
-                if (defaultBedrockDefinition != null && !isRegistered(defaultBedrockDefinition)) {
-                    throw new IllegalStateException("Default bedrock entity definition has not been registered!");
-                }
-
-                NonVanillaEntityTypeDefinition definition = new NonVanillaEntityTypeDefinition(builder, type);
-                Registries.JAVA_ENTITY_TYPES.register(type, definition);
-                Registries.JAVA_ENTITY_IDENTIFIERS.register(type.identifier().toString(), definition);
-            }
-
-            public boolean isRegistered(GeyserEntityDefinition definition) {
-                return Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(definition.identifier());
-            }
         });
 
         if (!customEntities.isEmpty()) {
@@ -474,7 +433,7 @@ public final class EntityUtils {
 
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {
             @Override
-            public GeyserFloatEntityProperty registerFloatProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, float min, float max, @Nullable Float defaultValue) {
+            public @NonNull GeyserFloatEntityProperty registerFloatProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, float min, float max, @Nullable Float defaultValue) {
                 Objects.requireNonNull(identifier);
                 Objects.requireNonNull(propertyId);
                 if (propertyId.vanilla()) {
@@ -486,7 +445,7 @@ public final class EntityUtils {
             }
 
             @Override
-            public IntProperty registerIntegerProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, int min, int max, @Nullable Integer defaultValue) {
+            public @NonNull IntProperty registerIntegerProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, int min, int max, @Nullable Integer defaultValue) {
                 Objects.requireNonNull(identifier);
                 Objects.requireNonNull(propertyId);
                 if (propertyId.vanilla()) {
@@ -498,7 +457,7 @@ public final class EntityUtils {
             }
 
             @Override
-            public BooleanProperty registerBooleanProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, boolean defaultValue) {
+            public @NonNull BooleanProperty registerBooleanProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, boolean defaultValue) {
                 Objects.requireNonNull(identifier);
                 Objects.requireNonNull(propertyId);
                 if (propertyId.vanilla()) {
@@ -510,7 +469,7 @@ public final class EntityUtils {
             }
 
             @Override
-            public <E extends Enum<E>> EnumProperty<E> registerEnumProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, @NonNull Class<E> enumClass, @Nullable E defaultValue) {
+            public <E extends Enum<E>> @NonNull EnumProperty<E> registerEnumProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, @NonNull Class<E> enumClass, @Nullable E defaultValue) {
                 Objects.requireNonNull(identifier);
                 Objects.requireNonNull(propertyId);
                 Objects.requireNonNull(enumClass);
@@ -523,7 +482,7 @@ public final class EntityUtils {
             }
 
             @Override
-            public GeyserStringEnumProperty registerEnumProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, @NonNull List<String> values, @Nullable String defaultValue) {
+            public @NonNull GeyserStringEnumProperty registerEnumProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, @NonNull List<String> values, @Nullable String defaultValue) {
                 Objects.requireNonNull(identifier);
                 Objects.requireNonNull(propertyId);
                 Objects.requireNonNull(values);
@@ -536,7 +495,7 @@ public final class EntityUtils {
             }
 
             @Override
-            public Collection<GeyserEntityProperty<?>> properties(@NonNull Identifier identifier) {
+            public @NonNull Collection<GeyserEntityProperty<?>> properties(@NonNull Identifier identifier) {
                 Objects.requireNonNull(identifier);
                 var definition = Registries.BEDROCK_ENTITY_DEFINITIONS.get(identifier);
                 if (definition == null) {
