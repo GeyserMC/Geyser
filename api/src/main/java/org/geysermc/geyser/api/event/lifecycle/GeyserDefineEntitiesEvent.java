@@ -35,22 +35,27 @@ import java.util.Collection;
  * Called when entities are defined within Geyser.
  * <p>
  * This event can be used to add custom entities to Geyser.
+ *
+ * @since 2.11.0
  */
 public interface GeyserDefineEntitiesEvent extends Event {
 
     /**
      * @return an immutable collection of all registered entity definitions
+     * @since 2.11.0
      */
     Collection<GeyserEntityDefinition> entities();
 
     /**
      * @return an immutable collection of all registered custom entity definitions
+     * @since 2.11.0
      */
     Collection<CustomEntityDefinition> customEntities();
 
     /**
      * Registers a custom entity definition
      * @param definition the custom entity definition to register
+     * @since 2.11.0
      */
     void register(CustomEntityDefinition definition);
 }

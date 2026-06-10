@@ -428,7 +428,9 @@ public final class EntityUtils {
                 .build();
 
             Registries.BEDROCK_ENTITY_IDENTIFIERS.set(newIdentifiers);
-            GeyserImpl.getInstance().getLogger().info("Registered " + customEntities.size() + " custom entities");
+            if (!customEntities.isEmpty()) {
+                GeyserImpl.getInstance().getLogger().info("Registered " + customEntities.size() + " custom entities");
+            }
         }
 
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {

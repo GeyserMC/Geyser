@@ -53,20 +53,27 @@ public interface GeyserEntity {
     int javaId();
 
     /**
+     * The entity id used by Geyser to identify this entity with the Bedrock client.
+     *
      * @return the Geyser entity id that the Bedrock client sees
+     * @since 2.11.0
      */
     @Positive
     long geyserId();
 
     /**
      * @return the entity uuid that the server has assigned to this entity,
-     * or null if none is assigned
+     * or null if this entity isn't known to the Java server
+     * @since 2.11.0
      */
     @Nullable
     UUID uuid();
 
     /**
+     * The Bedrock entity definition for this entity.
+     *
      * @return the Bedrock entity definition
+     * @since 2.11.0
      */
     GeyserEntityDefinition definition();
 
@@ -75,17 +82,24 @@ public interface GeyserEntity {
      * defined in the Bedrock entity definition.
      *
      * @return the position of the entity, as it is known to the Java server.
+     * @since 2.11.0
      */
     Vector3f position();
 
     /**
-     * The vehicle this entity is currently on, or null if not present.
+     * The vehicle this entity is currently mounted on.
+     *
+     * @return the vehicle of this entity or null if missing
+     * @since 2.11.0
      */
     @Nullable
     GeyserEntity vehicle();
 
     /**
-     * The passengers of this entity, or an empty list if none are present.
+     * The passengers riding on this entity.
+     *
+     * @return the passengers of this entity, or empty if this entity has no passengers
+     * @since 2.11.0
      */
     List<GeyserEntity> passengers();
 
@@ -94,8 +108,9 @@ public interface GeyserEntity {
      *
      * @see GeyserEntityDataTypes
      * @param dataType the entity data type to query
-     * @return the value, or null if not set
+     * @return the current value, or null if not set
      * @param <T> the type of the value
+     * @since 2.11.0
      */
     <T> @Nullable T value(GeyserEntityDataType<T> dataType);
 
@@ -104,8 +119,9 @@ public interface GeyserEntity {
      * If the new value is null, the property is reset to the default value.
      *
      * @param dataType an entity data type, such as from {@link GeyserEntityDataTypes}
-     * @param value the new property value or null
+     * @param value the new property value or null to reset the custom override
      * @param <T> the type of the value
+     * @since 2.11.0
      */
      <T> void update(GeyserEntityDataType<T> dataType, @Nullable T value);
 

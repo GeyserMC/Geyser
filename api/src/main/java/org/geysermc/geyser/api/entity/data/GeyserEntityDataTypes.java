@@ -29,67 +29,82 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.entity.data.types.Hitbox;
 
 /**
- * Contains commonly used {@link GeyserEntityDataType} constants for built-in entity
- * metadata fields.
- * <p>
- * These data types define the structure of certain primitive or numeric metadata
- * values that can be used for Bedrock entities. Each constant is backed by a
- * pre-registered entity data type that can be used when reading or writing metadata
- * through the Geyser API.
+ * Contains {@link GeyserEntityDataType} types which can be used to change the
+ * current value stored for a specific entity data type.
+ *
+ * @since 2.11.0
  */
 public final class GeyserEntityDataTypes {
 
     /**
      * Represents a single-byte value used for color types
      * (e.g., sheep wool color).
+     *
+     * @since 2.11.0
      */
     public static final GeyserEntityDataType<Byte> COLOR =
         GeyserEntityDataType.of(Byte.class, "color");
 
     /**
      * Represents a numeric variant index that can be queried in resource packs.
+     *
+     * @since 2.11.0
      */
     public static final GeyserEntityDataType<Integer> VARIANT =
         GeyserEntityDataType.of(Integer.class, "variant");
 
     /**
      * Represents the entity's width.
+     *
+     * @since 2.11.0
      */
     public static final GeyserEntityDataType<Float> WIDTH =
         GeyserEntityDataType.of(Float.class, "width");
 
     /**
      * Represents the entity's height.
+     *
+     * @since 2.11.0
      */
     public static final GeyserEntityDataType<Float> HEIGHT =
         GeyserEntityDataType.of(Float.class, "height");
 
     /**
      * Represents the entity's vertical offset.
+     *
+     * @since 2.11.0
      */
     public static final GeyserEntityDataType<Float> VERTICAL_OFFSET =
         GeyserEntityDataType.of(Float.class, "vertical_offset");
 
     /**
      * Represents the scale multiplier.
+     *
+     * @since 2.11.0
      */
     public static final GeyserEntityDataType<Float> SCALE =
         GeyserEntityDataType.of(Float.class, "scale");
 
     /**
-     * Represents custom hitboxes for entities
+     * Represents custom hitboxes for entities, or an empty list if none are set.
+     *
+     * @since 2.11.0
      */
     public static final GeyserListEntityDataType<Hitbox> HITBOXES =
         GeyserListEntityDataType.of(Hitbox.class, "hitboxes");
 
     /**
      * Represents the entity's seat offset, which is used when riding another entity
+     *
+     * @since 2.11.0
      */
     public static final GeyserEntityDataType<Vector3f> SEAT_OFFSET =
         GeyserEntityDataType.of(Vector3f.class, "seat_offset");
 
     /**
      * todo: document
+     *
+     * @since 2.11.0
      */
     public static final GeyserEntityDataType<Boolean> SEAT_LOCK_RIDER_ROTATION =
         GeyserEntityDataType.of(Boolean.class, "seat_lock_rider_rotation");
@@ -97,18 +112,24 @@ public final class GeyserEntityDataTypes {
     /**
      * The degrees of rotation the seat is locked to the rider's rotation
      * This is used for boats or happy ghasts in the vanilla game.
+     *
+     * @since 2.11.0
      */
     public static final GeyserEntityDataType<Float> SEAT_LOCK_RIDER_ROTATION_DEGREES =
         GeyserEntityDataType.of(Float.class, "seat_lock_rider_rotation_degrees");
 
     /**
      * todo: document
+     *
+     * @since 2.11.0
      */
     public static final GeyserEntityDataType<Boolean> SEAT_HAS_ROTATION =
         GeyserEntityDataType.of(Boolean.class, "seat_has_rotation");
 
     /**
      * todo: document
+     *
+     * @since 2.11.0
      */
     public static final GeyserEntityDataType<Float> SEAT_ROTATION_OFFSET_DEGREES =
         GeyserEntityDataType.of(Float.class, "seat_rotation_offset_degrees");

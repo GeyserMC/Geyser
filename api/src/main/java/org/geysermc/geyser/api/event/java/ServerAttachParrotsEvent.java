@@ -28,28 +28,41 @@ package org.geysermc.geyser.api.event.java;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.event.bedrock.SessionSpawnEntityEvent;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * Called when the Java server attaches parrots to a player.
+ *
+ * @since 2.11.0
  */
 public abstract class ServerAttachParrotsEvent extends SessionSpawnEntityEvent {
 
+    @ApiStatus.Internal
     public ServerAttachParrotsEvent(GeyserConnection connection) {
         super(connection);
     }
 
     /**
+     * The player for which the Java server attached parrots.
+     *
      * @return the player with bird friends
+     * @since 2.11.0
      */
     public abstract GeyserPlayerEntity player();
 
     /**
+     * The variant of the parrot.
+     *
      * @return the parrot variant
+     * @since 2.11.0
      */
     public abstract int variant();
 
     /**
+     * Whether this parrot is on the right shoulder of the player.
+     *
      * @return true if parrot is on the right shoulder, left otherwise
+     * @since 2.11.0
      */
     public abstract boolean right();
 }

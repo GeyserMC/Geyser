@@ -51,16 +51,23 @@ public interface EntityData {
      *
      * @param javaId the Java entity ID to look up
      * @return a {@link GeyserEntity} if present in this connection's entity tracker
+     * @since 2.11.0
      */
     @Nullable GeyserEntity byJavaId(@NonNegative int javaId);
 
     /**
      * Returns a {@link GeyserEntity} to e.g. update entity properties.
+     *
+     * @return the looked-up entity, or null if not found
+     * @since 2.11.0
      */
     @Nullable GeyserEntity byUuid(UUID javaUuid);
 
     /**
-     * Returns a {@link GeyserEntity} based on a Geyser entity id
+     * Returns a {@link GeyserEntity} based on a Geyser entity id.
+     *
+     * @return the looked-up entity, or null if not found
+     * @since 2.11.0
      */
     @Nullable GeyserEntity byGeyserId(@NonNegative long geyserId);
 

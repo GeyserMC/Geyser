@@ -31,13 +31,14 @@ import org.geysermc.geyser.api.entity.type.GeyserEntity;
 /**
  * Represents a type of entity data that can be sent for an entity.
  * <p>
- * Entity data types define the kind of value stored for a particular piece of metadata,
- * such as a {@code Byte}, {@code Integer}, {@code Float}; and the name associated with them.
+ * Entity data types define the values stored for a particular piece of metadata,
+ * such as a {@code Byte}, {@code Integer}, {@code Float}; and the name associated with the types.
  * <p>
  * Unlike custom items or blocks, it is possible to update entity metadata at runtime,
  * which can be done using {@link GeyserEntity#update(GeyserEntityDataType, Object)}.
  *
  * @param <T> the value type associated with this entity data type
+ * @since 2.11.0
  */
 public interface GeyserEntityDataType<T> {
 
@@ -45,6 +46,7 @@ public interface GeyserEntityDataType<T> {
      * Gets the Java class representing the value type associated with this data type.
      *
      * @return the class of the value used by this entity data type
+     * @since 2.11.0
      */
     Class<T> typeClass();
 
@@ -55,6 +57,7 @@ public interface GeyserEntityDataType<T> {
      * referenced when reading or writing entity metadata.
      *
      * @return the name of this entity data type
+     * @since 2.11.0
      */
     String name();
 

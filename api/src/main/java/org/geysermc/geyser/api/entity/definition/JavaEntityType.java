@@ -30,26 +30,32 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a Java edition entity type
+ *
+ * @since 2.11.0
  */
 public interface JavaEntityType {
 
     /**
-     * @return the Java identifier of the type
+     * @return the Java identifier of the entity type
+     * @since 2.11.0
      */
     Identifier identifier();
 
     /**
      * @return whether this entity exists in the vanilla base game
+     * @since 2.11.0
      */
     boolean vanilla();
 
     /**
      * @return the default width of the Java entity type
+     * @since 2.11.0
      */
     float width();
 
     /**
      * @return the default height of the Java entity type
+     * @since 2.11.0
      */
     float height();
 
@@ -58,6 +64,7 @@ public interface JavaEntityType {
      *
      * @param javaIdentifier the other entity identifier
      * @return true if the entity identifier is the same
+     * @since 2.11.0
      */
     default boolean is(Identifier javaIdentifier) {
         return identifier().equals(javaIdentifier);
@@ -68,6 +75,7 @@ public interface JavaEntityType {
      * that is associated with this Minecraft: Java Edition entity type.
      *
      * @return the default Bedrock entity definition
+     * @since 2.11.0
      */
     @Nullable GeyserEntityDefinition defaultBedrockDefinition();
 }

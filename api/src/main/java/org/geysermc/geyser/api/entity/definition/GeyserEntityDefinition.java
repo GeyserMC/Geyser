@@ -28,34 +28,41 @@ package org.geysermc.geyser.api.entity.definition;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.geysermc.geyser.api.util.Identifier;
 
 import java.util.List;
 
 /**
- * Represents a Bedrock entity definition.
- * Custom Bedrock entity definitions must be registered in the
- * {@link GeyserDefineEntitiesEvent} before usage!
+ * Represents a Bedrock entity definition registered in the {@link GeyserDefineEntitiesEvent}
+ * @since 2.11.0
  */
 public interface GeyserEntityDefinition {
 
     /**
      * @return the Bedrock entity identifier
+     * @since 2.11.0
      */
     Identifier identifier();
 
     /**
-     * @return the properties registered for this entity type
+     * Returns the entity properties registered in the {@link GeyserDefineEntityPropertiesEvent} for this entity type.
+     *
+     * @see GeyserEntityProperty
+     * @return the entity properties registered for this entity type
+     * @since 2.11.0
      */
     List<GeyserEntityProperty<?>> properties();
 
     /**
-     * @return whether this entity is a vanilla entity
+     * @return whether this entity exists in the vanilla base game
+     * @since 2.11.0
      */
     boolean vanilla();
 
     /**
      * @return whether this definition has been registered
+     * @since 2.11.0
      */
     boolean registered();
 

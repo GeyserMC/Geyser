@@ -34,16 +34,20 @@ import java.util.List;
  * For example, there can be multiple hitboxes on an entity.
  *
  * @param <T> the object type in the list
+ * @since 2.11.0
  */
 public interface GeyserListEntityDataType<T> extends GeyserEntityDataType<List<T>> {
 
     /**
      * @return the class of the list entries
+     * @since 2.11.0
      */
     Class<T> listEntryClass();
 
     /**
      * API usage only, use the types defined in {@link GeyserEntityDataTypes}
+     *
+     * @since 2.11.0
      */
     static <T> GeyserListEntityDataType<T> of(Class<T> typeClass, String name) {
         return GeyserApi.api().provider(GeyserListEntityDataType.class, List.class, typeClass, name);

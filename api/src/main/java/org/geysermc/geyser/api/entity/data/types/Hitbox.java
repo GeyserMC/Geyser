@@ -31,59 +31,83 @@ import org.geysermc.geyser.api.GeyserApi;
 
 /**
  * Represents an entity hitbox.
+ *
+ * @since 2.11.0
  */
 public interface Hitbox {
 
     /**
      * Represents an empty / disabled hitbox.
+     *
+     * @since 2.11.0
      */
     Hitbox EMPTY = GeyserApi.api().provider(Hitbox.class, true);
 
     /**
      * The min "corner" of the hitbox
+     *
      * @return the vector of the corner
+     * @since 2.11.0
      */
     Vector3f min();
 
     /**
      * The max "corner" of the hitbox
+     *
      * @return the vector of the corner
+     * @since 2.11.0
      */
     Vector3f max();
 
     /**
      * The pivot of the hitbox
+     *
      * @return the pivot
+     * @since 2.11.0
      */
     Vector3f pivot();
 
+    /**
+     * Creates a new builder for a hitbox
+     *
+     * @return a new builder
+     * @since 2.11.0
+     */
     static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
     }
 
     /**
      * The builder for the hitbox
+     *
+     * @since 2.11.0
      */
     interface Builder {
 
         /**
          * Sets the min corner of the hitbox
+         *
          * @param min the vector of the corner
          * @return this builder
+         * @since 2.11.0
          */
         @This Builder min(Vector3f min);
 
         /**
          * Sets the max corner of the hitbox
+         *
          * @param max the vector of the corner
          * @return this builder
+         * @since 2.11.0
          */
         @This Builder max(Vector3f max);
 
         /**
          * Sets the pivot of the hitbox
+         *
          * @param pivot the pivot vector
          * @return this builder
+         * @since 2.11.0
          */
         @This Builder pivot(Vector3f pivot);
 
@@ -92,6 +116,7 @@ public interface Hitbox {
          * any one vector was not provided.
          *
          * @return a new hitbox
+         * @since 2.11.0
          */
         Hitbox build();
     }

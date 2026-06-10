@@ -28,10 +28,12 @@ package org.geysermc.geyser.api.event.java;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * This event is called when an entity's passengers are updated.
- * To avoid de-syncs, you cannot cancel this event.
+ *
+ * @since 2.11.0
  */
 public abstract class ServerUpdateEntityPassengersEvent extends ConnectionEvent {
 
@@ -39,31 +41,47 @@ public abstract class ServerUpdateEntityPassengersEvent extends ConnectionEvent 
      * The vehicle entity that gets a passenger update.
      *
      * @return the vehicle entity
+     * @since 2.11.0
      */
     public abstract GeyserEntity vehicle();
 
+    @ApiStatus.Internal
     public ServerUpdateEntityPassengersEvent(GeyserConnection connection) {
         super(connection);
     }
 
+    /**
+     * This event is called when entities are mounted to a vehicle.
+     *
+     * @since 2.11.0
+     */
     public abstract static class Mount extends ServerUpdateEntityPassengersEvent {
+        @ApiStatus.Internal
         public Mount(GeyserConnection connection) {
             super(connection);
         }
 
         /**
          * @return the passenger that was added to the vehicle
+         * @since 2.11.0
          */
         public abstract GeyserEntity addedPassenger();
     }
 
+    /**
+     * This event is called when entities are dismounted from a vehicle.
+     *
+     * @since 2.11.0
+     */
     public abstract static class Dismount extends ServerUpdateEntityPassengersEvent {
+        @ApiStatus.Internal
         public Dismount(GeyserConnection connection) {
             super(connection);
         }
 
         /**
          * @return the passenger that was removed from the vehicle
+         * @since 2.11.0
          */
         public abstract GeyserEntity removedPassenger();
     }

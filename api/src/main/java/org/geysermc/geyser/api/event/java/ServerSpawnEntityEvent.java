@@ -29,14 +29,18 @@ import org.geysermc.event.Cancellable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.definition.JavaEntityType;
 import org.geysermc.geyser.api.event.bedrock.SessionSpawnEntityEvent;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.UUID;
 
 /**
  * Called when the downstream server spawns a non-player entity.
+ *
+ * @since 2.11.0
  */
 public abstract class ServerSpawnEntityEvent extends SessionSpawnEntityEvent implements Cancellable {
 
+    @ApiStatus.Internal
     public ServerSpawnEntityEvent(GeyserConnection connection) {
         super(connection);
     }
@@ -45,6 +49,7 @@ public abstract class ServerSpawnEntityEvent extends SessionSpawnEntityEvent imp
      * Gets the entity id of the entity being spawned.
      *
      * @return the entity id of the entity being spawned
+     * @since 2.11.0
      */
     public abstract int entityId();
 
@@ -52,13 +57,15 @@ public abstract class ServerSpawnEntityEvent extends SessionSpawnEntityEvent imp
      * Gets the uuid of the entity being spawned.
      *
      * @return the uuid of the entity being spawned
+     * @since 2.11.0
      */
     public abstract UUID uuid();
 
     /**
-     * Gets the Java entity type sent by the server
+     * Gets the Java entity type sent by the server.
      *
      * @return the Java edition entity type of the entity being spawned
+     * @since 2.11.0
      */
     public abstract JavaEntityType entityType();
 }

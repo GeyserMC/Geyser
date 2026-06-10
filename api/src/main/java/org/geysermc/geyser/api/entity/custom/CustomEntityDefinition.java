@@ -30,20 +30,25 @@ import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.util.Identifier;
 
 /**
- * Represents a custom entity definition for a non-vanilla, custom Bedrock entity.
+ * Represents a custom entity definition for a custom Bedrock entity.
+ * @since 2.11.0
  */
 public interface CustomEntityDefinition extends GeyserEntityDefinition {
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     default boolean vanilla() {
         return false;
     }
 
     /**
-     * Creates or retrieves a GeyserEntityDefinition by the Bedrock entity type identifier.
+     * Creates or retrieves a custom entity definition by the Bedrock entity type identifier.
      *
      * @param identifier the Bedrock entity identifier
-     * @return the CustomEntityDefinition
+     * @return customEntityDefinition
+     * @since 2.11.0
      */
     static CustomEntityDefinition of(Identifier identifier) {
         if (identifier.vanilla()) {
@@ -56,7 +61,8 @@ public interface CustomEntityDefinition extends GeyserEntityDefinition {
      * Creates or retrieves a GeyserEntityDefinition by the Bedrock entity type identifier.
      *
      * @param identifier the Bedrock entity identifier, in string format
-     * @return the CustomEntityDefinition
+     * @return customEntityDefinition
+     * @since 2.11.0
      */
     static CustomEntityDefinition of(String identifier) {
         return of(Identifier.of(identifier));
