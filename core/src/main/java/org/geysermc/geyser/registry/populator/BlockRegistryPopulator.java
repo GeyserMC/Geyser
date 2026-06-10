@@ -119,7 +119,7 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                .put(ObjectIntPair.of("26_10", Bedrock_v924.CODEC.getProtocolVersion()), GoldenDandelionConverter::convert)
+                .put(ObjectIntPair.of("26_0", Bedrock_v924.CODEC.getProtocolVersion()), GoldenDandelionConverter::convert)
                 .put(ObjectIntPair.of("26_10", Bedrock_v944.CODEC.getProtocolVersion()), tag -> tag)
                 .put(ObjectIntPair.of("26_20", Bedrock_v975.CODEC.getProtocolVersion()), tag -> tag)
                 .put(ObjectIntPair.of("26_30", Bedrock_v975.CODEC.getProtocolVersion()), tag -> tag)
