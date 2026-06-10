@@ -83,12 +83,35 @@ public final class GeyserEntityDataTypes {
         GeyserListEntityDataType.of(Hitbox.class, "hitboxes");
 
     /**
-     * Represents the entity's seat offset. Applied when mounting an entity.
-     * Note: This can get overridden when a new entity is mounted, in which case, the seat offset
-     * would need to be updated again!
+     * Represents the entity's seat offset, which is used when riding another entity
      */
     public static final GeyserEntityDataType<Vector3f> SEAT_OFFSET =
         GeyserEntityDataType.of(Vector3f.class, "seat_offset");
+
+    /**
+     * todo: document
+     */
+    public static final GeyserEntityDataType<Boolean> SEAT_LOCK_RIDER_ROTATION =
+        GeyserEntityDataType.of(Boolean.class, "seat_lock_rider_rotation");
+
+    /**
+     * The degrees of rotation the seat is locked to the rider's rotation
+     * This is used for boats or happy ghasts in the vanilla game.
+     */
+    public static final GeyserEntityDataType<Float> SEAT_LOCK_RIDER_ROTATION_DEGREES =
+        GeyserEntityDataType.of(Float.class, "seat_lock_rider_rotation_degrees");
+
+    /**
+     * todo: document
+     */
+    public static final GeyserEntityDataType<Boolean> SEAT_HAS_ROTATION =
+        GeyserEntityDataType.of(Boolean.class, "seat_has_rotation");
+
+    /**
+     * todo: document
+     */
+    public static final GeyserEntityDataType<Float> SEAT_ROTATION_OFFSET_DEGREES =
+        GeyserEntityDataType.of(Float.class, "seat_rotation_offset_degrees");
 
     private GeyserEntityDataTypes() {
         // no-op

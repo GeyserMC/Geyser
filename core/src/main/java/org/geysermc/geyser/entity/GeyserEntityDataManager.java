@@ -30,28 +30,14 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.geysermc.geyser.impl.entity.GeyserEntityDataImpl;
 
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * A wrapper for temporarily storing entity metadata that will be sent to Bedrock.
  */
 public final class GeyserEntityDataManager {
-
-    private static final Set<EntityDataType<?>> TRACKED_METADATA = new HashSet<>();
-
-    static {
-        TRACKED_METADATA.add(EntityDataTypes.WIDTH);
-        TRACKED_METADATA.add(EntityDataTypes.HEIGHT);
-        TRACKED_METADATA.add(EntityDataTypes.SCALE);
-        TRACKED_METADATA.add(EntityDataTypes.VARIANT);
-        TRACKED_METADATA.add(EntityDataTypes.COLOR);
-        TRACKED_METADATA.add(EntityDataTypes.SEAT_OFFSET);
-        TRACKED_METADATA.add(EntityDataTypes.HITBOX);
-    }
 
     /**
      * Map storing all current metadata
@@ -70,7 +56,7 @@ public final class GeyserEntityDataManager {
     private final Map<EntityDataType<?>, Object> overrides = new Object2ObjectLinkedOpenHashMap<>();
 
     public <T> void put(EntityDataType<T> entityData, T value) {
-        if (TRACKED_METADATA.contains(entityData)) {
+        if (GeyserEntityDataImpl.TRACKED_ENTITY_DATA.contains(entityData)) {
             // Track the original value
             metadata.put(entityData, value);
             // But use the override if it exists
@@ -83,7 +69,7 @@ public final class GeyserEntityDataManager {
     }
 
     public <T> void updateOverride(@NonNull EntityDataType<T> entityData, @Nullable T value) {
-        if (!TRACKED_METADATA.contains(entityData)) {
+        if (!GeyserEntityDataImpl.TRACKED_ENTITY_DATA.contains(entityData)) {
             throw new IllegalArgumentException("Entity data type not tracked: " + entityData.getClass().getSimpleName());
         }
 
@@ -100,7 +86,7 @@ public final class GeyserEntityDataManager {
     }
 
     public <T> @Nullable T value(EntityDataType<T> entityData) {
-        if (!TRACKED_METADATA.contains(entityData)) {
+        if (!GeyserEntityDataImpl.TRACKED_ENTITY_DATA.contains(entityData)) {
             throw new IllegalArgumentException("Entity data type not tracked: " + entityData.getClass().getSimpleName());
         }
         Object override = overrides.get(entityData);

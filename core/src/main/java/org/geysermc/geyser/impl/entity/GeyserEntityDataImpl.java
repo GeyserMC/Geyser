@@ -35,12 +35,16 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
 import org.geysermc.geyser.entity.type.Entity;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @AllArgsConstructor
 public class GeyserEntityDataImpl<T> implements GeyserEntityDataType<T> {
+
+    public static final Set<EntityDataType<?>> TRACKED_ENTITY_DATA = new HashSet<>();
 
     public static Map<String, GeyserEntityDataImpl<?>> TYPES;
     static {
@@ -51,6 +55,10 @@ public class GeyserEntityDataImpl<T> implements GeyserEntityDataType<T> {
         TYPES.put("height", new GeyserEntityDataImpl<>(Float.class, "height", EntityDataTypes.HEIGHT));
         TYPES.put("scale", new GeyserEntityDataImpl<>(Float.class, "scale", EntityDataTypes.SCALE));
         TYPES.put("seat_offset", new GeyserEntityDataImpl<>(Vector3f.class, "seat_offset", EntityDataTypes.SEAT_OFFSET));
+        TYPES.put("seat_lock_rider_rotation", new GeyserEntityDataImpl<>(Boolean.class, "seat_lock_rider_rotation", EntityDataTypes.SEAT_LOCK_RIDER_ROTATION));
+        TYPES.put("seat_lock_rider_rotation_degrees", new GeyserEntityDataImpl<>(Float.class, "seat_lock_rider_rotation_degrees", EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES));
+        TYPES.put("seat_has_rotation", new GeyserEntityDataImpl<>(Boolean.class, "seat_has_rotation", EntityDataTypes.SEAT_HAS_ROTATION));
+        TYPES.put("seat_rotation_offset_degrees", new GeyserEntityDataImpl<>(Float.class, "seat_rotation_offset_degrees", EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES));
 
         // "custom"
         TYPES.put("vertical_offset", new GeyserEntityDataImpl<>(Float.class, "vertical_offset", (entity, value) -> entity.offset(value, true), Entity::getOffset));
@@ -77,6 +85,7 @@ public class GeyserEntityDataImpl<T> implements GeyserEntityDataType<T> {
         this.name = name;
         this.consumer = (entity, data) -> entity.getDirtyMetadata().updateOverride(type, data);
         this.getter = entity -> entity.getDirtyMetadata().value(type);
+        TRACKED_ENTITY_DATA.add(type);
     }
 
     public GeyserEntityDataImpl(Class<T> typeClass, String name, EntityFlag flag) {
