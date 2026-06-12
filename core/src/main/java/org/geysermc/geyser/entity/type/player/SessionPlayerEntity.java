@@ -138,6 +138,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Getter @Setter
     private boolean collidingVertically;
 
+    /**
+     * The vehicle that player was previously in before it got removed from the world.
+     */
+    @Getter @Setter
+    private Integer removedPlayerVehicleId = null;
+
     public SessionPlayerEntity(GeyserSession session) {
         super(new EntitySpawnContext(session, EntityDefinitions.PLAYER, -1, null), null, null);
 
@@ -503,6 +509,10 @@ public class SessionPlayerEntity extends PlayerEntity {
             this.vehicle.setBoundingBoxWidth(this.vehicle.getDefinition().width());
             this.vehicle.setBoundingBoxHeight(this.vehicle.getDefinition().height());
             this.vehicle.updateBedrockMetadata();
+        }
+
+        if (entity != null) {
+            this.removedPlayerVehicleId = null;
         }
 
         // Bedrock player can dismount by pressing jump while Java cannot, so we need to prevent player from jumping to match vanilla behaviour.

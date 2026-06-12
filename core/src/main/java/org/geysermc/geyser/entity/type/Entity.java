@@ -54,6 +54,7 @@ import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
@@ -250,6 +251,10 @@ public class Entity implements GeyserEntity {
             passenger.setVehicle(null);
             passenger.setFlag(EntityFlag.RIDING, false);
             passenger.updateBedrockMetadata();
+
+            if (passenger instanceof SessionPlayerEntity entity) {
+                entity.setRemovedPlayerVehicleId(this.entityId);
+            }
         }
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
