@@ -63,11 +63,14 @@ public class JavaTeleportEntityTranslator extends PacketTranslator<ClientboundTe
             packet.getRelatives().contains(PositionElement.Z) ? entity.position().getZ() : 0
         );
 
+        boolean hasRelative = packet.getRelatives().contains(PositionElement.X) || packet.getRelatives().contains(PositionElement.Y) || packet.getRelatives().contains(PositionElement.Z);
+        boolean interpolate = (entity instanceof LivingEntity || hasRelative) && entity.position().distance(position.toFloat()) < 4096.0;
+
         float newPitch = MathUtils.clamp(packet.getXRot() + (packet.getRelatives().contains(PositionElement.X_ROT) ? entity.getPitch() : 0), -90, 90);
         float newYaw = packet.getYRot() + (packet.getRelatives().contains(PositionElement.Y_ROT) ? entity.getYaw() : 0);
 
         float lastPitch = entity.getPitch(), lastYaw = entity.getYaw();
-        if (position.distanceSquared(entity.position().toDouble()) > 4096.0) {
+        if (!interpolate) {
             entity.teleport(position.toFloat(), newYaw, newPitch, packet.isOnGround());
         } else {
             final Vector3d currentPosition = entity.position().toDouble();
@@ -90,9 +93,6 @@ public class JavaTeleportEntityTranslator extends PacketTranslator<ClientboundTe
             entityMotionPacket.setMotion(entity.getMotion());
             session.sendUpstreamPacket(entityMotionPacket);
         }
-
-        boolean hasRelative = packet.getRelatives().contains(PositionElement.X) || packet.getRelatives().contains(PositionElement.Y) || packet.getRelatives().contains(PositionElement.Z);
-        boolean interpolate = (entity instanceof LivingEntity || hasRelative) && entity.position().distance(position.toFloat()) < 4096.0;
 
         if (!interpolate && !entity.getPassengers().isEmpty() && entity.getPassengers().getFirst() == session.getPlayerEntity() && !isPreviouslyRemovedVehicle) {
             ServerboundMoveVehiclePacket vehiclePacket = new ServerboundMoveVehiclePacket(position, newYaw, newPitch, entity.isOnGround());
