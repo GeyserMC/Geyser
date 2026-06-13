@@ -212,6 +212,14 @@ public interface GeyserBootstrap {
      */
     Path getFloodgateKeyPath();
 
+    /**
+     * Returns whether or not the hardcore value should be taken from the server, or the Geyser config.
+     * @return {@code true} when it should pull from the server, {@code false} if it should pull from the config.
+     */
+    default boolean isServerControlledHardcore() {
+        return false;
+    }
+
     @Nullable
     default MetricsPlatform createMetricsPlatform() {
         return new ProvidedMetricsPlatform();

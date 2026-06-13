@@ -53,10 +53,10 @@ public interface GeyserIntegratedPackUtil {
     UUID OPTIONAL_PACK_UUID = UUID.fromString("e5f5c938-a701-11eb-b2a3-047d7bb283ba");
     UUID INTEGRATED_PACK_UUID = UUID.fromString("2254393d-8430-45b0-838a-bd397828c765");
     AtomicReference<ResourcePackManifest.Version> INTEGRATED_PACK_VERSION = new AtomicReference<>();
-    AtomicBoolean PACK_ENABLED = new AtomicBoolean(GeyserImpl.getInstance().config().gameplay().enableIntegratedPack());
+    AtomicBoolean PACK_ENABLED = new AtomicBoolean(GeyserImpl.getInstance().config().gameplay().integratedPack().enabled());
 
     default void registerGeyserPack(GeyserDefineResourcePacksEventImpl event) {
-        if (!GeyserImpl.getInstance().config().gameplay().enableIntegratedPack()) {
+        if (!GeyserImpl.getInstance().config().gameplay().integratedPack().enabled()) {
             return;
         }
 
@@ -152,6 +152,6 @@ public interface GeyserIntegratedPackUtil {
     boolean integratedPackRegistered();
 
     default boolean isIntegratedPackActive() {
-        return GeyserImpl.getInstance().config().gameplay().enableIntegratedPack() && integratedPackRegistered();
+        return GeyserImpl.getInstance().config().gameplay().integratedPack().enabled() && integratedPackRegistered();
     }
 }

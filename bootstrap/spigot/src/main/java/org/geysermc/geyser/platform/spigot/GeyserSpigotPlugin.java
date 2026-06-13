@@ -472,6 +472,11 @@ public class GeyserSpigotPlugin extends JavaPlugin implements GeyserBootstrap {
     }
 
     @Override
+    public boolean isServerControlledHardcore() {
+        return true;
+    }
+
+    @Override
     public MetricsPlatform createMetricsPlatform() {
         return new SpigotMetrics(this);
     }

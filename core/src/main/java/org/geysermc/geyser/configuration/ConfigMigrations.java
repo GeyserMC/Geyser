@@ -187,6 +187,9 @@ public class ConfigMigrations {
             .addVersion(7, ConfigurationTransformation.builder()
                 .addAction(path("gameplay", "show-cooldown"), rename(new Object[] { "gameplay", "cooldown-type" }))
                 .build())
+            .addVersion(8, ConfigurationTransformation.builder()
+                .addAction(path("gameplay", "enable-integrated-pack"), renameAndMove("gameplay", "integrated-pack", "enabled"))
+                .build())
         .build();
 
     static TransformAction renameAndMove(String... newPath) {
