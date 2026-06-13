@@ -25,12 +25,13 @@
 
 package org.geysermc.geyser.registry.type;
 
-public record SoundMapping(String java, String bedrock, String playsound, int extraData, String identifier,
+public record SoundMapping(String java, String bedrock, String playsound, String integratedPlaySound, int extraData, String identifier,
                            boolean levelEvent, float pitchAdjust) {
-    public SoundMapping(String java, String bedrock, String playsound, int extraData, String identifier, boolean levelEvent, float pitchAdjust) {
+    public SoundMapping(String java, String bedrock, String playsound, String integratedPlaySound, int extraData, String identifier, boolean levelEvent, float pitchAdjust) {
         this.java = java;
         this.bedrock = bedrock == null || bedrock.isEmpty() ? null : bedrock;
         this.playsound = playsound == null || playsound.isEmpty() ? null : playsound;
+        this.integratedPlaySound = integratedPlaySound == null || integratedPlaySound.isEmpty() ? playsound : integratedPlaySound;
         this.extraData = extraData;
         this.identifier = identifier == null || identifier.isEmpty() ? ":" : identifier;
         this.levelEvent = levelEvent;
