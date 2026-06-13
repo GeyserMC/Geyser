@@ -296,6 +296,17 @@ public class CustomItemRegistryPopulator {
                 .build());
         }
 
+        context.definition().bedrockOptions().dyeable().ifPresent(defaultColor -> {
+            // Please note that we are not including this component by default for items that override vanilla dyeable items, like leather armour
+            // This is because on Java, dyeable items are defined through recipes. As such, we don't know at this time whether the vanilla item actually is a
+            // dyeable: it could've been removed from the recipe!
+            // This unfortunately also applies to vanilla items that have been made dyeable through a nice recipe: again, we don't know about this recipe's existance here.
+            // As such, we have to rely on users putting this component in their mappings.
+            componentBuilder.putCompound("minecraft:dyeable", NbtMap.builder()
+                .putIntArray("default_color", new int[]{(defaultColor & 0xFF0000) >> 16, (defaultColor & 0x00FF00) >> 8, defaultColor & 0xFF})
+                .build());
+        });
+
         AttackRange attackRange = context.components().getOrDefault(DataComponentTypes.ATTACK_RANGE, DEFAULT_ATTACK_RANGE);
 
         KineticWeapon kineticWeapon = context.components().get(DataComponentTypes.KINETIC_WEAPON);

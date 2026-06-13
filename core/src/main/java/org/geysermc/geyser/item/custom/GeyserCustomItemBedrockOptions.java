@@ -27,6 +27,7 @@ package org.geysermc.geyser.item.custom;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
@@ -34,11 +35,14 @@ import org.geysermc.geyser.registry.populator.custom.CustomItemContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.OptionalInt;
 import java.util.Set;
 
 public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allowOffhand, boolean displayHandheld, int protectionValue,
-                                             @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup, @NonNull Set<Identifier> tags) implements CustomItemBedrockOptions {
+                                             @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup, @NonNull Set<Identifier> tags,
+                                             OptionalInt dyeable) implements CustomItemBedrockOptions {
 
     @Override
     public int protectionValue() {
@@ -60,6 +64,7 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         private CreativeCategory creativeCategory = CreativeCategory.NONE;
         private String creativeGroup = null;
         private Set<Identifier> tags = new HashSet<>();
+        private @Nullable Integer dyeableColor;
 
         @Override
         public Builder icon(@Nullable String icon) {
@@ -81,6 +86,9 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
 
         @Override
         public Builder protectionValue(int protectionValue) {
+            if (protectionValue < 0) {
+                throw new IllegalArgumentException("protectionValue cannot be negative");
+            }
             this.protectionValue = protectionValue;
             return this;
         }
@@ -112,9 +120,18 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         }
 
         @Override
+        public CustomItemBedrockOptions.@This Builder dyeable(int defaultColor) {
+            if (defaultColor < 0 || defaultColor > 0xFFFFFF) {
+                throw new IllegalArgumentException("defaultColor must be between 0x000000 and 0xFFFFFF, was: 0x" + Integer.toString(defaultColor, 16).toUpperCase(Locale.ROOT));
+            }
+            this.dyeableColor = defaultColor;
+            return this;
+        }
+
+        @Override
         public CustomItemBedrockOptions build() {
             return new GeyserCustomItemBedrockOptions(icon, allowOffhand, displayHandheld, protectionValue,
-                creativeCategory, creativeGroup, Set.copyOf(tags));
+                creativeCategory, creativeGroup, Set.copyOf(tags), dyeableColor == null ? OptionalInt.empty() : OptionalInt.of(dyeableColor));
         }
     }
 }
