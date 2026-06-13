@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.protocol.bedrock.data.InputMode;
 import org.cloudburstmc.protocol.bedrock.data.SoundEvent;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
@@ -176,7 +177,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         Vector3i blockPos = BlockUtils.getBlockPosition(packetBlockPosition, Direction.getUntrusted(packet, InventoryTransactionPacket::getBlockFace));
 
                         if (session.getGeyser().config().gameplay().disableBedrockScaffolding()) {
-                            float yaw = session.getPlayerEntity().getYaw();
+                            float yaw = session.getInputCache().getInputMode() == InputMode.TOUCH ? session.getPlayerEntity().getBedrockInteractRotation().getY() : session.getPlayerEntity().getYaw();
                             boolean isGodBridging = switch (packet.getBlockFace()) {
                                 case 2 -> yaw <= -135f || yaw > 135f;
                                 case 3 -> yaw <= 45f && yaw > -45f;
