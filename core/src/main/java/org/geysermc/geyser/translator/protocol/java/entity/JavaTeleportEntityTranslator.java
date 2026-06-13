@@ -25,16 +25,83 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
+import org.cloudburstmc.math.vector.Vector3d;
+import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.LivingEntity;
+import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.geyser.util.MathUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PositionElement;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundTeleportEntityPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
 
 @Translator(packet = ClientboundTeleportEntityPacket.class)
 public class JavaTeleportEntityTranslator extends PacketTranslator<ClientboundTeleportEntityPacket> {
 
     @Override
     public void translate(GeyserSession session, ClientboundTeleportEntityPacket packet) {
-        session.getGeyser().getLogger().debug(packet.toString());
+        Entity entity = session.getEntityCache().getEntityByJavaId(packet.getId());
+
+        boolean isPreviouslyRemovedVehicle = false;
+        if (entity == null && session.getPlayerEntity().getRemovedPlayerVehicleId() == packet.getId()) {
+            entity = session.getPlayerEntity();
+            isPreviouslyRemovedVehicle = true;
+        }
+        if (entity == null) {
+            return;
+        }
+
+        Vector3d position = packet.getPosition();
+        position = position.add(
+            packet.getRelatives().contains(PositionElement.X) ? entity.position().getX() : 0,
+            packet.getRelatives().contains(PositionElement.Y) ? entity.position().getY() : 0,
+            packet.getRelatives().contains(PositionElement.Z) ? entity.position().getZ() : 0
+        );
+
+        boolean hasRelative = packet.getRelatives().contains(PositionElement.X) || packet.getRelatives().contains(PositionElement.Y) || packet.getRelatives().contains(PositionElement.Z);
+        boolean interpolate = (entity instanceof LivingEntity || hasRelative) && entity.position().distance(position.toFloat()) < 4096.0;
+
+        float newPitch = MathUtils.clamp(packet.getXRot() + (packet.getRelatives().contains(PositionElement.X_ROT) ? entity.getPitch() : 0), -90, 90);
+        float newYaw = packet.getYRot() + (packet.getRelatives().contains(PositionElement.Y_ROT) ? entity.getYaw() : 0);
+
+        float lastPitch = entity.getPitch(), lastYaw = entity.getYaw();
+        if (!interpolate) {
+            entity.teleport(position.toFloat(), newYaw, newPitch, packet.isOnGround());
+        } else {
+            final Vector3d currentPosition = entity.position().toDouble();
+            entity.moveRelative(position.getX() - currentPosition.getX(), position.getY() - currentPosition.getY(), position.getZ() - currentPosition.getZ(), newYaw, newPitch, newYaw, packet.isOnGround());
+        }
+
+        Vector3f deltaMovement = packet.getDeltaMovement().toFloat().add(
+            packet.getRelatives().contains(PositionElement.DELTA_X) ? entity.getMotion().getX() : 0,
+            packet.getRelatives().contains(PositionElement.DELTA_Y) ? entity.getMotion().getY() : 0,
+            packet.getRelatives().contains(PositionElement.DELTA_Z) ? entity.getMotion().getZ() : 0
+        );
+        if (packet.getRelatives().contains(PositionElement.ROTATE_DELTA)) {
+            deltaMovement = MathUtils.xYRot(deltaMovement, (float) Math.toRadians(lastPitch - newPitch), (float) Math.toRadians(lastYaw - newYaw));
+        }
+
+        entity.setMotion(deltaMovement);
+        if (deltaMovement.distanceSquared(Vector3f.ZERO) > 1.0E-8F) {
+            SetEntityMotionPacket entityMotionPacket = new SetEntityMotionPacket();
+            entityMotionPacket.setRuntimeEntityId(entity.geyserId());
+            entityMotionPacket.setMotion(entity.getMotion());
+            session.sendUpstreamPacket(entityMotionPacket);
+        }
+
+        if (!interpolate && !entity.getPassengers().isEmpty() && entity.getPassengers().getFirst() == session.getPlayerEntity() && !isPreviouslyRemovedVehicle) {
+            ServerboundMoveVehiclePacket vehiclePacket = new ServerboundMoveVehiclePacket(position, newYaw, newPitch, entity.isOnGround());
+            session.sendDownstreamGamePacket(vehiclePacket);
+        }
+
+        if (isPreviouslyRemovedVehicle) {
+            ServerboundMovePlayerPosRotPacket positionPacket = new ServerboundMovePlayerPosRotPacket(false, false, position.getX(), position.getY(), position.getZ(), newYaw, newPitch);
+            session.sendDownstreamGamePacket(positionPacket);
+        }
     }
 }
