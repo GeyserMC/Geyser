@@ -58,6 +58,7 @@ import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.level.physics.PistonBehavior;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
+import org.geysermc.geyser.registry.mappings.MappingsType;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.translator.collision.OtherCollision;
 import org.geysermc.geyser.util.BlockUtils;
@@ -195,8 +196,7 @@ public class CustomBlockRegistryPopulator {
         }
         BLOCK_STATE_OVERRIDES_QUEUE = null;
 
-        MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
-        mappingsConfigReader.loadBlockMappingsFromJson((key, block) -> {
+        MappingsConfigReader.loadCustomMappingsFromJson(MappingsType.BLOCKS, (key, block) -> {
             CUSTOM_BLOCKS.add(block.data());
             if (block.overrideItem()) {
                 CUSTOM_BLOCK_ITEM_OVERRIDES.put(block.javaIdentifier(), block.data());

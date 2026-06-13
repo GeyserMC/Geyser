@@ -36,6 +36,8 @@ import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.gamerule.GameRule;
@@ -50,6 +52,7 @@ import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.loader.SoundEventsRegistryLoader;
 import org.geysermc.geyser.registry.loader.SoundRegistryLoader;
 import org.geysermc.geyser.registry.loader.SoundTranslatorRegistryLoader;
+import org.geysermc.geyser.registry.loader.WaypointStyleLoader;
 import org.geysermc.geyser.registry.populator.DataComponentRegistryPopulator;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
@@ -209,6 +212,8 @@ public final class Registries {
      * A registry containing all entities Java considers "dangerous" - spawn eggs of these entities have a red warning in the item tooltip on Java.
      */
     public static final ListDeferredRegistry<Key> DANGEROUS_ENTITIES = ListDeferredRegistry.create(UtilMappings::dangerousEntities, RegistryLoaders.UTIL_MAPPINGS_KEYS);
+
+    public static final SimpleMappedRegistry<Identifier, CustomWaypointStyle> WAYPOINT_STYLES = SimpleMappedRegistry.create(WaypointStyleLoader::new);
 
     /**
      * A registry containing all the Java game rules.
