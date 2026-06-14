@@ -910,15 +910,6 @@ public final class EntityDefinitions {
                     .heightAndWidth(1.9975f)
                     .build();
 
-            SLIME = EntityDefinition.inherited(SlimeEntity::new, mobEntityBase)
-                    .type(EntityType.SLIME)
-                    .heightAndWidth(0.51f)
-                    .addTranslator(MetadataTypes.INT, SlimeEntity::setSlimeScale)
-                    .build();
-            MAGMA_CUBE = EntityDefinition.inherited(MagmaCubeEntity::new, SLIME)
-                    .type(EntityType.MAGMA_CUBE)
-                    .build();
-
             EntityDefinition<AbstractFishEntity> abstractFishEntityBase = EntityDefinition.inherited(AbstractFishEntity::new, mobEntityBase)
                     .addTranslator(null) // From bucket
                     .build();
@@ -1133,6 +1124,17 @@ public final class EntityDefinitions {
                     .height(0.4f).width(1.2f)
                     .addTranslator(MetadataTypes.BOOLEAN, TurtleEntity::setPregnant)
                     .addTranslator(MetadataTypes.BOOLEAN, TurtleEntity::setLayingEgg)
+                    .build();
+
+            // Slime entities
+            // TODO 26.2 properly figure out how ageable works here
+            SLIME = EntityDefinition.inherited(SlimeEntity::new, ageableEntityBase)
+                    .type(EntityType.SLIME)
+                    .heightAndWidth(0.51f)
+                    .addTranslator(MetadataTypes.INT, SlimeEntity::setSlimeScale)
+                    .build();
+            MAGMA_CUBE = EntityDefinition.inherited(MagmaCubeEntity::new, SLIME)
+                    .type(EntityType.MAGMA_CUBE)
                     .build();
 
             EntityDefinition<AbstractMerchantEntity> abstractVillagerEntityBase = EntityDefinition.inherited(AbstractMerchantEntity::new, ageableEntityBase)

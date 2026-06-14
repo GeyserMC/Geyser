@@ -47,9 +47,6 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
-import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
-import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
-import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
@@ -146,9 +143,9 @@ public class ItemRegistryPopulator {
         Map<Item, Item> dandelion = Map.of(Items.GOLDEN_DANDELION, Items.DANDELION);
 
         List<PaletteVersion> paletteVersions = new ArrayList<>(4);
-        paletteVersions.add(new PaletteVersion("26_0", Bedrock_v924.CODEC.getProtocolVersion(), dandelion));
-        paletteVersions.add(new PaletteVersion("26_10", Bedrock_v944.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("26_20", Bedrock_v975.CODEC.getProtocolVersion(), "26_10"));
+        //paletteVersions.add(new PaletteVersion("26_0", Bedrock_v924.CODEC.getProtocolVersion(), dandelion));
+        //paletteVersions.add(new PaletteVersion("26_10", Bedrock_v944.CODEC.getProtocolVersion()));
+        //paletteVersions.add(new PaletteVersion("26_20", Bedrock_v975.CODEC.getProtocolVersion(), "26_10"));
         paletteVersions.add(new PaletteVersion("26_30", Bedrock_v1001.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();

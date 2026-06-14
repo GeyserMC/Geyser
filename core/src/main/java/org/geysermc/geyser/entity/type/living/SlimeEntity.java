@@ -28,7 +28,7 @@ package org.geysermc.geyser.entity.type.living;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
-public class SlimeEntity extends MobEntity {
+public class SlimeEntity extends AgeableEntity {
 
     public SlimeEntity(EntitySpawnContext context) {
         super(context);
