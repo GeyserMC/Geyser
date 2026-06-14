@@ -26,8 +26,6 @@
 package org.geysermc.geyser.scoreboard;
 
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
-import java.util.HashSet;
-import java.util.Set;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.entity.type.Entity;
@@ -36,6 +34,9 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.NameTagVisibility;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamColor;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public final class Team {
     public static final long LAST_UPDATE_DEFAULT = -1;
@@ -169,7 +170,7 @@ public final class Team {
 
         if (lastUpdate == LAST_UPDATE_DEFAULT) {
             // addEntities is called after the initial updateProperties, so no need to do any entity updates here
-            if (this.color != TeamColor.RESET || !this.prefix.isEmpty() || !this.suffix.isEmpty()) {
+            if (/*this.color != TeamColor.RESET || TODO 26.2*/ !this.prefix.isEmpty() || !this.suffix.isEmpty()) {
                 markChanged();
             }
             return;
