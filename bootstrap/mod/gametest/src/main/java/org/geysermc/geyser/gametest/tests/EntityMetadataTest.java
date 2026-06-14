@@ -40,6 +40,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.level.GameType;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinition;
@@ -76,7 +77,7 @@ public class EntityMetadataTest extends GeyserTestInstance {
             helper.fail("No entity definition found for type " + entityType);
         } else {
             Entity javaEntity;
-            if (entityType == EntityType.PLAYER) {
+            if (entityType == EntityTypes.PLAYER) {
                 javaEntity = helper.makeMockPlayer(GameType.SURVIVAL);
             } else {
                 javaEntity = entityType.create(helper.getLevel(), EntitySpawnReason.COMMAND);

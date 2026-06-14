@@ -37,6 +37,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.CommandSourceConverter;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.command.standalone.StandaloneCloudCommandManager;
 import org.geysermc.geyser.platform.mod.GeyserModBootstrap;
 import org.geysermc.geyser.platform.mod.GeyserModUpdateListener;
 import org.geysermc.geyser.platform.mod.command.ModCommandSource;
@@ -77,9 +78,9 @@ public class GeyserGameTestBootstrap extends GeyserModBootstrap implements ModIn
                 () -> getServer().createCommandSourceStack(), // NPE if method reference is used, since server is not available yet
                 ModCommandSource::new
         );
-        CommandManager<GeyserCommandSource> cloud = new FabricServerCommandManager<>(
-                ExecutionCoordinator.simpleCoordinator(),
-                sourceConverter
+        // TODO 26.2 waiting on cloud-minecraft-modded
+        CommandManager<GeyserCommandSource> cloud = new StandaloneCloudCommandManager(
+                GeyserImpl.getInstance()
         );
         this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud, false)); // applying root permission would be a breaking change because we can't register permission defaults
 
