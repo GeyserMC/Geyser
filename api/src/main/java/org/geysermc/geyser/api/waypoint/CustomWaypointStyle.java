@@ -162,11 +162,14 @@ public interface CustomWaypointStyle {
     /**
      * Creates a new {@link VanillaBuilder} with the given {@code nearDistance} and {@code farDistance} values.
      *
+     * <p>In Java Edition, the default value for {@code nearDistance} is {@code 128}, and for {@code farDistance} is {@code 332}.</p>
+     *
      * <p>Please see {@link VanillaBuilder} for a throughout description of {@link VanillaBuilder}s and the {@code nearDistance} and {@code farDistance} values.</p>
      *
      * @param nearDistance the nearDistance to be used
      * @param farDistance the farDistance to be used
      * @return the created {@link VanillaBuilder}
+     * @throws IllegalArgumentException when the {@code nearDistance} is below 0, or at or above the {@code farDistance}
      * @see VanillaBuilder
      */
     static CustomWaypointStyle.VanillaBuilder vanillaLike(@NonNegative int nearDistance, @Positive int farDistance) {
