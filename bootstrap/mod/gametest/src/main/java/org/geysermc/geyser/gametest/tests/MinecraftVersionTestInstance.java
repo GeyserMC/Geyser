@@ -61,10 +61,16 @@ public class MinecraftVersionTestInstance extends GeyserTestInstance {
         String current = SharedConstants.getCurrentVersion().id();
         try {
             helper.assertValueEqual(current, version, "running Minecraft version");
+        } catch (GameTestAssertException exception) {
+            GeyserImpl.getInstance().getLogger().error("Please re-run the \":gametest:runDatagen\" gradle task!");
+            throw exception;
+        }
+
+        try {
             helper.assertValueEqual(SharedConstants.getProtocolVersion(), GameProtocol.getJavaProtocolVersion(), "Java protocol version");
             helper.assertTrue(GameProtocol.getAllSupportedJavaVersions().contains(current), "GameProtocol must mark " + current + " as supported");
         } catch (GameTestAssertException exception) {
-            GeyserImpl.getInstance().getLogger().error("Please re-run the \":gametest:runDatagen\" gradle task!");
+            GeyserImpl.getInstance().getLogger().error("Please ensure MCPL is updated!");
             throw exception;
         }
         helper.succeed();
