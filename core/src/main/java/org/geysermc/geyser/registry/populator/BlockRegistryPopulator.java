@@ -44,6 +44,9 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
+import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
+import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
@@ -56,6 +59,8 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.populator.conversion.ChaosCubedConverter;
+import org.geysermc.geyser.registry.populator.conversion.GoldenDandelionConverter;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.util.JsonUtils;
@@ -116,9 +121,9 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
-                //.put(ObjectIntPair.of("26_0", Bedrock_v924.CODEC.getProtocolVersion()), GoldenDandelionConverter::convert)
-                //.put(ObjectIntPair.of("26_10", Bedrock_v944.CODEC.getProtocolVersion()), tag -> tag)
-                //.put(ObjectIntPair.of("26_20", Bedrock_v975.CODEC.getProtocolVersion()), tag -> tag)
+                .put(ObjectIntPair.of("26_0", Bedrock_v924.CODEC.getProtocolVersion()), GoldenDandelionConverter::convertBlock)
+                .put(ObjectIntPair.of("26_10", Bedrock_v944.CODEC.getProtocolVersion()), ChaosCubedConverter::convertBlock)
+                .put(ObjectIntPair.of("26_20", Bedrock_v975.CODEC.getProtocolVersion()), ChaosCubedConverter::convertBlock)
                 .put(ObjectIntPair.of("26_30", Bedrock_v1001.CODEC.getProtocolVersion()), tag -> tag)
             .build();
 

@@ -28,6 +28,7 @@ package org.geysermc.geyser.scoreboard;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
@@ -48,7 +49,7 @@ public final class Team {
     private final Set<String> entities;
     private final Set<Entity> managedEntities;
     @NonNull private NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
-    private TeamColor color;
+    @Nullable private TeamColor color;
 
     private String name;
     private String prefix;
@@ -170,7 +171,7 @@ public final class Team {
 
         if (lastUpdate == LAST_UPDATE_DEFAULT) {
             // addEntities is called after the initial updateProperties, so no need to do any entity updates here
-            if (/*this.color != TeamColor.RESET || TODO 26.2*/ !this.prefix.isEmpty() || !this.suffix.isEmpty()) {
+            if (this.color != null || !this.prefix.isEmpty() || !this.suffix.isEmpty()) {
                 markChanged();
             }
             return;

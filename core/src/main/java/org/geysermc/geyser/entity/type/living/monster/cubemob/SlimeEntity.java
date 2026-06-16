@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,23 +23,25 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living;
+package org.geysermc.geyser.entity.type.living.monster.cubemob;
 
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.entity.type.living.AgeableEntity;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
-public class SlimeEntity extends AgeableEntity {
+public class SlimeEntity extends AbstractCubeEntity {
 
     public SlimeEntity(EntitySpawnContext context) {
         super(context);
     }
 
-    public void setSlimeScale(IntEntityMetadata entityMetadata) {
-        setScale(0.10f + entityMetadata.getPrimitiveValue());
-    }
-
     @Override
     protected boolean isEnemy() {
         return true;
+    }
+
+    @Override
+    public boolean isBaby() {
+        return false;
     }
 }

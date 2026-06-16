@@ -114,6 +114,8 @@ public class ChatColor {
     }
 
     public static String chatColorFor(TeamColor teamColor) {
+        if (teamColor == null) return RESET;
+
         // https://bugs.mojang.com/browse/MCPE-41729
         // strikethrough and underlined do not exist on Bedrock
         return switch (teamColor) {

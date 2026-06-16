@@ -88,9 +88,10 @@ import org.geysermc.geyser.entity.type.living.CopperGolemEntity;
 import org.geysermc.geyser.entity.type.living.DolphinEntity;
 import org.geysermc.geyser.entity.type.living.GlowSquidEntity;
 import org.geysermc.geyser.entity.type.living.IronGolemEntity;
-import org.geysermc.geyser.entity.type.living.MagmaCubeEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.AbstractCubeEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.MagmaCubeEntity;
 import org.geysermc.geyser.entity.type.living.MobEntity;
-import org.geysermc.geyser.entity.type.living.SlimeEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.SlimeEntity;
 import org.geysermc.geyser.entity.type.living.SnowGolemEntity;
 import org.geysermc.geyser.entity.type.living.SquidEntity;
 import org.geysermc.geyser.entity.type.living.TadpoleEntity;
@@ -162,6 +163,7 @@ import org.geysermc.geyser.entity.type.living.monster.ZoglinEntity;
 import org.geysermc.geyser.entity.type.living.monster.ZombieEntity;
 import org.geysermc.geyser.entity.type.living.monster.ZombieVillagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.ZombifiedPiglinEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.SulfurCubeEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.PillagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.RaidParticipantEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.RavagerEntity;
@@ -311,6 +313,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<SquidEntity> SQUID;
     public static final EntityDefinition<AbstractSkeletonEntity> STRAY;
     public static final EntityDefinition<StriderEntity> STRIDER;
+    public static final EntityDefinition<SulfurCubeEntity> SULFUR_CUBE;
     public static final EntityDefinition<TadpoleEntity> TADPOLE;
     public static final EntityDefinition<TextDisplayEntity> TEXT_DISPLAY;
     public static final EntityDefinition<TNTEntity> TNT;
@@ -1127,14 +1130,21 @@ public final class EntityDefinitions {
                     .build();
 
             // Slime entities
-            // TODO 26.2 properly figure out how ageable works here
-            SLIME = EntityDefinition.inherited(SlimeEntity::new, ageableEntityBase)
-                    .type(EntityType.SLIME)
+            EntityDefinition<AbstractCubeEntity> cubeEntityBase = EntityDefinition.inherited(AbstractCubeEntity::new, ageableEntityBase)
                     .heightAndWidth(0.51f)
-                    .addTranslator(MetadataTypes.INT, SlimeEntity::setSlimeScale)
+                    .addTranslator(MetadataTypes.INT, AbstractCubeEntity::setCubeScale)
                     .build();
-            MAGMA_CUBE = EntityDefinition.inherited(MagmaCubeEntity::new, SLIME)
+
+            SLIME = EntityDefinition.inherited(SlimeEntity::new, cubeEntityBase)
+                    .type(EntityType.SLIME)
+                    .build();
+            MAGMA_CUBE = EntityDefinition.inherited(MagmaCubeEntity::new, cubeEntityBase)
                     .type(EntityType.MAGMA_CUBE)
+                    .build();
+            SULFUR_CUBE = EntityDefinition.inherited(SulfurCubeEntity::new, cubeEntityBase)
+                    .type(EntityType.SULFUR_CUBE)
+                    .addTranslator(MetadataTypes.BOOLEAN, SulfurCubeEntity::setIsFromBucket)
+                    .addTranslator(MetadataTypes.INT, SulfurCubeEntity::setMaxFuse)
                     .build();
 
             EntityDefinition<AbstractMerchantEntity> abstractVillagerEntityBase = EntityDefinition.inherited(AbstractMerchantEntity::new, ageableEntityBase)

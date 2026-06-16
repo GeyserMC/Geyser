@@ -23,26 +23,36 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.registry.populator.conversion;
+package org.geysermc.geyser.entity.type.living.monster.cubemob;
 
-import org.cloudburstmc.nbt.NbtMap;
-import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
-import java.util.HashMap;
-import java.util.Map;
+public class SulfurCubeEntity extends AbstractCubeEntity {
+    private boolean isFromBucket;
 
-public class GoldenDandelionConverter extends ConversionHelper {
-    public static NbtMap convertBlock(NbtMap tag) {
-        if (tag.getString("name").equals("minecraft:golden_dandelion")) {
-            return withoutStates("dandelion");
-        }
-        return ChaosCubedConverter.convertBlock(tag);
+    public SulfurCubeEntity(EntitySpawnContext context) {
+        super(context);
     }
 
-    public static Map<Item, Item> convertItem() {
-        Map<Item, Item> itemMappings = new HashMap<>(ChaosCubedConverter.convertItem());
-        itemMappings.put(Items.GOLDEN_DANDELION, Items.DANDELION);
-        return itemMappings;
+    @Override
+    public void setBody(GeyserItemStack stack) {
+        super.setHand(stack);
+    }
+
+    @Override
+    public void setHand(GeyserItemStack stack) {
+        super.setBody(stack);
+    }
+
+    public void setIsFromBucket(BooleanEntityMetadata entityMetadata) {
+        this.isFromBucket = entityMetadata.getPrimitiveValue();
+    }
+
+    public void setMaxFuse(IntEntityMetadata entityMetadata) {
+        this.dirtyMetadata.put(EntityDataTypes.FUSE_TIME, entityMetadata.getPrimitiveValue());
     }
 }
