@@ -51,6 +51,7 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.EnvironmentUtils;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -316,7 +317,8 @@ public class Item {
         this.javaId = javaId;
         if (this.baseComponents == null) {
             this.baseComponents = Registries.DEFAULT_DATA_COMPONENTS.get(javaId);
-            if (this.baseComponents == null) {
+            // During unit tests, DEFAULT_DATA_COMPONENTS isn't loaded
+            if (this.baseComponents == null && !EnvironmentUtils.IS_UNIT_TESTING) {
                 throw new AssertionError("Item was loaded before default item data components were loaded!");
             }
         }
