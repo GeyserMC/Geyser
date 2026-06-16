@@ -32,7 +32,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.Boolea
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
 public class SulfurCubeEntity extends AbstractCubeEntity {
-    private boolean isFromBucket;
 
     public SulfurCubeEntity(EntitySpawnContext context) {
         super(context);
@@ -46,10 +45,6 @@ public class SulfurCubeEntity extends AbstractCubeEntity {
     @Override
     public void setHand(GeyserItemStack stack) {
         super.setBody(stack);
-    }
-
-    public void setIsFromBucket(BooleanEntityMetadata entityMetadata) {
-        this.isFromBucket = entityMetadata.getPrimitiveValue();
     }
 
     public void setMaxFuse(IntEntityMetadata entityMetadata) {

@@ -1143,8 +1143,8 @@ public final class EntityDefinitions {
                     .build();
             SULFUR_CUBE = EntityDefinition.inherited(SulfurCubeEntity::new, cubeEntityBase)
                     .type(EntityType.SULFUR_CUBE)
-                    .addTranslator(MetadataTypes.BOOLEAN, SulfurCubeEntity::setIsFromBucket)
                     .addTranslator(MetadataTypes.INT, SulfurCubeEntity::setMaxFuse)
+                    .addTranslator(null) // From bucket
                     .build();
 
             EntityDefinition<AbstractMerchantEntity> abstractVillagerEntityBase = EntityDefinition.inherited(AbstractMerchantEntity::new, ageableEntityBase)
