@@ -316,6 +316,9 @@ public class Item {
         this.javaId = javaId;
         if (this.baseComponents == null) {
             this.baseComponents = Registries.DEFAULT_DATA_COMPONENTS.get(javaId);
+            if (this.baseComponents == null) {
+                throw new AssertionError("Item was loaded before default item data components were loaded!");
+            }
         }
     }
 

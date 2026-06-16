@@ -48,8 +48,8 @@ public final class Team {
 
     private final Set<String> entities;
     private final Set<Entity> managedEntities;
-    @NonNull private NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
-    @Nullable private TeamColor color;
+    private @NonNull NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
+    private @Nullable TeamColor color;
 
     private String name;
     private String prefix;
@@ -64,7 +64,7 @@ public final class Team {
         Component prefix,
         Component suffix,
         NameTagVisibility visibility,
-        TeamColor color
+        @Nullable TeamColor color
     ) {
         this.scoreboard = scoreboard;
         this.id = id;
@@ -147,7 +147,7 @@ public final class Team {
         };
     }
 
-    public void updateProperties(Component name, Component prefix, Component suffix, NameTagVisibility visibility, TeamColor color) {
+    public void updateProperties(Component name, Component prefix, Component suffix, NameTagVisibility visibility, @Nullable TeamColor color) {
         // this shouldn't happen but hey!
         if (lastUpdate == LAST_UPDATE_REMOVE) {
             return;
@@ -314,7 +314,7 @@ public final class Team {
         return id;
     }
 
-    public TeamColor color() {
+    public @Nullable TeamColor color() {
         return color;
     }
 

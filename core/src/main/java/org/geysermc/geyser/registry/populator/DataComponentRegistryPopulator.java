@@ -54,7 +54,7 @@ import java.util.Map;
  */
 public final class DataComponentRegistryPopulator {
 
-    public static void populate() {
+    public static void load() {
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
         List<DataComponents> defaultComponents;
         try (InputStream stream = bootstrap.getResourceOrThrow("mappings/item_data_components.json")) {
