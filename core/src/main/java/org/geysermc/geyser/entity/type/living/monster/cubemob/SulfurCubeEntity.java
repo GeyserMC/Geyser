@@ -26,9 +26,11 @@
 package org.geysermc.geyser.entity.type.living.monster.cubemob;
 
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
+import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.inventory.GeyserItemStack;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
+import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
 public class SulfurCubeEntity extends AbstractCubeEntity {
@@ -39,12 +41,19 @@ public class SulfurCubeEntity extends AbstractCubeEntity {
 
     @Override
     public void setBody(GeyserItemStack stack) {
-        super.setHand(stack);
+        MobEquipmentPacket handPacket = new MobEquipmentPacket();
+        handPacket.setRuntimeEntityId(geyserId);
+        handPacket.setItem(ItemTranslator.translateToBedrock(session, stack));
+        handPacket.setHotbarSlot(0);
+        handPacket.setInventorySlot(0);
+        handPacket.setContainerId(ContainerId.INVENTORY);
+
+        session.sendUpstreamPacket(handPacket);
     }
 
     @Override
-    public void setHand(GeyserItemStack stack) {
-        super.setBody(stack);
+    public int getScaleOffset() {
+        return -1;
     }
 
     public void setMaxFuse(IntEntityMetadata entityMetadata) {

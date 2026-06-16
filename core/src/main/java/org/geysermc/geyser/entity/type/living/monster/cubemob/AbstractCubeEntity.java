@@ -35,6 +35,10 @@ public class AbstractCubeEntity extends AgeableEntity {
     }
 
     public void setCubeScale(IntEntityMetadata entityMetadata) {
-        setScale(0.10f + entityMetadata.getPrimitiveValue());
+        setScale(0.10f + entityMetadata.getPrimitiveValue() + getScaleOffset());
+    }
+
+    public int getScaleOffset() {
+        return 0;
     }
 }
