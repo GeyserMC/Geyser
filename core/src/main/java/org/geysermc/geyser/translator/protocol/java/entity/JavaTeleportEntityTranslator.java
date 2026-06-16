@@ -30,7 +30,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
-import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -40,6 +39,8 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.Clie
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerPosRotPacket;
 
+import java.util.Objects;
+
 @Translator(packet = ClientboundTeleportEntityPacket.class)
 public class JavaTeleportEntityTranslator extends PacketTranslator<ClientboundTeleportEntityPacket> {
 
@@ -48,7 +49,7 @@ public class JavaTeleportEntityTranslator extends PacketTranslator<ClientboundTe
         Entity entity = session.getEntityCache().getEntityByJavaId(packet.getId());
 
         boolean isPreviouslyRemovedVehicle = false;
-        if (entity == null && session.getPlayerEntity().getRemovedPlayerVehicleId() == packet.getId()) {
+        if (entity == null && Objects.equals(session.getPlayerEntity().getRemovedPlayerVehicleId(), packet.getId())) {
             entity = session.getPlayerEntity();
             isPreviouslyRemovedVehicle = true;
         }

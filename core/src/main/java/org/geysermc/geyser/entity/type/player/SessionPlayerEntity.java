@@ -142,7 +142,7 @@ public class SessionPlayerEntity extends PlayerEntity {
      * The vehicle that player was previously in before it got removed from the world.
      */
     @Getter @Setter
-    private Integer removedPlayerVehicleId = null;
+    private @Nullable Integer removedPlayerVehicleId = null;
 
     public SessionPlayerEntity(GeyserSession session) {
         super(new EntitySpawnContext(session, EntityDefinitions.PLAYER, -1, null), null, null);
