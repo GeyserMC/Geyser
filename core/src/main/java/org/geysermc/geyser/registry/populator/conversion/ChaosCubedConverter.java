@@ -37,18 +37,22 @@ import java.util.List;
 import java.util.Map;
 
 public class ChaosCubedConverter extends ConversionHelper {
-    private static Map<String, Block> BLOCK_MAPPINGS = new HashMap<>();
-    private static List<String> CLEAR_BLOCK_STATES = new ArrayList<>();
-    private static Map<Item, Item> ITEM_MAPPINGS = new HashMap<>();
+    private static final Map<String, String> BLOCK_MAPPINGS = new HashMap<>();
+    private static final List<String> CLEAR_BLOCK_STATES = new ArrayList<>();
+    private static final Map<Item, Item> ITEM_MAPPINGS = new HashMap<>();
 
     private static void addBlock(Block newBlock, Block fallback) {
         addBlock(newBlock, fallback, false);
     }
 
     private static void addBlock(Block newBlock, Block fallback, boolean clearBlockStates) {
-        BLOCK_MAPPINGS.put(newBlock.javaIdentifier().asString(), fallback);
+        BLOCK_MAPPINGS.put(newBlock.javaIdentifier().asString(), fallback.javaIdentifier().asString());
         ITEM_MAPPINGS.put(newBlock.asItem(), fallback.asItem());
         if (clearBlockStates) CLEAR_BLOCK_STATES.add(newBlock.javaIdentifier().asString());
+    }
+
+    private static void addBlockOnly(String newBlock, String fallback) {
+        BLOCK_MAPPINGS.put(newBlock, fallback);
     }
 
     private static void addItem(Item newItem, Item fallback) {
@@ -56,21 +60,24 @@ public class ChaosCubedConverter extends ConversionHelper {
     }
 
     static {
-        addBlock(Blocks.POTENT_SULFUR, Blocks.YELLOW_CONCRETE);
+        addBlock(Blocks.POTENT_SULFUR, Blocks.YELLOW_CONCRETE, true);
         addBlock(Blocks.SULFUR_SPIKE, Blocks.POINTED_DRIPSTONE);
 
         addBlock(Blocks.SULFUR, Blocks.YELLOW_CONCRETE);
         addBlock(Blocks.SULFUR_SLAB, Blocks.BAMBOO_SLAB);
+        addBlockOnly("minecraft:sulfur_double_slab", "minecraft:bamboo_double_slab");
         addBlock(Blocks.SULFUR_STAIRS, Blocks.BAMBOO_STAIRS);
         addBlock(Blocks.SULFUR_WALL, Blocks.END_STONE_BRICK_WALL);
 
         addBlock(Blocks.POLISHED_SULFUR, Blocks.YELLOW_CONCRETE);
         addBlock(Blocks.POLISHED_SULFUR_SLAB, Blocks.BAMBOO_SLAB);
+        addBlockOnly("minecraft:polished_sulfur_double_slab", "minecraft:bamboo_double_slab");
         addBlock(Blocks.POLISHED_SULFUR_STAIRS, Blocks.BAMBOO_STAIRS);
         addBlock(Blocks.POLISHED_SULFUR_WALL, Blocks.END_STONE_BRICK_WALL);
 
         addBlock(Blocks.SULFUR_BRICKS, Blocks.YELLOW_CONCRETE);
         addBlock(Blocks.SULFUR_BRICK_SLAB, Blocks.BAMBOO_SLAB);
+        addBlockOnly("minecraft:sulfur_brick_double_slab", "minecraft:bamboo_double_slab");
         addBlock(Blocks.SULFUR_BRICK_STAIRS, Blocks.BAMBOO_STAIRS);
         addBlock(Blocks.SULFUR_BRICK_WALL, Blocks.END_STONE_BRICK_WALL);
 
@@ -78,16 +85,19 @@ public class ChaosCubedConverter extends ConversionHelper {
 
         addBlock(Blocks.CINNABAR, Blocks.RED_CONCRETE);
         addBlock(Blocks.CINNABAR_SLAB, Blocks.MANGROVE_SLAB);
+        addBlockOnly("minecraft:cinnabar_double_slab", "minecraft:mangrove_double_slab");
         addBlock(Blocks.CINNABAR_STAIRS, Blocks.MANGROVE_STAIRS);
         addBlock(Blocks.CINNABAR_WALL, Blocks.RED_NETHER_BRICK_WALL);
 
         addBlock(Blocks.POLISHED_CINNABAR, Blocks.RED_CONCRETE);
         addBlock(Blocks.POLISHED_CINNABAR_SLAB, Blocks.MANGROVE_SLAB);
+        addBlockOnly("minecraft:polished_cinnabar_double_slab", "minecraft:mangrove_double_slab");
         addBlock(Blocks.POLISHED_CINNABAR_STAIRS, Blocks.MANGROVE_STAIRS);
         addBlock(Blocks.POLISHED_CINNABAR_WALL, Blocks.RED_NETHER_BRICK_WALL);
 
         addBlock(Blocks.CINNABAR_BRICKS, Blocks.RED_CONCRETE);
         addBlock(Blocks.CINNABAR_BRICK_SLAB, Blocks.MANGROVE_SLAB);
+        addBlockOnly("minecraft:cinnabar_brick_double_slab", "minecraft:mangrove_double_slab");
         addBlock(Blocks.CINNABAR_BRICK_STAIRS, Blocks.MANGROVE_STAIRS);
         addBlock(Blocks.CINNABAR_BRICK_WALL, Blocks.RED_NETHER_BRICK_WALL);
 
@@ -99,13 +109,13 @@ public class ChaosCubedConverter extends ConversionHelper {
     }
 
     public static NbtMap convertBlock(NbtMap tag) {
-        Block replacement = BLOCK_MAPPINGS.get(tag.getString("name"));
+        String replacement = BLOCK_MAPPINGS.get(tag.getString("name"));
         if (replacement != null) {
-            if (CLEAR_BLOCK_STATES.contains(replacement.javaIdentifier().asString())) {
-                return withoutStates(replacement.javaIdentifier().asString());
+            if (CLEAR_BLOCK_STATES.contains(tag.getString("name"))) {
+                return withoutStates(replacement);
             }
 
-            return withId(tag, replacement.javaIdentifier().asMinimalString());
+            return withId(tag, replacement);
         }
         return tag;
     }
