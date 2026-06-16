@@ -91,8 +91,12 @@ public class ChaosCubedConverter extends ConversionHelper {
     }
 
     public static NbtMap convertBlock(NbtMap tag) {
-        if (BLOCK_MAPPINGS.containsKey(tag.getString("name"))) {
-            return withId(tag, BLOCK_MAPPINGS.get(tag.getString("name")).javaIdentifier().asString());
+        Block replacement = BLOCK_MAPPINGS.get(tag.getString("name"));
+        if (replacement != null) {
+            if (replacement.propertyKeys() == null || replacement.propertyKeys().length == 0) {
+                return withoutStates(replacement.javaIdentifier().key().asMinimalString());
+            }
+            return withId(tag, replacement.javaIdentifier().asMinimalString());
         }
         return tag;
     }
