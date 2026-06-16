@@ -41,9 +41,9 @@ public class ConversionHelper {
         return builder.build();
     }
 
-    static NbtMap withoutStates(String name) {
+    static NbtMap withoutStates(String id) {
         NbtMapBuilder tagBuilder = NbtMap.builder();
-        tagBuilder.putString("name", "minecraft:" + name);
+        tagBuilder.putString("name", id);
         tagBuilder.putCompound("states", NbtMap.EMPTY);
         return tagBuilder.build();
     }

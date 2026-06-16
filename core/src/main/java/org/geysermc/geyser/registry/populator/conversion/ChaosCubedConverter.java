@@ -31,16 +31,24 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.type.Block;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ChaosCubedConverter extends ConversionHelper {
     private static Map<String, Block> BLOCK_MAPPINGS = new HashMap<>();
+    private static List<String> CLEAR_BLOCK_STATES = new ArrayList<>();
     private static Map<Item, Item> ITEM_MAPPINGS = new HashMap<>();
 
     private static void addBlock(Block newBlock, Block fallback) {
+        addBlock(newBlock, fallback, false);
+    }
+
+    private static void addBlock(Block newBlock, Block fallback, boolean clearBlockStates) {
         BLOCK_MAPPINGS.put(newBlock.javaIdentifier().asString(), fallback);
         ITEM_MAPPINGS.put(newBlock.asItem(), fallback.asItem());
+        if (clearBlockStates) CLEAR_BLOCK_STATES.add(newBlock.javaIdentifier().asString());
     }
 
     private static void addItem(Item newItem, Item fallback) {
@@ -93,9 +101,10 @@ public class ChaosCubedConverter extends ConversionHelper {
     public static NbtMap convertBlock(NbtMap tag) {
         Block replacement = BLOCK_MAPPINGS.get(tag.getString("name"));
         if (replacement != null) {
-            if (replacement.propertyKeys() == null || replacement.propertyKeys().length == 0) {
-                return withoutStates(replacement.javaIdentifier().key().asMinimalString());
+            if (CLEAR_BLOCK_STATES.contains(replacement.javaIdentifier().asString())) {
+                return withoutStates(replacement.javaIdentifier().asString());
             }
+
             return withId(tag, replacement.javaIdentifier().asMinimalString());
         }
         return tag;

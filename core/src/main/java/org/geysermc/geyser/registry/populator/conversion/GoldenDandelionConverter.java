@@ -35,7 +35,7 @@ import java.util.Map;
 public class GoldenDandelionConverter extends ConversionHelper {
     public static NbtMap convertBlock(NbtMap tag) {
         if (tag.getString("name").equals("minecraft:golden_dandelion")) {
-            return withoutStates("dandelion");
+            return withoutStates("minecraft:dandelion");
         }
         return ChaosCubedConverter.convertBlock(tag);
     }
