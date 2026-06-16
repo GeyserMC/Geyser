@@ -40,7 +40,7 @@ public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
 
     // In Java, this waypoint always appears really far, so set the distance far here too,
     // This also makes the waypoint more accurate on the bar and less susceptible to the player moving
-    private static final float WAYPOINT_DISTANCE = 1000.0F;
+    private static final float WAYPOINT_DISTANCE = Integer.MAX_VALUE;
 
     // The angle, in radians, where the waypoint should appear on the bar
     private float angle = 0.0F;

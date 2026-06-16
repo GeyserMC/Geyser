@@ -173,7 +173,8 @@ public abstract class GeyserWaypoint {
                     GeyserImpl.getInstance().getLogger().warning("custom waypoint style for " + styleIdentifier + " returned null texture!");
                     texture = "ui/locator_bar_dot_0";
                 }
-                if (iconSize.lengthSquared() < 0.0F) {
+                if (iconSize.getX() < 0.0F || iconSize.getY() < 0.0F) {
+                    GeyserImpl.getInstance().getLogger().warning("custom waypoint style for " + styleIdentifier + " returned a negative texture size!");
                     iconSize = Vector2f.ZERO;
                 }
                 bedrockWaypoint.setTexturePath("textures/" + texture);

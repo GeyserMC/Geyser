@@ -32,10 +32,34 @@ import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Map;
 
+/**
+ * Called on Geyser's startup to register custom waypoint styles. Custom waypoint styles must be registered through this event.
+ *
+ * <p>{@link CustomWaypointStyle}s may be registered multiple times for different Java Edition waypoint style {@link Identifier}s, however, each Java Edition waypoint style
+ * may only have one {@link CustomWaypointStyle}.</p>
+ *
+ * @see CustomWaypointStyle
+ */
 @ApiStatus.NonExtendable
 public interface GeyserDefineCustomWaypointsEvent extends Event {
 
+    /**
+     * Returns a map of all the currently registered custom waypoint styles.
+     *
+     * @return the map of all the registered custom waypoint styles, at this moment
+     */
     Map<Identifier, CustomWaypointStyle> customWaypointStyles();
 
+    /**
+     * Registers a {@link CustomWaypointStyle} for the given Java Edition waypoint style {@code identifier}.
+     *
+     * <p>The given {@link CustomWaypointStyle} will be used for every waypoint that uses the given {@code identifier} as waypoint style. Vanilla
+     * waypoint styles, like {@code minecraft:default}, may be overridden.</p>
+     *
+     * <p>When a waypoint style is already registered for the given {@code identifier}, this method will fail without throwing an exception, but an error will be logged.</p>
+     *
+     * @param identifier the identifier of the waypoint style on Java Edition
+     * @param style the {@link CustomWaypointStyle}
+     */
     void register(Identifier identifier, CustomWaypointStyle style);
 }
