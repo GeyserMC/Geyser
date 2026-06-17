@@ -1143,6 +1143,8 @@ public final class EntityDefinitions {
                     .build();
             SULFUR_CUBE = EntityDefinition.inherited(SulfurCubeEntity::new, cubeEntityBase)
                     .type(EntityType.SULFUR_CUBE)
+                    .property(SulfurCubeEntity.SULFUR_CUBE_ARCHETYPE_PROPERTY)
+                    .heightAndWidth(0.98f)
                     .addTranslator(MetadataTypes.INT, SulfurCubeEntity::setMaxFuse)
                     .addTranslator(null) // From bucket
                     .build();
