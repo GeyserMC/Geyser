@@ -148,13 +148,12 @@ public class Item {
     @UnmodifiableView
     public DataComponents gatherComponents(@NonNull ResolvableComponentGetter resolvableGetter, @Nullable DataComponents others) {
         // Start with the base components that always exist
-        DataComponents base = baseComponents;
+        DataComponents base = baseComponents.clone();
         // Add resolvable base components when possible
         if (!resolvableComponents.isEmpty()) {
             DataComponents resolvedComponents = resolvableGetter.getResolvedComponents(this);
             // Can be null if for some reason components weren't resolved - usually when outside a session context
             if (resolvedComponents != null) {
-                base = baseComponents.clone();
                 base.getDataComponents().putAll(resolvedComponents.getDataComponents());
             } else {
                 GeyserImpl.getInstance().getLogger().debug("Unable to resolve components for item because resolvableGetter didn't have any for it");
