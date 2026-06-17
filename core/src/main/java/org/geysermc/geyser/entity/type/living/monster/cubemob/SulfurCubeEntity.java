@@ -34,29 +34,25 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.properties.type.StringEnumProperty;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.inventory.GeyserItemStack;
+import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SulfurCubeEntity extends AbstractCubeEntity {
 
-    public static StringEnumProperty SULFUR_CUBE_ARCHETYPE_PROPERTY = new StringEnumProperty(Identifier.of("minecraft", "sulfur_cube_archetype"), List.of(
-        "none",
-        "bouncy",
-        "regular",
-        "slow_bouncy",
-        "slow_flat",
-        "fast_flat",
-        "light",
-        "fast_sliding",
-        "slow_sliding",
-        "sticky",
-        "high_resistance",
-        "explosive",
-        "hot"
-    ), 0);
+    private static final Map<Tag<Item>, String> ARCHETYPE_MAPPING = new HashMap<>();
+    private static final List<String> BEDROCK_ARCHETYPES = new ArrayList<>();
+
+    public static StringEnumProperty SULFUR_CUBE_ARCHETYPE_PROPERTY = new StringEnumProperty(
+        Identifier.of("minecraft", "sulfur_cube_archetype"), BEDROCK_ARCHETYPES, 0
+    );
 
     private int previousFuseTickTime = -1;
     private int fuseTickTime = -1;
@@ -93,30 +89,18 @@ public class SulfurCubeEntity extends AbstractCubeEntity {
 
         if (stack.isEmpty()) {
             this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, "none");
-        } else if (stack.is(session, ItemTag.SULFUR_CUBE_ARCHETYPE_BOUNCY)) {
-            this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, "bouncy");
-        } else if (stack.is(session, ItemTag.SULFUR_CUBE_ARCHETYPE_SLOW_BOUNCY)) {
-            this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, "slow_bouncy");
-        } else if (stack.is(session, ItemTag.SULFUR_CUBE_ARCHETYPE_SLOW_FLAT)) {
-            this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, "slow_flat");
-        } else if (stack.is(session, ItemTag.SULFUR_CUBE_ARCHETYPE_FAST_FLAT)) {
-            this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, "fast_flat");
-        } else if (stack.is(session, ItemTag.SULFUR_CUBE_ARCHETYPE_LIGHT)) {
-            this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, "light");
-        } else if (stack.is(session, ItemTag.SULFUR_CUBE_ARCHETYPE_FAST_SLIDING)) {
-            this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, "fast_sliding");
-        } else if (stack.is(session, ItemTag.SULFUR_CUBE_ARCHETYPE_SLOW_SLIDING)) {
-            this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, "slow_sliding");
-        } else if (stack.is(session, ItemTag.SULFUR_CUBE_ARCHETYPE_STICKY)) {
-            this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, "sticky");
-        } else if (stack.is(session, ItemTag.SULFUR_CUBE_ARCHETYPE_HIGH_RESISTANCE)) {
-            this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, "high_resistance");
-        } else if (stack.is(session, ItemTag.SULFUR_CUBE_ARCHETYPE_EXPLOSIVE)) {
-            this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, "explosive");
-        } else if (stack.is(session, ItemTag.SULFUR_CUBE_ARCHETYPE_HOT)) {
-            this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, "hot");
-        } else { // If it has a block, hide the inner texture, no matter if it's really regular
-            this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, "regular");
+        } else {
+            String archetype = null;
+            for (Map.Entry<Tag<Item>, String> entry : ARCHETYPE_MAPPING.entrySet()) {
+                if (stack.is(session, entry.getKey())) {
+                    archetype = entry.getValue();
+                    break;
+                }
+            }
+
+            if (archetype == null) archetype = "regular"; // Needs a value, this is the best default
+
+            this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, archetype);
         }
     }
 
@@ -142,5 +126,23 @@ public class SulfurCubeEntity extends AbstractCubeEntity {
     public void setMaxFuse(IntEntityMetadata entityMetadata) {
         this.fuseTickTime = entityMetadata.getPrimitiveValue();
         this.dirtyMetadata.put(EntityDataTypes.FUSE_TIME, fuseTickTime);
+    }
+
+    static {
+        ARCHETYPE_MAPPING.put(ItemTag.SULFUR_CUBE_ARCHETYPE_BOUNCY, "bouncy");
+        ARCHETYPE_MAPPING.put(ItemTag.SULFUR_CUBE_ARCHETYPE_REGULAR, "regular");
+        ARCHETYPE_MAPPING.put(ItemTag.SULFUR_CUBE_ARCHETYPE_SLOW_BOUNCY, "slow_bouncy");
+        ARCHETYPE_MAPPING.put(ItemTag.SULFUR_CUBE_ARCHETYPE_SLOW_FLAT, "slow_flat");
+        ARCHETYPE_MAPPING.put(ItemTag.SULFUR_CUBE_ARCHETYPE_FAST_FLAT, "fast_flat");
+        ARCHETYPE_MAPPING.put(ItemTag.SULFUR_CUBE_ARCHETYPE_LIGHT, "light");
+        ARCHETYPE_MAPPING.put(ItemTag.SULFUR_CUBE_ARCHETYPE_FAST_SLIDING, "fast_sliding");
+        ARCHETYPE_MAPPING.put(ItemTag.SULFUR_CUBE_ARCHETYPE_SLOW_SLIDING, "slow_sliding");
+        ARCHETYPE_MAPPING.put(ItemTag.SULFUR_CUBE_ARCHETYPE_STICKY, "sticky");
+        ARCHETYPE_MAPPING.put(ItemTag.SULFUR_CUBE_ARCHETYPE_HIGH_RESISTANCE, "high_resistance");
+        ARCHETYPE_MAPPING.put(ItemTag.SULFUR_CUBE_ARCHETYPE_EXPLOSIVE, "explosive");
+        ARCHETYPE_MAPPING.put(ItemTag.SULFUR_CUBE_ARCHETYPE_HOT, "hot");
+
+        BEDROCK_ARCHETYPES.add("none");
+        BEDROCK_ARCHETYPES.addAll(ARCHETYPE_MAPPING.values());
     }
 }
