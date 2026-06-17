@@ -66,6 +66,7 @@ import org.geysermc.geyser.level.block.type.CauldronBlock;
 import org.geysermc.geyser.level.block.type.DoorBlock;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.level.physics.Direction;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
@@ -118,8 +119,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         switch (packet.getTransactionType()) {
             case NORMAL:
                 if (packet.getActions().size() == 2) {
-                    InventoryActionData worldAction = packet.getActions().get(0);
-                    InventoryActionData containerAction = packet.getActions().get(1);
+                    InventoryActionData worldAction = GameProtocol.is26_30orHigher(session.protocolVersion()) ? packet.getActions().get(1) : packet.getActions().get(0);
+                    InventoryActionData containerAction = GameProtocol.is26_30orHigher(session.protocolVersion()) ? packet.getActions().get(0) : packet.getActions().get(1);
                     if (worldAction.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
                             && worldAction.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
                         boolean dropAll = worldAction.getToItem().getCount() > 1;

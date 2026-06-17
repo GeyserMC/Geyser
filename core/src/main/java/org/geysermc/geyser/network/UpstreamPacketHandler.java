@@ -349,12 +349,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         // Resolve some console pack downloading issues.
         // See <https://github.com/PowerNukkitX/PowerNukkitX/pull/1997> for reference
         chunkRequestQueue.add(packet);
-        if (isConsole()) {
-            if (!currentlySendingChunks) {
-                currentlySendingChunks = true;
-                processNextChunk();
-            }
-        } else {
+        if (!currentlySendingChunks) {
+            currentlySendingChunks = true;
             processNextChunk();
         }
         return PacketSignal.HANDLED;
@@ -412,14 +408,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         data.setData(Unpooled.wrappedBuffer(packData));
 
-        if (isConsole()) {
-            // Also flushes packets
-            // Avoids bursting slower / delayed clients
-            session.sendUpstreamPacketImmediately(data);
-            session.scheduleInEventLoop(this::processNextChunk, PACKET_SEND_DELAY, TimeUnit.MILLISECONDS);
-        } else {
-            session.sendUpstreamPacket(data);
-        }
+        // Also flushes packets
+        // Avoids bursting slower / delayed clients
+        session.sendUpstreamPacketImmediately(data);
+        session.scheduleInEventLoop(this::processNextChunk, PACKET_SEND_DELAY, TimeUnit.MILLISECONDS);
 
         // Check if it is the last chunk and send next pack in queue when available.
         if (remainingSize <= GeyserResourcePack.CHUNK_SIZE && !packsToSend.isEmpty()) {
@@ -471,10 +463,5 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         data.setType(ResourcePackType.RESOURCES);
 
         session.sendUpstreamPacket(data);
-    }
-
-    private boolean isConsole() {
-        BedrockPlatform platform = session.platform();
-        return platform == BedrockPlatform.PS4 || platform == BedrockPlatform.XBOX || platform == BedrockPlatform.NX;
     }
 }
