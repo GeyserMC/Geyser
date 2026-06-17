@@ -53,6 +53,7 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.EnvironmentUtils;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -68,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Item {
+    public static final int BEDROCK_MAX_STACK_SIZE = 64;
     private static final Map<Block, Item> BLOCK_TO_ITEM = new HashMap<>();
     protected final Key javaIdentifier;
     private int javaId = -1;
@@ -202,7 +204,7 @@ public class Item {
         return ItemData.builder()
                 .definition(mapping.getBedrockDefinition())
                 .damage(mapping.getBedrockData())
-                .count(count);
+                .count(Math.min(count, BEDROCK_MAX_STACK_SIZE));
     }
 
     public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
@@ -357,6 +359,10 @@ public class Item {
         this.javaId = javaId;
         if (this.baseComponents == null) {
             this.baseComponents = Registries.DEFAULT_DATA_COMPONENTS.get(javaId);
+            // During unit tests, DEFAULT_DATA_COMPONENTS isn't loaded
+            if (this.baseComponents == null && !EnvironmentUtils.IS_UNIT_TESTING) {
+                throw new AssertionError("Item was loaded before default item data components were loaded!");
+            }
         }
         if (this.resolvableComponents == null) {
             loadResolvableComponents(Registries.RESOLVABLE_DEFAULT_DATA_COMPONENTS.get(javaId));

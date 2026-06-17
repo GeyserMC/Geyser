@@ -68,6 +68,7 @@ import org.geysermc.geyser.entity.type.LeashKnotEntity;
 import org.geysermc.geyser.entity.type.LightningEntity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.MinecartEntity;
+import org.geysermc.geyser.entity.type.OminousItemSpawnerEntity;
 import org.geysermc.geyser.entity.type.PaintingEntity;
 import org.geysermc.geyser.entity.type.SpawnerMinecartEntity;
 import org.geysermc.geyser.entity.type.TNTEntity;
@@ -87,9 +88,10 @@ import org.geysermc.geyser.entity.type.living.CopperGolemEntity;
 import org.geysermc.geyser.entity.type.living.DolphinEntity;
 import org.geysermc.geyser.entity.type.living.GlowSquidEntity;
 import org.geysermc.geyser.entity.type.living.IronGolemEntity;
-import org.geysermc.geyser.entity.type.living.MagmaCubeEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.AbstractCubeEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.MagmaCubeEntity;
 import org.geysermc.geyser.entity.type.living.MobEntity;
-import org.geysermc.geyser.entity.type.living.SlimeEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.SlimeEntity;
 import org.geysermc.geyser.entity.type.living.SnowGolemEntity;
 import org.geysermc.geyser.entity.type.living.SquidEntity;
 import org.geysermc.geyser.entity.type.living.TadpoleEntity;
@@ -161,6 +163,7 @@ import org.geysermc.geyser.entity.type.living.monster.ZoglinEntity;
 import org.geysermc.geyser.entity.type.living.monster.ZombieEntity;
 import org.geysermc.geyser.entity.type.living.monster.ZombieVillagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.ZombifiedPiglinEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.SulfurCubeEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.PillagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.RaidParticipantEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.RavagerEntity;
@@ -271,6 +274,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<BoatEntity> OAK_BOAT;
     public static final EntityDefinition<ChestBoatEntity> OAK_CHEST_BOAT;
     public static final EntityDefinition<OcelotEntity> OCELOT;
+    public static final EntityDefinition<OminousItemSpawnerEntity> OMINOUS_ITEM_SPAWNER;
     public static final EntityDefinition<PaintingEntity> PAINTING;
     public static final EntityDefinition<BoatEntity> PALE_OAK_BOAT;
     public static final EntityDefinition<ChestBoatEntity> PALE_OAK_CHEST_BOAT;
@@ -309,6 +313,7 @@ public final class EntityDefinitions {
     public static final EntityDefinition<SquidEntity> SQUID;
     public static final EntityDefinition<AbstractSkeletonEntity> STRAY;
     public static final EntityDefinition<StriderEntity> STRIDER;
+    public static final EntityDefinition<SulfurCubeEntity> SULFUR_CUBE;
     public static final EntityDefinition<TadpoleEntity> TADPOLE;
     public static final EntityDefinition<TextDisplayEntity> TEXT_DISPLAY;
     public static final EntityDefinition<TNTEntity> TNT;
@@ -429,6 +434,11 @@ public final class EntityDefinitions {
                     .type(EntityType.LLAMA_SPIT)
                     .heightAndWidth(0.25f)
                     .build();
+            OMINOUS_ITEM_SPAWNER = EntityDefinition.inherited(OminousItemSpawnerEntity::new, entityBase)
+                    .type(EntityType.OMINOUS_ITEM_SPAWNER)
+                    .heightAndWidth(0.25f)
+                    .addTranslator(MetadataTypes.ITEM_STACK, OminousItemSpawnerEntity::setItem)
+                    .build();
             SHULKER_BULLET = EntityDefinition.inherited(ProjectileEntity::new, entityBase)
                     .type(EntityType.SHULKER_BULLET)
                     .heightAndWidth(0.3125f)
@@ -438,6 +448,7 @@ public final class EntityDefinitions {
                     .heightAndWidth(0.98f)
                     .offset(0.49f)
                     .addTranslator(MetadataTypes.INT, TNTEntity::setFuseLength)
+                    .addTranslator(null) // Block state id
                     .build();
 
             EntityDefinition<DisplayBaseEntity> displayBase = EntityDefinition.inherited(DisplayBaseEntity::new, entityBase)
@@ -684,7 +695,8 @@ public final class EntityDefinitions {
 
         EntityDefinition<AvatarEntity> avatarEntityBase = EntityDefinition.<AvatarEntity>inherited(null, livingEntityBase)
             .height(1.8f).width(0.6f)
-            .offset(1.62f)
+            // This is the offset sent by Bedrock in its player position. Verified on Bedrock 26.23.
+            .offset(1.62001f)
             .addTranslator(null) // Player main hand
             .addTranslator(MetadataTypes.BYTE, AvatarEntity::setSkinVisibility)
             .build();
@@ -874,6 +886,7 @@ public final class EntityDefinitions {
                     .identifier("minecraft:zombie_villager_v2")
                     .addTranslator(MetadataTypes.BOOLEAN, ZombieVillagerEntity::setTransforming)
                     .addTranslator(MetadataTypes.VILLAGER_DATA, ZombieVillagerEntity::setZombieVillagerData)
+                    .addTranslator(null) // Villager data finalized
                     .build();
             ZOMBIFIED_PIGLIN = EntityDefinition.inherited(ZombifiedPiglinEntity::new, ZOMBIE) //TODO test how zombie entity metadata is handled?
                     .type(EntityType.ZOMBIFIED_PIGLIN)
@@ -900,15 +913,6 @@ public final class EntityDefinitions {
                     .heightAndWidth(1.9975f)
                     .build();
 
-            SLIME = EntityDefinition.inherited(SlimeEntity::new, mobEntityBase)
-                    .type(EntityType.SLIME)
-                    .heightAndWidth(0.51f)
-                    .addTranslator(MetadataTypes.INT, SlimeEntity::setSlimeScale)
-                    .build();
-            MAGMA_CUBE = EntityDefinition.inherited(MagmaCubeEntity::new, SLIME)
-                    .type(EntityType.MAGMA_CUBE)
-                    .build();
-
             EntityDefinition<AbstractFishEntity> abstractFishEntityBase = EntityDefinition.inherited(AbstractFishEntity::new, mobEntityBase)
                     .addTranslator(null) // From bucket
                     .build();
@@ -929,6 +933,7 @@ public final class EntityDefinitions {
             TADPOLE = EntityDefinition.inherited(TadpoleEntity::new, abstractFishEntityBase)
                     .type(EntityType.TADPOLE)
                     .height(0.3f).width(0.4f)
+                    .addTranslator(null) // Age locked
                     .build();
             TROPICAL_FISH = EntityDefinition.inherited(TropicalFishEntity::new, abstractFishEntityBase)
                     .type(EntityType.TROPICAL_FISH)
@@ -1120,12 +1125,26 @@ public final class EntityDefinitions {
             TURTLE = EntityDefinition.inherited(TurtleEntity::new, ageableEntityBase)
                     .type(EntityType.TURTLE)
                     .height(0.4f).width(1.2f)
-                    .addTranslator(null) // Home position
                     .addTranslator(MetadataTypes.BOOLEAN, TurtleEntity::setPregnant)
                     .addTranslator(MetadataTypes.BOOLEAN, TurtleEntity::setLayingEgg)
-                    .addTranslator(null) // Travel position
-                    .addTranslator(null) // Going home
-                    .addTranslator(null) // Travelling
+                    .build();
+
+            // Slime entities
+            EntityDefinition<AbstractCubeEntity> cubeEntityBase = EntityDefinition.inherited(AbstractCubeEntity::new, ageableEntityBase)
+                    .heightAndWidth(0.51f)
+                    .addTranslator(MetadataTypes.INT, AbstractCubeEntity::setCubeScale)
+                    .build();
+
+            SLIME = EntityDefinition.inherited(SlimeEntity::new, cubeEntityBase)
+                    .type(EntityType.SLIME)
+                    .build();
+            MAGMA_CUBE = EntityDefinition.inherited(MagmaCubeEntity::new, cubeEntityBase)
+                    .type(EntityType.MAGMA_CUBE)
+                    .build();
+            SULFUR_CUBE = EntityDefinition.inherited(SulfurCubeEntity::new, cubeEntityBase)
+                    .type(EntityType.SULFUR_CUBE)
+                    .addTranslator(MetadataTypes.INT, SulfurCubeEntity::setMaxFuse)
+                    .addTranslator(null) // From bucket
                     .build();
 
             EntityDefinition<AbstractMerchantEntity> abstractVillagerEntityBase = EntityDefinition.inherited(AbstractMerchantEntity::new, ageableEntityBase)
@@ -1136,6 +1155,7 @@ public final class EntityDefinitions {
                     .height(1.8f).width(0.6f)
                     .identifier("minecraft:villager_v2")
                     .addTranslator(MetadataTypes.VILLAGER_DATA, VillagerEntity::setVillagerData)
+                    .addTranslator(null) // Villager data finalized
                     .build();
             WANDERING_TRADER = EntityDefinition.inherited(abstractVillagerEntityBase.factory(), abstractVillagerEntityBase)
                     .type(EntityType.WANDERING_TRADER)
@@ -1148,8 +1168,6 @@ public final class EntityDefinitions {
             DOLPHIN = EntityDefinition.inherited(DolphinEntity::new, ageableEntityBase)
                 .type(EntityType.DOLPHIN)
                 .height(0.6f).width(0.9f)
-                //TODO check
-                .addTranslator(null) // treasure position
                 .addTranslator(null) // "got fish"
                 .addTranslator(null) // "moistness level"
                 .build();

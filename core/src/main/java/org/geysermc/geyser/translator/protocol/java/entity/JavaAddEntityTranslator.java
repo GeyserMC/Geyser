@@ -62,6 +62,11 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             return;
         }
 
+        Integer removedPlayerVehicleId = session.getPlayerEntity().getRemovedPlayerVehicleId();
+        if (removedPlayerVehicleId != null && removedPlayerVehicleId == packet.getEntityId()) {
+            session.getPlayerEntity().setRemovedPlayerVehicleId(null);
+        }
+
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = packet.getMovement().toFloat();
         float yaw = packet.getYaw();

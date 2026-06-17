@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -202,16 +202,7 @@ public final class AssetUtils {
 
     public static void saveFile(Path location, InputStream fileStream) throws IOException {
         try (OutputStream outStream = Files.newOutputStream(location)) {
-
-            // Write the file to the locale dir
-            byte[] buf = new byte[fileStream.available()];
-            int length;
-            while ((length = fileStream.read(buf)) != -1) {
-                outStream.write(buf, 0, length);
-            }
-
-            // Flush all changes to disk and cleanup
-            outStream.flush();
+            fileStream.transferTo(outStream);
         }
     }
 

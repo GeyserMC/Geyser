@@ -59,15 +59,6 @@ relocate("org.cloudburstmc.netty")
 relocate("org.cloudburstmc.protocol")
 relocate("org.spongepowered.configurate")
 
-fabricApi {
-    configureTests {
-        createSourceSet = true
-        modId = "geyser-gametest"
-        enableClientGameTests = false
-        eula = true
-    }
-}
-
 tasks {
     named<Jar>("mergeShadowAndJarJar") {
         from (
@@ -82,19 +73,6 @@ tasks {
             }
         )
         archiveBaseName.set("Geyser-Fabric")
-    }
-
-    getByName("processGametestResources", ProcessResources::class) {
-        filesMatching("fabric.mod.json") {
-            expand(
-                "id" to "geyser",
-                "name" to "Geyser",
-                "version" to project.version,
-                "description" to project.description!!,
-                "url" to "https://geysermc.org",
-                "author" to "GeyserMC"
-            )
-        }
     }
 }
 

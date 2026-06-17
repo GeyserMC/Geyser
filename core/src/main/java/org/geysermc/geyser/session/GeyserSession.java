@@ -30,6 +30,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.EventLoop;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
@@ -186,6 +187,7 @@ import org.geysermc.geyser.session.cache.WorldBorder;
 import org.geysermc.geyser.session.cache.WorldCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.DialogTag;
+import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 import org.geysermc.geyser.session.cache.waypoint.WaypointCache;
 import org.geysermc.geyser.session.dialog.BuiltInDialog;
 import org.geysermc.geyser.session.dialog.Dialog;
@@ -509,6 +511,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Vector3i lastInteractionBlockPosition = Vector3i.ZERO;
 
+    @Setter
+    private int lastInteractionBlockFace = -1;
+
     /**
      * Stores the Java position of the player the last time they interacted.
      * Used to verify that the player did not move since their last interaction. <br>
@@ -526,19 +531,26 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     /**
      * Stores all Java recipes by ID, and matches them to all possible Bedrock recipe identifiers.
      */
-    private final Int2ObjectMap<List<String>> javaToBedrockRecipeIds;
+    private final Int2ObjectMap<List<String>> javaToBedrockRecipeIds = new Int2ObjectOpenHashMap<>();
 
-    private final Int2ObjectMap<GeyserRecipe> craftingRecipes;
+    private final Int2ObjectMap<GeyserRecipe> craftingRecipes = new Int2ObjectOpenHashMap<>();
     @Setter
     private Pair<CraftingRecipeData, GeyserRecipe> lastCreatedRecipe = null; // TODO try to prevent sending duplicate recipes
     private final AtomicInteger lastRecipeNetId;
+
+    /**
+     * Used to minimize the amount of recipes sent to the client, as the packet is quite heavy
+     * when sent in rapid succession
+     */
+    @Setter
+    private boolean cleanRecipesRequired = true;
 
     /**
      * Saves a list of all stonecutter recipes, for use in a stonecutter inventory.
      * The key is the Bedrock recipe net ID; the values are their respective output and button ID.
      */
     @Setter
-    private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes;
+    private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes = Int2ObjectMaps.emptyMap();
     private final List<GeyserSmithingRecipe> smithingRecipes = new ArrayList<>();
     private final TrimRecipes trimRecipes = new TrimRecipes();
 
@@ -857,8 +869,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.playerInventoryHolder = new InventoryHolder<>(this, new PlayerInventory(this), InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         this.inventoryHolder = null;
-        this.craftingRecipes = new Int2ObjectOpenHashMap<>();
-        this.javaToBedrockRecipeIds = new Int2ObjectOpenHashMap<>();
         this.lastRecipeNetId = new AtomicInteger(InventoryUtils.LAST_RECIPE_NET_ID + 1);
 
         this.spawned = false;
@@ -892,7 +902,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
 
             DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
-            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5 /* Void */));
+            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5, 3));
             upstream.sendPacket(dimensionDataPacket);
         }
 
@@ -970,10 +980,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
         // Recipe unlocking
         gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
-        // We disable the locator bar until we are certain that the server wants us to enable it
-        // See WaypointCache for details
-        gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
-        
+
+        if (!GeyserWaypoint.uses26_10WaypointPacket(this)) {
+            // We disable the locator bar until we are certain that the server wants us to enable it
+            // See WaypointCache for details
+            gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
+        } else {
+            // On bedrock 26.10 and above, the client only shows the locator bar when there are
+            // waypoints on it, so we're fine doing this
+            gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", true));
+        }
+
         upstream.sendPacket(gamerulePacket);
     }
 
@@ -1225,12 +1242,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
             // Remove from session manager
             geyser.getSessionManager().removeSession(this);
-            if (authData != null) {
-                PendingMicrosoftAuthentication.AuthenticationTask task = geyser.getPendingMicrosoftAuthentication().getTask(authData.xuid());
-                if (task != null) {
-                    task.resetRunningFlow();
-                }
-            }
+            // Don't cancel any pending Microsoft auth here - the whole point of PendingMicrosoftAuthentication
+            // is to let mobile users disconnect to finish auth in the browser. Task cleans up on timeout.
         }
 
         if (tickThread != null) {
@@ -1768,7 +1781,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public boolean sendForm(@NonNull Form form) {
         // First close any dialogs that are open. This won't execute the dialog's closing action.
         dialogManager.close();
-        // Also close all currently open forms.
+        return doSendForm(form);
+    }
+
+    /**
+     * Sends a form without first closing any open dialog. This should only be used by {@link org.geysermc.geyser.session.dialog.Dialog}s.
+     */
+    public void sendDialogForm(@NonNull Form form) {
+        doSendForm(form);
+    }
+
+    private boolean doSendForm(@NonNull Form form) {
+        // Close all currently open forms.
         if (formCache.hasFormOpen()) {
             closeForm();
         }
@@ -1790,18 +1814,6 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             formCache.resendAllForms();
         }
 
-        return true;
-    }
-
-    /**
-     * Sends a form without first closing any open dialog. This should only be used by {@link org.geysermc.geyser.session.dialog.Dialog}s.
-     */
-    public void sendDialogForm(@NonNull Form form) {
-        doSendForm(form);
-    }
-
-    private boolean doSendForm(@NonNull Form form) {
-        formCache.showForm(form);
         return true;
     }
 
@@ -1860,7 +1872,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.upstream.getCodecHelper().setBlockDefinitions(this.blockMappings);
         this.upstream.getCodecHelper().setCameraPresetDefinitions(CameraDefinitions.CAMERA_DEFINITIONS);
 
-        if (GameProtocol.is1_26_20orHigher(protocolVersion())) {
+        if (GameProtocol.is26_20orHigher(protocolVersion())) {
             VoxelShapesPacket voxelShapesPacket = new VoxelShapesPacket();
             voxelShapesPacket.setNameMap(new HashMap<>());
             voxelShapesPacket.setShapes(new ArrayList<>());

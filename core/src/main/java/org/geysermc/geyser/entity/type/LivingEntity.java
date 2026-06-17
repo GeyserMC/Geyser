@@ -689,6 +689,9 @@ public class LivingEntity extends Entity implements Tickable {
                         clientVehicle.getVehicleComponent().setMovementEfficiency(AttributeUtils.calculateValue(javaAttribute));
                     }
                 }
+                case FRICTION_MODIFIER -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FRICTION_MODIFIER));
+                case BOUNCINESS -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.BOUNCINESS));
+                case AIR_DRAG_MODIFIER -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.AIR_DRAG_MODIFIER));
             }
         }
     }

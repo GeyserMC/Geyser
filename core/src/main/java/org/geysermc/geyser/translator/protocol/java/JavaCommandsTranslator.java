@@ -310,7 +310,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             case OPERATION -> CommandParam.OPERATOR; // ">=", "==", etc
             case BLOCK_STATE -> ALL_BLOCK_NAMES.get();
             case ITEM_STACK -> context.getItemNames();
-            case COLOR -> VALID_COLORS;
+            case TEAM_COLOR -> VALID_COLORS;
             case SCOREBOARD_SLOT -> VALID_SCOREBOARD_SLOTS;
             case RESOURCE -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), false);
             case RESOURCE_OR_TAG -> handleResource(context, ((ResourceProperties) node.getProperties()).getRegistryKey(), true);
