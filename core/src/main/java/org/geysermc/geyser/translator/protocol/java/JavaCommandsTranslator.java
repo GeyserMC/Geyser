@@ -109,9 +109,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
     };
 
     static {
-        List<String> validColors = new ArrayList<>(NamedTextColor.NAMES.keys());
-        validColors.add("reset");
-        VALID_COLORS = validColors.toArray(new String[0]);
+        VALID_COLORS = NamedTextColor.NAMES.keys().toArray(new String[0]);
 
         List<String> teamOptions = new ArrayList<>(Arrays.asList("list", "sidebar", "belowName"));
         for (String color : NamedTextColor.NAMES.keys()) {
