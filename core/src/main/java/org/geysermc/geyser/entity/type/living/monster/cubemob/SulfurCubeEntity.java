@@ -30,9 +30,9 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
-import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.properties.type.StringEnumProperty;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
@@ -51,7 +51,7 @@ public class SulfurCubeEntity extends AbstractCubeEntity {
     private static final List<String> BEDROCK_ARCHETYPES = new ArrayList<>();
 
     public static StringEnumProperty SULFUR_CUBE_ARCHETYPE_PROPERTY = new StringEnumProperty(
-        Identifier.of("minecraft", "sulfur_cube_archetype"), BEDROCK_ARCHETYPES, 0
+        IdentifierImpl.of("minecraft", "sulfur_cube_archetype"), BEDROCK_ARCHETYPES, 0
     );
 
     private int previousFuseTickTime = -1;
