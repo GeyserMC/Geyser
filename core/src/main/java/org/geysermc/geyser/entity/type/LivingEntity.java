@@ -235,7 +235,7 @@ public class LivingEntity extends Entity implements Tickable {
         boolean isUsingShield = hasShield(isUsingOffhand);
         boolean isUsingEnderEye = hasEnderEye(isUsingOffhand);
 
-        // We can't check for shield since we're not actually using it.
+        // We can't check for shield since the player is sneaking and not actually using it on their side.
         // For ender eye, it's not consider a consumable item on bedrock, so the player never sends release item use so USING_ITEM flags are always true
         // until you switch item, therefore we ignore it. Resolve https://github.com/GeyserMC/Geyser/issues/6316
 
