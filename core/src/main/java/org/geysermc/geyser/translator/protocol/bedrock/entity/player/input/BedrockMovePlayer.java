@@ -155,7 +155,7 @@ final class BedrockMovePlayer {
             session.setNoClip(!possibleOnGround);
         }
 
-        session.getWorldBorder().moveWorldBorderCollision(packet.getPosition().down(EntityDefinitions.PLAYER.offset()));
+        session.getWorldBorder().spawnOrMoveBorderCollision(packet.getPosition().down(EntityDefinitions.PLAYER.offset()));
 
         // This takes into account no movement sent from the client, but the player is trying to move anyway.
         // (Press into a wall in a corner - you're trying to move but nothing actually happens)
