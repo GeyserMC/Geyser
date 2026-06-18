@@ -201,6 +201,17 @@ public class SessionPlayerEntity extends PlayerEntity {
         this.position = position;
     }
 
+    @Override
+    public void updateHeadLookRotation(float headYaw) {
+        // We can't rotate the player head while they're riding a vehicle, since that will cause them to dismount.
+        if (this.vehicle != null) {
+            setHeadYaw(headYaw);
+            return;
+        }
+
+        super.updateHeadLookRotation(headYaw);
+    }
+
     /**
      * Special method used only when updating the session player's rotation.
      * For some reason, Mode#NORMAL ignored rotation. Yay.
@@ -212,6 +223,11 @@ public class SessionPlayerEntity extends PlayerEntity {
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
+
+        // We can't rotate the player head while they're riding a vehicle, since that will cause them to dismount.
+        if (this.vehicle != null) {
+            return;
+        }
         
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
