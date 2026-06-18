@@ -237,7 +237,7 @@ public class LivingEntity extends Entity implements Tickable {
 
         // We can't check for shield since we're not actually using it.
         // For ender eye, it's not consider a consumable item on bedrock, so the player never sends release item use so USING_ITEM flags are always true
-        // until you switch item, therefore we ignore it.
+        // until you switch item, therefore we ignore it. Resolve https://github.com/GeyserMC/Geyser/issues/6316
 
         setFlag(EntityFlag.USING_ITEM, isUsingItem && !isUsingShield && !isUsingEnderEye);
         // Override the blocking
