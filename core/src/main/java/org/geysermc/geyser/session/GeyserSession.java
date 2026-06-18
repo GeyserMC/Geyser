@@ -1540,16 +1540,18 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return false;
         }
 
+        boolean offHand = false;
         if (playerInventoryHolder.inventory().getItemInHand().is(Items.SHIELD)) {
             useItem(Hand.MAIN_HAND);
         } else if (playerInventoryHolder.inventory().getOffhand().is(Items.SHIELD)) {
             useItem(Hand.OFF_HAND);
+            offHand = true;
         } else {
             // No blocking
             return false;
         }
 
-        playerEntity.setFlag(EntityFlag.BLOCKING, true);
+        playerEntity.setFlag(EntityFlag.BLOCKING, offHand ? !worldCache.hasCooldown(playerInventoryHolder.inventory().getOffhand()) : !worldCache.hasCooldown(playerInventoryHolder.inventory().getItemInHand()));
         // Metadata should be updated later
         return true;
     }
