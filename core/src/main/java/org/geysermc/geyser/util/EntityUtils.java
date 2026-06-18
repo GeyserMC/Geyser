@@ -44,6 +44,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
+import org.geysermc.geyser.entity.CustomBedrockEntityDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.properties.type.BooleanProperty;
@@ -377,7 +378,7 @@ public final class EntityUtils {
 
     public static void callEntityEvents() {
         // entities would be initialized before these events are called
-        List<BedrockEntityDefinition> customEntities = new ArrayList<>();
+        List<CustomBedrockEntityDefinition> customEntities = new ArrayList<>();
         GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntitiesEvent() {
 
             @Override
@@ -393,14 +394,11 @@ public final class EntityUtils {
             @Override
             public void register(@NonNull CustomEntityDefinition entityDefinition) {
                 Objects.requireNonNull(entityDefinition);
-                if (!(entityDefinition instanceof BedrockEntityDefinition bedrockEntityDefinition)) {
-                    throw new IllegalArgumentException("EntityDefinition must not be a custom implementation of BedrockEntityDefinition! Found " + entityDefinition.getClass().getSimpleName());
+                if (!(entityDefinition instanceof CustomBedrockEntityDefinition bedrockEntityDefinition)) {
+                    throw new IllegalArgumentException("Only CustomBedrockEntityDefinition instances may be registered. Use CustomEntityDefinition.of() to create one. Found: " + entityDefinition.getClass().getSimpleName());
                 }
                 if (entityDefinition.registered()) {
-                    throw new IllegalStateException("Duplicate custom entity definition: " + entityDefinition);
-                }
-                if (bedrockEntityDefinition.vanilla()) {
-                    throw new IllegalStateException("Cannot register entity in vanilla namespace! " + bedrockEntityDefinition.identifier());
+                    throw new IllegalStateException("Duplicate custom entity definition: " + entityDefinition.identifier());
                 }
                 Registries.BEDROCK_ENTITY_DEFINITIONS.register(bedrockEntityDefinition.identifier(), bedrockEntityDefinition);
                 customEntities.add(bedrockEntityDefinition);

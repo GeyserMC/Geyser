@@ -78,6 +78,7 @@ import org.geysermc.geyser.api.predicate.item.TrimMaterialPredicate;
 import org.geysermc.geyser.api.util.Holders;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
+import org.geysermc.geyser.entity.CustomBedrockEntityDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
@@ -212,14 +213,13 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(CameraPosition.Builder.class, args -> new GeyserCameraPosition.Builder());
 
         // entities
-        providers.put(GeyserEntityDefinition.class, args -> BedrockEntityDefinition.getOrCreate((Identifier) args[0]));
-        providers.put(CustomEntityDefinition.class, args -> BedrockEntityDefinition.getOrCreate((Identifier) args[0]));
+        providers.put(GeyserEntityDefinition.class, args -> BedrockEntityDefinition.getVanilla((Identifier) args[0]));
+        providers.put(CustomEntityDefinition.class, args -> CustomBedrockEntityDefinition.getOrCreate((Identifier) args[0]));
         providers.put(JavaEntityType.class, args -> GeyserEntityType.ofVanilla((Identifier) args[0]));
         providers.put(GeyserEntityDataType.class, args -> GeyserEntityDataImpl.lookup((Class<?>) args[0], (String) args[1]));
         providers.put(GeyserListEntityDataType.class, args -> GeyserListEntityDataImpl.lookup((Class<?>) args[0], (Class<?>) args[1], (String) args[2]));
 
         providers.put(Hitbox.Builder.class, args -> new HitboxImpl.BuilderImpl());
-        providers.put(Hitbox.class, args -> HitboxImpl.EMPTY);
 
         return providers;
     }

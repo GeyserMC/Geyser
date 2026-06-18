@@ -27,6 +27,7 @@ package org.geysermc.geyser.api.entity.data;
 
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * Represents a type of entity data that can be sent for an entity.
@@ -62,8 +63,9 @@ public interface GeyserEntityDataType<T> {
     String name();
 
     /**
-     * For API usage only; use the types defined in {@link GeyserEntityDataTypes}
+     * For internal use only. API consumers should use the constants in {@link GeyserEntityDataTypes}.
      */
+    @ApiStatus.Internal
     static <T> GeyserEntityDataType<T> of(Class<T> typeClass, String name) {
         return GeyserApi.api().provider(GeyserEntityDataType.class, typeClass, name);
     }

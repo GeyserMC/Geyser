@@ -46,8 +46,9 @@ import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -165,9 +166,10 @@ public class EntitySpawnContext {
             }
 
             @Override
-            public void preSpawnConsumer(Consumer<@NonNull GeyserEntity> consumer) {
+            public void preSpawnConsumer(@NonNull Consumer<@NonNull GeyserEntity> consumer) {
+                Objects.requireNonNull(consumer, "consumer cannot be null!");
                 if (consumers == null) {
-                    consumers = new HashSet<>();
+                    consumers = new ArrayList<>();
                 }
                 consumers.add(consumer);
             }
@@ -233,9 +235,10 @@ public class EntitySpawnContext {
             }
 
             @Override
-            public void preSpawnConsumer(Consumer<@NonNull GeyserEntity> consumer) {
+            public void preSpawnConsumer(@NonNull Consumer<@NonNull GeyserEntity> consumer) {
+                Objects.requireNonNull(consumer, "consumer cannot be null!");
                 if (consumers == null) {
-                    consumers = new HashSet<>();
+                    consumers = new ArrayList<>();
                 }
                 consumers.add(consumer);
             }

@@ -54,14 +54,11 @@ public record HitboxImpl(Vector3f min, Vector3f max, Vector3f pivot) implements 
                 Vector3f.from(hitbox.getFloat("PivotX"), hitbox.getFloat("PivotY"), hitbox.getFloat("PivotZ"))
             ));
         }
+        // TODO test empty hitbox reading.. should be parsed to empty list
         return boxes;
     }
 
     public static NbtMap toNbtMap(Hitbox hitbox) {
-        if (Objects.equals(EMPTY, hitbox)) {
-            return NbtMap.EMPTY;
-        }
-
         return NbtMap.builder()
             .putFloat("MinX", hitbox.min().getX())
             .putFloat("MinY", hitbox.min().getY())
@@ -79,6 +76,9 @@ public record HitboxImpl(Vector3f min, Vector3f max, Vector3f pivot) implements 
         List<NbtMap> list = new ArrayList<>();
         for (Hitbox hitbox : hitboxes) {
             list.add(toNbtMap(hitbox));
+        }
+        if (list.isEmpty()) {
+            list.add(NbtMap.EMPTY);
         }
         return NbtMap.builder().putList("Hitboxes", NbtType.COMPOUND, list).build();
     }

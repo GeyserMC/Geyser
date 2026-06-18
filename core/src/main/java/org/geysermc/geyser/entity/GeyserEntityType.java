@@ -55,7 +55,7 @@ public record GeyserEntityType(Identifier identifier, EntityType mcpl) implement
 
     @Override
     public boolean vanilla() {
-        return VANILLA.containsValue(this);
+        return mcpl != null;
     }
 
     @Override
@@ -93,9 +93,6 @@ public record GeyserEntityType(Identifier identifier, EntityType mcpl) implement
         return VANILLA.computeIfAbsent(builtin, GeyserEntityType::new);
     }
 
-    /**
-     * @throws IllegalArgumentException document this in API
-     */
     public static GeyserEntityType ofVanilla(Identifier javaIdentifier) {
         return ofVanilla(EntityType.valueOf(javaIdentifier.path().toUpperCase(Locale.ROOT)));
     }

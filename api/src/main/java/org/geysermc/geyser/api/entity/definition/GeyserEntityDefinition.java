@@ -34,12 +34,14 @@ import org.geysermc.geyser.api.util.Identifier;
 import java.util.List;
 
 /**
- * Represents a Bedrock entity definition registered in the {@link GeyserDefineEntitiesEvent}
+ * Represents a Bedrock entity definition registered in the {@link GeyserDefineEntitiesEvent}.
  * @since 2.11.0
  */
 public interface GeyserEntityDefinition {
 
     /**
+     * This entity's identifier as it's known to Bedrock clients and used in resource packs.
+     * See <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/introductiontoaddentity?view=minecraft-bedrock-stable#naming">the official docs for further information</a>
      * @return the Bedrock entity identifier
      * @since 2.11.0
      */
@@ -61,16 +63,21 @@ public interface GeyserEntityDefinition {
     boolean vanilla();
 
     /**
-     * @return whether this definition has been registered
+     * Returns whether this definition is currently registered via {@link GeyserDefineEntitiesEvent}.
+     * Unregistered definitions cannot be sent to Bedrock clients!
+     *
+     * @return whether this definition is registered
      * @since 2.11.0
      */
     boolean registered();
 
     /**
-     * Creates or retrieves a GeyserEntityDefinition by the Bedrock entity type identifier.
+     * Retrieves a registered {@link GeyserEntityDefinition} by its Bedrock entity type identifier,
+     * or returns a new unregistered definition if none is found.
      *
      * @param identifier the Bedrock entity identifier
-     * @return the GeyserEntityDefinition
+     * @return the GeyserEntityDefinition for the given identifier
+     * @since 2.11.0
      */
     static GeyserEntityDefinition of(Identifier identifier) {
         return GeyserApi.api().provider(GeyserEntityDefinition.class, identifier);

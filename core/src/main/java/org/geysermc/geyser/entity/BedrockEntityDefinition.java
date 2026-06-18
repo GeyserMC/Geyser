@@ -29,7 +29,6 @@ import lombok.AccessLevel;
 import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.util.Identifier;
@@ -39,31 +38,42 @@ import org.geysermc.geyser.registry.Registries;
 import java.util.List;
 import java.util.Objects;
 
-public record BedrockEntityDefinition(
-    @NonNull Identifier identifier,
-    @NonNull GeyserEntityProperties registeredProperties
-) implements GeyserEntityDefinition, CustomEntityDefinition {
+public class BedrockEntityDefinition implements GeyserEntityDefinition {
+
+    private final Identifier identifier;
+    private final GeyserEntityProperties registeredProperties;
+
+    protected BedrockEntityDefinition(@NonNull Identifier identifier, @NonNull GeyserEntityProperties registeredProperties) {
+        this.identifier = Objects.requireNonNull(identifier, "identifier");
+        this.registeredProperties = Objects.requireNonNull(registeredProperties, "registeredProperties");
+    }
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public static BedrockEntityDefinition ofVanilla(Identifier identifier) {
+    static BedrockEntityDefinition ofVanilla(Identifier identifier) {
         BedrockEntityDefinition bedrockEntityDefinition = builder().identifier(identifier).build();
         Registries.BEDROCK_ENTITY_DEFINITIONS.register(identifier, bedrockEntityDefinition);
         return bedrockEntityDefinition;
     }
 
-    public static BedrockEntityDefinition getOrCreate(@NonNull Identifier identifier) {
+    public static BedrockEntityDefinition getVanilla(@NonNull Identifier identifier) {
         Objects.requireNonNull(identifier, "identifier");
-        if (Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(identifier)) {
-            return Registries.BEDROCK_ENTITY_DEFINITIONS.get().get(identifier);
+        BedrockEntityDefinition existing = Registries.BEDROCK_ENTITY_DEFINITIONS.get().get(identifier);
+        if (existing == null || existing instanceof CustomBedrockEntityDefinition) {
+            throw new IllegalArgumentException("Unknown vanilla Bedrock entity definition: " + identifier);
         }
+        return existing;
+    }
 
-        if (identifier.vanilla()) {
-            throw new IllegalArgumentException("Cannot create custom entity in vanilla namespace! " + identifier);
-        }
-        return builder().identifier(identifier).build();
+    @Override
+    public @NonNull Identifier identifier() {
+        return identifier;
+    }
+
+    public @NonNull GeyserEntityProperties registeredProperties() {
+        return registeredProperties;
     }
 
     @Override
@@ -82,6 +92,23 @@ public record BedrockEntityDefinition(
     @Override
     public boolean registered() {
         return Registries.BEDROCK_ENTITY_DEFINITIONS.get().containsKey(identifier);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BedrockEntityDefinition that)) return false;
+        return identifier.equals(that.identifier) && registeredProperties.equals(that.registeredProperties);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(identifier, registeredProperties);
+    }
+
+    @Override
+    public String toString() {
+        return "BedrockEntityDefinition[identifier=" + identifier + ", registeredProperties=" + registeredProperties + "]";
     }
 
     public static class Builder {

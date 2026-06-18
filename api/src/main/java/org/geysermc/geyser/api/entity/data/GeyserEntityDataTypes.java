@@ -32,6 +32,9 @@ import org.geysermc.geyser.api.entity.data.types.Hitbox;
  * Contains {@link GeyserEntityDataType} types which can be used to change the
  * current value stored for a specific entity data type.
  *
+ * TODO: Document
+ * https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_color?view=minecraft-bedrock-stable
+ *
  * @since 2.11.0
  */
 public final class GeyserEntityDataTypes {

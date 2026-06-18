@@ -26,6 +26,7 @@
 package org.geysermc.geyser.api.entity.data;
 
 import org.geysermc.geyser.api.GeyserApi;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
 
@@ -45,10 +46,11 @@ public interface GeyserListEntityDataType<T> extends GeyserEntityDataType<List<T
     Class<T> listEntryClass();
 
     /**
-     * API usage only, use the types defined in {@link GeyserEntityDataTypes}
+     * For internal use only. API consumers should use the constants in {@link GeyserEntityDataTypes}.
      *
      * @since 2.11.0
      */
+    @ApiStatus.Internal
     static <T> GeyserListEntityDataType<T> of(Class<T> typeClass, String name) {
         return GeyserApi.api().provider(GeyserListEntityDataType.class, List.class, typeClass, name);
     }

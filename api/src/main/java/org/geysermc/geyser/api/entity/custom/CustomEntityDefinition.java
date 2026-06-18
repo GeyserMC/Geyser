@@ -27,10 +27,15 @@ package org.geysermc.geyser.api.entity.custom;
 
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
+import org.geysermc.geyser.api.event.java.ServerAttachParrotsEvent;
+import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
 import org.geysermc.geyser.api.util.Identifier;
 
 /**
- * Represents a custom entity definition for a custom Bedrock entity.
+ * Represents a Bedrock entity definition for a custom entity.
+ * These cannot be in the {@code minecraft} namespace, and have to be manually
+ * spawned using either the {@link ServerSpawnEntityEvent} or {@link ServerAttachParrotsEvent}.
+ *
  * @since 2.11.0
  */
 public interface CustomEntityDefinition extends GeyserEntityDefinition {
@@ -52,16 +57,19 @@ public interface CustomEntityDefinition extends GeyserEntityDefinition {
      */
     static CustomEntityDefinition of(Identifier identifier) {
         if (identifier.vanilla()) {
-            throw new IllegalArgumentException("Use GeyserEntityDefinition#of for vanilla entity lookups!");
+            throw new IllegalArgumentException(
+                "Custom entity identifiers cannot use the 'minecraft' namespace. "
+                    + "Use a non-vanilla namespace, e.g. 'mymod:my_entity'.");
         }
         return GeyserApi.api().provider(CustomEntityDefinition.class, identifier);
     }
 
     /**
-     * Creates or retrieves a GeyserEntityDefinition by the Bedrock entity type identifier.
+     * Creates or retrieves a {@link CustomEntityDefinition} by the Bedrock entity type identifier.
+     * The identifier must not use the {@code minecraft} namespace.
      *
-     * @param identifier the Bedrock entity identifier, in string format
-     * @return customEntityDefinition
+     * @param identifier the Bedrock entity identifier, in {@code namespace:path} format
+     * @return the custom entity definition
      * @since 2.11.0
      */
     static CustomEntityDefinition of(String identifier) {

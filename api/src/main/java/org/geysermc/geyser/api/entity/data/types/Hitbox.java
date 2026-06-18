@@ -37,13 +37,6 @@ import org.geysermc.geyser.api.GeyserApi;
 public interface Hitbox {
 
     /**
-     * Represents an empty / disabled hitbox.
-     *
-     * @since 2.11.0
-     */
-    Hitbox EMPTY = GeyserApi.api().provider(Hitbox.class, true);
-
-    /**
      * The min "corner" of the hitbox
      *
      * @return the vector of the corner

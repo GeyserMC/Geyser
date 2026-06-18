@@ -916,8 +916,8 @@ public class Entity implements GeyserEntity {
         });
     }
 
-    public void offset(float offset, boolean teleport) {
-        setOffset(offset);
+    public void offset(@Nullable Float offset, boolean teleport) {
+        setOffset(offset == null ? javaDefinition.offset() : offset);
         // TODO queue
         if (isValid() && teleport) {
             this.moveRelativeRaw(0, 0, 0, 0, 0, 0, isOnGround());

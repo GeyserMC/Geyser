@@ -42,10 +42,12 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 /**
- * Represents a unique instance of an entity. Each {@link GeyserConnection}
- * have their own sets of entities - no two instances will share the same GeyserEntity instance.
+ * Represents a unique entity instance as seen by a specific {@link GeyserConnection}.
+ * Each connection maintains its own set of entity objects; no two connections share the same
+ * {@code GeyserEntity} instance.
  */
 public interface GeyserEntity {
+
     /**
      * @return the entity ID that the server has assigned to this entity, or 0 if none is present
      */
@@ -62,7 +64,7 @@ public interface GeyserEntity {
     long geyserId();
 
     /**
-     * @return the entity uuid that the server has assigned to this entity,
+     * @return the entity UUID that the server has assigned to this entity,
      * or null if this entity isn't known to the Java server
      * @since 2.11.0
      */
@@ -78,10 +80,10 @@ public interface GeyserEntity {
     GeyserEntityDefinition definition();
 
     /**
-     * The position of this entity, without the Bedrock edition offset
-     * defined in the Bedrock entity definition.
+     * The position of this entity as reported by the Java server, without any Bedrock vertical
+     * offset applied.
      *
-     * @return the position of the entity, as it is known to the Java server.
+     * @return the position of the entity as known to the Java server
      * @since 2.11.0
      */
     Vector3f position();
@@ -89,48 +91,50 @@ public interface GeyserEntity {
     /**
      * The vehicle this entity is currently mounted on.
      *
-     * @return the vehicle of this entity or null if missing
+     * @return the vehicle of this entity, or {@code null} if this entity is not a passenger
      * @since 2.11.0
      */
     @Nullable
     GeyserEntity vehicle();
 
     /**
-     * The passengers riding on this entity.
+     * The passengers currently riding this entity.
      *
-     * @return the passengers of this entity, or empty if this entity has no passengers
+     * @return an immutable snapshot of this entity's passengers, or an empty list if none
      * @since 2.11.0
      */
     List<GeyserEntity> passengers();
 
     /**
-     * Queries the current value of a given {@link GeyserEntityDataType}.
+     * Reads the current value of a given {@link GeyserEntityDataType}.
      *
      * @see GeyserEntityDataTypes
      * @param dataType the entity data type to query
-     * @return the current value, or null if not set
      * @param <T> the type of the value
+     * @return the current value, or {@code null} if no override has been set
      * @since 2.11.0
      */
     <T> @Nullable T value(GeyserEntityDataType<T> dataType);
 
     /**
-     * Updates an entity property with a new value.
-     * If the new value is null, the property is reset to the default value.
+     * Overrides an entity data value for this entity.
+     * If {@code value} is {@code null}, the override is cleared and the default value
+     * (from the Java server or entity type definition) is restored.
      *
-     * @param dataType an entity data type, such as from {@link GeyserEntityDataTypes}
-     * @param value the new property value or null to reset the custom override
+     * @param dataType an entity data type, such as a constant from {@link GeyserEntityDataTypes}
+     * @param value the new value, or {@code null} to reset the override
      * @param <T> the type of the value
      * @since 2.11.0
      */
      <T> void update(GeyserEntityDataType<T> dataType, @Nullable T value);
 
     /**
-     * Updates an entity property with a new value.
-     * If the new value is null, the property is reset to the default value.
+     * Convenience method to update a single entity property.
+     * Equivalent to {@link #updatePropertiesBatched(Consumer, boolean) updatePropertiesBatched}
+     * with a single-property consumer and {@code immediate = false}.
      *
      * @param property a {@link GeyserEntityProperty} registered for this type in the {@link GeyserDefineEntityPropertiesEvent}
-     * @param value the new property value or null
+     * @param value the new property value, or {@code null} to reset
      * @param <T> the type of the value
      * @since 2.9.0
      */
@@ -139,20 +143,23 @@ public interface GeyserEntity {
     }
 
     /**
-     * @deprecated - use {@link #updateProperty(GeyserEntityProperty, Object)} instead
+     * @deprecated use {@link #updateProperty(GeyserEntityProperty, Object)} instead
+     * @since 2.9.0
      */
-    @Deprecated
+    @Deprecated(since = "2.11.0")
     default void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer) {
         this.updatePropertiesBatched(consumer, false);
     }
 
     /**
-     * Updates multiple properties with just one update packet, which can be sent immediately to the client.
-     * Usually, sending updates immediately is not required except for specific situations where packet batching
-     * would result in update order issues.
+     * Updates multiple entity properties with a single update, optionally sending it immediately.
+     * <p>
+     * Usually, sending immediately is unnecessary; batched updates are flushed once per tick.
+     * Pass {@code immediate = true} only when packet ordering requires the properties to be
+     * applied before the next tick (e.g., to avoid a visual flicker on the client).
      *
-     * @param consumer a batch updater
-     * @param immediate whether this update should be sent immediately
+     * @param consumer a {@link BatchPropertyUpdater} callback that applies one or more property changes
+     * @param immediate {@code true} to send the packet immediately rather than at the next tick
      * @see BatchPropertyUpdater
      * @since 2.9.1
      */

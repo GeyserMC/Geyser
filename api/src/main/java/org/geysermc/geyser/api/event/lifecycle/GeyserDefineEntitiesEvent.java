@@ -28,33 +28,49 @@ package org.geysermc.geyser.api.event.lifecycle;
 import org.geysermc.event.Event;
 import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
+import org.geysermc.geyser.api.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Collection;
 
 /**
- * Called when entities are defined within Geyser.
+ * Called once during Geyser startup to allow users to register custom Bedrock entity types.
  * <p>
- * This event can be used to add custom entities to Geyser.
+ * All {@link CustomEntityDefinition}'s must be registered in this event before being used!
+ * <p>
+ * To register a custom entity, create a definition with {@link CustomEntityDefinition#of(Identifier)}
+ * and pass it to {@link #register(CustomEntityDefinition)}. Additional Bedrock entity properties
+ * can be registered in the subsequent {@link GeyserDefineEntityPropertiesEvent}.
  *
  * @since 2.11.0
  */
+@ApiStatus.NonExtendable
 public interface GeyserDefineEntitiesEvent extends Event {
 
     /**
-     * @return an immutable collection of all registered entity definitions
+     * Returns an immutable view of all currently registered Bedrock entity definitions,
+     * including both vanilla and any custom definitions registered so far in this event.
+     *
+     * @return immutable collection of all registered entity definitions
      * @since 2.11.0
      */
     Collection<GeyserEntityDefinition> entities();
 
     /**
-     * @return an immutable collection of all registered custom entity definitions
+     * Returns an immutable view of all custom entity definitions registered so far.
+     *
+     * @return immutable collection of registered custom entity definitions
      * @since 2.11.0
      */
     Collection<CustomEntityDefinition> customEntities();
 
     /**
-     * Registers a custom entity definition
-     * @param definition the custom entity definition to register
+     * Registers a custom entity definition. Using the same identifier twice in different definitions
+     * or providing a definition in the vanilla namespace will throw an exception.
+     *
+     * @param definition the custom entity definition to register; must not be null
+     * @throws IllegalArgumentException if {@code definition} was not created via {@link CustomEntityDefinition#of}
+     * @throws IllegalStateException if the identifier has already been registered
      * @since 2.11.0
      */
     void register(CustomEntityDefinition definition);

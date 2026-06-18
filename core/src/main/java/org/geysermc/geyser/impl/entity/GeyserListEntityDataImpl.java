@@ -27,11 +27,13 @@ package org.geysermc.geyser.impl.entity;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.geysermc.geyser.api.entity.data.GeyserListEntityDataType;
 import org.geysermc.geyser.api.entity.data.types.Hitbox;
 import org.geysermc.geyser.entity.type.Entity;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,19 +42,20 @@ import java.util.function.Function;
 
 public class GeyserListEntityDataImpl<ListType> extends GeyserEntityDataImpl<List<ListType>> implements GeyserListEntityDataType<ListType> {
 
-    public static Map<String, GeyserListEntityDataImpl<?>> TYPES;
+    public static final Map<String, GeyserListEntityDataImpl<?>> TYPES;
     static {
-        TYPES = new Object2ObjectOpenHashMap<>();
-        TYPES.put("hitboxes", new GeyserListEntityDataImpl<>(Hitbox.class, "hitboxes",
+        Map<String, GeyserListEntityDataImpl<?>> types = new Object2ObjectOpenHashMap<>();
+        types.put("hitboxes", new GeyserListEntityDataImpl<>(Hitbox.class, "hitboxes",
             (entity, hitboxes) -> entity.getDirtyMetadata().updateOverride(EntityDataTypes.HITBOX, HitboxImpl.toNbtMap(hitboxes)),
-            (entity -> HitboxImpl.fromMetaData(entity.getDirtyMetadata().value(EntityDataTypes.HITBOX)))));
+            (entity -> HitboxImpl.fromMetaData(entity.getDirtyMetadata().value(EntityDataTypes.HITBOX))), EntityDataTypes.HITBOX));
+        TYPES = Collections.unmodifiableMap(types);
     }
 
     private final Class<ListType> listTypeClass;
 
-    public GeyserListEntityDataImpl(Class<ListType> typeClass, String name, BiConsumer<Entity, List<ListType>> consumer, Function<Entity, List<ListType>> getter) {
+    public GeyserListEntityDataImpl(Class<ListType> typeClass, String name, BiConsumer<Entity, List<ListType>> consumer, Function<Entity, List<ListType>> getter, EntityDataType<?> type) {
         //noinspection unchecked - we do not talk about it
-        super((Class<List<ListType>>) (Class<?>) List.class, name, consumer, getter);
+        super((Class<List<ListType>>) (Class<?>) List.class, name, consumer, getter, type);
         this.listTypeClass = typeClass;
     }
 

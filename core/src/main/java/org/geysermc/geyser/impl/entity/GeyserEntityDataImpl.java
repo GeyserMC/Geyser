@@ -31,7 +31,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
 import org.geysermc.geyser.entity.type.Entity;
 
@@ -80,7 +79,7 @@ public class GeyserEntityDataImpl<T> implements GeyserEntityDataType<T> {
     private final BiConsumer<Entity, T> consumer;
     private final Function<Entity, T> getter;
 
-    public GeyserEntityDataImpl(Class<T> typeClass, String name, EntityDataType<T> type) {
+    GeyserEntityDataImpl(Class<T> typeClass, String name, EntityDataType<T> type) {
         this.typeClass = typeClass;
         this.name = name;
         this.consumer = (entity, data) -> entity.getDirtyMetadata().updateOverride(type, data);
@@ -88,16 +87,12 @@ public class GeyserEntityDataImpl<T> implements GeyserEntityDataType<T> {
         TRACKED_ENTITY_DATA.add(type);
     }
 
-    public GeyserEntityDataImpl(Class<T> typeClass, String name, EntityFlag flag) {
+    GeyserEntityDataImpl(Class<T> typeClass, String name, BiConsumer<Entity, T> consumer, Function<Entity, T> getter, EntityDataType<?> type) {
         this.typeClass = typeClass;
         this.name = name;
-        this.consumer = (entity, data) -> {
-            if (!(data instanceof Boolean bool)) {
-                throw new RuntimeException("Invalid data type: " + data.getClass().getName());
-            }
-            entity.setFlag(flag, bool);
-        };
-        this.getter = entity -> typeClass.cast(entity.getFlag(flag));
+        this.consumer = consumer;
+        this.getter = getter;
+        TRACKED_ENTITY_DATA.add(type);
     }
 
     @Override

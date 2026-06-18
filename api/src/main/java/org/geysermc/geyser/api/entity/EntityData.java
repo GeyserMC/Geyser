@@ -35,38 +35,44 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * This class holds all the methods that relate to entities.
- * Can be accessed through {@link GeyserConnection#entities()}.
+ * Provides entity lookup and input-lock utilities for a specific connection.
+ * Accessible via {@link GeyserConnection#entities()}.
  */
 public interface EntityData {
 
     /**
      * @deprecated use {@link #byJavaId(int)}
+     * @since 2.3.0
      */
-    @Deprecated
+    @Deprecated(since = "2.11.0")
     CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
 
     /**
-     * Returns a {@link GeyserEntity} to e.g. make them play an emote.
+     * Returns the {@link GeyserEntity} for the given Java entity ID if it is tracked
+     * in this connection's entity cache, or {@code null} if not found.
      *
      * @param javaId the Java entity ID to look up
-     * @return a {@link GeyserEntity} if present in this connection's entity tracker
+     * @return the entity, or {@code null} if not found
      * @since 2.11.0
      */
     @Nullable GeyserEntity byJavaId(@NonNegative int javaId);
 
     /**
-     * Returns a {@link GeyserEntity} to e.g. update entity properties.
+     * Returns the {@link GeyserEntity} for the given Java entity UUID if it is tracked
+     * in this connection's entity cache, or {@code null} if not found.
      *
-     * @return the looked-up entity, or null if not found
+     * @param javaUuid the Java entity UUID to look up
+     * @return the entity, or {@code null} if not found
      * @since 2.11.0
      */
     @Nullable GeyserEntity byUuid(UUID javaUuid);
 
     /**
-     * Returns a {@link GeyserEntity} based on a Geyser entity id.
+     * Returns the {@link GeyserEntity} for the given Geyser runtime entity ID if it is tracked
+     * in this connection's entity cache, or {@code null} if not found.
      *
-     * @return the looked-up entity, or null if not found
+     * @param geyserId the Geyser entity ID (as returned by {@link GeyserEntity#geyserId()})
+     * @return the entity, or {@code null} if not found
      * @since 2.11.0
      */
     @Nullable GeyserEntity byGeyserId(@NonNegative long geyserId);
@@ -102,7 +108,7 @@ public interface EntityData {
     void showEmote(GeyserPlayerEntity emoter, String emoteId);
 
     /**
-     * @deprecated Use {@link GeyserConnection#playerEntity} instead.
+     * @deprecated Use {@link GeyserConnection#playerEntity()} instead.
      */
     @Deprecated(since = "2.9.3")
     GeyserPlayerEntity playerEntity();
