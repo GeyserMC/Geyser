@@ -170,7 +170,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 case MISSED_SWING -> {
                     session.setLastAirHitTick(session.getTicks());
 
-                    if (session.getArmAnimationTicks() != 0 && session.getArmAnimationTicks() != 1) {
+                    if (session.getArmAnimationTicks() != 0 && session.getArmAnimationTicks() != 1 && session.getGameMode() != GameMode.SPECTATOR) {
                         session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
                         session.activateArmAnimationTicking();
                     }
