@@ -233,8 +233,13 @@ public class LivingEntity extends Entity implements Tickable {
         boolean isUsingOffhand = (xd & 0x02) == 0x02;
 
         boolean isUsingShield = hasShield(isUsingOffhand);
+        boolean isUsingEnderEye = hasEnderEye(isUsingOffhand);
 
-        setFlag(EntityFlag.USING_ITEM, isUsingItem && !isUsingShield);
+        // We can't check for shield since we're not actually using it.
+        // For ender eye, it's not consider a consumable item on bedrock, so the player never sends release item use so USING_ITEM flags are always true
+        // until you switch item, therefore we ignore it.
+
+        setFlag(EntityFlag.USING_ITEM, isUsingItem && !isUsingShield && !isUsingEnderEye);
         // Override the blocking
         setFlag(EntityFlag.BLOCKING, isUsingItem && isUsingShield);
 
@@ -326,6 +331,14 @@ public class LivingEntity extends Entity implements Tickable {
             return bedPosition;
         } else {
             return null;
+        }
+    }
+
+    protected boolean hasEnderEye(boolean offhand) {
+        if (offhand) {
+            return getOffHandItem().is(Items.ENDER_EYE);
+        } else {
+            return getMainHandItem().is(Items.ENDER_EYE);
         }
     }
 

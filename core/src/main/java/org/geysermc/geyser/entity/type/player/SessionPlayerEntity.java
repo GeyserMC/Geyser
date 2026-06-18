@@ -354,6 +354,16 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
+    protected boolean hasEnderEye(boolean offhand) {
+        // Must be overridden to point to the player's inventory cache
+        if (offhand) {
+            return session.getPlayerInventory().getOffhand().is(Items.ENDER_EYE);
+        } else {
+            return session.getPlayerInventory().getItemInHand().is(Items.ENDER_EYE);
+        }
+    }
+
+    @Override
     protected boolean hasShield(boolean offhand) {
         // Must be overridden to point to the player's inventory cache
         if (offhand) {
