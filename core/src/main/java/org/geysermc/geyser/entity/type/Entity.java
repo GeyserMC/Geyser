@@ -54,6 +54,7 @@ import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
@@ -104,7 +105,7 @@ public class Entity implements GeyserEntity {
 
     protected Vector3f position;
     protected Vector3f motion;
-    protected float offset;
+    private float offset;
 
     /**
      * x = Yaw, y = Pitch, z = HeadYaw
@@ -250,6 +251,10 @@ public class Entity implements GeyserEntity {
             passenger.setVehicle(null);
             passenger.setFlag(EntityFlag.RIDING, false);
             passenger.updateBedrockMetadata();
+
+            if (passenger instanceof SessionPlayerEntity entity) {
+                entity.setRemovedPlayerVehicleId(this.entityId);
+            }
         }
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
@@ -701,6 +706,7 @@ public class Entity implements GeyserEntity {
      * Gets the Bedrock edition position with the offset applied
      */
     public Vector3f bedrockPosition() {
+        float offset = getOffset();
         if (offset == 0f) {
             return position;
         }

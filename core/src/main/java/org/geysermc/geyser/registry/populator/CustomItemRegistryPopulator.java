@@ -469,7 +469,7 @@ public class CustomItemRegistryPopulator {
             }
         }
 
-        itemProperties.putInt("max_stack_size", stackSize);
+        itemProperties.putInt("max_stack_size", Math.min(stackSize, Item.BEDROCK_MAX_STACK_SIZE));
 
         // Ignore durability if the item's predicates requires that it be unbreakable
         if (maxDamage > 0 && !isUnbreakableItem(definition)) {

@@ -60,6 +60,8 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
@@ -649,7 +651,7 @@ public final class ItemTranslator {
             return null;
         }
 
-        GameProfile.Texture skinTexture = SkinManager.getTextureDataFromProfile(resolved, GameProfile.TextureType.SKIN);
+        Texture skinTexture = SkinManager.getTextureDataFromProfile(resolved, TextureType.SKIN);
         if (skinTexture == null) {
             return null;
         }

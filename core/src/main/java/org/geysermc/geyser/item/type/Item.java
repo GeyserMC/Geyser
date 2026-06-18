@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Item {
+    public static final int BEDROCK_MAX_STACK_SIZE = 64;
     private static final Map<Block, Item> BLOCK_TO_ITEM = new HashMap<>();
     protected final Key javaIdentifier;
     private int javaId = -1;
@@ -160,7 +161,7 @@ public class Item {
         return ItemData.builder()
                 .definition(mapping.getBedrockDefinition())
                 .damage(mapping.getBedrockData())
-                .count(count);
+                .count(Math.min(count, BEDROCK_MAX_STACK_SIZE));
     }
 
     public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {

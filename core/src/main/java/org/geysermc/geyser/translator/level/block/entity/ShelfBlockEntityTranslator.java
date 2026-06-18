@@ -48,7 +48,7 @@ public class ShelfBlockEntityTranslator extends BlockEntityTranslator {
 
         // Bedrock determines shelf item position by list index, so we must produce
         // a dense list with empty items for unoccupied slots.
-        // Verified with BDS 1.26.0.2
+        // Verified with BDS 26.0.2
         NbtMap[] items = new NbtMap[SLOT_COUNT];
         Arrays.fill(items, BedrockItemBuilder.EMPTY_ITEM);
 

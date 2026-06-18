@@ -28,6 +28,7 @@ package org.geysermc.geyser.inventory;
 import lombok.Getter;
 import org.cloudburstmc.protocol.bedrock.data.inventory.EnchantData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.EnchantOptionData;
+import org.geysermc.geyser.inventory.item.BedrockEnchantment;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Collections;
@@ -38,6 +39,7 @@ import java.util.List;
  */
 public class GeyserEnchantOption {
     private static final List<EnchantData> EMPTY = Collections.emptyList();
+    private static final List<EnchantData> JAVA_ONLY = Collections.singletonList(new EnchantData(BedrockEnchantment.INVALID, 1));
     /**
      * This <a href="https://cdn.discordapp.com/attachments/613168850925649981/791030657169227816/unknown.png">text</a>
      * is controlled by the server.
@@ -70,9 +72,10 @@ public class GeyserEnchantOption {
 
     public EnchantOptionData build(GeyserSession session) {
         this.hasChanged = false;
-        return new EnchantOptionData(xpCost, javaIndex + 16, EMPTY,
-                enchantLevel == -1 ? EMPTY : Collections.singletonList(new EnchantData(bedrockEnchantIndex, enchantLevel)), EMPTY,
-                bedrockEnchantIndex == -1 ? "unknown" : ENCHANT_NAMES.get(bedrockEnchantIndex), enchantLevel == -1 ? 0 : session.getNextItemNetId());
+        List<EnchantData> enchant = enchantLevel == -1 ? EMPTY : bedrockEnchantIndex == -1 ? JAVA_ONLY : Collections.singletonList(new EnchantData(bedrockEnchantIndex, enchantLevel));
+
+        return new EnchantOptionData(xpCost, javaIndex + 16, EMPTY, enchant, EMPTY,
+            bedrockEnchantIndex == -1 ? "eclipselikesshells" : ENCHANT_NAMES.get(bedrockEnchantIndex), enchantLevel == -1 ? 0 : session.getNextItemNetId());
     }
 
     public boolean hasChanged() {
