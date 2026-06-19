@@ -145,6 +145,8 @@ public final class InputCache {
         if (oldInputPacket != this.inputPacket) { // Simple equality check is fine since we're checking for an instance change.
             session.sendDownstreamGamePacket(this.inputPacket);
         }
+
+        session.setShouldSendSneak(false);
     }
 
     public boolean wasJumping() {
