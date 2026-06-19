@@ -47,6 +47,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
 import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
@@ -145,7 +146,8 @@ public class ItemRegistryPopulator {
     public static void populate() {
         Map<Item, Item> dandelion = Map.of(Items.GOLDEN_DANDELION, Items.DANDELION);
 
-        List<PaletteVersion> paletteVersions = new ArrayList<>(4);
+        List<PaletteVersion> paletteVersions = new ArrayList<>(5);
+        paletteVersions.add(new PaletteVersion("1_21_130", Bedrock_v898.CODEC.getProtocolVersion(), dandelion));
         paletteVersions.add(new PaletteVersion("26_0", Bedrock_v924.CODEC.getProtocolVersion(), dandelion));
         paletteVersions.add(new PaletteVersion("26_10", Bedrock_v944.CODEC.getProtocolVersion()));
         paletteVersions.add(new PaletteVersion("26_20", Bedrock_v975.CODEC.getProtocolVersion(), "26_10"));
