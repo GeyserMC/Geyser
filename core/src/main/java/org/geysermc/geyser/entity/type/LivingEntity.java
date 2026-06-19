@@ -51,6 +51,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.EffectType;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
@@ -702,9 +703,21 @@ public class LivingEntity extends Entity implements Tickable {
                         clientVehicle.getVehicleComponent().setMovementEfficiency(AttributeUtils.calculateValue(javaAttribute));
                     }
                 }
-                case FRICTION_MODIFIER -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FRICTION_MODIFIER));
-                case BOUNCINESS -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.BOUNCINESS));
-                case AIR_DRAG_MODIFIER -> newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.AIR_DRAG_MODIFIER));
+                case FRICTION_MODIFIER -> {
+                    if (GameProtocol.is26_30orHigher(session.protocolVersion())) {
+                        newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FRICTION_MODIFIER));
+                    }
+                }
+                case BOUNCINESS -> {
+                    if (GameProtocol.is26_30orHigher(session.protocolVersion())) {
+                        newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.BOUNCINESS));
+                    }
+                }
+                case AIR_DRAG_MODIFIER -> {
+                    if (GameProtocol.is26_30orHigher(session.protocolVersion())) {
+                        newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.AIR_DRAG_MODIFIER));
+                    }
+                }
             }
         }
     }
