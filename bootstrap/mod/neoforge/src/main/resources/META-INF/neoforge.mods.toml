@@ -22,6 +22,6 @@ config = "geyser_neoforge.mixins.json"
 [[dependencies.geyser_neoforge]]
     modId="minecraft"
     type="required"
-    versionRange="[26.2,26.3)"
+    versionRange="[${minecraft},${minecraftNext})"
     ordering="NONE"
     side="BOTH"
