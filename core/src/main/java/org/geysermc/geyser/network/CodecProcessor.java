@@ -29,6 +29,9 @@ import io.netty.buffer.ByteBuf;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockPacketSerializer;
+import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.BossEventSerializer_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.InventoryContentSerializer_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.MobArmorEquipmentSerializer_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobEquipmentSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MoveEntityAbsoluteSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.PlayerHotbarSerializer_v291;
@@ -74,11 +77,9 @@ import org.cloudburstmc.protocol.bedrock.packet.PartyChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoInfoRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PhotoTransferPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerHotbarPacket;
-import org.cloudburstmc.protocol.bedrock.packet.PlayerInputPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerSkinPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PurchaseReceiptPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RefreshEntitlementsPacket;
-import org.cloudburstmc.protocol.bedrock.packet.RiderJumpPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ScriptMessagePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
@@ -91,8 +92,6 @@ import org.cloudburstmc.protocol.common.util.VarInts;
 
 /**
  * Processes the Bedrock codec to remove or modify unused or unsafe packets and fields.
- *
- * TODO: Keep serializers up-to-date!
  */
 @SuppressWarnings("deprecation")
 class CodecProcessor {
@@ -101,7 +100,7 @@ class CodecProcessor {
      * Generic serializer that throws an exception when trying to serialize or deserialize a packet, leading to client disconnection.
      */
     @SuppressWarnings("rawtypes")
-    private static final BedrockPacketSerializer ILLEGAL_SERIALIZER = new BedrockPacketSerializer<>() {
+    static final BedrockPacketSerializer ILLEGAL_SERIALIZER = new BedrockPacketSerializer<>() {
         @Override
         public void serialize(ByteBuf buffer, BedrockCodecHelper helper, BedrockPacket packet) {
             throw new IllegalArgumentException("Server tried to send unused packet " + packet.getClass().getSimpleName() + "!");
@@ -117,7 +116,7 @@ class CodecProcessor {
      * Generic serializer that does nothing when trying to serialize or deserialize a packet.
      */
     @SuppressWarnings("rawtypes")
-    private static final BedrockPacketSerializer IGNORED_SERIALIZER = new BedrockPacketSerializer<>() {
+    static final BedrockPacketSerializer IGNORED_SERIALIZER = new BedrockPacketSerializer<>() {
         @Override
         public void serialize(ByteBuf buffer, BedrockCodecHelper helper, BedrockPacket packet) {
         }
@@ -130,6 +129,13 @@ class CodecProcessor {
      * Serializer that throws an exception when trying to deserialize InventoryContentPacket since server-auth inventory is used.
      */
     private static final BedrockPacketSerializer<InventoryContentPacket> INVENTORY_CONTENT_SERIALIZER_V748 = new InventoryContentSerializer_v748() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
+            throw new IllegalArgumentException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
+        }
+    };
+
+    private static final BedrockPacketSerializer<InventoryContentPacket> INVENTORY_CONTENT_SERIALIZER_V1001 = new InventoryContentSerializer_v1001() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
             throw new IllegalArgumentException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
@@ -177,7 +183,13 @@ class CodecProcessor {
     /**
      * Serializer that does nothing when trying to deserialize BossEventPacket since it is not used from the client.
      */
-    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER = new BossEventSerializer_v776() {
+    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER_V776 = new BossEventSerializer_v776() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BossEventPacket packet) {
+        }
+    };
+
+    private static final BedrockPacketSerializer<BossEventPacket> BOSS_EVENT_SERIALIZER_V1001 = new BossEventSerializer_v1001() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BossEventPacket packet) {
         }
@@ -186,7 +198,13 @@ class CodecProcessor {
     /**
      * Serializer that does nothing when trying to deserialize MobArmorEquipmentPacket since it is not used from the client.
      */
-    private static final BedrockPacketSerializer<MobArmorEquipmentPacket> MOB_ARMOR_EQUIPMENT_SERIALIZER = new MobArmorEquipmentSerializer_v712() {
+    private static final BedrockPacketSerializer<MobArmorEquipmentPacket> MOB_ARMOR_EQUIPMENT_SERIALIZER_V712 = new MobArmorEquipmentSerializer_v712() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobArmorEquipmentPacket packet) {
+        }
+    };
+
+    private static final BedrockPacketSerializer<MobArmorEquipmentPacket> MOB_ARMOR_EQUIPMENT_SERIALIZER_V1001 = new MobArmorEquipmentSerializer_v1001() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MobArmorEquipmentPacket packet) {
         }
@@ -264,7 +282,6 @@ class CodecProcessor {
 
     @SuppressWarnings("unchecked")
     static BedrockCodec processCodec(BedrockCodec codec) {
-
         BedrockCodec.Builder codecBuilder = codec.toBuilder()
             // Illegal unused serverbound EDU packets
             .updateSerializer(PhotoTransferPacket.class, ILLEGAL_SERIALIZER)
@@ -281,6 +298,11 @@ class CodecProcessor {
             .updateSerializer(SubClientLoginPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(SubChunkRequestPacket.class, ILLEGAL_SERIALIZER)
             .updateSerializer(GameTestRequestPacket.class, ILLEGAL_SERIALIZER)
+            // Illegal bidirectional packets
+            .updateSerializer(DebugInfoPacket.class, ILLEGAL_SERIALIZER)
+            .updateSerializer(EditorNetworkPacket.class, ILLEGAL_SERIALIZER)
+            .updateSerializer(ScriptMessagePacket.class, ILLEGAL_SERIALIZER)
+
             // Ignored serverbound packets
             .updateSerializer(ClientToServerHandshakePacket.class, IGNORED_SERIALIZER)
             .updateSerializer(EntityFallPacket.class, IGNORED_SERIALIZER)
@@ -288,54 +310,51 @@ class CodecProcessor {
             .updateSerializer(MapInfoRequestPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SettingsCommandPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(AnvilDamagePacket.class, IGNORED_SERIALIZER)
-            // Illegal when serverbound due to Geyser specific setup
-            .updateSerializer(InventoryContentPacket.class, INVENTORY_CONTENT_SERIALIZER_V748)
-            .updateSerializer(MovePlayerPacket.class, MOVE_PLAYER_SERIALIZER)
-            // Ignored only when serverbound
-            .updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER)
-            .updateSerializer(MobArmorEquipmentPacket.class, MOB_ARMOR_EQUIPMENT_SERIALIZER)
-            .updateSerializer(PlayerHotbarPacket.class, PLAYER_HOTBAR_SERIALIZER)
-            .updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER)
-            .updateSerializer(SetEntityDataPacket.class, SET_ENTITY_DATA_SERIALIZER)
-            .updateSerializer(SetEntityMotionPacket.class, SET_ENTITY_MOTION_SERIALIZER)
-            .updateSerializer(SetEntityLinkPacket.class, SET_ENTITY_LINK_SERIALIZER)
-            // Illegal bidirectional packets
-            .updateSerializer(DebugInfoPacket.class, ILLEGAL_SERIALIZER)
-            .updateSerializer(EditorNetworkPacket.class, ILLEGAL_SERIALIZER)
-            .updateSerializer(ScriptMessagePacket.class, ILLEGAL_SERIALIZER)
             // Ignored bidirectional packets
             .updateSerializer(ClientCacheStatusPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(SimpleEventPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER)
-            .updateSerializer(EmoteListPacket.class, IGNORED_SERIALIZER);
+            .updateSerializer(EmoteListPacket.class, IGNORED_SERIALIZER)
+            // Illegal when serverbound due to Geyser specific setup
+            .updateSerializer(MovePlayerPacket.class, MOVE_PLAYER_SERIALIZER)
+            // Ignored only when serverbound
+            .updateSerializer(PlayerHotbarPacket.class, PLAYER_HOTBAR_SERIALIZER)
+            .updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER)
+            .updateSerializer(SetEntityDataPacket.class, SET_ENTITY_DATA_SERIALIZER)
+            .updateSerializer(SetEntityMotionPacket.class, SET_ENTITY_MOTION_SERIALIZER)
+            .updateSerializer(SetEntityLinkPacket.class, SET_ENTITY_LINK_SERIALIZER);
 
-            // These packets have been removed post 1.21.80.
-            if (codec.getProtocolVersion() < 800) {
-                codecBuilder
-                    .updateSerializer(RiderJumpPacket.class, ILLEGAL_SERIALIZER)
-                    .updateSerializer(PlayerInputPacket.class, ILLEGAL_SERIALIZER);
+        if (!Boolean.getBoolean("Geyser.ReceiptPackets")) {
+            codecBuilder.updateSerializer(RefreshEntitlementsPacket.class, IGNORED_SERIALIZER);
+            codecBuilder.updateSerializer(PurchaseReceiptPacket.class, IGNORED_SERIALIZER);
+            // Added in 26.10, doesn't exist on 26.0
+            if (codec.getProtocolVersion() >= 944) {
+                codecBuilder.updateSerializer(PartyChangedPacket.class, IGNORED_SERIALIZER);
             }
+        }
 
-            if (codec.getProtocolVersion() < 975) {
-                codecBuilder.updateSerializer(InventorySlotPacket.class, INVENTORY_SLOT_SERIALIZER_V748);
-                codecBuilder.updateSerializer(MoveEntityAbsolutePacket.class, MOVE_ENTITY_SERIALIZER_V291);
-                // Valid serverbound packets where reading of some fields can be skipped
-                codecBuilder.updateSerializer(MobEquipmentPacket.class, MOB_EQUIPMENT_SERIALIZER_V291);
-            } else {
-                codecBuilder.updateSerializer(InventorySlotPacket.class, INVENTORY_SLOT_SERIALIZER_V975);
-                codecBuilder.updateSerializer(MoveEntityAbsolutePacket.class, MOVE_ENTITY_SERIALIZER_V975);
-                codecBuilder.updateSerializer(MobEquipmentPacket.class, MOB_EQUIPMENT_SERIALIZER_V975);
-            }
+        if (codec.getProtocolVersion() < 975) { // 26.20
+            codecBuilder.updateSerializer(InventorySlotPacket.class, INVENTORY_SLOT_SERIALIZER_V748);
+            codecBuilder.updateSerializer(MoveEntityAbsolutePacket.class, MOVE_ENTITY_SERIALIZER_V291);
+            // Valid serverbound packets where reading of some fields can be skipped
+            codecBuilder.updateSerializer(MobEquipmentPacket.class, MOB_EQUIPMENT_SERIALIZER_V291);
+        } else {
+            codecBuilder.updateSerializer(InventorySlotPacket.class, INVENTORY_SLOT_SERIALIZER_V975);
+            codecBuilder.updateSerializer(MoveEntityAbsolutePacket.class, MOVE_ENTITY_SERIALIZER_V975);
+            codecBuilder.updateSerializer(MobEquipmentPacket.class, MOB_EQUIPMENT_SERIALIZER_V975);
+        }
 
-            if (!Boolean.getBoolean("Geyser.ReceiptPackets")) {
-                codecBuilder.updateSerializer(RefreshEntitlementsPacket.class, IGNORED_SERIALIZER);
-                codecBuilder.updateSerializer(PurchaseReceiptPacket.class, IGNORED_SERIALIZER);
-                if (codec.getProtocolVersion() >= 944) { // can't update a serializer if it doesn't exist on older versions
-                    codecBuilder.updateSerializer(PartyChangedPacket.class, IGNORED_SERIALIZER);
-                }
-            }
+        if (codec.getProtocolVersion() < 1001) { // 26.30
+            codecBuilder.updateSerializer(MobArmorEquipmentPacket.class, MOB_ARMOR_EQUIPMENT_SERIALIZER_V712);
+            codecBuilder.updateSerializer(InventoryContentPacket.class, INVENTORY_CONTENT_SERIALIZER_V748);
+            codecBuilder.updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER_V776);
+        } else {
+            codecBuilder.updateSerializer(MobArmorEquipmentPacket.class, MOB_ARMOR_EQUIPMENT_SERIALIZER_V1001);
+            codecBuilder.updateSerializer(InventoryContentPacket.class, INVENTORY_CONTENT_SERIALIZER_V1001);
+            codecBuilder.updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER_V1001);
+        }
 
-            return codecBuilder.build();
+        return codecBuilder.build();
     }
 
     /**

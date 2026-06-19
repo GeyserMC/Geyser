@@ -241,11 +241,11 @@ public abstract class GeyserWaypoint {
     }
 
     public static boolean uses26_10WaypointPacket(GeyserSession session) {
-        return GameProtocol.is1_26_10orHigher(session.protocolVersion());
+        return GameProtocol.is26_10orHigher(session.protocolVersion());
     }
 
     public static boolean uses26_20WaypointPacket(GeyserSession session) {
-        return GameProtocol.is1_26_20orHigher(session.protocolVersion());
+        return GameProtocol.is26_20orHigher(session.protocolVersion());
     }
 
     private static Color getWaypointColor(TrackedWaypoint waypoint) {

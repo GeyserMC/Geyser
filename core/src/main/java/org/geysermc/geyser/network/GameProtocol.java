@@ -33,6 +33,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
 import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
+import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
@@ -51,7 +52,7 @@ public final class GameProtocol {
     /**
      * All Bedrock protocol codecs that Geyser uses
      */
-    private static final List<BedrockCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
+    static final List<BedrockCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
 
     /**
      * Bedrock codec variants used only for Minecraft Education Edition clients. Indexed by protocol
@@ -93,6 +94,7 @@ public final class GameProtocol {
         register(Bedrock_v924.CODEC, "26.0", "26.1", "26.2", "26.3");
         register(Bedrock_v944.CODEC, "26.10");
         register(Bedrock_v975.CODEC, "26.20", "26.21", "26.22", "26.23");
+        register(Bedrock_v1001.CODEC, "26.30");
 
         registerEducation(Bedrock_v898.EDUCATION_CODEC);
 
@@ -176,12 +178,16 @@ public final class GameProtocol {
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
 
-    public static boolean is1_26_10orHigher(int protocolVersion) {
+    public static boolean is26_10orHigher(int protocolVersion) {
         return protocolVersion >= Bedrock_v944.CODEC.getProtocolVersion();
     }
 
-    public static boolean is1_26_20orHigher(int protocolVersion) {
+    public static boolean is26_20orHigher(int protocolVersion) {
         return protocolVersion >= Bedrock_v975.CODEC.getProtocolVersion();
+    }
+
+    public static boolean is26_30orHigher(int protocolVersion) {
+        return protocolVersion >= Bedrock_v1001.CODEC.getProtocolVersion();
     }
 
     /**

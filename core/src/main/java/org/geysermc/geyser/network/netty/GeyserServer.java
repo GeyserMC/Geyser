@@ -155,9 +155,9 @@ public final class GeyserServer {
             }
 
             Channel channel = f.channel();
-            // Add our ping handler
+            // Add our handlers
             channel.pipeline()
-                .addFirst(RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
+                .addBefore(RakServerOfflineHandler.NAME, RakConnectionRequestHandler.NAME, new RakConnectionRequestHandler(this))
                 .addAfter(RakServerOfflineHandler.NAME, RakPingHandler.NAME, new RakPingHandler(this));
         });
     }
@@ -298,7 +298,7 @@ public final class GeyserServer {
                 .serverId(channel.config().getOption(RakChannelOption.RAK_GUID));
 
         if (config.motd().passthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
-            String[] motd = MessageTranslator.convertMessageLenient(pingInfo.getDescription()).split("\n");
+            String[] motd = MessageTranslator.convertToPlainTextLenient(pingInfo.getDescription(), GeyserLocale.getDefaultLocale()).split("\n");
             String mainMotd = (motd.length > 0) ? motd[0] : config.motd().primaryMotd(); // First line of the motd.
             String subMotd = (motd.length > 1) ? motd[1] : config.motd().secondaryMotd(); // Second line of the motd if present, otherwise default.
 

@@ -104,6 +104,8 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                 passenger.updateBedrockMetadata();
 
                 if (passenger == session.getPlayerEntity()) {
+                    session.getPlayerEntity().setRemovedPlayerVehicleId(null);
+
                     //TODO test
                     if (session.getMountVehicleScheduledFuture() != null) {
                         // Cancel this task as it is now unnecessary.
