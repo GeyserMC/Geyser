@@ -144,6 +144,7 @@ import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.impl.camera.CameraDefinitions;
 import org.geysermc.geyser.impl.camera.GeyserCameraData;
 import org.geysermc.geyser.input.InputLocksFlag;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
@@ -1536,24 +1537,28 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Checks to see if a shield is in either hand to activate blocking. If so, it sets the Bedrock client to display
      * blocking and sends a packet to the Java server.
      */
-    private boolean attemptToBlock() {
+    public boolean attemptToBlock() {
         // Don't try to block while in scaffolding
         if (playerEntity.isInsideScaffolding()) {
             return false;
         }
 
-        if (playerInventoryHolder.inventory().getItemInHand().is(Items.SHIELD)) {
+        final GeyserItemStack mainHandItem = playerInventoryHolder.inventory().getItemInHand();
+        final GeyserItemStack offhandItem = playerInventoryHolder.inventory().getOffhand();
+
+        if (mainHandItem.is(Items.SHIELD) && !worldCache.hasCooldown(mainHandItem)) {
             useItem(Hand.MAIN_HAND);
-        } else if (playerInventoryHolder.inventory().getOffhand().is(Items.SHIELD)) {
-            useItem(Hand.OFF_HAND);
-        } else {
-            // No blocking
-            return false;
+            playerEntity.setFlag(EntityFlag.BLOCKING, true);
+            return true;
         }
 
-        playerEntity.setFlag(EntityFlag.BLOCKING, true);
-        // Metadata should be updated later
-        return true;
+        if (offhandItem.is(Items.SHIELD) && !worldCache.hasCooldown(offhandItem)) {
+            useItem(Hand.OFF_HAND);
+            playerEntity.setFlag(EntityFlag.BLOCKING, true);
+            return true;
+        }
+
+        return false;
     }
 
     /**

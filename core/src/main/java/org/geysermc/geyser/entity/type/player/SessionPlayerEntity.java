@@ -354,6 +354,16 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
+    protected boolean hasEnderEye(boolean offhand) {
+        // Must be overridden to point to the player's inventory cache
+        if (offhand) {
+            return session.getPlayerInventory().getOffhand().is(Items.ENDER_EYE);
+        } else {
+            return session.getPlayerInventory().getItemInHand().is(Items.ENDER_EYE);
+        }
+    }
+
+    @Override
     protected boolean hasShield(boolean offhand) {
         // Must be overridden to point to the player's inventory cache
         if (offhand) {
@@ -435,6 +445,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
         super.setLivingEntityFlags(entityMetadata);
+
+        byte xd = entityMetadata.getPrimitiveValue();
+        boolean isUsingOffhand = (xd & 0x02) == 0x02;
+        if (session.getWorldCache().hasCooldown(isUsingOffhand ? getOffHandItem() : getMainHandItem())) {
+            setFlag(EntityFlag.BLOCKING, false);
+        }
 
         // Forcefully update flags since we're not tracking thing like using item properly.
         // For eg: when player start using item client-sided (and the USING_ITEM flag is false on geyser side)
