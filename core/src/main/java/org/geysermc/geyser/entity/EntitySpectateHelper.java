@@ -115,7 +115,6 @@ public final class EntitySpectateHelper {
     private static void setSelfHidden(GeyserSession session, boolean hidden) {
         Entity self = session.getPlayerEntity();
         self.setFlag(EntityFlag.INVISIBLE, hidden);
-        self.setFlag(EntityFlag.HIDDEN_WHEN_INVISIBLE, hidden);
         self.updateBedrockMetadata();
     }
 

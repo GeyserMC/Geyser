@@ -78,8 +78,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 session.setShouldSendSneak(true);
             } else if (packet.getInputData().contains(PlayerAuthInputData.JUMP_PRESSED_RAW)) {
                 EntitySpectateHelper.cycleMode(session);
-            } else {
-                EntitySpectateHelper.tick(session);
             }
         }
 
@@ -88,8 +86,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
-        // Spectating: suppress block-break/use/attack, but only after processInputs so the stop-shift still flows.
-        // Also leaves InputCache's position-reminder un-ticked while spectating (see its note)
+        // While spectating an entity, suppress the player's own movement and actions (BedrockMovePlayer forwards
+        // movement and ticks the position reminder, which InputCache#shouldSendPositionReminder says not to do while
+        // spectating); placed after processInputs so the sneak that ends spectating still flows.
         if (EntitySpectateHelper.isSpectating(session)) {
             return;
         }

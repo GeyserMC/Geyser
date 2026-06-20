@@ -463,7 +463,7 @@ public class Entity implements GeyserEntity {
     private EnumMap<EntityFlag, Boolean> spectateHiddenFlags() {
         EnumMap<EntityFlag, Boolean> overridden = new EnumMap<>(flags);
         overridden.put(EntityFlag.INVISIBLE, true);
-        overridden.put(EntityFlag.HIDDEN_WHEN_INVISIBLE, true);
+        overridden.put(EntityFlag.RENDER_WHEN_INVISIBLE, false);
         return overridden;
     }
 
