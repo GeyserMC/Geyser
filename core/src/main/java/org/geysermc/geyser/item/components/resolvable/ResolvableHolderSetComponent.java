@@ -28,9 +28,9 @@ package org.geysermc.geyser.item.components.resolvable;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.key.Key;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
@@ -58,9 +58,9 @@ public record ResolvableHolderSetComponent(DataComponentType<HolderSet> type, Op
     }
 
     @Override
-    public @Nullable HolderSet resolve(GeyserSession session) {
+    public @Nullable HolderSet resolve(JavaRegistryProvider registries) {
         return registry.map(theRegistry -> references.stream()
-            .mapToInt(key -> theRegistry.networkId(session, key))
+            .mapToInt(key -> theRegistry.networkId(registries, key))
             .toArray())
             .map(HolderSet::new)
             .orElse(EMPTY);
