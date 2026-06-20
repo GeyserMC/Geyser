@@ -41,6 +41,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import lombok.Getter;
+import org.geysermc.geyser.entity.EntitySpectateHelper;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -111,6 +112,10 @@ public class EntityCache {
     public void removeEntity(Entity entity) {
         if (entity == null) {
             return;
+        }
+
+        if (entity == session.getSpectatedEntity()) {
+            EntitySpectateHelper.stop(session);
         }
 
         if (entity instanceof PlayerEntity player) {

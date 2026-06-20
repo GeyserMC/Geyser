@@ -90,10 +90,12 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundAttackPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSpectatorActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
 import java.util.List;
+import java.util.OptionalInt;
 
 /**
  * BedrockInventoryTransactionTranslator handles most interactions between the client and the world,
@@ -474,6 +476,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
                 if (entity == null)
                     return;
+
+                if (session.getGameMode() == GameMode.SPECTATOR) {
+                    session.sendDownstreamGamePacket(new ServerboundSpectatorActionPacket(OptionalInt.of(entity.getEntityId())));
+                    return;
+                }
 
                 //https://wiki.vg/Protocol#Interact_Entity
                 switch (packet.getActionType()) {

@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTransaction;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.geysermc.geyser.entity.EntitySpectateHelper;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
@@ -71,11 +72,27 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
     public void translate(GeyserSession session, PlayerAuthInputPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
+        if (EntitySpectateHelper.isSpectating(session)) {
+            if (packet.getInputData().contains(PlayerAuthInputData.SNEAK_DOWN)
+                    || packet.getInputData().contains(PlayerAuthInputData.DESCEND)) {
+                session.setShouldSendSneak(true);
+            } else if (packet.getInputData().contains(PlayerAuthInputData.JUMP_PRESSED_RAW)) {
+                EntitySpectateHelper.cycleMode(session);
+            } else {
+                EntitySpectateHelper.tick(session);
+            }
+        }
+
         session.setClientTicks(packet.getTick());
         session.setInClientPredictedVehicle(packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE) && entity.getVehicle() != null && GameProtocol.is26_10orHigher(session.protocolVersion()));
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
+        // Spectating: suppress block-break/use/attack, but only after processInputs so the stop-shift still flows.
+        // Also leaves InputCache's position-reminder un-ticked while spectating (see its note)
+        if (EntitySpectateHelper.isSpectating(session)) {
+            return;
+        }
         session.getBlockBreakHandler().handlePlayerAuthInputPacket(packet);
 
         ServerboundPlayerCommandPacket sprintPacket = null;

@@ -321,6 +321,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private TeleportCache unconfirmedTeleport;
 
+    @Setter
+    private Entity spectatedEntity;
+
+    /**
+     * Spectate camera mode: 0 = first-person, 1 = third-person back, 2 = third-person front.
+     */
+    @Setter
+    private int spectateMode;
+
     private final WorldBorder worldBorder;
     /**
      * Whether simulated fog has been sent to the client or not.
