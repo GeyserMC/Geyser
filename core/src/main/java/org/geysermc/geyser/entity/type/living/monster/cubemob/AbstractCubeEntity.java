@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,19 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.translator.level.block.entity;
+package org.geysermc.geyser.entity.type.living.monster.cubemob;
 
-import org.cloudburstmc.nbt.NbtMap;
-import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.geysermc.geyser.level.block.type.BedBlock;
-import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.entity.type.living.AgeableEntity;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
-@BlockEntity(type = BlockEntityType.BED)
-public class BedBlockEntityTranslator extends BlockEntityTranslator implements RequiresBlockState {
-    @Override
-    public void translateTag(GeyserSession session, NbtMapBuilder bedrockNbt, NbtMap javaNbt, BlockState blockState) {
-        bedrockNbt.putByte("color", (byte) (blockState.block() instanceof BedBlock bed ? bed.dyeColor() : 0));
+public class AbstractCubeEntity extends AgeableEntity {
+    public AbstractCubeEntity(EntitySpawnContext context) {
+        super(context);
+    }
+
+    public void setCubeScale(IntEntityMetadata entityMetadata) {
+        setScale(0.10f + entityMetadata.getPrimitiveValue());
     }
 }

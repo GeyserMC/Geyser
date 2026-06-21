@@ -74,9 +74,10 @@ import org.geysermc.geyser.entity.type.living.CopperGolemEntity;
 import org.geysermc.geyser.entity.type.living.DolphinEntity;
 import org.geysermc.geyser.entity.type.living.GlowSquidEntity;
 import org.geysermc.geyser.entity.type.living.IronGolemEntity;
-import org.geysermc.geyser.entity.type.living.MagmaCubeEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.AbstractCubeEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.MagmaCubeEntity;
 import org.geysermc.geyser.entity.type.living.MobEntity;
-import org.geysermc.geyser.entity.type.living.SlimeEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.SlimeEntity;
 import org.geysermc.geyser.entity.type.living.SnowGolemEntity;
 import org.geysermc.geyser.entity.type.living.SquidEntity;
 import org.geysermc.geyser.entity.type.living.TadpoleEntity;
@@ -148,6 +149,7 @@ import org.geysermc.geyser.entity.type.living.monster.ZoglinEntity;
 import org.geysermc.geyser.entity.type.living.monster.ZombieEntity;
 import org.geysermc.geyser.entity.type.living.monster.ZombieVillagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.ZombifiedPiglinEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.SulfurCubeEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.PillagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.RaidParticipantEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.RavagerEntity;
@@ -295,6 +297,7 @@ public final class VanillaEntities {
     public static final VanillaEntityType<SquidEntity> SQUID;
     public static final VanillaEntityType<AbstractSkeletonEntity> STRAY;
     public static final VanillaEntityType<StriderEntity> STRIDER;
+    public static final VanillaEntityType<SulfurCubeEntity> SULFUR_CUBE;
     public static final VanillaEntityType<TadpoleEntity> TADPOLE;
     public static final VanillaEntityType<TextDisplayEntity> TEXT_DISPLAY;
     public static final VanillaEntityType<TNTEntity> TNT;
@@ -901,15 +904,6 @@ public final class VanillaEntities {
                     .heightAndWidth(1.9975f)
                     .build();
 
-            SLIME = VanillaEntityType.inherited(SlimeEntity::new, mobEntityBase)
-                    .type(EntityType.SLIME)
-                    .heightAndWidth(0.51f)
-                    .addTranslator(MetadataTypes.INT, SlimeEntity::setSlimeScale)
-                    .build();
-            MAGMA_CUBE = VanillaEntityType.inherited(MagmaCubeEntity::new, SLIME)
-                    .type(EntityType.MAGMA_CUBE)
-                    .build();
-
             EntityTypeBase<AbstractFishEntity> abstractFishEntityBase = EntityTypeBase.baseInherited(AbstractFishEntity.class, mobEntityBase)
                     .addTranslator(null) // From bucket
                     .build();
@@ -1124,6 +1118,26 @@ public final class VanillaEntities {
                     .height(0.4f).width(1.2f)
                     .addTranslator(MetadataTypes.BOOLEAN, TurtleEntity::setPregnant)
                     .addTranslator(MetadataTypes.BOOLEAN, TurtleEntity::setLayingEgg)
+                    .build();
+
+            // Slime entities
+            VanillaEntityType<AbstractCubeEntity> cubeEntityBase = VanillaEntityType.inherited(AbstractCubeEntity::new, ageableEntityBase)
+                    .heightAndWidth(0.51f)
+                    .addTranslator(MetadataTypes.INT, AbstractCubeEntity::setCubeScale)
+                    .build();
+
+            SLIME = VanillaEntityType.inherited(SlimeEntity::new, cubeEntityBase)
+                    .type(EntityType.SLIME)
+                    .build();
+            MAGMA_CUBE = VanillaEntityType.inherited(MagmaCubeEntity::new, cubeEntityBase)
+                    .type(EntityType.MAGMA_CUBE)
+                    .build();
+            SULFUR_CUBE = VanillaEntityType.inherited(SulfurCubeEntity::new, cubeEntityBase)
+                    .type(EntityType.SULFUR_CUBE)
+                    .property(SulfurCubeEntity.SULFUR_CUBE_ARCHETYPE_PROPERTY)
+                    .heightAndWidth(0.98f)
+                    .addTranslator(MetadataTypes.INT, SulfurCubeEntity::setMaxFuse)
+                    .addTranslator(null) // From bucket
                     .build();
 
             VanillaEntityType<AbstractMerchantEntity> abstractVillagerEntityBase = VanillaEntityType.inherited(AbstractMerchantEntity::new, ageableEntityBase)

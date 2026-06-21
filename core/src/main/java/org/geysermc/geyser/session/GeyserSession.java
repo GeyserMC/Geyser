@@ -142,6 +142,7 @@ import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
 import org.geysermc.geyser.impl.camera.CameraDefinitions;
 import org.geysermc.geyser.impl.camera.GeyserCameraData;
 import org.geysermc.geyser.input.InputLocksFlag;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
@@ -149,6 +150,7 @@ import org.geysermc.geyser.inventory.PlayerInventory;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
+import org.geysermc.geyser.inventory.recipe.TrimRecipes;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.level.BedrockDimension;
@@ -550,6 +552,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes = Int2ObjectMaps.emptyMap();
     private final List<GeyserSmithingRecipe> smithingRecipes = new ArrayList<>();
+    private final TrimRecipes trimRecipes = new TrimRecipes();
 
     /**
      * Whether to work around 1.13's different behavior in villager trading menus.
@@ -1538,24 +1541,28 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Checks to see if a shield is in either hand to activate blocking. If so, it sets the Bedrock client to display
      * blocking and sends a packet to the Java server.
      */
-    private boolean attemptToBlock() {
+    public boolean attemptToBlock() {
         // Don't try to block while in scaffolding
         if (playerEntity.isInsideScaffolding()) {
             return false;
         }
 
-        if (playerInventoryHolder.inventory().getItemInHand().is(Items.SHIELD)) {
+        final GeyserItemStack mainHandItem = playerInventoryHolder.inventory().getItemInHand();
+        final GeyserItemStack offhandItem = playerInventoryHolder.inventory().getOffhand();
+
+        if (mainHandItem.is(Items.SHIELD) && !worldCache.hasCooldown(mainHandItem)) {
             useItem(Hand.MAIN_HAND);
-        } else if (playerInventoryHolder.inventory().getOffhand().is(Items.SHIELD)) {
-            useItem(Hand.OFF_HAND);
-        } else {
-            // No blocking
-            return false;
+            playerEntity.setFlag(EntityFlag.BLOCKING, true);
+            return true;
         }
 
-        playerEntity.setFlag(EntityFlag.BLOCKING, true);
-        // Metadata should be updated later
-        return true;
+        if (offhandItem.is(Items.SHIELD) && !worldCache.hasCooldown(offhandItem)) {
+            useItem(Hand.OFF_HAND);
+            playerEntity.setFlag(EntityFlag.BLOCKING, true);
+            return true;
+        }
+
+        return false;
     }
 
     /**

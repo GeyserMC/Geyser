@@ -32,14 +32,18 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 public class ConversionHelper {
 
     static NbtMap withName(NbtMap tag, String name) {
+        return withId(tag, "minecraft:" + name);
+    }
+
+    static NbtMap withId(NbtMap tag, String id) {
         NbtMapBuilder builder = tag.toBuilder();
-        builder.replace("name", "minecraft:" + name);
+        builder.replace("name", id);
         return builder.build();
     }
 
-    static NbtMap withoutStates(String name) {
+    static NbtMap withoutStates(String id) {
         NbtMapBuilder tagBuilder = NbtMap.builder();
-        tagBuilder.putString("name", "minecraft:" + name);
+        tagBuilder.putString("name", id);
         tagBuilder.putCompound("states", NbtMap.EMPTY);
         return tagBuilder.build();
     }

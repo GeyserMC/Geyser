@@ -68,6 +68,11 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
             return;
         }
 
+        Integer removedPlayerVehicleId = session.getPlayerEntity().getRemovedPlayerVehicleId();
+        if (removedPlayerVehicleId != null && removedPlayerVehicleId == packet.getEntityId()) {
+            session.getPlayerEntity().setRemovedPlayerVehicleId(null);
+        }
+
         EntitySpawnContext context = EntitySpawnContext.fromPacket(session, definition, packet);
         if (type.is(EntityType.PLAYER)) {
             PlayerEntity entity;

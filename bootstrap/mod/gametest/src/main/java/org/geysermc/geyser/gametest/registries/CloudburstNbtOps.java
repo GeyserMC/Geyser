@@ -81,6 +81,16 @@ public class CloudburstNbtOps implements DynamicOps<Object> {
     }
 
     @Override
+    public DataResult<Boolean> getBooleanValue(Object input) {
+        return this.getNumberValue(input).map(value -> value.doubleValue() != 0.0);
+    }
+
+    @Override
+    public Object createBoolean(boolean value) {
+        return value;
+    }
+
+    @Override
     public DataResult<String> getStringValue(Object input) {
         if (input instanceof String) {
             return DataResult.success((String) input);

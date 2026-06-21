@@ -53,6 +53,11 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
         }
 
         final SessionPlayerEntity entity = session.getPlayerEntity();
+        if (entity.getVehicle() != null) { // Vanilla behaviour, the player ignores teleport if they're on a vehicle.
+            acceptTeleport(session, entity.position().toDouble(), entity.getJavaYaw(), entity.getPitch(), packet.getId());
+            return;
+        }
+
         Vector3d position = packet.getPosition().add(
             packet.getRelatives().contains(PositionElement.X) ? entity.position().getX() : 0,
             packet.getRelatives().contains(PositionElement.Y) ? entity.position().getY() : 0,

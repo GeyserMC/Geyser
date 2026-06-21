@@ -41,6 +41,7 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
+import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.gamerule.GameRule;
 import org.geysermc.geyser.level.gamerule.GameRules;
@@ -76,6 +77,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ParticleType
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -156,6 +158,7 @@ public final class Registries {
     public static final SimpleMappedRegistry<String, Item> JAVA_ITEM_IDENTIFIERS = SimpleMappedRegistry.create(RegistryLoaders.empty(Object2ObjectOpenHashMap::new));
 
     public static final ListRegistry<DataComponents> DEFAULT_DATA_COMPONENTS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
+    public static final ListRegistry<List<ResolvableComponent<?>>> RESOLVABLE_DEFAULT_DATA_COMPONENTS = ListRegistry.create(RegistryLoaders.empty(ArrayList::new));
 
     /**
      * A versioned registry which holds {@link ItemMappings} for each version. These item mappings contain
@@ -228,6 +231,8 @@ public final class Registries {
         // They generally have in common that they either depend on loading a resource file directly or indirectly
         // (by using the Items or Blocks class, which loads all the blocks)
 
+        DataComponentRegistryPopulator.load();
+
         BEDROCK_ENTITY_IDENTIFIERS.load();
         BIOMES_NBT.load();
         BIOMES.load();
@@ -247,7 +252,6 @@ public final class Registries {
 
     public static void populate() {
         PacketRegistryPopulator.populate();
-        DataComponentRegistryPopulator.populate();
         ItemRegistryPopulator.populate();
         TagRegistryPopulator.populate();
 

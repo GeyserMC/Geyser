@@ -18,7 +18,7 @@ protocol-common = "3.0.0.Beta12-20260602.165120-26"
 protocol-codec = "3.0.0.Beta12-20260602.165120-25"
 raknet = "1.1.0.CR1-SNAPSHOT"
 minecraftauth = "5.0.0"
-mcprotocollib = "26.1-20260512.222733-20"
+mcprotocollib = "26.2-20260616.191648-13"
 adventure = "4.25.0"
 adventure-platform = "4.4.1"
 junit = "6.0.0"
@@ -31,28 +31,30 @@ folia = "1.21.11-R0.1-SNAPSHOT"
 viaversion = "5.9.2-SNAPSHOT"
 adapters = "1.17-SNAPSHOT"
 cloud = "2.0.0"
-cloud-minecraft = "2.0.0-SNAPSHOT"
-cloud-minecraft-modded = "2.0.0-SNAPSHOT"
+cloud-minecraft-paper = "2.0.0-20260617.222640-43"
+cloud-minecraft-velocity = "2.0.0-20260617.222640-43"
+cloud-minecraft-bungee = "2.0.0-20260617.222640-44"
+cloud-minecraft-modded = "2.0.0-20260617.163100-62"
 commodore = "2.2"
 bungeecord = "1.21-R0.4-20250913.044521-9"
 bungeecord-api = "26.1-R0.1-SNAPSHOT"
 velocity = "3.5.0-SNAPSHOT"
 viaproxy = "3.4.11"
-fabric-loader = "0.19.2"
-fabric-api = "0.148.2+26.1.2"
+fabric-loader = "0.19.3"
+fabric-api = "0.152.0+26.2"
 fabric-permissions-api = "0.7.0"
-neoforge-minecraft = "26.1.2.48-beta"
+neoforge-minecraft = "26.2.0.0-beta"
 mixin = "0.8.5"
 mixinextras = "0.5.3"
-minecraft = "26.1.2"
+minecraft = "26.2"
 mockito = "5.+"
 
 # plugin versions
 indra = "4.0.0"
 shadow = "9.4.1"
 architectury-plugin = "3.5-SNAPSHOT"
-architectury-loom = "1.14-SNAPSHOT"
-loom-companion = "1.14-SNAPSHOT"
+architectury-loom = "1.17-SNAPSHOT"
+loom-companion = "1.17-SNAPSHOT"
 minotaur = "2.9.0"
 lombok = "9.2.0"
 blossom = "2.2.0"
@@ -111,9 +113,9 @@ jline-terminal-jna = { group = "org.jline", name = "jline-terminal-jna", version
 jline-reader = { group = "org.jline", name = "jline-reader", version.ref = "jline" }
 
 cloud-core = { group = "org.incendo", name = "cloud-core", version.ref = "cloud" }
-cloud-paper = { group = "org.incendo", name = "cloud-paper", version.ref = "cloud-minecraft" }
-cloud-velocity = { group = "org.incendo", name = "cloud-velocity", version.ref = "cloud-minecraft" }
-cloud-bungee = { group = "org.incendo", name = "cloud-bungee", version.ref = "cloud-minecraft" }
+cloud-paper = { group = "org.incendo", name = "cloud-paper", version.ref = "cloud-minecraft-paper" }
+cloud-velocity = { group = "org.incendo", name = "cloud-velocity", version.ref = "cloud-minecraft-velocity" }
+cloud-bungee = { group = "org.incendo", name = "cloud-bungee", version.ref = "cloud-minecraft-bungee" }
 cloud-fabric = { group = "org.incendo", name = "cloud-fabric", version.ref = "cloud-minecraft-modded" }
 cloud-neoforge = { group = "org.incendo", name = "cloud-neoforge", version.ref = "cloud-minecraft-modded" }
 

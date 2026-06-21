@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,23 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.entity.type.living;
+package org.geysermc.geyser.item.components.resolvable;
 
-import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.item.type.Item;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
-public class SlimeEntity extends MobEntity {
+@FunctionalInterface
+public interface ResolvableComponentGetter {
 
-    public SlimeEntity(EntitySpawnContext context) {
-        super(context);
-    }
+    ResolvableComponentGetter EMPTY = item -> null;
 
-    public void setSlimeScale(IntEntityMetadata entityMetadata) {
-        setScale(0.10f + entityMetadata.getPrimitiveValue());
-    }
-
-    @Override
-    protected boolean isEnemy() {
-        return true;
-    }
+    @Nullable DataComponents getResolvedComponents(Item item);
 }

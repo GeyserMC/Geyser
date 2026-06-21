@@ -30,10 +30,12 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.RegistryOps;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.GameProtocol;
 
 public class MinecraftVersionTestInstance extends GeyserTestInstance {
@@ -57,9 +59,20 @@ public class MinecraftVersionTestInstance extends GeyserTestInstance {
     @Override
     public void run(GameTestHelper helper) {
         String current = SharedConstants.getCurrentVersion().id();
-        helper.assertValueEqual(current, version, "running Minecraft version");
-        helper.assertValueEqual(SharedConstants.getProtocolVersion(), GameProtocol.getJavaProtocolVersion(), "Java protocol version");
-        helper.assertTrue(GameProtocol.getAllSupportedJavaVersions().contains(current), "GameProtocol must mark " + current + " as supported");
+        try {
+            helper.assertValueEqual(current, version, "running Minecraft version");
+        } catch (GameTestAssertException exception) {
+            GeyserImpl.getInstance().getLogger().error("Please re-run the \":gametest:runDatagen\" gradle task!");
+            throw exception;
+        }
+
+        try {
+            helper.assertValueEqual(SharedConstants.getProtocolVersion(), GameProtocol.getJavaProtocolVersion(), "Java protocol version");
+            helper.assertTrue(GameProtocol.getAllSupportedJavaVersions().contains(current), "GameProtocol must mark " + current + " as supported");
+        } catch (GameTestAssertException exception) {
+            GeyserImpl.getInstance().getLogger().error("Please ensure MCPL is updated!");
+            throw exception;
+        }
         helper.succeed();
     }
 

@@ -51,6 +51,7 @@ import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.EffectType;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
@@ -227,8 +228,13 @@ public class LivingEntity extends Entity implements Tickable {
         boolean isUsingOffhand = (xd & 0x02) == 0x02;
 
         boolean isUsingShield = hasShield(isUsingOffhand);
+        boolean isUsingEnderEye = hasEnderEye(isUsingOffhand);
 
-        setFlag(EntityFlag.USING_ITEM, isUsingItem && !isUsingShield);
+        // We can't check for shield since the player is sneaking and not actually using it on their side.
+        // For ender eye, it's not consider a consumable item on bedrock, so the player never sends release item use so USING_ITEM flags are always true
+        // until you switch item, therefore we ignore it. Resolve https://github.com/GeyserMC/Geyser/issues/6316
+
+        setFlag(EntityFlag.USING_ITEM, isUsingItem && !isUsingShield && !isUsingEnderEye);
         // Override the blocking
         setFlag(EntityFlag.BLOCKING, isUsingItem && isUsingShield);
 
@@ -320,6 +326,14 @@ public class LivingEntity extends Entity implements Tickable {
             return bedPosition;
         } else {
             return null;
+        }
+    }
+
+    protected boolean hasEnderEye(boolean offhand) {
+        if (offhand) {
+            return getOffHandItem().is(Items.ENDER_EYE);
+        } else {
+            return getMainHandItem().is(Items.ENDER_EYE);
         }
     }
 
@@ -677,6 +691,21 @@ public class LivingEntity extends Entity implements Tickable {
                 case MOVEMENT_EFFICIENCY -> {
                     if (this instanceof ClientVehicle clientVehicle) {
                         clientVehicle.getVehicleComponent().setMovementEfficiency(AttributeUtils.calculateValue(javaAttribute));
+                    }
+                }
+                case FRICTION_MODIFIER -> {
+                    if (GameProtocol.is26_30orHigher(session.protocolVersion())) {
+                        newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.FRICTION_MODIFIER));
+                    }
+                }
+                case BOUNCINESS -> {
+                    if (GameProtocol.is26_30orHigher(session.protocolVersion())) {
+                        newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.BOUNCINESS));
+                    }
+                }
+                case AIR_DRAG_MODIFIER -> {
+                    if (GameProtocol.is26_30orHigher(session.protocolVersion())) {
+                        newAttributes.add(calculateAttribute(javaAttribute, GeyserAttributeType.AIR_DRAG_MODIFIER));
                     }
                 }
             }

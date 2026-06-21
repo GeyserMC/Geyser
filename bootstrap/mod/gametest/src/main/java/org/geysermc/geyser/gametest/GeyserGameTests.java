@@ -33,12 +33,13 @@ import net.minecraft.gametest.framework.GameTestInstance;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import org.geysermc.geyser.gametest.tests.EntityMetadataTest;
 
 import java.util.List;
 
 public final  class GeyserGameTests {
-    private static final List<EntityType<?>> UNSUPPORTED_ENTITY_TYPES = List.of(EntityType.BLOCK_DISPLAY, EntityType.ITEM_DISPLAY, EntityType.MARKER);
+    private static final List<EntityType<?>> UNSUPPORTED_ENTITY_TYPES = List.of(EntityTypes.BLOCK_DISPLAY, EntityTypes.ITEM_DISPLAY, EntityTypes.MARKER);
 
     private GeyserGameTests() {}
 
