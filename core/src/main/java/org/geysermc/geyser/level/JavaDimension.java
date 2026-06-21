@@ -91,7 +91,6 @@ public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ul
         }
         if (defaultClock == null) {
             defaultClock = COMMON_CLOCKS.get(entry.id());
-            System.out.println("falling back to " + defaultClock);
         }
 
         if (minY % 16 != 0) {
