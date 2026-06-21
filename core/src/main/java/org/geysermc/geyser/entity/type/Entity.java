@@ -58,7 +58,7 @@ import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
-import org.geysermc.geyser.impl.entity.GeyserEntityDataImpl;
+import org.geysermc.geyser.entity.EntityDataBehaviorRegistry;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.physics.BoundingBox;
@@ -936,23 +936,15 @@ public class Entity implements GeyserEntity {
 
     @Override
     public <T> void update(@NonNull GeyserEntityDataType<T> dataType, @Nullable T value) {
-        if (dataType instanceof GeyserEntityDataImpl<T> geyserEntityDataImpl) {
-            session.ensureInEventLoop(() -> {
-                geyserEntityDataImpl.update(this, value);
-                session.getEntityCache().markDirty(this);
-            });
-        } else {
-            throw new IllegalArgumentException("Invalid data type: " + dataType.getClass().getSimpleName());
-        }
+        session.ensureInEventLoop(() -> {
+            EntityDataBehaviorRegistry.update(this, dataType, value);
+            session.getEntityCache().markDirty(this);
+        });
     }
 
     @Override
     public <T> T value(@NonNull GeyserEntityDataType<T> dataType) {
-        if (dataType instanceof GeyserEntityDataImpl<T> geyserEntityDataImpl) {
-            return geyserEntityDataImpl.value(this);
-        } else {
-            throw new IllegalArgumentException("Invalid data type: " + dataType.getClass().getSimpleName());
-        }
+        return EntityDataBehaviorRegistry.get(this, dataType);
     }
 
     public EntityType getEntityType() {

@@ -35,8 +35,6 @@ import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
-import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
-import org.geysermc.geyser.api.entity.data.GeyserListEntityDataType;
 import org.geysermc.geyser.api.entity.data.types.Hitbox;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.definition.JavaEntityType;
@@ -87,8 +85,6 @@ import org.geysermc.geyser.impl.HoldersImpl;
 import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.impl.camera.GeyserCameraFade;
 import org.geysermc.geyser.impl.camera.GeyserCameraPosition;
-import org.geysermc.geyser.impl.entity.GeyserEntityDataImpl;
-import org.geysermc.geyser.impl.entity.GeyserListEntityDataImpl;
 import org.geysermc.geyser.impl.entity.HitboxImpl;
 import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
@@ -216,8 +212,6 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(GeyserEntityDefinition.class, args -> BedrockEntityDefinition.getVanilla((Identifier) args[0]));
         providers.put(CustomEntityDefinition.class, args -> CustomBedrockEntityDefinition.getOrCreate((Identifier) args[0]));
         providers.put(JavaEntityType.class, args -> GeyserEntityType.ofVanilla((Identifier) args[0]));
-        providers.put(GeyserEntityDataType.class, args -> GeyserEntityDataImpl.lookup((Class<?>) args[0], (String) args[1]));
-        providers.put(GeyserListEntityDataType.class, args -> GeyserListEntityDataImpl.lookup((Class<?>) args[0], (Class<?>) args[1], (String) args[2]));
 
         providers.put(Hitbox.Builder.class, args -> new HitboxImpl.BuilderImpl());
 

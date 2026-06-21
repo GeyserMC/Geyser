@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.api.entity.data;
 
-import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
@@ -37,21 +37,38 @@ import java.util.List;
  * @param <T> the object type in the list
  * @since 2.11.0
  */
-public interface GeyserListEntityDataType<T> extends GeyserEntityDataType<List<T>> {
+public abstract sealed class GeyserListEntityDataType<T> extends GeyserEntityDataType<List<T>>
+        permits GeyserListEntityDataType.SimpleListType {
+
+    @SuppressWarnings("unchecked")
+    GeyserListEntityDataType(Identifier identifier) {
+        super(identifier, (Class<List<T>>) (Class<?>) List.class);
+    }
 
     /**
      * @return the class of the list entries
      * @since 2.11.0
      */
-    Class<T> listEntryClass();
+    public abstract Class<T> listEntryClass();
 
-    /**
-     * For internal use only. API consumers should use the constants in {@link GeyserEntityDataTypes}.
-     *
-     * @since 2.11.0
-     */
     @ApiStatus.Internal
-    static <T> GeyserListEntityDataType<T> of(Class<T> typeClass, String name) {
-        return GeyserApi.api().provider(GeyserListEntityDataType.class, List.class, typeClass, name);
+    static <T> GeyserListEntityDataType<T> createList(Identifier identifier, Class<T> listEntryClass) {
+        return new SimpleListType<>(identifier, listEntryClass);
+    }
+
+    @ApiStatus.Internal
+    static final class SimpleListType<T> extends GeyserListEntityDataType<T> {
+        private final Class<T> listEntryClass;
+
+        @ApiStatus.Internal
+        SimpleListType(Identifier identifier, Class<T> listEntryClass) {
+            super(identifier);
+            this.listEntryClass = listEntryClass;
+        }
+
+        @Override
+        public Class<T> listEntryClass() {
+            return listEntryClass;
+        }
     }
 }
