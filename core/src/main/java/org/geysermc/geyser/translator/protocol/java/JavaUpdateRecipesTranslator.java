@@ -42,7 +42,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserSmithingRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
-import org.geysermc.geyser.inventory.recipe.TrimRecipe;
+import org.geysermc.geyser.inventory.recipe.TrimRecipes;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -136,14 +136,15 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             oldSmithingTable = false;
             // BDS sends armor trim templates and materials before the CraftingDataPacket
             TrimDataPacket trimDataPacket = new TrimDataPacket();
-            trimDataPacket.getPatterns().addAll(session.getRegistryCache().registry(JavaRegistries.TRIM_PATTERN).values()); // TODO this is wrong!! See the TODOs in the registry readers
-            trimDataPacket.getMaterials().addAll(session.getRegistryCache().registry(JavaRegistries.TRIM_MATERIAL).values());
+            // This won't work very well for custom trim patterns and materials
+            trimDataPacket.getPatterns().addAll(session.getTrimRecipes().bedrockTrimPatterns());
+            trimDataPacket.getMaterials().addAll(session.getTrimRecipes().bedrockTrimMaterials());
             session.sendUpstreamPacket(trimDataPacket);
 
             // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the
             // approach of using many default-descriptors (which we do for smithing_transform)
-            craftingDataPacket.getCraftingData().add(SmithingTrimRecipeData.of(TrimRecipe.ID,
-                    TrimRecipe.BASE, TrimRecipe.ADDITION, TrimRecipe.TEMPLATE, "smithing_table", netId++));
+            craftingDataPacket.getCraftingData().add(SmithingTrimRecipeData.of(TrimRecipes.ID,
+                    TrimRecipes.BASE, TrimRecipes.ADDITION, TrimRecipes.TEMPLATE, "smithing_table", netId++));
         }
         session.getGeyser().getLogger().debug("Using old smithing table workaround? " + oldSmithingTable);
         session.setOldSmithingTable(oldSmithingTable);

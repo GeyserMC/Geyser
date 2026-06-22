@@ -72,7 +72,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         session.setClientTicks(packet.getTick());
-        session.setInClientPredictedVehicle(packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE) && entity.getVehicle() != null && GameProtocol.is1_26_10orHigher(session.protocolVersion()));
+        session.setInClientPredictedVehicle(packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE) && entity.getVehicle() != null && GameProtocol.is26_10orHigher(session.protocolVersion()));
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
@@ -170,7 +170,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 case MISSED_SWING -> {
                     session.setLastAirHitTick(session.getTicks());
 
-                    if (session.getArmAnimationTicks() != 0 && session.getArmAnimationTicks() != 1) {
+                    if (session.getArmAnimationTicks() != 0 && session.getArmAnimationTicks() != 1 && session.getGameMode() != GameMode.SPECTATOR) {
                         session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
                         session.activateArmAnimationTicking();
                     }

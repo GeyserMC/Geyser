@@ -52,6 +52,7 @@ import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.TrapDoorBlock;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.TeleportCache;
 import org.geysermc.geyser.session.cache.tags.BlockTag;
 import org.geysermc.geyser.util.AttributeUtils;
 import org.geysermc.geyser.util.DimensionUtils;
@@ -137,6 +138,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Getter @Setter
     private boolean collidingVertically;
 
+    /**
+     * The vehicle that player was previously in before it got removed from the world.
+     */
+    @Getter @Setter
+    private @Nullable Integer removedPlayerVehicleId = null;
+
     public SessionPlayerEntity(GeyserSession session) {
         super(new EntitySpawnContext(session, EntityDefinitions.PLAYER, -1, null), null, null);
 
@@ -165,6 +172,15 @@ public class SessionPlayerEntity extends PlayerEntity {
     public void setYaw(float yaw) {
         super.setYaw(yaw);
         this.javaYaw = yaw;
+    }
+
+    @Override
+    public Vector3f bedrockPosition() {
+        TeleportCache unconfirmedTeleport = session.getUnconfirmedTeleport();
+        if (unconfirmedTeleport != null) {
+            return unconfirmedTeleport.getAdjustedPosition().up(getOffset());
+        }
+        return super.bedrockPosition();
     }
 
     @Override
@@ -222,17 +238,15 @@ public class SessionPlayerEntity extends PlayerEntity {
      * @param position the new position of the Bedrock player
      */
     public void setPositionFromBedrockPos(Vector3f position) {
-        // Special handling: position while sleeping
-        if (bedPosition != null && getFlag(EntityFlag.SLEEPING)) {
-            this.position = position.down(0.2f);
-        } else if (this.vehicle != null) {
+        if (this.vehicle != null) {
             this.position = position.down(this.vehicle.getOffset());
         } else {
-            this.position = position.down(offset);
+            // getOffset will also account for a reduced offset (0.2) when sleeping
+            this.position = position.down(getOffset());
         }
 
         // Player is "above" the void so they're not supposed to no clip.
-        if (session.isNoClip() && position.getY() - EntityDefinitions.PLAYER.offset() >= session.getBedrockDimension().minY() - 5) {
+        if (session.isNoClip() && this.position.getY() >= session.getBedrockDimension().minY() - 5) {
             session.setNoClip(false);
         }
     }
@@ -340,6 +354,16 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
+    protected boolean hasEnderEye(boolean offhand) {
+        // Must be overridden to point to the player's inventory cache
+        if (offhand) {
+            return session.getPlayerInventory().getOffhand().is(Items.ENDER_EYE);
+        } else {
+            return session.getPlayerInventory().getItemInHand().is(Items.ENDER_EYE);
+        }
+    }
+
+    @Override
     protected boolean hasShield(boolean offhand) {
         // Must be overridden to point to the player's inventory cache
         if (offhand) {
@@ -422,6 +446,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
         super.setLivingEntityFlags(entityMetadata);
 
+        byte xd = entityMetadata.getPrimitiveValue();
+        boolean isUsingOffhand = (xd & 0x02) == 0x02;
+        if (session.getWorldCache().hasCooldown(isUsingOffhand ? getOffHandItem() : getMainHandItem())) {
+            setFlag(EntityFlag.BLOCKING, false);
+        }
+
         // Forcefully update flags since we're not tracking thing like using item properly.
         // For eg: when player start using item client-sided (and the USING_ITEM flag is false on geyser side)
         // If the server disagree with the player using item state, it will send a metadata set USING_ITEM flag to false
@@ -495,6 +525,10 @@ public class SessionPlayerEntity extends PlayerEntity {
             this.vehicle.setBoundingBoxWidth(this.vehicle.getDefinition().width());
             this.vehicle.setBoundingBoxHeight(this.vehicle.getDefinition().height());
             this.vehicle.updateBedrockMetadata();
+        }
+
+        if (entity != null) {
+            this.removedPlayerVehicleId = null;
         }
 
         // Bedrock player can dismount by pressing jump while Java cannot, so we need to prevent player from jumping to match vanilla behaviour.

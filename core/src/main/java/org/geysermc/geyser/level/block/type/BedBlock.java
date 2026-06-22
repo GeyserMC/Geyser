@@ -25,6 +25,12 @@
 
 package org.geysermc.geyser.level.block.type;
 
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
+import org.geysermc.geyser.util.BlockEntityUtils;
+
 public class BedBlock extends Block {
     private final int dyeColor;
 
@@ -33,7 +39,16 @@ public class BedBlock extends Block {
         this.dyeColor = dyeColor;
     }
 
-    public int dyeColor() {
-        return dyeColor;
+    @Override
+    public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
+        super.updateBlock(session, state, position);
+        // Block on Java, block entity on bedrock
+        BlockEntityUtils.updateBlockEntity(session, createTag(position), position);
+    }
+
+    private NbtMap createTag(Vector3i position) {
+        return BlockEntityTranslator.getConstantBedrockTag("Bed", position)
+            .putByte("color", (byte) dyeColor)
+            .build();
     }
 }
