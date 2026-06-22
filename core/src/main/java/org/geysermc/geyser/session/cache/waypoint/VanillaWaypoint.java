@@ -27,7 +27,6 @@ package org.geysermc.geyser.session.cache.waypoint;
 
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.cloudburstmc.math.vector.Vector2f;
-import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 
@@ -36,6 +35,7 @@ import java.util.List;
 import java.util.Objects;
 
 public record VanillaWaypoint(int nearDistance, int farDistance, List<String> textures) implements CustomWaypointStyle {
+    public static final Identifier VANILLA_WAYPOINT_STYLE = Identifier.of("default");
     // Default near and far distance: https://mcsrc.dev/1/26.1.2/net/minecraft/client/resources/WaypointStyle#L15-16
     // Default textures from bedrock's resourcepack (26.20)
     public static final CustomWaypointStyle VANILLA_DEFAULT = new Builder(128, 332)
@@ -51,7 +51,7 @@ public record VanillaWaypoint(int nearDistance, int farDistance, List<String> te
 
     // inspired by: https://mcsrc.dev/1/26.1.2/net/minecraft/client/resources/WaypointStyle#L45-59
     @Override
-    public String texturePath(GeyserConnection connection, Identifier style, float distance) {
+    public String texturePath(Identifier style, float distance) {
         if (distance < nearDistance) {
             return textures.getFirst();
         } else if (distance >= farDistance) {
@@ -67,14 +67,13 @@ public record VanillaWaypoint(int nearDistance, int farDistance, List<String> te
     }
 
     @Override
-    public Vector2f textureSize(GeyserConnection connection, Identifier style, float distance) {
+    public Vector2f textureSize(Identifier style, float distance) {
         if (distance < nearDistance) {
             return Vector2f.ONE;
         } else if (distance >= farDistance) {
             return SMALL_WAYPOINT_ICON_SIZE;
         }
         int index = lerpInt((distance - nearDistance) / (farDistance - nearDistance), 1, textures.size() - 1);
-        // TODO check me
         return index <= (textures.size() - 2) / 2 ? Vector2f.ONE : MEDIUM_WAYPOINT_ICON_SIZE;
     }
 

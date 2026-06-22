@@ -31,7 +31,7 @@ import org.checkerframework.common.returnsreceiver.qual.This;
 import org.cloudburstmc.math.vector.Vector2f;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.connection.GeyserConnection;
-import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomWaypointsEvent;
+import org.geysermc.geyser.api.event.connection.SessionDefineCustomWaypointsEvent;
 import org.geysermc.geyser.api.util.GenericBuilder;
 import org.geysermc.geyser.api.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
@@ -44,14 +44,14 @@ import java.util.Objects;
  * and Bedrock Edition allows specifying custom textures for waypoints through packets.
  *
  * <p>This interface may be implemented by developers if they wish to display custom textures on the locator
- * bar on Bedrock Edition. Implementations must always implement both {@link CustomWaypointStyle#texturePath(GeyserConnection, Identifier, float)} and
- * {@link CustomWaypointStyle#textureSize(GeyserConnection, Identifier, float)}, and should be registered for one or more waypoint style identifiers
- * in the {@link GeyserDefineCustomWaypointsEvent}. For implementation details, see the Javadocs at the respective methods.</p>
+ * bar on Bedrock Edition. Implementations must always implement both {@link CustomWaypointStyle#texturePath(Identifier, float)} and
+ * {@link CustomWaypointStyle#textureSize(Identifier, float)}, and should be registered for one or more waypoint style identifiers
+ * in the {@link SessionDefineCustomWaypointsEvent}. For implementation details, see the Javadocs at the respective methods.</p>
  *
  * <p>If you wish to define a custom waypoint style that acts like custom waypoint styles on Java Edition, use {@link CustomWaypointStyle#vanillaLike(int, int)}.</p>
  *
  * @see VanillaBuilder
- * @see GeyserDefineCustomWaypointsEvent
+ * @see SessionDefineCustomWaypointsEvent
  */
 public interface CustomWaypointStyle {
 
@@ -71,13 +71,12 @@ public interface CustomWaypointStyle {
      * Implementations should not prefix the path with {@code "textures/"}, as this is done by Geyser. Implementations should never
      * return null, and upon doing so, Geyser will log a warning and use the {@code "textures/ui/locator_bar_dot_0"} texture as fallback.
      *
-     * @param connection the {@link GeyserConnection} to whom this texture is shown
      * @param style the {@link Identifier} of the waypoint's custom style on Java Edition
      * @param distance the distance between the {@link GeyserConnection} and the waypoint
      * @return the path of the texture to display on the locator bar
-     * @see CustomWaypointStyle#textureSize(GeyserConnection, Identifier, float)
+     * @see CustomWaypointStyle#textureSize(Identifier, float)
      */
-    String texturePath(GeyserConnection connection, Identifier style, float distance);
+    String texturePath(Identifier style, float distance);
 
     /**
      * Returns the size of the texture to display on the locator bar for a waypoint with this {@code style} identifier, at the specified {@code distance}.
@@ -95,13 +94,12 @@ public interface CustomWaypointStyle {
      * Implementations should return a reasonable texture size. None of the returned vector's components may ever be below 0 - when this happens,
      * Geyser will log a warning and use [0;0] as fallback.
      *
-     * @param connection the {@link GeyserConnection} to whom this texture is shown
      * @param style the {@link Identifier} of the waypoint's custom style on Java Edition
      * @param distance the distance between the {@link GeyserConnection} and the waypoint
      * @return the size of the texture to display on the locator bar
-     * @see CustomWaypointStyle#texturePath(GeyserConnection, Identifier, float)
+     * @see CustomWaypointStyle#texturePath(Identifier, float)
      */
-    Vector2f textureSize(GeyserConnection connection, Identifier style, float distance);
+    Vector2f textureSize(Identifier style, float distance);
 
     /**
      * This builder can be used to create an implementation of {@link CustomWaypointStyle} that acts like the vanilla Java Edition

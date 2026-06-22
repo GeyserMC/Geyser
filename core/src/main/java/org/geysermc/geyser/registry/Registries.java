@@ -53,6 +53,7 @@ import org.geysermc.geyser.registry.loader.SoundEventsRegistryLoader;
 import org.geysermc.geyser.registry.loader.SoundRegistryLoader;
 import org.geysermc.geyser.registry.loader.SoundTranslatorRegistryLoader;
 import org.geysermc.geyser.registry.loader.WaypointStyleLoader;
+import org.geysermc.geyser.registry.mappings.MappingsType;
 import org.geysermc.geyser.registry.populator.DataComponentRegistryPopulator;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
@@ -213,7 +214,7 @@ public final class Registries {
      */
     public static final ListDeferredRegistry<Key> DANGEROUS_ENTITIES = ListDeferredRegistry.create(UtilMappings::dangerousEntities, RegistryLoaders.UTIL_MAPPINGS_KEYS);
 
-    public static final SimpleMappedRegistry<Identifier, CustomWaypointStyle> WAYPOINT_STYLES = SimpleMappedRegistry.create(WaypointStyleLoader::new);
+    public static final SimpleMappedDeferredRegistry<Identifier, CustomWaypointStyle> WAYPOINT_STYLE_MAPPINGS = SimpleMappedDeferredRegistry.create(MappingsType.WAYPOINT_STYLES, WaypointStyleLoader::new);
 
     /**
      * A registry containing all the Java game rules.

@@ -38,7 +38,6 @@ import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -47,6 +46,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData
 
 import java.awt.Color;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -71,11 +71,11 @@ public abstract class GeyserWaypoint {
 
     private Vector3f lastSentPosition = null;
 
-    public GeyserWaypoint(GeyserSession session, UUID uuid, Identifier style, Color color, Optional<Entity> entity) {
+    public GeyserWaypoint(GeyserSession session, UUID uuid, CustomWaypointStyle style, Identifier styleIdentifier, Color color, Optional<Entity> entity) {
         this.session = session;
         this.uuid = uuid;
-        this.style = Registries.WAYPOINT_STYLES.getOrDefault(style, VanillaWaypoint.VANILLA_DEFAULT);
-        this.styleIdentifier = style;
+        this.style = style;
+        this.styleIdentifier = styleIdentifier;
         this.bedrockWaypoint = new LocatorBarWaypoint();
         this.uses26_10WaypointPacket = uses26_10WaypointPacket(session);
         this.uses26_20WaypointPacket = uses26_20WaypointPacket(session);
@@ -166,8 +166,8 @@ public abstract class GeyserWaypoint {
         if (uses26_10WaypointPacket) {
             if (uses26_20WaypointPacket) {
                 float distance = session.playerEntity().position().distance(position);
-                String texture = style.texturePath(session, styleIdentifier, distance);
-                Vector2f iconSize = style.textureSize(session, styleIdentifier, distance);
+                String texture = style.texturePath(styleIdentifier, distance);
+                Vector2f iconSize = style.textureSize(styleIdentifier, distance);
 
                 if (texture == null) {
                     GeyserImpl.getInstance().getLogger().warning("custom waypoint style for " + styleIdentifier + " returned null texture!");
@@ -234,18 +234,19 @@ public abstract class GeyserWaypoint {
 
     public abstract void setData(WaypointData data);
 
-    public static @Nullable GeyserWaypoint create(GeyserSession session, Optional<Entity> entity, TrackedWaypoint waypoint) {
+    public static @Nullable GeyserWaypoint create(GeyserSession session, Optional<Entity> entity, TrackedWaypoint waypoint, Map<Identifier, CustomWaypointStyle> waypointStyles) {
         UUID uuid = Optional.ofNullable(waypoint.uuid())
             .or(() -> Optional.ofNullable(waypoint.id())
                 .map(UUID::fromString))
             .orElseThrow();
-        Identifier style = MinecraftKey.keyToIdentifier(waypoint.icon().style());
+        Identifier styleIdentifier = MinecraftKey.keyToIdentifier(waypoint.icon().style());
+        CustomWaypointStyle style = waypointStyles.getOrDefault(styleIdentifier, VanillaWaypoint.VANILLA_DEFAULT);
         Color color = getWaypointColor(waypoint);
         return switch (waypoint.type()) {
             case EMPTY -> null;
-            case VEC3I -> new CoordinatesWaypoint(session, uuid, style, color, entity);
-            case CHUNK -> new ChunkWaypoint(session, uuid, style, color, entity);
-            case AZIMUTH -> new AzimuthWaypoint(session, uuid, style, color, entity);
+            case VEC3I -> new CoordinatesWaypoint(session, uuid, style, styleIdentifier, color, entity);
+            case CHUNK -> new ChunkWaypoint(session, uuid, style, styleIdentifier, color, entity);
+            case AZIMUTH -> new AzimuthWaypoint(session, uuid, style, styleIdentifier, color, entity);
         };
     }
 

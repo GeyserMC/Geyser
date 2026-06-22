@@ -23,9 +23,9 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.event.lifecycle;
+package org.geysermc.geyser.api.event.connection;
 
-import org.geysermc.event.Event;
+import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.jetbrains.annotations.ApiStatus;
@@ -33,7 +33,7 @@ import org.jetbrains.annotations.ApiStatus;
 import java.util.Map;
 
 /**
- * Called on Geyser's startup to register custom waypoint styles. Custom waypoint styles must be registered through this event.
+ * Called once for every {@link GeyserConnection} to register custom waypoint styles. Custom waypoint styles must be registered through this event.
  *
  * <p>{@link CustomWaypointStyle}s may be registered multiple times for different Java Edition waypoint style {@link Identifier}s, however, each Java Edition waypoint style
  * may only have one {@link CustomWaypointStyle}.</p>
@@ -41,17 +41,21 @@ import java.util.Map;
  * @see CustomWaypointStyle
  */
 @ApiStatus.NonExtendable
-public interface GeyserDefineCustomWaypointsEvent extends Event {
+public abstract class SessionDefineCustomWaypointsEvent extends ConnectionEvent {
+
+    public SessionDefineCustomWaypointsEvent(GeyserConnection connection) {
+        super(connection);
+    }
 
     /**
-     * Returns a map of all the currently registered custom waypoint styles.
+     * Returns a map of all the currently registered custom waypoint styles for this {@link GeyserConnection}.
      *
      * @return the map of all the registered custom waypoint styles, at this moment
      */
-    Map<Identifier, CustomWaypointStyle> customWaypointStyles();
+    public abstract Map<Identifier, CustomWaypointStyle> customWaypointStyles();
 
     /**
-     * Registers a {@link CustomWaypointStyle} for the given Java Edition waypoint style {@code identifier}.
+     * Registers a {@link CustomWaypointStyle} for this {@link GeyserConnection}, for the given Java Edition waypoint style {@code identifier}.
      *
      * <p>The given {@link CustomWaypointStyle} will be used for every waypoint that uses the given {@code identifier} as waypoint style. Vanilla
      * waypoint styles, like {@code minecraft:default}, may be overridden.</p>
@@ -61,5 +65,5 @@ public interface GeyserDefineCustomWaypointsEvent extends Event {
      * @param identifier the identifier of the waypoint style on Java Edition
      * @param style the {@link CustomWaypointStyle}
      */
-    void register(Identifier identifier, CustomWaypointStyle style);
+    public abstract void register(Identifier identifier, CustomWaypointStyle style);
 }

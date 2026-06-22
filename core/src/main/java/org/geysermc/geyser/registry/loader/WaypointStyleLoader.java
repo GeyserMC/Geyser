@@ -26,53 +26,20 @@
 package org.geysermc.geyser.registry.loader;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomWaypointsEvent;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.mappings.MappingsType;
-import org.geysermc.geyser.session.cache.waypoint.VanillaWaypoint;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 
-public class WaypointStyleLoader implements RegistryLoader<Object, Map<Identifier, CustomWaypointStyle>> {
-    private static final Identifier VANILLA_WAYPOINT_STYLE = Identifier.of("default");
+public class WaypointStyleLoader implements RegistryLoader<MappingsType<Identifier, CustomWaypointStyle>, Map<Identifier, CustomWaypointStyle>> {
 
     @Override
-    public Map<Identifier, CustomWaypointStyle> load(Object ignored) {
-        Map<Identifier, CustomWaypointStyle> styles = new Object2ObjectOpenHashMap<>();
-
-        GeyserDefineCustomWaypointsEvent event = new GeyserDefineCustomWaypointsEvent() {
-            @Override
-            public Map<Identifier, CustomWaypointStyle> customWaypointStyles() {
-                return Collections.unmodifiableMap(styles);
-            }
-
-            @Override
-            public void register(Identifier identifier, CustomWaypointStyle style) {
-                Objects.requireNonNull(identifier, "identifier may not be null");
-                Objects.requireNonNull(style, "style may not be null");
-                if (styles.containsKey(identifier)) {
-                    GeyserImpl.getInstance().getLogger().error("Not registering waypoint style with identifier " + identifier + " as it was already registered");
-                } else {
-                    styles.put(identifier, style);
-                }
-            }
-        };
-
-        // First, read the mappings
-        MappingsConfigReader.loadCustomMappingsFromJson(MappingsType.WAYPOINT_STYLES, event::register);
-        // Then, fire the event to the API
-        GeyserImpl.getInstance().eventBus().fire(event);
-
-        // Include the vanilla default waypoint style if it was not overridden
-        if (!styles.containsKey(VANILLA_WAYPOINT_STYLE)) {
-            styles.put(VANILLA_WAYPOINT_STYLE, VanillaWaypoint.VANILLA_DEFAULT);
-        }
-
-        return styles;
+    public Map<Identifier, CustomWaypointStyle> load(MappingsType<Identifier, CustomWaypointStyle> input) {
+        Map<Identifier, CustomWaypointStyle> map = new Object2ObjectOpenHashMap<>();
+        MappingsConfigReader.loadCustomMappingsFromJson(input, map::put);
+        return Collections.unmodifiableMap(map);
     }
 }
