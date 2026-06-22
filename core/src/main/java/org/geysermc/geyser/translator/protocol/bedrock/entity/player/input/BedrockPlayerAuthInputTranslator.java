@@ -59,10 +59,12 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.Serverbound
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSpectatorActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.Set;
 
 @Translator(packet = PlayerAuthInputPacket.class)
@@ -72,15 +74,6 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
     public void translate(GeyserSession session, PlayerAuthInputPacket packet) {
         SessionPlayerEntity entity = session.getPlayerEntity();
 
-        if (EntitySpectateHelper.isSpectating(session)) {
-            if (packet.getInputData().contains(PlayerAuthInputData.SNEAK_DOWN)
-                    || packet.getInputData().contains(PlayerAuthInputData.DESCEND)) {
-                session.setShouldSendSneak(true);
-            } else if (packet.getInputData().contains(PlayerAuthInputData.JUMP_PRESSED_RAW)) {
-                EntitySpectateHelper.cycleMode(session);
-            }
-        }
-
         session.setClientTicks(packet.getTick());
         session.setInClientPredictedVehicle(packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE) && entity.getVehicle() != null && GameProtocol.is26_10orHigher(session.protocolVersion()));
 
@@ -88,8 +81,12 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         session.getInputCache().processInputs(entity, packet);
         // While spectating an entity, suppress the player's own movement and actions (BedrockMovePlayer forwards
         // movement and ticks the position reminder, which InputCache#shouldSendPositionReminder says not to do while
-        // spectating); placed after processInputs so the sneak that ends spectating still flows.
+        // spectating). Placed after processInputs so the sneak that ends spectating still flows. The tick-end packet
+        // is still sent so the server keeps advancing the client tick.
         if (EntitySpectateHelper.isSpectating(session)) {
+            if (session.isSpawned()) {
+                session.sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
+            }
             return;
         }
         session.getBlockBreakHandler().handlePlayerAuthInputPacket(packet);
@@ -186,7 +183,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 case MISSED_SWING -> {
                     session.setLastAirHitTick(session.getTicks());
 
-                    if (session.getArmAnimationTicks() != 0 && session.getArmAnimationTicks() != 1 && session.getGameMode() != GameMode.SPECTATOR) {
+                    if (session.getGameMode() == GameMode.SPECTATOR) {
+                        session.sendDownstreamGamePacket(new ServerboundSpectatorActionPacket(OptionalInt.empty()));
+                    } else if (session.getArmAnimationTicks() != 0 && session.getArmAnimationTicks() != 1) {
                         session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
                         session.activateArmAnimationTicking();
                     }

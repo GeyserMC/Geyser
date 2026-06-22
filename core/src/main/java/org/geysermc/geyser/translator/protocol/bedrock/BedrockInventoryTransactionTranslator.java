@@ -474,8 +474,12 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 }
 
                 Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
-                if (entity == null)
+                if (entity == null) {
+                    if (session.getGameMode() == GameMode.SPECTATOR) {
+                        session.sendDownstreamGamePacket(new ServerboundSpectatorActionPacket(OptionalInt.empty()));
+                    }
                     return;
+                }
 
                 if (session.getGameMode() == GameMode.SPECTATOR) {
                     session.sendDownstreamGamePacket(new ServerboundSpectatorActionPacket(OptionalInt.of(entity.getEntityId())));

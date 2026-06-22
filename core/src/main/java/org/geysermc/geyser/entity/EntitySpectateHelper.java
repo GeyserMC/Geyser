@@ -39,12 +39,23 @@ import org.geysermc.geyser.util.MathUtils;
 
 public final class EntitySpectateHelper {
 
-    private static final int FIRST_PERSON_PRESET = CameraPerspective.FIRST_PERSON.ordinal();
     private static final int FREE_PRESET = CameraPerspective.FREE.ordinal();
     private static final double DISTANCE = 4.0;
     private static final float EYE_HEIGHT_RATIO = 0.85f;
 
     private EntitySpectateHelper() {
+    }
+
+    public enum SpectateMode {
+        FIRST_PERSON,
+        THIRD_PERSON_BACK,
+        THIRD_PERSON_FRONT;
+
+        private static final SpectateMode[] VALUES = values();
+
+        public SpectateMode next() {
+            return VALUES[(ordinal() + 1) % VALUES.length];
+        }
     }
 
     public static boolean isSpectating(GeyserSession session) {
@@ -54,12 +65,12 @@ public final class EntitySpectateHelper {
     public static void start(GeyserSession session, Entity target) {
         Entity previous = session.getSpectatedEntity();
         session.setSpectatedEntity(target);
-        session.setSpectateMode(0);
+        session.setSpectateMode(SpectateMode.FIRST_PERSON);
         if (previous != null && previous != target) {
             previous.sendSpectateInvisible(false);
         }
         setSelfHidden(session, true);
-        apply(session, target, 0);
+        apply(session, target, SpectateMode.FIRST_PERSON);
     }
 
     public static void stop(GeyserSession session) {
@@ -68,18 +79,12 @@ public final class EntitySpectateHelper {
             return;
         }
         session.setSpectatedEntity(null);
-        session.setSpectateMode(0);
+        session.setSpectateMode(SpectateMode.FIRST_PERSON);
         if (target.isValid()) {
             target.sendSpectateInvisible(false);
         }
         setSelfHidden(session, false);
-        // A bare clear can lose to an in-flight FREE ease (rapid enter/exit); snap to first_person first, then clear
-        CameraInstructionPacket reset = new CameraInstructionPacket();
-        CameraSetInstruction firstPerson = new CameraSetInstruction();
-        firstPerson.setPreset(CameraDefinitions.getById(FIRST_PERSON_PRESET));
-        reset.setSetInstruction(firstPerson);
-        session.sendUpstreamPacket(reset);
-
+        // Release the camera so the client regains control and the F5 perspective toggle works again
         CameraInstructionPacket clear = new CameraInstructionPacket();
         clear.setClear(true);
         session.sendUpstreamPacket(clear);
@@ -90,7 +95,7 @@ public final class EntitySpectateHelper {
         if (target == null) {
             return;
         }
-        int mode = (session.getSpectateMode() + 1) % 3;
+        SpectateMode mode = session.getSpectateMode().next();
         session.setSpectateMode(mode);
         apply(session, target, mode);
     }
@@ -107,8 +112,8 @@ public final class EntitySpectateHelper {
         sendCamera(session, target, session.getSpectateMode());
     }
 
-    private static void apply(GeyserSession session, Entity target, int mode) {
-        target.sendSpectateInvisible(mode == 0);
+    private static void apply(GeyserSession session, Entity target, SpectateMode mode) {
+        target.sendSpectateInvisible(mode == SpectateMode.FIRST_PERSON);
         sendCamera(session, target, mode);
     }
 
@@ -118,37 +123,35 @@ public final class EntitySpectateHelper {
         self.updateBedrockMetadata();
     }
 
-    private static void sendCamera(GeyserSession session, Entity entity, int mode) {
+    private static void sendCamera(GeyserSession session, Entity entity, SpectateMode mode) {
         float yaw = entity.getHeadYaw();
         float pitch = entity.getPitch();
         Vector3f forward = MathUtils.calculateViewVector(pitch, yaw);
-        double fx = forward.getX();
-        double fy = forward.getY();
-        double fz = forward.getZ();
 
         Vector3f pos = entity.bedrockPosition();
         double eyeY = pos.getY() + eyeHeight(entity);
 
-        double cx;
-        double cy;
-        double cz;
+        // First-person sits at the eye. Third-person offsets along the view vector (behind, or in front looking back)
+        double distance;
         Vector2f rot;
-        if (mode == 0) {
-            cx = pos.getX();
-            cy = eyeY;
-            cz = pos.getZ();
-            rot = Vector2f.from(pitch, yaw);
-        } else if (mode == 1) {
-            cx = pos.getX() - fx * DISTANCE;
-            cy = eyeY - fy * DISTANCE;
-            cz = pos.getZ() - fz * DISTANCE;
-            rot = Vector2f.from(pitch, yaw);
-        } else {
-            cx = pos.getX() + fx * DISTANCE;
-            cy = eyeY + fy * DISTANCE;
-            cz = pos.getZ() + fz * DISTANCE;
-            rot = Vector2f.from(-pitch, yaw + 180f);
+        switch (mode) {
+            case FIRST_PERSON -> {
+                distance = 0.0;
+                rot = Vector2f.from(pitch, yaw);
+            }
+            case THIRD_PERSON_BACK -> {
+                distance = -DISTANCE;
+                rot = Vector2f.from(pitch, yaw);
+            }
+            case THIRD_PERSON_FRONT -> {
+                distance = DISTANCE;
+                rot = Vector2f.from(-pitch, yaw + 180f);
+            }
+            default -> throw new IllegalStateException("Unexpected spectate mode: " + mode);
         }
+        double cx = pos.getX() + forward.getX() * distance;
+        double cy = eyeY + forward.getY() * distance;
+        double cz = pos.getZ() + forward.getZ() * distance;
 
         CameraInstructionPacket packet = new CameraInstructionPacket();
         CameraSetInstruction set = new CameraSetInstruction();

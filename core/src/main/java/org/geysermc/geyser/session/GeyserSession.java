@@ -323,13 +323,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private TeleportCache unconfirmedTeleport;
 
     @Setter
-    private Entity spectatedEntity;
+    private @Nullable Entity spectatedEntity;
 
-    /**
-     * Spectate camera mode: 0 = first-person, 1 = third-person back, 2 = third-person front.
-     */
     @Setter
-    private int spectateMode;
+    private EntitySpectateHelper.SpectateMode spectateMode = EntitySpectateHelper.SpectateMode.FIRST_PERSON;
 
     private final WorldBorder worldBorder;
     /**

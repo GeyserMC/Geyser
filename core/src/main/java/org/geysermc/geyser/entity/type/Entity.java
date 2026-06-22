@@ -47,6 +47,7 @@ import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntitySpectateHelper;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
@@ -433,7 +434,7 @@ public class Entity implements GeyserEntity {
             entityDataPacket.setRuntimeEntityId(geyserId);
             if (flagsDirty) {
                 // Re-assert the first-person hide; a server flags-byte refresh would otherwise un-hide the target
-                if (session.getSpectatedEntity() == this && session.getSpectateMode() == 0) {
+                if (session.getSpectatedEntity() == this && session.getSpectateMode() == EntitySpectateHelper.SpectateMode.FIRST_PERSON) {
                     entityDataPacket.getMetadata().putFlags(spectateHiddenFlags());
                 } else {
                     entityDataPacket.getMetadata().putFlags(flags);
@@ -460,10 +461,9 @@ public class Entity implements GeyserEntity {
         session.sendUpstreamPacket(packet);
     }
 
-    private EnumMap<EntityFlag, Boolean> spectateHiddenFlags() {
+    protected EnumMap<EntityFlag, Boolean> spectateHiddenFlags() {
         EnumMap<EntityFlag, Boolean> overridden = new EnumMap<>(flags);
         overridden.put(EntityFlag.INVISIBLE, true);
-        overridden.put(EntityFlag.RENDER_WHEN_INVISIBLE, false);
         return overridden;
     }
 
