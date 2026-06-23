@@ -31,14 +31,18 @@ import org.cloudburstmc.protocol.bedrock.data.camera.CameraEase;
 import org.cloudburstmc.protocol.bedrock.data.camera.CameraSetInstruction;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.CameraInstructionPacket;
+import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.geyser.api.bedrock.camera.CameraPerspective;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.impl.camera.CameraDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MathUtils;
 
+import java.util.concurrent.TimeUnit;
+
 public final class EntitySpectateHelper {
 
+    private static final int FIRST_PERSON_PRESET = CameraPerspective.FIRST_PERSON.ordinal();
     private static final int FREE_PRESET = CameraPerspective.FREE.ordinal();
     private static final double DISTANCE = 4.0;
     private static final float EYE_HEIGHT_RATIO = 0.85f;
@@ -84,10 +88,19 @@ public final class EntitySpectateHelper {
             target.sendSpectateInvisible(false);
         }
         setSelfHidden(session, false);
-        // Release the camera so the client regains control and the F5 perspective toggle works again
-        CameraInstructionPacket clear = new CameraInstructionPacket();
-        clear.setClear(true);
-        session.sendUpstreamPacket(clear);
+        // Hand the camera back as the default first-person preset, then clear a few ticks later to re-enable F5. Clearing directly
+        // gets ignored after a reconnect while a camera set is still in flight, but a set instruction restores the view either way.
+        CameraInstructionPacket reset = new CameraInstructionPacket();
+        CameraSetInstruction defaultCamera = new CameraSetInstruction();
+        defaultCamera.setPreset(CameraDefinitions.getById(FIRST_PERSON_PRESET));
+        defaultCamera.setDefaultPreset(OptionalBoolean.of(true));
+        reset.setSetInstruction(defaultCamera);
+        session.sendUpstreamPacket(reset);
+        session.scheduleInEventLoop(() -> {
+            CameraInstructionPacket clear = new CameraInstructionPacket();
+            clear.setClear(true);
+            session.sendUpstreamPacket(clear);
+        }, 150, TimeUnit.MILLISECONDS);
     }
 
     public static void cycleMode(GeyserSession session) {
@@ -128,7 +141,7 @@ public final class EntitySpectateHelper {
         float pitch = entity.getPitch();
         Vector3f forward = MathUtils.calculateViewVector(pitch, yaw);
 
-        Vector3f pos = entity.bedrockPosition();
+        Vector3f pos = entity.position();
         double eyeY = pos.getY() + eyeHeight(entity);
 
         // First-person sits at the eye. Third-person offsets along the view vector (behind, or in front looking back)
