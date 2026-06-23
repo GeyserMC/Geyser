@@ -31,7 +31,6 @@ import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.definition.JavaEntityType;
 import org.geysermc.geyser.api.util.Identifier;
-import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
@@ -41,12 +40,12 @@ import java.util.Locale;
 import java.util.Map;
 
 public record GeyserEntityType(Identifier identifier, EntityType mcpl) implements JavaEntityType {
-    private static final Identifier UNREGISTERED = IdentifierImpl.of(Constants.GEYSER_CUSTOM_NAMESPACE, "unregistered_sadface");
+    private static final Identifier UNREGISTERED = Identifier.of(Constants.GEYSER_CUSTOM_NAMESPACE, "unregistered_sadface");
 
     private static final Map<EntityType, GeyserEntityType> VANILLA = new EnumMap<>(EntityType.class);
 
     private GeyserEntityType(EntityType builtin) {
-        this(IdentifierImpl.of(builtin.name().toLowerCase(Locale.ROOT)), builtin);
+        this(Identifier.of(builtin.name().toLowerCase(Locale.ROOT)), builtin);
     }
 
     public boolean isUnregistered() {

@@ -25,14 +25,14 @@
 
 package org.geysermc.geyser.entity.type;
 
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 
 public class WitherSkullEntity extends FireballEntity {
     private boolean isCharged;
-    private static final IdentifierImpl DANGEROUS_SKULL = IdentifierImpl.of("wither_skull_dangerous");
+    private static final Identifier DANGEROUS_SKULL = Identifier.of("wither_skull_dangerous");
 
     public WitherSkullEntity(EntitySpawnContext context) {
         super(context);

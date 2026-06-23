@@ -29,6 +29,8 @@ import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.util.Objects;
+
 /**
  * Represents a type of entity data that can be sent for an entity.
  * <p>
@@ -52,8 +54,8 @@ public abstract sealed class GeyserEntityDataType<T> permits GeyserEntityDataTyp
 
     @ApiStatus.Internal
     GeyserEntityDataType(Identifier identifier, Class<T> typeClass) {
-        this.identifier = identifier;
-        this.typeClass = typeClass;
+        this.identifier = Objects.requireNonNull(identifier);
+        this.typeClass = Objects.requireNonNull(typeClass);
     }
 
     /**

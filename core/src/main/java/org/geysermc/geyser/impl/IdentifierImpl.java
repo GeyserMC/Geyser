@@ -54,11 +54,6 @@ public record IdentifierImpl(Key identifier) implements Identifier {
         }
     }
 
-    // FIXME using the identifier interface from the API breaks tests
-    public static IdentifierImpl of(String value) {
-        return of(Identifier.DEFAULT_NAMESPACE, value);
-    }
-
     @Override
     public String namespace() {
         return identifier.namespace();

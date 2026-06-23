@@ -27,6 +27,7 @@ package org.geysermc.geyser.entity;
 
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.type.AbstractArrowEntity;
 import org.geysermc.geyser.entity.type.AbstractWindChargeEntity;
@@ -56,11 +57,11 @@ import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.type.MinecartEntity;
 import org.geysermc.geyser.entity.type.OminousItemSpawnerEntity;
 import org.geysermc.geyser.entity.type.PaintingEntity;
+import org.geysermc.geyser.entity.type.ProjectileEntity;
 import org.geysermc.geyser.entity.type.SpawnerMinecartEntity;
 import org.geysermc.geyser.entity.type.TNTEntity;
 import org.geysermc.geyser.entity.type.TextDisplayEntity;
 import org.geysermc.geyser.entity.type.ThrowableEggEntity;
-import org.geysermc.geyser.entity.type.ProjectileEntity;
 import org.geysermc.geyser.entity.type.ThrowableItemEntity;
 import org.geysermc.geyser.entity.type.ThrownPotionEntity;
 import org.geysermc.geyser.entity.type.TridentEntity;
@@ -74,10 +75,7 @@ import org.geysermc.geyser.entity.type.living.CopperGolemEntity;
 import org.geysermc.geyser.entity.type.living.DolphinEntity;
 import org.geysermc.geyser.entity.type.living.GlowSquidEntity;
 import org.geysermc.geyser.entity.type.living.IronGolemEntity;
-import org.geysermc.geyser.entity.type.living.monster.cubemob.AbstractCubeEntity;
-import org.geysermc.geyser.entity.type.living.monster.cubemob.MagmaCubeEntity;
 import org.geysermc.geyser.entity.type.living.MobEntity;
-import org.geysermc.geyser.entity.type.living.monster.cubemob.SlimeEntity;
 import org.geysermc.geyser.entity.type.living.SnowGolemEntity;
 import org.geysermc.geyser.entity.type.living.SquidEntity;
 import org.geysermc.geyser.entity.type.living.TadpoleEntity;
@@ -98,12 +96,12 @@ import org.geysermc.geyser.entity.type.living.animal.RabbitEntity;
 import org.geysermc.geyser.entity.type.living.animal.SheepEntity;
 import org.geysermc.geyser.entity.type.living.animal.SnifferEntity;
 import org.geysermc.geyser.entity.type.living.animal.StriderEntity;
+import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.TropicalFishEntity;
 import org.geysermc.geyser.entity.type.living.animal.TurtleEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.ChickenEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
 import org.geysermc.geyser.entity.type.living.animal.farm.PigEntity;
-import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelHuskEntity;
@@ -149,6 +147,9 @@ import org.geysermc.geyser.entity.type.living.monster.ZoglinEntity;
 import org.geysermc.geyser.entity.type.living.monster.ZombieEntity;
 import org.geysermc.geyser.entity.type.living.monster.ZombieVillagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.ZombifiedPiglinEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.AbstractCubeEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.MagmaCubeEntity;
+import org.geysermc.geyser.entity.type.living.monster.cubemob.SlimeEntity;
 import org.geysermc.geyser.entity.type.living.monster.cubemob.SulfurCubeEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.PillagerEntity;
 import org.geysermc.geyser.entity.type.living.monster.raid.RaidParticipantEntity;
@@ -158,7 +159,6 @@ import org.geysermc.geyser.entity.type.living.monster.raid.VindicatorEntity;
 import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.entity.type.player.MannequinEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.EntityUtils;
@@ -611,7 +611,7 @@ public final class VanillaEntities {
                     .build();
 
             // Bedrock exclusive entity
-            IdentifierImpl dangerousSkull = IdentifierImpl.of("wither_skull_dangerous");
+            Identifier dangerousSkull = Identifier.of("wither_skull_dangerous");
             BedrockEntityDefinition bedrockDefinition = BedrockEntityDefinition.builder()
                 .identifier(dangerousSkull)
                 .build();
@@ -1121,7 +1121,7 @@ public final class VanillaEntities {
                     .build();
 
             // Slime entities
-            VanillaEntityType<AbstractCubeEntity> cubeEntityBase = VanillaEntityType.inherited(AbstractCubeEntity::new, ageableEntityBase)
+            EntityTypeBase<AbstractCubeEntity> cubeEntityBase = VanillaEntityType.baseInherited(AbstractCubeEntity.class, ageableEntityBase)
                     .heightAndWidth(0.51f)
                     .addTranslator(MetadataTypes.INT, AbstractCubeEntity::setCubeScale)
                     .build();

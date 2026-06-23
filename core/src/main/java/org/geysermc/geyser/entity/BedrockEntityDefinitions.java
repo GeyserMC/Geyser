@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.entity;
 
-import org.geysermc.geyser.impl.IdentifierImpl;
+import org.geysermc.geyser.api.util.Identifier;
 
 /**
  * Most Bedrock entities are registered in {@link VanillaEntities} - however, some are
@@ -43,15 +43,15 @@ public class BedrockEntityDefinitions {
     public static final BedrockEntityDefinition ZOMBIE;
 
     static {
-        ARMOR_STAND = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("armor_stand"));
-        ARROW = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("arrow"));
-        BOAT = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("boat"));
-        CHEST_BOAT = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("chest_boat"));
-        EVOCATION_ILLAGER = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("evocation_illager"));
-        LLAMA = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("llama"));
-        MINECART = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("minecart"));
-        SPLASH_POTION = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("splash_potion"));
-        ZOMBIE = BedrockEntityDefinition.ofVanilla(IdentifierImpl.of("zombie"));
+        ARMOR_STAND = BedrockEntityDefinition.ofVanilla(Identifier.of("armor_stand"));
+        ARROW = BedrockEntityDefinition.ofVanilla(Identifier.of("arrow"));
+        BOAT = BedrockEntityDefinition.ofVanilla(Identifier.of("boat"));
+        CHEST_BOAT = BedrockEntityDefinition.ofVanilla(Identifier.of("chest_boat"));
+        EVOCATION_ILLAGER = BedrockEntityDefinition.ofVanilla(Identifier.of("evocation_illager"));
+        LLAMA = BedrockEntityDefinition.ofVanilla(Identifier.of("llama"));
+        MINECART = BedrockEntityDefinition.ofVanilla(Identifier.of("minecart"));
+        SPLASH_POTION = BedrockEntityDefinition.ofVanilla(Identifier.of("splash_potion"));
+        ZOMBIE = BedrockEntityDefinition.ofVanilla(Identifier.of("zombie"));
     }
 
     public static void init() {
