@@ -50,8 +50,8 @@ public class IntegratedServerMixin implements GeyserServerPortGetter {
 
     @Shadow @Final private Minecraft minecraft;
 
-    @Inject(method = "publishServer", at = @At("RETURN"))
-    private void onOpenToLan(GameType gameType, boolean cheatsAllowed, int port, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "publishServer(Lnet/minecraft/server/MinecraftServer$MultiplayerScope;I)Z", at = @At("RETURN"))
+    private void onOpenToLan(MinecraftServer.MultiplayerScope scope, int port, CallbackInfoReturnable<Boolean> cir) {
         if (cir.getReturnValueZ()) {
             // If the LAN is opened, starts Geyser.
             GeyserModBootstrap instance = GeyserModBootstrap.getInstance();
