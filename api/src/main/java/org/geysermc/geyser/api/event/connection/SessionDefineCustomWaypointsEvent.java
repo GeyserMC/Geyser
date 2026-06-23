@@ -28,6 +28,7 @@ package org.geysermc.geyser.api.event.connection;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
+import org.geysermc.geyser.api.waypoint.CustomWaypointStyleRegisterException;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Map;
@@ -39,10 +40,12 @@ import java.util.Map;
  * may only have one {@link CustomWaypointStyle}.</p>
  *
  * @see CustomWaypointStyle
+ * @since 2.11.0
  */
 @ApiStatus.NonExtendable
 public abstract class SessionDefineCustomWaypointsEvent extends ConnectionEvent {
 
+    @ApiStatus.Internal
     public SessionDefineCustomWaypointsEvent(GeyserConnection connection) {
         super(connection);
     }
@@ -50,7 +53,8 @@ public abstract class SessionDefineCustomWaypointsEvent extends ConnectionEvent 
     /**
      * Returns a map of all the currently registered custom waypoint styles for this {@link GeyserConnection}.
      *
-     * @return the map of all the registered custom waypoint styles, at this moment
+     * @return an unmodifiable map of all currently registered custom waypoint styles
+     * @since 2.11.0
      */
     public abstract Map<Identifier, CustomWaypointStyle> customWaypointStyles();
 
@@ -64,6 +68,8 @@ public abstract class SessionDefineCustomWaypointsEvent extends ConnectionEvent 
      *
      * @param identifier the identifier of the waypoint style on Java Edition
      * @param style the {@link CustomWaypointStyle}
+     * @throws CustomWaypointStyleRegisterException when an error occurred while registering the custom waypoint style
+     * @since 2.11.0
      */
     public abstract void register(Identifier identifier, CustomWaypointStyle style);
 }

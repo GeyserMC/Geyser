@@ -52,6 +52,7 @@ import java.util.Objects;
  *
  * @see VanillaBuilder
  * @see SessionDefineCustomWaypointsEvent
+ * @since 2.11.0
  */
 public interface CustomWaypointStyle {
 
@@ -75,6 +76,7 @@ public interface CustomWaypointStyle {
      * @param distance the distance between the {@link GeyserConnection} and the waypoint
      * @return the path of the texture to display on the locator bar
      * @see CustomWaypointStyle#textureSize(Identifier, float)
+     * @since 2.11.0
      */
     String texturePath(Identifier style, float distance);
 
@@ -98,6 +100,7 @@ public interface CustomWaypointStyle {
      * @param distance the distance between the {@link GeyserConnection} and the waypoint
      * @return the size of the texture to display on the locator bar
      * @see CustomWaypointStyle#texturePath(Identifier, float)
+     * @since 2.11.0
      */
     Vector2f textureSize(Identifier style, float distance);
 
@@ -120,6 +123,7 @@ public interface CustomWaypointStyle {
      * @see VanillaBuilder#withTexture(Identifier)
      * @see VanillaBuilder#withTexture(String)
      * @see CustomWaypointStyle#vanillaLike(int, int)
+     * @since 2.11.0
      */
     @ApiStatus.NonExtendable
     interface VanillaBuilder extends GenericBuilder<CustomWaypointStyle> {
@@ -131,6 +135,7 @@ public interface CustomWaypointStyle {
          *
          * @param texture the texture to add
          * @return this builder
+         * @since 2.11.0
          */
         @This
         default VanillaBuilder withTexture(Identifier texture) {
@@ -143,6 +148,7 @@ public interface CustomWaypointStyle {
          *
          * @param texture the texture to add
          * @return this builder
+         * @since 2.11.0
          */
         @This
         VanillaBuilder withTexture(String texture);
@@ -152,6 +158,7 @@ public interface CustomWaypointStyle {
          *
          * @return the created {@link CustomWaypointStyle}
          * @throws IllegalArgumentException when no textures were added to this builder
+         * @since 2.11.0
          */
         @Override
         CustomWaypointStyle build();
@@ -169,6 +176,7 @@ public interface CustomWaypointStyle {
      * @return the created {@link VanillaBuilder}
      * @throws IllegalArgumentException when the {@code nearDistance} is below 0, or at or above the {@code farDistance}
      * @see VanillaBuilder
+     * @since 2.11.0
      */
     static CustomWaypointStyle.VanillaBuilder vanillaLike(@NonNegative int nearDistance, @Positive int farDistance) {
         return GeyserApi.api().provider(VanillaBuilder.class, nearDistance, farDistance);

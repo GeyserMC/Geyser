@@ -90,6 +90,7 @@ public final class MappingsConfigReader {
             return;
         } else if (!mappings.isJsonObject()) {
             GeyserImpl.getInstance().getLogger().error("Mappings file " + file + " has an invalid " + type.name() + " mappings definition");
+            return;
         }
 
         // getMappingsRoot makes sure format_version exists

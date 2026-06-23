@@ -86,7 +86,7 @@ public class GeyserMockContextScoreboard {
         var worldCache = context.spy(new WorldCache(session));
         when(session.getWorldCache()).thenReturn(worldCache);
 
-        var waypointCache = context.spy(new WaypointCache(session));
+        var waypointCache = context.mock(WaypointCache.class);
         when(session.getWaypointCache()).thenReturn(waypointCache);
 
         // disable global scoreboard updater

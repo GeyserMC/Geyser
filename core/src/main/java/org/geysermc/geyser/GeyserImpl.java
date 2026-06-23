@@ -606,6 +606,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
 
         ResourcePackLoader.clear();
+        if (Registries.WAYPOINT_STYLE_MAPPINGS.loaded()) {
+            Registries.WAYPOINT_STYLE_MAPPINGS.get().clear();
+        }
         CodeOfConductManager.trySave();
 
         this.setEnabled(false);

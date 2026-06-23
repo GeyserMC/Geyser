@@ -32,6 +32,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.connection.SessionDefineCustomWaypointsEvent;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
+import org.geysermc.geyser.api.waypoint.CustomWaypointStyleRegisterException;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.registry.Registries;
@@ -71,7 +72,7 @@ public final class WaypointCache {
                 Objects.requireNonNull(identifier, "identifier may not be null");
                 Objects.requireNonNull(style, "style may not be null");
                 if (styles.containsKey(identifier)) {
-                    GeyserImpl.getInstance().getLogger().error("Not registering waypoint style with identifier " + identifier + " as it was already registered");
+                    throw new CustomWaypointStyleRegisterException("Not registering waypoint style with identifier " + identifier + " as it was already registered");
                 } else {
                     styles.put(identifier, style);
                 }

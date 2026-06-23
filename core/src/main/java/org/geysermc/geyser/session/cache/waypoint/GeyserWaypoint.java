@@ -180,7 +180,7 @@ public abstract class GeyserWaypoint {
                 bedrockWaypoint.setTexturePath("textures/" + texture);
                 bedrockWaypoint.setIconSize(iconSize);
             } else {
-                float distanceSquared = session.playerEntity().position().distance(position);
+                float distanceSquared = session.playerEntity().position().distanceSquared(position);
                 bedrockWaypoint.setTextureId(getLegacyWaypointTexture(distanceSquared));
             }
         }
