@@ -58,7 +58,7 @@ public interface CustomWaypointStyle {
 
     /**
      * Returns the path of the texture to display on the locator bar for a waypoint with this {@code style} identifier, at the specified {@code distance}.
-     * This method should be called whenever the position of a waypoint changes.
+     * This method will be called whenever the position of a waypoint changes.
      *
      * <p>Please note that the {@code distance} parameter may not represent an accurate distance between the waypoint and the player:</p>
      *
@@ -82,7 +82,7 @@ public interface CustomWaypointStyle {
 
     /**
      * Returns the size of the texture to display on the locator bar for a waypoint with this {@code style} identifier, at the specified {@code distance}.
-     * This method should be called whenever the position of a waypoint changes.
+     * This method will be called whenever the position of a waypoint changes.
      *
      <p>Please note that the {@code distance} parameter may not represent an accurate distance between the waypoint and the player:</p>
      *
