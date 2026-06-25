@@ -47,6 +47,7 @@ import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntitySpectateHelper;
 import org.geysermc.geyser.entity.GeyserDirtyMetadata;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.GeyserEntityPropertyManager;
@@ -432,7 +433,12 @@ public class Entity implements GeyserEntity {
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(geyserId);
             if (flagsDirty) {
-                entityDataPacket.getMetadata().putFlags(flags);
+                // Re-assert the first-person hide; a server flags-byte refresh would otherwise un-hide the target
+                if (session.getSpectatedEntity() == this && session.getSpectateMode() == EntitySpectateHelper.SpectateMode.FIRST_PERSON) {
+                    entityDataPacket.getMetadata().putFlags(spectateHiddenFlags());
+                } else {
+                    entityDataPacket.getMetadata().putFlags(flags);
+                }
                 flagsDirty = false;
             }
             dirtyMetadata.apply(entityDataPacket.getMetadata());
@@ -442,6 +448,23 @@ public class Entity implements GeyserEntity {
             }
             session.sendUpstreamPacket(entityDataPacket);
         }
+    }
+
+    /** Per-viewer invisibility toggle that doesn't mutate the cached flags (entity spectating). */
+    public void sendSpectateInvisible(boolean hidden) {
+        if (!valid) {
+            return;
+        }
+        SetEntityDataPacket packet = new SetEntityDataPacket();
+        packet.setRuntimeEntityId(geyserId);
+        packet.getMetadata().putFlags(hidden ? spectateHiddenFlags() : flags);
+        session.sendUpstreamPacket(packet);
+    }
+
+    protected EnumMap<EntityFlag, Boolean> spectateHiddenFlags() {
+        EnumMap<EntityFlag, Boolean> overridden = new EnumMap<>(flags);
+        overridden.put(EntityFlag.INVISIBLE, true);
+        return overridden;
     }
 
     /**

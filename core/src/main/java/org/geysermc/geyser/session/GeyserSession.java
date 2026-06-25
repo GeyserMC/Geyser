@@ -128,6 +128,7 @@ import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.EntitySpectateHelper;
 import org.geysermc.geyser.entity.GeyserEntityData;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.type.BoatEntity;
@@ -320,6 +321,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Setter
     private TeleportCache unconfirmedTeleport;
+
+    @Setter
+    private @Nullable Entity spectatedEntity;
+
+    @Setter
+    private EntitySpectateHelper.SpectateMode spectateMode = EntitySpectateHelper.SpectateMode.FIRST_PERSON;
 
     private final WorldBorder worldBorder;
     /**
@@ -1360,6 +1367,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                     entity.tick();
                 }
             }
+
+            // Keep the spectator camera tracking its target
+            EntitySpectateHelper.tick(this);
 
             if (armAnimationTicks >= 0) {
                 // As of 1.18.2 Java Edition, it appears that the swing time is dynamically updated depending on the

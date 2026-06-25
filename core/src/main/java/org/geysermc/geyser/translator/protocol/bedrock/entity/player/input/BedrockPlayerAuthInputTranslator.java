@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTransaction;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.geysermc.geyser.entity.EntitySpectateHelper;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
@@ -58,10 +59,12 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.Serverbound
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerCommandPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSpectatorActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.Set;
 
 @Translator(packet = PlayerAuthInputPacket.class)
@@ -76,6 +79,16 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
+        // While spectating an entity, suppress the player's own movement and actions (BedrockMovePlayer forwards
+        // movement and ticks the position reminder, which InputCache#shouldSendPositionReminder says not to do while
+        // spectating). Placed after processInputs so the sneak that ends spectating still flows. The tick-end packet
+        // is still sent so the server keeps advancing the client tick.
+        if (EntitySpectateHelper.isSpectating(session)) {
+            if (session.isSpawned()) {
+                session.sendDownstreamGamePacket(ServerboundClientTickEndPacket.INSTANCE);
+            }
+            return;
+        }
         session.getBlockBreakHandler().handlePlayerAuthInputPacket(packet);
 
         ServerboundPlayerCommandPacket sprintPacket = null;
@@ -170,7 +183,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                 case MISSED_SWING -> {
                     session.setLastAirHitTick(session.getTicks());
 
-                    if (session.getArmAnimationTicks() != 0 && session.getArmAnimationTicks() != 1 && session.getGameMode() != GameMode.SPECTATOR) {
+                    if (session.getGameMode() == GameMode.SPECTATOR) {
+                        session.sendDownstreamGamePacket(new ServerboundSpectatorActionPacket(OptionalInt.empty()));
+                    } else if (session.getArmAnimationTicks() != 0 && session.getArmAnimationTicks() != 1) {
                         session.sendDownstreamGamePacket(new ServerboundSwingPacket(Hand.MAIN_HAND));
                         session.activateArmAnimationTicking();
                     }

@@ -220,9 +220,10 @@ public class LivingEntity extends Entity implements Tickable {
 
     @Override
     public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // Update custom name, but reset nametag to be empty when there are passengers
+        // Update custom name, but reset the nametag when there are passengers, or when this is the spectated
+        // entity (its name shouldn't float in the spectator's own first-person view)
         super.setCustomName(entityMetadata);
-        if (!passengers.isEmpty()) {
+        if (!passengers.isEmpty() || this == session.getSpectatedEntity()) {
             setNametag("", false);
         }
     }
