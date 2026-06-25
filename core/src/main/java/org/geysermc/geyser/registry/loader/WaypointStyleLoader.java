@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,33 +23,26 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.waypoint;
+package org.geysermc.geyser.registry.loader;
 
-import org.cloudburstmc.math.vector.Vector3f;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
-import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.ChunkWaypointData;
-import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
+import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
+import org.geysermc.geyser.registry.mappings.MappingsType;
 
-import java.awt.Color;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.Map;
 
-public class ChunkWaypoint extends GeyserWaypoint {
-
-    public ChunkWaypoint(GeyserSession session, UUID uuid, CustomWaypointStyle style, Identifier styleIdentifier, Color color, Optional<Entity> entity) {
-        super(session, uuid, style, styleIdentifier, color, entity);
-    }
+public class WaypointStyleLoader implements RegistryLoader<MappingsType<Identifier, CustomWaypointStyle>, Map<Identifier, CustomWaypointStyle>> {
 
     @Override
-    public void setData(WaypointData data) {
-        if (data instanceof ChunkWaypointData(int chunkX, int chunkZ)) {
-            // Set position in centre of chunk
-            setPosition(Vector3f.from(chunkX * 16.0F + 8.0F, session.getPlayerEntity().position().getY(), chunkZ * 16.0F + 8.0F));
-        } else {
-            session.getGeyser().getLogger().warning("Received incorrect waypoint data " + data.getClass() + " for chunk waypoint");
+    public Map<Identifier, CustomWaypointStyle> load(MappingsType<Identifier, CustomWaypointStyle> input) {
+        Map<Identifier, CustomWaypointStyle> map = new Object2ObjectOpenHashMap<>();
+        MappingsConfigReader.loadCustomMappingsFromJson(input, map::put);
+        if (!map.isEmpty()) {
+            GeyserImpl.getInstance().getLogger().info("Registered " + map.size() + " custom waypoint styles");
         }
+        return map;
     }
 }

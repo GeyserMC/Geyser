@@ -71,6 +71,7 @@ import org.geysermc.geyser.api.predicate.item.RangeDispatchPredicate;
 import org.geysermc.geyser.api.predicate.item.TrimMaterialPredicate;
 import org.geysermc.geyser.api.util.Holders;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.impl.GeyserDimensionPredicate;
@@ -117,6 +118,7 @@ import org.geysermc.geyser.pack.option.GeyserUrlFallbackOption;
 import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
 import org.geysermc.geyser.pack.url.GeyserUrlPackCodec;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
+import org.geysermc.geyser.session.cache.waypoint.VanillaWaypoint;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -199,6 +201,9 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         // cameras
         providers.put(CameraFade.Builder.class, args -> new GeyserCameraFade.Builder());
         providers.put(CameraPosition.Builder.class, args -> new GeyserCameraPosition.Builder());
+
+        // waypoints
+        providers.put(CustomWaypointStyle.VanillaBuilder.class, args -> new VanillaWaypoint.Builder((int) args[0], (int) args[1]));
 
         return providers;
     }
