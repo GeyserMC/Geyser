@@ -45,6 +45,7 @@ public final class GeyserEntityDataTypes {
      * @see <a href="https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_color?view=minecraft-bedrock-stable">Official documentation</a>
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public static final GeyserEntityDataType<Byte> COLOR =
         GeyserEntityDataType.create(Identifier.of("color"), Byte.class);
 
@@ -54,6 +55,7 @@ public final class GeyserEntityDataTypes {
      * @see <a href="https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_variant?view=minecraft-bedrock-stable">Official documentation</a>
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public static final GeyserEntityDataType<Integer> VARIANT =
         GeyserEntityDataType.create(Identifier.of("variant"), Integer.class);
 
@@ -63,6 +65,7 @@ public final class GeyserEntityDataTypes {
      * @see <a href="https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_collision_box?view=minecraft-bedrock-stable">Official documentation</a>
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public static final GeyserEntityDataType<Float> WIDTH =
         GeyserEntityDataType.create(Identifier.of("geysermc", "width"), Float.class);
 
@@ -72,6 +75,7 @@ public final class GeyserEntityDataTypes {
      * @see <a href="https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_collision_box?view=minecraft-bedrock-stable">Official documentation</a>
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public static final GeyserEntityDataType<Float> HEIGHT =
         GeyserEntityDataType.create(Identifier.of("geysermc", "height"), Float.class);
 
@@ -81,6 +85,7 @@ public final class GeyserEntityDataTypes {
      *
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public static final GeyserEntityDataType<Float> VERTICAL_OFFSET =
         GeyserEntityDataType.create(Identifier.of("geysermc", "vertical_offset"), Float.class);
 
@@ -90,6 +95,7 @@ public final class GeyserEntityDataTypes {
      * @see <a href="https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_scale?view=minecraft-bedrock-stable">Official documentation"</a>
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public static final GeyserEntityDataType<Float> SCALE =
         GeyserEntityDataType.create(Identifier.of("scale"), Float.class);
 
@@ -100,6 +106,7 @@ public final class GeyserEntityDataTypes {
      * @see <a href="https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_custom_hit_test?view=minecraft-bedrock-stable">Official documentation</a>
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public static final GeyserListEntityDataType<Hitbox> HITBOXES =
         GeyserListEntityDataType.createList(Identifier.of("custom_hit_test"), Hitbox.class);
 
@@ -110,6 +117,7 @@ public final class GeyserEntityDataTypes {
      * @see <a href="https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_rideable?view=minecraft-bedrock-stable">Official documentation</a>
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public static final GeyserEntityDataType<Vector3f> SEAT_OFFSET =
         GeyserEntityDataType.create(Identifier.of("geysermc", "seat_offset"), Vector3f.class);
 
@@ -120,6 +128,7 @@ public final class GeyserEntityDataTypes {
      * @see <a href="https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_rotation_locked_to_vehicle?view=minecraft-bedrock-stable">Official documentation</a>
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public static final GeyserEntityDataType<Boolean> ROTATION_LOCKED_TO_VEHICLE =
         GeyserEntityDataType.create(Identifier.of("rotation_locked_to_vehicle"), Boolean.class);
 
@@ -129,6 +138,7 @@ public final class GeyserEntityDataTypes {
      * todo: document / test properly, possible combine with seat_has_rotation below
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public static final GeyserEntityDataType<Float> SEAT_LOCK_RIDER_ROTATION_DEGREES =
         GeyserEntityDataType.create(Identifier.of("seat_lock_rider_rotation_degrees"), Float.class);
 
@@ -137,6 +147,7 @@ public final class GeyserEntityDataTypes {
      *
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public static final GeyserEntityDataType<Boolean> SEAT_HAS_ROTATION =
         GeyserEntityDataType.create(Identifier.of("seat_has_rotation"), Boolean.class);
 
@@ -147,9 +158,11 @@ public final class GeyserEntityDataTypes {
      * @see <a href="https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_rideable?view=minecraft-bedrock-stable">Official documentation</a>
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public static final GeyserEntityDataType<Float> ROTATE_RIDER_DEGREES =
         GeyserEntityDataType.create(Identifier.of("rotate_rider_by"), Float.class);
 
+    @ApiStatus.Internal
     private GeyserEntityDataTypes() {
         // no-op
     }

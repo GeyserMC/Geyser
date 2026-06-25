@@ -29,6 +29,7 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
@@ -55,6 +56,7 @@ public interface EntityData {
      * @return the entity, or {@code null} if not found
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     @Nullable GeyserEntity byJavaId(@NonNegative int javaId);
 
     /**
@@ -65,6 +67,7 @@ public interface EntityData {
      * @return the entity, or {@code null} if not found
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     @Nullable GeyserEntity byUuid(UUID javaUuid);
 
     /**
@@ -75,6 +78,7 @@ public interface EntityData {
      * @return the entity, or {@code null} if not found
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     @Nullable GeyserEntity byGeyserId(@NonNegative long geyserId);
 
     /**

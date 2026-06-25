@@ -29,12 +29,14 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.index.qual.Positive;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.connection.GeyserConnection;
+import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
 import org.geysermc.geyser.api.entity.data.GeyserEntityDataTypes;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
+import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -61,6 +63,7 @@ public interface GeyserEntity {
      * @since 2.11.0
      */
     @Positive
+    @ApiStatus.Experimental
     long geyserId();
 
     /**
@@ -69,14 +72,16 @@ public interface GeyserEntity {
      * @since 2.11.0
      */
     @Nullable
+    @ApiStatus.Experimental
     UUID uuid();
 
     /**
-     * The Bedrock entity definition for this entity.
+     * The Bedrock entity definition for this entity, which could also be a {@link CustomEntityDefinition}
      *
      * @return the Bedrock entity definition
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     GeyserEntityDefinition definition();
 
     /**
@@ -86,6 +91,7 @@ public interface GeyserEntity {
      * @return the position of the entity as known to the Java server
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     Vector3f position();
 
     /**
@@ -95,6 +101,7 @@ public interface GeyserEntity {
      * @since 2.11.0
      */
     @Nullable
+    @ApiStatus.Experimental
     GeyserEntity vehicle();
 
     /**
@@ -103,6 +110,7 @@ public interface GeyserEntity {
      * @return an immutable snapshot of this entity's passengers, or an empty list if none
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     List<GeyserEntity> passengers();
 
     /**
@@ -114,6 +122,7 @@ public interface GeyserEntity {
      * @return the current value, or {@code null} if no override has been set
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     <T> @Nullable T value(GeyserEntityDataType<T> dataType);
 
     /**
@@ -126,6 +135,7 @@ public interface GeyserEntity {
      * @param <T> the type of the value
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
      <T> void update(GeyserEntityDataType<T> dataType, @Nullable T value);
 
     /**

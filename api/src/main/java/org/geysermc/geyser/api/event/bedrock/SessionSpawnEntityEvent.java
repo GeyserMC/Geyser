@@ -50,6 +50,7 @@ import java.util.function.Consumer;
  *
  * @since 2.11.0
  */
+@ApiStatus.Experimental
 public abstract class SessionSpawnEntityEvent extends ConnectionEvent implements Cancellable {
 
     @ApiStatus.Internal
@@ -59,10 +60,12 @@ public abstract class SessionSpawnEntityEvent extends ConnectionEvent implements
 
     /**
      * Returns the Bedrock entity definition that will be sent to the Bedrock client.
+     * Setting a definition to null will cancel this entity spawn!
      *
      * @return the entity definition, or {@code null} if none is currently set
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public abstract @Nullable GeyserEntityDefinition definition();
 
     /**
@@ -76,6 +79,7 @@ public abstract class SessionSpawnEntityEvent extends ConnectionEvent implements
      * @throws IllegalStateException if the provided definition has not been registered
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public abstract void definition(@Nullable GeyserEntityDefinition definition);
 
     /**
@@ -92,5 +96,6 @@ public abstract class SessionSpawnEntityEvent extends ConnectionEvent implements
      * @param consumer the callback receiving the freshly created entity
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public abstract void preSpawnConsumer(Consumer<GeyserEntity> consumer);
 }

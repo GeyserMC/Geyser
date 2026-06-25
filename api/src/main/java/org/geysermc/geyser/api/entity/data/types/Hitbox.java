@@ -28,28 +28,32 @@ package org.geysermc.geyser.api.entity.data.types;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.api.GeyserApi;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
- * Represents an entity hitbox.
+ * Represents an entity hitbox, with min/max representing absolute coordinates
  *
  * @since 2.11.0
  */
+@ApiStatus.Experimental
 public interface Hitbox {
 
     /**
-     * The min "corner" of the hitbox
+     * The min "corner" of the hitbox as a position in the world
      *
      * @return the vector of the corner
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     Vector3f min();
 
     /**
-     * The max "corner" of the hitbox
+     * The max "corner" of the hitbox as a position in the world
      *
      * @return the vector of the corner
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     Vector3f max();
 
     /**
@@ -58,6 +62,7 @@ public interface Hitbox {
      * @return the pivot
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     Vector3f pivot();
 
     /**
@@ -66,6 +71,7 @@ public interface Hitbox {
      * @return a new builder
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     static Builder builder() {
         return GeyserApi.api().provider(Builder.class);
     }
@@ -75,6 +81,7 @@ public interface Hitbox {
      *
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     interface Builder {
 
         /**
@@ -84,6 +91,7 @@ public interface Hitbox {
          * @return this builder
          * @since 2.11.0
          */
+        @ApiStatus.Experimental
         @This Builder min(Vector3f min);
 
         /**
@@ -93,6 +101,7 @@ public interface Hitbox {
          * @return this builder
          * @since 2.11.0
          */
+        @ApiStatus.Experimental
         @This Builder max(Vector3f max);
 
         /**
@@ -102,6 +111,7 @@ public interface Hitbox {
          * @return this builder
          * @since 2.11.0
          */
+        @ApiStatus.Experimental
         @This Builder pivot(Vector3f pivot);
 
         /**
@@ -111,6 +121,7 @@ public interface Hitbox {
          * @return a new hitbox
          * @since 2.11.0
          */
+        @ApiStatus.Experimental
         Hitbox build();
     }
 }

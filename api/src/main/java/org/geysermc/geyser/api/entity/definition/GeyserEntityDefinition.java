@@ -30,6 +30,7 @@ import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
 import org.geysermc.geyser.api.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
 
@@ -37,14 +38,17 @@ import java.util.List;
  * Represents a Bedrock entity definition registered in the {@link GeyserDefineEntitiesEvent}.
  * @since 2.11.0
  */
+@ApiStatus.Experimental
 public interface GeyserEntityDefinition {
 
     /**
      * This entity's identifier as it's known to Bedrock clients and used in resource packs.
      * See <a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/introductiontoaddentity?view=minecraft-bedrock-stable#naming">the official docs for further information</a>
+     *
      * @return the Bedrock entity identifier
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     Identifier identifier();
 
     /**
@@ -54,12 +58,16 @@ public interface GeyserEntityDefinition {
      * @return the entity properties registered for this entity type
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     List<GeyserEntityProperty<?>> properties();
 
     /**
+     * Indicates whether this entity exists in Minecraft: Bedrock Edition, or whether it is a custom entity.
+     *
      * @return whether this entity exists in the vanilla base game
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     boolean vanilla();
 
     /**
@@ -69,6 +77,7 @@ public interface GeyserEntityDefinition {
      * @return whether this definition is registered
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     boolean registered();
 
     /**
@@ -79,6 +88,7 @@ public interface GeyserEntityDefinition {
      * @return the GeyserEntityDefinition for the given identifier
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     static GeyserEntityDefinition of(Identifier identifier) {
         return GeyserApi.api().provider(GeyserEntityDefinition.class, identifier);
     }

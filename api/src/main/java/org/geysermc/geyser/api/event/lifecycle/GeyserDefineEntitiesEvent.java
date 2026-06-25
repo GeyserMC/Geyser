@@ -44,6 +44,7 @@ import java.util.Collection;
  *
  * @since 2.11.0
  */
+@ApiStatus.Experimental
 @ApiStatus.NonExtendable
 public interface GeyserDefineEntitiesEvent extends Event {
 
@@ -54,6 +55,7 @@ public interface GeyserDefineEntitiesEvent extends Event {
      * @return immutable collection of all registered entity definitions
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     Collection<GeyserEntityDefinition> entities();
 
     /**
@@ -62,6 +64,7 @@ public interface GeyserDefineEntitiesEvent extends Event {
      * @return immutable collection of registered custom entity definitions
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     Collection<CustomEntityDefinition> customEntities();
 
     /**
@@ -73,5 +76,6 @@ public interface GeyserDefineEntitiesEvent extends Event {
      * @throws IllegalStateException if the identifier has already been registered
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     void register(CustomEntityDefinition definition);
 }

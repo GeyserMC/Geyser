@@ -35,6 +35,7 @@ import org.jetbrains.annotations.ApiStatus;
  *
  * @since 2.11.0
  */
+@ApiStatus.Experimental
 public abstract class ServerUpdateEntityPassengersEvent extends ConnectionEvent {
 
     /**
@@ -43,6 +44,7 @@ public abstract class ServerUpdateEntityPassengersEvent extends ConnectionEvent 
      * @return the vehicle entity
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public abstract GeyserEntity vehicle();
 
     @ApiStatus.Internal
@@ -55,6 +57,7 @@ public abstract class ServerUpdateEntityPassengersEvent extends ConnectionEvent 
      *
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public abstract static class Mount extends ServerUpdateEntityPassengersEvent {
         @ApiStatus.Internal
         public Mount(GeyserConnection connection) {
@@ -65,6 +68,7 @@ public abstract class ServerUpdateEntityPassengersEvent extends ConnectionEvent 
          * @return the passenger that was added to the vehicle
          * @since 2.11.0
          */
+        @ApiStatus.Experimental
         public abstract GeyserEntity addedPassenger();
     }
 
@@ -73,6 +77,7 @@ public abstract class ServerUpdateEntityPassengersEvent extends ConnectionEvent 
      *
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public abstract static class Dismount extends ServerUpdateEntityPassengersEvent {
         @ApiStatus.Internal
         public Dismount(GeyserConnection connection) {
@@ -83,6 +88,7 @@ public abstract class ServerUpdateEntityPassengersEvent extends ConnectionEvent 
          * @return the passenger that was removed from the vehicle
          * @since 2.11.0
          */
+        @ApiStatus.Experimental
         public abstract GeyserEntity removedPassenger();
     }
 }

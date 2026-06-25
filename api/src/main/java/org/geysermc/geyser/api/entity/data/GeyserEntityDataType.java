@@ -64,6 +64,7 @@ public abstract sealed class GeyserEntityDataType<T> permits GeyserEntityDataTyp
      * @return the identifier for this type
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public final Identifier identifier() {
         return identifier;
     }
@@ -74,11 +75,13 @@ public abstract sealed class GeyserEntityDataType<T> permits GeyserEntityDataTyp
      * @return the class of the value used by this entity data type
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public final Class<T> typeClass() {
         return typeClass;
     }
 
     @Override
+    @ApiStatus.Experimental
     public final boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof GeyserEntityDataType<?> that)) return false;
@@ -86,11 +89,13 @@ public abstract sealed class GeyserEntityDataType<T> permits GeyserEntityDataTyp
     }
 
     @Override
+    @ApiStatus.Experimental
     public final int hashCode() {
         return identifier.hashCode();
     }
 
     @Override
+    @ApiStatus.Experimental
     public String toString() {
         return "GeyserEntityDataType{" + identifier + ", " + typeClass.getSimpleName() + "}";
     }

@@ -35,6 +35,7 @@ import org.jetbrains.annotations.ApiStatus;
  *
  * @since 2.11.0
  */
+@ApiStatus.Experimental
 public abstract class ServerAttachParrotsEvent extends SessionSpawnEntityEvent {
 
     @ApiStatus.Internal
@@ -48,6 +49,7 @@ public abstract class ServerAttachParrotsEvent extends SessionSpawnEntityEvent {
      * @return the player with bird friends
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public abstract GeyserPlayerEntity player();
 
     /**
@@ -56,6 +58,7 @@ public abstract class ServerAttachParrotsEvent extends SessionSpawnEntityEvent {
      * @return the parrot variant
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public abstract int variant();
 
     /**
@@ -64,5 +67,6 @@ public abstract class ServerAttachParrotsEvent extends SessionSpawnEntityEvent {
      * @return true if parrot is on the right shoulder, left otherwise
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public abstract boolean right();
 }

@@ -30,6 +30,7 @@ import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.event.java.ServerAttachParrotsEvent;
 import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
 import org.geysermc.geyser.api.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * Represents a Bedrock entity definition for a custom entity.
@@ -38,12 +39,14 @@ import org.geysermc.geyser.api.util.Identifier;
  *
  * @since 2.11.0
  */
+@ApiStatus.Experimental
 public interface CustomEntityDefinition extends GeyserEntityDefinition {
 
     /**
      * {@inheritDoc}
      */
     @Override
+    @ApiStatus.Experimental
     default boolean vanilla() {
         return false;
     }
@@ -55,6 +58,7 @@ public interface CustomEntityDefinition extends GeyserEntityDefinition {
      * @return customEntityDefinition
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     static CustomEntityDefinition of(Identifier identifier) {
         if (identifier.vanilla()) {
             throw new IllegalArgumentException(
@@ -72,6 +76,7 @@ public interface CustomEntityDefinition extends GeyserEntityDefinition {
      * @return the custom entity definition
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     static CustomEntityDefinition of(String identifier) {
         return of(Identifier.of(identifier));
     }

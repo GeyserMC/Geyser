@@ -37,10 +37,12 @@ import java.util.List;
  * @param <T> the object type in the list
  * @since 2.11.0
  */
+@ApiStatus.Experimental
 public abstract sealed class GeyserListEntityDataType<T> extends GeyserEntityDataType<List<T>>
         permits GeyserListEntityDataType.SimpleListType {
 
     @SuppressWarnings("unchecked")
+    @ApiStatus.Internal
     GeyserListEntityDataType(Identifier identifier) {
         super(identifier, (Class<List<T>>) (Class<?>) List.class);
     }
@@ -49,6 +51,7 @@ public abstract sealed class GeyserListEntityDataType<T> extends GeyserEntityDat
      * @return the class of the list entries
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public abstract Class<T> listEntryClass();
 
     @ApiStatus.Internal
@@ -66,6 +69,9 @@ public abstract sealed class GeyserListEntityDataType<T> extends GeyserEntityDat
             this.listEntryClass = listEntryClass;
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public Class<T> listEntryClass() {
             return listEntryClass;

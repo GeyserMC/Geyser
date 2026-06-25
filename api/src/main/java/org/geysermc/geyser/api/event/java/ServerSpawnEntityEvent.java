@@ -38,6 +38,7 @@ import java.util.UUID;
  *
  * @since 2.11.0
  */
+@ApiStatus.Experimental
 public abstract class ServerSpawnEntityEvent extends SessionSpawnEntityEvent implements Cancellable {
 
     @ApiStatus.Internal
@@ -46,11 +47,12 @@ public abstract class ServerSpawnEntityEvent extends SessionSpawnEntityEvent imp
     }
 
     /**
-     * Gets the entity id of the entity being spawned.
+     * Gets the entity id of the entity being spawned, which is unique per session.
      *
      * @return the entity id of the entity being spawned
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public abstract int entityId();
 
     /**
@@ -59,6 +61,7 @@ public abstract class ServerSpawnEntityEvent extends SessionSpawnEntityEvent imp
      * @return the uuid of the entity being spawned
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public abstract UUID uuid();
 
     /**
@@ -67,5 +70,6 @@ public abstract class ServerSpawnEntityEvent extends SessionSpawnEntityEvent imp
      * @return the Java edition entity type of the entity being spawned
      * @since 2.11.0
      */
+    @ApiStatus.Experimental
     public abstract JavaEntityType entityType();
 }
