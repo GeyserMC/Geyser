@@ -181,4 +181,19 @@ public interface CustomWaypointStyle {
     static CustomWaypointStyle.VanillaBuilder vanillaLike(@NonNegative int nearDistance, @Positive int farDistance) {
         return GeyserApi.api().provider(VanillaBuilder.class, nearDistance, farDistance);
     }
+
+    /**
+     * Creates a new {@link VanillaBuilder} with the default values of {@code 128} for {@code nearDistance} and {@code 332} for {@code far}.
+     *
+     * <p>Please see {@link VanillaBuilder} for a throughout description of {@link VanillaBuilder}s and the {@code nearDistance} and {@code farDistance} values.</p>
+     *
+     * @return the created {@link VanillaBuilder}
+     * @throws IllegalArgumentException when the {@code nearDistance} is below 0, or at or above the {@code farDistance}
+     * @see VanillaBuilder
+     * @see CustomWaypointStyle#vanillaLike(int, int)
+     * @since 2.11.0
+     */
+    static CustomWaypointStyle.VanillaBuilder vanillaLike() {
+        return vanillaLike(128, 332);
+    }
 }

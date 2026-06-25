@@ -26,12 +26,12 @@
 package org.geysermc.geyser.registry.loader;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.mappings.MappingsType;
 
-import java.util.Collections;
 import java.util.Map;
 
 public class WaypointStyleLoader implements RegistryLoader<MappingsType<Identifier, CustomWaypointStyle>, Map<Identifier, CustomWaypointStyle>> {
@@ -40,6 +40,9 @@ public class WaypointStyleLoader implements RegistryLoader<MappingsType<Identifi
     public Map<Identifier, CustomWaypointStyle> load(MappingsType<Identifier, CustomWaypointStyle> input) {
         Map<Identifier, CustomWaypointStyle> map = new Object2ObjectOpenHashMap<>();
         MappingsConfigReader.loadCustomMappingsFromJson(input, map::put);
-        return Collections.unmodifiableMap(map);
+        if (!map.isEmpty()) {
+            GeyserImpl.getInstance().getLogger().info("Registered " + map.size() + " custom waypoint styles");
+        }
+        return map;
     }
 }
