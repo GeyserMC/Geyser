@@ -36,6 +36,8 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomSkullsEvent;
 import org.geysermc.geyser.configuration.GeyserCustomSkullConfiguration;
 import org.geysermc.geyser.pack.SkullResourcePackManager;
 import org.geysermc.geyser.registry.BlockRegistries;
+import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
+import org.geysermc.geyser.registry.mappings.MappingsType;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -88,7 +90,7 @@ public class CustomSkullRegistryPopulator {
         List<String> uuids = new ArrayList<>(skullConfig.getPlayerUUIDs());
         List<String> skinHashes = new ArrayList<>(skullConfig.getPlayerSkinHashes());
 
-        GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineCustomSkullsEvent() {
+        GeyserDefineCustomSkullsEvent event = new GeyserDefineCustomSkullsEvent() {
             @Override
             public void register(@NonNull String texture, @NonNull SkullTextureType type) {
                 switch (type) {
@@ -98,7 +100,12 @@ public class CustomSkullRegistryPopulator {
                     case SKIN_HASH -> skinHashes.add(texture);
                 }
             }
-        });
+        };
+
+        MappingsConfigReader.loadCustomMappingsFromJson(MappingsType.SKULLS,
+            (type, textures) -> textures.forEach(texture -> event.register(texture, type)));
+
+        GeyserImpl.getInstance().getEventBus().fire(event);
 
         usernames.forEach((username) -> {
             String profile = getProfileFromUsername(username);
