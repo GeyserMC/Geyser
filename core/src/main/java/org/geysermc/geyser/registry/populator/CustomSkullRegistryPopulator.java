@@ -93,11 +93,16 @@ public class CustomSkullRegistryPopulator {
         GeyserDefineCustomSkullsEvent event = new GeyserDefineCustomSkullsEvent() {
             @Override
             public void register(@NonNull String texture, @NonNull SkullTextureType type) {
-                switch (type) {
-                    case USERNAME -> usernames.add(texture);
-                    case UUID -> uuids.add(texture);
-                    case PROFILE -> profiles.add(texture);
-                    case SKIN_HASH -> skinHashes.add(texture);
+                List<String> textures = switch (type) {
+                    case USERNAME -> usernames;
+                    case UUID -> uuids;
+                    case PROFILE -> profiles;
+                    case SKIN_HASH -> skinHashes;
+                };
+                if (textures.contains(texture)) {
+                    GeyserImpl.getInstance().getLogger().warning("Not adding texture " + texture + " for skull texture type " + type + " twice!");
+                } else {
+                    textures.add(texture);
                 }
             }
         };
