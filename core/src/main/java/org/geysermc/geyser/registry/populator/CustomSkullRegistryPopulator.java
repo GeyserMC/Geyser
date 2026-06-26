@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.registry.populator;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMaps;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
@@ -50,6 +53,7 @@ import org.geysermc.mcprotocollib.auth.util.TextureUrlChecker;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -57,7 +61,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class CustomSkullRegistryPopulator {
@@ -72,23 +75,24 @@ public class CustomSkullRegistryPopulator {
             return;
         }
 
-        GeyserCustomSkullConfiguration skullConfig;
+        // Try to migrate the legacy custom-skulls.yml file
         try {
             GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
-            Path skullConfigPath = bootstrap.getConfigFolder().resolve("custom-skulls.yml");
-            File skullConfigFile = FileUtils.fileOrCopiedFromResource(skullConfigPath.toFile(), "custom-skulls.yml", Function.identity(), bootstrap);
-            skullConfig = FileUtils.loadConfig(skullConfigFile, GeyserCustomSkullConfiguration.class);
-        } catch (IOException e) {
-            GeyserImpl.getInstance().getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.config.failed"), e);
-            return;
+            File skullConfigFile = bootstrap.getConfigFolder().resolve("custom-skulls.yml").toFile();
+            if (skullConfigFile.exists()) {
+                GeyserCustomSkullConfiguration skullConfig = FileUtils.loadConfig(skullConfigFile, GeyserCustomSkullConfiguration.class);
+                tryMigrateLegacyConfigToMappingsFile(skullConfig, skullConfigFile);
+            }
+        } catch (IOException exception) {
+            GeyserImpl.getInstance().getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.config.failed"), exception);
         }
 
         BlockRegistries.CUSTOM_SKULLS.set(new Object2ObjectOpenHashMap<>());
 
-        List<String> profiles = new ArrayList<>(skullConfig.getPlayerProfiles());
-        List<String> usernames = new ArrayList<>(skullConfig.getPlayerUsernames());
-        List<String> uuids = new ArrayList<>(skullConfig.getPlayerUUIDs());
-        List<String> skinHashes = new ArrayList<>(skullConfig.getPlayerSkinHashes());
+        List<String> profiles = new ArrayList<>();
+        List<String> usernames = new ArrayList<>();
+        List<String> uuids = new ArrayList<>();
+        List<String> skinHashes = new ArrayList<>();
 
         GeyserDefineCustomSkullsEvent event = new GeyserDefineCustomSkullsEvent() {
             @Override
@@ -243,6 +247,43 @@ public class CustomSkullRegistryPopulator {
             return skin.getHash();
         }
         return null;
+    }
+
+    private static void tryMigrateLegacyConfigToMappingsFile(GeyserCustomSkullConfiguration configuration, File legacyPath) {
+        JsonObject mappingsFile = new JsonObject();
+        mappingsFile.addProperty("format_version", 1);
+        JsonObject skulls = new JsonObject();
+        skulls.add("username", stringsToArray(configuration.getPlayerUsernames()));
+        skulls.add("uuid", stringsToArray(configuration.getPlayerUUIDs()));
+        skulls.add("profile", stringsToArray(configuration.getPlayerProfiles()));
+        skulls.add("skin_hash", stringsToArray(configuration.getPlayerSkinHashes()));
+        mappingsFile.add("skulls", skulls);
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        MappingsConfigReader.getCustomMappingsDirectoryAndEnsureItExists().ifPresentOrElse(mappingsDirectory -> {
+            Path destination = mappingsDirectory.resolve("migrated-custom-skulls.yml.json");
+            if (Files.exists(destination)) {
+                GeyserImpl.getInstance().getLogger().warning("Not migrating legacy custom-skulls.yml file because the destination (\"custom_mappings/migrated-custom-skulls.yml.json\") already exists!");
+                return;
+            } else {
+                GeyserImpl.getInstance().getLogger().info("Migrating legacy custom-skulls.yml file to \"custom_mappings/migrated-custom-skulls.yml.json\"...");
+            }
+            try {
+                Files.writeString(destination, gson.toJson(mappingsFile));
+            } catch (IOException exception) {
+                GeyserImpl.getInstance().getLogger().error("Failed to migrate legacy custom-skulls.yml file!", exception);
+                return;
+            }
+            if (!legacyPath.delete()) {
+                GeyserImpl.getInstance().getLogger().error("Failed to delete legacy custom-skulls.yml file!");
+            }
+        }, () -> GeyserImpl.getInstance().getLogger().error("Not migrating legacy custom-skulls.yml file because the mappings directory does not exist"));
+    }
+
+    private static JsonArray stringsToArray(List<String> strings) {
+        JsonArray array = new JsonArray();
+        strings.forEach(array::add);
+        return array;
     }
 
     /*
