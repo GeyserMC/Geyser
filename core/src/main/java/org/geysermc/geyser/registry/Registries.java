@@ -217,6 +217,11 @@ public final class Registries {
      */
     public static final ListDeferredRegistry<Key> DANGEROUS_ENTITIES = ListDeferredRegistry.create(UtilMappings::dangerousEntities, RegistryLoaders.UTIL_MAPPINGS_KEYS);
 
+    /**
+     * A registry containing all the items that have a suspicious effect on Java - usually only flowers.
+     */
+    public static final ListDeferredRegistry<Key> SUSPICIOUS_EFFECT_HOLDERS = ListDeferredRegistry.create(UtilMappings::suspiciousEffectHolders, RegistryLoaders.UTIL_MAPPINGS_KEYS);
+
     public static final SimpleMappedDeferredRegistry<Identifier, CustomWaypointStyle> WAYPOINT_STYLE_MAPPINGS = SimpleMappedDeferredRegistry.create(MappingsType.WAYPOINT_STYLES, WaypointStyleLoader::new);
 
     /**
@@ -249,6 +254,7 @@ public final class Registries {
         GAME_MASTER_BLOCKS.load();
         DANGEROUS_BLOCK_ENTITIES.load();
         DANGEROUS_ENTITIES.load();
+        SUSPICIOUS_EFFECT_HOLDERS.load();
         GameRules.init();
     }
 

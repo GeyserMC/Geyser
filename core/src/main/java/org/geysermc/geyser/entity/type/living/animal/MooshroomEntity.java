@@ -32,6 +32,7 @@ import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
@@ -80,7 +81,9 @@ public class MooshroomEntity extends CowEntity {
             // Shear items
             return InteractionResult.SUCCESS;
         } else if (isBrown && !isBaby) {
-            // TODO 26.2: SuspiciousEffectHolder check
+            if (!Registries.SUSPICIOUS_EFFECT_HOLDERS.get().contains(itemInHand.asItem().javaKey())) {
+                return super.mobInteract(hand, itemInHand);
+            }
             return InteractionResult.SUCCESS;
         }
         return super.mobInteract(hand, itemInHand);
