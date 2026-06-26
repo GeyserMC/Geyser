@@ -68,7 +68,7 @@ public final class BundleCache {
         if (itemStack.is(session, ItemTag.BUNDLES)) {
             if (itemStack.getBundleData() != null) {
                 session.getGeyser().getLogger().warning("Stack has bundle data already! It should not!");
-                if (session.getGeyser().getConfig().isDebugMode()) {
+                if (session.getGeyser().getLogger().isDebug()) {
                     session.getGeyser().getLogger().debug("Player: " + session.javaUsername());
                     session.getGeyser().getLogger().debug("Stack: " + itemStack);
                 }
@@ -163,7 +163,7 @@ public final class BundleCache {
 
         List<GeyserItemStack> contents = data.contents();
         int bedrockSlot = platformConvertSlot(contents.size(), 0);
-        ItemData bedrockContent = contents.get(0).getItemData(session);
+        ItemData bedrockContent = contents.getFirst().getItemData(session);
 
         sendInventoryPacket(data.bundleId(), bedrockSlot, bedrockContent, bundle.getItemData(session));
 
@@ -281,10 +281,10 @@ public final class BundleCache {
          */
         private boolean freshFromServer = true;
 
-        BundleData(GeyserSession session, List<ItemStack> contents) {
+        public BundleData(GeyserSession session, List<ItemStack> contents) {
             this();
             for (ItemStack content : contents) {
-                GeyserItemStack itemStack = GeyserItemStack.from(content);
+                GeyserItemStack itemStack = GeyserItemStack.from(session, content);
                 // Check recursively
                 session.getBundleCache().initialize(itemStack);
                 this.contents.add(itemStack);

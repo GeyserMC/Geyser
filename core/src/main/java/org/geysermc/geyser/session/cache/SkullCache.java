@@ -33,8 +33,9 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
-import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
+import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
@@ -42,11 +43,16 @@ import org.geysermc.geyser.level.block.type.WallSkullBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class SkullCache {
     private final int maxVisibleSkulls;
@@ -67,43 +73,33 @@ public class SkullCache {
 
     public SkullCache(GeyserSession session) {
         this.session = session;
-        this.maxVisibleSkulls = session.getGeyser().getConfig().getMaxVisibleCustomSkulls();
+        this.maxVisibleSkulls = session.getGeyser().config().gameplay().maxVisibleCustomSkulls();
         this.cullingEnabled = this.maxVisibleSkulls != -1;
 
         // Normal skulls are not rendered beyond 64 blocks
-        int distance = Math.min(session.getGeyser().getConfig().getCustomSkullRenderDistance(), 64);
+        int distance = Math.min(session.getGeyser().config().gameplay().customSkullRenderDistance(), 64);
         this.skullRenderDistanceSquared = distance * distance;
     }
 
-    public Skull putSkull(Vector3i position, GameProfile resolved, BlockState blockState) {
-        GameProfile.Property textures = resolved.getProperty("textures");
-        if (textures != null) {
-            return putSkull(position, resolved.getId(), textures.getValue(), blockState);
+    public @Nullable Skull putSkull(Vector3i position, GameProfile resolved, BlockState blockState) {
+        Texture texture;
+        try {
+            texture = resolved.getTexture(TextureType.SKIN, false);
+        } catch (IllegalStateException e) {
+            session.getGeyser().getLogger().debug("Player skull with invalid skin found at " + position + " with texture payload " + resolved.getProperty("textures"));
+            return null;
+        }
+        if (texture != null) {
+            return putSkull(position, resolved.getId(), texture.getURL(), texture.getHash(), blockState);
         }
         return null;
     }
 
-    public Skull putSkull(Vector3i position, UUID uuid, String texturesProperty, BlockState blockState) {
+    public Skull putSkull(Vector3i position, UUID uuid, String skinUrl, String skinHash, BlockState blockState) {
         Skull skull = skulls.computeIfAbsent(position, Skull::new);
         skull.uuid = uuid;
-        if (!texturesProperty.equals(skull.texturesProperty)) {
-            skull.texturesProperty = texturesProperty;
-            skull.skinHash = null;
-            try {
-                SkinManager.GameProfileData gameProfileData = SkinManager.GameProfileData.loadFromJson(texturesProperty);
-                if (gameProfileData != null && gameProfileData.skinUrl() != null) {
-                    String skinUrl = gameProfileData.skinUrl();
-                    skull.skinHash = skinUrl.substring(skinUrl.lastIndexOf('/') + 1);
-                } else {
-                    session.getGeyser().getLogger().debug("Player skull with invalid Skin tag: " + position + " Textures: " + texturesProperty);
-                }
-            } catch (IOException e) {
-                session.getGeyser().getLogger().debug("Player skull with invalid Skin tag: " + position + " Textures: " + texturesProperty);
-                if (GeyserImpl.getInstance().getConfig().isDebugMode()) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        skull.skinUrl = skinUrl;
+        skull.skinHash = skinHash;
         skull.blockState = blockState;
         skull.blockDefinition = translateCustomSkull(skull.skinHash, blockState);
 
@@ -153,7 +149,7 @@ public class SkullCache {
     public Skull updateSkull(Vector3i position, BlockState blockState) {
         Skull skull = skulls.get(position);
         if (skull != null) {
-            putSkull(position, skull.uuid, skull.texturesProperty, blockState);
+            putSkull(position, skull.uuid, skull.skinUrl, skull.skinHash, blockState);
         }
         return skull;
     }
@@ -161,10 +157,10 @@ public class SkullCache {
     public void updateVisibleSkulls() {
         if (cullingEnabled) {
             // No need to recheck skull visibility for small movements
-            if (lastPlayerPosition != null && session.getPlayerEntity().getPosition().distanceSquared(lastPlayerPosition) < 4) {
+            if (lastPlayerPosition != null && session.getPlayerEntity().position().distanceSquared(lastPlayerPosition) < 4) {
                 return;
             }
-            lastPlayerPosition = session.getPlayerEntity().getPosition();
+            lastPlayerPosition = session.getPlayerEntity().position();
 
             inRangeSkulls.clear();
             for (Skull skull : skulls.values()) {
@@ -197,8 +193,7 @@ public class SkullCache {
         }
         if (!cullingEnabled || totalSkullEntities < maxVisibleSkulls) {
             // Create a new entity
-            long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
-            skull.entity = new SkullPlayerEntity(session, geyserId);
+            skull.entity = new SkullPlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, UUID.randomUUID(), EntityDefinitions.PLAYER));
             skull.entity.spawnEntity();
             skull.entity.updateSkull(skull);
             totalSkullEntities++;
@@ -238,7 +233,11 @@ public class SkullCache {
         lastPlayerPosition = null;
     }
 
-    private @Nullable BlockDefinition translateCustomSkull(String skinHash, BlockState blockState) {
+    private @Nullable BlockDefinition translateCustomSkull(@Nullable String skinHash, BlockState blockState) {
+        if (skinHash == null) {
+            return null;
+        }
+
         CustomSkull customSkull = BlockRegistries.CUSTOM_SKULLS.get(skinHash);
         if (customSkull != null) {
             CustomBlockState customBlockState;
@@ -257,8 +256,8 @@ public class SkullCache {
     @Data
     public static class Skull {
         private UUID uuid;
-        private String texturesProperty;
         private String skinHash;
+        private String skinUrl;
 
         private BlockState blockState;
         private BlockDefinition blockDefinition;

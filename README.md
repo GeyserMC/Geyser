@@ -6,7 +6,7 @@
 
 Geyser is a bridge between Minecraft: Bedrock Edition and Minecraft: Java Edition, closing the gap from those wanting to play true cross-platform.
 
-Geyser is an open collaboration project by [CubeCraft Games](https://cubecraft.net).
+Geyser is an [Open Collaboration](https://opencollaboration.dev/) project.
 
 ## What is Geyser?
 Geyser is a proxy, bridging the gap between Minecraft: Bedrock Edition and Minecraft: Java Edition servers.
@@ -15,7 +15,11 @@ The ultimate goal of this project is to allow Minecraft: Bedrock Edition users t
 Special thanks to the DragonProxy project for being a trailblazer in protocol translation and for all the team members who have joined us here!
 
 ## Supported Versions
-Geyser is currently supporting Minecraft Bedrock 1.21.90 - 1.21.120 and Minecraft Java 1.21.9 - 1.21.10. For more information, please see [here](https://geysermc.org/wiki/geyser/supported-versions/).
+
+| Edition | Supported Versions                                                                                         |
+|---------|------------------------------------------------------------------------------------------------------------|
+| Bedrock | 26.0, 26.1, 26.2, 26.3, 26.10, 26.20, 26.21, 26.22, 26.23, 26.30, 26.31, 26.32                             |
+| Java    | 26.1 - 26.1.2 (For older versions, [see this guide](https://geysermc.org/wiki/geyser/supported-versions/)) |
 
 ## Setting Up
 Take a look [here](https://geysermc.org/wiki/geyser/setup/) for how to set up Geyser.

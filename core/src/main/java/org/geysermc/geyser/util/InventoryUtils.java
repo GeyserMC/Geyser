@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
@@ -34,7 +35,6 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
-import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
@@ -56,13 +56,18 @@ import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.protocol.java.inventory.JavaMerchantOffersTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.CompositeSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.DyedSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.OnlyWithComponentSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.TagSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithAnyPotionSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.WithRemainderSlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.inventory.ClientboundOpenBookPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.ServerboundContainerClosePacket;
@@ -153,12 +158,7 @@ public class InventoryUtils {
             holder.session().setPendingOrCurrentBedrockInventoryId(holder.bedrockId());
             if (holder.requiresOpeningDelay()) {
                 holder.pending(true);
-
-                NetworkStackLatencyPacket latencyPacket = new NetworkStackLatencyPacket();
-                latencyPacket.setFromServer(true);
-                latencyPacket.setTimestamp(MAGIC_VIRTUAL_INVENTORY_HACK);
-                holder.session().sendUpstreamPacket(latencyPacket);
-
+                scheduleInventoryOpen(holder.session());
                 GeyserImpl.getInstance().getLogger().debug(holder.session(), "Queuing virtual inventory (%s)", debugInventory(holder));
             } else {
                 openAndUpdateInventory(holder);
@@ -195,10 +195,10 @@ public class InventoryUtils {
         updateCursor(session);
 
         if (holder != null) {
-            holder.closeInventory(confirm);
             if (holder.shouldConfirmClose(confirm)) {
                 session.setClosingInventory(true);
             }
+            holder.closeInventory(confirm);
             session.getBundleCache().onInventoryClose(holder.inventory());
             GeyserImpl.getInstance().getLogger().debug(session, "Closed inventory: (java id: %s/bedrock id: %s), waiting on confirm? %s", holder.javaId(), holder.bedrockId(), session.isClosingInventory());
         }
@@ -238,13 +238,13 @@ public class InventoryUtils {
         // Check if a fake block can be placed, either above the player or beneath.
         BedrockDimension dimension = session.getBedrockDimension();
         int minY = dimension.minY(), maxY = minY + dimension.height();
-        Vector3i flatPlayerPosition = session.getPlayerEntity().getPosition().toInt();
+        Vector3i flatPlayerPosition = session.getPlayerEntity().bedrockPosition().toInt();
         Vector3i position = flatPlayerPosition.add(Vector3i.UP);
         if (position.getY() < minY) {
             return null;
         }
         if (position.getY() >= maxY || !canUseWorldSpace(session, position)) {
-            position = flatPlayerPosition.sub(0, 4, 0);
+            position = flatPlayerPosition.down(3);
             if (position.getY() >= maxY || !canUseWorldSpace(session, position)) {
                 return null;
             }
@@ -268,7 +268,7 @@ public class InventoryUtils {
     }
 
     public static boolean canStack(GeyserItemStack item1, GeyserItemStack item2) {
-        if (GeyserImpl.getInstance().getConfig().isDebugMode())
+        if (GeyserImpl.getInstance().config().debugMode())
             canStackDebug(item1, item2);
         if (item1.isEmpty() || item2.isEmpty())
             return false;
@@ -320,7 +320,7 @@ public class InventoryUtils {
 
     private static ItemDefinition getUnusableSpaceBlockDefinition(int protocolVersion) {
         ItemMappings mappings = Registries.ITEMS.forVersion(protocolVersion);
-        String unusableSpaceBlock = GeyserImpl.getInstance().getConfig().getUnusableSpaceBlock();
+        String unusableSpaceBlock = GeyserImpl.getInstance().config().gameplay().unusableSpaceBlock();
         ItemDefinition itemDefinition = mappings.getDefinition(unusableSpaceBlock);
 
         if (itemDefinition == null) {
@@ -363,29 +363,50 @@ public class InventoryUtils {
      * Returns if the provided item stack would be accepted by the slot display.
      */
     public static boolean acceptsAsInput(GeyserSession session, SlotDisplay slotDisplay, GeyserItemStack itemStack) {
+        // TODO possible code duplication with RecipeUtil#translateToInput
         if (slotDisplay instanceof EmptySlotDisplay) {
             return itemStack.isEmpty();
         }
-        if (slotDisplay instanceof CompositeSlotDisplay compositeSlotDisplay) {
-            if (compositeSlotDisplay.contents().size() == 1) {
-                return acceptsAsInput(session, compositeSlotDisplay.contents().get(0), itemStack);
+        if (slotDisplay instanceof CompositeSlotDisplay(List<SlotDisplay> contents)) {
+            if (contents.size() == 1) {
+                return acceptsAsInput(session, contents.getFirst(), itemStack);
             }
-            return compositeSlotDisplay.contents().stream().anyMatch(aSlotDisplay -> acceptsAsInput(session, aSlotDisplay, itemStack));
+            return contents.stream().anyMatch(aSlotDisplay -> acceptsAsInput(session, aSlotDisplay, itemStack));
         }
         if (slotDisplay instanceof WithRemainderSlotDisplay remainderSlotDisplay) {
             return acceptsAsInput(session, remainderSlotDisplay.input(), itemStack);
         }
-        if (slotDisplay instanceof ItemSlotDisplay itemSlotDisplay) {
-            return itemStack.getJavaId() == itemSlotDisplay.item();
+        if (slotDisplay instanceof ItemSlotDisplay(int item)) {
+            return itemStack.getJavaId() == item;
         }
-        if (slotDisplay instanceof ItemStackSlotDisplay itemStackSlotDisplay) {
-            ItemStack other = itemStackSlotDisplay.itemStack();
+        if (slotDisplay instanceof ItemStackSlotDisplay(ItemStack other)) {
             // Amount check might be flimsy?
             return itemStack.getJavaId() == other.getId() && itemStack.getAmount() >= other.getAmount()
                 && Objects.equals(itemStack.getComponents(), other.getDataComponentsPatch());
         }
-        if (slotDisplay instanceof TagSlotDisplay tagSlotDisplay) {
-            return itemStack.is(session, new Tag<>(JavaRegistries.ITEM, tagSlotDisplay.tag()));
+        if (slotDisplay instanceof TagSlotDisplay(Key tag)) {
+            return itemStack.is(session, new Tag<>(JavaRegistries.ITEM, tag));
+        }
+        if (slotDisplay instanceof OnlyWithComponentSlotDisplay(SlotDisplay source, DataComponentType<?> component)) {
+            return itemStack.has(component) && acceptsAsInput(session, source, itemStack);
+        }
+        if (slotDisplay instanceof DyedSlotDisplay(SlotDisplay ignored, SlotDisplay target)) {
+            return acceptsAsInput(session, target, itemStack);
+        }
+        if (slotDisplay instanceof WithAnyPotionSlotDisplay(SlotDisplay display)) {
+            if (display instanceof ItemStackSlotDisplay(ItemStack stack)) {
+                DataComponents clonedComponents = stack.getDataComponentsPatch() == null ? null : stack.getDataComponentsPatch().clone();
+                if (clonedComponents != null) {
+                    clonedComponents.remove(DataComponentTypes.POTION_CONTENTS);
+                }
+                ItemStack stackWithoutPotions = new ItemStack(stack.getId(), stack.getAmount(), clonedComponents);
+                GeyserItemStack originalWithoutPotions = itemStack.copy();
+                if (originalWithoutPotions.getComponents() != null) {
+                    originalWithoutPotions.getComponents().remove(DataComponentTypes.POTION_CONTENTS);
+                }
+                return acceptsAsInput(session, new ItemStackSlotDisplay(stackWithoutPotions), originalWithoutPotions);
+            }
+            return acceptsAsInput(session, display, itemStack);
         }
         session.getGeyser().getLogger().warning("Unknown slot display type: " + slotDisplay);
         return false;
@@ -412,7 +433,7 @@ public class InventoryUtils {
         for (GeyserRecipe recipe : session.getCraftingRecipes().values()) {
             if (recipe.isShaped()) {
                 GeyserShapedRecipe shapedRecipe = (GeyserShapedRecipe) recipe;
-                if (output != null && !acceptsAsInput(session, shapedRecipe.result(), GeyserItemStack.from(output))) {
+                if (output != null && !acceptsAsInput(session, shapedRecipe.result(), GeyserItemStack.from(session, output))) {
                     continue;
                 }
                 List<SlotDisplay> ingredients = shapedRecipe.ingredients();
@@ -439,7 +460,7 @@ public class InventoryUtils {
                 }
             } else {
                 GeyserShapelessRecipe data = (GeyserShapelessRecipe) recipe;
-                if (output != null && !acceptsAsInput(session, data.result(), GeyserItemStack.from(output))) {
+                if (output != null && !acceptsAsInput(session, data.result(), GeyserItemStack.from(session, output))) {
                     continue;
                 }
                 if (nonAirCount != data.ingredients().size()) {
@@ -498,5 +519,13 @@ public class InventoryUtils {
             ", bedrockId=" + inventory.getBedrockId() + ", size=" + inventory.getSize() +
             ", type=" + inventoryType + ", pending=" + holder.pending() +
             ", displayed=" + inventory.isDisplayed();
+    }
+
+    public static void scheduleInventoryOpen(GeyserSession session) {
+        session.sendNetworkLatencyStackPacket(MAGIC_VIRTUAL_INVENTORY_HACK, true, () -> {
+            if (session.getPendingOrCurrentBedrockInventoryId() != -1) {
+                InventoryUtils.openPendingInventory(session);
+            }
+        });
     }
 }

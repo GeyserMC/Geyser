@@ -3,3 +3,9 @@ plugins {
     eclipse
     id("geyser.base-conventions")
 }
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}

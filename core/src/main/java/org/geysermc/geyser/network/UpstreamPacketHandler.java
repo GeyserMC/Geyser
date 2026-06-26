@@ -30,7 +30,6 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.compat.BedrockCompat;
-import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
 import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionStrategy;
@@ -79,6 +78,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SeekableByteChannel;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.OptionalInt;
 import java.util.Queue;
@@ -103,7 +103,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         super(geyser, session);
 
         ZlibCompression compression = new ZlibCompression(Zlib.RAW);
-        compression.setLevel(this.geyser.getConfig().getBedrock().getCompressionLevel());
+        compression.setLevel(this.geyser.config().advanced().bedrock().compressionLevel());
         this.compressionStrategy = new SimpleCompressionStrategy(compression);
     }
 
@@ -200,19 +200,11 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         }
         receivedLoginPacket = true;
 
-        if (geyser.getSessionManager().reachedMaxConnectionsPerAddress(session)) {
-            session.disconnect("Too many connections are originating from this location!");
-            return PacketSignal.HANDLED;
-        }
-
-        // Set the block translation based off of version
-        session.setBlockMappings(BlockRegistries.BLOCKS.forVersion(loginPacket.getProtocolVersion()));
-        session.setItemMappings(Registries.ITEMS.forVersion(loginPacket.getProtocolVersion()));
-
         LoginEncryptionUtils.encryptPlayerConnection(session, loginPacket);
 
         if (session.isClosed()) {
             // Can happen if Xbox validation fails
+            session.forciblyCloseUpstream();
             return PacketSignal.HANDLED;
         }
 
@@ -220,6 +212,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             session.disconnect(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", session.bedrockUsername()));
             return PacketSignal.HANDLED;
         }
+
+        // Set the block translation based off of version
+        session.setBlockMappings(BlockRegistries.BLOCKS.forVersion(loginPacket.getProtocolVersion()));
+        session.setItemMappings(Registries.ITEMS.forVersion(loginPacket.getProtocolVersion()));
 
         geyser.getSessionManager().addPendingSession(session);
 
@@ -236,14 +232,17 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             // Can happen if an error occurs in the resource pack event; that'll disconnect the player
             return PacketSignal.HANDLED;
         }
+        session.integratedPackActive(resourcePackLoadEvent.isIntegratedPackActive());
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         resourcePacksInfo.getResourcePackInfos().addAll(this.resourcePackLoadEvent.infoPacketEntries());
         resourcePacksInfo.setVibrantVisualsForceDisabled(!session.isAllowVibrantVisuals());
 
-        resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().getConfig().isForceResourcePacks());
+        resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().gameplay().forceResourcePacks() ||
+            resourcePackLoadEvent.isIntegratedPackActive());
         resourcePacksInfo.setWorldTemplateId(UUID.randomUUID());
         resourcePacksInfo.setWorldTemplateVersion("*");
+
         session.sendUpstreamPacket(resourcePacksInfo);
 
         GeyserLocale.loadGeyserLocale(session.locale());
@@ -264,23 +263,22 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         switch (packet.getStatus()) {
             case COMPLETED -> {
                 finishedResourcePackSending = true;
-                if (geyser.getConfig().getRemote().authType() != AuthType.ONLINE) {
+                if (geyser.config().java().authType() != AuthType.ONLINE) {
                     session.authenticate(session.getAuthData().name());
                 } else if (!couldLoginUserByName(session.getAuthData().name())) {
                     // We must spawn the white world
                     session.connect();
                 }
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.connect", session.getAuthData().name()));
+                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.connect", session.getAuthData().name() +
+                    " (" + session.protocolVersion() + ")"));
             }
             case SEND_PACKS -> {
-                if (packet.getPackIds().isEmpty()) {
-                    GeyserImpl.getInstance().getLogger().warning("Received empty pack ids in resource pack response packet!");
-                    session.disconnect("Invalid resource pack response packet received!");
-                    chunkRequestQueue.clear();
+                // Bedrock clients can send empty "send_packs" responses, in which case we shouldn't send anything back
+                if (!packet.getPackIds().isEmpty()) {
+                    packsToSend.addAll(packet.getPackIds());
+                    sendPackDataInfo(packsToSend.pop());
                     return PacketSignal.HANDLED;
                 }
-                packsToSend.addAll(packet.getPackIds());
-                sendPackDataInfo(packsToSend.pop());
             }
             case HAVE_ALL_PACKS -> {
                 ResourcePackStackPacket stackPacket = new ResourcePackStackPacket();
@@ -289,13 +287,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 stackPacket.setGameVersion(session.getClientData().getGameVersion());
                 stackPacket.getResourcePacks().addAll(this.resourcePackLoadEvent.orderedPacks());
 
-                if (GameProtocol.is1_21_100(session)) {
-                    // Support copper age drop features (or some of them) in 1.21.100
-                    stackPacket.getExperiments().add(new ExperimentData("y_2025_drop_3", true));
-                }
-
                 session.sendUpstreamPacket(stackPacket);
             }
+            case REFUSED -> session.disconnect("disconnectionScreen.resourcePack");
             default -> {
                 GeyserImpl.getInstance().getLogger().debug("received unknown status packet: " + packet);
                 session.disconnect("disconnectionScreen.resourcePack");
@@ -315,7 +309,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     }
 
     private boolean couldLoginUserByName(String bedrockUsername) {
-        if (geyser.getConfig().getSavedUserLogins().contains(bedrockUsername)) {
+        if (geyser.config().savedUserLogins().contains(bedrockUsername)) {
             String authChain = geyser.authChainFor(bedrockUsername);
             if (authChain != null) {
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().name()));
@@ -338,9 +332,6 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             SetTitlePacket titlePacket = new SetTitlePacket();
             titlePacket.setType(SetTitlePacket.Type.ACTIONBAR);
             titlePacket.setText(GeyserLocale.getPlayerLocaleString("geyser.auth.login.wait", session.locale()));
-            titlePacket.setFadeInTime(0);
-            titlePacket.setFadeOutTime(1);
-            titlePacket.setStayTime(2);
             titlePacket.setXuid("");
             titlePacket.setPlatformOnlineId("");
             session.sendUpstreamPacket(titlePacket);
@@ -358,12 +349,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         // Resolve some console pack downloading issues.
         // See <https://github.com/PowerNukkitX/PowerNukkitX/pull/1997> for reference
         chunkRequestQueue.add(packet);
-        if (isConsole()) {
-            if (!currentlySendingChunks) {
-                currentlySendingChunks = true;
-                processNextChunk();
-            }
-        } else {
+        if (!currentlySendingChunks) {
+            currentlySendingChunks = true;
             processNextChunk();
         }
         return PacketSignal.HANDLED;
@@ -378,7 +365,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         ResourcePackHolder holder = this.resourcePackLoadEvent.getPacks().get(packet.getPackId());
         if (holder == null) {
-            GeyserImpl.getInstance().getLogger().debug("Client {0} tried to request pack id {1} not sent to it!",
+            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request pack id %s not sent to it!",
                 session.bedrockUsername(), packet.getPackId());
             chunkRequestQueue.clear();
             session.disconnect("disconnectionScreen.resourcePack");
@@ -421,14 +408,10 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         data.setData(Unpooled.wrappedBuffer(packData));
 
-        if (isConsole()) {
-            // Also flushes packets
-            // Avoids bursting slower / delayed clients
-            session.sendUpstreamPacketImmediately(data);
-            GeyserImpl.getInstance().getScheduledThread().schedule(this::processNextChunk, PACKET_SEND_DELAY, TimeUnit.MILLISECONDS);
-        } else {
-            session.sendUpstreamPacket(data);
-        }
+        // Also flushes packets
+        // Avoids bursting slower / delayed clients
+        session.sendUpstreamPacketImmediately(data);
+        session.scheduleInEventLoop(this::processNextChunk, PACKET_SEND_DELAY, TimeUnit.MILLISECONDS);
 
         // Check if it is the last chunk and send next pack in queue when available.
         if (remainingSize <= GeyserResourcePack.CHUNK_SIZE && !packsToSend.isEmpty()) {
@@ -441,8 +424,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         String[] packID = id.split("_");
 
         if (packID.length < 2) {
-            GeyserImpl.getInstance().getLogger().debug("Client {0} tried to request invalid pack id {1}!",
-                session.bedrockUsername(), packID);
+            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request invalid pack id %s!",
+                session.bedrockUsername(), Arrays.toString(packID));
             session.disconnect("disconnectionScreen.resourcePack");
             return;
         }
@@ -451,7 +434,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         try {
             packId = UUID.fromString(packID[0]);
         } catch (IllegalArgumentException e) {
-            GeyserImpl.getInstance().getLogger().debug("Client {0} tried to request pack with an invalid id {1})",
+            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request pack with an invalid id %s)",
                 session.bedrockUsername(), id);
             session.disconnect("disconnectionScreen.resourcePack");
             return;
@@ -459,7 +442,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         ResourcePackHolder holder = this.resourcePackLoadEvent.getPacks().get(packId);
         if (holder == null) {
-            GeyserImpl.getInstance().getLogger().debug("Client {0} tried to request pack id {1} not sent to it!",
+            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request pack id %s not sent to it!",
                 session.bedrockUsername(), id);
             session.disconnect("disconnectionScreen.resourcePack");
             return;
@@ -480,10 +463,5 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         data.setType(ResourcePackType.RESOURCES);
 
         session.sendUpstreamPacket(data);
-    }
-
-    private boolean isConsole() {
-        BedrockPlatform platform = session.platform();
-        return platform == BedrockPlatform.PS4 || platform == BedrockPlatform.XBOX || platform == BedrockPlatform.NX;
     }
 }

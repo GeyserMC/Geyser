@@ -80,7 +80,9 @@ import static org.geysermc.geyser.scoreboard.UpdateType.REMOVE;
  */
 public final class Scoreboard {
     private static final boolean SHOW_SCOREBOARD_LOGS = Boolean.parseBoolean(System.getProperty("Geyser.ShowScoreboardLogs", "true"));
-    private static final boolean ADD_TEAM_SUGGESTIONS = Boolean.parseBoolean(System.getProperty("Geyser.AddTeamSuggestions", "true"));
+    private static final boolean ADD_TEAM_SUGGESTIONS = Boolean.parseBoolean(
+        System.getProperty("Geyser.AddTeamSuggestions", String.valueOf(GeyserImpl.getInstance().config().advanced().addTeamSuggestions()))
+    );
 
     private final GeyserSession session;
     private final GeyserLogger logger;

@@ -30,19 +30,29 @@ import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
+import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
-import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
+import org.geysermc.geyser.util.PlayerListUtils;
+import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -64,10 +74,21 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
      */
     private boolean listed = false;
 
-    public PlayerEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, Vector3f position,
-                        Vector3f motion, float yaw, float pitch, float headYaw, String username, @Nullable String texturesProperty) {
-        super(session, entityId, geyserId, uuid, EntityDefinitions.PLAYER, position, motion, yaw, pitch, headYaw, username);
-        this.texturesProperty = texturesProperty;
+    public PlayerEntity(EntitySpawnContext context, GameProfile profile) {
+        super(context, profile.getName());
+        this.customNameVisible = true;
+        try {
+            this.textures = profile.getTextures(true);
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().debug("Error loading textures for player!" + profile, e);
+            this.textures = null;
+        }
+    }
+
+    public PlayerEntity(EntitySpawnContext context, String username, @Nullable Map<TextureType, Texture> textureMap) {
+        super(context, username);
+        this.customNameVisible = true;
+        this.textures = textureMap;
     }
 
     @Override
@@ -76,12 +97,28 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
 
         // Since 1.20.60, the nametag does not show properly if this is not set :/
         // The nametag does disappear properly when the player is invisible though.
-        dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
+        setNametagAlwaysShow(true);
     }
 
     @Override
     public void despawnEntity() {
         super.despawnEntity();
+
+        // Remove the entries if limited entries are desired
+        // While we do not explicitly list players, the skin loading code would
+        // send the player list entry after fetching the skin sent by the Java server.
+        if (PlayerListUtils.shouldLimitPlayerListEntries(session)) {
+            PlayerListPacket packet = new PlayerListPacket();
+            packet.getEntries().add(new PlayerListPacket.Entry(getTabListUuid()));
+            packet.setAction(PlayerListPacket.Action.REMOVE);
+            session.sendUpstreamPacket(packet);
+
+            if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
+                // To ensure waypoints still remain, if any were added while the
+                // player had a valid player list entry
+                session.getWaypointCache().removeEntity(this);
+            }
+        }
 
         // Since we re-use player entities: Clear flags, held item, etc
         this.resetMetadata();
@@ -109,24 +146,24 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
         if (leftParrot != null) {
-            leftParrot.moveAbsolute(position, yaw, pitch, headYaw, true, teleported);
+            leftParrot.moveAbsoluteRaw(position, yaw, pitch, headYaw, true, teleported);
         }
         if (rightParrot != null) {
-            rightParrot.moveAbsolute(position, yaw, pitch, headYaw, true, teleported);
+            rightParrot.moveAbsoluteRaw(position, yaw, pitch, headYaw, true, teleported);
         }
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
         if (leftParrot != null) {
-            leftParrot.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, true);
+            leftParrot.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, true);
         }
         if (rightParrot != null) {
-            rightParrot.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, true);
+            rightParrot.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, true);
         }
     }
 
@@ -159,8 +196,8 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
                 return;
             }
             // The parrot is a separate entity in Bedrock, but part of the player entity in Java
-            ParrotEntity parrot = new ParrotEntity(session, 0, session.getEntityCache().getNextEntityId().incrementAndGet(),
-                    null, EntityDefinitions.PARROT, position, motion, getYaw(), getPitch(), getHeadYaw());
+            EntitySpawnContext context = EntitySpawnContext.inherited(session, EntityDefinitions.PARROT, this, position);
+            ParrotEntity parrot = new ParrotEntity(context);
             parrot.spawnEntity();
             parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, variant.getAsInt());
             // Different position whether the parrot is left or right
@@ -170,7 +207,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
             parrot.updateBedrockMetadata();
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             EntityLinkData.Type type = isLeft ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;
-            linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.getGeyserId(), type, false, false, 0f));
+            linkPacket.setEntityLink(new EntityLinkData(geyserId, parrot.geyserId(), type, false, false, 0f));
             // Delay, or else spawned-in players won't get the link
             // TODO: Find a better solution.
             session.scheduleInEventLoop(() -> session.sendUpstreamPacket(linkPacket), 500, TimeUnit.MILLISECONDS);
@@ -197,16 +234,15 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         return username;
     }
 
-    // TODO test mannequins
     @Override
-    protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
-        // when fromDisplayName, LivingEntity will call scoreboard code. After that
-        // setNametag is called again with fromDisplayName on false
-        if (nametag == null && !fromDisplayName) {
+    protected void setNametag(@Nullable String nametag, boolean applyTeamStyling) {
+        // when applyTeamStyling, LivingEntity will call scoreboard code. After that
+        // setNametag is called again with applyTeamStyling on false
+        if (nametag == null && !applyTeamStyling) {
             // nametag = null means reset, so reset it back to username
             nametag = username;
         }
-        super.setNametag(nametag, fromDisplayName);
+        super.setNametag(nametag, applyTeamStyling);
     }
 
     public void setUsername(String username) {
@@ -217,11 +253,21 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
      * @return the UUID that should be used when dealing with Bedrock's tab list.
      */
     public UUID getTabListUuid() {
-        return getUuid();
+        return uuid();
     }
 
-    @Override
-    public Vector3f position() {
-        return this.position.down(definition.offset());
+    // From 1.21.8 code, should be correct since some pose should be prioritized.
+    public Pose getDesiredPose() {
+        if (this.getBedPosition() != null) {
+            return Pose.SLEEPING;
+        } else if (this.getFlag(EntityFlag.SWIMMING) || this.getFlag(EntityFlag.CRAWLING)) {
+            return Pose.SWIMMING;
+        } else if (this.getFlag(EntityFlag.GLIDING)) {
+            return Pose.FALL_FLYING;
+        } else if (this.getFlag(EntityFlag.DAMAGE_NEARBY_MOBS)) {
+            return Pose.SPIN_ATTACK;
+        } else {
+            return this.getFlag(EntityFlag.SNEAKING) && !session.isFlying() ? Pose.SNEAKING : Pose.STANDING;
+        }
     }
 }

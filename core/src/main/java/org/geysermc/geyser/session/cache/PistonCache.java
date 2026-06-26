@@ -123,13 +123,13 @@ public class PistonCache {
             SessionPlayerEntity playerEntity = session.getPlayerEntity();
 
             Entity vehicle = playerEntity.getVehicle();
-            if (vehicle instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+            if (vehicle instanceof ClientVehicle clientVehicle && clientVehicle.shouldSimulateMovement()) {
                 return;
             }
 
             boolean isOnGround = playerDisplacement.getY() > 0 || playerEntity.isOnGround();
             Vector3d position = session.getCollisionManager().getPlayerBoundingBox().getBottomCenter();
-            playerEntity.moveAbsolute(position.toFloat(), playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), isOnGround, true);
+            playerEntity.moveAbsoluteRaw(position.toFloat(), playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), isOnGround, true);
         }
     }
 
@@ -138,7 +138,7 @@ public class PistonCache {
             SessionPlayerEntity playerEntity = session.getPlayerEntity();
 
             Entity vehicle = playerEntity.getVehicle();
-            if (vehicle instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+            if (vehicle instanceof ClientVehicle clientVehicle && clientVehicle.shouldSimulateMovement()) {
                 vehicle.setMotion(playerMotion);
                 return;
             }
@@ -146,7 +146,7 @@ public class PistonCache {
             playerEntity.setMotion(playerMotion);
 
             SetEntityMotionPacket setEntityMotionPacket = new SetEntityMotionPacket();
-            setEntityMotionPacket.setRuntimeEntityId(playerEntity.getGeyserId());
+            setEntityMotionPacket.setRuntimeEntityId(playerEntity.geyserId());
             setEntityMotionPacket.setMotion(playerMotion);
             session.sendUpstreamPacket(setEntityMotionPacket);
         }
@@ -166,7 +166,7 @@ public class PistonCache {
         Vector3d delta = totalDisplacement.sub(playerDisplacement);
 
         // Check if the piston is pushing a player into collision
-        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.isClientControlled()) {
+        if (session.getPlayerEntity().getVehicle() instanceof ClientVehicle clientVehicle && clientVehicle.shouldSimulateMovement()) {
             delta = clientVehicle.getVehicleComponent().correctMovement(delta);
             clientVehicle.getVehicleComponent().moveRelative(delta);
         } else {

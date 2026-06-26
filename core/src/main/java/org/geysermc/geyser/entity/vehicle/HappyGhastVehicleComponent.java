@@ -27,15 +27,10 @@ package org.geysermc.geyser.entity.vehicle;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.Fluid;
-import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 
@@ -85,7 +80,7 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
      * Called every session tick while the player is mounted on the vehicle.
      */
     public void tickVehicle() {
-        if (!vehicle.isClientControlled()) {
+        if (!vehicle.shouldSimulateMovement()) {
             return;
         }
 
@@ -102,28 +97,5 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
         // HappyGhast#travel
         travel(ctx, flyingSpeed * 5.0f / 3.0f);
         vehicle.setMotion(vehicle.getMotion().mul(drag));
-    }
-
-    private Fluid checkForFluid(VehicleContext ctx) {
-        Fluid result = Fluid.EMPTY;
-
-        BoundingBox box = boundingBox.clone();
-        box.expand(-0.001);
-
-        Vector3d min = box.getMin();
-        Vector3d max = box.getMax();
-
-        BlockPositionIterator iter = BlockPositionIterator.fromMinMax(min.getFloorX(), min.getFloorY(), min.getFloorZ(), max.getFloorX(), max.getFloorY(), max.getFloorZ());
-        for (iter.reset(); iter.hasNext(); iter.next()) {
-            BlockState blockState = ctx.getBlock(iter);
-            if (blockState.is(Blocks.WATER)) {
-                return Fluid.WATER; // Water takes priority over lava
-            }
-            if (blockState.is(Blocks.LAVA)) {
-                result = Fluid.LAVA;
-            }
-        }
-
-        return result;
     }
 }

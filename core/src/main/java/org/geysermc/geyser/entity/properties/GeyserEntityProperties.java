@@ -50,13 +50,8 @@ public class GeyserEntityProperties {
 
     private final static Pattern ENTITY_PROPERTY_PATTERN = Pattern.compile("^[a-z0-9_.:-]*:[a-z0-9_.:-]*$");
 
-    private final ObjectArrayList<PropertyType<?, ?>> properties;
-    private final Object2IntMap<String> propertyIndices;
-
-    private GeyserEntityProperties() {
-        this.properties = new ObjectArrayList<>();
-        this.propertyIndices = new Object2IntOpenHashMap<>();
-    }
+    private ObjectArrayList<PropertyType<?, ?>> properties;
+    private Object2IntMap<String> propertyIndices;
 
     public NbtMap toNbtMap(String entityType) {
         NbtMapBuilder mapBuilder = NbtMap.builder();
@@ -73,6 +68,11 @@ public class GeyserEntityProperties {
     public <T> void add(String entityType, @NonNull PropertyType<T, ? extends EntityProperty> property) {
         if (!Registries.BEDROCK_ENTITY_PROPERTIES.get().isEmpty()) {
             throw new IllegalStateException("Cannot add properties outside the GeyserDefineEntityProperties event!");
+        }
+
+        if (properties == null || propertyIndices == null) {
+            this.properties = new ObjectArrayList<>(0);
+            this.propertyIndices = new Object2IntOpenHashMap<>(0);
         }
 
         if (this.properties.size() > 32) {
@@ -94,7 +94,11 @@ public class GeyserEntityProperties {
     }
 
     public @NonNull List<PropertyType<?, ?>> getProperties() {
-        return properties;
+        return properties == null ? List.of() : properties;
+    }
+
+    public boolean isEmpty() {
+        return properties == null || properties.isEmpty();
     }
 
     public int getPropertyIndex(String name) {

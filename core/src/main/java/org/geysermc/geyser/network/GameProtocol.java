@@ -29,15 +29,13 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
-import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
-import org.cloudburstmc.protocol.bedrock.codec.v819.Bedrock_v819;
-import org.cloudburstmc.protocol.bedrock.codec.v827.Bedrock_v827;
-import org.cloudburstmc.protocol.bedrock.codec.v844.Bedrock_v844;
-import org.cloudburstmc.protocol.bedrock.codec.v859.Bedrock_v859;
+import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
+import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
+import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftCodec;
 import org.geysermc.mcprotocollib.protocol.codec.PacketCodec;
 
@@ -53,7 +51,7 @@ public final class GameProtocol {
     /**
      * All Bedrock protocol codecs that Geyser uses
      */
-    private static final List<BedrockCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
+    static final List<BedrockCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
 
     /**
      * All bedrock protocol versions that Geyser supports
@@ -84,13 +82,12 @@ public final class GameProtocol {
 
     static {
         // Strict ordering
-        register(Bedrock_v818.CODEC, "1.21.90", "1.21.91", "1.21.92");
-        register(Bedrock_v819.CODEC, "1.21.93", "1.21.94");
-        register(Bedrock_v827.CODEC, "1.21.100", "1.21.101");
-        register(Bedrock_v844.CODEC, "1.21.111", "1.21.112", "1.21.113", "1.21.114");
-        register(Bedrock_v859.CODEC, "1.21.120");
+        register(Bedrock_v924.CODEC, "26.0", "26.1", "26.2", "26.3");
+        register(Bedrock_v944.CODEC, "26.10");
+        register(Bedrock_v975.CODEC, "26.20", "26.21", "26.22", "26.23");
+        register(Bedrock_v1001.CODEC, "26.30", "26.31", "26.32");
 
-        MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.get(SUPPORTED_BEDROCK_VERSIONS.size() - 1);
+        MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.getLast();
         DEFAULT_BEDROCK_VERSION = latestBedrock.versionString();
         DEFAULT_BEDROCK_PROTOCOL = latestBedrock.protocolVersion();
     }
@@ -140,16 +137,16 @@ public final class GameProtocol {
 
     /* Bedrock convenience methods to gatekeep features and easily remove the check on version removal */
 
-    public static boolean is1_21_100(GeyserSession session) {
-        return session.protocolVersion() == Bedrock_v827.CODEC.getProtocolVersion();
+    public static boolean is26_10orHigher(int protocolVersion) {
+        return protocolVersion >= Bedrock_v944.CODEC.getProtocolVersion();
     }
 
-    public static boolean is1_21_110orHigher(GeyserSession session) {
-        return is1_21_110orHigher(session.protocolVersion());
+    public static boolean is26_20orHigher(int protocolVersion) {
+        return protocolVersion >= Bedrock_v975.CODEC.getProtocolVersion();
     }
 
-    public static boolean is1_21_110orHigher(int protocolVersion) {
-        return protocolVersion >= Bedrock_v844.CODEC.getProtocolVersion();
+    public static boolean is26_30orHigher(int protocolVersion) {
+        return protocolVersion >= Bedrock_v1001.CODEC.getProtocolVersion();
     }
 
     /**
@@ -158,7 +155,7 @@ public final class GameProtocol {
      * @return the supported Minecraft: Java Edition version names
      */
     public static List<String> getJavaVersions() {
-        return List.of(DEFAULT_JAVA_CODEC.getMinecraftVersion());
+        return List.of(DEFAULT_JAVA_CODEC.getMinecraftVersion(), "26.1.1", "26.1.2");
     }
 
     /**
@@ -176,7 +173,7 @@ public final class GameProtocol {
      * @return the supported Minecraft: Java Edition version
      */
     public static String getJavaMinecraftVersion() {
-        return "1.21.10";
+        return DEFAULT_JAVA_CODEC.getMinecraftVersion();
     }
 
     /**

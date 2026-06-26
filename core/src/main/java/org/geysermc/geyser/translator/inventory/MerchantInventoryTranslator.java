@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.inventory;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
@@ -36,8 +35,11 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.inventory.*;
+import org.geysermc.geyser.inventory.BedrockContainerSlot;
+import org.geysermc.geyser.inventory.MerchantContainer;
+import org.geysermc.geyser.inventory.SlotType;
 import org.geysermc.geyser.inventory.updater.InventoryUpdater;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.session.GeyserSession;
@@ -96,10 +98,10 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
     @Override
     public boolean prepareInventory(GeyserSession session, MerchantContainer container) {
         if (container.getVillager() == null) {
-            long geyserId = session.getEntityCache().getNextEntityId().incrementAndGet();
-            Vector3f pos = session.getPlayerEntity().getPosition().sub(0, 3, 0);
+            var context = EntitySpawnContext.DUMMY_CONTEXT.apply(session, null, EntityDefinitions.VILLAGER);
+            context.position(session.getPlayerEntity().position().sub(0, 3, 0));
 
-            Entity villager = new Entity(session, 0, geyserId, null, EntityDefinitions.VILLAGER, pos, Vector3f.ZERO, 0f, 0f, 0f) {
+            Entity villager = new Entity(context) {
                 @Override
                 protected void initializeMetadata() {
                     dirtyMetadata.put(EntityDataTypes.SCALE, 0f);
@@ -111,7 +113,7 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
 
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             EntityLinkData.Type type = EntityLinkData.Type.PASSENGER;
-            linkPacket.setEntityLink(new EntityLinkData(session.getPlayerEntity().getGeyserId(), geyserId, type, true, false, 0f));
+            linkPacket.setEntityLink(new EntityLinkData(session.getPlayerEntity().geyserId(), villager.geyserId(), type, true, false, 0f));
             session.sendUpstreamPacket(linkPacket);
 
             container.setVillager(villager);

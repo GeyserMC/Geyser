@@ -79,7 +79,7 @@ public class GeyserCustomBlockData implements CustomBlockData {
                 if (property.values().isEmpty()) {
                     throw new IllegalStateException(property.name() + " contains no values.");
                 }
-                defaultProperties.put(property.name(), property.values().get(0));
+                defaultProperties.put(property.name(), property.values().getFirst());
             }
             this.defaultProperties = Object2ObjectMaps.unmodifiable(defaultProperties);
         } else {

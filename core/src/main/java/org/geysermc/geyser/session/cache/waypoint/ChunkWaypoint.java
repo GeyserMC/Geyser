@@ -25,27 +25,28 @@
 
 package org.geysermc.geyser.session.cache.waypoint;
 
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.ChunkWaypointData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
 
 import java.awt.Color;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.UUID;
 
 public class ChunkWaypoint extends GeyserWaypoint {
 
-    public ChunkWaypoint(GeyserSession session, Optional<UUID> uuid, OptionalLong entityId, Color color) {
-        super(session, uuid, entityId, color);
+    public ChunkWaypoint(GeyserSession session, UUID uuid, Key style, Color color, Optional<Entity> entity) {
+        super(session, uuid, style, color, entity);
     }
 
     @Override
     public void setData(WaypointData data) {
-        if (data instanceof ChunkWaypointData chunkData) {
+        if (data instanceof ChunkWaypointData(int chunkX, int chunkZ)) {
             // Set position in centre of chunk
-            position = Vector3f.from(chunkData.chunkX() * 16.0F + 8.0F, session.getPlayerEntity().position().getY(), chunkData.chunkZ() * 16.0F + 8.0F);
+            setPosition(Vector3f.from(chunkX * 16.0F + 8.0F, session.getPlayerEntity().position().getY(), chunkZ * 16.0F + 8.0F));
         } else {
             session.getGeyser().getLogger().warning("Received incorrect waypoint data " + data.getClass() + " for chunk waypoint");
         }

@@ -44,6 +44,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.ComponentCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.text.ChatColor;
@@ -64,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Item {
+    public static final int BEDROCK_MAX_STACK_SIZE = 64;
     private static final Map<Block, Item> BLOCK_TO_ITEM = new HashMap<>();
     protected final Key javaIdentifier;
     private int javaId = -1;
@@ -119,7 +121,7 @@ public class Item {
      */
     @NonNull
     @UnmodifiableView
-    public DataComponents gatherComponents(@Nullable DataComponents others) {
+    public DataComponents gatherComponents(@Nullable ComponentCache componentCache, @Nullable DataComponents others) {
         if (others == null) {
             return baseComponents;
         }
@@ -140,7 +142,7 @@ public class Item {
      * to also query additional components that would override the default ones.
      */
     @Nullable
-    public <T> T getComponent(@NonNull DataComponentType<T> type) {
+    public <T> T getComponent(@Nullable ComponentCache componentCache, @NonNull DataComponentType<T> type) {
         return baseComponents.get(type);
     }
 
@@ -159,11 +161,11 @@ public class Item {
         return ItemData.builder()
                 .definition(mapping.getBedrockDefinition())
                 .damage(mapping.getBedrockData())
-                .count(count);
+                .count(Math.min(count, BEDROCK_MAX_STACK_SIZE));
     }
 
     public @NonNull GeyserItemStack translateToJava(GeyserSession session, @NonNull ItemData itemData, @NonNull ItemMapping mapping, @NonNull ItemMappings mappings) {
-        return GeyserItemStack.of(javaId, itemData.getCount());
+        return GeyserItemStack.of(session, javaId, itemData.getCount());
     }
 
     public ItemMapping toBedrockDefinition(DataComponents components, ItemMappings mappings) {
@@ -173,7 +175,11 @@ public class Item {
     /**
      * Takes components from Java Edition and map them into Bedrock.
      */
-    public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+    public void translateComponentsToBedrock(GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
+        if (session == null) {
+            return;
+        }
+
         List<Component> loreComponents = components.get(DataComponentTypes.LORE);
         if (loreComponents != null && tooltip.showInTooltip(DataComponentTypes.LORE)) {
             List<String> lore = builder.getOrCreateLore();
@@ -234,7 +240,7 @@ public class Item {
      * </ul>
      * Therefore, if translation cannot be achieved for a certain item, it is not necessarily bad.
      */
-    public void translateNbtToJava(@NonNull GeyserSession session, @NonNull NbtMap bedrockTag, @NonNull DataComponents components, @NonNull ItemMapping mapping) {
+    public void translateNbtToJava(GeyserSession session, @NonNull NbtMap bedrockTag, @NonNull DataComponents components, ItemMapping mapping) {
         // TODO see if any items from the creative menu need this
 //        CompoundTag displayTag = tag.get("display");
 //        if (displayTag != null) {
@@ -279,7 +285,7 @@ public class Item {
     private void addJavaOnlyEnchantment(GeyserSession session, BedrockItemBuilder builder, String enchantmentName, int level) {
         String lvlTranslation = MinecraftLocale.getLocaleString("enchantment.level." + level, session.locale());
 
-        builder.getOrCreateLore().add(0, ChatColor.RESET + ChatColor.GRAY + enchantmentName + " " + lvlTranslation);
+        builder.getOrCreateLore().addFirst(ChatColor.RESET + ChatColor.GRAY + enchantmentName + " " + lvlTranslation);
     }
 
     protected final void translateDyedColor(DataComponents components, BedrockItemBuilder builder) {
@@ -299,8 +305,8 @@ public class Item {
 
     /* Translation methods end */
 
-    public GeyserItemStack newItemStack(int count, DataComponents components) {
-        return GeyserItemStack.of(this.javaId, count, components);
+    public GeyserItemStack newItemStack(GeyserSession session, int count, DataComponents components) {
+        return GeyserItemStack.of(session, this.javaId, count, components);
     }
 
     public void setJavaId(int javaId) { // TODO like this?

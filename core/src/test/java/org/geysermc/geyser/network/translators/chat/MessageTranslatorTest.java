@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2025 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -73,6 +73,9 @@ public class MessageTranslatorTest {
         messages.put("{\"translate\":\"tt{''{tt\"}", "tt{''{tt");
         messages.put("{\"translate\":\"tt{{''}}tt\"}", "tt{{''}}tt");
 
+        messages.put("{\"text\":\"\",\"extra\":[{\"text\":\"Testing end of string\n formatting character§\",\"color\":\"yellow\"}]}",
+            "§r§eTesting end of string\n§e formatting character");
+
         MessageTranslator.init();
     }
 
@@ -94,9 +97,9 @@ public class MessageTranslatorTest {
     }
 
     @Test
-    public void convertToPlainText() {
+    public void convertIncomingToPlainText() {
         Assertions.assertEquals("Many colors here", MessageTranslator.convertToPlainTextLenient("{\"extra\":[{\"color\":\"red\",\"text\":\"M\"},{\"color\":\"gold\",\"text\":\"a\"},{\"color\":\"yellow\",\"text\":\"n\"},{\"color\":\"green\",\"text\":\"y \"},{\"color\":\"aqua\",\"text\":\"c\"},{\"color\":\"dark_purple\",\"text\":\"o\"},{\"color\":\"red\",\"text\":\"l\"},{\"color\":\"gold\",\"text\":\"o\"},{\"color\":\"yellow\",\"text\":\"r\"},{\"color\":\"green\",\"text\":\"s \"},{\"color\":\"aqua\",\"text\":\"h\"},{\"color\":\"dark_purple\",\"text\":\"e\"},{\"color\":\"red\",\"text\":\"r\"},{\"color\":\"gold\",\"text\":\"e\"}],\"text\":\"\"}", "en_US"), "JSON message is not handled properly");
-        Assertions.assertEquals("Many colors here", MessageTranslator.convertToPlainText("§cM§6a§en§ay §bc§5o§cl§6o§er§as §bh§5e§cr§6e"), "Legacy formatted message is not handled properly (Colors)");
+        Assertions.assertEquals("Many colors here", MessageTranslator.convertIncomingToPlainText("§cM§6a§en§ay §bc§5o§cl§6o§er§as §bh§5e§cr§6e"), "Legacy formatted message is not handled properly (Colors)");
         Assertions.assertEquals("Many colors here", MessageTranslator.convertToPlainTextLenient("§cM§6a§en§ay §bc§5o§cl§6o§er§as §bh§5e§cr§6e", "en_US"), "Legacy formatted message is not handled properly (Colors)");
         Assertions.assertEquals("Obf Bold Strikethrough Underline Italic Reset", MessageTranslator.convertToPlainTextLenient("§kObf §lBold §mStrikethrough §nUnderline §oItalic §rReset", "en_US"), "Legacy formatted message is not handled properly (Style)");
         Assertions.assertEquals("Strange", MessageTranslator.convertToPlainTextLenient("§rStrange", "en_US"), "Valid lenient JSON is not handled properly");

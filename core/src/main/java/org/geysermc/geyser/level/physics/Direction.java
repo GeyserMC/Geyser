@@ -72,6 +72,26 @@ public enum Direction {
         return axis == Axis.X || axis == Axis.Z;
     }
 
+    public Direction clockWise() {
+        return switch (this) {
+            case NORTH -> EAST;
+            case SOUTH -> WEST;
+            case WEST -> NORTH;
+            case EAST -> SOUTH;
+            default -> throw new IllegalStateException("Unable to get CW facing of " + this);
+        };
+    }
+
+    public Direction counterClockWise() {
+        return switch (this) {
+            case NORTH -> WEST;
+            case SOUTH -> EAST;
+            case WEST -> SOUTH;
+            case EAST -> NORTH;
+            default -> throw new IllegalStateException("Unable to get CCW facing of " + this);
+        };
+    }
+
     public static @NonNull Direction fromMCPL(org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction mcpl) {
         for (Direction direction : VALUES) {
             if (direction.mcpl == mcpl) {

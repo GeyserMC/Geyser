@@ -40,15 +40,18 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.skin.SkinData;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
-import org.geysermc.geyser.skin.SkullSkinManager;
+import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.translator.item.ItemTranslator;
-import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
@@ -57,31 +60,28 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvablePro
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 
-public class AvatarEntity extends LivingEntity {
+public abstract class AvatarEntity extends LivingEntity {
     public static final float SNEAKING_POSE_HEIGHT = 1.5f;
     protected static final List<AbilityLayer> BASE_ABILITY_LAYER;
 
     @Getter
     protected String username;
 
-    /**
-     * The textures property from the GameProfile.
-     */
     @Getter
     @Setter
     @Nullable
-    protected String texturesProperty; // TODO no direct setter, rather one that updates the skin
+    Map<TextureType, Texture> textures;
 
     private String cachedScore = "";
     private boolean scoreVisible = true;
 
     @Getter
     @Nullable
-    private Vector3i bedPosition;
+    protected Vector3i bedPosition;
 
     static {
         AbilityLayer abilityLayer = new AbilityLayer();
@@ -92,9 +92,8 @@ public class AvatarEntity extends LivingEntity {
         BASE_ABILITY_LAYER = Collections.singletonList(abilityLayer);
     }
 
-    public AvatarEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition,
-                        Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw, String username) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public AvatarEntity(EntitySpawnContext context, String username) {
+        super(context);
         this.username = username;
         this.nametag = username;
     }
@@ -113,8 +112,8 @@ public class AvatarEntity extends LivingEntity {
         addPlayerPacket.setUsername(username);
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
-        addPlayerPacket.setPosition(position.sub(0, definition.offset(), 0));
-        addPlayerPacket.setRotation(getBedrockRotation());
+        addPlayerPacket.setPosition(position()); // No offset sent here, apparently?
+        addPlayerPacket.setRotation(bedrockRotation());
         addPlayerPacket.setMotion(motion);
         addPlayerPacket.setHand(ItemTranslator.translateToBedrock(session, getMainHandItem()));
         addPlayerPacket.getAdventureSettings().setCommandPermission(CommandPermission.ANY);
@@ -132,8 +131,14 @@ public class AvatarEntity extends LivingEntity {
         session.sendUpstreamPacket(addPlayerPacket);
     }
 
+    // The player entity already lerps client-sided on bedrock
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public boolean shouldLerp() {
+        return false;
+    }
+
+    @Override
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         setPosition(position);
         setYaw(yaw);
         setPitch(pitch);
@@ -143,8 +148,8 @@ public class AvatarEntity extends LivingEntity {
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
-        movePlayerPacket.setPosition(this.position);
-        movePlayerPacket.setRotation(getBedrockRotation());
+        movePlayerPacket.setPosition(bedrockPosition());
+        movePlayerPacket.setRotation(bedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(this instanceof SessionPlayerEntity || teleported ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
         if (movePlayerPacket.getMode() == MovePlayerPacket.Mode.TELEPORT) {
@@ -160,29 +165,20 @@ public class AvatarEntity extends LivingEntity {
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
-        this.position = Vector3f.from(position.getX() + relX, position.getY() + relY, position.getZ() + relZ);
+        this.position = this.position.add(relX, relY, relZ);
 
         setOnGround(isOnGround);
 
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
-        movePlayerPacket.setPosition(position);
-        movePlayerPacket.setRotation(getBedrockRotation());
+        movePlayerPacket.setPosition(bedrockPosition());
+        movePlayerPacket.setRotation(bedrockRotation());
         movePlayerPacket.setOnGround(isOnGround);
         movePlayerPacket.setMode(this instanceof SessionPlayerEntity ? MovePlayerPacket.Mode.TELEPORT : MovePlayerPacket.Mode.NORMAL);
-        // If the player is moved while sleeping, we have to adjust their y, so it appears
-        // correctly on Bedrock. This fixes GSit's lay.
-        if (getFlag(EntityFlag.SLEEPING)) {
-            if (bedPosition != null && (bedPosition.getY() == 0 || bedPosition.distanceSquared(position.toInt()) > 4)) {
-                // Force the player movement by using a teleport
-                movePlayerPacket.setPosition(Vector3f.from(position.getX(), position.getY() - definition.offset() + 0.2f, position.getZ()));
-                movePlayerPacket.setMode(MovePlayerPacket.Mode.TELEPORT);
-            }
-        }
 
         if (movePlayerPacket.getMode() == MovePlayerPacket.Mode.TELEPORT) {
             movePlayerPacket.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
@@ -192,29 +188,9 @@ public class AvatarEntity extends LivingEntity {
     }
 
     @Override
-    public void setPosition(Vector3f position) {
-        if (this.bedPosition != null) {
-            // As of Bedrock 1.21.22 and Fabric 1.21.1
-            // Messes with Bedrock if we send this to the client itself, though.
-            super.setPosition(position.up(0.2f));
-        } else {
-            super.setPosition(position.add(0, definition.offset(), 0));
-        }
-    }
-
-    @Override
     public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         bedPosition = super.setBedPosition(entityMetadata);
         if (bedPosition != null) {
-            // Required to sync position of entity to bed
-            // Fixes https://github.com/GeyserMC/Geyser/issues/3595 on vanilla 1.19.3 servers - did not happen on Paper
-            this.setPosition(bedPosition.toFloat());
-
-            // TODO evaluate if needed
-            int bed = session.getGeyser().getWorldManager().getBlockAt(session, bedPosition);
-            // Bed has to be updated, or else player is floating in the air
-            ChunkUtils.updateBlock(session, bed, bedPosition);
-
             // Indicate that the player should enter the sleep cycle
             // Has to be a byte or it does not work
             // (Bed position is what actually triggers sleep - "pose" is only optional)
@@ -227,30 +203,28 @@ public class AvatarEntity extends LivingEntity {
         return bedPosition;
     }
 
-    public void setSkin(ResolvableProfile profile, boolean cape, Runnable after) {
-        SkinManager.resolveProfile(profile).thenAccept(resolved -> setSkin(resolved, cape, after));
+    public void setSkin(ResolvableProfile profile) {
+        SkinManager.resolveProfile(profile).thenAccept(resolved -> setSkin(resolved, null));
     }
 
-    public void setSkin(GameProfile profile, boolean cape, Runnable after) {
-        GameProfile.Property textures = profile.getProperty("textures");
-        if (textures != null) {
-            setSkin(textures.getValue(), cape, after);
-        } else {
-            setSkin((String) null, cape, after);
+    public void setSkin(GameProfile profile, @Nullable Runnable after) {
+        Map<TextureType, Texture> textures;
+        try {
+            textures = profile.getTextures(false);
+        } catch (IllegalStateException e) {
+            GeyserImpl.getInstance().getLogger().debug("Error loading textures for profile (%s)! Got: %s", profile, e);
+            textures = null;
         }
+        setSkin(textures, after);
     }
 
-    public void setSkin(String texturesProperty, boolean cape, Runnable after) {
-        if (Objects.equals(texturesProperty, this.texturesProperty)) {
+    public void setSkin(@Nullable Map<TextureType, Texture> textures, @Nullable Runnable after) {
+        if (Objects.equals(textures, this.textures)) {
             return;
         }
 
-        this.texturesProperty = texturesProperty;
-        if (cape) {
-            SkinManager.requestAndHandleSkinAndCape(this, session, skin -> after.run());
-        } else {
-            SkullSkinManager.requestAndHandleSkin(this, session, skin -> after.run());
-        }
+        this.textures = textures;
+        SkinManager.requestAndHandleSkinAndCape(this, session, after == null ? null : skin -> after.run());
     }
 
     public void setSkinVisibility(ByteEntityMetadata entityMetadata) {
@@ -262,23 +236,26 @@ public class AvatarEntity extends LivingEntity {
     }
 
     @Override
-    public String getDisplayName() {
-        return username;
+    public String getDisplayName(boolean includeStandardName) {
+        if (this instanceof PlayerEntity) {
+            return username;
+        }
+        return super.getDisplayName(includeStandardName);
     }
 
     @Override
-    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
         // Doesn't do anything for players
         if (!(this instanceof PlayerEntity)) {
-            super.setDisplayName(entityMetadata);
+            super.setCustomName(entityMetadata);
         }
     }
 
     @Override
-    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
+    public void setCustomNameVisible(BooleanEntityMetadata entityMetadata) {
         // Doesn't do anything for players
         if (!(this instanceof PlayerEntity)) {
-            super.setDisplayNameVisible(entityMetadata);
+            super.setCustomNameVisible(entityMetadata);
         }
     }
 
@@ -293,6 +270,15 @@ public class AvatarEntity extends LivingEntity {
             dirtyMetadata.put(EntityDataTypes.SCORE, text);
         }
     }
+
+    /**
+     * Whether this entity is listed on the player list.
+     * Since player entities are used for e.g. custom skulls too, we need to hack around
+     * limitations introduced in 1.21.130 to ensure skins are correctly applied. 
+     * @see SkinManager#sendSkinPacket(GeyserSession, AvatarEntity, SkinData)
+     * @return whether this player entity is listed
+     */
+    public abstract boolean isListed();
 
     @Override
     protected void scoreVisibility(boolean show) {
@@ -317,13 +303,16 @@ public class AvatarEntity extends LivingEntity {
 
         if (pose == Pose.SWIMMING) {
             // This is just for, so we know if player is swimming or crawling.
-            // TODO test, changed from position (field) to position() (method), which adds offset
-            if (session.getGeyser().getWorldManager().blockAt(session, position.toInt()).is(Blocks.WATER)) {
+            if (session.getGeyser().getWorldManager().blockAt(session, this.position.toInt()).is(Blocks.WATER)) {
                 setFlag(EntityFlag.SWIMMING, true);
             } else {
                 setFlag(EntityFlag.CRAWLING, true);
+
                 // Look at https://github.com/GeyserMC/Geyser/issues/5316, we're fixing this by spoofing player pitch to 0.
-                updateRotation(this.yaw, 0, this.onGround);
+                // Don't do this for session player however, as that teleport them back and messed up their rotation.
+                if (!(this instanceof SessionPlayerEntity)) {
+                    updateRotation(this.yaw, 0, this.onGround);
+                }
             }
         }
     }
@@ -357,5 +346,26 @@ public class AvatarEntity extends LivingEntity {
         }
         setBoundingBoxWidth(width);
         setBoundingBoxHeight(height);
+    }
+
+    @Override
+    public float getOffset() {
+        // Don't apply the full bedrock y offset when the player is sleeping
+        if (bedPosition != null && getFlag(EntityFlag.SLEEPING)) {
+            return 0.2f;
+        }
+        return super.getOffset();
+    }
+
+    public @Nullable String getSkinId() {
+        if (textures != null) {
+            Texture texture = textures.get(TextureType.SKIN);
+            if (texture != null) {
+                return texture.getHash();
+            }
+        }
+
+        SkinData fallback = SkinProvider.determineFallbackSkinData(this.uuid);
+        return fallback.skin().textureUrl();
     }
 }

@@ -25,16 +25,12 @@
 
 package org.geysermc.geyser.entity.type.living.monster.raid;
 
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.monster.MonsterEntity;
-import org.geysermc.geyser.session.GeyserSession;
-
-import java.util.UUID;
 
 public class RaidParticipantEntity extends MonsterEntity {
 
-    public RaidParticipantEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public RaidParticipantEntity(EntitySpawnContext context) {
+        super(context);
     }
 }

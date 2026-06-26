@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2023 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,12 +26,11 @@
 package org.geysermc.geyser.api.entity.type;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.property.BatchPropertyUpdater;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
 
@@ -55,14 +54,30 @@ public interface GeyserEntity {
      * @param <T> the type of the value
      * @since 2.9.0
      */
-    default <T> void updateProperty(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
+    default <T> void updateProperty(GeyserEntityProperty<T> property, @Nullable T value) {
         this.updatePropertiesBatched(consumer -> consumer.update(property, value));
     }
 
     /**
      * Updates multiple properties with just one update packet.
      * @see BatchPropertyUpdater
+     *
+     * @param consumer a batch updater
      * @since 2.9.0
      */
-    void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer);
+    default void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer) {
+        this.updatePropertiesBatched(consumer, false);
+    }
+
+    /**
+     * Updates multiple properties with just one update packet, which can be sent immediately to the client.
+     * Usually, sending updates immediately is not required except for specific situations where packet batching
+     * would result in update order issues.
+     * @see BatchPropertyUpdater
+     *
+     * @param consumer a batch updater
+     * @param immediate whether this update should be sent immediately
+     * @since 2.9.1
+     */
+    void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer, boolean immediate);
 }

@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -49,7 +49,7 @@ import java.util.regex.Pattern;
 public final class VersionCheckUtils {
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private static @NonNull OptionalInt LATEST_BEDROCK_RELEASE = OptionalInt.empty();
-    private static final int SUPPORTED_JAVA_VERSION = 17;
+    private static final int SUPPORTED_JAVA_VERSION = 21;
 
     public static void checkForOutdatedFloodgate(GeyserLogger logger) {
         try {
@@ -93,9 +93,9 @@ public final class VersionCheckUtils {
     public static void checkForGeyserUpdate(Supplier<GeyserCommandSource> recipient) {
         CompletableFuture.runAsync(() -> {
             try {
-                JsonNode json = WebUtils.getJson("https://api.geysermc.org/v2/versions/geyser");
-                JsonNode bedrock = json.get("bedrock").get("protocol");
-                int protocolVersion = bedrock.get("id").asInt();
+                JsonObject json = WebUtils.getJson("https://api.geysermc.org/v2/versions/geyser");
+                JsonObject bedrock = json.getAsJsonObject("bedrock").getAsJsonObject("protocol");
+                int protocolVersion = bedrock.get("id").getAsInt();
                 if (GameProtocol.getBedrockCodec(protocolVersion) != null) {
                     LATEST_BEDROCK_RELEASE = OptionalInt.empty();
                     // We support the latest version! No need to print a message.
@@ -103,7 +103,7 @@ public final class VersionCheckUtils {
                 }
 
                 LATEST_BEDROCK_RELEASE = OptionalInt.of(protocolVersion);
-                final String newBedrockVersion = bedrock.get("name").asText();
+                final String newBedrockVersion = bedrock.get("name").getAsString();
 
                 // Delayed for two reasons: save unnecessary processing, and wait to load locale if this is on join.
                 GeyserCommandSource sender = recipient.get();

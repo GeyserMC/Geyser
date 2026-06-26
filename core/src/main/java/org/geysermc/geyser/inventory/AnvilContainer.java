@@ -76,7 +76,7 @@ public class AnvilContainer extends Container {
         Component originalName = getInput().getComponent(DataComponentTypes.CUSTOM_NAME);
 
         String plainOriginalName = MessageTranslator.convertToPlainText(originalName, session.locale());
-        String plainNewName = MessageTranslator.convertToPlainText(rename);
+        String plainNewName = MessageTranslator.convertIncomingToPlainText(rename);
         if (!plainOriginalName.equals(plainNewName)) {
             // Strip out formatting since Java Edition does not allow it
             correctRename = plainNewName;

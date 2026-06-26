@@ -34,6 +34,7 @@ import java.util.UUID;
  * @param uuid Also known as identity
  * @param xuid The xuid of the user
  * @param issuedAt The unix time (in seconds) that the JWT was issued
+ * @param playFabId The PlayFab ID of the user
  */
-public record AuthData(String name, UUID uuid, String xuid, long issuedAt) {
+public record AuthData(String name, UUID uuid, String xuid, long issuedAt, String playFabId) {
 }

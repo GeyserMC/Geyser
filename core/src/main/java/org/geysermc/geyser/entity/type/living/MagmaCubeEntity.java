@@ -27,27 +27,24 @@ package org.geysermc.geyser.entity.type.living;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.geysermc.geyser.entity.EntityDefinition;
-import org.geysermc.geyser.session.GeyserSession;
-
-import java.util.UUID;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 
 public class MagmaCubeEntity extends SlimeEntity {
 
-    public MagmaCubeEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public MagmaCubeEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     @Override
-    public void moveRelative(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
+    public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
         updateJump(isOnGround);
-        super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
+        super.moveRelativeRaw(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
     }
 
     @Override
-    public void moveAbsolute(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
+    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         updateJump(isOnGround);
-        super.moveAbsolute(position, yaw, pitch, headYaw, isOnGround, teleported);
+        super.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
     }
 
     public void updateJump(boolean newOnGround) {

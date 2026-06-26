@@ -28,21 +28,15 @@ package org.geysermc.geyser.entity.type.player;
 import lombok.Getter;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.data.GameType;
-import org.cloudburstmc.protocol.bedrock.data.PlayerPermission;
-import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.WallSkullBlock;
 import org.geysermc.geyser.level.physics.Direction;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.skin.SkullSkinManager;
-import org.geysermc.geyser.translator.item.ItemTranslator;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -60,8 +54,11 @@ public class SkullPlayerEntity extends AvatarEntity {
     @Getter
     private Vector3i skullPosition;
 
-    public SkullPlayerEntity(GeyserSession session, long geyserId) {
-        super(session, 0, geyserId, UUID.randomUUID(), EntityDefinitions.PLAYER, Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, "");
+    @Getter
+    private String skinUrl;
+
+    public SkullPlayerEntity(EntitySpawnContext context) {
+        super(context, "");
     }
 
     @Override
@@ -78,13 +75,14 @@ public class SkullPlayerEntity extends AvatarEntity {
     public void updateSkull(SkullCache.Skull skull) {
         skullPosition = skull.getPosition();
 
-        if (!Objects.equals(skull.getTexturesProperty(), texturesProperty) || !Objects.equals(skullUUID, skull.getUuid())) {
+        if (!Objects.equals(skull.getSkinUrl(), skinUrl) || !Objects.equals(skullUUID, skull.getUuid())) {
             // Make skull invisible as we change skins
             setFlag(EntityFlag.INVISIBLE, true);
             updateBedrockMetadata();
 
+            skinUrl = skull.getSkinUrl();
             skullUUID = skull.getUuid();
-            setSkin(skull.getTexturesProperty(), false, () -> session.scheduleInEventLoop(() -> {
+            SkullSkinManager.requestAndHandleSkin(this, session, (skin) -> session.scheduleInEventLoop(() -> {
                 // Delay to minimize split-second "player" pop-in
                 setFlag(EntityFlag.INVISIBLE, false);
                 updateBedrockMetadata();
@@ -115,6 +113,11 @@ public class SkullPlayerEntity extends AvatarEntity {
             rotation = (180f + blockState.getValue(Properties.ROTATION_16, 0) * 22.5f) % 360;
         }
 
-        moveAbsolute(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);
+        moveAbsoluteRaw(Vector3f.from(x, y, z), rotation, 0, rotation, true, true);
+    }
+
+    @Override
+    public boolean isListed() {
+        return false;
     }
 }

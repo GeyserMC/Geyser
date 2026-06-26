@@ -15,11 +15,12 @@ dependencies {
 }
 
 platformRelocate("net.md_5.bungee.jni")
-platformRelocate("com.fasterxml.jackson")
 platformRelocate("net.kyori")
 platformRelocate("org.incendo")
-platformRelocate("io.leangen.geantyref") // provided by cloud, should also be relocated
+platformRelocate("io.leangen.geantyref") // provided by cloud and Configurate, should also be relocated
 platformRelocate("org.yaml") // Broken as of 1.20
+platformRelocate("org.spongepowered")
+platformRelocate("org.bstats")
 
 // These dependencies are already present on the platform
 provided(libs.bungeecord.proxy)

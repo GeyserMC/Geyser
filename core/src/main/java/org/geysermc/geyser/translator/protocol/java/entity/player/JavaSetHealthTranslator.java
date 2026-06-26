@@ -51,7 +51,7 @@ public class JavaSetHealthTranslator extends PacketTranslator<ClientboundSetHeal
             // https://github.com/GeyserMC/Geyser/issues/2957
             RespawnPacket respawnPacket = new RespawnPacket();
             respawnPacket.setRuntimeEntityId(0);
-            respawnPacket.setPosition(entity.getPosition());
+            respawnPacket.setPosition(entity.bedrockPosition());
             respawnPacket.setState(RespawnPacket.State.SERVER_READY);
             session.sendUpstreamPacket(respawnPacket);
         }
@@ -73,7 +73,7 @@ public class JavaSetHealthTranslator extends PacketTranslator<ClientboundSetHeal
         entity.getAttributes().put(GeyserAttributeType.SATURATION, saturationAttribute);
         attributes.add(saturationAttribute);
 
-        attributesPacket.setRuntimeEntityId(entity.getGeyserId());
+        attributesPacket.setRuntimeEntityId(entity.geyserId());
         session.sendUpstreamPacket(attributesPacket);
     }
 }

@@ -2,7 +2,7 @@ plugins {
     id("com.modrinth.minotaur")
 }
 
-// Ensure that the readme is synched
+// Ensure that the readme is synced
 tasks.modrinth.get().dependsOn(tasks.modrinthSyncBody)
 
 modrinth {
@@ -13,7 +13,7 @@ modrinth {
     versionNumber.set(projectVersion(project))
     versionType.set("beta")
     changelog.set(System.getenv("CHANGELOG") ?: "")
-    gameVersions.addAll("1.21.9", libs.minecraft.get().version as String)
+    gameVersions.addAll("26.1", "26.1.1", libs.minecraft.get().version as String)
     failSilently.set(true)
 
     syncBodyFrom.set(rootProject.file("README.md").readText())

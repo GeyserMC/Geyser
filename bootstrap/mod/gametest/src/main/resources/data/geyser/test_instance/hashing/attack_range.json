@@ -1,0 +1,33 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:attack_range",
+  "value": [
+    {},
+    {
+      "min_reach": 5.0
+    },
+    {
+      "max_reach": 2.0
+    },
+    {
+      "min_creative_reach": 8.0
+    },
+    {
+      "max_creative_reach": 4.3
+    },
+    {
+      "hitbox_margin": 0.4
+    },
+    {
+      "mob_factor": 1.9
+    },
+    {
+      "min_reach": 0.5,
+      "max_reach": 14.3,
+      "min_creative_reach": 4.3,
+      "max_creative_reach": 8.5,
+      "hitbox_margin": 0.6,
+      "mob_factor": 1.4
+    }
+  ]
+}

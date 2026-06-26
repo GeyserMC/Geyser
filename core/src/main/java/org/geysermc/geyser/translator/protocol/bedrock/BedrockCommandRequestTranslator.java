@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,8 +26,6 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.CommandRequestPacket;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -38,7 +36,20 @@ public class BedrockCommandRequestTranslator extends PacketTranslator<CommandReq
 
     @Override
     public void translate(GeyserSession session, CommandRequestPacket packet) {
-        String command = MessageTranslator.convertToPlainText(packet.getCommand());
-        session.sendCommand(MessageTranslator.normalizeSpace(command).substring(1));
+        // Java trims all messages, and then checks for the leading slash
+        String message = MessageTranslator.convertIncomingToPlainText(
+            MessageTranslator.normalizeSpace(packet.getCommand())
+        );
+
+        if (message.isBlank()) {
+            // Java Edition (as of 1.17.1) just doesn't pass on these messages, so... we won't either!
+            return;
+        }
+
+        if (!message.startsWith("/")) {
+            return;
+        }
+
+        session.sendCommand(message.substring(1));
     }
 }

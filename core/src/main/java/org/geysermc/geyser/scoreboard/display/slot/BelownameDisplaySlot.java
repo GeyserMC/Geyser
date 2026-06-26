@@ -118,7 +118,7 @@ public class BelownameDisplaySlot extends DisplaySlot {
     @Override
     public void playerRemoved(PlayerEntity player) {
         synchronized (displayScores) {
-            displayScores.remove(player.getGeyserId());
+            displayScores.remove(player.geyserId());
         }
     }
 
@@ -132,7 +132,7 @@ public class BelownameDisplaySlot extends DisplaySlot {
     private BelownameDisplayScore addDisplayScore(PlayerEntity player, ScoreReference reference) {
         var score = new BelownameDisplayScore(this, objective.getScoreboard().nextId(), reference, player);
         synchronized (displayScores) {
-            displayScores.put(player.getGeyserId(), score);
+            displayScores.put(player.geyserId(), score);
         }
         return score;
     }

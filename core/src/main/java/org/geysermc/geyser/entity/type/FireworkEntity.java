@@ -25,28 +25,25 @@
 
 package org.geysermc.geyser.entity.type;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.MovementEffectType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.MovementEffectPacket;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.TooltipOptions;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 import java.util.OptionalInt;
-import java.util.UUID;
 
 public class FireworkEntity extends Entity {
 
     private boolean attachedToSession;
 
-    public FireworkEntity(GeyserSession session, int entityId, long geyserId, UUID uuid, EntityDefinition<?> definition, Vector3f position, Vector3f motion, float yaw, float pitch, float headYaw) {
-        super(session, entityId, geyserId, uuid, definition, position, motion, yaw, pitch, headYaw);
+    public FireworkEntity(EntitySpawnContext context) {
+        super(context);
     }
 
     public void setFireworkItem(EntityMetadata<ItemStack, ?> entityMetadata) {
@@ -83,7 +80,7 @@ public class FireworkEntity extends Entity {
             this.attachedToSession = true;
 
             // We need to keep track of the fireworks rockets.
-            session.getAttachedFireworkRockets().add(this.getGeyserId());
+            session.getAttachedFireworkRockets().add(this.geyserId());
         } else {
             // Also ensure player stop boosting in cases like metadata changes.
             if (this.attachedToSession && session.getAttachedFireworkRockets().isEmpty()) {
@@ -112,7 +109,7 @@ public class FireworkEntity extends Entity {
         MovementEffectPacket movementEffect = new MovementEffectPacket();
         movementEffect.setDuration(duration);
         movementEffect.setEffectType(MovementEffectType.GLIDE_BOOST);
-        movementEffect.setEntityRuntimeId(session.getPlayerEntity().getGeyserId());
+        movementEffect.setEntityRuntimeId(session.getPlayerEntity().geyserId());
         movementEffect.setTick(session.getClientTicks());
         session.sendUpstreamPacket(movementEffect);
     }
