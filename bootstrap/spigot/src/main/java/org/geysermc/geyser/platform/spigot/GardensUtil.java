@@ -20,7 +20,7 @@ public class GardensUtil {
         if (furnitureStore != null) {
             var customItem = GardensFurniture.itemRegistry.getItem(furnitureStore.getItemIdentifier());
             if (customItem instanceof CustomPlaceableItem placeableItem) {
-                var block = Bukkit.getPlayer(session.getPlayerEntity().getUuid()).getWorld().getBlockAt(x, y, z);
+                var block = Bukkit.getPlayer(session.getPlayerEntity().uuid()).getWorld().getBlockAt(x, y, z);
                 return getGeyserBlock(session, placeableItem, block);
             }
         }
@@ -37,19 +37,10 @@ public class GardensUtil {
         placeableItem.onBuildGeyserBlockState(blockStateBuilder, block);
         var b = blockStateBuilder.build();
         return session.getBlockMappings().getCustomBlockStateDefinitions().get(b);
-//        var blockStates = session.getBlockMappings().getCustomBlockStateDefinitions();
-//        System.out.println("BlockStates Registered:");
-//        System.out.println(blockStates.keySet().stream().toList());
-//        if (CUSTOM_NAME_TO_BLOCK == null) {
-//            CUSTOM_NAME_TO_BLOCK = session.getBlockMappings().getCustomBlockStateDefinitions().entrySet()
-//                .stream()
-//                .collect(Collectors.toMap(entry -> entry.getKey().name(), Map.Entry::getValue));
-//        }
-//        return CUSTOM_NAME_TO_BLOCK.get(blockId);
     }
 
     private static FurnitureStore getFurnitureStore(GeyserSession session, int x, int y, int z) {
-        var player = Bukkit.getPlayer(session.getPlayerEntity().getUuid());
+        var player = Bukkit.getPlayer(session.getPlayerEntity().uuid());
         if (player == null) {
             return null;
         }

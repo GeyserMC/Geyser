@@ -260,7 +260,7 @@ public final class ItemTranslator {
             if (itemModel != null) {
                 var customBlock = FurnitureItemConverter.ITEM_MODEL_TO_BLOCK_DATA.get(itemModel);
                 if (customBlock != null) {
-                    translateCustomBlock(FurnitureItemConverter.ITEM_MODEL_TO_BLOCK_DATA.values().iterator().next(), session, builder);
+                    translateCustomBlock(customBlock, session, builder);
                 }
             }
         }
