@@ -33,6 +33,8 @@ import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
 import org.geysermc.geyser.util.DimensionUtils;
 import org.geysermc.geyser.util.MinecraftKey;
 
+import java.util.Map;
+
 /**
  * Represents the information we store from the current Java dimension
  * @param piglinSafe Whether piglins and hoglins are safe from conversion in this dimension.
@@ -44,6 +46,10 @@ import org.geysermc.geyser.util.MinecraftKey;
  * is logged in before utilizing this field.
  */
 public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ultrawarm, int bedrockId, boolean isNetherLike, @Nullable Key defaultClock) {
+    private static final Map<Key, Key> COMMON_CLOCKS = Map.of(
+        MinecraftKey.key("overworld"), MinecraftKey.key("overworld"),
+        MinecraftKey.key("the_end"), MinecraftKey.key("the_end")
+    );
 
     public static JavaDimension read(RegistryEntryContext entry) {
         NbtMap dimension = entry.data();
@@ -82,6 +88,9 @@ public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ul
             defaultClock = MinecraftKey.nullableKey(dimension.getString("default_clock", null));
         } catch (InvalidKeyException exception) {
             defaultClock = null;
+        }
+        if (defaultClock == null) {
+            defaultClock = COMMON_CLOCKS.get(entry.id());
         }
 
         if (minY % 16 != 0) {

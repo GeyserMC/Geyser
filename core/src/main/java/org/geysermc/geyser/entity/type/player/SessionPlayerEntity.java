@@ -201,6 +201,17 @@ public class SessionPlayerEntity extends PlayerEntity {
         this.position = position;
     }
 
+    @Override
+    public void updateHeadLookRotation(float headYaw) {
+        // We can't rotate the player head while they're riding a vehicle, since that will cause them to dismount.
+        if (this.vehicle != null) {
+            setHeadYaw(headYaw);
+            return;
+        }
+
+        super.updateHeadLookRotation(headYaw);
+    }
+
     /**
      * Special method used only when updating the session player's rotation.
      * For some reason, Mode#NORMAL ignored rotation. Yay.
@@ -212,6 +223,11 @@ public class SessionPlayerEntity extends PlayerEntity {
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
+
+        // We can't rotate the player head while they're riding a vehicle, since that will cause them to dismount.
+        if (this.vehicle != null) {
+            return;
+        }
         
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
@@ -445,6 +461,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
         super.setLivingEntityFlags(entityMetadata);
+
+        byte xd = entityMetadata.getPrimitiveValue();
+        boolean isUsingOffhand = (xd & 0x02) == 0x02;
+        if (session.getWorldCache().hasCooldown(isUsingOffhand ? getOffHandItem() : getMainHandItem())) {
+            setFlag(EntityFlag.BLOCKING, false);
+        }
 
         // Forcefully update flags since we're not tracking thing like using item properly.
         // For eg: when player start using item client-sided (and the USING_ITEM flag is false on geyser side)
