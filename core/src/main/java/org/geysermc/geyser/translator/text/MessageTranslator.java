@@ -25,12 +25,6 @@
 
 package org.geysermc.geyser.translator.text;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -60,6 +54,13 @@ import org.geysermc.mcprotocollib.protocol.data.DefaultComponentSerializer;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MessageTranslator {
     // These are used for handling the translations of the messages
@@ -357,19 +358,23 @@ public class MessageTranslator {
      * @param message Message to convert
      * @return The plain text of the message
      */
-    public static String convertToPlainText(String message) {
-        char[] input = message.toCharArray();
-        char[] output = new char[input.length];
-        int outputSize = 0;
-        for (int i = 0, inputLength = input.length; i < inputLength; i++) {
-            char c = input[i];
-            if (c == ChatColor.ESCAPE) {
-                i++;
-            } else {
-                output[outputSize++] = c;
+    public static String convertIncomingToPlainText(String message) {
+        GeyserImpl instance = GeyserImpl.getInstance();
+        if (instance == null || instance.config().gameplay().blockLegacyCodes()) {
+            char[] input = message.toCharArray();
+            char[] output = new char[input.length];
+            int outputSize = 0;
+            for (int i = 0, inputLength = input.length; i < inputLength; i++) {
+                char c = input[i];
+                if (c == ChatColor.ESCAPE) {
+                    i++;
+                } else {
+                    output[outputSize++] = c;
+                }
             }
+            return new String(output, 0, outputSize);
         }
-        return new String(output, 0, outputSize);
+        return message;
     }
 
     /**

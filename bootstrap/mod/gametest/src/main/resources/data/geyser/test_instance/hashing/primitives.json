@@ -1,0 +1,61 @@
+{
+  "type": "geyser:component_hash",
+  "components": [
+    {
+      "component": "minecraft:max_stack_size",
+      "value": 64
+    },
+    {
+      "component": "minecraft:max_damage",
+      "value": 13
+    },
+    {
+      "component": "minecraft:damage",
+      "value": 459
+    },
+    {
+      "component": "minecraft:unbreakable",
+      "value": {}
+    },
+    {
+      "component": "minecraft:minimum_attack_charge",
+      "value": 0.4
+    },
+    {
+      "component": "minecraft:repair_cost",
+      "value": 25
+    },
+    {
+      "component": "minecraft:enchantment_glint_override",
+      "value": true
+    },
+    {
+      "component": "minecraft:intangible_projectile",
+      "value": {}
+    },
+    {
+      "component": "minecraft:glider",
+      "value": {}
+    },
+    {
+      "component": "minecraft:dyed_color",
+      "value": 3844589
+    },
+    {
+      "component": "minecraft:map_color",
+      "value": 439435
+    },
+    {
+      "component": "minecraft:map_id",
+      "value": 55
+    },
+    {
+      "component": "minecraft:potion_duration_scale",
+      "value": 34.0
+    },
+    {
+      "component": "minecraft:ominous_bottle_amplifier",
+      "value": 3
+    }
+  ]
+}

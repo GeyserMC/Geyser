@@ -44,7 +44,6 @@ import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.standalone.gui.GeyserStandaloneGUI;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.util.LoopbackUtil;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.NodePath;
 import org.spongepowered.configurate.serialize.SerializationException;
@@ -143,8 +142,6 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
             gui.addGuiAppender();
             gui.startUpdateThread();
         }
-
-        LoopbackUtil.checkAndApplyLoopback(geyserLogger);
 
         this.onGeyserEnable();
     }

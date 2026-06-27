@@ -25,14 +25,16 @@
 
 package org.geysermc.geyser.session.cache.waypoint;
 
+import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.AzimuthWaypointData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
 
 import java.awt.Color;
 import java.util.Optional;
+import java.util.UUID;
 
 public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
 
@@ -43,14 +45,14 @@ public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
     // The angle, in radians, where the waypoint should appear on the bar
     private float angle = 0.0F;
 
-    public AzimuthWaypoint(GeyserSession session, Optional<PlayerEntity> player, Color color) {
-        super(session, player, color);
+    public AzimuthWaypoint(GeyserSession session, UUID uuid, Key style, Color color, Optional<Entity> entity) {
+        super(session, uuid, style, color, entity);
     }
 
     @Override
     public void setData(WaypointData data) {
-        if (data instanceof AzimuthWaypointData azimuthData) {
-            angle = azimuthData.angle();
+        if (data instanceof AzimuthWaypointData(float azimuthAngle)) {
+            angle = azimuthAngle;
             updatePosition();
         } else {
             session.getGeyser().getLogger().warning("Received incorrect waypoint data " + data.getClass() + " for azimuth waypoint");
@@ -71,6 +73,6 @@ public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
         float dx = (float) -(Math.sin(angle) * WAYPOINT_DISTANCE);
         float dz = (float) (Math.cos(angle) * WAYPOINT_DISTANCE);
         // Set Y to the player's Y since this waypoint always appears in the centre of the bar on Java
-        position = Vector3f.from(playerPosition.getX() + dx, playerPosition.getY(), playerPosition.getZ() + dz);
+        setPosition(Vector3f.from(playerPosition.getX() + dx, playerPosition.getY(), playerPosition.getZ() + dz));
     }
 }

@@ -43,8 +43,8 @@ import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.mcprotocollib.auth.GameProfile;
-import org.geysermc.mcprotocollib.auth.GameProfile.Texture;
-import org.geysermc.mcprotocollib.auth.GameProfile.TextureType;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.ResolvableProfile;
 
 import java.awt.*;
@@ -122,12 +122,11 @@ public class FakeHeadProvider {
 
     private static void loadHeadFromProfile(GeyserSession session, AvatarEntity entity, ResolvableProfile original, GameProfile resolved) {
         Texture skinTexture = SkinManager.getTextureDataFromProfile(resolved, TextureType.SKIN);
-        String originalTextures = entity.getTexturesProperty();
         if (skinTexture != null) {
             session.getPlayerWithCustomHeads().put(entity.uuid(), original);
             SkinProvider.getExecutorService().execute(() -> {
                 try {
-                    SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(originalTextures, skinTexture.getURL(), entity, session));
+                    SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(entity.getSkinId(), skinTexture.getURL(), entity, session));
                     SkinManager.sendSkinPacket(session, entity, mergedSkinData);
                 } catch (ExecutionException e) {
                     GeyserImpl.getInstance().getLogger().error("Couldn't merge skin of " + entity.getUsername() + " with head skin " + resolved, e);
@@ -159,10 +158,10 @@ public class FakeHeadProvider {
     @Getter
     @Setter
     private static class FakeHeadEntry {
-        private final String texturesProperty;
+        private final String originalSkinId;
         private final String fakeHeadSkinUrl;
-        private AvatarEntity entity;
-        private GeyserSession session;
+        private @Nullable AvatarEntity entity;
+        private @Nullable GeyserSession session;
 
         @Override
         public boolean equals(Object o) {
@@ -170,12 +169,12 @@ public class FakeHeadProvider {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             FakeHeadEntry that = (FakeHeadEntry) o;
-            return Objects.equals(texturesProperty, that.texturesProperty) && Objects.equals(fakeHeadSkinUrl, that.fakeHeadSkinUrl);
+            return Objects.equals(originalSkinId, that.originalSkinId) && Objects.equals(fakeHeadSkinUrl, that.fakeHeadSkinUrl);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(texturesProperty, fakeHeadSkinUrl);
+            return Objects.hash(originalSkinId, fakeHeadSkinUrl);
         }
     }
 

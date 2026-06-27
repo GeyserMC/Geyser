@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.util;
 
-import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.TrigMath;
 import org.cloudburstmc.math.vector.Vector3f;
 
@@ -180,6 +179,17 @@ public class MathUtils {
     }
 
     /**
+     * Clamps the value between 0 and the given maximum.
+     *
+     * @param x the value to clamp
+     * @param max the highest value the result can be
+     * @return 0 if x is less than 0, max if x is greater than max, or x otherwise
+     */
+    public static double restrain(double x, double max) {
+        return constrain(x, 0, max);
+    }
+
+    /**
      * Clamps the value between the low and high boundaries
      * Copied from {@link org.cloudburstmc.math.GenericMath} with floats instead.
      *
@@ -192,10 +202,7 @@ public class MathUtils {
         if (value < low) {
             return low;
         }
-        if (value > high) {
-            return high;
-        }
-        return value;
+        return Math.min(value, high);
     }
 
     /**

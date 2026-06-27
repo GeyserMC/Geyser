@@ -60,6 +60,8 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.Effect;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.ModifierOperation;
@@ -188,7 +190,7 @@ public final class ItemTranslator {
         BedrockItemBuilder nbtBuilder = new BedrockItemBuilder();
 
         // Populates default components that aren't sent over the network
-        DataComponents components = javaItem.gatherComponents(customComponents);
+        DataComponents components = javaItem.gatherComponents(session.getComponentCache(), customComponents);
         TooltipOptions tooltip = TooltipOptions.fromComponents(components);
 
         // Translate item-specific components
@@ -206,10 +208,25 @@ public final class ItemTranslator {
             nbtBuilder.setCustomName(customName);
         }
 
-        ItemAttributeModifiers attributeModifiers = components.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
-        if (attributeModifiers != null && tooltip.showInTooltip(DataComponentTypes.ATTRIBUTE_MODIFIERS )) {
-            // only add if attribute modifiers do not indicate to hide them
-            addAttributeLore(session, attributeModifiers, nbtBuilder, session.locale());
+        if (customComponents != null) {
+            ItemAttributeModifiers attributeModifiers = customComponents.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
+            if (attributeModifiers != null && tooltip.showInTooltip(DataComponentTypes.ATTRIBUTE_MODIFIERS)) {
+                // only add if attribute modifiers do not indicate to hide them
+                addAttributeLore(session, attributeModifiers, nbtBuilder, session.locale());
+            }
+        }
+
+        if (components.contains(DataComponentTypes.UNBREAKABLE) && tooltip.showInTooltip(DataComponentTypes.UNBREAKABLE)) {
+            nbtBuilder.getOrCreateLore().add(
+                MessageTranslator.convertMessage(
+                    Component.text()
+                        .resetStyle()
+                        .color(NamedTextColor.BLUE)
+                        .append(Component.translatable("item.unbreakable"))
+                        .build(),
+                    session.locale()
+                )
+            );
         }
 
         if (session.isAdvancedTooltips() && !TooltipOptions.hideTooltip(components)) {
@@ -239,7 +256,7 @@ public final class ItemTranslator {
             translatePlayerHead(session, components.get(DataComponentTypes.PROFILE), builder);
         }
 
-        translateCustomItem(components, builder, bedrockItem);
+        translateCustomItem(session, count, components, builder, bedrockItem);
 
         // Translate the canDestroy and canPlaceOn Java components
         AdventureModePredicate canDestroy = components.get(DataComponentTypes.CAN_BREAK);
@@ -536,7 +553,7 @@ public final class ItemTranslator {
             }
         }
 
-        ItemDefinition definition = CustomItemTranslator.getCustomItem(itemStack.getComponents(), mapping);
+        ItemDefinition definition = CustomItemTranslator.getCustomItem(session, itemStack.getAmount(), itemStack.getAllComponents(), mapping);
         if (definition == null) {
             // No custom item
             return itemDefinition;
@@ -604,8 +621,8 @@ public final class ItemTranslator {
     /**
      * Translates the custom model data of an item
      */
-    public static void translateCustomItem(DataComponents components, ItemData.Builder builder, ItemMapping mapping) {
-        ItemDefinition definition = CustomItemTranslator.getCustomItem(components, mapping);
+    public static void translateCustomItem(GeyserSession session, int stackSize, DataComponents components, ItemData.Builder builder, ItemMapping mapping) {
+        ItemDefinition definition = CustomItemTranslator.getCustomItem(session, stackSize, components, mapping);
         if (definition != null) {
             builder.definition(definition);
             builder.blockDefinition(null);
@@ -634,7 +651,7 @@ public final class ItemTranslator {
             return null;
         }
 
-        GameProfile.Texture skinTexture = SkinManager.getTextureDataFromProfile(resolved, GameProfile.TextureType.SKIN);
+        Texture skinTexture = SkinManager.getTextureDataFromProfile(resolved, TextureType.SKIN);
         if (skinTexture == null) {
             return null;
         }

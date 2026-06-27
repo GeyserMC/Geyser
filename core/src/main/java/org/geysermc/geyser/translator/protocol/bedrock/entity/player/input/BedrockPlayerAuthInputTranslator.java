@@ -72,7 +72,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         session.setClientTicks(packet.getTick());
-        session.setInClientPredictedVehicle(packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE) && entity.getVehicle() != null && !GameProtocol.is1_21_130orHigher(session.protocolVersion()));
+        session.setInClientPredictedVehicle(packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE) && entity.getVehicle() != null && GameProtocol.is26_10orHigher(session.protocolVersion()));
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
@@ -184,7 +184,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
                     }
 
                     // Java edition sends a cooldown when hitting air.
-                    CooldownUtils.sendCooldown(session);
+                    CooldownUtils.setCooldownHitTime(session);
                 }
             }
         }
@@ -308,10 +308,10 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
         if (sendMovement) {
             // We only need to determine onGround status this way for client predicted vehicles.
-            // For other vehicle, Geyser already handle it in VehicleComponent or the Java server handle it.
-            Vector3f position = vehicle.getPosition();
+            // For other vehicles: see the VehicleComponent class, otherwise the Java server handles it
+            Vector3f position = vehicle.position();
             final BoundingBox box = new BoundingBox(
-                position.down(vehicle instanceof BoatEntity ? vehicle.getDefinition().offset() : 0).up(vehicle.getBoundingBoxHeight() / 2f).toDouble(),
+                position.up(vehicle.getBoundingBoxHeight() / 2f).toDouble(),
                 vehicle.getBoundingBoxWidth(), vehicle.getBoundingBoxHeight(), vehicle.getBoundingBoxWidth()
             );
 
@@ -320,28 +320,17 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             Vector3d correctedMovement = session.getCollisionManager().correctMovementForCollisions(movement, box, true, false);
             vehicle.setOnGround(correctedMovement.getY() != movement.getY() && session.getPlayerEntity().getLastTickEndVelocity().getY() < 0);
 
-            Vector3f vehiclePosition = packet.getPosition();
+            Vector3f vehiclePosition = packet.getPosition().down(vehicle.getOffset());
             Vector2f vehicleRotation = packet.getVehicleRotation();
             if (vehicleRotation == null) {
                 return; // If the client just got in or out of a vehicle for example.
             }
 
             if (session.getWorldBorder().isPassingIntoBorderBoundaries(vehiclePosition, false)) {
-                if (vehicle instanceof BoatEntity boat) {
-                    // Undo the changes usually applied to the boat
-                    boat.moveAbsoluteWithoutAdjustments(position, vehicle.getYaw(), vehicle.isOnGround(), true);
-                } else {
-                    // This doesn't work if teleported is false
-                    vehicle.moveAbsoluteRaw(position,
-                        vehicle.getYaw(), vehicle.getPitch(), vehicle.getHeadYaw(),
-                        vehicle.isOnGround(), true);
-                }
+                // This doesn't work if teleported is false
+                vehicle.moveAbsoluteRaw(position, vehicle.getYaw(), vehicle.getPitch(), vehicle.getHeadYaw(),
+                    vehicle.isOnGround(), true);
                 return;
-            }
-
-            if (vehicle instanceof BoatEntity) {
-                // Remove some Y position to prevents boats flying up
-                vehiclePosition = vehiclePosition.down(vehicle.getDefinition().offset());
             }
 
             vehicle.setPosition(vehiclePosition);

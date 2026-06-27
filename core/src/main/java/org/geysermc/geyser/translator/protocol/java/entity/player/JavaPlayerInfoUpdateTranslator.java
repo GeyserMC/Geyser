@@ -25,13 +25,13 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity.player;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -54,37 +54,28 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
 
         if (actions.contains(PlayerListEntryAction.ADD_PLAYER)) {
             for (PlayerListEntry entry : packet.getEntries()) {
-                @Nullable GameProfile profile = entry.getProfile();
+                GameProfile profile = entry.getProfile();
 
-                UUID id = entry.getProfileId();
-                String name = null;
-                String texturesProperty = null;
-
-                if (profile != null) {
-                    name = profile.getName();
-
-                    GameProfile.Property textures = profile.getProperty("textures");
-                    if (textures != null) {
-                        texturesProperty = textures.getValue();
-                    }
+                if (profile == null) {
+                    // Should never be null for the ADD_PLAYER case
+                    // 1.21.11 client NPEs here
+                    GeyserImpl.getInstance().getLogger().debug("Received a null profile in a player info update packet!");
+                    continue;
                 }
 
+                UUID id = entry.getProfileId();
                 boolean self = id.equals(session.getPlayerEntity().uuid());
 
                 PlayerEntity playerEntity;
                 if (self) {
-                    // Entity is ourself
+                    // Entity is ourself!
                     playerEntity = session.getPlayerEntity();
+                    playerEntity.setUsername(profile.getName());
+                    playerEntity.setSkin(profile, () -> GeyserImpl.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));
                 } else {
                     // It's a new player
-                    playerEntity = new PlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, id, EntityDefinitions.PLAYER), name, texturesProperty);
+                    playerEntity = new PlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, id, EntityDefinitions.PLAYER), profile);
                     session.getEntityCache().addPlayerEntity(playerEntity);
-                }
-                playerEntity.setUsername(name);
-
-                if (self) {
-                    playerEntity.setSkin(profile, true,
-                        () -> GeyserImpl.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));
                 }
             }
         }
@@ -104,13 +95,17 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                     if (!PlayerListUtils.shouldLimitPlayerListEntries(session)) {
                         PlayerListPacket.Entry playerListEntry = SkinManager.buildEntryFromCachedSkin(session, entity);
                         toAdd.add(playerListEntry);
-                        session.getWaypointCache().listPlayer(entity);
+                        if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
+                            session.getWaypointCache().addEntity(entity);
+                        }
                     }
                 } else {
                     // No need to unlist players that were never listed
                     if (entity.isListed()) {
                         toRemove.add(new PlayerListPacket.Entry(entity.getTabListUuid()));
-                        session.getWaypointCache().unlistPlayer(entity);
+                        if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
+                            session.getWaypointCache().removeEntity(entity);
+                        }
                     }
                 }
                 entity.setListed(entry.isListed());

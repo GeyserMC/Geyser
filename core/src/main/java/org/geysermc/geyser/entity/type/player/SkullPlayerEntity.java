@@ -36,6 +36,7 @@ import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.WallSkullBlock;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.cache.SkullCache;
+import org.geysermc.geyser.skin.SkullSkinManager;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -52,6 +53,9 @@ public class SkullPlayerEntity extends AvatarEntity {
 
     @Getter
     private Vector3i skullPosition;
+
+    @Getter
+    private String skinUrl;
 
     public SkullPlayerEntity(EntitySpawnContext context) {
         super(context, "");
@@ -71,13 +75,14 @@ public class SkullPlayerEntity extends AvatarEntity {
     public void updateSkull(SkullCache.Skull skull) {
         skullPosition = skull.getPosition();
 
-        if (!Objects.equals(skull.getTexturesProperty(), texturesProperty) || !Objects.equals(skullUUID, skull.getUuid())) {
+        if (!Objects.equals(skull.getSkinUrl(), skinUrl) || !Objects.equals(skullUUID, skull.getUuid())) {
             // Make skull invisible as we change skins
             setFlag(EntityFlag.INVISIBLE, true);
             updateBedrockMetadata();
 
+            skinUrl = skull.getSkinUrl();
             skullUUID = skull.getUuid();
-            setSkin(skull.getTexturesProperty(), false, () -> session.scheduleInEventLoop(() -> {
+            SkullSkinManager.requestAndHandleSkin(this, session, (skin) -> session.scheduleInEventLoop(() -> {
                 // Delay to minimize split-second "player" pop-in
                 setFlag(EntityFlag.INVISIBLE, false);
                 updateBedrockMetadata();

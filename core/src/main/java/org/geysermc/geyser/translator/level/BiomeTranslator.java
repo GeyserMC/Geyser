@@ -63,31 +63,48 @@ public class BiomeTranslator {
         } else {
             BlockStorage storage;
             if (!(palette instanceof GlobalPalette)) {
-                // Prevent resizing by allocating what we can ahead of time
                 BitStorage bitStorage = biomeData.getStorage();
                 int size = palette.size();
-                BitArray bitArray = BitArrayVersion.forBitsCeil(bitStorage.getBitsPerEntry())
-                        .createArray(BlockStorage.SIZE);
 
-                IntList bedrockPalette = new IntArrayList(size);
-
-                for (int i = 0; i < size; i++) {
-                    int javaId = palette.idToState(i);
-                    bedrockPalette.add(biomeTranslations.byId(javaId).intValue());
+                // Fast-path: if all 64 biome cells use the same palette index,
+                // use a singleton instead of computing the full 4096-entry BitArray
+                int firstIdx = bitStorage.get(0);
+                boolean allSame = true;
+                for (int i = 1; i < 64; i++) {
+                    if (bitStorage.get(i) != firstIdx) {
+                        allSame = false;
+                        break;
+                    }
                 }
 
-                // Each section of biome corresponding to a chunk section contains 4 * 4 * 4 entries
-                for (int i = 0; i < 64; i++) {
-                    int idx = bitStorage.get(i);
-                    int x = i & 3;
-                    int y = (i >> 4) & 3;
-                    int z = (i >> 2) & 3;
-                    // Convert biome coordinates into block coordinates
-                    // Bedrock expects a full 4096 blocks
-                    multiplyIdToStorage(bitArray, idx, x, y, z);
-                }
+                if (allSame) {
+                    int biomeId = biomeTranslations.byId(palette.idToState(firstIdx)).intValue();
+                    storage = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(biomeId));
+                } else {
+                    // Prevent resizing by allocating what we can ahead of time
+                    BitArray bitArray = BitArrayVersion.forBitsCeil(bitStorage.getBitsPerEntry())
+                            .createArray(BlockStorage.SIZE);
 
-                storage = new BlockStorage(bitArray, bedrockPalette);
+                    IntList bedrockPalette = new IntArrayList(size);
+
+                    for (int i = 0; i < size; i++) {
+                        int javaId = palette.idToState(i);
+                        bedrockPalette.add(biomeTranslations.byId(javaId).intValue());
+                    }
+
+                    // Each section of biome corresponding to a chunk section contains 4 * 4 * 4 entries
+                    for (int i = 0; i < 64; i++) {
+                        int idx = bitStorage.get(i);
+                        int x = i & 3;
+                        int y = (i >> 4) & 3;
+                        int z = (i >> 2) & 3;
+                        // Convert biome coordinates into block coordinates
+                        // Bedrock expects a full 4096 blocks
+                        multiplyIdToStorage(bitArray, idx, x, y, z);
+                    }
+
+                    storage = new BlockStorage(bitArray, bedrockPalette);
+                }
             } else {
                 storage = new BlockStorage(0);
 

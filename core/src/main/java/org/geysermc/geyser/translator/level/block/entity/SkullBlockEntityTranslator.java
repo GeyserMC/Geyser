@@ -85,7 +85,6 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         GameProfile partialOrStatic = new GameProfile(uuid, name);
         partialOrStatic.setProperties(properties);
         // Only if all fields are present, then the profile is a static one
-        // TODO shorthand constructor in MCPL
         return new ResolvableProfile(partialOrStatic);
     }
 

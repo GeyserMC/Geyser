@@ -69,16 +69,20 @@ public class ArmorItem extends Item {
             }
 
             if (material != null && pattern != null) {
-                // discard custom trim patterns/materials to prevent visual glitches on bedrock
-                if (!MinecraftKey.isVanilla(material.getMaterialId()) || !MinecraftKey.isVanilla(pattern.getPatternId())) {
-                    // TODO - how is this shown in tooltip? should we add a custom trim tooltip to the lore here
-                    return;
-                }
-
                 NbtMapBuilder trimBuilder = NbtMap.builder();
-                // bedrock has an uppercase first letter key, and the value is not namespaced
-                trimBuilder.put("Material", material.getMaterialId());
-                trimBuilder.put("Pattern", pattern.getPatternId());
+                // Strip namespace from identifiers - Bedrock expects just the path part
+                // e.g., "minecraft:iron" -> "iron", "civilization:frost_trim" -> "frost_trim"
+                String materialId = material.getMaterialId();
+                String patternId = pattern.getPatternId();
+                int colonIdx;
+                if ((colonIdx = materialId.indexOf(':')) >= 0) {
+                    materialId = materialId.substring(colonIdx + 1);
+                }
+                if ((colonIdx = patternId.indexOf(':')) >= 0) {
+                    patternId = patternId.substring(colonIdx + 1);
+                }
+                trimBuilder.put("Material", materialId);
+                trimBuilder.put("Pattern", patternId);
                 builder.putCompound("Trim", trimBuilder.build());
             } else {
                 GeyserImpl.getInstance().getLogger().debug("Unknown trim material/pattern: ", trim);

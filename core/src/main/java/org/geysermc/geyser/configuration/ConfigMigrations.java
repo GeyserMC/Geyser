@@ -112,7 +112,7 @@ public class ConfigMigrations {
                 }
                 if (Objects.equals(previous, "no-emotes")) {
                     value.set(false);
-                    return new Object[]{ "gameplay", "show-emotes" };
+                    return new Object[]{ "gameplay", "emotes-enabled" };
                 }
                 return null;
             })
@@ -175,6 +175,18 @@ public class ConfigMigrations {
             })
 
             .build())
+            .addVersion(6, ConfigurationTransformation.builder()
+                .addAction(path("gameplay", "show-cooldown"), (path, value) -> {
+                    String s = value.getString();
+                    if (s != null && !"disabled".equals(s)) {
+                        value.set("crosshair");
+                    }
+                    return new Object[]{ "gameplay", "show-cooldown" };
+                })
+                .build())
+            .addVersion(7, ConfigurationTransformation.builder()
+                .addAction(path("gameplay", "show-cooldown"), rename(new Object[] { "gameplay", "cooldown-type" }))
+                .build())
         .build();
 
     static TransformAction renameAndMove(String... newPath) {

@@ -296,6 +296,7 @@ public final class Items {
     public static final Item RED_WOOL = register(new BlockItem(builder(), Blocks.RED_WOOL));
     public static final Item BLACK_WOOL = register(new BlockItem(builder(), Blocks.BLACK_WOOL));
     public static final Item DANDELION = register(new BlockItem(builder(), Blocks.DANDELION));
+    public static final Item GOLDEN_DANDELION = register(new BlockItem(builder(), Blocks.GOLDEN_DANDELION));
     public static final Item OPEN_EYEBLOSSOM = register(new BlockItem(builder(), Blocks.OPEN_EYEBLOSSOM));
     public static final Item CLOSED_EYEBLOSSOM = register(new BlockItem(builder(), Blocks.CLOSED_EYEBLOSSOM));
     public static final Item POPPY = register(new BlockItem(builder(), Blocks.POPPY));
@@ -1193,7 +1194,7 @@ public final class Items {
     public static final Item BLAZE_POWDER = register(new Item("blaze_powder", builder()));
     public static final Item MAGMA_CREAM = register(new Item("magma_cream", builder()));
     public static final Item BREWING_STAND = register(new BlockItem(builder(), Blocks.BREWING_STAND));
-    public static final Item CAULDRON = register(new BlockItem(builder(), Blocks.CAULDRON, Blocks.LAVA_CAULDRON, Blocks.POWDER_SNOW_CAULDRON, Blocks.WATER_CAULDRON));
+    public static final Item CAULDRON = register(new BlockItem(builder(), Blocks.CAULDRON, Blocks.POWDER_SNOW_CAULDRON, Blocks.WATER_CAULDRON, Blocks.LAVA_CAULDRON));
     public static final Item ENDER_EYE = register(new Item("ender_eye", builder()));
     public static final Item GLISTERING_MELON_SLICE = register(new Item("glistering_melon_slice", builder()));
     public static final Item CHICKEN_SPAWN_EGG = register(new SpawnEggItem("chicken_spawn_egg", builder()));

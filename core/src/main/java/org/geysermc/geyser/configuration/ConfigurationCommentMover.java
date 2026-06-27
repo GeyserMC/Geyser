@@ -48,6 +48,7 @@ public final class ConfigurationCommentMover implements ConfigurationVisitor.Sta
             // and our static method below ensures this visitor is only used on CommentedConfigurationNodes
             throw new IllegalStateException(node.path() + " is not a CommentedConfigurationNode");
         }
+
         // Node with the same path
         CommentedConfigurationNode source = otherRoot.node(node.path());
 

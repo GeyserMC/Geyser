@@ -25,16 +25,13 @@
 
 package org.geysermc.geyser.entity.type;
 
-import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 
 import java.util.Objects;
-import java.util.Optional;
 
 public class DisplayBaseEntity extends Entity {
 
@@ -42,18 +39,6 @@ public class DisplayBaseEntity extends Entity {
 
     public DisplayBaseEntity(EntitySpawnContext context) {
         super(context);
-    }
-
-    @Override
-    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
-        // Don't allow the display name to be hidden - messes with our armor stand.
-        // On JE: Hiding the display name still shows the display entity text.
-    }
-
-    @Override
-    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        // This would usually set EntityDataTypes.NAME, but we are instead using NAME for the text display.
-        // On JE: custom name does not override text display.
     }
 
     public void setTranslation(EntityMetadata<Vector3f, ?> translationMeta) {
@@ -65,26 +50,9 @@ public class DisplayBaseEntity extends Entity {
             return;
         }
 
-        // No more translation, remove the old
-        if (Vector3f.ZERO.equals(this.baseTranslation)) {
-            if (vehicle == null) {
-                this.setRiderSeatPosition(this.baseTranslation);
-                this.moveRelativeRaw(-oldTranslation.getX(), -oldTranslation.getY(), -oldTranslation.getZ(), yaw, pitch, headYaw, false);
-            } else {
-                EntityUtils.updateMountOffset(this, this.vehicle, true, true, 0, 1);
-                this.updateBedrockMetadata();
-            }
-            return;
-        }
-
-        // Use the diff between the old and new translation
-        float xTranslation = oldTranslation.getX() - this.baseTranslation.getX();
-        float yTranslation = oldTranslation.getY() - this.baseTranslation.getY();
-        float zTranslation = oldTranslation.getZ() - this.baseTranslation.getZ();
-
         if (this.vehicle == null) {
             this.setRiderSeatPosition(this.baseTranslation);
-            this.moveRelativeRaw(xTranslation, yTranslation, zTranslation, yaw, pitch, headYaw, false);
+            this.moveAbsoluteRaw(position, yaw, pitch, headYaw, onGround, true);
         } else {
             EntityUtils.updateMountOffset(this, this.vehicle, true, true, 0, 1);
             this.updateBedrockMetadata();
@@ -93,5 +61,10 @@ public class DisplayBaseEntity extends Entity {
 
     public Vector3f getTranslation() {
         return baseTranslation;
+    }
+
+    @Override
+    public Vector3f bedrockPosition() {
+        return super.bedrockPosition().add(baseTranslation);
     }
 }

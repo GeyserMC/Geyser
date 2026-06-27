@@ -99,6 +99,10 @@ public class UpstreamSession {
         return (InetSocketAddress) ((GeyserBedrockPeer) session.getPeer()).getRealAddress();
     }
 
+    public void setInetAddress(InetSocketAddress address) {
+        ((GeyserBedrockPeer) session.getPeer()).setProxiedAddress(address);
+    }
+
     /**
      * Gets the session's protocol version.
      *

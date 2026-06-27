@@ -58,7 +58,6 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.platform.viaproxy.listener.GeyserServerTransferListener;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.util.LoopbackUtil;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.io.File;
@@ -160,7 +159,6 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
 
         this.geyser = GeyserImpl.load(this);
         this.geyser.eventBus().register(this, new GeyserServerTransferListener());
-        LoopbackUtil.checkAndApplyLoopback(this.logger);
     }
 
     @Override

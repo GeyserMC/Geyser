@@ -35,18 +35,24 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
+import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 import org.geysermc.geyser.util.PlayerListUtils;
+import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.OptionalInt;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -68,9 +74,21 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
      */
     private boolean listed = false;
 
-    public PlayerEntity(EntitySpawnContext context, String username, @Nullable String texturesProperty) {
+    public PlayerEntity(EntitySpawnContext context, GameProfile profile) {
+        super(context, profile.getName());
+        this.customNameVisible = true;
+        try {
+            this.textures = profile.getTextures(true);
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().debug("Error loading textures for player!" + profile, e);
+            this.textures = null;
+        }
+    }
+
+    public PlayerEntity(EntitySpawnContext context, String username, @Nullable Map<TextureType, Texture> textureMap) {
         super(context, username);
-        this.texturesProperty = texturesProperty;
+        this.customNameVisible = true;
+        this.textures = textureMap;
     }
 
     @Override
@@ -79,7 +97,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
 
         // Since 1.20.60, the nametag does not show properly if this is not set :/
         // The nametag does disappear properly when the player is invisible though.
-        dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
+        setNametagAlwaysShow(true);
     }
 
     @Override
@@ -95,9 +113,11 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
             packet.setAction(PlayerListPacket.Action.REMOVE);
             session.sendUpstreamPacket(packet);
 
-            // To ensure waypoints still remain, if any were added while the
-            // player had a valid player list entry
-            session.getWaypointCache().unlistPlayer(this);
+            if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
+                // To ensure waypoints still remain, if any were added while the
+                // player had a valid player list entry
+                session.getWaypointCache().removeEntity(this);
+            }
         }
 
         // Since we re-use player entities: Clear flags, held item, etc
@@ -214,16 +234,15 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         return username;
     }
 
-    // TODO test mannequins
     @Override
-    protected void setNametag(@Nullable String nametag, boolean fromDisplayName) {
-        // when fromDisplayName, LivingEntity will call scoreboard code. After that
-        // setNametag is called again with fromDisplayName on false
-        if (nametag == null && !fromDisplayName) {
+    protected void setNametag(@Nullable String nametag, boolean applyTeamStyling) {
+        // when applyTeamStyling, LivingEntity will call scoreboard code. After that
+        // setNametag is called again with applyTeamStyling on false
+        if (nametag == null && !applyTeamStyling) {
             // nametag = null means reset, so reset it back to username
             nametag = username;
         }
-        super.setNametag(nametag, fromDisplayName);
+        super.setNametag(nametag, applyTeamStyling);
     }
 
     public void setUsername(String username) {
@@ -235,11 +254,6 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
      */
     public UUID getTabListUuid() {
         return uuid();
-    }
-
-    @Override
-    public Vector3f position() {
-        return this.position.down(definition.offset());
     }
 
     // From 1.21.8 code, should be correct since some pose should be prioritized.

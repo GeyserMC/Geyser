@@ -64,7 +64,7 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
                 return;
             }
 
-            GeyserItemStack newItem = GeyserItemStack.from(packet.getItems()[i]);
+            GeyserItemStack newItem = GeyserItemStack.from(session, packet.getItems()[i]);
             session.getBundleCache().initialize(newItem);
             inventory.setItem(i, newItem, session);
         }
@@ -75,7 +75,7 @@ public class JavaContainerSetContentTranslator extends PacketTranslator<Clientbo
         session.setEmulatePost1_16Logic(stateId > 0 || stateId != inventory.getStateId());
         inventory.setStateId(stateId);
 
-        GeyserItemStack cursor = GeyserItemStack.from(packet.getCarriedItem());
+        GeyserItemStack cursor = GeyserItemStack.from(session, packet.getCarriedItem());
         session.getBundleCache().initialize(cursor);
         session.getPlayerInventory().setCursor(cursor, session);
         InventoryUtils.updateCursor(session);

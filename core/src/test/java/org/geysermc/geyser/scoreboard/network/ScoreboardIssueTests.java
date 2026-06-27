@@ -86,7 +86,7 @@ public class ScoreboardIssueTests {
                 // dragon entity parts are not spawned using a packet, so we manually create an instance
                 var dragonHeadPart = new EnderDragonPartEntity(context.session(), 2, 2, 1, 1);
 
-                String displayName = dragonHeadPart.getDisplayName();
+                String displayName = dragonHeadPart.getDisplayName(true);
                 assertEquals("entity.unregistered_sadface", displayName);
             });
         });

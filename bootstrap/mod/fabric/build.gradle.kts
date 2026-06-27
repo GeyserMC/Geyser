@@ -1,6 +1,5 @@
 plugins {
     id("geyser.modded-conventions")
-    id("geyser.modrinth-uploading-conventions")
 }
 
 architectury {
@@ -19,10 +18,10 @@ loom {
 }
 
 dependencies {
-    modImplementation(libs.fabric.loader)
-    modApi(libs.fabric.api)
+    implementation(libs.fabric.loader)
+    api(libs.fabric.api)
 
-    api(project(":mod", configuration = "namedElements"))
+    api(project(":mod"))
     shadowBundle(project(path = ":mod", configuration = "transformProductionFabric"))
     shadowBundle(projects.core)
     includeTransitive(projects.core)
@@ -47,7 +46,7 @@ dependencies {
     shadowBundle(projects.api)
     shadowBundle(projects.common)
 
-    modImplementation(libs.cloud.fabric)
+    implementation(libs.cloud.fabric)
     include(libs.cloud.fabric)
     include(libs.fabric.permissions.api)
 }
@@ -61,22 +60,24 @@ relocate("org.cloudburstmc.protocol")
 relocate("org.spongepowered.configurate")
 
 tasks {
-    remapJar {
+    named<Jar>("mergeShadowAndJarJar") {
+        from (
+            zipTree( shadowJar.map { it.outputs.files.singleFile } ).matching {
+                exclude("fabric.mod.json")
+                exclude("LICENSE")
+            },
+            zipTree( jar.map { it.outputs.files.singleFile } ).matching {
+                include("META-INF/jars/**")
+                include("fabric.mod.json")
+                include("LICENSE")
+            }
+        )
         archiveBaseName.set("Geyser-Fabric")
-    }
-
-    remapModrinthJar {
-        archiveBaseName.set("geyser-fabric")
-    }
-
-    shadowJar {
-        mergeServiceFiles()
     }
 }
 
 modrinth {
     loaders.add("fabric")
-    uploadFile.set(tasks.getByPath("remapModrinthJar"))
     dependencies {
         required.project("fabric-api")
     }

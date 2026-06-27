@@ -875,7 +875,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                     int javaSlot = bedrockSlotToJava(transferAction.getDestination());
                     if (isCursor(transferAction.getDestination())) { //TODO
                         if (timesCrafted > 1) {
-                            tempSlot = findTempSlot(plan, GeyserItemStack.from(output), true);
+                            tempSlot = findTempSlot(plan, GeyserItemStack.from(session, output), true);
                             if (tempSlot == -1) {
                                 return rejectRequest(request);
                             }
@@ -923,7 +923,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
             }
         }
 
-        inventory.setItem(0, GeyserItemStack.from(output), session);
+        inventory.setItem(0, GeyserItemStack.from(session, output), session);
         plan.execute(true);
         return acceptRequest(request, makeContainerEntries(session, inventory, plan.getAffectedSlots()));
     }

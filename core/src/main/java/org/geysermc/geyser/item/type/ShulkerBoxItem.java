@@ -30,6 +30,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
+import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.TooltipOptions;
@@ -47,6 +48,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.PotionConten
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class ShulkerBoxItem extends BlockItem {
     public ShulkerBoxItem(Builder builder, Block block, Block... otherBlocks) {
@@ -57,17 +60,18 @@ public class ShulkerBoxItem extends BlockItem {
     public void translateComponentsToBedrock(@NonNull GeyserSession session, @NonNull DataComponents components, @NonNull TooltipOptions tooltip, @NonNull BedrockItemBuilder builder) {
         super.translateComponentsToBedrock(session, components, tooltip, builder);
 
-        List<ItemStack> contents = components.get(DataComponentTypes.CONTAINER);
+        List<Optional<ItemStack>> contents = components.get(DataComponentTypes.CONTAINER);
         if (contents == null || contents.isEmpty()) {
             // Empty shulker box
             return;
         }
         List<NbtMap> itemsList = new ArrayList<>();
         for (int slot = 0; slot < contents.size(); slot++) {
-            ItemStack item = contents.get(slot);
-            if (item == null || item.getId() == Items.AIR_ID) {
+            Optional<ItemStack> optionalItem = contents.get(slot);
+            if (optionalItem.isEmpty() || optionalItem.get().getId() == Items.AIR_ID) {
                 continue;
             }
+            ItemStack item = optionalItem.get();
             ItemMapping boxMapping = session.getItemMappings().getMapping(item.getId());
 
             int bedrockData = boxMapping.getBedrockData();
@@ -75,8 +79,9 @@ public class ShulkerBoxItem extends BlockItem {
             DataComponents boxComponents = item.getDataComponentsPatch();
 
             if (boxComponents != null) {
-                // Check for custom items
-                ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(boxComponents, boxMapping);
+                // Check for custom items - components should never be null as we've checked for air already
+                boxComponents = Objects.requireNonNull(GeyserItemStack.from(session, item).getAllComponents());
+                ItemDefinition customItemDefinition = CustomItemTranslator.getCustomItem(session, item.getAmount(), boxComponents, boxMapping);
                 if (customItemDefinition != null) {
                     bedrockIdentifier = customItemDefinition.getIdentifier();
                     bedrockData = 0;

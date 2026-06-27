@@ -41,7 +41,6 @@ import java.nio.file.Path;
 import java.util.Optional;
 
 public class GeyserFabricPlatform implements GeyserModPlatform {
-    
     private final ModContainer mod;
 
     public GeyserFabricPlatform() {
@@ -90,8 +89,8 @@ public class GeyserFabricPlatform implements GeyserModPlatform {
 
         try {
             return path.getFileSystem()
-                    .provider()
-                    .newInputStream(path);
+                .provider()
+                .newInputStream(path);
         } catch (IOException e) {
             return null;
         }

@@ -490,7 +490,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
 
                     if (isCursor(transferAction.getDestination())) {
                         if (session.getPlayerInventory().getCursor().isEmpty()) {
-                            GeyserItemStack newItemStack = GeyserItemStack.from(javaCreativeItem);
+                            GeyserItemStack newItemStack = GeyserItemStack.from(session, javaCreativeItem);
                             session.getBundleCache().initialize(newItemStack);
                             newItemStack.setAmount(transferAction.getCount());
                             session.getPlayerInventory().setCursor(newItemStack, session);
@@ -502,7 +502,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                     } else {
                         int destSlot = bedrockSlotToJava(transferAction.getDestination());
                         if (inventory.getItem(destSlot).isEmpty()) {
-                            GeyserItemStack newItemStack = GeyserItemStack.from(javaCreativeItem);
+                            GeyserItemStack newItemStack = GeyserItemStack.from(session, javaCreativeItem);
                             session.getBundleCache().initialize(newItemStack);
                             newItemStack.setAmount(transferAction.getCount());
                             inventory.setItem(destSlot, newItemStack, session);
@@ -586,14 +586,14 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
         containerOpenPacket.setId((byte) 0);
         containerOpenPacket.setType(org.cloudburstmc.protocol.bedrock.data.inventory.ContainerType.INVENTORY);
         containerOpenPacket.setUniqueEntityId(-1);
-        containerOpenPacket.setBlockPosition(session.getPlayerEntity().getPosition().toInt());
+        containerOpenPacket.setBlockPosition(session.getPlayerEntity().bedrockPosition().toInt());
         session.sendUpstreamPacket(containerOpenPacket);
     }
 
     @Override
     public void closeInventory(GeyserSession session, PlayerInventory inventory, boolean force) {
         if (force) {
-            Vector3i pos = session.getPlayerEntity().getPosition().toInt();
+            Vector3i pos = session.getPlayerEntity().bedrockPosition().toInt();
 
             UpdateBlockPacket packet = new UpdateBlockPacket();
             packet.setBlockPosition(pos);

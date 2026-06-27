@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,8 +27,6 @@ package org.geysermc.geyser.api.connection;
 
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.index.qual.Positive;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.api.connection.Connection;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
@@ -38,6 +36,7 @@ import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.api.network.Network;
 import org.geysermc.geyser.api.skin.SkinData;
+import org.jspecify.annotations.Nullable;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -55,7 +54,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @return the CameraData for this connection.
      */
-    @NonNull CameraData camera();
+    CameraData camera();
 
     /**
      * Exposes the {@link EntityData} for this connection.
@@ -63,7 +62,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @return the EntityData for this connection.
      */
-    @NonNull EntityData entities();
+    EntityData entities();
 
     /**
      * Returns the current ping of the connection.
@@ -146,7 +145,6 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @return the ip address or hostname string the player used to join
      * @since 2.8.3
      */
-    @NonNull
     String joinAddress();
 
     /**
@@ -175,7 +173,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @param skinData the skin data to apply
      * @since 2.8.3
      */
-    void sendSkin(@NonNull UUID player, @NonNull SkinData skinData);
+    void sendSkin(UUID player, SkinData skinData);
 
     /**
      * @param javaId the Java entity ID to look up.
@@ -183,7 +181,6 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @deprecated Use {@link EntityData#entityByJavaId(int)} instead
      */
     @Deprecated
-    @NonNull
     CompletableFuture<@Nullable GeyserEntity> entityByJavaId(@NonNegative int javaId);
 
     /**
@@ -191,10 +188,8 @@ public interface GeyserConnection extends Connection, CommandSource {
      *
      * @param emoter the player entity emoting.
      * @param emoteId the emote ID to send to this client.
-     * @deprecated use {@link EntityData#showEmote(GeyserPlayerEntity, String)} instead
      */
-    @Deprecated
-    void showEmote(@NonNull GeyserPlayerEntity emoter, @NonNull String emoteId);
+    void showEmote(GeyserPlayerEntity emoter, String emoteId);
 
     /**
      * Shakes the client's camera.
@@ -211,7 +206,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @deprecated Use {@link CameraData#shakeCamera(float, float, CameraShake)} instead.
      */
     @Deprecated
-    void shakeCamera(float intensity, float duration, @NonNull CameraShake type);
+    void shakeCamera(float intensity, float duration, CameraShake type);
 
     /**
      * Stops all camera shake of any type.
@@ -247,6 +242,28 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @deprecated Use {@link CameraData#fogEffects()} instead.
      */
     @Deprecated
-    @NonNull
     Set<String> fogEffects();
+
+    /**
+     * Returns the associated player entity for this connection.
+     *
+     * @return the {@link GeyserPlayerEntity} for this connection
+     * @since 2.9.3
+     */
+    GeyserPlayerEntity playerEntity();
+
+    /**
+     * Requests an offhand swap from the Java server.
+     * There is no guarantee of the server accepting the request.
+     *
+     * @since 2.9.3
+     */
+    void requestOffhandSwap();
+
+    /**
+     * The PlayFab ID of this player.
+     *
+     * @since 2.9.4
+     */
+    String playFabId();
 }

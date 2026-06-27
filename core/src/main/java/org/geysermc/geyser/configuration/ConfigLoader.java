@@ -81,8 +81,9 @@ public final class ConfigLoader {
     }
 
     @VisibleForTesting
-    ConfigLoader(File file) {
+    ConfigLoader(File file, PlatformType type) {
         this.bootstrap = null;
+        this.platformType = type;
         configFile = file;
     }
 
@@ -125,7 +126,8 @@ public final class ConfigLoader {
         }
     }
 
-    private <T extends GeyserConfig> T load0(Class<T> configClass) throws ConfigurateException {
+
+    <T extends GeyserConfig> T load0(Class<T> configClass) throws ConfigurateException {
         var loader = createLoader(configFile);
 
         CommentedConfigurationNode node = loader.load();
@@ -173,8 +175,7 @@ public final class ConfigLoader {
     }
 
     @VisibleForTesting
-    CommentedConfigurationNode loadConfigurationNode(Class<? extends GeyserConfig> configClass, PlatformType platformType) throws ConfigurateException {
-        this.platformType = platformType;
+    CommentedConfigurationNode loadConfigurationNode(Class<? extends GeyserConfig> configClass) throws ConfigurateException {
         load0(configClass);
         return configurationNode.copy();
     }
@@ -186,6 +187,7 @@ public final class ConfigLoader {
             .nodeStyle(NodeStyle.BLOCK)
             .defaultOptions(options -> InterfaceDefaultOptions.addTo(options, builder -> {
                         builder.addProcessor(ExcludePlatform.class, excludePlatform(platformType.platformName()))
+                            .addProcessor(IncludePlatform.class, includePlatform(platformType.platformName()))
                             .addProcessor(PluginSpecific.class, integrationSpecific(platformType != PlatformType.STANDALONE));
                 })
                 .shouldCopyDefaults(false) // If we use ConfigurationNode#get(type, default), do not write the default back to the node.
@@ -202,6 +204,23 @@ public final class ConfigLoader {
                     destination.parent().removeChild(destination.key());
                     break;
                 }
+            }
+        };
+    }
+
+    private static Processor.Factory<IncludePlatform, Object> includePlatform(String thisPlatform) {
+        return (data, fieldType) -> (value, destination) -> {
+            boolean matches = false;
+            for (String platform : data.platforms()) {
+                if (thisPlatform.equals(platform)) {
+                    matches = true;
+                    break;
+                }
+            }
+
+            if (!matches) {
+                //noinspection DataFlowIssue
+                destination.parent().removeChild(destination.key());
             }
         };
     }

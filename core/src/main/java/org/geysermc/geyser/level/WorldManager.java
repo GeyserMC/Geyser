@@ -25,10 +25,6 @@
 
 package org.geysermc.geyser.level;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -36,19 +32,12 @@ import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Class that manages or retrieves various information
@@ -119,35 +108,6 @@ public abstract class WorldManager {
     public abstract boolean hasOwnChunkCache();
 
     /**
-     * Updates a gamerule value on the Java server
-     *
-     * @param session The session of the user that requested the change
-     * @param name The gamerule to change
-     * @param value The new value for the gamerule
-     */
-    public void setGameRule(GeyserSession session, String name, Object value) {
-        session.sendCommandPacket("gamerule " + name + " " + value);
-    }
-
-    /**
-     * Gets a gamerule value as a boolean
-     *
-     * @param session The session of the user that requested the value
-     * @param gameRule The gamerule to fetch the value of
-     * @return The boolean representation of the value
-     */
-    public abstract boolean getGameRuleBool(GeyserSession session, GameRule gameRule);
-
-    /**
-     * Get a gamerule value as an integer
-     *
-     * @param session The session of the user that requested the value
-     * @param gameRule The gamerule to fetch the value of
-     * @return The integer representation of the value
-     */
-    public abstract int getGameRuleInt(GeyserSession session, GameRule gameRule);
-
-    /**
      * Get the default game mode of the server
      *
      * @param session the player requesting the default game mode
@@ -188,20 +148,4 @@ public abstract class WorldManager {
      */
     public void getDecoratedPotData(GeyserSession session, Vector3i pos, Consumer<List<String>> apply) {
     }
-
-    protected static final Function<Int2ObjectMap<byte[]>, DataComponents> RAW_TRANSFORMER = map -> {
-        try {
-            Map<DataComponentType<?>, DataComponent<?, ?>> components = new HashMap<>();
-            Int2ObjectMaps.fastForEach(map, entry -> {
-                DataComponentType<?> type = DataComponentTypes.from(entry.getIntKey());
-                ByteBuf buf = Unpooled.wrappedBuffer(entry.getValue());
-                DataComponent<?, ?> value = type.readDataComponent(buf);
-                components.put(type, value);
-            });
-            return new DataComponents(components);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    };
 }

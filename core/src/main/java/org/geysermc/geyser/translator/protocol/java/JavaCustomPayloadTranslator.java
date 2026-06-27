@@ -40,6 +40,7 @@ import org.geysermc.erosion.packet.geyserbound.GeyserboundPacket;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.MessageDirection;
 import org.geysermc.geyser.api.network.NetworkChannel;
 import org.geysermc.geyser.api.network.message.Message;
@@ -62,6 +63,10 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
 
     @Override
     public void translate(GeyserSession session, ClientboundCustomPayloadPacket packet) {
+        if (session.getGeyser().config().java().authType() != AuthType.FLOODGATE) {
+            return;
+        }
+
         String channel = packet.getChannel().asString();
 
         if (channel.equals(Constants.PLUGIN_MESSAGE)) {
@@ -71,8 +76,9 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
             return;
         }
 
-        if (channel.equals(PluginMessageChannels.FORM)) {
-            session.ensureInEventLoop(() -> {
+
+        switch (channel) {
+            case PluginMessageChannels.FORM -> session.ensureInEventLoop(() -> {
                 byte[] data = packet.getData();
 
                 // If the data is empty, we just need to close the form
@@ -110,8 +116,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 });
                 session.sendForm(form);
             });
-        } else if (channel.equals(PluginMessageChannels.TRANSFER)) {
-            session.ensureInEventLoop(() -> {
+            case PluginMessageChannels.TRANSFER -> session.ensureInEventLoop(() -> {
                 byte[] data = packet.getData();
 
                 // port (4 bytes), address (remaining data)
@@ -131,9 +136,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 transferPacket.setPort(port);
                 session.sendUpstreamPacket(transferPacket);
             });
-
-        } else if (channel.equals(PluginMessageChannels.PACKET)) {
-            session.ensureInEventLoop(() -> {
+            case PluginMessageChannels.PACKET -> session.ensureInEventLoop(() -> {
                 logger.debug("A packet has been sent using the Floodgate api");
                 byte[] data = packet.getData();
 

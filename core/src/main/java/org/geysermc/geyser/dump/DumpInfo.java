@@ -192,15 +192,12 @@ public class DumpInfo {
 
     private JsonElement convertRawScalar(ConfigurationNode node) {
         final @Nullable Object value = node.rawScalar();
-        if (value == null) {
-            return JsonNull.INSTANCE;
-        } else if (value instanceof Number n) {
-            return new JsonPrimitive(n);
-        } else if (value instanceof Boolean b) {
-            return new JsonPrimitive(b);
-        } else {
-            return new JsonPrimitive(value.toString());
-        }
+        return switch (value) {
+            case null -> JsonNull.INSTANCE;
+            case Number n -> new JsonPrimitive(n);
+            case Boolean b -> new JsonPrimitive(b);
+            default -> new JsonPrimitive(value.toString());
+        };
     }
 
     @Getter
