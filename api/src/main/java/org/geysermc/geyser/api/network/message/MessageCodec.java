@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.network.message;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 
 import java.util.UUID;
@@ -44,7 +43,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to read from
      * @return the boolean value read
      */
-    boolean readBoolean(@NonNull T buffer);
+    boolean readBoolean(T buffer);
 
     /**
      * Reads a byte value from the {@link T buffer}.
@@ -52,7 +51,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to read from
      * @return the byte value read
      */
-    byte readByte(@NonNull T buffer);
+    byte readByte(T buffer);
 
     /**
      * Reads a short value from the {@link T buffer}.
@@ -60,7 +59,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to read from
      * @return the short value read
      */
-    short readShort(@NonNull T buffer);
+    short readShort(T buffer);
 
     /**
      * Reads an integer value from the {@link T buffer}.
@@ -68,7 +67,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to read from
      * @return the integer value read
      */
-    int readInt(@NonNull T buffer);
+    int readInt(T buffer);
 
     /**
      * Reads a float value from the {@link T buffer}.
@@ -76,7 +75,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to read from
      * @return the float value read
      */
-    float readFloat(@NonNull T buffer);
+    float readFloat(T buffer);
 
     /**
      * Reads a double value from the {@link T buffer}.
@@ -84,7 +83,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to read from
      * @return the double value read
      */
-    double readDouble(@NonNull T buffer);
+    double readDouble(T buffer);
 
     /**
      * Reads a long value from the {@link T buffer}.
@@ -92,7 +91,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to read from
      * @return the long value read
      */
-    long readLong(@NonNull T buffer);
+    long readLong(T buffer);
 
     /**
      * Reads a variable-length integer from the {@link T buffer}.
@@ -100,7 +99,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to read from
      * @return the variable-length integer read
      */
-    int readVarInt(@NonNull T buffer);
+    int readVarInt(T buffer);
 
     /**
      * Reads an unsigned variable-length integer from the {@link T buffer}.
@@ -108,7 +107,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to read from
      * @return the unsigned variable-length integer read
      */
-    int readUnsignedVarInt(@NonNull T buffer);
+    int readUnsignedVarInt(T buffer);
 
     /**
      * Reads a variable-length long from the {@link T buffer}.
@@ -116,7 +115,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to read from
      * @return the variable-length long read
      */
-    long readVarLong(@NonNull T buffer);
+    long readVarLong(T buffer);
     
     /**
      * Reads an unsigned variable-length long from the {@link T buffer}.
@@ -124,7 +123,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to read from
      * @return the unsigned variable-length long read
      */
-    long readUnsignedVarLong(@NonNull T buffer);
+    long readUnsignedVarLong(T buffer);
 
     /**
      * Reads a string from the {@link T buffer}.
@@ -132,8 +131,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to read from
      * @return the string read
      */
-    @NonNull
-    String readString(@NonNull T buffer);
+    String readString(T buffer);
 
     /**
      * Reads a string from the {@link T buffer}.
@@ -142,8 +140,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param maxLength the maximum length of the string to read
      * @return the string read
      */
-    @NonNull
-    String readString(@NonNull T buffer, int maxLength);
+    String readString(T buffer, int maxLength);
 
     /**
      * Reads a UUID from the {@link T buffer}.
@@ -151,8 +148,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to read from
      * @return the UUID read
      */
-    @NonNull
-    UUID readUuid(@NonNull T buffer);
+    UUID readUuid(T buffer);
 
     /**
      * Writes a boolean value to the {@link T buffer}.
@@ -160,7 +156,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to write to
      * @param value the boolean value to write
      */
-    void writeBoolean(@NonNull T buffer, boolean value);
+    void writeBoolean(T buffer, boolean value);
 
     /**
      * Writes a byte value to the {@link T buffer}.
@@ -168,7 +164,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to write to
      * @param value the byte value to write
      */
-    void writeByte(@NonNull T buffer, byte value);
+    void writeByte(T buffer, byte value);
 
     /**
      * Writes a short value to the {@link T buffer}.
@@ -176,7 +172,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to write to
      * @param value the short value to write
      */
-    void writeShort(@NonNull T buffer, short value);
+    void writeShort(T buffer, short value);
 
     /**
      * Writes an integer value to the {@link T buffer}.
@@ -184,7 +180,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to write to
      * @param value the integer value to write
      */
-    void writeInt(@NonNull T buffer, int value);
+    void writeInt(T buffer, int value);
 
     /**
      * Writes a float value to the {@link T buffer}.
@@ -192,7 +188,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to write to
      * @param value the float value to write
      */
-    void writeFloat(@NonNull T buffer, float value);
+    void writeFloat(T buffer, float value);
 
     /**
      * Writes a double value to the {@link T buffer}.
@@ -200,7 +196,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to write to
      * @param value the double value to write
      */
-    void writeDouble(@NonNull T buffer, double value);
+    void writeDouble(T buffer, double value);
 
     /**
      * Writes a long value to the {@link T buffer}.
@@ -208,7 +204,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to write to
      * @param value the long value to write
      */
-    void writeLong(@NonNull T buffer, long value);
+    void writeLong(T buffer, long value);
 
     /**
      * Writes a variable-length integer to the {@link T buffer}.
@@ -216,7 +212,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to write to
      * @param value the variable-length integer to write
      */
-    void writeVarInt(@NonNull T buffer, int value);
+    void writeVarInt(T buffer, int value);
 
     /**
      * Writes an unsigned variable-length integer to the {@link T buffer}.
@@ -224,7 +220,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to write to
      * @param value the unsigned variable-length integer to write
      */
-    void writeUnsignedVarInt(@NonNull T buffer, int value);
+    void writeUnsignedVarInt(T buffer, int value);
 
     /**
      * Writes a variable-length long to the {@link T buffer}.
@@ -232,7 +228,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to write to
      * @param value the variable-length long to write
      */
-    void writeVarLong(@NonNull T buffer, long value);
+    void writeVarLong(T buffer, long value);
 
     /**
      * Writes an unsigned variable-length long to the {@link T buffer}.
@@ -240,7 +236,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to write to
      * @param value the unsigned variable-length long to write
      */
-    void writeUnsignedVarLong(@NonNull T buffer, long value);
+    void writeUnsignedVarLong(T buffer, long value);
 
     /**
      * Writes a string to the {@link T buffer}.
@@ -248,7 +244,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to write to
      * @param value the string to write
      */
-    void writeString(@NonNull T buffer, @NonNull String value);
+    void writeString(T buffer, String value);
     
     /**
      * Writes a UUID to the {@link T buffer}.
@@ -256,14 +252,13 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param buffer the buffer to write to
      * @param uuid the UUID to write
      */
-    void writeUuid(@NonNull T buffer, @NonNull UUID uuid);
+    void writeUuid(T buffer, UUID uuid);
 
     /**
      * Creates a new {@link T buffer} instance.
      *
      * @return a new instance of {@link MessageBuffer}
      */
-    @NonNull
     T createBuffer();
 
     /**
@@ -272,8 +267,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @param data the byte array to initialize the buffer with
      * @return a new instance of {@link MessageBuffer} initialized with the provided data
      */
-    @NonNull
-    T createBuffer(byte @NonNull [] data);
+    T createBuffer(byte[] data);
 
     /**
      * Gets a provided {@link MessageCodec} for the given type.
@@ -285,8 +279,7 @@ public interface MessageCodec<T extends MessageBuffer> {
      * @return the provided message codec
      * @throws IllegalArgumentException if no provider is found
      */
-    @NonNull
-    static <T, C extends MessageCodec<MessageBuffer.Wrapped<T>>> C provided(@NonNull Class<T> type, @NonNull EncoderOptions... options) {
+    static <T, C extends MessageCodec<MessageBuffer.Wrapped<T>>> C provided(Class<T> type, EncoderOptions... options) {
         return GeyserApi.api().provider(MessageCodec.class, type, options);
     }
 
@@ -294,6 +287,9 @@ public interface MessageCodec<T extends MessageBuffer> {
      * Options for the encoder.
      */
     enum EncoderOptions {
+        /**
+         * Little endian encoding.
+         */
         LITTLE_ENDIAN
     }
 }

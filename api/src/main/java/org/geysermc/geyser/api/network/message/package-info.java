@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,26 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.api.network;
+@NullMarked
+package org.geysermc.geyser.api.network.message;
 
-/**
- * Represents the state of a Java connection.
- *
- * @since 2.9.2
- */
-public interface JavaState {
-
-    /**
-     * Gets the inbound protocol state.
-     *
-     * @return the inbound protocol state
-     */
-    ProtocolState inbound();
-
-    /**
-     * Gets the outbound protocol state.
-     *
-     * @return the outbound protocol state
-     */
-    ProtocolState outbound();
-}
+import org.jspecify.annotations.NullMarked;

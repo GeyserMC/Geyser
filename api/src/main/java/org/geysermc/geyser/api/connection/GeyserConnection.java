@@ -129,7 +129,6 @@ public interface GeyserConnection extends Connection, CommandSource {
      * @return the network
      * @since 2.9.2
      */
-    @NonNull
     Network network();
 
     /**

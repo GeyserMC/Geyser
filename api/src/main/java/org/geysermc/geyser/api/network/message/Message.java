@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.network.message;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 
 import java.util.function.Function;
@@ -39,11 +38,11 @@ import java.util.function.Supplier;
 public interface Message<T extends MessageBuffer> {
 
     /**
-     * Reads the message from the provided buffer.
+     * Encodes the message to the given buffer.
      *
-     * @param buffer the buffer to read from
+     * @param buffer the buffer to write to
      */
-    void encode(@NonNull T buffer);
+    void encode(T buffer);
 
     /**
      * Represents a simple message using the built-in {@link MessageBuffer} implementation.
@@ -71,19 +70,17 @@ public interface Message<T extends MessageBuffer> {
          * @return a new packet message
          */
         @SuppressWarnings("unchecked")
-        @NonNull
-        static <T extends MessageBuffer, P> PacketWrapped<T, P> of(@NonNull Object packet) {
+        static <T extends MessageBuffer, P> PacketWrapped<T, P> of(Object packet) {
             return (PacketWrapped<T, P>) GeyserApi.api().provider(PacketWrapped.class, packet);
         }
 
         /**
-         * Creates a new packet message from the given packet object and direction.
+         * Creates a new packet message from the given packet supplier.
          *
          * @param packetSupplier a supplier that provides the packet object to create the message from
          * @return a new packet message
          */
-        @NonNull
-        static <T extends MessageBuffer, P> MessageFactory<T, PacketWrapped<T, P>> of(@NonNull Supplier<P> packetSupplier) {
+        static <T extends MessageBuffer, P> MessageFactory<T, PacketWrapped<T, P>> of(Supplier<P> packetSupplier) {
             return buffer -> of(packetSupplier.get());
         }
 
@@ -94,8 +91,7 @@ public interface Message<T extends MessageBuffer> {
          * @param packetSupplier a function that provides the packet object
          * @return a new packet message factory
          */
-        @NonNull
-        static <T extends MessageBuffer, V, P> MessageFactory<T, PacketWrapped<T, P>> of(@NonNull Function<T, V> substitutor, @NonNull Function<V, P> packetSupplier) {
+        static <T extends MessageBuffer, V, P> MessageFactory<T, PacketWrapped<T, P>> of(Function<T, V> substitutor, Function<V, P> packetSupplier) {
             return buffer -> of(packetSupplier.apply(substitutor.apply(buffer)));
         }
     }
@@ -112,7 +108,6 @@ public interface Message<T extends MessageBuffer> {
          *
          * @return the packet
          */
-        @NonNull
         P packet();
     }
 }

@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.api.network.message;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.common.value.qual.IntRange;
 
 /**
  * Represents the priority of a message when being processed.
@@ -55,13 +55,14 @@ public enum MessagePriority {
     }
 
     /**
-     * Creates a custom priority in the range [-100, 100].
+     * Returns a {@link MessagePriority} based on the given value.
+     * <p>
+     * If the value is out of range, it will return {@link #NORMAL}.
      *
      * @param value the priority value
      * @return the priority
      */
-    @NonNull
-    public static MessagePriority of(int value) {
+    public static MessagePriority of(@IntRange(from = -100, to = 100) int value) {
         if (value >= 75) return FIRST;
         if (value >= 25) return EARLY;
         if (value <= -75) return LAST;

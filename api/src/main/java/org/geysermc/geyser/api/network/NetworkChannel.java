@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.network;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.Identifier;
@@ -80,7 +79,6 @@ public interface NetworkChannel {
      *
      * @return the identifier that owns this channel
      */
-    @NonNull
     Identifier identifier();
 
     /**
@@ -101,8 +99,7 @@ public interface NetworkChannel {
      * @param messageType the type of the message sent over this channel
      * @return a new external {@link NetworkChannel} instance
      */
-    @NonNull
-    static NetworkChannel of(@NonNull Extension extension, @NonNull String channel, @NonNull Class<?> messageType) {
+    static NetworkChannel of(Extension extension, String channel, Class<?> messageType) {
         return GeyserApi.api().provider(NetworkChannel.class, extension, channel, messageType);
     }
 
@@ -117,8 +114,7 @@ public interface NetworkChannel {
      * @param messageType the type of the message sent over this channel
      * @return a new external {@link NetworkChannel} instance
      */
-    @NonNull
-    static NetworkChannel of(@NonNull String id, @NonNull String channel, @NonNull Class<?> messageType) {
+    static NetworkChannel of(String id, String channel, Class<?> messageType) {
         return of(Identifier.of(id, channel), messageType);
     }
 
@@ -132,8 +128,7 @@ public interface NetworkChannel {
      * @param messageType the type of the message sent over this channel
      * @return a new external {@link NetworkChannel} instance
      */
-    @NonNull
-    static NetworkChannel of(@NonNull Identifier identifier, @NonNull Class<?> messageType) {
+    static NetworkChannel of(Identifier identifier, Class<?> messageType) {
         return GeyserApi.api().provider(NetworkChannel.class, identifier, messageType);
     }
 }

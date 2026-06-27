@@ -26,7 +26,6 @@
 package org.geysermc.geyser.api.network;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
 
@@ -57,8 +56,7 @@ public interface PacketChannel extends NetworkChannel {
      * @param packetType the type of the packet
      * @return a new packet {@link NetworkChannel} instance for a packet channel
      */
-    @NonNull
-    static PacketChannel bedrock(@NonNull Extension extension, @NonNegative int packetId, @NonNull Class<?> packetType) {
+    static PacketChannel bedrock(Extension extension, @NonNegative int packetId, Class<?> packetType) {
         return GeyserApi.api().provider(PacketChannel.class, extension, "bedrock", packetId, packetType);
     }
 
@@ -70,8 +68,7 @@ public interface PacketChannel extends NetworkChannel {
      * @param packetType the type of the packet
      * @return a new packet {@link NetworkChannel} instance for a packet channel
      */
-    @NonNull
-    static PacketChannel java(@NonNull Extension extension, @NonNegative int packetId, @NonNull Class<?> packetType) {
+    static PacketChannel java(Extension extension, @NonNegative int packetId, Class<?> packetType) {
         return GeyserApi.api().provider(PacketChannel.class, extension, "java", packetId, packetType);
     }
 }

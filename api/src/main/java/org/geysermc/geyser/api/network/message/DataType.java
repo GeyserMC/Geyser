@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.api.network.message;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -97,7 +95,7 @@ public final class DataType<T> {
     private final Reader<T> reader;
     private final Writer<T> writer;
 
-    private DataType(@NonNull Reader<T> reader, @NonNull Writer<T> writer) {
+    private DataType(Reader<T> reader, Writer<T> writer) {
         this.reader = reader;
         this.writer = writer;
     }
@@ -109,8 +107,7 @@ public final class DataType<T> {
      * @param buffer the buffer to read from
      * @return the read value
      */
-    @NonNull
-    public <B extends MessageBuffer, C extends MessageCodec<B>> T read(@NonNull C codec, @NonNull B buffer) {
+    public <B extends MessageBuffer, C extends MessageCodec<B>> T read(C codec, B buffer) {
         return this.reader.read(codec, buffer);
     }
 
@@ -121,7 +118,7 @@ public final class DataType<T> {
      * @param buffer the buffer to write to
      * @param value the value to write
      */
-    public <B extends MessageBuffer, C extends MessageCodec<B>> void write(@NonNull C codec, @NonNull B buffer, @NonNull T value) {
+    public <B extends MessageBuffer, C extends MessageCodec<B>> void write(C codec, B buffer, T value) {
         this.writer.write(codec, buffer, value);
     }
 
@@ -133,8 +130,7 @@ public final class DataType<T> {
      * @param <T> the type of values this DataType handles
      * @return a new DataType instance
      */
-    @NonNull
-    public static <T> DataType<T> of(@NonNull Reader<T> reader, @NonNull Writer<T> writer) {
+    public static <T> DataType<T> of(Reader<T> reader, Writer<T> writer) {
         return new DataType<>(reader, writer);
     }
 
@@ -145,13 +141,11 @@ public final class DataType<T> {
      * @return a DataType that reads and writes Optional values
      * @param <T> the type of the value contained in the Optional
      */
-    @NonNull
-    public static <T> DataType<Optional<T>> optional(@NonNull DataType<T> type) {
+    public static <T> DataType<Optional<T>> optional(DataType<T> type) {
         return new DataType<>(new Reader<>() {
 
             @Override
-            @NonNull
-            public <B extends MessageBuffer, C extends MessageCodec<B>> Optional<T> read(@NonNull C codec, @NonNull B buffer) {
+            public <B extends MessageBuffer, C extends MessageCodec<B>> Optional<T> read(C codec, B buffer) {
                 if (codec.readBoolean(buffer)) {
                     return Optional.of(type.read(codec, buffer));
                 } else {
@@ -161,7 +155,7 @@ public final class DataType<T> {
         }, new Writer<>() {
 
             @Override
-            public <B extends MessageBuffer, C extends MessageCodec<B>> void write(@NonNull C codec, @NonNull B buffer, @NonNull Optional<T> value) {
+            public <B extends MessageBuffer, C extends MessageCodec<B>> void write(C codec, B buffer, Optional<T> value) {
                 codec.writeBoolean(buffer, value.isPresent());
                 value.ifPresent(t -> type.write(codec, buffer, t));
             }
@@ -175,13 +169,11 @@ public final class DataType<T> {
      * @return a DataType that reads and writes lists of the specified type
      * @param <T> the type of the elements in the list
      */
-    @NonNull
-    public static <T> DataType<List<T>> list(@NonNull DataType<T> type) {
+    public static <T> DataType<List<T>> list(DataType<T> type) {
         return new DataType<>(new Reader<>() {
 
             @Override
-            @NonNull
-            public <B extends MessageBuffer, C extends MessageCodec<B>> List<T> read(@NonNull C codec, @NonNull B buffer) {
+            public <B extends MessageBuffer, C extends MessageCodec<B>> List<T> read(C codec, B buffer) {
                 int size = codec.readUnsignedVarInt(buffer);
                 List<T> list = new ArrayList<>(size);
                 for (int i = 0; i < size; i++) {
@@ -193,7 +185,7 @@ public final class DataType<T> {
         }, new Writer<>() {
 
             @Override
-            public <B extends MessageBuffer, C extends MessageCodec<B>> void write(@NonNull C codec, @NonNull B buffer, @NonNull List<T> value) {
+            public <B extends MessageBuffer, C extends MessageCodec<B>> void write(C codec, B buffer, List<T> value) {
                 codec.writeUnsignedVarInt(buffer, value.size());
                 for (T element : value) {
                     type.write(codec, buffer, element);
@@ -216,8 +208,7 @@ public final class DataType<T> {
          * @param buffer the buffer to read from
          * @return the read value
          */
-        @NonNull
-        <B extends MessageBuffer, C extends MessageCodec<B>> T read(@NonNull C codec, @NonNull B buffer);
+        <B extends MessageBuffer, C extends MessageCodec<B>> T read(C codec, B buffer);
     }
 
     /**
@@ -234,6 +225,6 @@ public final class DataType<T> {
          * @param buffer the buffer to write to
          * @param value the value to write
          */
-        <B extends MessageBuffer, C extends MessageCodec<B>> void write(@NonNull C codec, @NonNull B buffer, @NonNull T value);
+        <B extends MessageBuffer, C extends MessageCodec<B>> void write(C codec, B buffer, T value);
     }
 }

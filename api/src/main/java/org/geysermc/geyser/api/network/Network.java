@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.network;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.network.message.Message;
 import org.geysermc.geyser.api.network.message.MessageBuffer;
@@ -45,7 +44,6 @@ public interface Network {
      *
      * @return the Java protocol state
      */
-    @NonNull
     JavaState javaState();
 
     /**
@@ -53,7 +51,6 @@ public interface Network {
      *
      * @return the registered network channels
      */
-    @NonNull
     Set<NetworkChannel> registeredChannels();
 
     /**
@@ -64,5 +61,5 @@ public interface Network {
      * @param direction the direction of the message (clientbound or serverbound)
      * @param flags the message flags to use when sending the message
      */
-    <T extends MessageBuffer> void send(@NonNull NetworkChannel channel, @NonNull Message<T> message, @NonNull MessageDirection direction, @NonNull MessageFlag... flags);
+    <T extends MessageBuffer> void send(NetworkChannel channel, Message<T> message, MessageDirection direction, MessageFlag... flags);
 }

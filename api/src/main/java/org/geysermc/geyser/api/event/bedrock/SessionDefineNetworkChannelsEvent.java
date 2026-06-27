@@ -25,7 +25,7 @@
 
 package org.geysermc.geyser.api.event.bedrock;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.event.connection.ConnectionEvent;
 import org.geysermc.geyser.api.network.NetworkChannel;
@@ -64,7 +64,7 @@ import java.util.function.Consumer;
 public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent {
     private final State state;
 
-    public SessionDefineNetworkChannelsEvent(@NonNull GeyserConnection connection, @NonNull State state) {
+    public SessionDefineNetworkChannelsEvent(GeyserConnection connection, State state) {
         super(connection);
 
         this.state = state;
@@ -75,7 +75,6 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
      *
      * @return the registration state
      */
-    @NonNull
     public State state() {
         return this.state;
     }
@@ -88,7 +87,7 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
      * @param <M> the message type created by the factory
      * @return a registration builder to configure handlers
      */
-    public abstract <M extends Message<MessageBuffer>> Builder.@NonNull Initial<M> define(@NonNull NetworkChannel channel, @NonNull MessageFactory<MessageBuffer, M> messageFactory);
+    public abstract <M extends Message<MessageBuffer>> Builder.Initial<M> define(NetworkChannel channel, MessageFactory<MessageBuffer, M> messageFactory);
 
     /**
      * Defines the registration of a new network channel with a codec and message factory.
@@ -100,7 +99,7 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
      * @param <M> the message type created by the factory
      * @return a registration builder to configure handlers
      */
-    public abstract <T extends MessageBuffer, M extends Message<T>> Builder.@NonNull Initial<M> define(@NonNull NetworkChannel channel, @NonNull MessageCodec<T> codec, @NonNull MessageFactory<T, M> messageFactory);
+    public abstract <T extends MessageBuffer, M extends Message<T>> Builder.Initial<M> define(NetworkChannel channel, MessageCodec<T> codec, MessageFactory<T, M> messageFactory);
 
     /**
      * Registration builder for attaching handlers to a channel.
@@ -115,15 +114,13 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
          * @param pipeline the pipeline consumer
          * @return the builder instance
          */
-        @NonNull
-        Builder<M> pipeline(@NonNull Consumer<Pipeline> pipeline);
+        @This Builder<M> pipeline(Consumer<Pipeline> pipeline);
 
         /**
          * Finalizes the registration.
          *
          * @return the completed registration
          */
-        @NonNull
         Registration<M> register();
 
         interface Initial<M extends Message<? extends MessageBuffer>> extends Sided<M>, Bidirectional<M> {
@@ -137,15 +134,13 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
              * @param state the protocol state
              * @return the initial builder instance
              */
-            @NonNull
-            Initial<M> protocolState(@NonNull ProtocolState state);
+            @This Initial<M> protocolState(ProtocolState state);
 
             /**
              * {@inheritDoc}
              */
             @Override
-            @NonNull
-            Initial<M> pipeline(@NonNull Consumer<Pipeline> pipeline);
+            @This Initial<M> pipeline(Consumer<Pipeline> pipeline);
         }
 
         interface Sided<M extends Message<? extends MessageBuffer>> extends Builder<M> {
@@ -153,33 +148,28 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
             /**
              * Registers a clientbound handler.
              */
-            @NonNull
-            Sided<M> clientbound(MessageHandler.@NonNull Sided<M> handler);
+            @This Sided<M> clientbound(MessageHandler.Sided<M> handler);
 
             /**
              * Registers a clientbound handler with a priority.
              */
-            @NonNull
-            Sided<M> clientbound(@NonNull MessagePriority priority, MessageHandler.@NonNull Sided<M> handler);
+            @This Sided<M> clientbound(MessagePriority priority, MessageHandler.Sided<M> handler);
 
             /**
              * Registers a serverbound handler.
              */
-            @NonNull
-            Sided<M> serverbound(MessageHandler.@NonNull Sided<M> handler);
+            @This Sided<M> serverbound(MessageHandler.Sided<M> handler);
 
             /**
              * Registers a serverbound handler with a priority.
              */
-            @NonNull
-            Sided<M> serverbound(@NonNull MessagePriority priority, MessageHandler.@NonNull Sided<M> handler);
+            @This Sided<M> serverbound(MessagePriority priority, MessageHandler.Sided<M> handler);
 
             /**
              * {@inheritDoc}
              */
             @Override
-            @NonNull
-            Sided<M> pipeline(@NonNull Consumer<Pipeline> pipeline);
+            @This Sided<M> pipeline(Consumer<Pipeline> pipeline);
         }
 
         interface Bidirectional<M extends Message<? extends MessageBuffer>> extends Builder<M> {
@@ -188,21 +178,18 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
              * Registers a bidirectional handler which receives the message and passes
              * through the direction.
              */
-            @NonNull
-            Bidirectional<M> bidirectional(@NonNull MessageHandler<M> handler);
+            @This Bidirectional<M> bidirectional(MessageHandler<M> handler);
 
             /**
              * Registers a bidirectional handler with a priority.
              */
-            @NonNull
-            Bidirectional<M> bidirectional(@NonNull MessagePriority priority, @NonNull MessageHandler<M> handler);
+            @This Bidirectional<M> bidirectional(MessagePriority priority, MessageHandler<M> handler);
 
             /**
              * {@inheritDoc}
              */
             @Override
-            @NonNull
-            Bidirectional<M> pipeline(@NonNull Consumer<Pipeline> pipeline);
+            @This Bidirectional<M> pipeline(Consumer<Pipeline> pipeline);
         }
 
         /**
@@ -216,8 +203,7 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
              * @param tag the tag to apply
              * @return the pipeline instance
              */
-            @NonNull
-            Pipeline tag(@NonNull String tag);
+            @This Pipeline tag(String tag);
 
             /**
              * Places this handler before the handler with the given tag.
@@ -229,8 +215,7 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
              * @param tag the tag to place before
              * @return the pipeline instance
              */
-            @NonNull
-            Pipeline before(@NonNull String tag);
+            @This Pipeline before(String tag);
 
             /**
              * Places this handler after the handler with the given tag.
@@ -242,8 +227,7 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
              * @param tag the tag to place after
              * @return the pipeline instance
              */
-            @NonNull
-            Pipeline after(@NonNull String tag);
+            @This Pipeline after(String tag);
         }
     }
 

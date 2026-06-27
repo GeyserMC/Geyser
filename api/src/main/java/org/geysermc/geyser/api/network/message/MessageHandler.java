@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.network.message;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.network.MessageDirection;
 
 /**
@@ -44,8 +43,7 @@ public interface MessageHandler<T extends Message<? extends MessageBuffer>> {
      * @param direction the direction of the message
      * @return the state after handling the message
      */
-    @NonNull
-    State handle(@NonNull T message, @NonNull MessageDirection direction);
+    State handle(T message, MessageDirection direction);
 
     /**
      * A message handler that belongs to a specific side (clientbound or serverbound).
@@ -60,8 +58,7 @@ public interface MessageHandler<T extends Message<? extends MessageBuffer>> {
          * @param message the message to handle
          * @return the state after handling the message
          */
-        @NonNull
-        State handle(@NonNull T message);
+        State handle(T message);
     }
 
     /**

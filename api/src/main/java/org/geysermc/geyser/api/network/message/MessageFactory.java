@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.api.network.message;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 /**
  * A factory interface for creating messages from a given message buffer.
  *
@@ -43,6 +41,5 @@ public interface MessageFactory<T extends MessageBuffer, M extends Message<T>> {
      * @param buffer the buffer to create the message from
      * @return a new message created from the buffer
      */
-    @NonNull
-    M create(@NonNull T buffer);
+    M create(T buffer);
 }

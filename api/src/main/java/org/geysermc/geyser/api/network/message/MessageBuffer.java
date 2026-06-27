@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.api.network.message;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 /**
  * A buffer for messages that can be sent over the network.
  *
@@ -42,8 +40,7 @@ public interface MessageBuffer {
      * @return the read message
      * @param <T> the type of message to read
      */
-    @NonNull
-    <T> T read(@NonNull DataType<T> type);
+    <T> T read(DataType<T> type);
 
     /**
      * Writes a {@link T value} to the buffer using the
@@ -53,14 +50,14 @@ public interface MessageBuffer {
      * @param value the value to write
      * @param <T> the type of message to write
      */
-    <T> void write(@NonNull DataType<T> type, @NonNull T value);
+    <T> void write(DataType<T> type, T value);
 
     /**
      * Serializes the buffer to a byte array.
      *
      * @return the serialized byte array
      */
-    byte @NonNull [] serialize();
+    byte[] serialize();
 
     /**
      * Gets the length of the buffer.
@@ -81,7 +78,6 @@ public interface MessageBuffer {
          *
          * @return the internal buffer
          */
-        @NonNull
         T buffer();
     }
 }
