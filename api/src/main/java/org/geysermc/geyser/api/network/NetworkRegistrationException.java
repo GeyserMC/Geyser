@@ -23,27 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network;
+package org.geysermc.geyser.api.network;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.network.PacketChannel;
-import org.geysermc.geyser.api.util.Identifier;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-public class PacketChannelImpl extends ExternalNetworkChannel implements PacketChannel {
-    private final boolean java;
+/**
+ * Thrown when a {@link NetworkChannel} or message handler cannot be registered
+ * because the extension misused the registration builder.
+ * <p>
+ * These failures happen at startup or session-define time, not during message
+ * dispatch. They almost always indicate a programming mistake in the extension
+ * that owns the channel.
+ *
+ * @since 2.9.2
+ */
+public class NetworkRegistrationException extends NetworkApiException {
 
-    public PacketChannelImpl(@NonNull Identifier identifier, boolean java, @NonNull Class<?> packetType) {
-        super(identifier, packetType);
-
-        this.java = java;
+    public NetworkRegistrationException(@Nullable String source, String message) {
+        super(source, message);
     }
 
-    public boolean isJava() {
-        return this.java;
-    }
-
-    @Override
-    public boolean isPacket() {
-        return true;
+    public NetworkRegistrationException(@Nullable String source, String message, Throwable cause) {
+        super(source, message, cause);
     }
 }

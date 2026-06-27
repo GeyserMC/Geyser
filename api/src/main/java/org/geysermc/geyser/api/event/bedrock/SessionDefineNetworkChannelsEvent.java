@@ -208,9 +208,10 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
             /**
              * Places this handler before the handler with the given tag.
              * <p>
-             * The tag used here must be previously defined in a separate handler using {@link #tag(String)}.
-             * However, it should be noted that if the specified tag does not exist at the time of registration,
-             * the handler will be added to the end of the pipeline without throwing an error.
+             * The anchor must already be registered via {@link #tag(String)} when
+             * {@code register()} is called. If it is not, a
+             * {@link org.geysermc.geyser.api.network.NetworkRegistrationException}
+             * will be thrown identifying the missing anchor and the channel.
              *
              * @param tag the tag to place before
              * @return the pipeline instance
@@ -220,9 +221,10 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
             /**
              * Places this handler after the handler with the given tag.
              * <p>
-             * The tag used here must be previously defined in a separate handler using {@link #tag(String)}.
-             * However, it should be noted that if the specified tag does not exist at the time of registration,
-             * the handler will be added to the end of the pipeline without throwing an error.
+             * The anchor must already be registered via {@link #tag(String)} when
+             * {@code register()} is called. If it is not, a
+             * {@link org.geysermc.geyser.api.network.NetworkRegistrationException}
+             * will be thrown identifying the missing anchor and the channel.
              *
              * @param tag the tag to place after
              * @return the pipeline instance

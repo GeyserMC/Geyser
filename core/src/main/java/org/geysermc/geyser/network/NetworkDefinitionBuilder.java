@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.network;
 
-import com.google.common.base.Preconditions;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.event.bedrock.SessionDefineNetworkChannelsEvent;
+import org.geysermc.geyser.api.network.NetworkRegistrationException;
 import org.geysermc.geyser.api.network.ProtocolState;
 import org.geysermc.geyser.api.network.message.Message;
 import org.geysermc.geyser.api.network.message.MessageBuffer;
@@ -112,8 +112,19 @@ public class NetworkDefinitionBuilder<M extends Message<? extends MessageBuffer>
 
     @Override
     public SessionDefineNetworkChannelsEvent.@NonNull Registration<M> register() {
-        Preconditions.checkState(!this.registered, "This message has already been registered");
-        Preconditions.checkState(this.handler == null || (this.clientbound == null && this.serverbound == null), "Cannot register both bidirectional and sided handlers for the same message");
+        if (this.registered) {
+            throw new NetworkRegistrationException(null,
+                    "register() has already been called on this builder. Each define(...) call must be paired with exactly one register() call.");
+        }
+        if (this.handler != null && (this.clientbound != null || this.serverbound != null)) {
+            throw new NetworkRegistrationException(null,
+                    "Cannot mix bidirectional() with clientbound()/serverbound() on the same registration. Pick one style: either a single bidirectional handler, or one or more sided handlers.");
+        }
+        if (this.handler == null && this.clientbound == null && this.serverbound == null) {
+            throw new NetworkRegistrationException(null,
+                    "No handler was attached before register() was called. Add at least one of clientbound(...), serverbound(...), or bidirectional(...) so messages have somewhere to go.");
+        }
+
         RegistrationImpl<M> registration = new RegistrationImpl<>(
                 this.protocolState,
                 this.handler,
@@ -136,8 +147,11 @@ public class NetworkDefinitionBuilder<M extends Message<? extends MessageBuffer>
 
         @Override
         public SessionDefineNetworkChannelsEvent.Builder.@NonNull Pipeline tag(@NonNull String tag) {
-            Preconditions.checkNotNull(tag, "tag");
-            Preconditions.checkState(!tag.isBlank(), "tag");
+            Objects.requireNonNull(tag, "tag");
+            if (tag.isBlank()) {
+                throw new NetworkRegistrationException(null,
+                        "Pipeline tags cannot be blank. Provide a non-empty identifier so other handlers can target it with before(...) / after(...).");
+            }
 
             this.tag = tag;
             return this;

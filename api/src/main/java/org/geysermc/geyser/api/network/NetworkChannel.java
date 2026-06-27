@@ -54,13 +54,17 @@ import org.geysermc.geyser.api.util.Identifier;
  * </pre>
  *
  * <p>
- * For packet channels, it can get slightly more complex as you need to
- * know the packet ID, understand the constructed message type and have an extension
- * available. The following example demonstrates this with the animate packet,
- * assuming the AnimateMessage class represents the correct packet structure:
+ * For packet channels keyed by an existing packet class, no ID is needed:
  * <pre>
  * {@code
- *    private final NetworkChannel animateChannel = PacketChannel.bedrock(this, 44, AnimateMessage.class);
+ *    private final NetworkChannel animateChannel = PacketChannel.bedrock(this, AnimatePacket.class);
+ * }
+ * </pre>
+ * For raw-buffer packet channels backed by a custom {@code Message.Packet}
+ * implementation, the packet ID must be supplied explicitly:
+ * <pre>
+ * {@code
+ *    private final NetworkChannel animateChannel = RawPacketChannel.bedrock(this, 44, AnimateMessage.class);
  * }
  * </pre>
  *

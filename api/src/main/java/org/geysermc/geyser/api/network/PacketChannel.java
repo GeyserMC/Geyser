@@ -25,9 +25,9 @@
 
 package org.geysermc.geyser.api.network;
 
-import org.checkerframework.checker.index.qual.NonNegative;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
+import org.geysermc.geyser.api.network.message.Message;
 
 /**
  * Represents a channel for network communication associated with a packet.
@@ -35,40 +35,37 @@ import org.geysermc.geyser.api.extension.Extension;
  * This channel is used for listening to communication over
  * packets between the server and client and can be used to
  * send or receive packets.
+ * <p>
+ * When the message type is the actual packet class (i.e., a Cloudburst Bedrock
+ * packet or an MCProtocolLib Java packet), Geyser can derive the packet ID
+ * from the class itself, so no ID is required here. For channels that operate
+ * on raw buffers via {@link Message.Packet}
+ * implementations, use {@link RawPacketChannel} instead, which requires the
+ * packet ID to be explicitly set.
  *
  * @since 2.9.2
  */
 public interface PacketChannel extends NetworkChannel {
 
     /**
-     * Gets the packet ID associated with this channel.
-     *
-     * @return the packet ID
-     */
-    @NonNegative
-    int packetId();
-
-    /**
-     * Creates a new Bedrock packet {@link NetworkChannel} instance for a packet channel.
+     * Creates a new Bedrock {@link PacketChannel} keyed by the given packet class.
      *
      * @param extension the extension creating the channel
-     * @param packetId the packet ID
-     * @param packetType the type of the packet
-     * @return a new packet {@link NetworkChannel} instance for a packet channel
+     * @param packetType the packet class this channel handles
+     * @return a new Bedrock packet channel
      */
-    static PacketChannel bedrock(Extension extension, @NonNegative int packetId, Class<?> packetType) {
-        return GeyserApi.api().provider(PacketChannel.class, extension, "bedrock", packetId, packetType);
+    static PacketChannel bedrock(Extension extension, Class<?> packetType) {
+        return GeyserApi.api().provider(PacketChannel.class, extension, "bedrock", packetType);
     }
 
     /**
-     * Creates a new Java packet {@link NetworkChannel} instance for a packet channel.
+     * Creates a new Java {@link PacketChannel} keyed by the given packet class.
      *
      * @param extension the extension creating the channel
-     * @param packetId the packet ID
-     * @param packetType the type of the packet
-     * @return a new packet {@link NetworkChannel} instance for a packet channel
+     * @param packetType the packet class this channel handles
+     * @return a new Java packet channel
      */
-    static PacketChannel java(Extension extension, @NonNegative int packetId, Class<?> packetType) {
-        return GeyserApi.api().provider(PacketChannel.class, extension, "java", packetId, packetType);
+    static PacketChannel java(Extension extension, Class<?> packetType) {
+        return GeyserApi.api().provider(PacketChannel.class, extension, "java", packetType);
     }
 }

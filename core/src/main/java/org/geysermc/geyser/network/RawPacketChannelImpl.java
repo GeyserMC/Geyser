@@ -25,25 +25,23 @@
 
 package org.geysermc.geyser.network;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.network.PacketChannel;
+import org.geysermc.geyser.api.network.RawPacketChannel;
 import org.geysermc.geyser.api.util.Identifier;
 
-public class PacketChannelImpl extends ExternalNetworkChannel implements PacketChannel {
-    private final boolean java;
+public class RawPacketChannelImpl extends PacketChannelImpl implements RawPacketChannel {
+    private final int packetId;
 
-    public PacketChannelImpl(@NonNull Identifier identifier, boolean java, @NonNull Class<?> packetType) {
-        super(identifier, packetType);
+    public RawPacketChannelImpl(@NonNull Identifier identifier, boolean java, @NonNegative int packetId, @NonNull Class<?> messageType) {
+        super(identifier, java, messageType);
 
-        this.java = java;
-    }
-
-    public boolean isJava() {
-        return this.java;
+        this.packetId = packetId;
     }
 
     @Override
-    public boolean isPacket() {
-        return true;
+    @NonNegative
+    public int packetId() {
+        return this.packetId;
     }
 }

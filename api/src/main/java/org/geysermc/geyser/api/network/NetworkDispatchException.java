@@ -23,27 +23,28 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.network;
+package org.geysermc.geyser.api.network;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.network.PacketChannel;
-import org.geysermc.geyser.api.util.Identifier;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-public class PacketChannelImpl extends ExternalNetworkChannel implements PacketChannel {
-    private final boolean java;
+/**
+ * Thrown when a message handler, encoder, or decoder fails while a network
+ * message is being dispatched through Geyser.
+ * <p>
+ * The original failure is always preserved as the {@linkplain #getCause()
+ * cause} so the underlying stack trace remains intact when this exception
+ * surfaces through Netty's pipeline. Use {@link #source()} to identify which
+ * extension or plugin is at fault.
+ *
+ * @since 2.9.2
+ */
+public class NetworkDispatchException extends NetworkApiException {
 
-    public PacketChannelImpl(@NonNull Identifier identifier, boolean java, @NonNull Class<?> packetType) {
-        super(identifier, packetType);
-
-        this.java = java;
+    public NetworkDispatchException(@Nullable String source, String message, Throwable cause) {
+        super(source, message, cause);
     }
 
-    public boolean isJava() {
-        return this.java;
-    }
-
-    @Override
-    public boolean isPacket() {
-        return true;
+    public NetworkDispatchException(@Nullable String source, String message) {
+        super(source, message);
     }
 }

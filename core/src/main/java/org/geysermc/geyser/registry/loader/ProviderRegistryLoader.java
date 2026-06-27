@@ -61,6 +61,7 @@ import org.geysermc.geyser.api.item.custom.v2.component.java.JavaUseCooldown;
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaUseEffects;
 import org.geysermc.geyser.api.network.NetworkChannel;
 import org.geysermc.geyser.api.network.PacketChannel;
+import org.geysermc.geyser.api.network.RawPacketChannel;
 import org.geysermc.geyser.api.network.message.Message;
 import org.geysermc.geyser.api.network.message.MessageCodec;
 import org.geysermc.geyser.api.pack.PathPackCodec;
@@ -121,6 +122,7 @@ import org.geysermc.geyser.level.block.GeyserNonVanillaCustomBlockData;
 import org.geysermc.geyser.network.ExtensionNetworkChannel;
 import org.geysermc.geyser.network.ExternalNetworkChannel;
 import org.geysermc.geyser.network.PacketChannelImpl;
+import org.geysermc.geyser.network.RawPacketChannelImpl;
 import org.geysermc.geyser.network.message.BedrockPacketMessage;
 import org.geysermc.geyser.network.message.ByteBufCodec;
 import org.geysermc.geyser.network.message.JavaPacketMessage;
@@ -268,22 +270,37 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         });
 
         providers.put(PacketChannel.class, args -> {
-            if (args.length < 4) {
-                throw new IllegalArgumentException("PacketChannel requires at least four arguments, got " + args.length);
+            if (args.length < 3) {
+                throw new IllegalArgumentException("PacketChannel requires at least three arguments, got " + args.length);
             }
 
-            if (args[0] instanceof Extension extension && args[1] instanceof String platform && args[2] instanceof Integer packetId
-                    && args[3] instanceof Class<?> packetType) {
+            if (args[0] instanceof Extension extension && args[1] instanceof String platform && args[2] instanceof Class<?> packetType) {
                 return switch (platform) {
-                    case "java" ->
-                            new PacketChannelImpl(new ExtensionIdentifierImpl(extension, "java_packet_" + packetId), true, packetId, packetType);
-                    case "bedrock" ->
-                            new PacketChannelImpl(new ExtensionIdentifierImpl(extension, "bedrock_packet_" + packetId), false, packetId, packetType);
+                    case "java" -> new PacketChannelImpl(new ExtensionIdentifierImpl(extension, "java_packet_" + packetType.getName()), true, packetType);
+                    case "bedrock" -> new PacketChannelImpl(new ExtensionIdentifierImpl(extension, "bedrock_packet_" + packetType.getName()), false, packetType);
                     default -> throw new IllegalArgumentException("Unknown platform type for PacketChannel: " + platform);
                 };
             }
 
             throw new IllegalArgumentException("Unknown arguments provided for PacketChannel provider. " +
+                    "Could not create a channel given the arguments: " + Arrays.toString(args));
+        });
+
+        providers.put(RawPacketChannel.class, args -> {
+            if (args.length < 4) {
+                throw new IllegalArgumentException("RawPacketChannel requires at least four arguments, got " + args.length);
+            }
+
+            if (args[0] instanceof Extension extension && args[1] instanceof String platform && args[2] instanceof Integer packetId
+                    && args[3] instanceof Class<?> messageType) {
+                return switch (platform) {
+                    case "java" -> new RawPacketChannelImpl(new ExtensionIdentifierImpl(extension, "java_raw_packet_" + packetId), true, packetId, messageType);
+                    case "bedrock" -> new RawPacketChannelImpl(new ExtensionIdentifierImpl(extension, "bedrock_raw_packet_" + packetId), false, packetId, messageType);
+                    default -> throw new IllegalArgumentException("Unknown platform type for RawPacketChannel: " + platform);
+                };
+            }
+
+            throw new IllegalArgumentException("Unknown arguments provided for RawPacketChannel provider. " +
                     "Could not create a channel given the arguments: " + Arrays.toString(args));
         });
 
