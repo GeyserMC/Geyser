@@ -64,7 +64,9 @@ import org.jetbrains.annotations.VisibleForTesting;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,7 +109,7 @@ public class GeyserNetwork implements Network {
 
     @SuppressWarnings("unchecked")
     private <T extends MessageBuffer, M extends Message<T>> void onRegister(@NonNull NetworkChannel channel, @NonNull MessageCodec<? extends T> codec,
-                                                                           @NonNull MessageFactory<T, M> messageFactory, NetworkDefinitionBuilder.@NonNull RegistrationImpl<M> registration) {
+                                                                            @NonNull MessageFactory<T, M> messageFactory, NetworkDefinitionBuilder.@NonNull RegistrationImpl<M> registration) {
         if (channel instanceof PacketChannelImpl packetChannel && packetChannel.isJava() && registration.protocolState() == null) {
             throw new IllegalArgumentException("Java packet channels must specify a protocol state");
         }
@@ -164,7 +166,7 @@ public class GeyserNetwork implements Network {
 
     @Override
     public <T extends MessageBuffer> void send(@NonNull NetworkChannel channel, @NonNull Message<T> message, @NonNull MessageDirection direction, @NonNull MessageFlag... flags) {
-        Set<MessageFlag> flagSet = Set.of(flags);
+        Set<MessageFlag> flagSet = flags.length == 0 ? Set.of() : new HashSet<>(Arrays.asList(flags));
         if (channel.isPacket() && message instanceof Message.PacketBase<T> packetBase) {
             if (packetBase instanceof BedrockPacketMessage<?> packetMessage) {
                 if (direction == MessageDirection.CLIENTBOUND) {
@@ -236,40 +238,43 @@ public class GeyserNetwork implements Network {
             return;
         }
 
+        // TODO: Proxy level-support for sending custom payloads up to the proxy if Geyser is on
+        //       the backend
+        if (direction != MessageDirection.SERVERBOUND) {
+            throw new IllegalArgumentException("Non-packet network channels only support SERVERBOUND sending (custom payload to the Java server)");
+        }
+
         MessageDefinition<T, Message<T>> definition = this.findMessageDefinition(channel, message);
 
         T buffer = definition.codec.createBuffer();
         message.encode(buffer);
 
-        ServerboundCustomPayloadPacket packet = new ServerboundCustomPayloadPacket(
-                Key.key(channel.identifier().toString()),
-                buffer.serialize()
-        );
+        Key channelKey = Key.key(channel.identifier().toString());
+        byte[] data = buffer.serialize();
 
+        ServerboundCustomPayloadPacket packet = new ServerboundCustomPayloadPacket(channelKey, data);
         this.session.sendDownstreamPacket(packet);
     }
 
-    @NonNull
-    public <T extends MessageBuffer> List<Message<T>> createMessages(@NonNull NetworkChannel channel, byte @NonNull[] data, @NotNull MessageDirection direction) {
-        return this.createMessages0(channel, definition -> definition.createBuffer(data), direction);
+    @Nullable
+    public <T extends MessageBuffer> Message<T> createMessage(@NonNull NetworkChannel channel, byte @NonNull[] data, @NotNull MessageDirection direction) {
+        return this.createMessage0(channel, definition -> definition.createBuffer(data), direction);
     }
 
-    @NonNull
-    public <T extends MessageBuffer> List<Message<T>> createMessages(@NonNull NetworkChannel channel, @NonNull T buffer, @NotNull MessageDirection direction) {
-        return this.createMessages0(channel, def -> buffer, direction);
+    @Nullable
+    public <T extends MessageBuffer> Message<T> createMessage(@NonNull NetworkChannel channel, @NonNull T buffer, @NotNull MessageDirection direction) {
+        return this.createMessage0(channel, def -> buffer, direction);
     }
 
     @SuppressWarnings("unchecked")
-    @NonNull
-    private <T extends MessageBuffer, M extends Message<T>> List<M> createMessages0(@NonNull NetworkChannel channel, @NonNull Function<MessageDefinition<T, M>, T> creator, @NotNull MessageDirection direction) {
+    @Nullable
+    private <T extends MessageBuffer, M extends Message<T>> M createMessage0(@NonNull NetworkChannel channel, @NonNull Function<MessageDefinition<T, M>, T> creator, @NotNull MessageDirection direction) {
         List<MessageDefinition<?, ?>> definitions = this.definitions.get(channel);
         if (definitions == null || definitions.isEmpty()) {
             throw new IllegalArgumentException("No message definition registered for channel: " + channel);
         }
 
-        List<M> messages = new ArrayList<>();
         for (MessageDefinition<?, ?> def : definitions) {
-            // Ensure the packet states match
             ProtocolState state = def.state;
             if (direction == MessageDirection.CLIENTBOUND && state != null && state != this.javaState.inbound()) {
                 continue;
@@ -277,7 +282,6 @@ public class GeyserNetwork implements Network {
                 continue;
             }
 
-            // Skip if there's no appropriate handler for this direction
             if (def.handler == null) {
                 if (direction == MessageDirection.CLIENTBOUND && def.clientboundHandler == null) {
                     continue;
@@ -294,10 +298,10 @@ public class GeyserNetwork implements Network {
                 packetMessage.postProcess(this.session, (ByteBufMessageBuffer) buffer);
             }
 
-            messages.add(message);
+            return message;
         }
 
-        return messages;
+        return null;
     }
 
     @NonNull
@@ -318,18 +322,27 @@ public class GeyserNetwork implements Network {
             return true;
         }
 
-        List<Message<ByteBufMessageBuffer>> messages = new ArrayList<>();
         for (PacketChannel channel : channels) {
+            List<Message<ByteBufMessageBuffer>> messages = new ArrayList<>();
             if (((PacketChannelImpl) channel).messageType().isInstance(packet)) {
                 messages.add(new BedrockPacketMessage<>(packet));
             } else {
                 ByteBuf buffer = Unpooled.buffer();
-                definition.getSerializer().serialize(buffer, this.session.getUpstream().getCodecHelper(), packet);
-                messages.addAll(this.createMessages(channel, new ByteBufMessageBuffer(ByteBufCodec.INSTANCE_LE, buffer), direction));
-            }
-        }
+                try {
+                    definition.getSerializer().serialize(buffer, this.session.getUpstream().getCodecHelper(), packet);
 
-        for (NetworkChannel channel : channels) {
+                    byte[] data = new byte[buffer.readableBytes()];
+                    buffer.getBytes(buffer.readerIndex(), data);
+
+                    Message<ByteBufMessageBuffer> message = this.createMessage(channel, data, direction);
+                    if (message != null) {
+                        messages.add(message);
+                    }
+                } finally {
+                    buffer.release();
+                }
+            }
+
             boolean handled = this.handleMessages(channel, messages, direction);
             if (!handled) {
                 return false;
@@ -357,18 +370,27 @@ public class GeyserNetwork implements Network {
             return true;
         }
 
-        List<Message<ByteBufMessageBuffer>> messages = new ArrayList<>();
         for (PacketChannel channel : channels) {
+            List<Message<ByteBufMessageBuffer>> messages = new ArrayList<>();
             if (((PacketChannelImpl) channel).messageType().isInstance(packet)) {
                 messages.add(new JavaPacketMessage<>(packet));
             } else {
                 ByteBuf buffer = Unpooled.buffer();
-                packet.serialize(buffer);
-                messages.addAll(this.createMessages(channel, new ByteBufMessageBuffer(ByteBufCodec.INSTANCE, buffer), direction));
-            }
-        }
+                try {
+                    packet.serialize(buffer);
 
-        for (NetworkChannel channel : channels) {
+                    byte[] data = new byte[buffer.readableBytes()];
+                    buffer.getBytes(buffer.readerIndex(), data);
+
+                    Message<ByteBufMessageBuffer> message = this.createMessage(channel, data, direction);
+                    if (message != null) {
+                        messages.add(message);
+                    }
+                } finally {
+                    buffer.release();
+                }
+            }
+
             boolean handled = this.handleMessages(channel, messages, direction);
             if (!handled) {
                 return false;
@@ -425,7 +447,7 @@ public class GeyserNetwork implements Network {
         for (Message<T> message : messages) {
             for (MessageDefinition<?, ?> def : ordered) {
                 if (!(channel instanceof BaseNetworkChannel base)) {
-                    continue;
+                    throw new IllegalArgumentException("Unsupported NetworkChannel implementation: " + channel.getClass().getName() + "; expected BaseNetworkChannel");
                 }
 
                 if (message instanceof Message.PacketWrapped<?, ?> wrapped && !base.messageType().isInstance(wrapped.packet())) {
@@ -505,13 +527,18 @@ public class GeyserNetwork implements Network {
         }
 
         if (insertIndex == -1) {
-            // Fallback: insert by descending priority
-            insertIndex = list.size();
-            for (int i = 0; i < list.size(); i++) {
-                MessageDefinition<?, ?> existing = list.get(i);
-                if (definition.priority() > existing.priority()) {
-                    insertIndex = i;
-                    break;
+            if (definition.beforeTag() != null || definition.afterTag() != null) {
+                // Relative tag was specified but anchor not found; per API docs, append to end.
+                insertIndex = list.size();
+            } else {
+                // Fallback: insert by descending priority
+                insertIndex = list.size();
+                for (int i = 0; i < list.size(); i++) {
+                    MessageDefinition<?, ?> existing = list.get(i);
+                    if (definition.priority() > existing.priority()) {
+                        insertIndex = i;
+                        break;
+                    }
                 }
             }
         }

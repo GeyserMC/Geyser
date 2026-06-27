@@ -179,8 +179,10 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                 }
 
                 for (NetworkChannel networkChannel : identifiedChannels) {
-                    List<Message<MessageBuffer>> message = network.createMessages(networkChannel, packet.getData(), MessageDirection.CLIENTBOUND);
-                    network.handleMessages(networkChannel, message, MessageDirection.CLIENTBOUND);
+                    Message<MessageBuffer> message = network.createMessage(networkChannel, packet.getData(), MessageDirection.CLIENTBOUND);
+                    if (message != null) {
+                        network.handleMessages(networkChannel, List.of(message), MessageDirection.CLIENTBOUND);
+                    }
                 }
             });
         }
