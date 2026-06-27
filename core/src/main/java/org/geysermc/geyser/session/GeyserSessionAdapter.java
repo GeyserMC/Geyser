@@ -50,6 +50,8 @@ import org.geysermc.mcprotocollib.protocol.packet.handshake.serverbound.ClientIn
 
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 public class GeyserSessionAdapter extends SessionAdapter {
@@ -148,8 +150,14 @@ public class GeyserSessionAdapter extends SessionAdapter {
             if (session.remoteServer().authType() == AuthType.FLOODGATE) {
                 if (session.isEducationClient()) {
                     // Education clients are guaranteed to have a verified MESS token at this point
-                    // (LoginEncryptionUtils rejects them otherwise). The xuid is the Entra OID.
-                    uuid = createEducationUuid(session.xuid());
+                    // (LoginEncryptionUtils rejects them otherwise). The scheme is read explicitly
+                    // from the startup-loaded config so this identity decision can't be bypassed.
+                    if (geyser.getEducationUuidScheme().legacy()) {
+                        uuid = createLegacyEducationUuid(session.getEducationTenantId(), session.bedrockUsername());
+                    } else {
+                        // The xuid is the MESS-verified Entra OID.
+                        uuid = createEducationUuid(session.xuid());
+                    }
                 } else {
                     uuid = new UUID(0, Long.parseLong(session.xuid()));
                 }
@@ -276,5 +284,25 @@ public class GeyserSessionAdapter extends SessionAdapter {
         long upper = ((msb >>> 16) << 12) | (msb & 0xFFF);  // 60 random bits
         long lower = (lsb << 2) >>> 60;                       // 4 random bits
         return new UUID(EDUCATION_UUID_MSB, (upper << 4) | lower);
+    }
+
+    /**
+     * Legacy UUID scheme. Derives an education player's Java UUID from the SHA-256 of
+     * {@code tenantId + ":" + username}, taking the first 8 hash bytes as the LSB and the same
+     * {@link #EDUCATION_UUID_MSB} sentinel as the MSB. Preserved only for deployments with
+     * existing player data keyed by this scheme; selected via {@link EducationUuidScheme}.
+     */
+    static UUID createLegacyEducationUuid(String tenantId, String username) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest((tenantId + ":" + username).getBytes(StandardCharsets.UTF_8));
+            long lsb = 0;
+            for (int i = 0; i < 8; i++) {
+                lsb = (lsb << 8) | (hash[i] & 0xFF);
+            }
+            return new UUID(EDUCATION_UUID_MSB, lsb);
+        } catch (NoSuchAlgorithmException e) {
+            throw new AssertionError("SHA-256 not available", e);
+        }
     }
 }

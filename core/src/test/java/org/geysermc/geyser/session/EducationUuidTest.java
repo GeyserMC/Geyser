@@ -128,4 +128,46 @@ class EducationUuidTest {
         assertEquals(EXPECTED_MSB, uuid2.getMostSignificantBits());
         assertNotEquals(uuid1, uuid2);
     }
+
+    // ---- Legacy scheme: SHA-256(tenantId:username) ----
+
+    @Test
+    void legacyKnownVectors() {
+        // Golden vectors that pin the legacy algorithm exactly. The legacy scheme exists to
+        // keep identity stable with existing player data, so this derivation must never change.
+        assertEquals(UUID.fromString("00000001-0000-0001-2efe-3e68242fd6a0"),
+                GeyserSessionAdapter.createLegacyEducationUuid("contoso", "alice"));
+        assertEquals(UUID.fromString("00000001-0000-0001-c2d8-72e7a929f7fb"),
+                GeyserSessionAdapter.createLegacyEducationUuid("contoso", "bob"));
+    }
+
+    @Test
+    void legacyMsbIsFixed() {
+        UUID uuid = GeyserSessionAdapter.createLegacyEducationUuid("contoso", "alice");
+        assertEquals(EXPECTED_MSB, uuid.getMostSignificantBits());
+    }
+
+    @Test
+    void legacyIsDeterministic() {
+        UUID first = GeyserSessionAdapter.createLegacyEducationUuid("contoso", "alice");
+        for (int i = 0; i < 100; i++) {
+            assertEquals(first, GeyserSessionAdapter.createLegacyEducationUuid("contoso", "alice"));
+        }
+    }
+
+    @Test
+    void legacyDifferentInputsDiffer() {
+        UUID a = GeyserSessionAdapter.createLegacyEducationUuid("contoso", "alice");
+        UUID b = GeyserSessionAdapter.createLegacyEducationUuid("contoso", "bob");
+        UUID c = GeyserSessionAdapter.createLegacyEducationUuid("fabrikam", "alice");
+        assertNotEquals(a, b);
+        assertNotEquals(a, c);
+    }
+
+    @Test
+    void legacyAndModernSchemesDiffer() {
+        UUID legacy = GeyserSessionAdapter.createLegacyEducationUuid("contoso", "alice");
+        UUID modern = GeyserSessionAdapter.createEducationUuid(OID_1);
+        assertNotEquals(legacy, modern);
+    }
 }

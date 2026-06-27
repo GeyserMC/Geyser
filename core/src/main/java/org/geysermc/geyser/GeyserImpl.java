@@ -91,6 +91,8 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.loader.ResourcePackLoader;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
+import org.geysermc.geyser.session.EducationUuidScheme;
+import org.geysermc.geyser.session.EducationUuidSchemeLoader;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.PendingMicrosoftAuthentication;
 import org.geysermc.geyser.session.SessionDisconnectListener;
@@ -174,6 +176,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     private GeyserServer geyserServer;
     private NethernetManagerImpl nethernetManagerImpl;
+    private EducationUuidScheme educationUuidScheme = EducationUuidScheme.MODERN;
     private final GeyserBootstrap bootstrap;
 
     private final GeyserEventBus eventBus;
@@ -244,6 +247,10 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             logger.info("");
         }
         logger.info("******************************************");
+
+        // Load the education UUID scheme early; a misconfigured scheme aborts startup
+        // rather than risk silently re-IDing education players.
+        this.educationUuidScheme = EducationUuidSchemeLoader.load(bootstrap.getConfigFolder(), logger);
 
         /*
         First load the registries and then populate them.
