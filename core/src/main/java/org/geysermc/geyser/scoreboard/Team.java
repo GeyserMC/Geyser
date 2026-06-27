@@ -46,7 +46,7 @@ public final class Team {
 
     private final Set<String> entities;
     private final Set<Entity> managedEntities;
-    @NonNull private NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
+    private @NonNull NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
     private TeamColor color;
 
     private String name;

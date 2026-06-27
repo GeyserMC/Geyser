@@ -88,12 +88,12 @@ public final class Scoreboard {
     private final GeyserLogger logger;
     private final AtomicLong nextId = new AtomicLong(0);
 
-    private final Map<String, Objective> objectives = new ConcurrentHashMap<>();
+    public final Map<String, Objective> objectives = new ConcurrentHashMap<>();
     @Getter
     private final Map<ScoreboardPosition, DisplaySlot> objectiveSlots = Collections.synchronizedMap(new EnumMap<>(ScoreboardPosition.class));
     private final List<DisplaySlot> removedSlots = Collections.synchronizedList(new ArrayList<>());
 
-    private final Map<String, Team> teams = new ConcurrentHashMap<>(); // updated on multiple threads
+    public final Map<String, Team> teams = new ConcurrentHashMap<>();
     /**
      * Required to preserve vanilla behavior, which also uses a map.
      * Otherwise, for example, if TAB has a team for a player and vanilla has a team, "race conditions" that do not

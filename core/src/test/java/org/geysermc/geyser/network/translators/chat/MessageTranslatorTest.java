@@ -63,9 +63,22 @@ public class MessageTranslatorTest {
         //        "Gave 1 §r§e[Camotoy's Head]§r to DoctorMad9952");
 
         // Newline color restore
-        messages.put("{\"color\":\"#F7DC77\",\"text\":\" Contribute to a weekly community goal.\\n All participants will receive a reward\\n and the top 3 will get extra bonus prizes!\"}", "§r§e Contribute to a weekly community goal.\n" +
-            "§e All participants will receive a reward\n" +
-            "§e and the top 3 will get extra bonus prizes!");
+        messages.put(
+            """
+                {"color":"#F7DC77","text":" Contribute to a weekly community goal.\\n All participants will receive a reward\\n and the top 3 will get extra bonus prizes!"}""",
+            """
+                §r§e Contribute to a weekly community goal.
+                §e All participants will receive a reward
+                §e and the top 3 will get extra bonus prizes!"""
+        );
+        messages.put(
+            """
+                {"text":"","extra":[{"text":"§cContribute to a weekly community goal.\\nAll ","color":"yellow"},{"text":"participants will receive a reward\\nand ","color":"green"},{"text":"the top 3 will get extra bonus prizes!"}]}""",
+            """
+                §r§e§r§cContribute to a weekly community goal.
+                §cAll §r§aparticipants will receive a reward
+                §aand §rthe top 3 will get extra bonus prizes!"""
+        );
 
         // Escape curly braces in translatable strings (make MessageFormat ignore them)
         messages.put("{\"translate\":\"tt{tt%stt}tt\",\"with\":[\"AA\"]}", "tt{ttAAtt}tt");
@@ -74,7 +87,7 @@ public class MessageTranslatorTest {
         messages.put("{\"translate\":\"tt{{''}}tt\"}", "tt{{''}}tt");
 
         messages.put("{\"text\":\"\",\"extra\":[{\"text\":\"Testing end of string\n formatting character§\",\"color\":\"yellow\"}]}",
-            "§r§eTesting end of string\n§e formatting character");
+            "§r§eTesting end of string\n§e formatting character§");
 
         MessageTranslator.init();
     }

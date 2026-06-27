@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.scoreboard.network.util;
 
+import java.nio.file.Paths;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.configuration.GeyserConfig;
@@ -57,6 +58,8 @@ public class GeyserMockContext {
 
         var logger = context.storeObject(new EmptyGeyserLogger());
         when(geyserImpl.getLogger()).thenReturn(logger);
+        // Copied from standalone bootstrap
+        when(geyserImpl.configDirectory()).thenReturn(Paths.get(System.getProperty("user.dir")));
 
         try (var geyserImplMock = mockStatic(GeyserImpl.class)) {
             geyserImplMock.when(GeyserImpl::getInstance).thenReturn(geyserImpl);

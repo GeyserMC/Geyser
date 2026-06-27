@@ -28,6 +28,8 @@ package org.geysermc.geyser.translator.protocol.java.scoreboard;
 import java.util.Arrays;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.debug.ScoreboardPacketType;
+import org.geysermc.geyser.debug.StatsCollector;
 import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.scoreboard.Team;
@@ -56,6 +58,7 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
         Scoreboard scoreboard = session.getWorldCache().getScoreboard();
 
         if (packet.getAction() == TeamAction.CREATE) {
+            StatsCollector.addPacketCount(ScoreboardPacketType.TEAM_CREATE);
             scoreboard.registerNewTeam(
                 packet.getTeamName(),
                 packet.getPlayers(),
@@ -75,6 +78,14 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
                 }
                 return;
             }
+
+            StatsCollector.addPacketCount(switch (packet.getAction()) {
+                case REMOVE -> ScoreboardPacketType.TEAM_REMOVE;
+                case UPDATE -> ScoreboardPacketType.TEAM_UPDATE;
+                case ADD_PLAYER -> ScoreboardPacketType.TEAM_PLAYER_ADD;
+                case REMOVE_PLAYER -> ScoreboardPacketType.TEAM_PLAYER_REMOVE;
+                default -> throw new IllegalStateException("Unknown TeamAction " + packet.getAction());
+            });
 
             switch (packet.getAction()) {
                 case UPDATE -> {

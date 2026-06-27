@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.List;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
+import org.geysermc.geyser.debug.StatsCollector;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.scoreboard.Objective;
 import org.geysermc.geyser.scoreboard.ScoreReference;
@@ -165,6 +166,7 @@ public class BelownameDisplaySlot extends DisplaySlot {
             numberString = "";
         } else if (numberFormat instanceof FixedFormat fixedFormat) {
             numberString = MessageTranslator.convertMessage(fixedFormat.getValue(), session.locale());
+            StatsCollector.addAllocStats(fixedFormat.getValue(), numberString);
         } else if (numberFormat instanceof StyledFormat styledFormat) {
             NbtMapBuilder styledAmount = styledFormat.getStyle().toBuilder();
             styledAmount.putString("text", String.valueOf(score));

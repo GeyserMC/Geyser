@@ -46,6 +46,7 @@ mixin = "0.8.5"
 mixinextras = "0.5.3"
 minecraft = "26.1.2"
 mockito = "5.+"
+jol = "0.17"
 
 # plugin versions
 indra = "4.0.0"
@@ -162,6 +163,8 @@ math = { group = "org.cloudburstmc.math", name = "immutable", version = "2.0" }
 bstats = { group = "org.bstats", name = "bstats-base", version.ref = "bstats"}
 
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+
+jol = { module = "org.openjdk.jol:jol-core", version.ref = "jol" }
 
 # plugins
 lombok = { group = "io.freefair.gradle", name = "lombok-plugin", version.ref = "lombok" }

@@ -32,6 +32,8 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
+import org.geysermc.geyser.debug.ScoreboardPacketType;
+import org.geysermc.geyser.debug.StatsCollector;
 import org.geysermc.geyser.scoreboard.display.slot.DisplaySlot;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
@@ -40,7 +42,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreType;
 @Getter
 public final class Objective {
     private final Scoreboard scoreboard;
-    private final List<DisplaySlot> activeSlots = new ArrayList<>();
+    public final List<DisplaySlot> activeSlots = new ArrayList<>();
 
     private final String objectiveName;
     private final Map<String, ScoreReference> scores = new ConcurrentHashMap<>();
@@ -69,9 +71,11 @@ public final class Objective {
     public void setScore(String id, int score, Component displayName, NumberFormat numberFormat) {
         ScoreReference stored = scores.get(id);
         if (stored != null) {
+            StatsCollector.addPacketCount(ScoreboardPacketType.SCORE_UPDATE);
             stored.updateProperties(scoreboard, score, displayName, numberFormat);
             return;
         }
+        StatsCollector.addPacketCount(ScoreboardPacketType.SCORE_ADD);
         registerScore(id, score, displayName, numberFormat);
     }
 
