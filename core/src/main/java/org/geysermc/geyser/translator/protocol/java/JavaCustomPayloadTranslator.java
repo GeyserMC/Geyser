@@ -54,7 +54,9 @@ import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.Serverbound
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Translator(packet = ClientboundCustomPayloadPacket.class)
@@ -154,8 +156,7 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
 
                 session.sendUpstreamPacket(toSend);
             });
-        } else {
-            session.ensureInEventLoop(() -> {
+            default -> session.ensureInEventLoop(() -> {
                 GeyserNetwork network = session.getNetwork();
                 Set<NetworkChannel> channels = network.registeredChannels();
                 if (channels.isEmpty()) {
@@ -163,14 +164,16 @@ public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCus
                     return;
                 }
 
-                List<NetworkChannel> identifiedChannels = new ArrayList<>();
+                Map<String, List<NetworkChannel>> channelMap = new HashMap<>();
                 for (NetworkChannel registeredChannel : channels) {
-                    if (!registeredChannel.isPacket() && registeredChannel.identifier().toString().equals(channel)) {
-                        identifiedChannels.add(registeredChannel);
+                    if (!registeredChannel.isPacket()) {
+                        String identifier = registeredChannel.identifier().toString();
+                        channelMap.computeIfAbsent(identifier, k -> new ArrayList<>()).add(registeredChannel);
                     }
                 }
 
-                if (identifiedChannels.isEmpty()) {
+                List<NetworkChannel> identifiedChannels = channelMap.get(channel);
+                if (identifiedChannels == null || identifiedChannels.isEmpty()) {
                     this.logger.debug("Received a custom payload for an unregistered channel: " + channel);
                     return;
                 }

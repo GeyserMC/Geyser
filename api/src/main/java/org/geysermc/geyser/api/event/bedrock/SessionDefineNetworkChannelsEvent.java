@@ -54,7 +54,7 @@ import java.util.function.Consumer;
  * certain client information is unavailable or potentially unverified (i.e., Bedrock usernames).
  * <p>
  * Registering at earlier points also increases the intensity of an L7 attack as the client is in a
- * far earlier stage of the connection and there more vulnerable to invalid clients early in the
+ * far earlier stage of the connection and therefore more vulnerable to invalid clients early in the
  * connection stage. However, for debug tools that will never be used in a production environment,
  * registering at earlier stages can be useful to capture more information about the connection and
  * the client's behavior during earlier stages of the connection.
@@ -243,11 +243,22 @@ public abstract class SessionDefineNetworkChannelsEvent extends ConnectionEvent 
      */
     public enum State {
         /**
+         * Called when a session is created. This is the earliest point at which
+         * channels can be registered. This is a VERY early point in the connection,
+         * meaning very little to no information about the client is available yet.
+         * <p>
+         * It is only recommended to listen for this state if you are creating a developer
+         * tool such as a packet logger, or creating proxy software where the Geyser instance
+         * is not exposed to the public internet. It is assumed that in this scenario, the
+         * proxy software has taken all precautions to ensure that the client is not malicious.
+         */
+        CREATED,
+        /**
          * Called when a session is FIRST initialized. The session
          * may lack certain information at this point, such as the Java
-         * session information, or verifiable Bedrock client info. However,
-         * this is the earliest point at which channels can be registered,
-         * and when it is guaranteed a session will have a protocol version.
+         * session information, or verifiable Bedrock client info. This
+         * is the earliest point when it is guaranteed a session will have
+         * a protocol version.
          */
         INITIALIZED,
         /**
