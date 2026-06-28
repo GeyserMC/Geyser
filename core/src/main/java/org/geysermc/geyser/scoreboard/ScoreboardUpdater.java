@@ -60,6 +60,10 @@ public final class ScoreboardUpdater extends Thread {
         new ScoreboardUpdater().start();
     }
 
+    private ScoreboardUpdater() {
+        super("Geyser - Scoreboard Updater");
+    }
+
     @Override
     public void run() {
         while (!geyser.isShuttingDown() && !geyser.isReloading()) {

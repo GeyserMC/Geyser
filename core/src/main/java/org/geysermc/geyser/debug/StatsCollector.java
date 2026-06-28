@@ -43,6 +43,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.openjdk.jol.info.GraphLayout;
 
 public class StatsCollector {
+    private static final boolean ENABLED = System.getenv("STATS_COLLECTOR_ENABLED") != null;
+
     private static final Queue<String> allocationLinesToWrite = new ConcurrentLinkedQueue<>();
     private static volatile long allocationLastSafeNanos = System.nanoTime();
 
@@ -54,6 +56,10 @@ public class StatsCollector {
     private static final AtomicLongArray packetCounts = new AtomicLongArray(ScoreboardPacketType.length);
 
     public static void addAllocStats(Component component, String string) {
+        if (!ENABLED) {
+            return;
+        }
+
         final long componentSize = GraphLayout.parseInstance(component).totalSize();
         final long stringSize = GraphLayout.parseInstance(string).totalSize();
 
@@ -88,56 +94,63 @@ public class StatsCollector {
     }
 
     public static void addPacketCount(ScoreboardPacketType packetType) {
+        if (!ENABLED) {
+            return;
+        }
+
         packetCounts.incrementAndGet(packetType.ordinal());
     }
 
     static {
-        GeyserImpl instance = GeyserImpl.getInstance();
-        GeyserLogger logger = instance.getLogger();
+        if (ENABLED) {
+            GeyserImpl instance = GeyserImpl.getInstance();
+            GeyserLogger logger = instance.getLogger();
 
-        long ctm = System.currentTimeMillis();
-        Path allocationStatsPath = instance.configDirectory().resolve("memdiff-alloc-stats-" + ctm + ".txt");
-        logger.info("Writing allocation stats to " + allocationStatsPath);
-        Path scoreStatsPath = instance.configDirectory().resolve("score-stats-" + ctm + ".txt");
-        logger.info("Writing score stats to " + scoreStatsPath);
-        Path packetStatsPath = instance.configDirectory().resolve("packet-stats-" + ctm + ".txt");
-        logger.info("Writing packet stats to " + packetStatsPath);
-
-        try {
-            // Just to be sure, attempt to write to it to see if we have perms. Otherwise, the while loop will just fail indefinitely
-            Files.writeString(allocationStatsPath, "", StandardOpenOption.CREATE);
-            Files.writeString(scoreStatsPath, "", StandardOpenOption.CREATE);
-            Files.writeString(packetStatsPath, "", StandardOpenOption.CREATE);
-        } catch (IOException e) {
-            logger.error("Failed to ensure that the stats files were created!", e);
-            throw new RuntimeException(e);
-        }
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            // Write remaining available stats immediately
-
-            String remainingStats;
-            synchronized (lock) {
-                double percentage = 100.0D - (double) totalStringSize / totalComponentSize * 100.0;
-                remainingStats = String.format("%-15s %-10s %-20s %-20s %-20s %-5.2f (shutdown)%n", System.currentTimeMillis(), count, totalComponentSize, totalStringSize, totalComponentSize - totalStringSize, percentage);
-                allocationLinesToWrite.add(remainingStats);
-            }
+            long ctm = System.currentTimeMillis();
+            Path allocationStatsPath = instance.configDirectory().resolve("memdiff-alloc-stats-" + ctm + ".txt");
+            logger.info("Writing allocation stats to " + allocationStatsPath);
+            Path scoreStatsPath = instance.configDirectory().resolve("score-stats-" + ctm + ".txt");
+            logger.info("Writing score stats to " + scoreStatsPath);
+            Path packetStatsPath = instance.configDirectory().resolve("packet-stats-" + ctm + ".txt");
+            logger.info("Writing packet stats to " + packetStatsPath);
 
             try {
-                writeToDisk(instance, allocationStatsPath, scoreStatsPath, packetStatsPath);
+                // Just to be sure, attempt to write to it to see if we have perms. Otherwise, the while loop will just fail indefinitely
+                Files.writeString(allocationStatsPath, "", StandardOpenOption.CREATE);
+                Files.writeString(scoreStatsPath, "", StandardOpenOption.CREATE);
+                Files.writeString(packetStatsPath, "", StandardOpenOption.CREATE);
             } catch (IOException e) {
+                logger.error("Failed to ensure that the stats files were created!", e);
                 throw new RuntimeException(e);
             }
-        }));
 
-        new Thread(() -> {
-            while (!instance.isShuttingDown()) {
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                // Write remaining available stats immediately
+
+                String remainingStats;
+                synchronized (lock) {
+                    double percentage = 100.0D - (double) totalStringSize / totalComponentSize * 100.0;
+                    remainingStats = String.format("%-15s %-10s %-20s %-20s %-20s %-5.2f (shutdown)%n", System.currentTimeMillis(), count, totalComponentSize, totalStringSize, totalComponentSize - totalStringSize, percentage);
+                    allocationLinesToWrite.add(remainingStats);
+                }
+
                 try {
-                    Thread.sleep(60_000);
                     writeToDisk(instance, allocationStatsPath, scoreStatsPath, packetStatsPath);
-                } catch (Throwable ignored) {}
-            }
-        }, "Geyser - DebugStatsWriter").start();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }));
+
+            new Thread(() -> {
+                while (!instance.isShuttingDown()) {
+                    try {
+                        Thread.sleep(60_000);
+                        writeToDisk(instance, allocationStatsPath, scoreStatsPath, packetStatsPath);
+                    } catch (Throwable ignored) {
+                    }
+                }
+            }, "Geyser - DebugStatsWriter").start();
+        }
     }
 
     private static void writeToDisk(GeyserImpl impl, Path allocationStatsPath, Path scoreStatsPath, Path packetStatsPath) throws IOException {
