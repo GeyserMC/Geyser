@@ -27,12 +27,12 @@ package org.geysermc.geyser.scoreboard.display.score;
 
 import java.util.Objects;
 import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
+import org.geysermc.geyser.scoreboard.GlobalScoreboardCache;
 import org.geysermc.geyser.scoreboard.Objective;
 import org.geysermc.geyser.scoreboard.ScoreReference;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.scoreboard.display.slot.DisplaySlot;
 import org.geysermc.geyser.text.ChatColor;
-import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.FixedFormat;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
 
@@ -77,7 +77,7 @@ public final class SidebarDisplayScore extends DisplayScore {
             numberFormat = objective.getNumberFormat();
         }
         if (numberFormat instanceof FixedFormat fixedFormat) {
-            finalName += " " + ChatColor.RESET + MessageTranslator.convertMessage(fixedFormat.getValue(), objective.getScoreboard().session().locale());
+            finalName += " " + ChatColor.RESET + GlobalScoreboardCache.fixedNumberFormatToString(fixedFormat.getValue(), objective.getScoreboard().session().locale());
         }
 
         if (order != null) {

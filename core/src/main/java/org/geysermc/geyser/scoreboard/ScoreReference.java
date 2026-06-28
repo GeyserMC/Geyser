@@ -67,7 +67,7 @@ public final class ScoreReference {
 
     public void displayName(Component displayName, Scoreboard scoreboard) {
         if (this.displayName != null && displayName != null) {
-            String convertedDisplayName = MessageTranslator.convertMessage(displayName, scoreboard.session().locale());
+            String convertedDisplayName = MessageTranslator.convertMessageRaw(displayName, scoreboard.session().locale());
 
             StatsCollector.addAllocStats(displayName, convertedDisplayName);
 
@@ -79,7 +79,7 @@ public final class ScoreReference {
         }
         // simplified from (this.displayName != null && displayName == null) || (this.displayName == null && displayName != null)
         if (this.displayName != null || displayName != null) {
-            String convertedDisplayName = MessageTranslator.convertMessage(displayName, scoreboard.session().locale());
+            String convertedDisplayName = MessageTranslator.convertMessageRaw(displayName, scoreboard.session().locale());
             this.displayName = convertedDisplayName;
             markChanged();
 

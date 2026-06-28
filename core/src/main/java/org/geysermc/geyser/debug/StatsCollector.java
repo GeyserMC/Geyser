@@ -64,10 +64,10 @@ public class StatsCollector {
                 double percentage = 100.0D - (double) totalStringSize / totalComponentSize * 100.0;
                 allocationLinesToWrite.add(String.format("%-15s %-10s %-20s %-20s %-20s %-5.2f (overflow)%n", System.currentTimeMillis(), count, totalComponentSize, totalStringSize, totalComponentSize - totalStringSize, percentage));
 
+                allocationLastSafeNanos = System.nanoTime();
                 count = 0;
                 totalComponentSize = 0;
                 totalStringSize = 0;
-                allocationLastSafeNanos = System.nanoTime();
             }
 
             count += 1;
@@ -78,6 +78,11 @@ public class StatsCollector {
             if (now - allocationLastSafeNanos > 180_000_000_000L) { // Every 30m
                 double percentage = 100.0D - (double) totalStringSize / totalComponentSize * 100.0;
                 allocationLinesToWrite.add(String.format("%-15s %-10s %-20s %-20s %-20s %.2f%n", System.currentTimeMillis(), count, totalComponentSize, totalStringSize, totalComponentSize - totalStringSize, percentage));
+
+                allocationLastSafeNanos = now;
+                count = 0;
+                totalComponentSize = 0;
+                totalStringSize = 0;
             }
         }
     }

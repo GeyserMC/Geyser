@@ -25,7 +25,12 @@
 
 package org.geysermc.geyser.translator.text;
 
-import it.unimi.dsi.fastutil.chars.CharConsumer;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.JoinConfiguration;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -56,13 +61,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatTypeDecoration;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class MessageTranslator {
     // These are used for handling the translations of the messages
     // Custom instead of TranslatableComponentRenderer#usingTranslationSource so we don't need to worry about finding a Locale class
@@ -80,7 +78,6 @@ public class MessageTranslator {
 
     // Reset character
     private static final String RESET = BASE + "r";
-    private static final Pattern RESET_PATTERN = Pattern.compile("(" + RESET + "){2,}");
     private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
 
     static {
@@ -175,6 +172,10 @@ public class MessageTranslator {
 
         BEDROCK_COLORS = colorBuilder.toString();
         BEDROCK_DECORATIONS = decorationBuilder.toString();
+
+        if (BEDROCK_COLORS.length() + BEDROCK_DECORATIONS.length() > 32) {
+            throw new AssertionError("Cannot exceed 32 characters due to int-limit on formatting flags");
+        }
     }
 
     /**
@@ -224,11 +225,13 @@ public class MessageTranslator {
             int legacyLength = legacy.length();
 
             // We need to allocate at least the length of the original message, it can only grow
-            StringBuilder finalLegacy = new StringBuilder(legacyLength);
+            StringBuilder finalLegacy = new StringBuilder(legacyLength + (addLeadingResetFormat ? 2 : 0));
+            if (addLeadingResetFormat) finalLegacy.append(RESET);
+
             // A bit for each possible legacy color & formatting, since it's already been converted to legacy colors at this point.
             int appliedFormatting = 0;
 
-            boolean lastFormatReset = !addLeadingResetFormat;
+            boolean lastFormatReset = addLeadingResetFormat;
 
             for (int i = 0; i < legacyLength; i++) {
                 char legacyChar = legacy.charAt(i);
@@ -242,13 +245,18 @@ public class MessageTranslator {
                     if (legacyChar == '\n' && appliedFormatting != 0) {
                         // If there's a new line, then we need to readd the formatting.
                         // Java does continue with the same formatting, but Bedrock doesn't.
-                        applyFormattingFlags(appliedFormatting, formatChar -> finalLegacy.append(BASE).append(formatChar));
+                        applyFormattingFlags(appliedFormatting, finalLegacy);
                     }
                     continue;
                 }
 
                 char next = legacy.charAt(++i);
-                if (!lastFormatReset && BEDROCK_COLORS.indexOf(next) != -1) {
+                if (lastFormatReset && next == 'r') {
+                    // If we have two resets in a row, skip the second one.
+                    continue;
+                }
+
+                if (!lastFormatReset && BEDROCK_COLORS.indexOf(next) != -1 && appliedFormatting != 0) {
                     // Unlike Java Edition, the chat formatting (e.g. bold) is not reset when a ChatColor is added
                     finalLegacy.append(RESET);
                 }
@@ -259,15 +267,11 @@ public class MessageTranslator {
                 appliedFormatting = setFormattingFlag(appliedFormatting, next);
             }
 
-            // Remove duplicate resets and trailing resets
-            String finalLegacyString = RESET_PATTERN.matcher(finalLegacy).replaceAll(RESET);
-
-            //todo does this matter? I don't think so?
-            if (finalLegacyString.endsWith(RESET)) {
-                finalLegacyString = finalLegacyString.substring(0, finalLegacyString.length() - 2);
+            if (endsWith(finalLegacy, RESET)) {
+                return finalLegacy.substring(0, finalLegacy.length() - RESET.length());
             }
 
-            return finalLegacyString;
+            return finalLegacy.toString();
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().debug(GSON_SERIALIZER.serialize(message));
             GeyserImpl.getInstance().getLogger().error("Failed to parse message", e);
@@ -299,17 +303,17 @@ public class MessageTranslator {
         return 1 << index;
     }
 
-    private static void applyFormattingFlags(int flags, CharConsumer flagValue) {
+    private static void applyFormattingFlags(int flags, StringBuilder builder) {
         int colorCount = BEDROCK_COLORS.length();
 
         for (int i = 0; i < colorCount; i++) {
             if (((flags >> i) & 0x01) == 0x01) {
-                flagValue.accept(BEDROCK_COLORS.charAt(i));
+                builder.append(BASE).append(BEDROCK_COLORS.charAt(i));
             }
         }
         for (int i = 0; i < BEDROCK_DECORATIONS.length(); i++) {
             if (((flags >> (i + colorCount)) & 0x01) == 0x01) {
-                flagValue.accept(BEDROCK_DECORATIONS.charAt(i));
+                builder.append(BASE).append(BEDROCK_DECORATIONS.charAt(i));
             }
         }
     }
@@ -635,8 +639,8 @@ public class MessageTranslator {
         Style.Builder style = Style.style();
 
         String colorString = map.getString("color", null);
-        if (colorString != null) {
-            if (colorString.startsWith(TextColor.HEX_PREFIX)) {
+        if (colorString != null && !colorString.isEmpty()) {
+            if (colorString.charAt(0) == TextColor.HEX_CHARACTER) {
                 style.color(TextColor.fromHexString(colorString));
             } else {
                 style.color(NamedTextColor.NAMES.value(colorString));
@@ -654,6 +658,13 @@ public class MessageTranslator {
 
     public static Style getStyleFromNbtMap(NbtMap map, Style base) {
         return base.merge(getStyleFromNbtMap(map));
+    }
+
+    private static boolean endsWith(StringBuilder builder, String suffix) {
+        if (builder.length() < suffix.length()) {
+            return false;
+        }
+        return builder.indexOf(suffix, builder.length() - suffix.length() - 1) != -1;
     }
 
     public static void init() {
