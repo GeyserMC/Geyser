@@ -1505,7 +1505,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * Switch the player currently selected hotbar slot.
      */
     public void switchHeldSlot(int slot) {
-        if (!spawned || slot > 8 || playerInventoryHolder.inventory().getHeldItemSlot() == slot) {
+        if (!spawned || slot < 0 || slot > 8 || playerInventoryHolder.inventory().getHeldItemSlot() == slot) {
             // For the last condition - Don't update the slot if the slot is the same - not Java Edition behavior and messes with plugins such as Grief Prevention
             return;
         }
