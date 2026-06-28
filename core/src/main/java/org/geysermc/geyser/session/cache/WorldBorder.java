@@ -56,6 +56,7 @@ public class WorldBorder {
     private static final Color GROWING_WORLD_BORDER_COLOR = new Color(64, 255, 128);
 
     private static final int WORLD_BORDER_COLLISION_RANGE = 30;
+    private static final int BORDER_COLLISION_Y_DISTANCE = 10;
 
     @Setter
     private @NonNull Vector2d center = Vector2d.ZERO;
@@ -488,10 +489,10 @@ public class WorldBorder {
         if (xCollisionEntity != null) {
             Vector3f position = null;
             if (playerPosition.getX() < Math.max(warningMinX, minX + WORLD_BORDER_COLLISION_RANGE)) {
-                position = Vector3f.from(minX - xDistance, playerPosition.getY() - 10, playerPosition.getZ());
+                position = Vector3f.from(minX - xDistance, playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, playerPosition.getZ());
             }
             if (playerPosition.getX() > Math.min(warningMaxX, maxX - WORLD_BORDER_COLLISION_RANGE)) {
-                position = Vector3f.from(maxX + xDistance, playerPosition.getY() - 10, playerPosition.getZ());
+                position = Vector3f.from(maxX + xDistance, playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, playerPosition.getZ());
             }
 
             if (position != null) {
@@ -506,10 +507,10 @@ public class WorldBorder {
         if (zCollisionEntity != null) {
             Vector3f position = null;
             if (playerPosition.getZ() > Math.min(warningMaxZ, maxZ - WORLD_BORDER_COLLISION_RANGE)) {
-                position = Vector3f.from(playerPosition.getX(), playerPosition.getY() - 10, maxZ + zDistance);
+                position = Vector3f.from(playerPosition.getX(), playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, maxZ + zDistance);
             }
             if (playerPosition.getZ() < Math.max(warningMinZ, minZ + WORLD_BORDER_COLLISION_RANGE)) {
-                position = Vector3f.from(playerPosition.getX(), playerPosition.getY() - 10, minZ - zDistance);
+                position = Vector3f.from(playerPosition.getX(), playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, minZ - zDistance);
             }
 
             if (position != null) {
@@ -527,7 +528,7 @@ public class WorldBorder {
      */
     private Entity buildCollisionEntity() {
         Entity entity = new Entity(new EntitySpawnContext(session, EntityDefinitions.ARMOR_STAND, 0, null)); // Armor stand is just a placeholder, anything will work here.
-        entity.setPosition(session.getPlayerEntity().getPosition().down(20)); // Initial position, will change.
+        entity.setPosition(session.getPlayerEntity().getPosition().down(BORDER_COLLISION_Y_DISTANCE)); // Initial position, will change.
         entity.setFlag(EntityFlag.COLLIDABLE, true);
         entity.setFlag(EntityFlag.INVISIBLE, true);
 

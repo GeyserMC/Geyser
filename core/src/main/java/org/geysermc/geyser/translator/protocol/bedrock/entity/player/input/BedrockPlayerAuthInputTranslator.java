@@ -329,11 +329,10 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
             if (session.getWorldBorder().isPassingIntoBorderBoundaries(vehiclePosition)) {
                 // This doesn't work if teleported is false
-                vehicle.moveAbsolute(position, vehicle instanceof BoatEntity ? vehicle.getYaw() - 90 : vehicle.getYaw(), vehicle.getPitch(), vehicle.getHeadYaw(), vehicle.isOnGround(), true);
+                vehicle.moveAbsoluteRaw(position, vehicle instanceof BoatEntity ? vehicle.getYaw() - 90 : vehicle.getYaw(), vehicle.getPitch(), vehicle.getHeadYaw(), vehicle.isOnGround(), true);
 
                 final PlayerEntity playerEntity = session.getPlayerEntity();
-                Vector3f combinedPosition = Vector3f.from(playerEntity.position().getX(), playerEntity.position().getY(), playerEntity.position().getZ());
-                playerEntity.moveAbsoluteRaw(combinedPosition, playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
+                playerEntity.moveAbsoluteRaw(playerEntity.position(), playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
                 return;
             }
 
