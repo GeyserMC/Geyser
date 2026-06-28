@@ -259,3 +259,7 @@ locales/
 /languages/
 /custom-skulls.yml
 /permissions.yml
+
+# EduGeyser: bundled extension jar, committed deliberately so the build is self-contained
+!/bundled-extension/
+!/bundled-extension/edu.jar

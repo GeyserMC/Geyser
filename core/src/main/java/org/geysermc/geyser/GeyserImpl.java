@@ -117,12 +117,14 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.Key;
 import java.text.DecimalFormat;
 import java.util.Collections;
@@ -220,8 +222,32 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         GeyserLocale.finalizeDefaultLocale(this);
 
         /* Load Extensions */
+        // Stage the bundled education extension (if this build includes one) before the loader
+        // scans, so the extensions/update swap installs or updates it by id.
+        extractBundledExtension();
         this.extensionManager.init();
         this.eventBus.fire(new GeyserPreInitializeEvent(this.extensionManager, this.eventBus));
+    }
+
+    /**
+     * Stages the extension bundled inside this EduGeyser build (if any) into the extensions update
+     * folder before the loader runs, so Geyser's by-id update swap installs or updates it. Best
+     * effort: a missing resource or IO error is logged and never blocks startup.
+     */
+    private void extractBundledExtension() {
+        GeyserLogger logger = bootstrap.getGeyserLogger();
+        try (InputStream stream = GeyserImpl.class.getResourceAsStream("/extensions-bundled/edu.jar")) {
+            if (stream == null) {
+                // This build was assembled without a bundled extension; nothing to stage.
+                return;
+            }
+            Path updateFolder = bootstrap.getConfigFolder().resolve("extensions").resolve("update");
+            Files.createDirectories(updateFolder);
+            Files.copy(stream, updateFolder.resolve("edu.jar"), StandardCopyOption.REPLACE_EXISTING);
+            logger.debug("Staged the bundled education extension for installation.");
+        } catch (IOException e) {
+            logger.warning("Could not stage the bundled education extension: " + e.getMessage());
+        }
     }
 
     public void initialize() {

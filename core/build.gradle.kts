@@ -198,6 +198,17 @@ tasks.processResources {
     from(generateGitProperties) {
         into(".")
     }
+
+    // Bundle the EduGeyser extension so EduGeyser auto-installs/updates it at runtime (the jar is
+    // extracted in GeyserImpl before the extension loader scans). Present -> embed it; absent with
+    // -PrequireBundledExtension -> fail (release guard); otherwise warn and build without it.
+    val bundledExtension = rootProject.file("bundled-extension/edu.jar")
+    when {
+        bundledExtension.exists() -> from(bundledExtension) { into("extensions-bundled") }
+        project.hasProperty("requireBundledExtension") ->
+            throw GradleException("requireBundledExtension is set but no bundled extension jar at $bundledExtension")
+        else -> logger.warn("No bundled extension jar at $bundledExtension - building EduGeyser without it")
+    }
 }
 
 tasks.named("sourcesJar") {
