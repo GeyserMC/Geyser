@@ -115,7 +115,7 @@ public class PlayerInventory extends Inventory {
     @Override
     public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
         final PlayerEntity entity = session.getPlayerEntity();
-        if (slot == 36 + heldItemSlot && entity.getFlag(EntityFlag.USING_ITEM) && newItem.is(Items.CROSSBOW)) {
+        if (slot == getOffsetForHotbar(heldItemSlot)  && entity.getFlag(EntityFlag.USING_ITEM) && newItem.is(Items.CROSSBOW)) {
             List<ItemStack> chargedProjectiles = newItem.getComponent(DataComponentTypes.CHARGED_PROJECTILES);
 
             // On Java, when you finished charging a projectile into (a crossbow), the client can keep holding down
