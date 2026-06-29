@@ -232,6 +232,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.Serverbound
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSetCarriedItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.login.serverbound.ServerboundCustomQueryAnswerPacket;
 
@@ -1498,6 +1499,44 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.hasFishingRodCast = cast;
         int slot = getPlayerInventory().getOffsetForHotbar(getPlayerInventory().getHeldItemSlot());
         this.playerInventoryHolder.updateSlot(slot);
+    }
+
+    /**
+     * Switch the player currently selected hotbar slot.
+     */
+    public void switchHeldSlot(int slot) {
+        if (!spawned || slot < 0 || slot > 8 || playerInventoryHolder.inventory().getHeldItemSlot() == slot) {
+            // For the last condition - Don't update the slot if the slot is the same - not Java Edition behavior and messes with plugins such as Grief Prevention
+            return;
+        }
+
+        // Send book update before switching hotbar slot
+        bookEditCache.checkForSend();
+
+        GeyserItemStack oldItem = playerInventoryHolder.inventory().getItemInHand();
+        playerInventoryHolder.inventory().setHeldItemSlot(slot);
+
+        ServerboundSetCarriedItemPacket setCarriedItemPacket = new ServerboundSetCarriedItemPacket(slot);
+        sendDownstreamGamePacket(setCarriedItemPacket);
+
+        GeyserItemStack newItem = playerInventoryHolder.inventory().getItemInHand();
+
+        if (sneaking && newItem.is(Items.SHIELD)) {
+            // Activate shield since we are already sneaking
+            // (No need to send a release item packet - Java doesn't do this when swapping items)
+            // Required to do it a tick later or else it doesn't register
+            scheduleInEventLoop(() -> useItem(Hand.MAIN_HAND), nanosecondsPerTick, TimeUnit.NANOSECONDS);
+        }
+
+        if (!oldItem.isSameItem(newItem)) {
+            // Java sends a cooldown indicator whenever you switch to a new item type
+            CooldownUtils.setCooldownHitTime(this);
+        }
+
+        // Update the interactive tag, if an entity is present
+        if (mouseoverEntity != null) {
+            mouseoverEntity.updateInteractiveTag();
+        }
     }
 
     /**
