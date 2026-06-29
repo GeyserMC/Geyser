@@ -240,7 +240,7 @@ public class LivingEntity extends Entity implements Tickable {
         // We can't check for shield since the player is sneaking and not actually using it on their side.
         // For ender eye, it's not consider a consumable item on bedrock, so the player never sends release item use so USING_ITEM flags are always true
         // until you switch item, therefore we ignore it. Resolve https://github.com/GeyserMC/Geyser/issues/6316
-        // For charged projectiles item (like crossbow), Java is okay with the player continues using a charged crossbow, but Bedrock is not.
+        // For charged projectiles items (like crossbows), Java is okay with the player continuing using a charged crossbow, but Bedrock is not.
 
         setFlag(EntityFlag.USING_ITEM, isUsingItem && !isUsingShield && !isUsingEnderEye && !isChargedProjectilesItem);
         // Override the blocking

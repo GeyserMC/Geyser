@@ -120,7 +120,7 @@ public class PlayerInventory extends Inventory {
 
             // On Java, when you finished charging a projectile into (a crossbow), the client can keep holding down
             // right click and keep using it, however and Bedrock if you do that and allow the client to keep using the item
-            // it will loop the crossbow state, so we'll have to forcefully stop them from using the bow, and tell
+            // it will loop the crossbow state, so we'll have to forcefully stop them from using the crossbow, and tell
             // the Java server to stop using the item, because Bedrock will never send RELEASE_ITEM (even if they stop holding down right click)
             // causing a de-sync, so we'll have to do it ourselves.
 
