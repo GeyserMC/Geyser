@@ -620,6 +620,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private boolean inClientPredictedVehicle;
 
     /**
+     * Store the last time the player charged a projectile (crossbow). Used to fix crossbow discharge instantly.
+     */
+    @Setter
+    private long lastChargedProjectilesTime;
+
+    /**
      * Store the last time the player interacted. Used to fix a right-click spam bug.
      * See <a href="https://github.com/GeyserMC/Geyser/issues/503">this</a> for context.
      */
@@ -1512,6 +1518,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     public void useItem(Hand hand, boolean useTouchRotation) {
         if (playerEntity.getFlag(EntityFlag.USING_ITEM)) {
+            return;
+        }
+
+        // We don't want the crossbow to discharge instantly since the player is still holding down right click,
+        // so let's add a little bit of grace period before they can actually use the crossbow. This should be a short enough time
+        // so that they can actually discharge quickly but won't discharge if they don't want to.
+        if (hand == Hand.MAIN_HAND && System.currentTimeMillis() - lastChargedProjectilesTime < 450L) {
+            lastChargedProjectilesTime = 0;
+
+            // The client likes to cycle the crossbow here, so we need to update the crossbow item again.
+            playerInventoryHolder.updateSlot(playerInventoryHolder.inventory().getOffsetForHotbar(playerInventoryHolder.inventory().getHeldItemSlot()));
             return;
         }
 
