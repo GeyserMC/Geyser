@@ -28,16 +28,12 @@ package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 import org.cloudburstmc.protocol.bedrock.data.EmoteFlag;
 import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.entity.data.GeyserEntityDataTypes;
 import org.geysermc.geyser.api.event.bedrock.ClientEmoteEvent;
 import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.type.living.animal.farm.PigEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
-
-import java.util.UUID;
 
 @Translator(packet = EmotePacket.class)
 public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
@@ -48,45 +44,6 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
         ClientEmoteEvent event = new ClientEmoteEvent(session, packet.getEmoteId());
         if (!GeyserImpl.getInstance().config().gameplay().emotesEnabled()) {
             event.setCancelled(true);
-        }
-
-        // hack of course
-        var player = session.getPlayerEntity();
-        UUID uuid = UUID.fromString(packet.getEmoteId());
-        int i = session.getEmotes().indexOf(uuid);
-        switch (i) {
-            case 0:
-                player.update(GeyserEntityDataTypes.ROTATE_RIDER_DEGREES, player.value(GeyserEntityDataTypes.ROTATE_RIDER_DEGREES) == null ? 180f : null);
-                break;
-            case 1:
-                player.update(GeyserEntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, player.value(GeyserEntityDataTypes.SEAT_HAS_ROTATION) == null ? 360f : null);
-                break;
-            case 2:
-                player.update(GeyserEntityDataTypes.SEAT_HAS_ROTATION, player.value(GeyserEntityDataTypes.SEAT_HAS_ROTATION) == null ? true : false);
-                break;
-            case 3:
-                player.update(GeyserEntityDataTypes.ROTATION_LOCKED_TO_VEHICLE, player.value(GeyserEntityDataTypes.ROTATION_LOCKED_TO_VEHICLE) == null ? true : false);
-                break;
-            default:
-                System.out.println("Invalid emote id: " + i);
-        }
-
-        var entity = session.getEntityCache().getEntities().values().stream().filter(e -> e instanceof PigEntity).findFirst().orElseThrow();
-        switch (i) {
-            case 0:
-                entity.update(GeyserEntityDataTypes.ROTATE_RIDER_DEGREES, player.value(GeyserEntityDataTypes.ROTATE_RIDER_DEGREES) == null ? 180f : null);
-                break;
-            case 1:
-                entity.update(GeyserEntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, player.value(GeyserEntityDataTypes.SEAT_HAS_ROTATION) == null ? 360f : null);
-                break;
-            case 2:
-                entity.update(GeyserEntityDataTypes.SEAT_HAS_ROTATION, player.value(GeyserEntityDataTypes.SEAT_HAS_ROTATION) == null ? true : false);
-                break;
-            case 3:
-                entity.update(GeyserEntityDataTypes.ROTATION_LOCKED_TO_VEHICLE, player.value(GeyserEntityDataTypes.ROTATION_LOCKED_TO_VEHICLE) == null ? true : false);
-                break;
-            default:
-                System.out.println("Invalid emote id: " + i);
         }
 
         session.getGeyser().eventBus().fire(event);
