@@ -36,25 +36,39 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/*
+ * Hitboxes are weird...
+ * - an empty NbtTag -> client falls back to default hitboxes
+ * - there can be multiple custom hitboxes for an entity
+ * - overriding the hitbox ("disabling") works by sending an "empty" one
+ * - hitboxes are absolute, not relative
+ *
+ * The API is designed with this logic:
+ * - sending null -> disable custom hitboxes, fallback to default
+ * - sending empty list -> disable all hitboxes
+ * - sending hitboxes -> custom hitboxes
+ */
 public record HitboxImpl(Vector3f min, Vector3f max, Vector3f pivot) implements Hitbox {
 
-    public static final Hitbox EMPTY = new HitboxImpl(Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO);
+    private static final NbtMap DISABLED_HITBOX = toNbtMap(new HitboxImpl(Vector3f.ZERO, Vector3f.ZERO, Vector3f.ZERO));
 
-    public static List<Hitbox> fromMetaData(@Nullable NbtMap metaDataMap) {
-        if (metaDataMap == null) {
+    public static @Nullable List<Hitbox> fromMetaData(@Nullable NbtMap metaDataMap) {
+        if (metaDataMap == null || metaDataMap.isEmpty()) {
+            return null;
+        }
+
+        if (Objects.equals(metaDataMap, DISABLED_HITBOX)) {
             return List.of();
         }
 
         List<Hitbox> boxes = new ArrayList<>();
-        List<NbtMap> hitboxes = metaDataMap.getList("Hitboxes", NbtType.COMPOUND);
-        for (NbtMap hitbox : hitboxes) {
+        for (NbtMap hitbox : metaDataMap.getList("Hitboxes", NbtType.COMPOUND)) {
             boxes.add(new HitboxImpl(
                 Vector3f.from(hitbox.getFloat("MinX"), hitbox.getFloat("MinY"), hitbox.getFloat("MinZ")),
                 Vector3f.from(hitbox.getFloat("MaxX"), hitbox.getFloat("MaxY"), hitbox.getFloat("MaxZ")),
                 Vector3f.from(hitbox.getFloat("PivotX"), hitbox.getFloat("PivotY"), hitbox.getFloat("PivotZ"))
             ));
         }
-        // TODO test empty hitbox reading.. should be parsed to empty list
         return boxes;
     }
 
@@ -72,13 +86,19 @@ public record HitboxImpl(Vector3f min, Vector3f max, Vector3f pivot) implements 
             .build();
     }
 
-    public static NbtMap toNbtMap(List<Hitbox> hitboxes) {
+    public static NbtMap toNbtMap(@Nullable List<Hitbox> hitboxes) {
+        // Null: reset to default hitboxes
+        if (hitboxes == null) {
+            return NbtMap.EMPTY;
+        }
+
+        if (hitboxes.isEmpty()) {
+            return DISABLED_HITBOX;
+        }
+
         List<NbtMap> list = new ArrayList<>();
         for (Hitbox hitbox : hitboxes) {
             list.add(toNbtMap(hitbox));
-        }
-        if (list.isEmpty()) {
-            list.add(NbtMap.EMPTY);
         }
         return NbtMap.builder().putList("Hitboxes", NbtType.COMPOUND, list).build();
     }
