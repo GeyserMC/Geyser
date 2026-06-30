@@ -55,7 +55,7 @@ public interface GeyserEntityDefinition {
      * Returns the entity properties registered in the {@link GeyserDefineEntityPropertiesEvent} for this entity type.
      *
      * @see GeyserEntityProperty
-     * @return the entity properties registered for this entity type
+     * @return an unmodifiable list containing entity properties registered for this entity type
      * @since 2.11.0
      */
     @ApiStatus.Experimental
