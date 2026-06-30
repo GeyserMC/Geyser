@@ -61,7 +61,7 @@ blossom = "2.2.0"
 runtask = "3.0.2"
 
 # run tasks versions
-runpaperversion = "26.1.2"
+runpaperversion = "26.2"
 runvelocityversion = "3.5.0-SNAPSHOT"
 
 [libraries]

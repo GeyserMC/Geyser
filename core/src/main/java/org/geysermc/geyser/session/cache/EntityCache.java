@@ -39,6 +39,7 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,12 +49,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
-import lombok.Getter;
-import org.geysermc.geyser.entity.type.Entity;
-import org.geysermc.geyser.entity.type.Tickable;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 
 /**
  * Each session has its own EntityCache in the occasion that an entity packet is sent specifically

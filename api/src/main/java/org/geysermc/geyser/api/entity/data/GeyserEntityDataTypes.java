@@ -123,7 +123,7 @@ public final class GeyserEntityDataTypes {
 
     /**
      * Whether the entity's rotation is locked to the vehicle it is riding.
-     * This is used for boats or happy ghasts in the vanilla game.
+     * This is used for boats and happy ghasts in the vanilla game.
      *
      * @see <a href="https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_rotation_locked_to_vehicle?view=minecraft-bedrock-stable">Official documentation</a>
      * @since 2.11.0
@@ -133,9 +133,9 @@ public final class GeyserEntityDataTypes {
         GeyserEntityDataType.create(Identifier.of("rotation_locked_to_vehicle"), Boolean.class);
 
     /**
-     * The degrees of rotation the seat is locked to the rider's rotation.
-     * This is used for boats or happy ghasts in the vanilla game.
-     * todo: document / test properly, possible combine with seat_has_rotation below
+     * The degrees of rotation a rider may rotate within, set on the rider entity.
+     * This is used for boats and happy ghasts in the vanilla game to prevent "looking backwards" while riding it
+     *
      * @since 2.11.0
      */
     @ApiStatus.Experimental
@@ -143,7 +143,7 @@ public final class GeyserEntityDataTypes {
         GeyserEntityDataType.create(Identifier.of("seat_lock_rider_rotation_degrees"), Float.class);
 
     /**
-     * todo: document
+     * Whether an entity riding another vehicle is sitting on a seat which has rotation.
      *
      * @since 2.11.0
      */
@@ -153,7 +153,7 @@ public final class GeyserEntityDataTypes {
 
     /**
      * The degrees of rotation that this seat is offset by. Equivalent to "rotate_rider_by" in the {@code minecraft:rideable} entity component.
-     * This is used for boats, and is equivalent to {@code rotate_rider_by} in the {@code minecraft:rideable} entity component.
+     * This is used for boats to make the player face forward, and is equivalent to {@code rotate_rider_by} in the {@code minecraft:rideable} entity component.
      *
      * @see <a href="https://learn.microsoft.com/en-us/minecraft/creator/reference/content/entityreference/examples/entitycomponents/minecraftcomponent_rideable?view=minecraft-bedrock-stable">Official documentation</a>
      * @since 2.11.0

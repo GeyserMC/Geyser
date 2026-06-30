@@ -948,7 +948,7 @@ public class Entity implements GeyserEntity {
     }
 
     @Override
-    public <T> T value(@NonNull GeyserEntityDataType<T> dataType) {
+    public @Nullable <T> T value(@NonNull GeyserEntityDataType<T> dataType) {
         return EntityDataBehaviorRegistry.get(this, dataType);
     }
 
