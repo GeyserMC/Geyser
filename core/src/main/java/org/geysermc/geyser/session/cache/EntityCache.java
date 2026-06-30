@@ -143,6 +143,8 @@ public class EntityCache {
     }
 
     public void removeAllEntities() {
+        session.getWorldBorder().clearCollision();
+
         List<Entity> entities = new ArrayList<>(this.entities.values());
         for (Entity entity : entities) {
             removeEntity(entity);
