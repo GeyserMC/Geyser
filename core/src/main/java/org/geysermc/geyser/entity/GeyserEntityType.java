@@ -54,7 +54,7 @@ public record GeyserEntityType(Identifier identifier, EntityType mcpl) implement
 
     @Override
     public boolean vanilla() {
-        return mcpl != null;
+        return true;
     }
 
     @Override

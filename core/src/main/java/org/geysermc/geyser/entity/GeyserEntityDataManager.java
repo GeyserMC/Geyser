@@ -30,8 +30,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataMap;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
+import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A wrapper for temporarily storing entity metadata that will be sent to Bedrock.
@@ -39,10 +41,9 @@ import java.util.Map;
 public final class GeyserEntityDataManager {
 
     /**
-     * Map storing all current metadata
-     * Note: Only tracks the metadata listed above that's made available in the API.
+     * Map storing all current values of tracked metadata that's made available in the API.
      */
-    private final Map<EntityDataType<?>, Object> metadata = new Object2ObjectLinkedOpenHashMap<>();
+    private final Map<EntityDataType<?>, Object> metadata = new ConcurrentHashMap<>();
 
     /**
      * Map storing the metadata updates until they're sent to Bedrock, then cleared.
@@ -50,9 +51,9 @@ public final class GeyserEntityDataManager {
     private final Map<EntityDataType<?>, Object> dirtyMetadata = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
-     * Map storing all overridden metadata
+     * Map storing currently overridden metadata via the {@link GeyserEntityDataType} API; readable from any thread.
      */
-    private final Map<EntityDataType<?>, Object> overrides = new Object2ObjectLinkedOpenHashMap<>();
+    private final Map<EntityDataType<?>, Object> overrides = new ConcurrentHashMap<>();
 
     public <T> void put(EntityDataType<T> entityData, T value) {
         if (EntityDataBehaviorRegistry.TRACKED_ENTITY_DATA.contains(entityData)) {
@@ -61,6 +62,7 @@ public final class GeyserEntityDataManager {
             // But use the override if it exists
             Object override = overrides.get(entityData);
             if (override != null) {
+                //noinspection unchecked
                 value = (T) override;
             }
         }
@@ -84,6 +86,7 @@ public final class GeyserEntityDataManager {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public <T> @Nullable T value(EntityDataType<T> entityData) {
         if (!EntityDataBehaviorRegistry.TRACKED_ENTITY_DATA.contains(entityData)) {
             throw new IllegalArgumentException("Entity data type not tracked: " + entityData.getClass().getSimpleName());

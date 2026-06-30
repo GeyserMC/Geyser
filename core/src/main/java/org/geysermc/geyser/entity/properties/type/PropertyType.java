@@ -41,7 +41,7 @@ public interface PropertyType<Type, NetworkRepresentation extends EntityProperty
 
     default void apply(@Nullable GeyserEntityPropertyManager manager, Type value) {
         if (manager == null) {
-            GeyserImpl.getInstance().getLogger().debug("Not updating property %s with value %s due to no property manager! ", identifier(), value);
+            GeyserImpl.getInstance().getLogger().debug("Not updating property %s with value %s due to no property manager!", identifier(), value);
             return;
         }
         manager.addProperty(this, value);

@@ -412,7 +412,7 @@ public class ArmorStandEntity extends LivingEntity {
         if (!positionRequiresOffset || isMarker || secondEntity != null) {
             return 0;
         }
-        return getBoundingBoxHeight() * getScale();
+        return javaDefinition.height() * getScale();
     }
 
     /**

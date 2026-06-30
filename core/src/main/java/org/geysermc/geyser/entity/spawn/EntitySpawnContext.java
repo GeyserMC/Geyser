@@ -33,6 +33,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.common.util.TriFunction;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.data.GeyserEntityDataTypes;
 import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
 import org.geysermc.geyser.api.entity.definition.JavaEntityType;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
@@ -41,6 +42,7 @@ import org.geysermc.geyser.api.event.java.ServerAttachParrotsEvent;
 import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -176,6 +178,35 @@ public class EntitySpawnContext {
         };
 
         GeyserImpl.getInstance().eventBus().fire(event);
+
+        if (event.entityType().is(VanillaEntities.ACACIA_BOAT.entityType().identifier())) {
+            event.preSpawnConsumer(e -> {
+                e.update(GeyserEntityDataTypes.SEAT_HAS_ROTATION, false);
+            });
+        }
+
+        if (event.entityType().is(VanillaEntities.OAK_BOAT.entityType().identifier())) {
+            event.preSpawnConsumer(e -> {
+                e.update(GeyserEntityDataTypes.SEAT_HAS_ROTATION, false);
+                e.update(GeyserEntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 100f);
+                e.update(GeyserEntityDataTypes.ROTATE_RIDER_DEGREES, 0f);
+            });
+        }
+
+        if (event.entityType().is(VanillaEntities.SPRUCE_BOAT.entityType().identifier())) {
+            event.preSpawnConsumer(e -> {
+                e.update(GeyserEntityDataTypes.SEAT_HAS_ROTATION, false);
+                e.update(GeyserEntityDataTypes.ROTATE_RIDER_DEGREES, 100f);
+            });
+        }
+
+        if (event.entityType().is(VanillaEntities.MANGROVE_BOAT.entityType().identifier())) {
+            event.preSpawnConsumer(e -> {
+                e.update(GeyserEntityDataTypes.SEAT_HAS_ROTATION, true);
+                e.update(GeyserEntityDataTypes.ROTATE_RIDER_DEGREES, 250f);
+            });
+        }
+
         return bedrockEntityDefinition != null && !event.isCancelled();
     }
 

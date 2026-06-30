@@ -36,16 +36,16 @@ import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.input.InputLocksFlag;
 import org.geysermc.geyser.session.GeyserSession;
 
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GeyserEntityData implements EntityData {
 
     private final GeyserSession session;
-    private final Set<UUID> movementLockOwners = new HashSet<>();
+    private final Set<UUID> movementLockOwners = ConcurrentHashMap.newKeySet();
 
     public GeyserEntityData(GeyserSession session) {
         this.session = session;
@@ -112,8 +112,10 @@ public class GeyserEntityData implements EntityData {
             movementLockOwners.remove(owner);
         }
 
-        session.setLockInput(InputLocksFlag.MOVEMENT, isMovementLocked());
-        session.updateInputLocks();
+        session.executeInEventLoop(() -> {
+            session.setLockInput(InputLocksFlag.MOVEMENT, isMovementLocked());
+            session.updateInputLocks();
+        });
         return isMovementLocked();
     }
 

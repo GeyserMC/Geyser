@@ -31,11 +31,14 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
 import org.geysermc.geyser.api.entity.data.GeyserEntityDataTypes;
 import org.geysermc.geyser.api.entity.data.GeyserListEntityDataType;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.impl.entity.HitboxImpl;
+import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.Collections;
 import java.util.List;
@@ -48,6 +51,7 @@ public final class EntityDataBehaviorRegistry {
 
     public static final Set<EntityDataType<?>> TRACKED_ENTITY_DATA;
     private static final Map<GeyserEntityDataType<?>, EntityDataBehavior<?>> BEHAVIORS;
+    private static final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
 
     static {
         Set<EntityDataType<?>> tracked = new ObjectOpenHashSet<>();
@@ -112,6 +116,11 @@ public final class EntityDataBehaviorRegistry {
             throw new IllegalArgumentException("Unknown entity data type: " + type.identifier()
                 + "; only types defined in GeyserEntityDataTypes are supported");
         }
+        GeyserSession session = entity.getSession();
+        if (logger.isDebug()) {
+            logger.debug(session, "Custom entity API: Updating %s to %s", type.identifier(), value);
+        }
+
         behavior.setter().accept(entity, value);
     }
 
