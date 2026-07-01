@@ -66,6 +66,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
@@ -387,6 +388,13 @@ public class SessionPlayerEntity extends PlayerEntity {
         } else {
             return session.getPlayerInventory().getItemInHand().is(Items.SHIELD);
         }
+    }
+
+    @Override
+    protected boolean hasChargedProjectiles() {
+        // Must be overridden to point to the player's inventory cache
+        List<ItemStack> chargedProjectiles = session.getPlayerInventory().getItemInHand().getComponent(DataComponentTypes.CHARGED_PROJECTILES);
+        return chargedProjectiles != null && !chargedProjectiles.isEmpty();
     }
 
     @Override
