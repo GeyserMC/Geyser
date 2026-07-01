@@ -28,10 +28,13 @@ package org.geysermc.geyser.level.block.type;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.util.BlockEntityUtils;
 
-public class BedBlock extends Block {
+// Beds are a block on Java, but a block entity on Bedrock, so the block entity (carrying the color) must be sent both
+// when the block is placed (updateBlock) and when a chunk containing it loads (BedrockChunkWantsBlockEntityTag).
+public class BedBlock extends Block implements BedrockChunkWantsBlockEntityTag {
     private final int dyeColor;
 
     public BedBlock(String javaIdentifier, int dyeColor, Builder builder) {
@@ -42,11 +45,11 @@ public class BedBlock extends Block {
     @Override
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
         super.updateBlock(session, state, position);
-        // Block on Java, block entity on bedrock
-        BlockEntityUtils.updateBlockEntity(session, createTag(position), position);
+        BlockEntityUtils.updateBlockEntity(session, createTag(session, position, state), position);
     }
 
-    private NbtMap createTag(Vector3i position) {
+    @Override
+    public NbtMap createTag(GeyserSession session, Vector3i position, BlockState blockState) {
         return BlockEntityTranslator.getConstantBedrockTag("Bed", position)
             .putByte("color", (byte) dyeColor)
             .build();
