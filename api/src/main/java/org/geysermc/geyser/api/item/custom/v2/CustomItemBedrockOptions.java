@@ -103,6 +103,18 @@ public interface CustomItemBedrockOptions {
     Set<Identifier> tags();
 
     /**
+     * If the item can be dyed, like leather armor. Defaults to false.
+     *
+     * <p>When enabled, the item is registered as dyeable on Bedrock and is tinted according to the
+     * {@code minecraft:dyed_color} data component present on the item server-side. The item's texture
+     * should be designed to be tinted (e.g. grayscale), otherwise the tint may not appear as expected.</p>
+     *
+     * @return true if the item can be dyed, false otherwise
+     * @since 2.11.0
+     */
+    boolean dyeable();
+
+    /**
      * Creates a new builder for custom item bedrock options.
      *
      * @return a new builder
@@ -204,6 +216,17 @@ public interface CustomItemBedrockOptions {
          */
         @This
         Builder tags(@Nullable Set<Identifier> tags);
+
+        /**
+         * Sets if the item can be dyed, like leather armor.
+         *
+         * @param dyeable if the item can be dyed
+         * @see CustomItemBedrockOptions#dyeable()
+         * @return this builder
+         * @since 2.11.0
+         */
+        @This
+        Builder dyeable(boolean dyeable);
 
         /**
          * Creates the custom item bedrock options.

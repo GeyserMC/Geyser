@@ -262,6 +262,10 @@ public class Item {
             builder.putByte("Unbreakable", (byte) 1);
         }
 
+        // Tints any item that carries a dyed color component (vanilla leather armor, wolf armor, and custom items
+        // marked dyeable via the API). Only has a visible effect on items Bedrock treats as dyeable.
+        translateDyedColor(components, builder);
+
         // Prevents the client from trying to stack items with untranslated components
         // Relies on correct hash code implementation, and some luck
         // However, we should only set a hash when the components differ from the default ones,

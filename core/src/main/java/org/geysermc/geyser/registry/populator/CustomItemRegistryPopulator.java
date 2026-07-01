@@ -297,6 +297,10 @@ public class CustomItemRegistryPopulator {
                 .build());
         }
 
+        if (context.definition().bedrockOptions().dyeable()) {
+            computeDyeableProperties(componentBuilder);
+        }
+
         AttackRange attackRange = context.components().getOrDefault(DataComponentTypes.ATTACK_RANGE, DEFAULT_ATTACK_RANGE);
 
         KineticWeapon kineticWeapon = context.components().get(DataComponentTypes.KINETIC_WEAPON);
@@ -426,10 +430,14 @@ public class CustomItemRegistryPopulator {
         // This makes bedrock use a 3D render of the block this item places as icon
         GeyserBlockPlacer blockPlacer = definition.components().get(GeyserItemDataComponents.BLOCK_PLACER);
         if (blockPlacer == null || !blockPlacer.useBlockIcon()) {
+            NbtMapBuilder textures = NbtMap.builder().putString("default", definition.icon());
+            if (options.dyeable()) {
+                // Bedrock renders (and tints by customColor) the "dyed" icon texture state when the item has a dye color.
+                // Without it, dyed dyeable items render invisibly. Reuse the item's icon - it should be grayscale so the tint shows.
+                textures.putString("dyed", definition.icon());
+            }
             NbtMap iconMap = NbtMap.builder()
-                .putCompound("textures", NbtMap.builder()
-                    .putString("default", definition.icon())
-                    .build())
+                .putCompound("textures", textures.build())
                 .build();
             itemProperties.putCompound("minecraft:icon", iconMap);
         }
@@ -577,6 +585,14 @@ public class CustomItemRegistryPopulator {
         componentBuilder.putCompound("minecraft:enchantable", NbtMap.builder()
             .putString("slot", "all")
             .putByte("value", (byte) enchantmentValue)
+            .build());
+    }
+
+    private static void computeDyeableProperties(NbtMapBuilder componentBuilder) {
+        // Registers the item as dyeable on Bedrock (dyed in a cauldron), tinted by the "customColor" NBT tag
+        // (set at runtime from the Java minecraft:dyed_color component, see Item#translateDyedColor).
+        componentBuilder.putCompound("minecraft:dyeable", NbtMap.builder()
+            .putString("default_color", "#FFFFFF")
             .build());
     }
 

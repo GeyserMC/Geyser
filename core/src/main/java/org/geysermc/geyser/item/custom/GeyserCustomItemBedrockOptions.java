@@ -38,7 +38,8 @@ import java.util.Objects;
 import java.util.Set;
 
 public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allowOffhand, boolean displayHandheld, int protectionValue,
-                                             @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup, @NonNull Set<Identifier> tags) implements CustomItemBedrockOptions {
+                                             @NonNull CreativeCategory creativeCategory, @Nullable String creativeGroup, @NonNull Set<Identifier> tags,
+                                             boolean dyeable) implements CustomItemBedrockOptions {
 
     @Override
     public int protectionValue() {
@@ -60,6 +61,7 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         private CreativeCategory creativeCategory = CreativeCategory.NONE;
         private String creativeGroup = null;
         private Set<Identifier> tags = new HashSet<>();
+        private boolean dyeable = false;
 
         @Override
         public Builder icon(@Nullable String icon) {
@@ -112,9 +114,15 @@ public record GeyserCustomItemBedrockOptions(@Nullable String icon, boolean allo
         }
 
         @Override
+        public Builder dyeable(boolean dyeable) {
+            this.dyeable = dyeable;
+            return this;
+        }
+
+        @Override
         public CustomItemBedrockOptions build() {
             return new GeyserCustomItemBedrockOptions(icon, allowOffhand, displayHandheld, protectionValue,
-                creativeCategory, creativeGroup, Set.copyOf(tags));
+                creativeCategory, creativeGroup, Set.copyOf(tags), dyeable);
         }
     }
 }
