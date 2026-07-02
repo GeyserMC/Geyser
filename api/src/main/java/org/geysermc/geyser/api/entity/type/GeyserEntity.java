@@ -114,16 +114,31 @@ public interface GeyserEntity {
     List<GeyserEntity> passengers();
 
     /**
-     * Reads the current value of a given {@link GeyserEntityDataType}.
+     * Reads the current value of a given {@link GeyserEntityDataType} which
+     * would currently be sent to players - either the {@link #override(GeyserEntityDataType)}, or the
+     * base value, if one is sent by default.
      *
      * @see GeyserEntityDataTypes
      * @param dataType the entity data type to query
      * @param <T> the type of the value
-     * @return the current value, or {@code null} if no override has been set
+     * @return the current value, or {@code null} if none is known
      * @since 2.11.0
      */
     @ApiStatus.Experimental
     <T> @Nullable T value(GeyserEntityDataType<T> dataType);
+
+    /**
+     * Reads the current override of a given {@link GeyserEntityDataType}, or
+     * null if no override was defined.
+     *
+     * @see GeyserEntityDataTypes
+     * @param dataType the entity data type override to query
+     * @param <T> the type of the value
+     * @return the current override value, or {@code null} if no override has been set
+     * @since 2.11.0
+     */
+    @ApiStatus.Experimental
+    <T> @Nullable T override(GeyserEntityDataType<T> dataType);
 
     /**
      * Overrides an entity data value for this entity.
@@ -136,7 +151,7 @@ public interface GeyserEntity {
      * @since 2.11.0
      */
     @ApiStatus.Experimental
-     <T> void update(GeyserEntityDataType<T> dataType, @Nullable T value);
+    <T> void override(GeyserEntityDataType<T> dataType, @Nullable T value);
 
     /**
      * Convenience method to update a single entity property.

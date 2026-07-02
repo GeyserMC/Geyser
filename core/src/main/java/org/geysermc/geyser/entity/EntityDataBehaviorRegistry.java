@@ -35,7 +35,7 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.entity.data.GeyserEntityDataType;
 import org.geysermc.geyser.api.entity.data.GeyserEntityDataTypes;
-import org.geysermc.geyser.api.entity.data.GeyserListEntityDataType;
+import org.geysermc.geyser.api.entity.data.types.Hitbox;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.impl.entity.HitboxImpl;
 import org.geysermc.geyser.session.GeyserSession;
@@ -44,8 +44,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 public final class EntityDataBehaviorRegistry {
 
@@ -68,76 +66,128 @@ public final class EntityDataBehaviorRegistry {
         register(behaviors, tracked, GeyserEntityDataTypes.SEAT_HAS_ROTATION, EntityDataTypes.SEAT_HAS_ROTATION);
         register(behaviors, tracked, GeyserEntityDataTypes.ROTATE_RIDER_DEGREES, EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES);
 
-        register(behaviors, GeyserEntityDataTypes.VERTICAL_OFFSET,
-            (entity, v) -> entity.offset(v, true),
-            Entity::getOffset);
+        // The vertical offset lives on the entity itself rather than as metadata, but it
+        // still exposes a value (the effective offset) and an override (the API-set offset, if any).
+        behaviors.put(GeyserEntityDataTypes.VERTICAL_OFFSET, new EntityDataBehavior<Float>() {
+            @Override
+            public void set(@NonNull Entity entity, @Nullable Float value) {
+                entity.setOffsetOverride(value);
+            }
 
-        registerList(behaviors, tracked, GeyserEntityDataTypes.HITBOXES,
-            (entity, hitboxes) -> entity.getDirtyMetadata().updateOverride(EntityDataTypes.HITBOX, HitboxImpl.toNbtMap(hitboxes)),
-            entity -> HitboxImpl.fromMetaData(entity.getDirtyMetadata().value(EntityDataTypes.HITBOX)),
-            EntityDataTypes.HITBOX);
+            @Override
+            public Float value(@NonNull Entity entity) {
+                return entity.getOffset();
+            }
+
+            @Override
+            public @Nullable Float override(@NonNull Entity entity) {
+                return entity.getOffsetOverride();
+            }
+        });
+
+        // Hitboxes are stored in the metadata manager as an NbtMap
+        tracked.add(EntityDataTypes.HITBOX);
+        behaviors.put(GeyserEntityDataTypes.HITBOXES, new EntityDataBehavior<List<Hitbox>>() {
+            @Override
+            public void set(@NonNull Entity entity, @Nullable List<Hitbox> value) {
+                entity.getDirtyMetadata().updateOverride(EntityDataTypes.HITBOX, HitboxImpl.toNbtMap(value));
+            }
+
+            @Override
+            public @Nullable List<Hitbox> value(@NonNull Entity entity) {
+                return HitboxImpl.fromMetaData(entity.getDirtyMetadata().value(EntityDataTypes.HITBOX));
+            }
+
+            @Override
+            public @Nullable List<Hitbox> override(@NonNull Entity entity) {
+                return HitboxImpl.fromMetaData(entity.getDirtyMetadata().override(EntityDataTypes.HITBOX));
+            }
+        });
 
         TRACKED_ENTITY_DATA = Collections.unmodifiableSet(tracked);
         BEHAVIORS = Collections.unmodifiableMap(behaviors);
     }
 
+    /**
+     * Registers a data type whose value and override are stored in the entity's
+     * {@link GeyserEntityDataManager} under the given Bedrock data type.
+     */
     private static <T> void register(Map<GeyserEntityDataType<?>, EntityDataBehavior<?>> map,
                                      Set<EntityDataType<?>> tracked,
                                      GeyserEntityDataType<T> type,
                                      EntityDataType<T> bedrockType) {
-        map.put(type, new EntityDataBehavior<>(
-            (entity, v) -> entity.getDirtyMetadata().updateOverride(bedrockType, v),
-            entity -> entity.getDirtyMetadata().value(bedrockType)
-        ));
+        map.put(type, new EntityDataBehavior<T>() {
+            @Override
+            public void set(@NonNull Entity entity, @Nullable T value) {
+                entity.getDirtyMetadata().updateOverride(bedrockType, value);
+            }
+
+            @Override
+            public @Nullable T value(@NonNull Entity entity) {
+                return entity.getDirtyMetadata().value(bedrockType);
+            }
+
+            @Override
+            public @Nullable T override(@NonNull Entity entity) {
+                return entity.getDirtyMetadata().override(bedrockType);
+            }
+        });
         tracked.add(bedrockType);
     }
 
-    private static <T> void register(Map<GeyserEntityDataType<?>, EntityDataBehavior<?>> map,
-                                     GeyserEntityDataType<T> type,
-                                     BiConsumer<Entity, T> setter,
-                                     Function<Entity, T> getter) {
-        map.put(type, new EntityDataBehavior<>(setter, getter));
-    }
-
-    private static <T> void registerList(Map<GeyserEntityDataType<?>, EntityDataBehavior<?>> map,
-                                         Set<EntityDataType<?>> tracked,
-                                         GeyserListEntityDataType<T> type,
-                                         BiConsumer<Entity, List<T>> setter,
-                                         Function<Entity, List<T>> getter,
-                                         EntityDataType<?> bedrockType) {
-        map.put(type, new EntityDataBehavior<>(setter, getter));
-        tracked.add(bedrockType);
-    }
-
-    @SuppressWarnings("unchecked")
     public static <T> void update(@NonNull Entity entity, @NonNull GeyserEntityDataType<T> type, @Nullable T value) {
-        var behavior = (EntityDataBehavior<T>) BEHAVIORS.get(type);
-        if (behavior == null) {
-            throw new IllegalArgumentException("Unknown entity data type: " + type.identifier()
-                + "; only types defined in GeyserEntityDataTypes are supported");
-        }
+        EntityDataBehavior<T> behavior = behavior(type);
         GeyserSession session = entity.getSession();
         if (logger.isDebug()) {
             logger.debug(session, "Custom entity API: Updating %s to %s", type.identifier(), value);
         }
 
-        behavior.setter().accept(entity, value);
+        behavior.set(entity, value);
+    }
+
+    /**
+     * Reads the value currently shown to the Bedrock client: the override if one is set, otherwise the base value.
+     */
+    public static <T> @Nullable T value(@NonNull Entity entity, @NonNull GeyserEntityDataType<T> type) {
+        return behavior(type).value(entity);
+    }
+
+    /**
+     * Reads only the active API override, or {@code null} if none has been set.
+     */
+    public static <T> @Nullable T override(@NonNull Entity entity, @NonNull GeyserEntityDataType<T> type) {
+        return behavior(type).override(entity);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> @Nullable T get(@NonNull Entity entity, @NonNull GeyserEntityDataType<T> type) {
-        var behavior = (EntityDataBehavior<T>) BEHAVIORS.get(type);
+    private static <T> EntityDataBehavior<T> behavior(@NonNull GeyserEntityDataType<T> type) {
+        EntityDataBehavior<T> behavior = (EntityDataBehavior<T>) BEHAVIORS.get(type);
         if (behavior == null) {
             throw new IllegalArgumentException("Unknown entity data type: " + type.identifier()
                 + "; only types defined in GeyserEntityDataTypes are supported");
         }
-        return behavior.getter().apply(entity);
+        return behavior;
     }
 
     private EntityDataBehaviorRegistry() {}
 
-    private record EntityDataBehavior<T>(
-        @NonNull BiConsumer<Entity, T> setter,
-        @NonNull Function<Entity, T> getter
-    ) {}
+    /**
+     * Encapsulates how a single {@link GeyserEntityDataType} is stored and read for an entity
+     */
+    private interface EntityDataBehavior<T> {
+        /**
+         * Applies the API override for this data type, or clears it if {@code value} is {@code null}.
+         */
+        void set(@NonNull Entity entity, @Nullable T value);
+
+        /**
+         * The value currently shown to the Bedrock client: the override if set, otherwise the base value.
+         */
+        @Nullable T value(@NonNull Entity entity);
+
+        /**
+         * The active API override, or {@code null} if none has been set.
+         */
+        @Nullable T override(@NonNull Entity entity);
+    }
 }

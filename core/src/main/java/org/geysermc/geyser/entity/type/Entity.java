@@ -112,6 +112,12 @@ public class Entity implements GeyserEntity {
     protected Vector3f position;
     protected Vector3f motion;
     private float offset;
+    /**
+     * The vertical offset set via the entity data API, or {@code null} if no override is active.
+     * Written on the event loop, but readable from any thread through the entity data API.
+     */
+    @Setter(AccessLevel.NONE)
+    private volatile @Nullable Float offsetOverride;
 
     /**
      * x = Yaw, y = Pitch, z = HeadYaw
@@ -873,12 +879,12 @@ public class Entity implements GeyserEntity {
     }
 
     @Override
-    public List<GeyserEntity> passengers() {
+    public @NonNull List<GeyserEntity> passengers() {
         return List.copyOf(this.passengers);
     }
 
     @Override
-    public void updatePropertiesBatched(Consumer<BatchPropertyUpdater> consumer, boolean immediate) {
+    public void updatePropertiesBatched(@NonNull Consumer<BatchPropertyUpdater> consumer, boolean immediate) {
         if (this.propertyManager == null) {
             throw new IllegalArgumentException("Given entity has no registered properties!");
         }
@@ -921,10 +927,13 @@ public class Entity implements GeyserEntity {
         });
     }
 
-    public void offset(@Nullable Float offset, boolean teleport) {
-        setOffset(offset == null ? javaDefinition.offset() : offset);
-        // TODO queue
-        if (isValid() && teleport) {
+    public float getOffset() {
+        return Objects.requireNonNullElse(this.offsetOverride, offset);
+    }
+
+    public void setOffsetOverride(@Nullable Float offset) {
+        this.offsetOverride = offset;
+        if (isValid()) {
             this.moveRelativeRaw(0, 0, 0, 0, 0, 0, isOnGround());
         }
     }
@@ -940,7 +949,7 @@ public class Entity implements GeyserEntity {
     }
 
     @Override
-    public <T> void update(@NonNull GeyserEntityDataType<T> dataType, @Nullable T value) {
+    public <T> void override(@NonNull GeyserEntityDataType<T> dataType, @Nullable T value) {
         session.ensureInEventLoop(() -> {
             EntityDataBehaviorRegistry.update(this, dataType, value);
             session.getEntityCache().markDirty(this);
@@ -949,7 +958,12 @@ public class Entity implements GeyserEntity {
 
     @Override
     public @Nullable <T> T value(@NonNull GeyserEntityDataType<T> dataType) {
-        return EntityDataBehaviorRegistry.get(this, dataType);
+        return EntityDataBehaviorRegistry.value(this, dataType);
+    }
+
+    @Override
+    public @Nullable <T> T override(@NonNull GeyserEntityDataType<T> dataType) {
+        return EntityDataBehaviorRegistry.override(this, dataType);
     }
 
     public EntityType getEntityType() {

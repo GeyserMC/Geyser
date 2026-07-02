@@ -38,7 +38,7 @@ import java.util.Objects;
  * such as a {@code Byte}, {@code Integer}, {@code Float}; and the name associated with the types.
  * <p>
  * Unlike properties of custom items or blocks, it is possible to update entity metadata at runtime,
- * which can be done using {@link GeyserEntity#update(GeyserEntityDataType, Object)}.
+ * which can be done using {@link GeyserEntity#override(GeyserEntityDataType, Object)}.
  * <p>
  * Only the built-in types in {@link GeyserEntityDataTypes} are supported. Attempting to use a type
  * not provided by Geyser will throw an {@link IllegalArgumentException} at runtime.
