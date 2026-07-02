@@ -38,6 +38,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 /**
@@ -52,6 +54,8 @@ public class PlayFabTokenManager {
     private static final String SESSION_START_URL = "https://authorization.franchise.minecraft-services.net/api/v1.0/session/start";
     private static final String TITLE_ID = "6955F";
     private static final int HTTP_TIMEOUT = 15000;
+    /** Cached tokens within this margin of expiry are treated as expired. */
+    private static final long TOKEN_EXPIRY_MARGIN_MILLIS = 10 * 60 * 1000;
 
     private final GeyserLogger logger;
     private final String customId;
@@ -69,10 +73,20 @@ public class PlayFabTokenManager {
     }
 
     /**
-     * Performs the full auth chain: PlayFab login -> MCToken acquisition.
+     * Returns a valid MCToken, reusing the cached one while it is still well
+     * within its validity window and performing the full auth chain
+     * (PlayFab login -> MCToken acquisition) otherwise. Frequent signaling
+     * reconnects therefore do not hammer PlayFab. If the service rejects a
+     * token that looks valid by expiry, call {@link #invalidate()} first to
+     * force a full re-auth.
+     *
      * @return the MCToken authorization header (e.g. "MCToken eyJ..."), or null on failure
      */
     public @Nullable String authenticate() {
+        String cached = mcToken;
+        if (cached != null && tokenStillValid()) {
+            return cached;
+        }
         try {
             loginToPlayFab();
             obtainMCToken();
@@ -80,6 +94,36 @@ public class PlayFabTokenManager {
         } catch (Exception e) {
             logger.error("[Nethernet] PlayFab authentication failed: " + e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Drops the cached token so the next {@link #authenticate()} performs a
+     * full re-auth. Used when the signaling service refuses a token that has
+     * not yet reached its recorded expiry.
+     */
+    public void invalidate() {
+        mcToken = null;
+        mcTokenExpiry = null;
+        sessionTicket = null;
+    }
+
+    private boolean tokenStillValid() {
+        String expiry = mcTokenExpiry;
+        if (expiry == null) {
+            return false;
+        }
+        try {
+            long expiresAt;
+            try {
+                expiresAt = Instant.parse(expiry).toEpochMilli();
+            } catch (Exception e) {
+                expiresAt = OffsetDateTime.parse(expiry).toInstant().toEpochMilli();
+            }
+            return expiresAt - TOKEN_EXPIRY_MARGIN_MILLIS > System.currentTimeMillis();
+        } catch (Exception e) {
+            // Unparseable expiry: play it safe and re-auth.
+            return false;
         }
     }
 
