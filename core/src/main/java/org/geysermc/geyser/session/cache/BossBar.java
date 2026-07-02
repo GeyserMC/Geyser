@@ -35,10 +35,22 @@ import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BossEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RemoveEntityPacket;
 import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 
 @AllArgsConstructor
 public class BossBar {
+    /**
+     * Maximum length of a boss bar title (after translation to the Bedrock legacy format) that we send to the client.
+     * <p>
+     * Some Bedrock clients (observed on protocol 1001 / MC 26.x) immediately disconnect when they receive a
+     * {@link BossEventPacket} with an excessively long title, so we truncate it here as a safeguard. The value is
+     * chosen below the observed breaking point while still being far longer than any reasonable boss bar title.
+     *
+     * @see <a href="https://github.com/GeyserMC/Geyser/issues/6496">GeyserMC/Geyser#6496</a>
+     */
+    private static final int MAX_BEDROCK_TITLE_LENGTH = 256;
+
     private final GeyserSession session;
 
     private final long entityId;
@@ -59,7 +71,7 @@ public class BossBar {
         BossEventPacket bossEventPacket = new BossEventPacket();
         bossEventPacket.setBossUniqueEntityId(entityId);
         bossEventPacket.setAction(BossEventPacket.Action.CREATE);
-        bossEventPacket.setTitle(MessageTranslator.convertMessage(title, session.locale()).replace("%", "%%%%"));
+        bossEventPacket.setTitle(bedrockTitle());
         bossEventPacket.setHealthPercentage(health);
         bossEventPacket.setColor(color);
         bossEventPacket.setOverlay(overlay);
@@ -73,9 +85,26 @@ public class BossBar {
         BossEventPacket bossEventPacket = new BossEventPacket();
         bossEventPacket.setBossUniqueEntityId(entityId);
         bossEventPacket.setAction(BossEventPacket.Action.UPDATE_NAME);
-        bossEventPacket.setTitle(MessageTranslator.convertMessage(title, session.locale()).replace("%", "%%%%"));
+        bossEventPacket.setTitle(bedrockTitle());
 
         session.sendUpstreamPacket(bossEventPacket);
+    }
+
+    /**
+     * Converts the cached {@link #title} into the legacy string format Bedrock expects, truncating it if needed to
+     * avoid clients disconnecting on overly long titles (see {@link #MAX_BEDROCK_TITLE_LENGTH}).
+     */
+    private String bedrockTitle() {
+        String bedrockTitle = MessageTranslator.convertMessage(title, session.locale());
+        if (bedrockTitle.length() > MAX_BEDROCK_TITLE_LENGTH) {
+            bedrockTitle = bedrockTitle.substring(0, MAX_BEDROCK_TITLE_LENGTH);
+            // Avoid leaving a dangling formatting character (§ without its format code) that would corrupt rendering
+            if (bedrockTitle.charAt(bedrockTitle.length() - 1) == ChatColor.ESCAPE) {
+                bedrockTitle = bedrockTitle.substring(0, bedrockTitle.length() - 1);
+            }
+        }
+        // Escape percent signs after truncating so we never split an escape sequence in half
+        return bedrockTitle.replace("%", "%%%%");
     }
 
     public void updateHealth(float health) {
