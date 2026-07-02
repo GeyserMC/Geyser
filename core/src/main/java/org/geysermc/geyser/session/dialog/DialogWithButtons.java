@@ -29,6 +29,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
+import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.text.GeyserLocale;
@@ -73,9 +74,9 @@ public abstract class DialogWithButtons extends Dialog {
     protected void addCustomComponents(DialogHolder holder, SimpleForm.Builder builder) {
         List<DialogButton> buttons = buttons(holder);
         for (DialogButton button : buttons) {
-            builder.button(button.label());
+            addButton(builder, button);
         }
-        exitAction.ifPresent(button -> builder.button(button.label()));
+        exitAction.ifPresent(button -> addButton(builder, button));
 
         builder.validResultHandler(response -> {
             if (response.clickedButtonId() == buttons.size()) {
@@ -84,6 +85,15 @@ public abstract class DialogWithButtons extends Dialog {
                 holder.runButton(Optional.of(buttons.get(response.clickedButtonId())), ParsedInputs.EMPTY);
             }
         });
+    }
+
+    private static void addButton(SimpleForm.Builder builder, DialogButton button) {
+        Optional<FormImage> icon = button.icon();
+        if (icon.isPresent()) {
+            builder.button(button.label(), icon.get());
+        } else {
+            builder.button(button.label());
+        }
     }
 
     @Override
