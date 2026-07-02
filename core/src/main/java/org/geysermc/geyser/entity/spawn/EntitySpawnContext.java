@@ -89,7 +89,7 @@ public class EntitySpawnContext {
     }
 
     public static EntitySpawnContext inherited(GeyserSession session, EntityTypeDefinition<?> definition, Entity base, Vector3f position) {
-        return new EntitySpawnContext(session, definition, 0, null, definition.defaultBedrockDefinition(), position, base.getMotion(), base.getYaw(),
+        return new EntitySpawnContext(session, definition, -1, null, definition.defaultBedrockDefinition(), position, base.getMotion(), base.getYaw(),
             base.getPitch(), base.getHeadYaw(), null);
     }
 

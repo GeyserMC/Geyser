@@ -172,7 +172,6 @@ public class Entity implements GeyserEntity {
     private boolean flagsDirty = false;
 
     protected float scale = 1.0F;
-
     protected final @Nullable GeyserEntityPropertyManager propertyManager;
 
     public Entity(EntitySpawnContext context) {
