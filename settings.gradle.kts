@@ -16,6 +16,22 @@ pluginManagement {
 
 rootProject.name = "geyser-parent"
 
+// Opt-in local development against the sibling NetworkCompatible checkout:
+// pass -PlocalNethernet to substitute the JitPack-pinned nethernet transport
+// with the local build. Normal and release builds keep using the pinned hash.
+if (extra.has("localNethernet")) {
+    val networkCompatible = file("../NetworkCompatible")
+    require(networkCompatible.isDirectory) {
+        "-PlocalNethernet was set but ${networkCompatible.absolutePath} does not exist"
+    }
+    includeBuild(networkCompatible) {
+        dependencySubstitution {
+            substitute(module("com.github.SendableMetatype.NetworkCompatible:netty-transport-nethernet"))
+                .using(project(":transport-nethernet"))
+        }
+    }
+}
+
 include(":ap")
 include(":api")
 include(":bungeecord")

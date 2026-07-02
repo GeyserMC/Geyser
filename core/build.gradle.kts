@@ -60,7 +60,13 @@ dependencies {
         exclude("io.netty", "*")
     }
     implementation(libs.webrtc.java)
-    listOf("windows-x86_64", "windows-aarch64", "linux-x86_64", "linux-aarch64", "macos-x86_64", "macos-aarch64").forEach { platform ->
+    // All supported native platforms by default. For development builds where
+    // only some platform natives are staged locally, restrict the set with
+    // -PwebrtcNatives=linux-x86_64 (comma separated).
+    val webrtcNativePlatforms = (findProperty("webrtcNatives") as? String)
+        ?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }
+        ?: listOf("windows-x86_64", "windows-aarch64", "linux-x86_64", "linux-aarch64", "macos-x86_64", "macos-aarch64")
+    webrtcNativePlatforms.forEach { platform ->
         runtimeOnly("dev.kastle.webrtc:webrtc-java:${libs.versions.webrtc.java.get()}:$platform")
     }
 
