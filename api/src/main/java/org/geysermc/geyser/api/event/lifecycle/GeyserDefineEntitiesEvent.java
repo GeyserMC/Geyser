@@ -52,7 +52,7 @@ public interface GeyserDefineEntitiesEvent extends Event {
      * Returns an immutable view of all currently registered Bedrock entity definitions,
      * including both vanilla and any custom definitions registered so far in this event.
      *
-     * @return immutable collection of all registered entity definitions
+     * @return an immutable collection of all registered entity definitions
      * @since 2.11.0
      */
     @ApiStatus.Experimental
@@ -61,7 +61,7 @@ public interface GeyserDefineEntitiesEvent extends Event {
     /**
      * Returns an immutable view of all custom entity definitions registered so far.
      *
-     * @return immutable collection of registered custom entity definitions
+     * @return an immutable collection of registered custom entity definitions
      * @since 2.11.0
      */
     @ApiStatus.Experimental
@@ -73,7 +73,7 @@ public interface GeyserDefineEntitiesEvent extends Event {
      *
      * @param definition the custom entity definition to register; must not be null
      * @throws IllegalArgumentException if {@code definition} was not created via {@link CustomEntityDefinition#of}
-     * @throws IllegalStateException if the identifier has already been registered
+     * @throws IllegalStateException if a custom entity definition with this identifier has already been registered
      * @since 2.11.0
      */
     @ApiStatus.Experimental

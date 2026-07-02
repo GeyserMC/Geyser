@@ -35,7 +35,7 @@ import java.util.Objects;
  * Represents a type of entity data that can be sent for an entity.
  * <p>
  * Entity data types define the values stored for a particular piece of metadata,
- * such as a {@code Byte}, {@code Integer}, {@code Float}; and the name associated with the types.
+ * such as a {@code Byte}, {@code Integer}, {@code Float}; and the identifier associated with the types.
  * <p>
  * Unlike properties of custom items or blocks, it is possible to update entity metadata at runtime,
  * which can be done using {@link GeyserEntity#override(GeyserEntityDataType, Object)}.

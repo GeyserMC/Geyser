@@ -51,7 +51,7 @@ import java.util.function.Consumer;
 public interface GeyserEntity {
 
     /**
-     * @return the entity ID that the server has assigned to this entity, or 0 if none is present
+     * @return the entity ID that the server has assigned to this entity, or -1 if none is present
      */
     @NonNegative
     int javaId();
@@ -67,6 +67,8 @@ public interface GeyserEntity {
     long geyserId();
 
     /**
+     * The entity's UUID, only null if the server has not spawned this entity.
+     *
      * @return the entity UUID that the server has assigned to this entity,
      * or null if this entity isn't known to the Java server
      * @since 2.11.0
@@ -76,7 +78,7 @@ public interface GeyserEntity {
     UUID uuid();
 
     /**
-     * The Bedrock entity definition for this entity, which could also be a {@link CustomEntityDefinition}
+     * The Bedrock entity definition for this entity, which can also be a {@link CustomEntityDefinition}.
      *
      * @return the Bedrock entity definition
      * @since 2.11.0

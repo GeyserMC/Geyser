@@ -143,13 +143,13 @@ public final class GeyserEntityDataTypes {
         GeyserEntityDataType.create(Identifier.of("seat_lock_rider_rotation_degrees"), Float.class);
 
     /**
-     * Whether an entity riding another vehicle is sitting on a seat which has rotation.
+     * Whether an entity riding another vehicle entity is sitting on a seat which has a rotation.
      *
      * @since 2.11.0
      */
     @ApiStatus.Experimental
     public static final GeyserEntityDataType<Boolean> SEAT_HAS_ROTATION =
-        GeyserEntityDataType.create(Identifier.of("seat_has_rotation"), Boolean.class);
+        GeyserEntityDataType.create(Identifier.of("geysermc", "seat_has_rotation"), Boolean.class);
 
     /**
      * The degrees of rotation that this seat is offset by. Equivalent to "rotate_rider_by" in the {@code minecraft:rideable} entity component.

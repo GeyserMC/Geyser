@@ -30,7 +30,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Represents a Java edition entity type
+ * Represents a Java edition entity type.
  *
  * @since 2.11.0
  */
