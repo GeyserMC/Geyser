@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Provides entity lookup and input-lock utilities for a specific connection.
- * Accessible via {@link GeyserConnection#entities()}.
+ * Accessed via {@link GeyserConnection#entities()}.
  */
 public interface EntityData {
 

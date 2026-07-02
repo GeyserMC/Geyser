@@ -39,7 +39,7 @@ import org.jetbrains.annotations.ApiStatus;
 public interface Hitbox {
 
     /**
-     * The min "corner" of the hitbox as a position in the world
+     * The min "corner" of the hitbox as a position in the world.
      *
      * @return the vector of the corner
      * @since 2.11.0
@@ -48,7 +48,7 @@ public interface Hitbox {
     Vector3f min();
 
     /**
-     * The max "corner" of the hitbox as a position in the world
+     * The max "corner" of the hitbox as a position in the world.
      *
      * @return the vector of the corner
      * @since 2.11.0
@@ -66,7 +66,7 @@ public interface Hitbox {
     Vector3f pivot();
 
     /**
-     * Creates a new builder for a hitbox
+     * Creates a new builder for a hitbox.
      *
      * @return a new builder
      * @since 2.11.0
@@ -77,7 +77,7 @@ public interface Hitbox {
     }
 
     /**
-     * The builder for the hitbox
+     * The builder for an entity hitbox.
      *
      * @since 2.11.0
      */
@@ -95,7 +95,7 @@ public interface Hitbox {
         @This Builder min(Vector3f min);
 
         /**
-         * Sets the max corner of the hitbox
+         * Sets the max corner of the hitbox.
          *
          * @param max the vector of the corner
          * @return this builder
@@ -105,7 +105,7 @@ public interface Hitbox {
         @This Builder max(Vector3f max);
 
         /**
-         * Sets the pivot of the hitbox
+         * Sets the pivot of the hitbox.
          *
          * @param pivot the pivot vector
          * @return this builder
