@@ -29,12 +29,12 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.SharedConstants;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.RegistryOps;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.network.GameProtocol;
 
@@ -46,14 +46,13 @@ public class MinecraftVersionTestInstance extends GeyserTestInstance {
     );
     private final String version;
 
-    private MinecraftVersionTestInstance(RegistryOps<?> ops, boolean required, String version) {
-        super(ops, required);
+    private MinecraftVersionTestInstance(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, boolean required, String version) {
+        super(testEnvironments, required);
         this.version = version;
     }
 
-    public MinecraftVersionTestInstance(HolderLookup.Provider registries, boolean required) {
-        super(registries, required);
-        this.version = SharedConstants.getCurrentVersion().id();
+    public MinecraftVersionTestInstance(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, boolean required) {
+        this(testEnvironments, required, SharedConstants.getCurrentVersion().id());
     }
 
     @Override

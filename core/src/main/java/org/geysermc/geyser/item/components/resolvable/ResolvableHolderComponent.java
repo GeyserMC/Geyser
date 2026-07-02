@@ -28,19 +28,16 @@ package org.geysermc.geyser.item.components.resolvable;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
-import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 
 public record ResolvableHolderComponent<T>(DataComponentType<Holder<T>> type, JavaRegistryKey<?> registry, Key reference) implements ResolvableComponent<Holder<T>> {
 
     public static ResolvableHolderComponent<?> parse(DataComponentType<Holder<?>> type, JsonObject object) {
-        //noinspection unchecked
-        DataComponentType<Holder<?>> component = (DataComponentType<Holder<?>>) DataComponentTypes.fromKey(MinecraftKey.key(object.get("component").getAsString()));
         JavaRegistryKey<?> registry = JavaRegistries.fromKey(MinecraftKey.key(object.get("registry").getAsString()));
         Key reference = MinecraftKey.key(object.get("reference").getAsString());
         //noinspection rawtypes,unchecked
@@ -48,8 +45,8 @@ public record ResolvableHolderComponent<T>(DataComponentType<Holder<T>> type, Ja
     }
 
     @Override
-    public @Nullable Holder<T> resolve(GeyserSession session) {
-        int numericId = registry.networkId(session, reference);
+    public @Nullable Holder<T> resolve(JavaRegistryProvider registries) {
+        int numericId = registry.networkId(registries, reference);
         if (numericId == -1) {
             return null;
         }

@@ -57,7 +57,7 @@ public class ComponentCache implements ResolvableComponentGetter {
             if (!toResolve.isEmpty()) {
                 DataComponents resolved = new DataComponents(new Object2ObjectOpenHashMap<>());
                 for (ResolvableComponent<?> component : toResolve) {
-                    component.resolve(session, resolved);
+                    component.resolve(session.getRegistryCache(), resolved);
                 }
                 resolvedComponents.put(item, resolved);
             }

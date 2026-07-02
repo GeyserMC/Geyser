@@ -33,6 +33,8 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetad
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.object.Direction;
 
+import java.util.EnumMap;
+
 public class ShulkerEntity extends GolemEntity {
 
     public ShulkerEntity(EntitySpawnContext context) {
@@ -58,6 +60,14 @@ public class ShulkerEntity extends GolemEntity {
         // This is vanilla behaviour yes (BDS does this), without this as of 1.21.93 entity became fully invisible.
         // Doing this allow the invisible parity support inside GeyserOptionalPack to works again.
         setFlag(EntityFlag.RENDER_WHEN_INVISIBLE, true);
+    }
+
+    @Override
+    protected EnumMap<EntityFlag, Boolean> spectateHiddenFlags() {
+        // The shell overlay uses RENDER_WHEN_INVISIBLE, so hide it too while this shulker is being spectated
+        EnumMap<EntityFlag, Boolean> overridden = super.spectateHiddenFlags();
+        overridden.put(EntityFlag.RENDER_WHEN_INVISIBLE, false);
+        return overridden;
     }
 
     public void setAttachedFace(EntityMetadata<Direction, ?> entityMetadata) {

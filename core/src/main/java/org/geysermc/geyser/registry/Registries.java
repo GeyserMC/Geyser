@@ -38,6 +38,8 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
+import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
@@ -55,6 +57,8 @@ import org.geysermc.geyser.registry.loader.RegistryLoaders;
 import org.geysermc.geyser.registry.loader.SoundEventsRegistryLoader;
 import org.geysermc.geyser.registry.loader.SoundRegistryLoader;
 import org.geysermc.geyser.registry.loader.SoundTranslatorRegistryLoader;
+import org.geysermc.geyser.registry.loader.WaypointStyleLoader;
+import org.geysermc.geyser.registry.mappings.MappingsType;
 import org.geysermc.geyser.registry.populator.DataComponentRegistryPopulator;
 import org.geysermc.geyser.registry.populator.ItemRegistryPopulator;
 import org.geysermc.geyser.registry.populator.PacketRegistryPopulator;
@@ -218,6 +222,13 @@ public final class Registries {
     public static final ListDeferredRegistry<Key> DANGEROUS_ENTITIES = ListDeferredRegistry.create(UtilMappings::dangerousEntities, RegistryLoaders.UTIL_MAPPINGS_KEYS);
 
     /**
+     * A registry containing all the items that have a suspicious effect on Java - usually only flowers.
+     */
+    public static final ListDeferredRegistry<Key> SUSPICIOUS_EFFECT_HOLDERS = ListDeferredRegistry.create(UtilMappings::suspiciousEffectHolders, RegistryLoaders.UTIL_MAPPINGS_KEYS);
+
+    public static final SimpleMappedDeferredRegistry<Identifier, CustomWaypointStyle> WAYPOINT_STYLE_MAPPINGS = SimpleMappedDeferredRegistry.create(MappingsType.WAYPOINT_STYLES, WaypointStyleLoader::new);
+
+    /**
      * A registry containing all the Java game rules.
      * Loaded through {@link GameRules}
      */
@@ -247,6 +258,7 @@ public final class Registries {
         GAME_MASTER_BLOCKS.load();
         DANGEROUS_BLOCK_ENTITIES.load();
         DANGEROUS_ENTITIES.load();
+        SUSPICIOUS_EFFECT_HOLDERS.load();
         GameRules.init();
     }
 

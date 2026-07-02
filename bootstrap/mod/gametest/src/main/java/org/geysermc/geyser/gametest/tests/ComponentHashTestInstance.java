@@ -32,10 +32,12 @@ import com.mojang.serialization.JavaOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.Unpooled;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -43,9 +45,9 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.HashOps;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.gametest.registries.GameTestJavaRegistryProvider;
 import org.geysermc.geyser.item.hashing.DataComponentHashers;
 import org.geysermc.geyser.item.hashing.MapHasher;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -62,7 +64,7 @@ public class ComponentHashTestInstance extends GeyserTestInstance {
         .xmap(listOfLists -> listOfLists.stream().flatMap(List::stream).toList(), list -> {
             Map<DataComponentType<?>, List<TypedDataComponent<?>>> split = new HashMap<>();
             list.forEach(component -> {
-                split.compute(component.type(), (type, typeList) -> {
+                split.compute(component.type(), (_, typeList) -> {
                     if (typeList == null) {
                         typeList = new ArrayList<>();
                     }
@@ -82,8 +84,8 @@ public class ComponentHashTestInstance extends GeyserTestInstance {
 
     private final List<TypedDataComponent<?>> testCases;
 
-    private ComponentHashTestInstance(RegistryOps<?> ops, boolean required, List<TypedDataComponent<?>> testCases) {
-        super(ops, required);
+    private ComponentHashTestInstance(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, boolean required, List<TypedDataComponent<?>> testCases) {
+        super(testEnvironments, required);
         this.testCases = testCases;
     }
 
@@ -108,7 +110,7 @@ public class ComponentHashTestInstance extends GeyserTestInstance {
             Object encodedJavaValue = testCase.encodeValue(javaOps).getOrThrow();
             // Hash both and compare
             int expected = testCase.encodeValue(hashOps).getOrThrow().asInt();
-            GameTestJavaRegistryProvider registries = new GameTestJavaRegistryProvider(helper.getLevel().registryAccess());
+            JavaRegistryProvider registries = createRegistryProvider(helper);
             int geyser = DataComponentHashers.hash(registries, mcplComponent).asInt();
 
             try {

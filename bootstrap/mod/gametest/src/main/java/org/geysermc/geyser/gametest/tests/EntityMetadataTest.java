@@ -27,16 +27,16 @@ package org.geysermc.geyser.gametest.tests;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInstance;
+import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
@@ -58,13 +58,8 @@ public class EntityMetadataTest extends GeyserTestInstance {
     );
     private final EntityType<?> entityType;
 
-    private EntityMetadataTest(RegistryOps<?> ops, boolean required, EntityType<?> entityType) {
-        super(ops, required);
-        this.entityType = entityType;
-    }
-
-    public EntityMetadataTest(HolderLookup.Provider registries, boolean required, EntityType<?> entityType) {
-        super(registries, required);
+    public EntityMetadataTest(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, boolean required, EntityType<?> entityType) {
+        super(testEnvironments, required);
         this.entityType = entityType;
     }
 

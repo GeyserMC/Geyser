@@ -27,70 +27,39 @@ package org.geysermc.geyser.gametest.tests;
 
 import com.mojang.datafixers.Products;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.DynamicOps;
-import com.mojang.serialization.MapCodec;
-import com.mojang.serialization.MapLike;
-import com.mojang.serialization.RecordBuilder;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestEnvironments;
+import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInstance;
 import net.minecraft.gametest.framework.TestData;
 import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
-
-import java.util.stream.Stream;
+import org.geysermc.geyser.gametest.registries.GameTestJavaRegistryProvider;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 
 public abstract class GeyserTestInstance extends GameTestInstance {
-    // Cursed codec to extract a RegistryOps
-    private static final MapCodec<RegistryOps<?>> REGISTRY_OPS_MAP_CODEC = new MapCodec<>() {
-        @Override
-        public <T> Stream<T> keys(DynamicOps<T> ops) {
-            return Stream.empty();
-        }
 
-        @Override
-        public <T> DataResult<RegistryOps<?>> decode(DynamicOps<T> ops, MapLike<T> input) {
-            if (ops instanceof RegistryOps<T> registryOps) {
-                return DataResult.success(registryOps);
-            }
-            return DataResult.error(() -> "Registry ops required for parsing");
-        }
-
-        @Override
-        public <T> RecordBuilder<T> encode(RegistryOps<?> input, DynamicOps<T> ops, RecordBuilder<T> prefix) {
-            // noop
-            return prefix;
-        }
-    };
-
-    protected GeyserTestInstance(RegistryOps<?> ops, boolean required) {
-        super(createEmptyTestData(ops, required));
+    protected GeyserTestInstance(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, boolean required) {
+        super(createEmptyTestData(testEnvironments, required));
     }
 
-    protected GeyserTestInstance(HolderLookup.Provider registries, boolean required) {
-        super(createEmptyTestData(registries, required));
+    protected JavaRegistryProvider createRegistryProvider(GameTestHelper helper) {
+        return new GameTestJavaRegistryProvider(helper.getLevel().registryAccess());
     }
 
-    protected static <T extends GeyserTestInstance> Products.P2<RecordCodecBuilder.Mu<T>, RegistryOps<?>, Boolean> commonFields(RecordCodecBuilder.Instance<T> instance) {
+    protected static <T extends GeyserTestInstance> Products.P2<RecordCodecBuilder.Mu<T>, HolderGetter<TestEnvironmentDefinition<?>>, Boolean> commonFields(RecordCodecBuilder.Instance<T> instance) {
         return instance.group(
-            REGISTRY_OPS_MAP_CODEC.forGetter(_ -> null),
+            RegistryOps.retrieveGetter(Registries.TEST_ENVIRONMENT),
             Codec.BOOL.optionalFieldOf("required", true).forGetter(GameTestInstance::required)
         );
     }
 
-    private static TestData<Holder<TestEnvironmentDefinition<?>>> createEmptyTestData(HolderLookup.Provider registries, boolean required) {
-        return new TestData<>(registries.lookupOrThrow(Registries.TEST_ENVIRONMENT).getOrThrow(GameTestEnvironments.DEFAULT_KEY),
-            Identifier.withDefaultNamespace("empty"), 1, 1, required);
-    }
-
-    private static TestData<Holder<TestEnvironmentDefinition<?>>> createEmptyTestData(RegistryOps<?> ops, boolean required) {
-        return new TestData<>(ops.getter(Registries.TEST_ENVIRONMENT)
-            .flatMap(getter -> getter.get(GameTestEnvironments.DEFAULT_KEY)).orElseThrow(),
+    private static TestData<Holder<TestEnvironmentDefinition<?>>> createEmptyTestData(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, boolean required) {
+        return new TestData<>(testEnvironments.getOrThrow(GameTestEnvironments.DEFAULT_KEY),
             Identifier.withDefaultNamespace("empty"), 1, 1, required);
     }
 }

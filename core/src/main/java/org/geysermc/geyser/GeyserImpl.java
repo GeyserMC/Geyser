@@ -319,6 +319,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         SkinProvider.registerCacheImageTask(this);
 
         Registries.RESOURCE_PACKS.load();
+        Registries.WAYPOINT_STYLE_MAPPINGS.load();
 
         // Warnings to users who enable options that they might not need.
         if (config.advanced().bedrock().useHaproxyProtocol()) {
@@ -605,6 +606,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
 
         ResourcePackLoader.clear();
+        if (Registries.WAYPOINT_STYLE_MAPPINGS.loaded()) {
+            Registries.WAYPOINT_STYLE_MAPPINGS.get().clear();
+        }
         CodeOfConductManager.trySave();
 
         this.setEnabled(false);

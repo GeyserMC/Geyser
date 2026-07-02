@@ -37,6 +37,7 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
 import org.geysermc.geyser.item.components.resolvable.ResolvableHolderComponent;
+import org.geysermc.geyser.item.components.resolvable.ResolvableHolderReferenceComponent;
 import org.geysermc.geyser.item.components.resolvable.ResolvableHolderSetComponent;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -121,7 +122,11 @@ public final class DataComponentRegistryPopulator {
         String type = object.get("type").getAsString();
         DataComponentType<?> component = DataComponentTypes.fromKey(MinecraftKey.key(object.get("component").getAsString()));
         return switch (type) {
-            case "holder" -> ResolvableHolderComponent.parse((DataComponentType<Holder<?>>) component, object);
+            case "holder" -> {
+                boolean allowsDirectOverNetwork = object.get("allows_direct_over_network").getAsBoolean();
+                yield allowsDirectOverNetwork ? ResolvableHolderComponent.parse((DataComponentType<Holder<?>>) component, object)
+                    : ResolvableHolderReferenceComponent.parse((DataComponentType<Integer>) component, object);
+            }
             case "holder_set" -> ResolvableHolderSetComponent.parse((DataComponentType<HolderSet>) component, object);
             default -> throw new IllegalStateException("Don't know how to parse resolvable component of type " + type);
         };

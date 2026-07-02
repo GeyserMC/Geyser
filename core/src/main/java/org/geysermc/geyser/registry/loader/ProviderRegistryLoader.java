@@ -75,6 +75,7 @@ import org.geysermc.geyser.api.predicate.item.RangeDispatchPredicate;
 import org.geysermc.geyser.api.predicate.item.TrimMaterialPredicate;
 import org.geysermc.geyser.api.util.Holders;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.CustomBedrockEntityDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
@@ -125,6 +126,7 @@ import org.geysermc.geyser.pack.option.GeyserUrlFallbackOption;
 import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
 import org.geysermc.geyser.pack.url.GeyserUrlPackCodec;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
+import org.geysermc.geyser.session.cache.waypoint.VanillaWaypoint;
 
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -214,6 +216,9 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         providers.put(JavaEntityType.class, args -> GeyserEntityType.ofVanilla((Identifier) args[0]));
 
         providers.put(Hitbox.Builder.class, args -> new HitboxImpl.BuilderImpl());
+
+        // waypoints
+        providers.put(CustomWaypointStyle.VanillaBuilder.class, args -> new VanillaWaypoint.Builder((int) args[0], (int) args[1]));
 
         return providers;
     }

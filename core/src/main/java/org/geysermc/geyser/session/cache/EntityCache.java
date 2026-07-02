@@ -35,6 +35,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import lombok.Getter;
+import org.geysermc.geyser.entity.EntitySpectateHelper;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.Tickable;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -118,6 +119,10 @@ public class EntityCache {
             return;
         }
 
+        if (entity == session.getSpectatedEntity()) {
+            EntitySpectateHelper.stop(session);
+        }
+
         if (entity instanceof PlayerEntity player) {
             session.getPlayerWithCustomHeads().remove(player.uuid());
         }
@@ -149,6 +154,8 @@ public class EntityCache {
     }
 
     public void removeAllEntities() {
+        session.getWorldBorder().clearCollision();
+
         List<Entity> entities = new ArrayList<>(this.entities.values());
         for (Entity entity : entities) {
             removeEntity(entity);
