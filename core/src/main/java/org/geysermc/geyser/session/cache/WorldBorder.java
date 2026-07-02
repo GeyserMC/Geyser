@@ -37,7 +37,7 @@ import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
@@ -45,7 +45,7 @@ import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
 
-import java.awt.Color;
+import java.awt.*;
 
 import static org.geysermc.geyser.level.physics.CollisionManager.COLLISION_TOLERANCE;
 
@@ -527,7 +527,7 @@ public class WorldBorder {
      * Responsible for spawning the world border collision entity, and setting flags.
      */
     private Entity buildCollisionEntity() {
-        Entity entity = new Entity(new EntitySpawnContext(session, EntityDefinitions.ARMOR_STAND, 0, null)); // Armor stand is just a placeholder, anything will work here.
+        Entity entity = new Entity(new EntitySpawnContext(session, VanillaEntities.ARMOR_STAND, 0, null)); // Armor stand is just a placeholder, anything will work here.
         entity.setPosition(session.getPlayerEntity().getPosition().down(BORDER_COLLISION_Y_DISTANCE)); // Initial position, will change.
         entity.setFlag(EntityFlag.COLLIDABLE, true);
         entity.setFlag(EntityFlag.INVISIBLE, true);
