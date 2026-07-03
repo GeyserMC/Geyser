@@ -258,7 +258,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
                     layers = new BlockStorage[]{ layer0, new BlockStorage(BitArrayVersion.V1.createArray(BlockStorage.SIZE, layer1Data), layer1Palette) };
                 }
 
-                ChunkUtil.modifyPallete(javaData, javaPalette, session, sectionY, yOffset, packet, bedrockData, layer0);
+                ChunkUtil.modifyPallete(javaData, javaPalette, session, sectionY, yOffset, packet, layer0);
                 sections[bedrockSectionY] = new GeyserChunkSection(layers, subChunkIndex);
             }
 

@@ -106,9 +106,18 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
             // Skull is gone
             session.getSkullCache().removeSkull(entry.getPosition());
 
+            // Furniture host blocks (note block, leaves, etc.) are plain Block instances, so they don't take the
+            // updateBlock() branch above. Apply the custom-block override here too, otherwise they revert to vanilla
+            // whenever a change arrives via a section update instead of a single block update.
+            var definition = session.getGeyser().getWorldManager().getBedrockBlockOverride(session,
+                entry.getPosition().getX(), entry.getPosition().getY(), entry.getPosition().getZ());
+            if (definition == null) {
+                definition = session.getBlockMappings().getBedrockBlock(blockState);
+            }
+
             updateSubChunkBlocksPacket.getStandardBlocks().add(new org.cloudburstmc.protocol.bedrock.data.BlockChangeEntry(
                 entry.getPosition(),
-                session.getBlockMappings().getBedrockBlock(blockState),
+                definition,
                 FLAG_ALL,
                 -1,
                 MessageType.NONE

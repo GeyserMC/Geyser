@@ -3,7 +3,6 @@ package org.geysermc.geyser.translator.protocol.java.level;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.chunk.BlockStorage;
-import org.geysermc.geyser.level.chunk.bitarray.BitArray;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.BitStorage;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.Palette;
@@ -40,9 +39,9 @@ public class ChunkUtil {
 
     public static void modifyPallete(
         BitStorage javaData, Palette javaPalette, GeyserSession session, int sectionY, int yOffset,
-        ClientboundLevelChunkWithLightPacket packet, BitArray bedrockData, BlockStorage layer0
+        ClientboundLevelChunkWithLightPacket packet, BlockStorage layer0
     ) {
-//        // Add custom-blocks to pallete
+        // Replace furniture host blocks with their custom Bedrock block override
         for (int yzx = 0; yzx < BlockStorage.SIZE; yzx++) {
             int paletteId = javaData.get(yzx);
             int javaId = javaPalette.idToState(paletteId);
@@ -52,10 +51,9 @@ public class ChunkUtil {
                 var blockOverride = session.getGeyser().getWorldManager().getBedrockBlockOverride(session, realPos.getX(), realPos.getY(), realPos.getZ());
                 if (blockOverride != null) {
                     int xzy = indexYZXtoXZY(yzx);
-                    var id = layer0.idFor(blockOverride.getRuntimeId());
-                    if (id > 0 && id <= layer0.getBitArray().getVersion().getMaxEntryValue()) {
-                        bedrockData.set(xzy, id); // modify bedrock packet data
-                    }
+                    // setFullBlock handles palette growth/resize internally, keeping layer0's
+                    // bit array and palette in sync (unlike writing to a captured BitArray reference)
+                    layer0.setFullBlock(xzy, blockOverride.getRuntimeId());
                 }
             }
         }
