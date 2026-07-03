@@ -83,7 +83,7 @@ tasks {
                 include("LICENSE")
             }
         )
-        archiveBaseName.set("Geyser-Fabric")
+        archiveBaseName.set("EduGeyser-Fabric")
     }
 }
 

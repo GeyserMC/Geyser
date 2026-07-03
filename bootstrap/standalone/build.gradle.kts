@@ -31,7 +31,7 @@ tasks.named<Jar>("jar") {
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
-    archiveBaseName.set("Geyser-Standalone")
+    archiveBaseName.set("EduGeyser-Standalone")
 
     transform(Log4j2PluginsCacheFileTransformer())
     // https://gradleup.com/shadow/configuration/merging/#handling-duplicates-strategy

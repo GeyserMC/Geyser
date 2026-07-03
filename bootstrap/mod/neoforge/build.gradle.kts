@@ -83,7 +83,7 @@ tasks {
                 include("LICENSE")
             }
         )
-        archiveBaseName.set("Geyser-NeoForge")
+        archiveBaseName.set("EduGeyser-NeoForge")
     }
 }
 

@@ -24,7 +24,7 @@ tasks.withType<Jar> {
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
-    archiveBaseName.set("Geyser-ViaProxy")
+    archiveBaseName.set("EduGeyser-ViaProxy")
 
     dependencies {
         exclude(dependency("com.google.*:.*"))

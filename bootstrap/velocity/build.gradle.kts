@@ -32,7 +32,7 @@ tasks.withType<Jar> {
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
-    archiveBaseName.set("Geyser-Velocity")
+    archiveBaseName.set("EduGeyser-Velocity")
 
     dependencies {
         exclude(dependency("com.google.*:.*"))
