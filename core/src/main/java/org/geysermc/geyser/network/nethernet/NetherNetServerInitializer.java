@@ -25,40 +25,39 @@
 
 package org.geysermc.geyser.network.nethernet;
 
+import dev.kastle.netty.channel.nethernet.codec.NetherNetFramingCodec;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
 import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.PacketDirection;
-import org.cloudburstmc.protocol.bedrock.netty.codec.FrameIdCodec;
-import org.cloudburstmc.protocol.bedrock.netty.codec.batch.BedrockBatchDecoder;
-import org.cloudburstmc.protocol.bedrock.netty.codec.batch.BedrockBatchEncoder;
+import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionCodec;
-import org.cloudburstmc.protocol.bedrock.netty.codec.compression.NoopCompression;
-import org.cloudburstmc.protocol.bedrock.netty.codec.compression.SimpleCompressionStrategy;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec_v3;
+import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockChannelInitializer;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.network.GeyserBedrockPeer;
 import org.geysermc.geyser.network.GeyserServerInitializer;
 import org.geysermc.geyser.network.netty.BedrockEncryptionControl;
 
 /**
- * Channel initializer for incoming Nethernet (WebRTC) connections.
- * Mirrors the CloudburstMC BedrockChannelInitializer pipeline for
- * rak protocol version 11, but without reading RakChannelOption from
- * the channel (Nethernet channels don't have RakNet options).
+ * Channel initializer for incoming Nethernet (WebRTC) connections, built on
+ * CloudburstMC's transport neutral BedrockChannelInitializer seam. NetherNet
+ * is a first class transport here: no FrameIdCodec (the 0xFE byte is RakNet
+ * framing; data channel payloads are bare batch bytes) and no RakMessage
+ * wrapping. The pipeline is:
  *
- * The pipeline is:
- * NetherNetFramingAdapter -> FrameIdCodec -> CompressionCodec ->
- * BedrockBatchDecoder/Encoder -> BedrockPacketCodec_v3 -> GeyserBedrockPeer
+ * NetherNetFramingCodec (countdown fragmentation/reassembly)
+ *   -> CompressionCodec (NOOP until NetworkSettings negotiates, rak v11 semantics)
+ *     -> BedrockBatchDecoder/Encoder
+ *       -> BedrockPacketCodec_v3
+ *         -> NetherNetGeyserPeer -> GeyserSession
+ *
+ * Bedrock layer encryption stays disabled: DTLS already secures the
+ * transport, and clients expect none on NetherNet.
  */
-public class NetherNetServerInitializer extends ChannelInitializer<Channel> {
-
-    private static final FrameIdCodec FRAME_CODEC = new FrameIdCodec(0xFE);
-    private static final BedrockBatchDecoder BATCH_DECODER = new BedrockBatchDecoder();
+public class NetherNetServerInitializer extends BedrockChannelInitializer<BedrockServerSession> {
 
     private final GeyserImpl geyser;
     private final DefaultEventLoopGroup eventLoopGroup;
@@ -71,8 +70,8 @@ public class NetherNetServerInitializer extends ChannelInitializer<Channel> {
     }
 
     @Override
-    protected void initChannel(Channel channel) throws Exception {
-        // Register for clean disconnect on a signaling rebuild. The group removes
+    protected void preInitChannel(Channel channel) {
+        // Register for clean disconnect on a real teardown. The group removes
         // the channel automatically when it closes.
         playerChannels.add(channel);
 
@@ -82,26 +81,35 @@ public class NetherNetServerInitializer extends ChannelInitializer<Channel> {
         // Set packet direction for server-side codec
         channel.attr(PacketDirection.ATTRIBUTE).set(PacketDirection.CLIENT_BOUND);
 
-        // Build the Bedrock pipeline mirroring CloudburstMC's init for rak version 11
         channel.pipeline()
-                .addLast(NetherNetFramingAdapter.NAME, new NetherNetFramingAdapter())
-                .addLast(FrameIdCodec.NAME, FRAME_CODEC)
+                .addLast(NetherNetFramingCodec.NAME, new NetherNetFramingCodec())
+                .addLast(NetherNetBatchWrapperCodec.NAME, NetherNetBatchWrapperCodec.INSTANCE)
                 .addLast(CompressionCodec.NAME, new CompressionCodec(
-                        new SimpleCompressionStrategy(new NoopCompression()), false))
-                .addLast(BedrockBatchDecoder.NAME, BATCH_DECODER)
-                .addLast(BedrockBatchEncoder.NAME, new BedrockBatchEncoder())
-                .addLast(BedrockPacketCodec.NAME, new BedrockPacketCodec_v3())
-                .addLast(BedrockPeer.NAME, new GeyserBedrockPeer(channel, this::createSession));
+                        getCompression(PacketCompressionAlgorithm.ZLIB, 11, true), false));
     }
 
-    private BedrockServerSession createSession(BedrockPeer peer, int subClientId) {
-        BedrockServerSession session = new BedrockServerSession(peer, subClientId);
+    @Override
+    protected void initPacketCodec(Channel channel) {
+        channel.pipeline().addLast(BedrockPacketCodec.NAME, new BedrockPacketCodec_v3());
+    }
+
+    @Override
+    protected BedrockPeer createPeer(Channel channel) {
+        return new NetherNetGeyserPeer(channel, this::createSession);
+    }
+
+    @Override
+    protected BedrockServerSession createSession0(BedrockPeer peer, int subClientId) {
+        return new BedrockServerSession(peer, subClientId);
+    }
+
+    @Override
+    protected void initSession(BedrockServerSession session) {
         try {
             GeyserServerInitializer.initGeyserSession(session, geyser, eventLoopGroup);
         } catch (Throwable e) {
             geyser.getLogger().error("Error occurred while initializing Nethernet player!", e);
             session.disconnect(e.getMessage());
         }
-        return session;
     }
 }
