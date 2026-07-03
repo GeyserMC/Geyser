@@ -61,6 +61,7 @@ import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
 import org.geysermc.geyser.event.type.SessionLoadResourcePacksEventImpl;
+import org.geysermc.geyser.network.nethernet.NetherNetGeyserPeer;
 import org.geysermc.geyser.network.netty.BedrockEncryptionControl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.ResourcePackHolder;
@@ -271,8 +272,9 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     // We must spawn the white world
                     session.connect();
                 }
+                String transport = session.getUpstream().getSession().getPeer() instanceof NetherNetGeyserPeer ? "Neth" : "Rak";
                 geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.connect", session.getAuthData().name() +
-                    " (" + session.protocolVersion() + ")"));
+                    " (" + session.protocolVersion() + ", " + transport + ")"));
             }
             case SEND_PACKS -> {
                 // Bedrock clients can send empty "send_packs" responses, in which case we shouldn't send anything back

@@ -17,8 +17,10 @@ protocol-connection = "04fcce9d"
 protocol-common = "04fcce9d"
 protocol-codec = "04fcce9d"
 raknet = "1.1.0.CR1-SNAPSHOT"
-nethernet = "a1201be"
+nethernet = "e96f89c"
 webrtc-java = "1.0.4-edu.1"
+acme4j = "3.5.1"
+bouncycastle = "1.80"
 minecraftauth = "5.0.0"
 mcprotocollib = "26.1-20260512.222733-20"
 adventure = "4.25.0"
@@ -151,6 +153,8 @@ mcprotocollib = { group = "org.geysermc.mcprotocollib", name = "protocol", versi
 raknet = { group = "org.cloudburstmc.netty", name = "netty-transport-raknet", version.ref = "raknet" }
 nethernet = { group = "com.github.SendableMetatype.NetworkCompatible", name = "netty-transport-nethernet", version.ref = "nethernet" }
 webrtc-java = { group = "dev.kastle.webrtc", name = "webrtc-java", version.ref = "webrtc-java" }
+acme4j = { group = "org.shredzone.acme4j", name = "acme4j-client", version.ref = "acme4j" }
+bouncycastle-pkix = { group = "org.bouncycastle", name = "bcpkix-jdk18on", version.ref = "bouncycastle" }
 terminalconsoleappender = { group = "net.minecrell", name = "terminalconsoleappender", version.ref = "terminalconsoleappender" }
 velocity-proxy = { group = "com.velocitypowered", name = "velocity-proxy", version.ref = "velocity" }
 velocity-api = { group = "com.velocitypowered", name = "velocity-api", version.ref = "velocity" }

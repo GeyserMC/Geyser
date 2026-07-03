@@ -60,6 +60,10 @@ dependencies {
         exclude("io.netty", "*")
     }
     implementation(libs.webrtc.java)
+    // ACME automation for the Nethernet HTTP signaling certificate; acme4j's
+    // CSR builder needs BouncyCastle's pkix module at runtime.
+    implementation(libs.acme4j)
+    implementation(libs.bouncycastle.pkix)
     // All supported native platforms by default. For development builds where
     // only some platform natives are staged locally, restrict the set with
     // -PwebrtcNatives=linux-x86_64 (comma separated).

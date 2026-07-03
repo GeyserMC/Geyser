@@ -25,8 +25,11 @@
 
 package org.geysermc.geyser.network.nethernet;
 
+import dev.kastle.netty.channel.nethernet.NetherNetAnswerDecorator;
 import dev.kastle.netty.channel.nethernet.NetherNetChannelFactory;
+import dev.kastle.netty.channel.nethernet.config.NetherChannelOption;
 import dev.kastle.netty.channel.nethernet.signaling.AbstractNetherNetXboxSignaling;
+import dev.kastle.netty.channel.nethernet.signaling.NetherNetHttpSignaling;
 import dev.kastle.netty.channel.nethernet.signaling.NetherNetXboxRpcSignaling;
 import dev.kastle.netty.channel.nethernet.signaling.NetherNetXboxSignaling;
 import dev.kastle.webrtc.PeerConnectionFactory;
@@ -37,18 +40,23 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 
 import java.net.ConnectException;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * Nethernet (WebRTC) server that accepts incoming connections from clients
@@ -104,6 +112,10 @@ public class NetherNetServer {
 
     private Channel rpcChannel;
     private NetherNetXboxRpcSignaling rpcSignaling;
+
+    private Channel httpChannel;
+    private NetherNetHttpSignaling httpSignaling;
+    private NetherNetCertificateManager certificateManager;
 
     private ScheduledExecutorService scheduler;
     private ScheduledFuture<?> signalingCheckTask;
@@ -257,6 +269,17 @@ public class NetherNetServer {
                     .childHandler(childHandler);
             this.rpcChannel = rpcBootstrap.bind(new InetSocketAddress(0)).sync().channel();
 
+            // HTTP signaling: the direct connection front end, on TCP under
+            // the same port RakNet serves on UDP. Purely additive and always
+            // attempted; any failure logs a warning and everything else keeps
+            // running, since updated clients silently fall back to RakNet.
+            try {
+                bindHttpSignaling(childHandler);
+            } catch (Exception e) {
+                logger.warning(LOG_PREFIX + "HTTP signaling unavailable (" + e.getMessage()
+                        + "); direct connections will use RakNet");
+            }
+
             return true;
         } catch (Exception e) {
             logger.error(LOG_PREFIX + "Failed to bind: " + e.getMessage());
@@ -279,6 +302,117 @@ public class NetherNetServer {
             if (bossGroup != null) { bossGroup.shutdownGracefully(); bossGroup = null; }
             if (workerGroup != null) { workerGroup.shutdownGracefully(); workerGroup = null; }
             return false;
+        }
+    }
+
+    /**
+     * Binds the HTTP signaling front end on the Bedrock port, TCP. Updated
+     * clients (26.30+) probe this before falling back to RakNet, so even a
+     * fast negative answer speeds their joins up; a completed exchange joins
+     * them over NetherNet without RakNet at all.
+     */
+    private void bindHttpSignaling(NetherNetServerInitializer childHandler) throws Exception {
+        // Clients refuse answers without the server identity assertion, so
+        // without it every HTTP join would fail only after full native
+        // negotiation. No identity means no listener: connection refused is
+        // the fastest possible RakNet fallback.
+        NetherNetAnswerDecorator identityDecorator = loadIdentityDecorator();
+
+        // Manual certificate files win and are the ACME opt out; files that
+        // are present but unloadable mean plaintext with an accurate warning
+        // (never silent ACME enrollment against the operator's intent). Only
+        // when no files exist at all does automatic management run.
+        ManualTls manualTls = loadHttpSignalingTls();
+        Supplier<SslContext> tlsSupplier;
+        String tlsMode;
+        if (manualTls != null) {
+            if (manualTls.context() != null) {
+                SslContext context = manualTls.context();
+                tlsSupplier = () -> context;
+                tlsMode = "TLS, manual certificate";
+            } else {
+                tlsSupplier = () -> null;
+                tlsMode = "plaintext; manual certificate failed to load: " + manualTls.error();
+            }
+        } else {
+            this.certificateManager = new NetherNetCertificateManager(
+                    geyser.getBootstrap().getConfigFolder().resolve("nethernet"), logger);
+            tlsSupplier = certificateManager::currentContext;
+            tlsMode = "automatic certificate management";
+        }
+        List<PeerConnectionFactory> httpFactories = createFactoryPool();
+        this.httpSignaling = new NetherNetHttpSignaling(tlsSupplier, workerGroup);
+        try {
+            ServerBootstrap httpBootstrap = new ServerBootstrap();
+            httpBootstrap.group(bossGroup, workerGroup)
+                    .channelFactory(NetherNetChannelFactory.server(httpFactories, httpSignaling))
+                    .option(NetherChannelOption.NETHER_SERVER_ANSWER_DECORATOR, identityDecorator)
+                    .childHandler(childHandler);
+            InetSocketAddress bindAddress = new InetSocketAddress(
+                    geyser.config().bedrock().address(), geyser.config().bedrock().port());
+            this.httpChannel = httpBootstrap.bind(bindAddress).sync().channel();
+            logger.info(LOG_PREFIX + "HTTP signaling on TCP port " + bindAddress.getPort() + " (" + tlsMode + ")");
+            if (certificateManager != null) {
+                certificateManager.start();
+            }
+        } catch (Exception e) {
+            this.httpSignaling = null;
+            if (certificateManager != null) {
+                certificateManager.close();
+                certificateManager = null;
+            }
+            if (httpChannel == null) {
+                disposeFactories(httpFactories);
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Loads (or on first use creates) the server identity that signs every
+     * HTTP signaled answer's a=identity assertion. Clients refuse answers
+     * without it on every HTTP path (HTTPS, plaintext behind a proxy, and
+     * the future TOFU flow all hinge on it), so a failure here aborts the
+     * HTTP listener entirely rather than serving joins doomed to fail after
+     * negotiation.
+     */
+    private NetherNetAnswerDecorator loadIdentityDecorator() throws Exception {
+        try {
+            NetherNetServerIdentity identity = NetherNetServerIdentity.loadOrCreate(
+                    geyser.getBootstrap().getConfigFolder().resolve("nethernet"));
+            return identity::decorate;
+        } catch (Exception e) {
+            throw new IllegalStateException("server identity unavailable: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * The operator supplied TLS state: both fields null never occurs; a null
+     * context with an error means files exist but could not be loaded.
+     */
+    private record ManualTls(SslContext context, String error) {
+    }
+
+    /**
+     * Loads the operator supplied TLS material for HTTP signaling from
+     * nethernet/cert.pem and nethernet/key.pem in the config folder (PEM
+     * certificate chain and PKCS#8 private key). Null when absent (automatic
+     * management applies); an unloadable pair is reported rather than
+     * silently replaced, since supplying files is the ACME opt out.
+     */
+    private ManualTls loadHttpSignalingTls() {
+        Path nethernetDir = geyser.getBootstrap().getConfigFolder().resolve("nethernet");
+        Path cert = nethernetDir.resolve("cert.pem");
+        Path key = nethernetDir.resolve("key.pem");
+        if (!Files.exists(cert) || !Files.exists(key)) {
+            return null;
+        }
+        try {
+            return new ManualTls(SslContextBuilder.forServer(cert.toFile(), key.toFile()).build(), null);
+        } catch (Exception e) {
+            logger.warning(LOG_PREFIX + "Failed to load nethernet/cert.pem + key.pem (" + e.getMessage()
+                    + "); serving plaintext. Fix or remove the files (removing them enables automatic certificates)");
+            return new ManualTls(null, e.getMessage());
         }
     }
 
@@ -331,8 +465,17 @@ public class NetherNetServer {
             rpcChannel.close().syncUninterruptibly();
             rpcChannel = null;
         }
+        if (httpChannel != null) {
+            httpChannel.close().syncUninterruptibly();
+            httpChannel = null;
+        }
+        if (certificateManager != null) {
+            certificateManager.close();
+            certificateManager = null;
+        }
         legacySignaling = null;
         rpcSignaling = null;
+        httpSignaling = null;
         if (bossGroup != null) {
             bossGroup.shutdownGracefully(0, 5, TimeUnit.SECONDS).syncUninterruptibly();
             bossGroup = null;
