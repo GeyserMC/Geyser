@@ -26,6 +26,17 @@ dependencies {
     shadowBundle(projects.core)
     includeTransitive(projects.core)
 
+    // The webrtc natives are classifier artifacts of the same module as the
+    // webrtc-java api jar; the JiJ include logic keys on module id and drops
+    // classifiers, so only the api jar gets nested. Shade them flat like the
+    // other platforms or NetherNet cannot load its native library.
+    val webrtcNativePlatforms = (findProperty("webrtcNatives") as? String)
+        ?.split(',')?.map { it.trim() }?.filter { it.isNotEmpty() }
+        ?: listOf("windows-x86_64", "windows-aarch64", "linux-x86_64", "linux-aarch64", "macos-x86_64", "macos-aarch64")
+    webrtcNativePlatforms.forEach { platform ->
+        shadowBundle("dev.kastle.webrtc:webrtc-java:${libs.versions.webrtc.java.get()}:$platform")
+    }
+
     // These are NOT transitively included, and instead shadowed (+ relocated, if not under the org.geyser namespace).
     // Avoids fabric complaining about non-SemVer versioning
     shadowBundle(libs.protocol.connection)
