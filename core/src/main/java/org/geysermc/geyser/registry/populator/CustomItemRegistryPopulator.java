@@ -74,6 +74,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponen
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.FoodProperties;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.KineticWeapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.PiercingWeapon;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
@@ -253,6 +254,9 @@ public class CustomItemRegistryPopulator {
 
         setupBasicItemInfo(context.definition(), context.components(), itemProperties, componentBuilder);
 
+        // Add a base item tag to the item, as in Java Edition they are still the same items and that we can behave the same in Bedrock
+        context.vanillaMapping().ifPresent(mapping -> addItemTag(componentBuilder, "geyser:" + mapping.getBedrockIdentifier()));
+
         computeToolProperties(itemProperties, componentBuilder);
         Integer attackDamage = context.definition().components().get(GeyserItemDataComponents.ATTACK_DAMAGE);
         if (attackDamage != null) {
@@ -266,10 +270,9 @@ public class CustomItemRegistryPopulator {
         boolean canDestroyInCreative = toolData == null || toolData.isCanDestroyBlocksInCreative();
         computeCreativeDestroyProperties(canDestroyInCreative, itemProperties, componentBuilder);
 
-        // Using API component here because MCPL one is just an ID holder set, and we can't get identifiers from that
-        JavaRepairable repairable = context.definition().components().get(JavaItemDataComponents.REPAIRABLE);
+        HolderSet repairable = context.components().get(DataComponentTypes.REPAIRABLE);
         if (repairable != null) {
-            computeRepairableProperties(repairable, componentBuilder);
+            computeRepairableProperties(repairable, componentBuilder, context.vanillaMapping().map(GeyserMappingItem::getBedrockIdentifier).orElse(null));
         }
 
         Equippable equippable = context.components().get(DataComponentTypes.EQUIPPABLE);
@@ -444,12 +447,12 @@ public class CustomItemRegistryPopulator {
         componentBuilder.putCompound("minecraft:display_name", NbtMap.builder().putString("value", definition.displayName()).build());
 
         // Add a Geyser tag to the item, allowing Molang queries
-        addItemTag(componentBuilder, Identifier.of("geyser:is_custom"));
+        addItemTag(componentBuilder, "geyser:is_custom");
 
         // Add other defined tags to the item
         Set<Identifier> tags = options.tags();
         for (Identifier tag : tags) {
-            addItemTag(componentBuilder, tag);
+            addItemTag(componentBuilder, tag.toString());
         }
 
         itemProperties.putBoolean("allow_off_hand", options.allowOffhand());
@@ -518,21 +521,57 @@ public class CustomItemRegistryPopulator {
     /**
      * This method passes the Java identifiers straight to bedrock - which isn't perfect. Also doesn't work with holder sets that use a tag.
      */
-    private static void computeRepairableProperties(JavaRepairable repairable, NbtMapBuilder componentBuilder) {
-        List<Identifier> identifiers = ((HoldersImpl) repairable.items()).identifiers();
-        if (identifiers == null) {
-            return;
-        }
-        List<NbtMap> items = identifiers.stream()
-            .map(identifier -> NbtMap.builder()
-                .putString("name", identifier.toString())
-                .build()).toList();
+    private static void computeRepairableProperties(HolderSet repairable, NbtMapBuilder componentBuilder, String baseItem) {
+        // TODO also map individual items and do not hardcode tag mappings
+        List<NbtMap> items = repairable.getLocation() != null ? switch (repairable.getLocation().asString()) {
+            case "minecraft:wooden_tool_materials" -> List.of(NbtMap.builder()
+                .putString("tags", "q.all_tags('minecraft:planks')")
+                .build());
+            case "minecraft:repairs_leather_armor" -> List.of(NbtMap.builder()
+                .putString("name", "minecraft:leather")
+                .build());
+            case "minecraft:iron_tool_materials", "minecraft:repairs_iron_armor" -> List.of(NbtMap.builder()
+                .putString("name", "minecraft:iron_ingot")
+                .build());
+            case "minecraft:gold_tool_materials", "minecraft:repairs_gold_armor" -> List.of(NbtMap.builder()
+                .putString("name", "minecraft:gold_ingot")
+                .build());
+            case "minecraft:diamond_tool_materials", "minecraft:repairs_diamond_armor" -> List.of(NbtMap.builder()
+                .putString("name", "minecraft:diamond")
+                .build());
+            case "minecraft:netherite_tool_materials", "minecraft:repairs_netherite_armor" -> List.of(NbtMap.builder()
+                .putString("name", "minecraft:netherite_ingot")
+                .build());
+            default -> List.of(NbtMap.builder()
+               .putString("tags", "q.all_tags('" + repairable.getLocation().asString() + "')")
+               .build());
+        } : null;
 
-        componentBuilder.putCompound("minecraft:repairable", NbtMap.builder()
-            .putList("repair_items", NbtType.COMPOUND, NbtMap.builder()
+        List<NbtMap> repairItems = new ArrayList<>();
+        if (baseItem != null) {
+            repairItems.add(NbtMap.builder()
+                .putList("items", NbtType.COMPOUND, NbtMap.builder()
+                    .putString("name", baseItem)
+                    .build(), NbtMap.builder()
+                    .putString("tags", "q.all_tags('geyser:" + baseItem + "')")
+                    .build())
+                .putCompound("repair_amount", NbtMap.builder()
+                    .putString("expression", "math.min(q.remaining_durability + c.other->q.remaining_durability + math.floor(q.max_durability * 0.05), q.max_durability)")
+                    .putShort("version", (short) 12)
+                    .build())
+                .build());
+        }
+        if (items != null) {
+            repairItems.add(NbtMap.builder()
                 .putList("items", NbtType.COMPOUND, items)
-                .putFloat("repair_amount", 0.0F)
-                .build())
+                .putCompound("repair_amount", NbtMap.builder()
+                    .putString("expression", "q.max_durability * 0.25")
+                    .putShort("version", (short) 12)
+                    .build())
+                .build());
+        }
+        componentBuilder.putCompound("minecraft:repairable", NbtMap.builder()
+            .putList("repair_items", NbtType.COMPOUND, repairItems)
             .build());
     }
 
@@ -744,15 +783,15 @@ public class CustomItemRegistryPopulator {
     }
 
     @SuppressWarnings("unchecked")
-    private static void addItemTag(NbtMapBuilder builder, Identifier tag) {
+    private static void addItemTag(NbtMapBuilder builder, String tag) {
         List<String> tagList = (List<String>) builder.get("item_tags");
         if (tagList == null) {
-            builder.putList("item_tags", NbtType.STRING, tag.toString());
+            builder.putList("item_tags", NbtType.STRING, tag);
         } else {
             // NbtList is immutable
-            if (!tagList.contains(tag.toString())) {
+            if (!tagList.contains(tag)) {
                 tagList = new ArrayList<>(tagList);
-                tagList.add(tag.toString());
+                tagList.add(tag);
                 builder.putList("item_tags", NbtType.STRING, tagList);
             }
         }
