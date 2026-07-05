@@ -232,6 +232,7 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.Serverbound
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundChatPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerAbilitiesPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSetCarriedItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemPacket;
 import org.geysermc.mcprotocollib.protocol.packet.login.serverbound.ServerboundCustomQueryAnswerPacket;
 
@@ -626,6 +627,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Getter
     @Setter
     private boolean inClientPredictedVehicle;
+
+    /**
+     * Store the last time the player charged a projectile (crossbow). Used to fix crossbow discharge instantly.
+     */
+    @Setter
+    private long lastChargedProjectilesTime;
 
     /**
      * Store the last time the player interacted. Used to fix a right-click spam bug.
@@ -1517,6 +1524,44 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     }
 
     /**
+     * Switch the player currently selected hotbar slot.
+     */
+    public void switchHeldSlot(int slot) {
+        if (!spawned || slot < 0 || slot > 8 || playerInventoryHolder.inventory().getHeldItemSlot() == slot) {
+            // For the last condition - Don't update the slot if the slot is the same - not Java Edition behavior and messes with plugins such as Grief Prevention
+            return;
+        }
+
+        // Send book update before switching hotbar slot
+        bookEditCache.checkForSend();
+
+        GeyserItemStack oldItem = playerInventoryHolder.inventory().getItemInHand();
+        playerInventoryHolder.inventory().setHeldItemSlot(slot);
+
+        ServerboundSetCarriedItemPacket setCarriedItemPacket = new ServerboundSetCarriedItemPacket(slot);
+        sendDownstreamGamePacket(setCarriedItemPacket);
+
+        GeyserItemStack newItem = playerInventoryHolder.inventory().getItemInHand();
+
+        if (sneaking && newItem.is(Items.SHIELD)) {
+            // Activate shield since we are already sneaking
+            // (No need to send a release item packet - Java doesn't do this when swapping items)
+            // Required to do it a tick later or else it doesn't register
+            scheduleInEventLoop(() -> useItem(Hand.MAIN_HAND), nanosecondsPerTick, TimeUnit.NANOSECONDS);
+        }
+
+        if (!oldItem.isSameItem(newItem)) {
+            // Java sends a cooldown indicator whenever you switch to a new item type
+            CooldownUtils.setCooldownHitTime(this);
+        }
+
+        // Update the interactive tag, if an entity is present
+        if (mouseoverEntity != null) {
+            mouseoverEntity.updateInteractiveTag();
+        }
+    }
+
+    /**
      * Same as useItem but always default to useTouchRotation false.
      */
     public void useItem(Hand hand) {
@@ -1528,6 +1573,17 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     public void useItem(Hand hand, boolean useTouchRotation) {
         if (playerEntity.getFlag(EntityFlag.USING_ITEM)) {
+            return;
+        }
+
+        // We don't want the crossbow to discharge instantly since the player is still holding down right click,
+        // so let's add a little bit of grace period before they can actually use the crossbow. This should be a short enough time
+        // so that they can actually discharge quickly but won't discharge if they don't want to.
+        if (hand == Hand.MAIN_HAND && System.currentTimeMillis() - lastChargedProjectilesTime < 450L) {
+            lastChargedProjectilesTime = 0;
+
+            // The client likes to cycle the crossbow here, so we need to update the crossbow item again.
+            playerInventoryHolder.updateSlot(playerInventoryHolder.inventory().getOffsetForHotbar(playerInventoryHolder.inventory().getHeldItemSlot()));
             return;
         }
 

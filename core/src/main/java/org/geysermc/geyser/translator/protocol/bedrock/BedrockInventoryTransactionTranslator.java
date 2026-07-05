@@ -118,6 +118,14 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         // Send book updates before opening inventories
         session.getBookEditCache().checkForSend();
 
+        // For some reason bedrock decides to send InventoryTransactionPacket before BedrockMobEquipmentTranslator
+        // which means that if the player quickly switch to an item then drop it/use it within a single tick,
+        // we will receive the use item first, causing Geyser to send use item/drop item for the wrong item.
+        // which is pretty important for thing like attribute swapping, so we have to check if the slot has changed.
+        if (packet.getHotbarSlot() != session.getPlayerInventory().getHeldItemSlot()) {
+            session.switchHeldSlot(packet.getHotbarSlot());
+        }
+
         switch (packet.getTransactionType()) {
             case NORMAL:
                 if (packet.getActions().size() == 2) {

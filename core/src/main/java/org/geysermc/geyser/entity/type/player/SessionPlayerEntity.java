@@ -66,6 +66,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
@@ -201,6 +202,17 @@ public class SessionPlayerEntity extends PlayerEntity {
         this.position = position;
     }
 
+    @Override
+    public void updateHeadLookRotation(float headYaw) {
+        // We can't rotate the player head while they're riding a vehicle, since that will cause them to dismount.
+        if (this.vehicle != null) {
+            setHeadYaw(headYaw);
+            return;
+        }
+
+        super.updateHeadLookRotation(headYaw);
+    }
+
     /**
      * Special method used only when updating the session player's rotation.
      * For some reason, Mode#NORMAL ignored rotation. Yay.
@@ -212,6 +224,11 @@ public class SessionPlayerEntity extends PlayerEntity {
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
+
+        // We can't rotate the player head while they're riding a vehicle, since that will cause them to dismount.
+        if (this.vehicle != null) {
+            return;
+        }
         
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
@@ -371,6 +388,13 @@ public class SessionPlayerEntity extends PlayerEntity {
         } else {
             return session.getPlayerInventory().getItemInHand().is(Items.SHIELD);
         }
+    }
+
+    @Override
+    protected boolean hasChargedProjectiles() {
+        // Must be overridden to point to the player's inventory cache
+        List<ItemStack> chargedProjectiles = session.getPlayerInventory().getItemInHand().getComponent(DataComponentTypes.CHARGED_PROJECTILES);
+        return chargedProjectiles != null && !chargedProjectiles.isEmpty();
     }
 
     @Override
