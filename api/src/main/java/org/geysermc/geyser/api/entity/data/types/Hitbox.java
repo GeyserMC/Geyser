@@ -31,7 +31,7 @@ import org.geysermc.geyser.api.GeyserApi;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
- * Represents an entity hitbox, with min/max representing absolute coordinates
+ * Represents an entity hitbox, with min/max representing absolute coordinates.
  *
  * @since 2.11.0
  */
