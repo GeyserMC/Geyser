@@ -33,11 +33,13 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.CameraInstructionPacket;
 import org.cloudburstmc.protocol.common.util.OptionalBoolean;
 import org.geysermc.geyser.api.bedrock.camera.CameraPerspective;
+import org.geysermc.geyser.api.entity.data.GeyserEntityDataTypes;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.impl.camera.CameraDefinitions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.MathUtils;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public final class EntitySpectateHelper {
@@ -177,6 +179,6 @@ public final class EntitySpectateHelper {
     }
 
     private static float eyeHeight(Entity entity) {
-        return entity.getDefinition().height() * EYE_HEIGHT_RATIO;
+        return Objects.requireNonNullElse(entity.override(GeyserEntityDataTypes.HEIGHT), entity.getBoundingBoxHeight()) * EYE_HEIGHT_RATIO;
     }
 }

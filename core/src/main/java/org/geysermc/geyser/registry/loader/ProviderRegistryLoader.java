@@ -34,6 +34,10 @@ import org.geysermc.geyser.api.block.custom.component.GeometryComponent;
 import org.geysermc.geyser.api.block.custom.component.MaterialInstance;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
 import org.geysermc.geyser.api.command.Command;
+import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
+import org.geysermc.geyser.api.entity.data.types.Hitbox;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.definition.JavaEntityType;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
@@ -72,6 +76,9 @@ import org.geysermc.geyser.api.predicate.item.TrimMaterialPredicate;
 import org.geysermc.geyser.api.util.Holders;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
+import org.geysermc.geyser.entity.BedrockEntityDefinition;
+import org.geysermc.geyser.entity.CustomBedrockEntityDefinition;
+import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.event.GeyserEventRegistrar;
 import org.geysermc.geyser.extension.command.GeyserExtensionCommand;
 import org.geysermc.geyser.impl.GeyserDimensionPredicate;
@@ -79,29 +86,30 @@ import org.geysermc.geyser.impl.HoldersImpl;
 import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.impl.camera.GeyserCameraFade;
 import org.geysermc.geyser.impl.camera.GeyserCameraPosition;
+import org.geysermc.geyser.impl.entity.HitboxImpl;
 import org.geysermc.geyser.item.GeyserCustomItemData;
 import org.geysermc.geyser.item.GeyserCustomItemOptions;
 import org.geysermc.geyser.item.GeyserNonVanillaCustomItemData;
-import org.geysermc.geyser.item.custom.impl.JavaAttackRangeImpl;
-import org.geysermc.geyser.item.custom.impl.JavaKineticWeaponImpl;
-import org.geysermc.geyser.item.custom.impl.JavaPiercingWeaponImpl;
-import org.geysermc.geyser.item.custom.impl.JavaSwingAnimationImpl;
-import org.geysermc.geyser.item.custom.impl.GeyserThrowableComponentImpl;
-import org.geysermc.geyser.item.custom.impl.JavaUseEffectsImpl;
-import org.geysermc.geyser.item.custom.impl.predicates.GeyserChargedProjectile;
 import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.custom.GeyserNonVanillaCustomItemDefinition;
 import org.geysermc.geyser.item.custom.impl.GeyserBlockPlacerImpl;
 import org.geysermc.geyser.item.custom.impl.GeyserChargeableImpl;
-import org.geysermc.geyser.item.custom.impl.JavaConsumableImpl;
+import org.geysermc.geyser.item.custom.impl.GeyserThrowableComponentImpl;
 import org.geysermc.geyser.item.custom.impl.ItemDataComponentImpl;
+import org.geysermc.geyser.item.custom.impl.JavaAttackRangeImpl;
+import org.geysermc.geyser.item.custom.impl.JavaConsumableImpl;
 import org.geysermc.geyser.item.custom.impl.JavaEquippableImpl;
 import org.geysermc.geyser.item.custom.impl.JavaFoodPropertiesImpl;
+import org.geysermc.geyser.item.custom.impl.JavaKineticWeaponImpl;
+import org.geysermc.geyser.item.custom.impl.JavaPiercingWeaponImpl;
 import org.geysermc.geyser.item.custom.impl.JavaRepairableImpl;
+import org.geysermc.geyser.item.custom.impl.JavaSwingAnimationImpl;
 import org.geysermc.geyser.item.custom.impl.JavaToolImpl;
 import org.geysermc.geyser.item.custom.impl.JavaUseCooldownImpl;
+import org.geysermc.geyser.item.custom.impl.JavaUseEffectsImpl;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserChargeTypePredicate;
+import org.geysermc.geyser.item.custom.impl.predicates.GeyserChargedProjectile;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserCustomModelDataPredicate;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserHasComponentPredicate;
 import org.geysermc.geyser.item.custom.impl.predicates.GeyserRangeDispatchPredicate;
@@ -201,6 +209,13 @@ public class ProviderRegistryLoader implements RegistryLoader<Map<Class<?>, Prov
         // cameras
         providers.put(CameraFade.Builder.class, args -> new GeyserCameraFade.Builder());
         providers.put(CameraPosition.Builder.class, args -> new GeyserCameraPosition.Builder());
+
+        // entities
+        providers.put(GeyserEntityDefinition.class, args -> BedrockEntityDefinition.getVanilla((Identifier) args[0]));
+        providers.put(CustomEntityDefinition.class, args -> CustomBedrockEntityDefinition.getOrCreate((Identifier) args[0]));
+        providers.put(JavaEntityType.class, args -> GeyserEntityType.ofVanilla((Identifier) args[0]));
+
+        providers.put(Hitbox.Builder.class, args -> new HitboxImpl.BuilderImpl());
 
         // waypoints
         providers.put(CustomWaypointStyle.VanillaBuilder.class, args -> new VanillaWaypoint.Builder((int) args[0], (int) args[1]));

@@ -60,7 +60,7 @@ public class MagmaCubeEntity extends AbstractCubeEntity {
     public void updateJump(boolean newOnGround) {
         if (newOnGround != onGround) {
             // Add the jumping effect to the magma cube
-            dirtyMetadata.put(EntityDataTypes.CLIENT_EVENT, (byte) (newOnGround ? 1 : 2));
+            metadata.put(EntityDataTypes.CLIENT_EVENT, (byte) (newOnGround ? 1 : 2));
             updateBedrockMetadata();
         }
     }

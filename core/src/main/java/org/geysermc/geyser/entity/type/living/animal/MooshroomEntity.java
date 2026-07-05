@@ -47,7 +47,7 @@ public class MooshroomEntity extends CowEntity {
 
     public void setMooshroomVariant(IntEntityMetadata metadata) {
         isBrown = metadata.getPrimitiveValue() == 1;
-        dirtyMetadata.put(EntityDataTypes.VARIANT, metadata.getPrimitiveValue());
+        this.metadata.put(EntityDataTypes.VARIANT, metadata.getPrimitiveValue());
     }
 
     @Override

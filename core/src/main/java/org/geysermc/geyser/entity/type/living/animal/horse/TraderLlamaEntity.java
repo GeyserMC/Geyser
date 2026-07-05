@@ -37,6 +37,6 @@ public class TraderLlamaEntity extends LlamaEntity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        this.dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, 1);
+        this.metadata.put(EntityDataTypes.MARK_VARIANT, 1);
     }
 }
