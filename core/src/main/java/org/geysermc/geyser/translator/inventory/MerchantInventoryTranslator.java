@@ -104,9 +104,9 @@ public class MerchantInventoryTranslator extends BaseInventoryTranslator<Merchan
             Entity villager = new Entity(context) {
                 @Override
                 protected void initializeMetadata() {
-                    dirtyMetadata.put(EntityDataTypes.SCALE, 0f);
-                    dirtyMetadata.put(EntityDataTypes.WIDTH, 0f);
-                    dirtyMetadata.put(EntityDataTypes.HEIGHT, 0f);
+                    metadata.put(EntityDataTypes.SCALE, 0f);
+                    metadata.put(EntityDataTypes.WIDTH, 0f);
+                    metadata.put(EntityDataTypes.HEIGHT, 0f);
                 }
             };
             villager.spawnEntity();

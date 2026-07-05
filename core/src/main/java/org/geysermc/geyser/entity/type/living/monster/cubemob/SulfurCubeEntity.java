@@ -117,7 +117,7 @@ public class SulfurCubeEntity extends AbstractCubeEntity {
         }
 
         if (this.previousFuseTickTime != this.fuseTickTime) {
-            this.dirtyMetadata.put(EntityDataTypes.FUSE_TIME, fuseTickTime);
+            this.metadata.put(EntityDataTypes.FUSE_TIME, fuseTickTime);
             this.updateBedrockMetadata();
             this.previousFuseTickTime = this.fuseTickTime;
         }
@@ -125,7 +125,7 @@ public class SulfurCubeEntity extends AbstractCubeEntity {
 
     public void setMaxFuse(IntEntityMetadata entityMetadata) {
         this.fuseTickTime = entityMetadata.getPrimitiveValue();
-        this.dirtyMetadata.put(EntityDataTypes.FUSE_TIME, fuseTickTime);
+        this.metadata.put(EntityDataTypes.FUSE_TIME, fuseTickTime);
     }
 
     static {

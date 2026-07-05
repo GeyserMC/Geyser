@@ -87,7 +87,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
         super.setTameableFlags(entityMetadata);
         // Reset wolf color
         if (getFlag(EntityFlag.ANGRY)) {
-            dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
+            metadata.put(EntityDataTypes.COLOR, (byte) 0);
         } else if (getFlag(EntityFlag.TAMED)) {
             updateCollarColor();
 
@@ -107,11 +107,11 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
     }
 
     private void updateCollarColor() {
-        dirtyMetadata.put(EntityDataTypes.COLOR, collarColor);
+        metadata.put(EntityDataTypes.COLOR, collarColor);
         if (ownerBedrockId == 0) {
             // If a color is set and there is no owner entity ID, set one.
             // Otherwise, the entire wolf is set to that color: https://user-images.githubusercontent.com/9083212/99209989-92691200-2792-11eb-911d-9a315c955be9.png
-            dirtyMetadata.put(EntityDataTypes.OWNER_EID, session.getPlayerEntity().geyserId());
+            metadata.put(EntityDataTypes.OWNER_EID, session.getPlayerEntity().geyserId());
         }
     }
 
@@ -120,7 +120,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
         long time = entityMetadata.getPrimitiveValue();
         boolean angry = time > 0 && time - session.getGameTicks() > 0;
         setFlag(EntityFlag.ANGRY, angry);
-        dirtyMetadata.put(EntityDataTypes.COLOR, angry ? (byte) 0 : collarColor);
+        metadata.put(EntityDataTypes.COLOR, angry ? (byte) 0 : collarColor);
     }
 
     @Override
@@ -130,7 +130,7 @@ public class WolfEntity extends TameableEntity implements VariantIntHolder {
 
     @Override
     public void setBedrockVariantId(int bedrockId) {
-        dirtyMetadata.put(EntityDataTypes.VARIANT, bedrockId);
+        metadata.put(EntityDataTypes.VARIANT, bedrockId);
     }
 
     @Override

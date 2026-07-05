@@ -53,6 +53,6 @@ public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
             case 3 -> WOLOLO_PARTICLE_COLOR;
             default -> 0;
         };
-        dirtyMetadata.put(EntityDataTypes.EVOKER_SPELL_CASTING_COLOR, rgbData);
+        metadata.put(EntityDataTypes.EVOKER_SPELL_CASTING_COLOR, rgbData);
     }
 }

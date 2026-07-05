@@ -171,13 +171,13 @@ public class InteractionEntity extends Entity {
         if (this.secondEntity == null) {
             secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, VanillaEntities.ARMOR_STAND, this, position.up(getBoundingBoxHeight())));
         }
-        secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
-        secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, customNameVisible ? (byte) 1 : (byte) 0);
+        secondEntity.getMetadata().put(EntityDataTypes.NAME, nametag);
+        secondEntity.getMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, customNameVisible ? (byte) 1 : (byte) 0);
         // Scale to 0 to show nametag
         secondEntity.setScale(0f);
         // No bounding box as we don't want to interact with this entity
-        secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
-        secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
-        secondEntity.getDirtyMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
+        secondEntity.getMetadata().put(EntityDataTypes.WIDTH, 0.0f);
+        secondEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
+        secondEntity.getMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
     }
 }

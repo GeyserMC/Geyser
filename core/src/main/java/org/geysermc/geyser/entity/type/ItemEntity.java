@@ -64,7 +64,7 @@ public class ItemEntity extends ProjectileEntity {
         itemPacket.setFromFishing(false);
         itemPacket.setItemInHand(item);
         itemPacket.getMetadata().putFlags(this.flags);
-        dirtyMetadata.apply(itemPacket.getMetadata());
+        metadata.apply(itemPacket.getMetadata());
 
         setFlagsDirty(false);
 

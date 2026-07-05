@@ -220,7 +220,7 @@ public class ArmorStandEntity extends LivingEntity {
         // We don't do this for the negative values out of concerns of the number being too big
         int topBit = (Math.abs(rotationX) >= 100 ? 4 : 0) + (Math.abs(rotationY) >= 100 ? 2 : 0) + (Math.abs(rotationZ) >= 100 ? 1 : 0);
         int value = (topBit * 1000000) + ((Math.abs(rotationX) % 100) * 10000) + ((Math.abs(rotationY) % 100) * 100) + (Math.abs(rotationZ) % 100);
-        dirtyMetadata.put(dataLeech, value);
+        metadata.put(dataLeech, value);
         // Set the entity flags if a value is negative
         setFlag(negativeXToggle, rotationX < 0);
         setFlag(negativeYToggle, rotationY < 0);
@@ -342,16 +342,16 @@ public class ArmorStandEntity extends LivingEntity {
             secondEntity.isSmall = isSmall;
             secondEntity.isMarker = isMarker;
             secondEntity.positionRequiresOffset = true; // Offset should always be applied
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, customNameVisible ? (byte) 1 : (byte) 0);
+            secondEntity.getMetadata().put(EntityDataTypes.NAME, nametag);
+            secondEntity.getMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, customNameVisible ? (byte) 1 : (byte) 0);
             secondEntity.flags.putAll(this.flags);
             // Guarantee this copy is NOT invisible
             secondEntity.setFlag(EntityFlag.INVISIBLE, false);
             // Scale to 0 to show nametag
             secondEntity.setScale(0f);
             // No bounding box as we don't want to interact with this entity
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
+            secondEntity.getMetadata().put(EntityDataTypes.WIDTH, 0.0f);
+            secondEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
             if (!secondEntity.valid) { // Spawn the entity once
                 secondEntity.spawnEntity();
             }

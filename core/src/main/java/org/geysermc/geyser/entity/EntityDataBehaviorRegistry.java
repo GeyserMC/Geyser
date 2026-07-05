@@ -90,17 +90,17 @@ public final class EntityDataBehaviorRegistry {
         behaviors.put(GeyserEntityDataTypes.HITBOXES, new EntityDataBehavior<List<Hitbox>>() {
             @Override
             public void set(@NonNull Entity entity, @Nullable List<Hitbox> value) {
-                entity.getDirtyMetadata().updateOverride(EntityDataTypes.HITBOX, HitboxImpl.toNbtMap(value));
+                entity.getMetadata().updateOverride(EntityDataTypes.HITBOX, HitboxImpl.toNbtMap(value));
             }
 
             @Override
             public @Nullable List<Hitbox> value(@NonNull Entity entity) {
-                return HitboxImpl.fromMetaData(entity.getDirtyMetadata().value(EntityDataTypes.HITBOX));
+                return HitboxImpl.fromMetaData(entity.getMetadata().value(EntityDataTypes.HITBOX));
             }
 
             @Override
             public @Nullable List<Hitbox> override(@NonNull Entity entity) {
-                return HitboxImpl.fromMetaData(entity.getDirtyMetadata().override(EntityDataTypes.HITBOX));
+                return HitboxImpl.fromMetaData(entity.getMetadata().override(EntityDataTypes.HITBOX));
             }
         });
 
@@ -119,17 +119,17 @@ public final class EntityDataBehaviorRegistry {
         map.put(type, new EntityDataBehavior<T>() {
             @Override
             public void set(@NonNull Entity entity, @Nullable T value) {
-                entity.getDirtyMetadata().updateOverride(bedrockType, value);
+                entity.getMetadata().updateOverride(bedrockType, value);
             }
 
             @Override
             public @Nullable T value(@NonNull Entity entity) {
-                return entity.getDirtyMetadata().value(bedrockType);
+                return entity.getMetadata().value(bedrockType);
             }
 
             @Override
             public @Nullable T override(@NonNull Entity entity) {
-                return entity.getDirtyMetadata().override(bedrockType);
+                return entity.getMetadata().override(bedrockType);
             }
         });
         tracked.add(bedrockType);

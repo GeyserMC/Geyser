@@ -61,7 +61,7 @@ public class BeeEntity extends AnimalEntity {
             session.sendUpstreamPacket(packet);
         }
         // If the bee has stung
-        dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, (xd & 0x04) == 0x04 ? 1 : 0);
+        metadata.put(EntityDataTypes.MARK_VARIANT, (xd & 0x04) == 0x04 ? 1 : 0);
         // If the bee has nectar or not
         NECTAR_PROPERTY.apply(propertyManager, (xd & 0x08) == 0x08);
         updateBedrockEntityProperties();

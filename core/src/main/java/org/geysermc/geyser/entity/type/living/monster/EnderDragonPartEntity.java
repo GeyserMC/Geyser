@@ -39,8 +39,8 @@ public class EnderDragonPartEntity extends Entity {
     public EnderDragonPartEntity(GeyserSession session, int entityId, long geyserId, float width, float height) {
         super(dragonPartSpawnContext(session, entityId, geyserId));
 
-        dirtyMetadata.put(EntityDataTypes.WIDTH, width);
-        dirtyMetadata.put(EntityDataTypes.HEIGHT, height);
+        metadata.put(EntityDataTypes.WIDTH, width);
+        metadata.put(EntityDataTypes.HEIGHT, height);
         setFlag(EntityFlag.INVISIBLE, true);
         setFlag(EntityFlag.FIRE_IMMUNE, true);
     }

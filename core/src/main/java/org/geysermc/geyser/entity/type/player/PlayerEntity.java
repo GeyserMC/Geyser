@@ -202,15 +202,15 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
                 return;
             }
             ParrotEntity parrot = new ParrotEntity(context);
-            parrot.getDirtyMetadata().put(EntityDataTypes.VARIANT, variant.getAsInt());
+            parrot.getMetadata().put(EntityDataTypes.VARIANT, variant.getAsInt());
             if (context.consumers() != null) {
                 context.consumers().forEach(consumer -> consumer.accept(parrot));
             }
             parrot.spawnEntity();
             // Different position whether the parrot is left or right
             float offset = isLeft ? 0.4f : -0.4f;
-            parrot.getDirtyMetadata().put(EntityDataTypes.SEAT_OFFSET, Vector3f.from(offset, -0.22, -0.1));
-            parrot.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
+            parrot.getMetadata().put(EntityDataTypes.SEAT_OFFSET, Vector3f.from(offset, -0.22, -0.1));
+            parrot.getMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
             parrot.updateBedrockMetadata();
             SetEntityLinkPacket linkPacket = new SetEntityLinkPacket();
             EntityLinkData.Type type = isLeft ? EntityLinkData.Type.RIDER : EntityLinkData.Type.PASSENGER;

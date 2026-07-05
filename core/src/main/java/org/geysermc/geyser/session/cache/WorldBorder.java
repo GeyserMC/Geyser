@@ -533,9 +533,9 @@ public class WorldBorder {
         entity.setFlag(EntityFlag.INVISIBLE, true);
 
         // These values should be safe?
-        entity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 25f);
-        entity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 10f);
-        entity.getDirtyMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
+        entity.getMetadata().put(EntityDataTypes.HEIGHT, 25f);
+        entity.getMetadata().put(EntityDataTypes.WIDTH, 10f);
+        entity.getMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
 
         entity.spawnEntity();
         return entity;

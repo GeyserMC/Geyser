@@ -285,8 +285,8 @@ public class SessionPlayerEntity extends PlayerEntity {
      * See <a href="https://github.com/GeyserMC/Geyser/issues/3370">issue 3370</a>
      */
     public void updateBoundingBox() {
-        dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
-        dirtyMetadata.put(EntityDataTypes.WIDTH, getBoundingBoxWidth());
+        metadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
+        metadata.put(EntityDataTypes.WIDTH, getBoundingBoxWidth());
         updateBedrockMetadata();
     }
 
@@ -421,11 +421,11 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public void setLastDeathPosition(@Nullable GlobalPos pos) {
         if (pos != null) {
-            dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_POS, pos.getPosition());
-            dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_DIMENSION, DimensionUtils.javaToBedrock(pos.getDimension().asString()));
-            dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, true);
+            metadata.put(EntityDataTypes.PLAYER_LAST_DEATH_POS, pos.getPosition());
+            metadata.put(EntityDataTypes.PLAYER_LAST_DEATH_DIMENSION, DimensionUtils.javaToBedrock(pos.getDimension().asString()));
+            metadata.put(EntityDataTypes.PLAYER_HAS_DIED, true);
         } else {
-            dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, false);
+            metadata.put(EntityDataTypes.PLAYER_HAS_DIED, false);
         }
     }
 
@@ -474,9 +474,9 @@ public class SessionPlayerEntity extends PlayerEntity {
                 GeyserAttributeType.ABSORPTION.getAttribute(0f)));
         session.sendUpstreamPacket(attributesPacket);
 
-        dirtyMetadata.put(EntityDataTypes.EFFECT_AMBIENCE, (byte) 0);
-        dirtyMetadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, 0f);
-        dirtyMetadata.put(EntityDataTypes.VISIBLE_MOB_EFFECTS, 0L);
+        metadata.put(EntityDataTypes.EFFECT_AMBIENCE, (byte) 0);
+        metadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, 0f);
+        metadata.put(EntityDataTypes.VISIBLE_MOB_EFFECTS, 0L);
 
         silent = false;
     }

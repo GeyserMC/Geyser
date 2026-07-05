@@ -196,7 +196,7 @@ public class LivingEntity extends Entity implements Tickable {
         this.attributeScale = 1f;
         super.initializeMetadata();
         // Matches Bedrock behavior; is always set to this
-        dirtyMetadata.put(EntityDataTypes.STRUCTURAL_INTEGRITY, 1);
+        metadata.put(EntityDataTypes.STRUCTURAL_INTEGRITY, 1);
     }
 
     @Override
@@ -313,14 +313,14 @@ public class LivingEntity extends Entity implements Tickable {
             return;
         }
 
-        dirtyMetadata.put(EntityDataTypes.VISIBLE_MOB_EFFECTS, visibleEffects);
+        metadata.put(EntityDataTypes.VISIBLE_MOB_EFFECTS, visibleEffects);
     }
 
     public @Nullable Vector3i setBedPosition(EntityMetadata<Optional<Vector3i>, ?> entityMetadata) {
         Optional<Vector3i> optionalPos = entityMetadata.getValue();
         if (optionalPos.isPresent()) {
             Vector3i bedPosition = optionalPos.get();
-            dirtyMetadata.put(EntityDataTypes.BED_POSITION, bedPosition);
+            metadata.put(EntityDataTypes.BED_POSITION, bedPosition);
             // Required to sync position of entity to bed
             // 1.21.11 MojMap see LivingEntity#setPosToBed
             this.setPosition(bedPosition.toFloat().add(0.5, 0.6875, 0.5));
@@ -377,7 +377,7 @@ public class LivingEntity extends Entity implements Tickable {
     @Override
     protected void applyScale() {
         // Take any adjustments Bedrock requires, and compute it alongside the attribute's additional changes
-        this.dirtyMetadata.put(EntityDataTypes.SCALE, scale * attributeScale);
+        this.metadata.put(EntityDataTypes.SCALE, scale * attributeScale);
     }
 
     /**

@@ -286,15 +286,15 @@ public final class EntityUtils {
     public static void updateRiderRotationLock(Entity passenger, Entity mount, boolean isRiding) {
         if (isRiding && mount instanceof BoatEntity) {
             // Head rotation is locked while riding in a boat
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, true);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, -90f);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, true);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, -90f);
         } else {
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 0f);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, false);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 0f);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 0f);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, false);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 0f);
         }
     }
 

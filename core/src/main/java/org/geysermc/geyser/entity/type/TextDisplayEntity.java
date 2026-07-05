@@ -68,9 +68,9 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Remove armor stand body / hitbox
-        this.dirtyMetadata.put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
-        this.dirtyMetadata.put(EntityDataTypes.SCALE, 0f);
-        this.dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
+        this.metadata.put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
+        this.metadata.put(EntityDataTypes.SCALE, 0f);
+        this.metadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
     }
 
     @Override
@@ -128,7 +128,7 @@ public class TextDisplayEntity extends DisplayBaseEntity {
     }
 
     public void setText(EntityMetadata<Component, ?> entityMetadata) {
-        this.dirtyMetadata.put(EntityDataTypes.NAME, MessageTranslator.convertMessage(entityMetadata.getValue(), session.locale()));
+        this.metadata.put(EntityDataTypes.NAME, MessageTranslator.convertMessage(entityMetadata.getValue(), session.locale()));
         int oldLineCount = this.lineCount;
         this.lineCount = calculateLineCount(entityMetadata.getValue());
 
@@ -172,14 +172,14 @@ public class TextDisplayEntity extends DisplayBaseEntity {
         if (this.secondEntity == null) {
             secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, VanillaEntities.ARMOR_STAND, this, position.down(LINE_HEIGHT_OFFSET)));
         }
-        secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, this.nametag);
-        secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
+        secondEntity.getMetadata().put(EntityDataTypes.NAME, this.nametag);
+        secondEntity.getMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
         // Scale to 0 to show nametag
         secondEntity.setScale(0f);
         // No bounding box as we don't want to interact with this entity
-        secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
-        secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
-        secondEntity.getDirtyMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
+        secondEntity.getMetadata().put(EntityDataTypes.WIDTH, 0.0f);
+        secondEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
+        secondEntity.getMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
     }
 
     /**

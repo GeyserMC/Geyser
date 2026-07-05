@@ -154,9 +154,14 @@ public class Entity implements GeyserEntity {
     protected Entity vehicle;
 
     /**
-     * A container to store temporary metadata before it's sent to Bedrock.
+     * The metadata handler for this entity, including:
+     * <ul>
+     * <li>A container to store temporary metadata before it's sent to Bedrock</li>
+     * <li>Storing API entity data overrides</li>
+     * <li>Storing "real" values for tracked metadata</li>
+     * </ul>
      */
-    protected final GeyserEntityDataManager dirtyMetadata = new GeyserEntityDataManager();
+    protected final GeyserEntityDataManager metadata = new GeyserEntityDataManager();
 
     /**
      * The entity flags for the Bedrock entity.
@@ -201,12 +206,12 @@ public class Entity implements GeyserEntity {
      * Called on entity spawn. Used to populate the entity metadata and flags with default values.
      */
     protected void initializeMetadata() {
-        dirtyMetadata.put(EntityDataTypes.SCALE, scale);
-        dirtyMetadata.put(EntityDataTypes.COLOR, (byte) 0);
-        dirtyMetadata.put(EntityDataTypes.AIR_SUPPLY_MAX, getMaxAir());
+        metadata.put(EntityDataTypes.SCALE, scale);
+        metadata.put(EntityDataTypes.COLOR, (byte) 0);
+        metadata.put(EntityDataTypes.AIR_SUPPLY_MAX, getMaxAir());
         setDimensionsFromPose(Pose.STANDING);
-        dirtyMetadata.put(EntityDataTypes.WIDTH, boundingBoxWidth);
-        dirtyMetadata.put(EntityDataTypes.HEIGHT, boundingBoxHeight);
+        metadata.put(EntityDataTypes.WIDTH, boundingBoxWidth);
+        metadata.put(EntityDataTypes.HEIGHT, boundingBoxHeight);
         setFlag(EntityFlag.HAS_GRAVITY, true);
         setFlag(EntityFlag.HAS_COLLISION, true);
         setFlag(EntityFlag.CAN_SHOW_NAME, true);
@@ -231,7 +236,7 @@ public class Entity implements GeyserEntity {
         addEntityPacket.setHeadRotation(headYaw);
         addEntityPacket.setBodyRotation(yaw); // TODO: This should be bodyYaw
         addEntityPacket.getMetadata().putFlags(flags);
-        dirtyMetadata.apply(addEntityPacket.getMetadata());
+        metadata.apply(addEntityPacket.getMetadata());
         if (propertyManager != null) {
             propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
             propertyManager.applyFloatProperties(addEntityPacket.getProperties().getFloatProperties());
@@ -439,7 +444,7 @@ public class Entity implements GeyserEntity {
             return;
         }
 
-        if (dirtyMetadata.hasEntries() || flagsDirty || (propertyManager != null && propertyManager.hasProperties())) {
+        if (metadata.hasEntries() || flagsDirty || (propertyManager != null && propertyManager.hasProperties())) {
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(geyserId);
             if (flagsDirty) {
@@ -451,7 +456,7 @@ public class Entity implements GeyserEntity {
                 }
                 flagsDirty = false;
             }
-            dirtyMetadata.apply(entityDataPacket.getMetadata());
+            metadata.apply(entityDataPacket.getMetadata());
             if (propertyManager != null && propertyManager.hasProperties()) {
                 propertyManager.applyIntProperties(entityDataPacket.getProperties().getIntProperties());
                 propertyManager.applyFloatProperties(entityDataPacket.getProperties().getFloatProperties());
@@ -536,7 +541,7 @@ public class Entity implements GeyserEntity {
     }
 
     protected void setAirSupply(int amount) {
-        dirtyMetadata.put(EntityDataTypes.AIR_SUPPLY, (short) MathUtils.constrain(amount, 0, getMaxAir()));
+        metadata.put(EntityDataTypes.AIR_SUPPLY, (short) MathUtils.constrain(amount, 0, getMaxAir()));
     }
 
     protected short getMaxAir() {
@@ -595,7 +600,7 @@ public class Entity implements GeyserEntity {
 
     // See TextDisplayEntity for context
     protected void setNameEntityData(String nametag) {
-        dirtyMetadata.put(EntityDataTypes.NAME, nametag);
+        metadata.put(EntityDataTypes.NAME, nametag);
     }
 
     public void updateNametag(@Nullable Team team) {
@@ -644,7 +649,7 @@ public class Entity implements GeyserEntity {
     }
 
     public void setNametagAlwaysShow(boolean value) {
-        dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) (value ? 1 : 0));
+        metadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) (value ? 1 : 0));
     }
 
     public final void setSilent(BooleanEntityMetadata entityMetadata) {
@@ -678,7 +683,7 @@ public class Entity implements GeyserEntity {
     public boolean setBoundingBoxHeight(float height) {
         if (height != boundingBoxHeight) {
             boundingBoxHeight = height;
-            dirtyMetadata.put(EntityDataTypes.HEIGHT, boundingBoxHeight);
+            metadata.put(EntityDataTypes.HEIGHT, boundingBoxHeight);
 
             updatePassengerOffsets();
             return true;
@@ -689,7 +694,7 @@ public class Entity implements GeyserEntity {
     public void setBoundingBoxWidth(float width) {
         if (width != boundingBoxWidth) {
             boundingBoxWidth = width;
-            dirtyMetadata.put(EntityDataTypes.WIDTH, boundingBoxWidth);
+            metadata.put(EntityDataTypes.WIDTH, boundingBoxWidth);
         }
     }
 
@@ -699,7 +704,7 @@ public class Entity implements GeyserEntity {
     }
 
     protected void applyScale() {
-        dirtyMetadata.put(EntityDataTypes.SCALE, scale);
+        metadata.put(EntityDataTypes.SCALE, scale);
     }
 
     /**
@@ -710,12 +715,12 @@ public class Entity implements GeyserEntity {
         // The Java client caps its freezing tick percentage at 140
         int freezingTicks = Math.min(entityMetadata.getPrimitiveValue(), 140);
         float freezingPercentage = freezingTicks / 140f;
-        dirtyMetadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, freezingPercentage);
+        metadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, freezingPercentage);
         return freezingPercentage;
     }
 
     public void setRiderSeatPosition(Vector3f position) {
-        dirtyMetadata.put(EntityDataTypes.SEAT_OFFSET, position);
+        metadata.put(EntityDataTypes.SEAT_OFFSET, position);
     }
 
     /**
@@ -800,7 +805,7 @@ public class Entity implements GeyserEntity {
                 break;
             }
         }
-        session.getPlayerEntity().getDirtyMetadata().put(EntityDataTypes.INTERACT_TEXT, tag.getValue());
+        session.getPlayerEntity().getMetadata().put(EntityDataTypes.INTERACT_TEXT, tag.getValue());
         session.getPlayerEntity().updateBedrockMetadata();
     }
 
