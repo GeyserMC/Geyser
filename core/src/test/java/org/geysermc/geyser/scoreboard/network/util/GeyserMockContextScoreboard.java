@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.scoreboard.network.util;
 
+import io.netty.channel.EventLoop;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
@@ -68,6 +69,12 @@ public class GeyserMockContextScoreboard {
         when(session.getGeyser()).thenReturn(context.mockOrSpy(GeyserImpl.class));
 
         when(session.locale()).thenReturn("en_US");
+
+        // Tests act as if they are running on the session's event loop thread, so
+        // EntityCache's off-thread read guard should take the no-lock fast path.
+        var eventLoop = context.mock(EventLoop.class);
+        when(eventLoop.inEventLoop()).thenReturn(true);
+        when(session.getTickEventLoop()).thenReturn(eventLoop);
 
         doAnswer((Answer<Void>) invocation -> {
             context.addPacket(invocation.getArgument(0, BedrockPacket.class));
