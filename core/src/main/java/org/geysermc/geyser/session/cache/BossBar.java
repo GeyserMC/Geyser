@@ -95,16 +95,31 @@ public class BossBar {
      * avoid clients disconnecting on overly long titles (see {@link #MAX_BEDROCK_TITLE_LENGTH}).
      */
     private String bedrockTitle() {
-        String bedrockTitle = MessageTranslator.convertMessage(title, session.locale());
-        if (bedrockTitle.length() > MAX_BEDROCK_TITLE_LENGTH) {
-            bedrockTitle = bedrockTitle.substring(0, MAX_BEDROCK_TITLE_LENGTH);
-            // Avoid leaving a dangling formatting character (§ without its format code) that would corrupt rendering
-            if (bedrockTitle.charAt(bedrockTitle.length() - 1) == ChatColor.ESCAPE) {
-                bedrockTitle = bedrockTitle.substring(0, bedrockTitle.length() - 1);
+        return truncateForBedrock(MessageTranslator.convertMessage(title, session.locale()));
+    }
+
+    /**
+     * Truncates and escapes a converted title so the string actually sent to Bedrock never exceeds
+     * {@link #MAX_BEDROCK_TITLE_LENGTH}. Escaping a "%" quadruples its length, so the cap has to be enforced on the
+     * escaped output - truncating the raw title to the limit first and escaping after can let a title full of "%"
+     * grow right back past the limit.
+     */
+    static String truncateForBedrock(String rawTitle) {
+        StringBuilder bedrockTitle = new StringBuilder(Math.min(rawTitle.length(), MAX_BEDROCK_TITLE_LENGTH));
+        for (int i = 0; i < rawTitle.length(); i++) {
+            char c = rawTitle.charAt(i);
+            String escaped = c == '%' ? "%%%%" : String.valueOf(c);
+            if (bedrockTitle.length() + escaped.length() > MAX_BEDROCK_TITLE_LENGTH) {
+                break;
             }
+            bedrockTitle.append(escaped);
         }
-        // Escape percent signs after truncating so we never split an escape sequence in half
-        return bedrockTitle.replace("%", "%%%%");
+        // Avoid leaving a dangling formatting character (§ without its format code) that would corrupt rendering
+        int length = bedrockTitle.length();
+        if (length > 0 && bedrockTitle.charAt(length - 1) == ChatColor.ESCAPE) {
+            bedrockTitle.setLength(length - 1);
+        }
+        return bedrockTitle.toString();
     }
 
     public void updateHealth(float health) {
