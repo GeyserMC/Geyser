@@ -60,6 +60,7 @@ public class SoundRegistryLoader implements RegistryLoader<String, Map<String, S
                             javaSound,
                             brMap.has("bedrock_mapping") ? brMap.get("bedrock_mapping").getAsString() : null,
                             brMap.has("playsound_mapping") ? brMap.get("playsound_mapping").getAsString() : null,
+                            brMap.has("integrated_playsound_mapping") ? brMap.get("integrated_playsound_mapping").getAsString() : null,
                             brMap.has("extra_data") ? brMap.get("extra_data").getAsInt() : -1,
                             brMap.has("identifier") ? brMap.get("identifier").getAsString() : null,
                             brMap.has("level_event") && brMap.get("level_event").getAsBoolean(),
