@@ -27,6 +27,7 @@ package org.geysermc.geyser.command.defaults;
 
 import com.google.gson.JsonObject;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.api.util.TriState;
@@ -102,7 +103,7 @@ public class VersionCommand extends GeyserCommand {
                     source.locale(), (latestBuildNumber - buildNumber), "https://geysermc.org/download"
             ));
         } catch (IOException e) {
-            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.version.failed"), e);
+            GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.commands.version.failed"), e);
             source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.version.failed", source.locale()));
         }
     }

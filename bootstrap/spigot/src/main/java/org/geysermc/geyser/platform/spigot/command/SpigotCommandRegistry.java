@@ -31,6 +31,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.incendo.cloud.CommandManager;
@@ -55,7 +56,7 @@ public class SpigotCommandRegistry extends CommandRegistry {
                 cmdMapField.setAccessible(true);
                 commandMap = (CommandMap) cmdMapField.get(Bukkit.getServer());
             } catch (Exception ex) {
-                geyser.getLogger().error("Failed to get Spigot's CommandMap", ex);
+                GeyserLogger.get().error("Failed to get Spigot's CommandMap", ex);
             }
         }
         this.commandMap = commandMap;

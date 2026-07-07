@@ -30,6 +30,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.spongepowered.configurate.CommentedConfigurationNode;
@@ -95,7 +96,7 @@ public final class ConfigLoader {
         Path dataFolder = this.bootstrap.getConfigFolder();
         if (!dataFolder.toFile().exists()) {
             if (!dataFolder.toFile().mkdir()) {
-                GeyserImpl.getInstance().getLogger().warning("Failed to create config folder: " + dataFolder);
+                GeyserLogger.get().warning("Failed to create config folder: " + dataFolder);
             }
         }
         return this;

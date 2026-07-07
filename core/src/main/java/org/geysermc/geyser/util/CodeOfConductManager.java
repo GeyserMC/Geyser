@@ -31,6 +31,7 @@ import com.google.gson.JsonParser;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.event.bedrock.SessionAcceptCodeOfConductEvent;
 import org.geysermc.geyser.api.event.java.ServerCodeOfConductEvent;
 import org.geysermc.geyser.session.GeyserSession;
@@ -53,7 +54,7 @@ public class CodeOfConductManager {
     private CodeOfConductManager() {
         Path savePath = getSavePath();
         if (Files.exists(savePath) && Files.isRegularFile(savePath)) {
-            GeyserImpl.getInstance().getLogger().debug("Loading codeofconducts.json");
+            GeyserLogger.get().debug("Loading codeofconducts.json");
 
             try (Reader reader = new FileReader(savePath.toFile())) {
                 //noinspection deprecation - otherwise 1.16.5 doesn't work
@@ -62,10 +63,10 @@ public class CodeOfConductManager {
                     playerAcceptedCodeOfConducts.put(entry.getKey(), entry.getValue().getAsInt());
                 }
             } catch (IOException exception) {
-                GeyserImpl.getInstance().getLogger().error("Failed to read code of conduct cache!", exception);
+                GeyserLogger.get().error("Failed to read code of conduct cache!", exception);
             }
         } else {
-            GeyserImpl.getInstance().getLogger().debug("codeofconducts.json not found, not loading");
+            GeyserLogger.get().debug("codeofconducts.json not found, not loading");
         }
 
         // Save file now and every 5 minutes after
@@ -97,7 +98,7 @@ public class CodeOfConductManager {
 
     public void save() {
         if (dirty) {
-            GeyserImpl.getInstance().getLogger().debug("Saving codeofconducts.json");
+            GeyserLogger.get().debug("Saving codeofconducts.json");
 
             JsonObject saved = new JsonObject();
             playerAcceptedCodeOfConducts.forEach(saved::addProperty);
@@ -105,7 +106,7 @@ public class CodeOfConductManager {
                 Files.writeString(getSavePath(), saved.toString());
                 dirty = false;
             } catch (IOException exception) {
-                GeyserImpl.getInstance().getLogger().error("Failed to write code of conduct cache!", exception);
+                GeyserLogger.get().error("Failed to write code of conduct cache!", exception);
             }
         }
     }

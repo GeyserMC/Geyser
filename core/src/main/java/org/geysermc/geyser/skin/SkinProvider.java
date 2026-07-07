@@ -188,7 +188,7 @@ public class SkinProvider {
                 }
 
                 if (count > 0) {
-                    GeyserImpl.getInstance().getLogger().debug(String.format("Removed %d cached image files as they have expired", count));
+                    GeyserLogger.get().debug(String.format("Removed %d cached image files as they have expired", count));
                 }
             }, 10, 1, TimeUnit.DAYS);
         }
@@ -309,7 +309,7 @@ public class SkinProvider {
 
                         return eventSkinData.skinData();
                     } catch (Exception e) {
-                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.uuid()), e);
+                        GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.uuid()), e);
                     }
 
                     return new SkinData(skinAndCape.skin(), skinAndCape.cape(), null);
@@ -325,7 +325,7 @@ public class SkinProvider {
                     getOrDefault(requestCape(capeUrl, false), EMPTY_CAPE, 5)
             );
 
-            GeyserImpl.getInstance().getLogger().debug("Took " + (System.currentTimeMillis() - time) + "ms for " + playerId);
+            GeyserLogger.get().debug("Took " + (System.currentTimeMillis() - time) + "ms for " + playerId);
             return skinAndCape;
         }, getExecutorService());
     }
@@ -436,7 +436,7 @@ public class SkinProvider {
         File imageFile = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("images").resolve(UUID.nameUUIDFromBytes(imageUrl.getBytes()) + ".png").toFile();
         if (imageFile.exists()) {
             try {
-                GeyserImpl.getInstance().getLogger().debug("Reading cached image from file " + imageFile.getPath() + " for " + imageUrl);
+                GeyserLogger.get().debug("Reading cached image from file " + imageFile.getPath() + " for " + imageUrl);
                 imageFile.setLastModified(System.currentTimeMillis());
                 image = ImageIO.read(imageFile);
             } catch (IOException ignored) {}
@@ -445,16 +445,16 @@ public class SkinProvider {
         // If no image we download it
         if (image == null) {
             image = downloadImage(imageUrl);
-            GeyserImpl.getInstance().getLogger().debug("Downloaded " + imageUrl);
+            GeyserLogger.get().debug("Downloaded " + imageUrl);
 
             // Write to cache if we are allowed
             if (GeyserImpl.getInstance().config().advanced().cacheImages() > 0) {
                 imageFile.getParentFile().mkdirs();
                 try {
                     ImageIO.write(image, "png", imageFile);
-                    GeyserImpl.getInstance().getLogger().debug("Writing cached skin to file " + imageFile.getPath() + " for " + imageUrl);
+                    GeyserLogger.get().debug("Writing cached skin to file " + imageFile.getPath() + " for " + imageUrl);
                 } catch (IOException e) {
-                    GeyserImpl.getInstance().getLogger().error("Failed to write cached skin to file " + imageFile.getPath() + " for " + imageUrl);
+                    GeyserLogger.get().error("Failed to write cached skin to file " + imageFile.getPath() + " for " + imageUrl);
                 }
             }
         }
@@ -536,14 +536,12 @@ public class SkinProvider {
                 JsonObject node = WebUtils.getJson("https://api.minecraftservices.com/minecraft/profile/lookup/" + shorthandUUID(uuid));
                 JsonElement name = node.get("name");
                 if (name == null) {
-                    GeyserImpl.getInstance().getLogger().debug("No username found in Mojang response for " + uuid);
+                    GeyserLogger.get().debug("No username found in Mojang response for " + uuid);
                     return null;
                 }
                 return name.getAsString();
             } catch (Exception e) {
-                if (GeyserImpl.getInstance().config().debugMode()) {
-                    e.printStackTrace();
-                }
+                GeyserLogger.get().debug("Unable to get username from UUID.", e);
                 return null;
             }
         }, getExecutorService());
@@ -561,14 +559,12 @@ public class SkinProvider {
                 JsonObject node = WebUtils.getJson("https://api.mojang.com/users/profiles/minecraft/" + username);
                 JsonElement id = node.get("id");
                 if (id == null) {
-                    GeyserImpl.getInstance().getLogger().debug("No UUID found in Mojang response for " + username);
+                    GeyserLogger.get().debug("No UUID found in Mojang response for " + username);
                     return null;
                 }
                 return expandUUID(id.getAsString());
             } catch (Exception e) {
-                if (GeyserImpl.getInstance().config().debugMode()) {
-                    e.printStackTrace();
-                }
+                GeyserLogger.get().debug("Unable to get UUID from username.", e);
                 return null;
             }
         }, getExecutorService());
@@ -586,15 +582,12 @@ public class SkinProvider {
                 JsonObject node = WebUtils.getJson("https://sessionserver.mojang.com/session/minecraft/profile/" + shorthandUUID(uuid));
                 JsonArray properties = node.getAsJsonArray("properties");
                 if (properties == null) {
-                    GeyserImpl.getInstance().getLogger().debug("No properties found in Mojang response for " + uuid);
+                    GeyserLogger.get().debug("No properties found in Mojang response for " + uuid);
                     return null;
                 }
                 return properties.get(0).getAsJsonObject().get("value").getAsString();
             } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().debug("Unable to request textures for " + uuid);
-                if (GeyserImpl.getInstance().config().debugMode()) {
-                    e.printStackTrace();
-                }
+                GeyserLogger.get().debug("Unable to request textures for " + uuid, e);
                 return null;
             }
         }, getExecutorService());

@@ -29,6 +29,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
 import org.geysermc.geyser.api.item.custom.CustomItemData;
 import org.geysermc.geyser.api.item.custom.NonVanillaCustomItemData;
@@ -89,7 +90,7 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
             deprecatedCustomItems.put(identifier, customItemData);
             return true;
         } catch (CustomItemDefinitionRegisterException exception) {
-            GeyserImpl.getInstance().getLogger().error("Not registering deprecated custom item: " + customItemData, exception);
+            GeyserLogger.get().error("Not registering deprecated custom item: " + customItemData, exception);
             return false;
         }
     }
@@ -102,7 +103,7 @@ public abstract class GeyserDefineCustomItemsEventImpl implements GeyserDefineCu
             deprecatedNonVanillaCustomItems.add(customItemData);
             return true;
         } catch (CustomItemDefinitionRegisterException exception) {
-            GeyserImpl.getInstance().getLogger().error("Not registering deprecated non-vanilla custom item: " + customItemData, exception);
+            GeyserLogger.get().error("Not registering deprecated non-vanilla custom item: " + customItemData, exception);
             return false;
         }
     }

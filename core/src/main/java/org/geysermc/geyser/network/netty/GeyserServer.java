@@ -45,6 +45,7 @@ import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandle
 import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerRateLimiter;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.event.connection.ConnectionRequestEvent;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
 import org.geysermc.geyser.configuration.GeyserConfig;
@@ -120,7 +121,7 @@ public final class GeyserServer {
     public GeyserServer(GeyserImpl geyser, int threadCount) {
         this.geyser = geyser;
         this.listenCount = Bootstraps.isReusePortAvailable() ?  Integer.getInteger("Geyser.ListenCount", 1) : 1;
-        GeyserImpl.getInstance().getLogger().debug("Listen thread count: " + listenCount);
+        GeyserLogger.get().debug("Listen thread count: " + listenCount);
         this.group = TRANSPORT.eventLoopGroupFactory().apply(listenCount, new DefaultThreadFactory("GeyserServer", true));
         this.childGroup = TRANSPORT.eventLoopGroupFactory().apply(threadCount, new DefaultThreadFactory("GeyserServerChild", true));
 
@@ -148,7 +149,7 @@ public final class GeyserServer {
     private void modifyHandlers(ChannelFuture future) {
         future.addListener((ChannelFutureListener) f -> {
             if (!f.isSuccess()) {
-                GeyserImpl.getInstance().getLogger().warning("Not modifying handlers due to exception: " + f.cause());
+                GeyserLogger.get().warning("Not modifying handlers due to exception: " + f.cause());
                 return;
             }
 
@@ -175,7 +176,7 @@ public final class GeyserServer {
 
             SkinProvider.shutdown();
         } catch (InterruptedException e) {
-            GeyserImpl.getInstance().getLogger().severe("Exception in shutdown process", e);
+            GeyserLogger.get().severe("Exception in shutdown process", e);
         }
         for (ChannelFuture f : bootstrapFutures) {
             f.channel().closeFuture().syncUninterruptibly();
@@ -184,39 +185,37 @@ public final class GeyserServer {
 
     @SuppressWarnings("Convert2MethodRef")
     private ServerBootstrap createBootstrap() {
-        if (this.geyser.config().debugMode()) {
-            this.geyser.getLogger().debug("Transport type: " + TRANSPORT.method().name());
-            if (TRANSPORT.datagramChannelClass() == NioDatagramChannel.class) {
-                if (System.getProperties().contains("disableNativeEventLoop")) {
-                    this.geyser.getLogger().debug("EventLoop type is NIO because native event loops are disabled.");
-                } else {
-                    // Use lambda here, not method reference, or else NoClassDefFoundError for Epoll/KQueue will not be caught
-                    this.geyser.getLogger().debug("Reason for no Epoll: " + throwableOrCaught(() -> Epoll.unavailabilityCause()));
-                    this.geyser.getLogger().debug("Reason for no KQueue: " + throwableOrCaught(() -> KQueue.unavailabilityCause()));
-                    this.geyser.getLogger().debug("Reason for no IoUring: " + throwableOrCaught(() -> IoUring.unavailabilityCause()));
-                }
+        GeyserLogger.get().debug("Transport type: " + TRANSPORT.method().name());
+        if (TRANSPORT.datagramChannelClass() == NioDatagramChannel.class) {
+            if (System.getProperties().contains("disableNativeEventLoop")) {
+                GeyserLogger.get().debug("EventLoop type is NIO because native event loops are disabled.");
+            } else {
+                // Use lambda here, not method reference, or else NoClassDefFoundError for Epoll/KQueue will not be caught
+                GeyserLogger.get().debug("Reason for no Epoll: " + throwableOrCaught(() -> Epoll.unavailabilityCause()));
+                GeyserLogger.get().debug("Reason for no KQueue: " + throwableOrCaught(() -> KQueue.unavailabilityCause()));
+                GeyserLogger.get().debug("Reason for no IoUring: " + throwableOrCaught(() -> IoUring.unavailabilityCause()));
             }
         }
 
-        this.geyser.getLogger().debug("Setting MTU to " + this.geyser.config().advanced().bedrock().mtu());
+        GeyserLogger.get().debug("Setting MTU to " + this.geyser.config().advanced().bedrock().mtu());
 
         int rakPacketLimit = positivePropOrDefault("Geyser.RakPacketLimit", DEFAULT_PACKET_LIMIT);
-        this.geyser.getLogger().debug("Setting RakNet packet limit to " + rakPacketLimit);
+        GeyserLogger.get().debug("Setting RakNet packet limit to " + rakPacketLimit);
 
         int rakGlobalPacketLimit = positivePropOrDefault("Geyser.RakGlobalPacketLimit", DEFAULT_GLOBAL_PACKET_LIMIT);
-        this.geyser.getLogger().debug("Setting RakNet global packet limit to " + rakGlobalPacketLimit);
+        GeyserLogger.get().debug("Setting RakNet global packet limit to " + rakGlobalPacketLimit);
 
         boolean rakSendCookie = Boolean.parseBoolean(System.getProperty("Geyser.RakSendCookie", "true"));
-        this.geyser.getLogger().debug("Setting RakNet send cookie to " + rakSendCookie);
+        GeyserLogger.get().debug("Setting RakNet send cookie to " + rakSendCookie);
 
         int maxConnectionsPerAddress =  positivePropOrDefault("Geyser.MaxConnectionsPerAddress", 10);
-        this.geyser.getLogger().debug("Setting max connections per address to " + maxConnectionsPerAddress);
+        GeyserLogger.get().debug("Setting max connections per address to " + maxConnectionsPerAddress);
 
         boolean rakRateLimitingDisabled = Boolean.parseBoolean(System.getProperty(
             "Geyser.RakRateLimitingDisabled",
             Boolean.toString(this.geyser.config().advanced().bedrock().useWaterdogpeForwarding())
         ));
-        this.geyser.getLogger().debug("Disabling RakNet rate limiting " + rakRateLimitingDisabled);
+        GeyserLogger.get().debug("Disabling RakNet rate limiting " + rakRateLimitingDisabled);
 
         GeyserServerInitializer serverInitializer = new GeyserServerInitializer(this.geyser, rakSendCookie);
         playerGroup = serverInitializer.getEventLoopGroup();
@@ -259,20 +258,20 @@ public final class GeyserServer {
         );
         geyser.eventBus().fire(requestEvent);
         if (requestEvent.isCancelled()) {
-            geyser.getLogger().debug("Connection request from " + ip + " was cancelled using the API!");
+            GeyserLogger.get().debug("Connection request from " + ip + " was cancelled using the API!");
             connectionAttempts++;
             return false;
         }
 
-        geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
+        GeyserLogger.get().debug(GeyserLocale.getLocaleStringLog("geyser.network.attempt_connect", ip));
         connectionAttempts++;
         return true;
     }
 
     public BedrockPong onQuery(Channel channel, InetSocketAddress inetSocketAddress) {
-        if (geyser.config().debugMode() && PRINT_DEBUG_PINGS) {
+        if (GeyserLogger.get().isDebug() && PRINT_DEBUG_PINGS) {
             String ip = geyser.config().logPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
-            geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", ip));
+            GeyserLogger.get().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", ip));
         }
 
         GeyserConfig config = geyser.config();
@@ -410,7 +409,7 @@ public final class GeyserServer {
             int parsed = value != null ? Integer.parseInt(value) : defaultValue;
 
             if (parsed < 1) {
-                GeyserImpl.getInstance().getLogger().warning(
+                GeyserLogger.get().warning(
                     "Non-postive integer value for " + property + ": " + value + ". Using default value: " + defaultValue
                 );
                 return defaultValue;
@@ -418,7 +417,7 @@ public final class GeyserServer {
 
             return parsed;
         } catch (NumberFormatException e) {
-            GeyserImpl.getInstance().getLogger().warning(
+            GeyserLogger.get().warning(
                 "Invalid integer value for " + property + ": " + value + ". Using default value: " + defaultValue
             );
             return defaultValue;

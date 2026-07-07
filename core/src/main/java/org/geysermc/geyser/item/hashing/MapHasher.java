@@ -27,6 +27,7 @@ package org.geysermc.geyser.item.hashing;
 
 import com.google.common.hash.HashCode;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.jetbrains.annotations.VisibleForTesting;
 
 import java.util.HashMap;
@@ -249,7 +250,7 @@ public class MapHasher<Type> {
 
     public HashCode build() {
         if (debug) {
-            GeyserImpl.getInstance().getLogger().info("Building MapHasher with unhashed map: " + unhashed);
+            GeyserLogger.get().info("Building MapHasher with unhashed map: " + unhashed);
         }
         return encoder.map(map);
     }

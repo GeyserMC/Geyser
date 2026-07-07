@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.level;
 
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.BlockParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticleData;
@@ -85,7 +86,7 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
             }
         } else {
             // Null is only returned when no particle of this type is found
-            session.getGeyser().getLogger().debug("Unhandled particle packet: " + packet);
+            GeyserLogger.get().debug("Unhandled particle packet: " + packet);
         }
     }
 
@@ -153,11 +154,11 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                     if (entity != null) {
                         target = entity.bedrockPosition().up(entityPositionSource.getYOffset());
                     } else {
-                        session.getGeyser().getLogger().debug("Unable to find entity with Java Id: " + entityPositionSource.getEntityId() + " for vibration particle.");
+                        GeyserLogger.get().debug("Unable to find entity with Java Id: " + entityPositionSource.getEntityId() + " for vibration particle.");
                         return null;
                     }
                 } else {
-                    session.getGeyser().getLogger().debug("Unknown position source " + data.getPositionSource() + " for vibration particle.");
+                    GeyserLogger.get().debug("Unknown position source " + data.getPositionSource() + " for vibration particle.");
                     return null;
                 }
 

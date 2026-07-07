@@ -129,10 +129,7 @@ final class ExceptionHandlers {
                 return;
             }
         } else {
-            GeyserLogger logger = GeyserImpl.getInstance().getLogger();
-            if (logger.isDebug()) {
-                logger.debug("Expected a GeyserPermission.Result for %s but instead got %s from %s".formatted(exception.currentChain(), exception.permissionResult(), exception.missingPermission()));
-            }
+            GeyserLogger.get().debug("Expected a GeyserPermission.Result for %s but instead got %s from %s".formatted(exception.currentChain(), exception.permissionResult(), exception.missingPermission()));
         }
 
         // Result.NO_PERMISSION or generic permission failure
@@ -141,6 +138,6 @@ final class ExceptionHandlers {
 
     private static void handleUnexpectedThrowable(GeyserCommandSource source, Throwable throwable) {
         source.sendMessage(MinecraftLocale.getLocaleString("command.failed", source.locale())); // java edition translation key
-        GeyserImpl.getInstance().getLogger().error("Exception while executing command handler", throwable);
+        GeyserLogger.get().error("Exception while executing command handler", throwable);
     }
 }

@@ -73,6 +73,7 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
+import org.geysermc.geyser.debug.GeyserDebugSessionMap;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
@@ -157,6 +158,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     private static final Pattern IP_REGEX = Pattern.compile("\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b");
 
     private final SessionManager sessionManager = new SessionManager();
+    private final GeyserDebugSessionMap debugSessionMap = new GeyserDebugSessionMap();
 
     private FloodgateCipher cipher;
     private @Nullable FloodgateSkinUploader skinUploader;
@@ -223,7 +225,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             try {
                 EncryptionUtils.getMojangPublicKey();
             } catch (Throwable t) {
-                GeyserImpl.getInstance().getLogger().error("Unable to set up encryption! This can be caused by your internet connection or the Minecraft api being unreachable. ", t);
+                GeyserLogger.get().error("Unable to set up encryption! This can be caused by your internet connection or the Minecraft api being unreachable. ", t);
             }
         }
 
@@ -361,10 +363,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 try {
                     config.java().address(InetAddress.getLocalHost().getHostAddress());
                 } catch (UnknownHostException ex) {
-                    logger.debug("Unknown host when trying to find localhost.");
-                    if (config.debugMode()) {
-                        ex.printStackTrace();
-                    }
+                    logger.debug("Unknown host when trying to find localhost.", ex);
                     config.java().address(InetAddress.getLoopbackAddress().getHostAddress());
                 }
             }
@@ -520,7 +519,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
 
         if (config.notifyOnNewBedrockUpdate()) {
-            VersionCheckUtils.checkForGeyserUpdate(this::getLogger);
+            VersionCheckUtils.checkForGeyserUpdate(GeyserLogger::get);
         }
     }
 
@@ -712,7 +711,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     @Override
     public @NonNull CommandSource consoleCommandSource() {
-        return getLogger();
+        return GeyserLogger.get();
     }
 
     public int buildNumber() {
@@ -745,6 +744,10 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         instance.setEnabled(true);
     }
 
+    /**
+     * @deprecated Use {@link GeyserLogger#get()} instead.
+     */
+    @Deprecated
     public GeyserLogger getLogger() {
         return bootstrap.getGeyserLogger();
     }
@@ -789,7 +792,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             try (FileWriter writer = new FileWriter(savedAuthChains)) {
                 GSON.toJson(this.savedAuthChains, type, writer);
             } catch (IOException e) {
-                getLogger().error("Unable to write saved refresh tokens!", e);
+                GeyserLogger.get().error("Unable to write saved refresh tokens!", e);
             }
         });
     }

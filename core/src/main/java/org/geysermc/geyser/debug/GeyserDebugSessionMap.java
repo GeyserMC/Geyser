@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,33 +23,38 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.session.cache.waypoint;
+package org.geysermc.geyser.debug;
 
-import net.kyori.adventure.key.Key;
-import org.cloudburstmc.math.vector.Vector3f;
-import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.ChunkWaypointData;
-import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
 
-import java.awt.Color;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 
-public class ChunkWaypoint extends GeyserWaypoint {
+public class GeyserDebugSessionMap {
+    private final Map<Long, EnumSet<SessionDebugOption>> debugOptionsHolder = new HashMap<>();
 
-    public ChunkWaypoint(GeyserSession session, UUID uuid, Key style, Color color, Optional<Entity> entity) {
-        super(session, uuid, style, color, entity);
+    public boolean toggleDebugOption(long xuid, SessionDebugOption option) {
+        if (debugOptionsHolder.containsKey(xuid)) {
+            EnumSet<SessionDebugOption> set = debugOptionsHolder.get(xuid);
+            if (set.contains(option)) {
+                set.remove(option);
+                return false;
+            } else {
+                set.add(option);
+                return true;
+            }
+        } else {
+            debugOptionsHolder.put(xuid, EnumSet.of(option));
+            return true;
+        }
     }
 
-    @Override
-    public void setData(WaypointData data) {
-        if (data instanceof ChunkWaypointData(int chunkX, int chunkZ)) {
-            // Set position in centre of chunk
-            setPosition(Vector3f.from(chunkX * 16.0F + 8.0F, session.getPlayerEntity().position().getY(), chunkZ * 16.0F + 8.0F));
-        } else {
-            GeyserLogger.get().warning("Received incorrect waypoint data " + data.getClass() + " for chunk waypoint");
-        }
+    public void setFor(GeyserSession session) {
+        session.setDebugOptions(debugOptionsHolder.getOrDefault(session.xuid(), EnumSet.noneOf(SessionDebugOption.class)));
+    }
+
+    public EnumSet<SessionDebugOption> getFor(long xuid) {
+        return debugOptionsHolder.getOrDefault(xuid, EnumSet.noneOf(SessionDebugOption.class));
     }
 }

@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.transaction.ItemUseTransaction;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.horse.AbstractHorseEntity;
@@ -230,9 +231,9 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             session.setLastBlockPlaced(null);
             session.setLastBlockPlacePosition(null);
         } else {
-            session.getGeyser().getLogger().error("Unhandled item use transaction type!");
-            if (session.getGeyser().getLogger().isDebug()) {
-                session.getGeyser().getLogger().debug(transaction);
+            GeyserLogger.get().error("Unhandled item use transaction type!");
+            if (GeyserLogger.get().isDebug()) {
+                GeyserLogger.get().debug(transaction);
             }
         }
     }

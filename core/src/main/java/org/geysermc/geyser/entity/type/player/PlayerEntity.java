@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
@@ -80,7 +81,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         try {
             this.textures = profile.getTextures(true);
         } catch (Exception e) {
-            GeyserImpl.getInstance().getLogger().debug("Error loading textures for player!" + profile, e);
+            GeyserLogger.get().debug("Error loading textures for player!" + profile, e);
             this.textures = null;
         }
     }

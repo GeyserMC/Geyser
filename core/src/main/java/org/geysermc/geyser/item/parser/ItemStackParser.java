@@ -35,6 +35,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.item.DyeColor;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
@@ -100,7 +101,7 @@ public final class ItemStackParser {
 
         Item item = Registries.JAVA_ITEM_IDENTIFIERS.get(identifier);
         if (item == null) {
-            GeyserImpl.getInstance().getLogger().warning("Received unknown item ID " + identifier + " whilst parsing NBT item stack!");
+            GeyserLogger.get().warning("Received unknown item ID " + identifier + " whilst parsing NBT item stack!");
             return Items.AIR_ID;
         }
         return item.javaId();
@@ -191,9 +192,9 @@ public final class ItemStackParser {
         try {
             patch.put((DataComponentType<Parsed>) type, parser.parse(session, (Raw) raw));
         } catch (ClassCastException exception) {
-            GeyserImpl.getInstance().getLogger().debug("Received incorrect object type for component " + type + "! Exception: %s", exception);
+            GeyserLogger.get().debug("Received incorrect object type for component " + type + "! Exception: %s", exception);
         } catch (Exception exception) {
-            GeyserImpl.getInstance().getLogger().debug("Failed to parse component" + type + " from " + raw + "! Exception: %s", exception);
+            GeyserLogger.get().debug("Failed to parse component" + type + " from " + raw + "! Exception: %s", exception);
         }
     }
 
@@ -214,7 +215,7 @@ public final class ItemStackParser {
 
                 DataComponentType<?> type = DataComponentTypes.fromKey(MinecraftKey.key(rawType));
                 if (type == null) {
-                    GeyserImpl.getInstance().getLogger().warning("Received unknown data component " + rawType + " in NBT data component patch: " + map);
+                    GeyserLogger.get().warning("Received unknown data component " + rawType + " in NBT data component patch: " + map);
                 } else if (removal) {
                     // Removals are easy, we don't have to parse anything
                     patch.put(type, null);
@@ -223,12 +224,12 @@ public final class ItemStackParser {
                     if (parser != null) {
                         parseDataComponent(session, patch, type, parser, patchEntry.getValue());
                     } else {
-                        GeyserImpl.getInstance().getLogger().debug("Ignoring data component " + type + " whilst parsing NBT patch because there is no parser registered for it");
+                        GeyserLogger.get().debug("Ignoring data component " + type + " whilst parsing NBT patch because there is no parser registered for it");
                     }
                 }
             }
         } catch (Exception exception) {
-            GeyserImpl.getInstance().getLogger().error("Failed to parse data component patch from NBT data!", exception);
+            GeyserLogger.get().error("Failed to parse data component patch from NBT data!", exception);
         }
 
         return patch;
@@ -245,7 +246,7 @@ public final class ItemStackParser {
             DataComponents patch = parseDataComponentPatch(session, map.getCompound("components"));
             return new ItemStack(id, count, patch);
         } catch (Exception exception) {
-            GeyserImpl.getInstance().getLogger().error("Failed to parse item stack from NBT data!", exception);
+            GeyserLogger.get().error("Failed to parse item stack from NBT data!", exception);
         }
         return new ItemStack(Items.AIR_ID);
     }

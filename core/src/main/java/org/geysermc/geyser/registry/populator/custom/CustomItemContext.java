@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry.populator.custom;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
@@ -103,10 +104,10 @@ public record CustomItemContext(CustomItemDefinition definition, DataComponents 
         Equippable equippable = components.get(DataComponentTypes.EQUIPPABLE);
 
         if (equippable != null && stackSize > 1 && firstPass) {
-            GeyserImpl.getInstance().getLogger().warning("Bedrock doesn't support stackable equippable items! Custom item %s with stack size %s and equippable component for slot %s will not work as expected!"
+            GeyserLogger.get().warning("Bedrock doesn't support stackable equippable items! Custom item %s with stack size %s and equippable component for slot %s will not work as expected!"
                 .formatted(definition.bedrockIdentifier(), stackSize, equippable.slot()));
         } else if (stackSize > Item.BEDROCK_MAX_STACK_SIZE && firstPass) {
-            GeyserImpl.getInstance().getLogger().warning("Bedrock doesn't support stack sizes above %s! Custom item %s with stack size %s will be clamped to %1$s!"
+            GeyserLogger.get().warning("Bedrock doesn't support stack sizes above %s! Custom item %s with stack size %s will be clamped to %1$s!"
                 .formatted(Item.BEDROCK_MAX_STACK_SIZE, definition.bedrockIdentifier(), stackSize));
         } else if (stackSize > 1 && maxDamage > 0) {
             throw new InvalidItemComponentsException("Stack size must be 1 when max damage is above 0");

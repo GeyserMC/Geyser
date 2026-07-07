@@ -122,9 +122,9 @@ public final class VersionCheckUtils {
                         .build();
                 sender.sendMessage(message);
             } catch (UnknownHostException e) {
-                GeyserImpl.getInstance().getLogger().error("Unable to resolve Geyser api! Cannot check for Geyser updates.");
+                GeyserLogger.get().error("Unable to resolve Geyser api! Cannot check for Geyser updates.");
             } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error("Error whilst checking for Geyser update!", e);
+                GeyserLogger.get().error("Error whilst checking for Geyser update!", e);
             }
         });
     }

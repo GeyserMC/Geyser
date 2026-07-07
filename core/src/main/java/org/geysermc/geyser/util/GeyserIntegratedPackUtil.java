@@ -26,6 +26,7 @@
 package org.geysermc.geyser.util;
 
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
@@ -65,7 +66,7 @@ public interface GeyserIntegratedPackUtil {
             Files.copy(GeyserImpl.getInstance().getBootstrap().getResourceOrThrow("GeyserIntegratedPack.mcpack"),
                 PACK_PATH, StandardCopyOption.REPLACE_EXISTING);
         } catch (Exception e) {
-            GeyserImpl.getInstance().getLogger().error("Could not copy over Geyser integrated resource pack!", e);
+            GeyserLogger.get().error("Could not copy over Geyser integrated resource pack!", e);
             PACK_ENABLED.set(false);
             return;
         }
@@ -78,7 +79,7 @@ public interface GeyserIntegratedPackUtil {
             event.registerOptions(INTEGRATED_PACK_UUID, PriorityOption.LOW);
             PACK_ENABLED.set(true);
         } catch (Exception e) {
-            GeyserImpl.getInstance().getLogger().error("Could not register GeyserIntegratedPack!", e);
+            GeyserLogger.get().error("Could not register GeyserIntegratedPack!", e);
             PACK_ENABLED.set(false);
         }
     }
@@ -107,9 +108,9 @@ public interface GeyserIntegratedPackUtil {
         ResourcePackManifest.Version version = duplicate.manifest().header().version();
         if (duplicate.codec() instanceof UrlPackCodec) {
             if (Objects.equals(version, INTEGRATED_PACK_VERSION.get())) {
-                GeyserImpl.getInstance().getLogger().debug("Found GeyserIntegratedPack sent via UrlPackCodec (version: %s)!".formatted(version));
+                GeyserLogger.get().debug("Found GeyserIntegratedPack sent via UrlPackCodec (version: %s)!".formatted(version));
             } else {
-                GeyserImpl.getInstance().getLogger().warning("Found GeyserIntegratedPack sent via UrlPackCodec, but the version differs! " +
+                GeyserLogger.get().warning("Found GeyserIntegratedPack sent via UrlPackCodec, but the version differs! " +
                     "(found: %s, expected: %s). Skipping our own, but things may not work as expected!".formatted(duplicate, INTEGRATED_PACK_VERSION.get()));
             }
             unregisterIntegratedPack();
@@ -123,14 +124,14 @@ public interface GeyserIntegratedPackUtil {
     default void handleOptionalPack(ResourcePack pack) {
         // Gracefully handle optional pack presence to avoid issues
         if (pack.codec() instanceof UrlPackCodec) {
-            GeyserImpl.getInstance().getLogger().warning("Detected GeyserOptionalPack sent via the UrlPackCodec! Please migrate to sending the " +
+            GeyserLogger.get().warning("Detected GeyserOptionalPack sent via the UrlPackCodec! Please migrate to sending the " +
                 "GeyserIntegratedPack instead - it will be required in the future for advanced features to work correctly!");
         } else {
-            GeyserImpl.getInstance().getLogger().warning("Detected GeyserOptionalPack! " +
+            GeyserLogger.get().warning("Detected GeyserOptionalPack! " +
                 "It should be removed " + warnMessageLocation(pack.codec()) + ", as Geyser now includes an improved version of this resource pack by default!"
             );
         }
-        GeyserImpl.getInstance().getLogger().warning("Disabling the integrated pack...");
+        GeyserLogger.get().warning("Disabling the integrated pack...");
         unregisterIntegratedPack();
         PACK_ENABLED.set(false);
     }

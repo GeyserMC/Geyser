@@ -26,6 +26,7 @@
 package org.geysermc.geyser.util;
 
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 
 import java.io.File;
 import java.io.InputStream;
@@ -47,11 +48,11 @@ public final class CpuUtils {
             } else if (osName.contains("mac")) {
                 return getMacProcessorName();
             } else {
-                GeyserImpl.getInstance().getLogger().warning("Couldn't determine OS to get processor name! The OS name is " + osName);
+                GeyserLogger.get().warning("Couldn't determine OS to get processor name! The OS name is " + osName);
                 return "unknown";
             }
         } catch (Exception e) {
-            GeyserImpl.getInstance().getLogger().warning("Couldn't get processor name! " + e.getMessage());
+            GeyserLogger.get().warning("Couldn't get processor name! " + e.getMessage());
             return "unknown";
         }
     }
@@ -69,7 +70,7 @@ public final class CpuUtils {
                 return splitLine[1];
             }
         }
-        GeyserImpl.getInstance().getLogger().warning("Couldn't parse processor name!");
+        GeyserLogger.get().warning("Couldn't parse processor name!");
         return "unknown";
     }
 
@@ -93,7 +94,7 @@ public final class CpuUtils {
         int p = result.indexOf(regstrToken);
 
         if (p == -1) {
-            GeyserImpl.getInstance().getLogger().warning("Couldn't parse processor name!");
+            GeyserLogger.get().warning("Couldn't parse processor name!");
             return "unknown";
         }
 
@@ -117,7 +118,7 @@ public final class CpuUtils {
         if (!result.isEmpty()) {
             return result;
         } else {
-            GeyserImpl.getInstance().getLogger().warning("Couldn't parse processor name!");
+            GeyserLogger.get().warning("Couldn't parse processor name!");
             return "unknown";
         }
     }

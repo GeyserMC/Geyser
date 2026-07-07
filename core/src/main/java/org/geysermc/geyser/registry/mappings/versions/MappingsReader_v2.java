@@ -29,6 +29,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.item.exception.InvalidCustomMappingsFileException;
@@ -57,12 +58,12 @@ public class MappingsReader_v2 extends MappingsReader {
                             ItemDefinitionReaders.readDefinition(definition, vanillaItem, null, consumer,
                                 "item definition(s) for vanilla Java item " + vanillaItem);
                         } catch (InvalidCustomMappingsFileException exception) {
-                            GeyserImpl.getInstance().getLogger().error(
+                            GeyserLogger.get().error(
                                 "Error reading definition(s) for vanilla Java item " + entry.getKey() + " in custom mappings file: " + file.toString(), exception);
                         }
                     });
                 } else {
-                    GeyserImpl.getInstance().getLogger().error("Item definitions key " + entry.getKey() + " was not an array!");
+                    GeyserLogger.get().error("Item definitions key " + entry.getKey() + " was not an array!");
                 }
             });
         }

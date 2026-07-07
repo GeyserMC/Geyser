@@ -33,6 +33,7 @@ import io.netty.channel.socket.nio.NioChannelOption;
 import io.netty.channel.unix.UnixChannelOption;
 import lombok.experimental.UtilityClass;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.mcprotocollib.network.helper.TransportHelper;
 
 import java.net.StandardSocketOptions;
@@ -53,9 +54,9 @@ public final class Bootstraps {
         String kernelVersion;
         try {
             kernelVersion = Native.KERNEL_VERSION;
-            GeyserImpl.getInstance().getLogger().debug("Kernel version: " + kernelVersion);
+            GeyserLogger.get().debug("Kernel version: " + kernelVersion);
         } catch (Throwable e) {
-            GeyserImpl.getInstance().getLogger().debug("Could not determine kernel version! " + e.getMessage());
+            GeyserLogger.get().debug("Could not determine kernel version! " + e.getMessage());
             kernelVersion = null;
         }
 
@@ -77,13 +78,13 @@ public final class Bootstraps {
         try {
             ChannelFuture future = bootstrap.register();
             if (!future.awaitUninterruptibly(3, TimeUnit.SECONDS)) {
-                GeyserImpl.getInstance().getLogger().debug("Not able to test so_reuseport availability within 3 seconds.");
+                GeyserLogger.get().debug("Not able to test so_reuseport availability within 3 seconds.");
                 future.cancel(true);
                 return false;
             }
 
             if (!future.isSuccess()) {
-                GeyserImpl.getInstance().getLogger().warning("Could not register bootstrap channel for so_reuseport test: " + future.cause());
+                GeyserLogger.get().warning("Could not register bootstrap channel for so_reuseport test: " + future.cause());
                 return false;
             }
 
@@ -93,7 +94,7 @@ public final class Bootstraps {
                     if (channel.config().setOption(NioChannelOption.of(StandardSocketOptions.SO_REUSEPORT), true)) {
                         bootstrap.option(NioChannelOption.of(StandardSocketOptions.SO_REUSEPORT), true);
                     } else {
-                        GeyserImpl.getInstance().getLogger().debug("NIO SO_REUSEPORT not supported");
+                        GeyserLogger.get().debug("NIO SO_REUSEPORT not supported");
                         success = false;
                     }
                 } else {
@@ -101,7 +102,7 @@ public final class Bootstraps {
                         bootstrap.option(UnixChannelOption.SO_REUSEPORT, true);
                     } else {
                         // If this occurs, we guessed wrong and reuseport is not available
-                        GeyserImpl.getInstance().getLogger().debug("so_reuseport is not available despite version being " + Native.KERNEL_VERSION);
+                        GeyserLogger.get().debug("so_reuseport is not available despite version being " + Native.KERNEL_VERSION);
                         success = false;
                     }
                 }
@@ -110,7 +111,7 @@ public final class Bootstraps {
                 channel.close().awaitUninterruptibly(3, TimeUnit.SECONDS);
             }
         } catch (Throwable e) {
-            GeyserImpl.getInstance().getLogger().debug("Could not set up reuseport check! %s", e);
+            GeyserLogger.get().debug("Could not set up reuseport check! %s", e);
             return false;
         }
         return success;

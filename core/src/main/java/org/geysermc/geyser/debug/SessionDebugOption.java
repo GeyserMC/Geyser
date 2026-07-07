@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,35 +23,11 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.util.metrics;
+package org.geysermc.geyser.debug;
 
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.GeyserLogger;
-
-public final class ProvidedMetricsPlatform implements MetricsPlatform {
-
-    @Override
-    public boolean enabled() {
-        return GeyserImpl.getInstance().config().enableMetrics();
-    }
-
-    @Override
-    public String serverUuid() {
-        return GeyserImpl.getInstance().config().metricsUuid().toString();
-    }
-
-    @Override
-    public boolean logFailedRequests() {
-        return GeyserLogger.get().isDebug();
-    }
-
-    @Override
-    public boolean logSentData() {
-        return GeyserLogger.get().isDebug();
-    }
-
-    @Override
-    public boolean logResponseStatusText() {
-        return GeyserLogger.get().isDebug();
-    }
+public enum SessionDebugOption {
+    // Pack
+    FORCE_OPTIONAL_PACKS,
+    FORCE_DISABLE_PACKS,
+    FORCE_VIBRANT_VISUALS
 }

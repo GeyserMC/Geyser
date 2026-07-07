@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -41,7 +42,7 @@ public class BedrockNetworkStackLatencyTranslator extends PacketTranslator<Netwo
         // We should receive these packets in the same order they were sent
         final Runnable latencyPing = session.getLatencyPingCache().poll();
         if (latencyPing == null) {
-            session.getGeyser().getLogger().debug("Received a latency packet that we don't have a ping for: " + packet);
+            GeyserLogger.get().debug("Received a latency packet that we don't have a ping for: " + packet);
             return;
         }
 

@@ -33,6 +33,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.packet.ResourcePackStackPacket;
 import org.cloudburstmc.protocol.bedrock.packet.ResourcePacksInfoPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.event.bedrock.SessionLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
@@ -91,7 +92,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         try {
             register(resourcePack, PriorityOption.NORMAL);
         } catch (ResourcePackException e) {
-            GeyserImpl.getInstance().getLogger().error("An exception occurred while registering resource pack: " + e.getMessage(), e);
+            GeyserLogger.get().error("An exception occurred while registering resource pack: " + e.getMessage(), e);
             return false;
         }
         return true;
@@ -219,7 +220,7 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
 
         for (ResourcePackHolder holder : packs.values()) {
             if (!warned && anyCdn && !(holder.codec() instanceof UrlPackCodec)) {
-                GeyserImpl.getInstance().getLogger().warning("Mixing pack codecs will result in all UrlPackCodec delivered packs to fall back to non-cdn delivery!");
+                GeyserLogger.get().warning("Mixing pack codecs will result in all UrlPackCodec delivered packs to fall back to non-cdn delivery!");
                 warned = true;
             }
             GeyserResourcePack pack = holder.pack();
@@ -231,6 +232,13 @@ public class SessionLoadResourcePacksEventImpl extends SessionLoadResourcePacksE
         }
 
         return entries;
+    }
+
+    // Helper method for debugging
+
+    public void unregisterAll() {
+        this.packs.clear();
+        this.sessionPackOptionOverrides.clear();
     }
 
     // Helper methods to get the options for a ResourcePack

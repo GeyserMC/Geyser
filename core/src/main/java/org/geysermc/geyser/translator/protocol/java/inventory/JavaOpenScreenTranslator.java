@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.inventory;
 
 import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.session.GeyserSession;
@@ -47,7 +48,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
     @Override
     public void translate(GeyserSession session, ClientboundOpenScreenPacket packet) {
-        GeyserImpl.getInstance().getLogger().debug(session, packet.toString());
+        GeyserLogger.get().debug(session, packet.toString());
         if (packet.getContainerId() == 0) {
             return;
         }
@@ -87,7 +88,7 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
             // Pending inventories are also considered, as a Java server can re-request the same inventory.
             if (newTranslator.canReuseInventory(session, newInventory, currentInventory.inventory())) {
                 newInventoryHolder.inheritFromExisting(currentInventory);
-                GeyserImpl.getInstance().getLogger().debug(session, "Able to reuse current inventory. Is current pending? %s", currentInventory.pending());
+                GeyserLogger.get().debug(session, "Able to reuse current inventory. Is current pending? %s", currentInventory.pending());
 
                 // If the current inventory is still pending, it'll be updated once open
                 if (newInventory.isDisplayed()) {

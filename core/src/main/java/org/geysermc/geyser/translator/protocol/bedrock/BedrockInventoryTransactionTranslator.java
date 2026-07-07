@@ -576,8 +576,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         ItemDefinition heldItemId = packet.getItemInHand() == null ? ItemData.AIR.getDefinition() : packet.getItemInHand().getDefinition();
 
         if (!expectedItem.equals(heldItemId)) {
-            session.getGeyser().getLogger().debug(session.bedrockUsername() + "'s held item has desynced! Expected: " + expectedItem + " Received: " + heldItemId);
-            session.getGeyser().getLogger().debug("Packet: " + packet);
+            GeyserLogger.get().debug(session.bedrockUsername() + "'s held item has desynced! Expected: " + expectedItem + " Received: " + heldItemId);
+            GeyserLogger.get().debug("Packet: " + packet);
             return true;
         }
 

@@ -42,6 +42,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerAuthInputPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -272,7 +273,7 @@ public class BlockBreakHandler {
                     boolean valid = currentBlockPos != null && Objects.equals(position, currentBlockPos);
                     if (!canBreak(position, state, actionData.getAction()) || !valid) {
                         if (!valid) {
-                            GeyserImpl.getInstance().getLogger().warning("Player %s tried to break block at %s (%s), without starting to destroy it!"
+                            GeyserLogger.get().warning("Player %s tried to break block at %s (%s), without starting to destroy it!"
                                 .formatted(session.bedrockUsername(), position, currentBlockPos));
                             handleAbortBreaking(currentBlockPos);
                         }
@@ -297,9 +298,9 @@ public class BlockBreakHandler {
                     handleAbortBreaking(position);
                 }
                 default -> {
-                    GeyserImpl.getInstance().getLogger().warning("Unknown block break action (%s) received! (origin: %s)!"
+                    GeyserLogger.get().warning("Unknown block break action (%s) received! (origin: %s)!"
                         .formatted(actionData.getAction(), session.getDebugInfo()));
-                    GeyserImpl.getInstance().getLogger().debug("Odd packet: " + packet);
+                    GeyserLogger.get().debug("Odd packet: " + packet);
                     session.disconnect("Invalid block breaking action received!");
                 }
             }

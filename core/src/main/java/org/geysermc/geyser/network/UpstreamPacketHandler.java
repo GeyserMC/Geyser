@@ -54,12 +54,14 @@ import org.cloudburstmc.protocol.common.util.Zlib;
 import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
+import org.geysermc.geyser.debug.SessionDebugOption;
 import org.geysermc.geyser.event.type.SessionLoadResourcePacksEventImpl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.ResourcePackHolder;
@@ -80,8 +82,11 @@ import java.nio.channels.SeekableByteChannel;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.List;
 import java.util.OptionalInt;
 import java.util.Queue;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
@@ -232,14 +237,21 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             // Can happen if an error occurs in the resource pack event; that'll disconnect the player
             return PacketSignal.HANDLED;
         }
+        if (session.getDebugOptions().contains(SessionDebugOption.FORCE_DISABLE_PACKS)) {
+            this.resourcePackLoadEvent.unregisterAll();
+        }
         session.integratedPackActive(resourcePackLoadEvent.isIntegratedPackActive());
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         resourcePacksInfo.getResourcePackInfos().addAll(this.resourcePackLoadEvent.infoPacketEntries());
-        resourcePacksInfo.setVibrantVisualsForceDisabled(!session.isAllowVibrantVisuals());
+        if (!session.getDebugOptions().contains(SessionDebugOption.FORCE_VIBRANT_VISUALS)) {
+            resourcePacksInfo.setVibrantVisualsForceDisabled(!session.isAllowVibrantVisuals());
+        }
 
-        resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().gameplay().forceResourcePacks() ||
-            resourcePackLoadEvent.isIntegratedPackActive());
+        if (!session.getDebugOptions().contains(SessionDebugOption.FORCE_OPTIONAL_PACKS)) {
+            resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().gameplay().forceResourcePacks() ||
+                resourcePackLoadEvent.isIntegratedPackActive());
+        }
         resourcePacksInfo.setWorldTemplateId(UUID.randomUUID());
         resourcePacksInfo.setWorldTemplateVersion("*");
 
@@ -269,7 +281,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                     // We must spawn the white world
                     session.connect();
                 }
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.connect", session.getAuthData().name() +
+                GeyserLogger.get().info(GeyserLocale.getLocaleStringLog("geyser.network.connect", session.getAuthData().name() +
                     " (" + session.protocolVersion() + ")"));
             }
             case SEND_PACKS -> {
@@ -291,7 +303,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             }
             case REFUSED -> session.disconnect("disconnectionScreen.resourcePack");
             default -> {
-                GeyserImpl.getInstance().getLogger().debug("received unknown status packet: " + packet);
+                GeyserLogger.get().debug("received unknown status packet: " + packet);
                 session.disconnect("disconnectionScreen.resourcePack");
             }
         }
@@ -312,7 +324,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         if (geyser.config().savedUserLogins().contains(bedrockUsername)) {
             String authChain = geyser.authChainFor(bedrockUsername);
             if (authChain != null) {
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().name()));
+                GeyserLogger.get().info(GeyserLocale.getLocaleStringLog("geyser.auth.stored_credentials", session.getAuthData().name()));
                 session.authenticateWithAuthChain(authChain);
                 return true;
             }
@@ -365,7 +377,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         ResourcePackHolder holder = this.resourcePackLoadEvent.getPacks().get(packet.getPackId());
         if (holder == null) {
-            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request pack id %s not sent to it!",
+            GeyserLogger.get().debug("Client %s tried to request pack id %s not sent to it!",
                 session.bedrockUsername(), packet.getPackId());
             chunkRequestQueue.clear();
             session.disconnect("disconnectionScreen.resourcePack");
@@ -382,7 +394,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 return;
             }
         } else if (finishedResourcePackSending) {
-            GeyserImpl.getInstance().getLogger().warning("Received resource pack chunk packet after stage completed! " + packet);
+            GeyserLogger.get().warning("Received resource pack chunk packet after stage completed! " + packet);
             session.disconnect("Duplicate resource pack packet received!");
             chunkRequestQueue.clear();
             return;
@@ -424,7 +436,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         String[] packID = id.split("_");
 
         if (packID.length < 2) {
-            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request invalid pack id %s!",
+            GeyserLogger.get().debug("Client %s tried to request invalid pack id %s!",
                 session.bedrockUsername(), Arrays.toString(packID));
             session.disconnect("disconnectionScreen.resourcePack");
             return;
@@ -434,7 +446,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         try {
             packId = UUID.fromString(packID[0]);
         } catch (IllegalArgumentException e) {
-            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request pack with an invalid id %s)",
+            GeyserLogger.get().debug("Client %s tried to request pack with an invalid id %s)",
                 session.bedrockUsername(), id);
             session.disconnect("disconnectionScreen.resourcePack");
             return;
@@ -442,7 +454,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         ResourcePackHolder holder = this.resourcePackLoadEvent.getPacks().get(packId);
         if (holder == null) {
-            GeyserImpl.getInstance().getLogger().debug("Client %s tried to request pack id %s not sent to it!",
+            GeyserLogger.get().debug("Client %s tried to request pack id %s not sent to it!",
                 session.bedrockUsername(), id);
             session.disconnect("disconnectionScreen.resourcePack");
             return;

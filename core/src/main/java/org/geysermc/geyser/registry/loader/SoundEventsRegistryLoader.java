@@ -30,6 +30,7 @@ import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.translator.level.event.LevelEventTranslator;
 import org.geysermc.geyser.translator.level.event.PlaySoundEventTranslator;
 import org.geysermc.geyser.translator.level.event.SoundEventEventTranslator;
@@ -84,7 +85,7 @@ public class SoundEventsRegistryLoader extends EffectRegistryLoader<Map<LevelEve
                     soundEffects.put(javaEffect, transformer);
                 }
             } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().warning("Failed to map sound effect " + entry.getKey() + " : " + e);
+                GeyserLogger.get().warning("Failed to map sound effect " + entry.getKey() + " : " + e);
             }
         }
         return soundEffects;

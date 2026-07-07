@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.packet.AnimateEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.AnimatePacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -110,7 +111,7 @@ public class JavaAnimateTranslator extends PacketTranslator<ClientboundAnimatePa
                 animatePacket.setAction(AnimatePacket.Action.WAKE_UP);
             }
             default -> {
-                session.getGeyser().getLogger().debug("Unhandled java animation: " + animation);
+                GeyserLogger.get().debug("Unhandled java animation: " + animation);
                 return;
             }
         }

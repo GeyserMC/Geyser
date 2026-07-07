@@ -27,6 +27,7 @@ package org.geysermc.geyser.session.cache.waypoint;
 
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.AzimuthWaypointData;
@@ -55,7 +56,7 @@ public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
             angle = azimuthAngle;
             updatePosition();
         } else {
-            session.getGeyser().getLogger().warning("Received incorrect waypoint data " + data.getClass() + " for azimuth waypoint");
+            GeyserLogger.get().warning("Received incorrect waypoint data " + data.getClass() + " for azimuth waypoint");
         }
     }
 

@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.entity.player;
 
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
@@ -59,7 +60,7 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                 if (profile == null) {
                     // Should never be null for the ADD_PLAYER case
                     // 1.21.11 client NPEs here
-                    GeyserImpl.getInstance().getLogger().debug("Received a null profile in a player info update packet!");
+                    GeyserLogger.get().debug("Received a null profile in a player info update packet!");
                     continue;
                 }
 
@@ -71,7 +72,7 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
                     // Entity is ourself!
                     playerEntity = session.getPlayerEntity();
                     playerEntity.setUsername(profile.getName());
-                    playerEntity.setSkin(profile, () -> GeyserImpl.getInstance().getLogger().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));
+                    playerEntity.setSkin(profile, () -> GeyserLogger.get().debug("Loaded Local Bedrock Java Skin Data for " + session.getClientData().getUsername()));
                 } else {
                     // It's a new player
                     playerEntity = new PlayerEntity(EntitySpawnContext.DUMMY_CONTEXT.apply(session, id, EntityDefinitions.PLAYER), profile);
@@ -87,7 +88,7 @@ public class JavaPlayerInfoUpdateTranslator extends PacketTranslator<Clientbound
             for (PlayerListEntry entry : packet.getEntries()) {
                 PlayerEntity entity = session.getEntityCache().getPlayerEntity(entry.getProfileId());
                 if (entity == null) {
-                    session.getGeyser().getLogger().debug("Ignoring player info update for " + entry.getProfileId());
+                    GeyserLogger.get().debug("Ignoring player info update for " + entry.getProfileId());
                     continue;
                 }
 

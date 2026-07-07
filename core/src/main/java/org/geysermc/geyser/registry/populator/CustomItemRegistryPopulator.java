@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.item.custom.CustomRenderOffsets;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
@@ -117,7 +118,7 @@ public class CustomItemRegistryPopulator {
                 validateVanillaOverride(identifier, item, customItems, items);
                 customItems.get(identifier).add(item);
             } catch (CustomItemDefinitionRegisterException exception) {
-                GeyserImpl.getInstance().getLogger().error("Not registering custom item definition (bedrock identifier=" + item.bedrockIdentifier() + "): " + exception.getMessage());
+                GeyserLogger.get().error("Not registering custom item definition (bedrock identifier=" + item.bedrockIdentifier() + "): " + exception.getMessage());
             }
         });
 
@@ -155,7 +156,7 @@ public class CustomItemRegistryPopulator {
 
         int customItemCount = customItems.size() + nonVanillaCustomItems.size();
         if (customItemCount > 0) {
-            GeyserImpl.getInstance().getLogger().info("Registered " + customItemCount + " custom items");
+            GeyserLogger.get().info("Registered " + customItemCount + " custom items");
         }
     }
 
@@ -199,7 +200,7 @@ public class CustomItemRegistryPopulator {
         if (bedrockIdentifier.vanilla()) {
             throw new CustomItemDefinitionRegisterException("custom item bedrock identifier namespace can't be minecraft");
         } else if (item.model().equals(vanillaIdentifier) && item.predicates().isEmpty()) {
-            GeyserImpl.getInstance().getLogger().warning("Custom item " + bedrockIdentifier + " overrides the vanilla item model " + vanillaIdentifier + " without additional predicates!");
+            GeyserLogger.get().warning("Custom item " + bedrockIdentifier + " overrides the vanilla item model " + vanillaIdentifier + " without additional predicates!");
         }
 
         for (Map.Entry<Identifier, CustomItemDefinition> entry : registered.entries()) {

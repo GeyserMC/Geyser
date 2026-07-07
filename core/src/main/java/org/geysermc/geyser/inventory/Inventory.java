@@ -33,6 +33,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.GeyserSession;
@@ -131,7 +132,7 @@ public abstract class Inventory {
 
     public GeyserItemStack getItem(int slot) {
         if (slot > this.size) {
-            GeyserImpl.getInstance().getLogger().debug("Tried to get an item out of bounds! " + this);
+            GeyserLogger.get().debug("Tried to get an item out of bounds! " + this);
             return GeyserItemStack.EMPTY;
         }
         return items[slot];
@@ -141,7 +142,7 @@ public abstract class Inventory {
 
     public void setItem(int slot, @NonNull GeyserItemStack newItem, GeyserSession session) {
         if (slot < 0 || slot >= this.size) {
-            session.getGeyser().getLogger().debug("Tried to set an item out of bounds (slot was " + slot + ")! " + this);
+            GeyserLogger.get().debug("Tried to set an item out of bounds (slot was " + slot + ")! " + this);
             return;
         }
         GeyserItemStack oldItem = items[slot];

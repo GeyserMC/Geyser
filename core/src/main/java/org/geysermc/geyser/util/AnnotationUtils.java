@@ -26,6 +26,7 @@
 package org.geysermc.geyser.util;
 
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -87,7 +88,7 @@ public class AnnotationUtils {
                 try {
                     return Class.forName(className);
                 } catch (ClassNotFoundException ex) {
-                    GeyserImpl.getInstance().getLogger().error("Failed to find class " + className, ex);
+                    GeyserLogger.get().error("Failed to find class " + className, ex);
                     throw new RuntimeException(ex);
                 }
             }).collect(Collectors.toSet());

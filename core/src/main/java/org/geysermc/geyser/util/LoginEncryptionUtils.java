@@ -41,6 +41,7 @@ import org.geysermc.cumulus.response.SimpleFormResponse;
 import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -72,7 +73,7 @@ public class LoginEncryptionUtils {
 
             ChainValidationResult result = EncryptionUtils.validatePayload(authPayload);
 
-            geyser.getLogger().debug(String.format("Is player data signed? %s", result.signed()));
+            GeyserLogger.get().debug(String.format("Is player data signed? %s", result.signed()));
             if (!result.signed() && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
                 return;
@@ -87,7 +88,7 @@ public class LoginEncryptionUtils {
             } else if (authPayload instanceof CertificateChainPayload certificateChainPayload) {
                 session.setCertChainData(certificateChainPayload.getChain());
             } else {
-                GeyserImpl.getInstance().getLogger().warning("Unknown auth payload! Skin uploading will not work");
+                GeyserLogger.get().warning("Unknown auth payload! Skin uploading will not work");
             }
 
             PublicKey identityPublicKey = result.identityClaims().parsedIdentityPublicKey();
@@ -115,14 +116,13 @@ public class LoginEncryptionUtils {
                 }
             }
             session.setAuthData(new AuthData(extraData.displayName, extraData.identity, xuid, issuedAt, extraData.minecraftId));
+            session.getGeyser().getDebugSessionMap().setFor(session);
 
             try {
                 startEncryptionHandshake(session, identityPublicKey);
             } catch (Throwable e) {
                 // An error can be thrown on older Java 8 versions about an invalid key
-                if (geyser.config().debugMode()) {
-                    e.printStackTrace();
-                }
+                GeyserLogger.get().debug("Error while starting encryption handshake.", e);
 
                 sendEncryptionFailedMessage(geyser);
             }
@@ -146,8 +146,8 @@ public class LoginEncryptionUtils {
 
     private static void sendEncryptionFailedMessage(GeyserImpl geyser) {
         if (!HAS_SENT_ENCRYPTION_MESSAGE) {
-            geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.encryption.line_1"));
-            geyser.getLogger().warning(GeyserLocale.getLocaleStringLog("geyser.network.encryption.line_2", "https://geysermc.org/supported_java"));
+            GeyserLogger.get().warning(GeyserLocale.getLocaleStringLog("geyser.network.encryption.line_1"));
+            GeyserLogger.get().warning(GeyserLocale.getLocaleStringLog("geyser.network.encryption.line_2", "https://geysermc.org/supported_java"));
             HAS_SENT_ENCRYPTION_MESSAGE = true;
         }
     }

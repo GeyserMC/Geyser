@@ -28,6 +28,7 @@ package org.geysermc.geyser.command.defaults;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -211,7 +212,7 @@ public class ConnectionTestCommand extends GeyserCommand {
                 sendLinks(source);
             } catch (Exception e) {
                 source.sendMessage("An error occurred while trying to check your connection! Check the console for more information.");
-                geyser.getLogger().error("Error while trying to check your connection!", e);
+                GeyserLogger.get().error("Error while trying to check your connection!", e);
             }
         });
     }

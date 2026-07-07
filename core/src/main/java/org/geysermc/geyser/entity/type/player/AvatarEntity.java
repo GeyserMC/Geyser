@@ -41,6 +41,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.LivingEntity;
@@ -212,7 +213,7 @@ public abstract class AvatarEntity extends LivingEntity {
         try {
             textures = profile.getTextures(false);
         } catch (IllegalStateException e) {
-            GeyserImpl.getInstance().getLogger().debug("Error loading textures for profile (%s)! Got: %s", profile, e);
+            GeyserLogger.get().debug("Error loading textures for profile (%s)! Got: %s", profile, e);
             textures = null;
         }
         setSkin(textures, after);

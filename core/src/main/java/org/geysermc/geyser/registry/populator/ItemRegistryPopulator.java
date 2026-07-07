@@ -60,6 +60,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
@@ -510,7 +511,7 @@ public class ItemRegistryPopulator {
                 if (javaOnlyItems.contains(javaItem)) {
                     // These items don't exist on Bedrock, so set up a variable that indicates they should have custom names
                     mappingBuilder = mappingBuilder.translationString((javaItem instanceof BlockItem ? "block." : "item.") + entry.getKey().replace(":", "."));
-                    GeyserImpl.getInstance().getLogger().debug("Adding " + entry.getKey() + " as an item that needs to be translated.");
+                  GeyserLogger.get().debug("Adding " + entry.getKey() + " as an item that needs to be translated.");
                 }
 
                 // Add the custom item properties, if applicable
@@ -526,7 +527,7 @@ public class ItemRegistryPopulator {
                         Identifier customItemIdentifier = customItem.bedrockIdentifier();
                         if (!registeredCustomItems.add(customItemIdentifier)) {
                             if (firstMappingsPass) {
-                                GeyserImpl.getInstance().getLogger().error("Custom item '" + customItemIdentifier + "' already exists and was registered again! Skipping...");
+                              GeyserLogger.get().error("Custom item '" + customItemIdentifier + "' already exists and was registered again! Skipping...");
                             }
                             continue;
                         }
@@ -563,7 +564,7 @@ public class ItemRegistryPopulator {
                             customIdMappings.put(customMapping.integerId(), customItemIdentifier.toString());
                         } catch (InvalidItemComponentsException exception) {
                             if (firstMappingsPass) {
-                                GeyserImpl.getInstance().getLogger().error("Not registering custom item (bedrock identifier=" + customItem.bedrockIdentifier() + ")!", exception);
+                              GeyserLogger.get().error("Not registering custom item (bedrock identifier=" + customItem.bedrockIdentifier() + ")!", exception);
                             }
                         }
                     }
@@ -680,7 +681,7 @@ public class ItemRegistryPopulator {
                             creativeItems.add(creativeItemData);
                         }
                     } catch (InvalidItemComponentsException exception) {
-                        GeyserImpl.getInstance().getLogger().error("Not registering non-vanilla custom item (identifier=" + customItem.identifier() + ")!", exception);
+                      GeyserLogger.get().error("Not registering non-vanilla custom item (identifier=" + customItem.identifier() + ")!", exception);
                     }
                 }
             }

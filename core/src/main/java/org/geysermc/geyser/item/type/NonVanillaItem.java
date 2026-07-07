@@ -30,6 +30,7 @@ import lombok.experimental.Accessors;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
 import org.geysermc.geyser.session.cache.ComponentCache;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
@@ -61,7 +62,7 @@ public class NonVanillaItem extends Item {
         if (resolvableComponents.isEmpty()) {
             return super.gatherComponents(componentCache, others);
         } else if (componentCache == null) {
-            GeyserImpl.getInstance().getLogger().debug("Unable to resolve components for non-vanilla item because componentCache is null");
+            GeyserLogger.get().debug("Unable to resolve components for non-vanilla item because componentCache is null");
             return super.gatherComponents(null, others);
         }
         DataComponents resolvedAndOthers = componentCache.getResolvedComponents(this).clone();
@@ -75,7 +76,7 @@ public class NonVanillaItem extends Item {
     public <T> @Nullable T getComponent(@Nullable ComponentCache componentCache, @NonNull DataComponentType<T> type) {
         if (resolvableComponentTypes.contains(type)) {
             if (componentCache == null) {
-                GeyserImpl.getInstance().getLogger().debug("Unable to resolve components for non-vanilla item because componentCache is null");
+                GeyserLogger.get().debug("Unable to resolve components for non-vanilla item because componentCache is null");
                 return super.getComponent(null, type);
             }
             return componentCache.getResolvedComponents(this).get(type);

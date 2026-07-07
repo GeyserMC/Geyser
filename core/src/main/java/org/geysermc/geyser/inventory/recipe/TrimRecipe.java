@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -74,7 +75,7 @@ public final class TrimRecipe {
                     if (javaItem != null) {
                         trimItem = context.session().get().getItemMappings().getMapping(javaItem);
                     } else {
-                        GeyserImpl.getInstance().getLogger().debug("Could not find trim material provider! Network: %s, Provider: %s".formatted(context.id(), provider));
+                        GeyserLogger.get().debug("Could not find trim material provider! Network: %s, Provider: %s".formatted(context.id(), provider));
                     }
                     break;
                 }
@@ -83,7 +84,7 @@ public final class TrimRecipe {
 
         if (trimItem == null) {
             // This happens in testing and for custom trim materials, not sure what to do for the latter.
-            GeyserImpl.getInstance().getLogger().debug("Unable to found trim material item for material " + context.id());
+            GeyserLogger.get().debug("Unable to found trim material item for material " + context.id());
             trimItem = ItemMapping.AIR;
         }
 
@@ -101,7 +102,7 @@ public final class TrimRecipe {
             itemMapping = context.session().get().getItemMappings().getMapping(identifier);
             if (itemMapping == null) {
                 // This should never happen so not sure what to do here.
-                GeyserImpl.getInstance().getLogger().debug("Unable to found trim pattern item for pattern " + context.id());
+                GeyserLogger.get().debug("Unable to found trim pattern item for pattern " + context.id());
                 itemMapping = ItemMapping.AIR;
             }
         }

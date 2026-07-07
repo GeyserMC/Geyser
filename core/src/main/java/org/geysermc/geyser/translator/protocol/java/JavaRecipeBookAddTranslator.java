@@ -30,6 +30,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeDa
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UnlockedRecipesPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.recipe.GeyserRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.inventory.recipe.GeyserShapelessRecipe;
@@ -142,7 +143,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                     netId += recipeData.size();
                 }
                 default -> {
-                    GeyserImpl.getInstance().getLogger().debug("Ignoring unknown recipe display type! " + entry);
+                    GeyserLogger.get().debug("Ignoring unknown recipe display type! " + entry);
                 }
             }
         }

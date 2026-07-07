@@ -35,6 +35,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandParam;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandParamData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.command.Command;
 import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCommandsEvent;
@@ -46,6 +47,7 @@ import org.geysermc.geyser.command.defaults.AdvancedTooltipsCommand;
 import org.geysermc.geyser.command.defaults.AdvancementsCommand;
 import org.geysermc.geyser.command.defaults.ConnectionTestCommand;
 import org.geysermc.geyser.command.defaults.CustomOptionsCommand;
+import org.geysermc.geyser.command.defaults.DebugCommand;
 import org.geysermc.geyser.command.defaults.DumpCommand;
 import org.geysermc.geyser.command.defaults.ExtensionsCommand;
 import org.geysermc.geyser.command.defaults.GameruleCommand;
@@ -172,6 +174,7 @@ public class CommandRegistry implements EventRegistrar {
         registerBuiltInCommand(new CustomOptionsCommand("options", "geyser.commands.options.desc", "geyser.command.options"));
         registerBuiltInCommand(new QuickActionsCommand("quickactions", "geyser.commands.quickactions.desc", "geyser.command.quickactions"));
         registerBuiltInCommand(new GameruleCommand("gamerules", "geyser.commands.gamerules.desc", "geyser.command.gamerules"));
+        registerBuiltInCommand(new DebugCommand(geyser, "debug", "geyser.commands.debug.desc", "geyser.command.debug"));
 
         if (this.geyser.platformType() == PlatformType.STANDALONE) {
             registerBuiltInCommand(new StopCommand(geyser, "stop", "geyser.commands.stop.desc", "geyser.command.stop"));
@@ -246,7 +249,7 @@ public class CommandRegistry implements EventRegistrar {
 
         command.register(cloud);
         commands.put(name, command);
-        geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.commands.registered", root + " " + name));
+        GeyserLogger.get().debug(GeyserLocale.getLocaleStringLog("geyser.commands.registered", root + " " + name));
 
         for (String alias : command.aliases()) {
             commands.put(alias, command);
@@ -259,7 +262,7 @@ public class CommandRegistry implements EventRegistrar {
             TriState existingDefault = permissionDefaults.get(permission);
             // Extensions might be using the same permission for two different commands
             if (existingDefault != null && existingDefault != defaultValue) {
-                geyser.getLogger().debug("Overriding permission default %s:%s with %s".formatted(permission, existingDefault, defaultValue));
+                GeyserLogger.get().debug("Overriding permission default %s:%s with %s".formatted(permission, existingDefault, defaultValue));
             }
 
             permissionDefaults.put(permission, defaultValue);

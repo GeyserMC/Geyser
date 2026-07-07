@@ -43,6 +43,7 @@ import org.geysermc.erosion.packet.ErosionPacketSender;
 import org.geysermc.erosion.packet.backendbound.BackendboundInitializePacket;
 import org.geysermc.erosion.packet.backendbound.BackendboundPacket;
 import org.geysermc.erosion.packet.geyserbound.*;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.level.block.BlockStateValues;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.Block;
@@ -81,7 +82,7 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
         if (this.pendingBatchLookup != null) {
             this.pendingBatchLookup.complete(packet.getBlocks());
         } else {
-            session.getGeyser().getLogger().warning("Batch block ID packet received with no future to complete.");
+            GeyserLogger.get().warning("Batch block ID packet received with no future to complete.");
         }
     }
 
@@ -104,7 +105,7 @@ public final class GeyserboundPacketHandlerImpl extends AbstractGeyserboundPacke
             future.complete(packet.getBlockId());
             return;
         }
-        session.getGeyser().getLogger().warning("Block ID packet received with no future to complete.");
+        GeyserLogger.get().warning("Block ID packet received with no future to complete.");
     }
 
     @Override

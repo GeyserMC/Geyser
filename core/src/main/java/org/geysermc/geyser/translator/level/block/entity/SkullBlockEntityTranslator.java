@@ -33,6 +33,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.session.GeyserSession;
@@ -100,15 +101,12 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
             try {
                 SkullCache.Skull skull = session.getSkullCache().putSkull(blockPosition, resolvedFuture.get(), blockState);
                 if (skull == null) {
-                    session.getGeyser().getLogger().debug("Custom skull with invalid profile: " + blockPosition + " " + resolvedFuture.get());
+                    GeyserLogger.get().debug("Custom skull with invalid profile: " + blockPosition + " " + resolvedFuture.get());
                     return null;
                 }
                 return skull.getBlockDefinition();
             } catch (InterruptedException | ExecutionException e) {
-                session.getGeyser().getLogger().debug("Failed to acquire textures for custom skull: " + blockPosition + " " + javaNbt);
-                if (GeyserImpl.getInstance().config().debugMode()) {
-                    e.printStackTrace();
-                }
+                GeyserLogger.get().debug("Failed to acquire textures for custom skull: " + blockPosition + " " + javaNbt, e);
             }
             return null;
         }
@@ -116,10 +114,7 @@ public class SkullBlockEntityTranslator extends BlockEntityTranslator implements
         // profile contained a username, so we have to wait for it to be retrieved
         resolvedFuture.whenComplete((resolved, throwable) -> {
             if (throwable != null ) {
-                session.getGeyser().getLogger().debug("Failed resolving profile of player head at: " + blockPosition + " " + javaNbt);
-                if (GeyserImpl.getInstance().config().debugMode()) {
-                    throwable.printStackTrace();
-                }
+                GeyserLogger.get().debug("Failed resolving profile of player head at: " + blockPosition + " " + javaNbt, throwable);
                 return;
             }
             session.ensureInEventLoop(() -> putSkull(session, blockPosition, resolved, blockState));

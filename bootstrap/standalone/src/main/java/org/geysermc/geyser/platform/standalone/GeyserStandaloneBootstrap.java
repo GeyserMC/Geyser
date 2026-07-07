@@ -66,6 +66,7 @@ public class GeyserStandaloneBootstrap implements GeyserBootstrap {
     private GeyserStandaloneGUI gui;
     @Getter
     private boolean useGui = System.console() == null && !isHeadless();
+    @Getter
     private Logger log4jLogger;
     private String configFilename = "config.yml";
 

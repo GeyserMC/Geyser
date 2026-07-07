@@ -31,6 +31,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
 import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
@@ -56,7 +57,7 @@ public class ArmorItem extends Item {
             if (trim.material().isId()) {
                 material = session.getRegistryCache().registry(JavaRegistries.TRIM_MATERIAL).byId(trim.material().id());
             } else {
-                GeyserImpl.getInstance().getLogger().debug("Unable to translate non-id trim material: " + trim);
+                GeyserLogger.get().debug("Unable to translate non-id trim material: " + trim);
                 return;
             }
 
@@ -64,7 +65,7 @@ public class ArmorItem extends Item {
             if (trim.pattern().isId()) {
                 pattern = session.getRegistryCache().registry(JavaRegistries.TRIM_PATTERN).byId(trim.pattern().id());
             } else {
-                GeyserImpl.getInstance().getLogger().debug("Unable to translate non-id trim pattern: " + trim);
+                GeyserLogger.get().debug("Unable to translate non-id trim pattern: " + trim);
                 return;
             }
 
@@ -85,7 +86,7 @@ public class ArmorItem extends Item {
                 trimBuilder.put("Pattern", patternId);
                 builder.putCompound("Trim", trimBuilder.build());
             } else {
-                GeyserImpl.getInstance().getLogger().debug("Unknown trim material/pattern: ", trim);
+                GeyserLogger.get().debug("Unknown trim material/pattern: ", trim);
             }
         }
     }

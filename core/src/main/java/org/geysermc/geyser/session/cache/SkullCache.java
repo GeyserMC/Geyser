@@ -33,6 +33,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
@@ -86,7 +87,7 @@ public class SkullCache {
         try {
             texture = resolved.getTexture(TextureType.SKIN, false);
         } catch (IllegalStateException e) {
-            session.getGeyser().getLogger().debug("Player skull with invalid skin found at " + position + " with texture payload " + resolved.getProperty("textures"));
+            GeyserLogger.get().debug("Player skull with invalid skin found at " + position + " with texture payload " + resolved.getProperty("textures"));
             return null;
         }
         if (texture != null) {

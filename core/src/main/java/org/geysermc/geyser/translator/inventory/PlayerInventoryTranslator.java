@@ -48,6 +48,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryContentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
@@ -419,7 +420,7 @@ public class PlayerInventoryTranslator extends InventoryTranslator<PlayerInvento
                     }
                 }
                 default -> {
-                    session.getGeyser().getLogger().error("Unknown crafting state induced by " + session.bedrockUsername());
+                    GeyserLogger.get().error("Unknown crafting state induced by " + session.bedrockUsername());
                     return rejectRequest(request);
                 }
             }

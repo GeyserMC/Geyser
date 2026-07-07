@@ -43,6 +43,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.HashOps;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.gametest.registries.GameTestJavaRegistryProvider;
 import org.geysermc.geyser.item.hashing.DataComponentHashers;
 import org.geysermc.geyser.item.hashing.MapHasher;
@@ -114,11 +115,11 @@ public class ComponentHashTestInstance extends GeyserTestInstance {
             try {
                 helper.assertValueEqual(expected, geyser, "hash for component " + encodedJavaValue);
             } catch (GameTestAssertException assertException) {
-                GeyserImpl.getInstance().getLogger().warning("Hash failed for component " + testCase.type() + " (" + testCase.value() + "), printing values of MapHasher");
+                GeyserLogger.get().warning("Hash failed for component " + testCase.type() + " (" + testCase.value() + "), printing values of MapHasher");
                 MapHasher.debug = true;
                 DataComponentHashers.hash(registries, mcplComponent);
                 MapHasher.debug = false;
-                GeyserImpl.getInstance().getLogger().warning("The Mojang encoded/expected value is printed in the exception message");
+                GeyserLogger.get().warning("The Mojang encoded/expected value is printed in the exception message");
                 throw assertException;
             }
         }

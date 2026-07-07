@@ -108,6 +108,14 @@ public interface GeyserLogger extends GeyserCommandSource {
     }
 
     /**
+     * Logs a debug message with an attached stacktrace
+     *
+     * @param message the message to log
+     * @param t the exception to print
+     */
+    void debug(String message, Throwable t);
+
+    /**
      * Logs and formats a message to console if debug mode is enabled,
      * with the provided arguments.
      *
@@ -160,5 +168,9 @@ public interface GeyserLogger extends GeyserCommandSource {
     @Override
     default boolean hasPermission(String permission) {
         return true;
+    }
+
+    static GeyserLogger get() {
+        return GeyserImpl.getInstance().getBootstrap().getGeyserLogger();
     }
 }

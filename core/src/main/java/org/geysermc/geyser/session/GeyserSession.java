@@ -113,6 +113,7 @@ import org.geysermc.api.util.UiProfile;
 import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.util.FormBuilder;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.bedrock.camera.CameraData;
 import org.geysermc.geyser.api.bedrock.camera.CameraShake;
 import org.geysermc.geyser.api.connection.GeyserConnection;
@@ -127,6 +128,7 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.debug.SessionDebugOption;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.GeyserEntityData;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
@@ -210,6 +212,7 @@ import org.geysermc.mcprotocollib.network.session.ClientNetworkSession;
 import org.geysermc.mcprotocollib.protocol.ClientListener;
 import org.geysermc.mcprotocollib.protocol.MinecraftConstants;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
+import org.geysermc.mcprotocollib.protocol.codec.MinecraftPacket;
 import org.geysermc.mcprotocollib.protocol.data.ProtocolState;
 import org.geysermc.mcprotocollib.protocol.data.game.ServerLink;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
@@ -289,6 +292,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Accessors(fluent = true)
     @Setter
     private RemoteServer remoteServer;
+
+    @Setter
+    private EnumSet<SessionDebugOption> debugOptions = EnumSet.noneOf(SessionDebugOption.class);
 
     private final SessionPlayerEntity playerEntity;
 
@@ -905,7 +911,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             if (isInOverworld) {
                 this.bedrockDimension = this.bedrockOverworldDimension;
             }
-            geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
+            GeyserLogger.get().debug("Extending overworld dimension to " + minY + " - " + maxY);
 
             DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
             dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5, 3));
@@ -1002,7 +1008,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public void authenticate(String username) {
         if (loggedIn) {
-            geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", username));
+            GeyserLogger.get().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", username));
             return;
         }
 
@@ -1019,7 +1025,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public void authenticateWithAuthChain(String authChain) {
         if (loggedIn) {
-            geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().name()));
+            GeyserLogger.get().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().name()));
             return;
         }
 
@@ -1039,7 +1045,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 mcProfile = authManager.getMinecraftProfile().getUpToDate();
                 mcToken = authManager.getMinecraftToken().getUpToDate();
             } catch (Exception e) {
-                geyser.getLogger().error("Error while attempting to use auth chain for " + bedrockUsername() + "!", e);
+                GeyserLogger.get().error("Error while attempting to use auth chain for " + bedrockUsername() + "!", e);
                 return Boolean.FALSE;
             }
 
@@ -1078,7 +1084,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     public void authenticateWithMicrosoftCode(boolean offlineAccess) {
         if (loggedIn) {
-            geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().name()));
+            GeyserLogger.get().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().name()));
             return;
         }
 
@@ -1114,7 +1120,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         task.cleanup(); // player is online -> remove pending authentication immediately
         return task.getAuthentication().handle((result, ex) -> {
             if (ex != null) {
-                geyser.getLogger().error("Failed to log in with Microsoft code!", ex);
+                GeyserLogger.get().error("Failed to log in with Microsoft code!", ex);
                 if (ex instanceof CompletionException ce && ce.getCause() instanceof MinecraftProfileNotFoundException) {
                     // Player is trying to join with a Microsoft account that doesn't have Java Edition purchased
                     disconnect(GeyserLocale.getPlayerLocaleString("geyser.network.remote.invalid_account", locale()));
@@ -1238,7 +1244,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
                 // Downstream's disconnect will fire an event that prints a log message
                 // Otherwise, we print a message here
                 String address = geyser.config().logPlayerIpAddresses() ? upstream.getAddress().getAddress().toString() : "<IP address withheld>";
-                geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, MessageTranslator.convertMessage(reason)));
+                GeyserLogger.get().info(GeyserLocale.getLocaleStringLog("geyser.network.disconnect", address, MessageTranslator.convertMessage(reason)));
             }
 
             // Disconnect upstream if necessary
@@ -1318,9 +1324,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         try {
             runnable.run();
         } catch (ErosionCancellationException e) {
-            geyser.getLogger().debug("Caught ErosionCancellationException");
+            GeyserLogger.get().debug("Caught ErosionCancellationException");
         } catch (Throwable e) {
-            geyser.getLogger().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
+            GeyserLogger.get().error("Error thrown in " + this.bedrockUsername() + "'s event loop!", e);
         }
     }
 
@@ -2073,7 +2079,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         unconfirmedTeleport.incrementUnconfirmedFor();
         if (unconfirmedTeleport.shouldResend()) {
             unconfirmedTeleport.resetUnconfirmedFor();
-            geyser.getLogger().debug("Resending teleport " + unconfirmedTeleport.getTeleportConfirmId());
+            GeyserLogger.get().debug("Resending teleport " + unconfirmedTeleport.getTeleportConfirmId());
             getPlayerEntity().moveAbsolute(unconfirmedTeleport.getPosition(),
                 unconfirmedTeleport.getYaw(), unconfirmedTeleport.getPitch(), playerEntity.isOnGround(), true);
 
@@ -2135,15 +2141,15 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     public void sendDownstreamPacket(Packet packet, ProtocolState intendedState) {
         // protocol can be null when we're not yet logged in (online auth)
         if (protocol == null) {
-            if (geyser.config().debugMode()) {
-                geyser.getLogger().debug("Tried to send downstream packet with no downstream session!");
+            if (GeyserLogger.get().isDebug()) {
+                GeyserLogger.get().debug("Tried to send downstream packet with no downstream session!");
                 Thread.dumpStack();
             }
             return;
         }
 
         if (protocol.getOutboundState() != intendedState) {
-            geyser.getLogger().debug("Tried to send " + packet.getClass().getSimpleName() + " packet while not in " + intendedState.name() + " outbound state. Current state: " + protocol.getOutboundState().name());
+            GeyserLogger.get().debug("Tried to send " + packet.getClass().getSimpleName() + " packet while not in " + intendedState.name() + " outbound state. Current state: " + protocol.getOutboundState().name());
             return;
         }
 
@@ -2160,8 +2166,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             Channel channel = this.downstream.getSession().getChannel();
             if (channel == null) {
                 // Channel is only null before the connection has initialized
-                geyser.getLogger().warning("Tried to send a packet to the Java server too early!");
-                if (geyser.config().debugMode()) {
+                GeyserLogger.get().warning("Tried to send a packet to the Java server too early!");
+                if (GeyserLogger.get().isDebug()) {
                     Thread.dumpStack();
                 }
                 return;
@@ -2182,7 +2188,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             || packet.getClass() == ServerboundCookieResponsePacket.class) {
             downstream.sendPacket(packet);
         } else {
-            geyser.getLogger().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
+            GeyserLogger.get().debug("Tried to send downstream packet " + packet.getClass().getSimpleName() + " before connected to the server");
         }
     }
 

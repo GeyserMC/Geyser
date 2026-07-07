@@ -28,6 +28,7 @@ package org.geysermc.geyser.scoreboard;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.WorldCache;
@@ -43,12 +44,9 @@ public final class ScoreboardUpdater extends Thread {
     private static final int FIRST_MILLIS_BETWEEN_UPDATES = 250; // 4 updates per second
     private static final int SECOND_MILLIS_BETWEEN_UPDATES = 1000; // 1 update per second
 
-    private static final boolean DEBUG_ENABLED;
-
     static {
         GeyserConfig config = GeyserImpl.getInstance().config();
         FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD = Math.min(config.advanced().scoreboardPacketThreshold(), SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD);
-        DEBUG_ENABLED = config.debugMode();
     }
 
     private final GeyserImpl geyser = GeyserImpl.getInstance();
@@ -112,12 +110,12 @@ public final class ScoreboardUpdater extends Thread {
                                 worldCache.getScoreboard().onUpdate();
                                 scoreboardSession.lastUpdate = currentTime;
 
-                                if (DEBUG_ENABLED && (currentTime - scoreboardSession.lastLog >= 60000)) { // one minute
+                                if (GeyserLogger.get().isDebug() && (currentTime - scoreboardSession.lastLog >= 60000)) { // one minute
                                     int threshold = reachedSecondThreshold ?
                                             SECOND_SCORE_PACKETS_PER_SECOND_THRESHOLD :
                                             FIRST_SCORE_PACKETS_PER_SECOND_THRESHOLD;
 
-                                    geyser.getLogger().info(
+                                    GeyserLogger.get().info(
                                             GeyserLocale.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached.log", session.bedrockUsername(), threshold, pps) +
                                                     GeyserLocale.getLocaleStringLog("geyser.scoreboard.updater.threshold_reached", (millisBetweenUpdates / 1000.0))
                                     );
@@ -129,10 +127,10 @@ public final class ScoreboardUpdater extends Thread {
                     }
                 }
 
-                if (DEBUG_ENABLED) {
+                if (GeyserLogger.get().isDebug()) {
                     long timeSpent = System.currentTimeMillis() - currentTime;
                     if (timeSpent > 0) {
-                        geyser.getLogger().info(String.format(
+                        GeyserLogger.get().info(String.format(
                                 "Scoreboard updater: took %s ms. Updated %s players",
                                 timeSpent, sessions.size()
                         ));
@@ -142,7 +140,7 @@ public final class ScoreboardUpdater extends Thread {
                 long timeTillNextAction = getTimeTillNextAction();
                 sleepFor(timeTillNextAction);
             } catch (Throwable e) {
-                geyser.getLogger().error("Error while translating scoreboard information!", e);
+                GeyserLogger.get().error("Error while translating scoreboard information!", e);
                 // Wait so we don't try to run the scoreboard immediately after this
                 sleepFor(FIRST_MILLIS_BETWEEN_UPDATES);
             }

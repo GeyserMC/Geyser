@@ -27,6 +27,7 @@ package org.geysermc.geyser.item.hashing;
 
 import com.google.common.hash.HashCode;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
@@ -329,8 +330,8 @@ public class DataComponentHashers {
         try {
             return hasher(component).hash(value, new MinecraftHashEncoder(registries));
         } catch (Exception exception) {
-            GeyserImpl.getInstance().getLogger().error("Failed to hash item data component " + component.getKey() + " with value " + value + "!");
-            GeyserImpl.getInstance().getLogger().error("This is a Geyser bug, please report this!");
+            GeyserLogger.get().error("Failed to hash item data component " + component.getKey() + " with value " + value + "!");
+            GeyserLogger.get().error("This is a Geyser bug, please report this!");
             throw exception;
         }
     }
@@ -353,7 +354,7 @@ public class DataComponentHashers {
         Set<DataComponentType<?>> removals = new HashSet<>();
         for (Map.Entry<DataComponentType<?>, DataComponent<?, ?>> component : components.entrySet()) {
             if (NOT_HASHED.contains(component.getKey())) {
-                GeyserImpl.getInstance().getLogger().debug("Not hashing component " + component.getKey() + " on stack " + stack);
+                GeyserLogger.get().debug("Not hashing component " + component.getKey() + " on stack " + stack);
             } else if (component.getValue().getValue() == null) {
                 removals.add(component.getKey());
             } else {

@@ -84,6 +84,13 @@ public class GeyserViaProxyLogger implements GeyserLogger, GeyserCommandSource {
     }
 
     @Override
+    public void debug(String message, Throwable t) {
+        if (this.debug) {
+            this.logger.debug(ConsoleFormatter.convert(message), t);
+        }
+    }
+
+    @Override
     public void debug(String message, Object... arguments) {
         if (this.debug) {
             this.debug(String.format(message, arguments));

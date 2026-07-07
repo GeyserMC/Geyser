@@ -32,6 +32,7 @@ import io.netty.util.NetUtil;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.util.VarInts;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.util.JsonUtils;
 
@@ -69,7 +70,7 @@ public class GeyserLegacyPingPassthrough extends Thread implements IGeyserPingPa
         if (geyser.config().motd().passthroughMotd() || geyser.config().motd().passthroughPlayerCounts()) {
             // Ensure delay is not zero
             int interval = (geyser.config().motd().pingPassthroughInterval() == 0) ? 1 : geyser.config().motd().pingPassthroughInterval();
-            geyser.getLogger().debug("Scheduling ping passthrough at an interval of " + interval + " second(s).");
+            GeyserLogger.get().debug("Scheduling ping passthrough at an interval of " + interval + " second(s).");
             GeyserLegacyPingPassthrough pingPassthrough = new GeyserLegacyPingPassthrough(geyser, interval);
             pingPassthrough.setName("Geyser LegacyPingPassthrough Thread");
             pingPassthrough.setDaemon(true);
@@ -146,17 +147,17 @@ public class GeyserLegacyPingPassthrough extends Thread implements IGeyserPingPa
                 this.pingInfo = JsonUtils.fromJson(buffer, GeyserPingInfo.class);
             } catch (SocketTimeoutException | ConnectException ex) {
                 this.pingInfo = null;
-                this.geyser.getLogger().debug("Connection timeout for ping passthrough.");
+                GeyserLogger.get().debug("Connection timeout for ping passthrough.");
             } catch (JsonSyntaxException ex) {
-                this.geyser.getLogger().error("Failed to parse json when pinging server!", ex);
+                GeyserLogger.get().error("Failed to parse json when pinging server!", ex);
             } catch (EOFException e) {
                 this.pingInfo = null;
-                this.geyser.getLogger().warning("Failed to ping the remote Java server! Is it online and configured in Geyser's config?");
+                GeyserLogger.get().warning("Failed to ping the remote Java server! Is it online and configured in Geyser's config?");
             } catch (UnknownHostException ex) {
                 // Don't reset pingInfo, as we want to keep the last known value
-                this.geyser.getLogger().warning("Unable to resolve remote host! Is the remote server down or invalid?");
+                GeyserLogger.get().warning("Unable to resolve remote host! Is the remote server down or invalid?");
             } catch (IOException e) {
-                this.geyser.getLogger().error("IO error while trying to use legacy ping passthrough", e);
+                GeyserLogger.get().error("IO error while trying to use legacy ping passthrough", e);
             }
 
             try {

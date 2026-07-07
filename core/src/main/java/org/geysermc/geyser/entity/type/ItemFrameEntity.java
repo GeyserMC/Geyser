@@ -33,6 +33,7 @@ import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.BlockEntityDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
@@ -94,7 +95,7 @@ public class ItemFrameEntity extends HangingEntity {
     @Override
     public void spawnEntity() {
         updateBlock(true);
-        session.getGeyser().getLogger().debug("Spawned item frame at location " + bedrockPosition + " with java id " + entityId);
+        GeyserLogger.get().debug("Spawned item frame at location " + bedrockPosition + " with java id " + entityId);
         valid = true;
     }
 
