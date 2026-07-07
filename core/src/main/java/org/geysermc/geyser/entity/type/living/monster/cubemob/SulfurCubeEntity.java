@@ -123,6 +123,11 @@ public class SulfurCubeEntity extends AbstractCubeEntity {
         }
     }
 
+    @Override
+    protected float getBabySize() {
+        return 1f;
+    }
+
     public void setMaxFuse(IntEntityMetadata entityMetadata) {
         this.fuseTickTime = entityMetadata.getPrimitiveValue();
         this.metadata.put(EntityDataTypes.FUSE_TIME, fuseTickTime);
