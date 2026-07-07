@@ -28,7 +28,7 @@ package org.geysermc.geyser.entity;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.factory.EntityFactory;
 import org.geysermc.geyser.entity.properties.GeyserEntityProperties;
 import org.geysermc.geyser.entity.properties.type.PropertyType;

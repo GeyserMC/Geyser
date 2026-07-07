@@ -57,10 +57,11 @@ public class GeyserMockContext {
         when(advancedConfig.scoreboardPacketThreshold()).thenReturn(1_000);
 
         var logger = context.storeObject(new EmptyGeyserLogger());
-        when(GeyserLogger.get()).thenReturn(logger);
 
-        try (var geyserImplMock = mockStatic(GeyserImpl.class)) {
+        try (var geyserImplMock = mockStatic(GeyserImpl.class);
+             var geyserLoggerMock = mockStatic(GeyserLogger.class)) {
             geyserImplMock.when(GeyserImpl::getInstance).thenReturn(geyserImpl);
+            geyserLoggerMock.when(GeyserLogger::get).thenReturn(logger);
 
             geyserContext.accept(context);
         }

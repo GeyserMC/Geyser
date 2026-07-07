@@ -36,6 +36,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
 import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.event.bedrock.SessionSkinApplyEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.skin.Cape;

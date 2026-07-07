@@ -64,6 +64,11 @@ public class EmptyGeyserLogger implements GeyserLogger {
     }
 
     @Override
+    public void debug(String message, Throwable t) {
+
+    }
+
+    @Override
     public void debug(String message, Object... arguments) {
 
     }

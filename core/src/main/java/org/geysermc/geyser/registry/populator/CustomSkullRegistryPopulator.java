@@ -32,6 +32,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomSkullsEvent;
 import org.geysermc.geyser.configuration.GeyserCustomSkullConfiguration;
 import org.geysermc.geyser.pack.SkullResourcePackManager;
