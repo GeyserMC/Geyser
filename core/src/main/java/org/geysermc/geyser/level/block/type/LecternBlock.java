@@ -34,7 +34,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.level.block.entity.BedrockChunkWantsBlockEntityTag;
 import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
-import org.geysermc.geyser.util.BlockEntityUtils;
 
 import java.util.Objects;
 
@@ -62,7 +61,6 @@ public class LecternBlock extends Block implements BedrockChunkWantsBlockEntityT
         }
 
         super.updateBlock(session, state, position);
-        BlockEntityUtils.updateBlockEntity(session, getBaseLecternTag(position, state.getValue(Properties.HAS_BOOK)), position);
     }
 
     public static NbtMap getBaseLecternTag(Vector3i position, boolean hasBook) {
