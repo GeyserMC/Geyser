@@ -1560,6 +1560,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             return;
         }
 
+        // When the player is using something else, they stop using the shield.
+        if (playerEntity.getFlag(EntityFlag.BLOCKING)) {
+            disableBlocking();
+        }
+
         // We don't want the crossbow to discharge instantly since the player is still holding down right click,
         // so let's add a little bit of grace period before they can actually use the crossbow. This should be a short enough time
         // so that they can actually discharge quickly but won't discharge if they don't want to.
