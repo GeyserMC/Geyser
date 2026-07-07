@@ -292,8 +292,16 @@ public class Item {
         Integer dyedItemColor = components.get(DataComponentTypes.DYED_COLOR);
         if (dyedItemColor != null) {
             builder.putInt("customColor", dyedItemColor);
+
+            int red = (dyedItemColor >> 16) & 0xFF;
+            int green = (dyedItemColor >> 8) & 0xFF;
+            int blue = dyedItemColor & 0xFF;
+
+        // Fallback textual color shown to Bedrock clients that only show "Dyed" otherwise
+            String hex = String.format("#%02X%02X%02X", red, green, blue);
+            builder.getOrCreateLore().add(ChatColor.RESET + ChatColor.GRAY + hex + " Dyed");
         }
-    }
+}
 
     /**
      * Override if the Bedrock equivalent of an item uses damage for extra data, and should not be tracked
