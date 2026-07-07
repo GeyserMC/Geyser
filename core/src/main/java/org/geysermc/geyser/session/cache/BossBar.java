@@ -83,8 +83,8 @@ public class BossBar {
         String message = MessageTranslator.convertMessage(title, session.locale()).replace("%", "%%%%");
 
         if (message.length() > 256) {
-            GeyserImpl.getInstance().getLogger().warning("Bossbar with a length higher than 256! Limiting length.");
-            message = message.substring(0, 256);
+            GeyserImpl.getInstance().getLogger().debug(session, "Bossbar with a length higher than 256! Limiting length.");
+            message = message.substring(0, 253) + "...";
         }
 
         return message;
