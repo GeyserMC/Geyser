@@ -46,6 +46,7 @@ public class BlockEntityUtils {
             BlockEntityType.ENCHANTING_TABLE, "EnchantTable",
             BlockEntityType.JIGSAW, "JigsawBlock",
             BlockEntityType.PISTON, "PistonArm",
+            BlockEntityType.POTENT_SULFUR, "PotentSulfurBlock",
             BlockEntityType.TRAPPED_CHEST, "Chest"
             // There are some legacy IDs sent but as far as I can tell they are not needed for things to work properly
     );
