@@ -51,10 +51,6 @@ public class GeyserDebugSessionMap {
     }
 
     public void setFor(GeyserSession session) {
-        session.setDebugOptions(debugOptionsHolder.getOrDefault(session.xuid(), EnumSet.noneOf(SessionDebugOption.class)));
-    }
-
-    public EnumSet<SessionDebugOption> getFor(long xuid) {
-        return debugOptionsHolder.getOrDefault(xuid, EnumSet.noneOf(SessionDebugOption.class));
+        session.setDebugOptions(debugOptionsHolder.getOrDefault(Long.parseLong(session.xuid()), EnumSet.noneOf(SessionDebugOption.class)));
     }
 }

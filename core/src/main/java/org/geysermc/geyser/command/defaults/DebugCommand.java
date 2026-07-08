@@ -51,7 +51,7 @@ public class DebugCommand extends GeyserCommand {
     private final GeyserImpl geyser;
 
     public DebugCommand(GeyserImpl geyser, String name, String description, String permission) {
-        super(name, description, permission, TriState.FALSE, false, false);
+        super(name, description, permission, TriState.NOT_SET, false, false);
         this.geyser = geyser;
     }
 
