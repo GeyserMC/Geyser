@@ -60,8 +60,8 @@ public class DebugCommand extends GeyserCommand {
         manager.command(baseBuilder(manager)
             .literal("player")
             .literal("options")
-            .required("xuid", longParser(0))
             .required("option", enumParser(SessionDebugOption.class))
+            .required("xuid", longParser(0))
             .handler(this::execute));
 
         manager.command(baseBuilder(manager)
@@ -92,6 +92,8 @@ public class DebugCommand extends GeyserCommand {
             } else {
                 context.sender().sendMessage("Remove debug option, the player may need to relog in order for the option to apply.");
             }
+
+            return;
         }
 
         if (newVal) {
@@ -102,6 +104,7 @@ public class DebugCommand extends GeyserCommand {
     }
 
     private void executeLogging(CommandContext<GeyserCommandSource> context) {
+        GeyserLogger.get().warning("e");
         boolean enabled = context.get("enabled");
         GeyserLogger.get().setDebug(enabled);
 

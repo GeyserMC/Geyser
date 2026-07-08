@@ -27,6 +27,7 @@ package org.geysermc.geyser.command;
 
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.GeyserLogger;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.key.CloudKey;
 import org.incendo.cloud.permission.Permission;
@@ -62,11 +63,13 @@ public class GeyserPermission implements PredicatePermission<GeyserCommandSource
     public @NonNull Result testPermission(@NonNull GeyserCommandSource source) {
         if (bedrockOnly) {
             if (source.connection() == null) {
+                GeyserLogger.get().warning("Command not executed because not bedrock!");
                 return new Result(Meta.NOT_BEDROCK);
             }
             // connection is present -> it is a player -> playerOnly is irrelevant
         } else if (playerOnly) {
             if (source.isConsole()) {
+                GeyserLogger.get().warning("Command not executed because not player!");
                 return new Result(Meta.NOT_PLAYER); // must be a player but is console
             }
         }
@@ -74,6 +77,7 @@ public class GeyserPermission implements PredicatePermission<GeyserCommandSource
         if (permission.isBlank() || manager.hasPermission(source, permission)) {
             return new Result(Meta.ALLOWED);
         }
+        GeyserLogger.get().warning("Command not executed because no permission!");
         return new Result(Meta.NO_PERMISSION);
     }
 
