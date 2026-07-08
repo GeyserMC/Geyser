@@ -35,6 +35,7 @@ import dev.kastle.netty.channel.nethernet.signaling.NetherNetXboxSignaling;
 import dev.kastle.webrtc.PeerConnectionFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.group.ChannelGroup;
@@ -244,30 +245,31 @@ public class NetherNetServer {
 
         NetherNetServerInitializer childHandler = new NetherNetServerInitializer(geyser, playerEventLoopGroup, playerChannels);
 
-        // Each channel owns and disposes its own factory pool in
-        // NetherNetServerChannel#doClose. Give each signaling endpoint a
-        // separate pool so closing both channels doesn't dispose one shared
-        // native handle twice (which throws on the second dispose).
+        // Each channel creates its factory pool only after its signaling
+        // endpoint bound successfully (the supplier is invoked from doBind),
+        // and owns and disposes that pool in NetherNetServerChannel#doClose.
+        // A failed bind therefore never creates native engine state; there
+        // is nothing to tear down on that path, and no teardown to race
+        // engine initialization. Each channel invokes the supplier once, so
+        // every signaling endpoint still gets its own pool and closing both
+        // channels never disposes one shared native handle twice.
         //
         // One PeerConnectionFactory equals one native network thread carrying
         // the DTLS and SCTP work of every peer connection assigned to it, so
         // the pool size caps how many threads the data plane can spread
         // players across.
-        List<PeerConnectionFactory> legacyFactories = createFactoryPool();
-        List<PeerConnectionFactory> rpcFactories = createFactoryPool();
-
         try {
             ServerBootstrap legacyBootstrap = new ServerBootstrap();
             legacyBootstrap.group(bossGroup, workerGroup)
-                    .channelFactory(NetherNetChannelFactory.server(legacyFactories, legacySignaling))
+                    .channelFactory(NetherNetChannelFactory.server(NetherNetServer::createFactoryPool, legacySignaling))
                     .childHandler(childHandler);
-            this.legacyChannel = legacyBootstrap.bind(new InetSocketAddress(0)).sync().channel();
+            this.legacyChannel = bindChannel(legacyBootstrap, new InetSocketAddress(0));
 
             ServerBootstrap rpcBootstrap = new ServerBootstrap();
             rpcBootstrap.group(bossGroup, workerGroup)
-                    .channelFactory(NetherNetChannelFactory.server(rpcFactories, rpcSignaling))
+                    .channelFactory(NetherNetChannelFactory.server(NetherNetServer::createFactoryPool, rpcSignaling))
                     .childHandler(childHandler);
-            this.rpcChannel = rpcBootstrap.bind(new InetSocketAddress(0)).sync().channel();
+            this.rpcChannel = bindChannel(rpcBootstrap, new InetSocketAddress(0));
 
             // HTTP signaling: the direct connection front end, on TCP under
             // the same port RakNet serves on UDP. Purely additive and always
@@ -285,24 +287,37 @@ public class NetherNetServer {
             logger.error(LOG_PREFIX + "Failed to bind: " + e.getMessage());
             this.legacySignaling = null;
             this.rpcSignaling = null;
-            // A created channel disposes its own factory pool on close; dispose
-            // any pool whose channel was never created.
+            // A successfully bound channel disposes its own factory pool on
+            // close; a channel whose bind failed never created one.
             if (legacyChannel != null) {
                 legacyChannel.close();
                 legacyChannel = null;
-            } else {
-                disposeFactories(legacyFactories);
             }
             if (rpcChannel != null) {
                 rpcChannel.close();
                 rpcChannel = null;
-            } else {
-                disposeFactories(rpcFactories);
             }
             if (bossGroup != null) { bossGroup.shutdownGracefully(); bossGroup = null; }
             if (workerGroup != null) { workerGroup.shutdownGracefully(); workerGroup = null; }
             return false;
         }
+    }
+
+    /**
+     * Binds a bootstrap and returns the bound channel, closing the netty
+     * channel object when the bind fails: netty does not close a channel
+     * whose registration succeeded but whose bind did not, which would
+     * otherwise leak it (idle but registered) on the event loop.
+     */
+    private static Channel bindChannel(ServerBootstrap bootstrap, InetSocketAddress address) throws Exception {
+        ChannelFuture future = bootstrap.bind(address);
+        try {
+            future.sync();
+        } catch (Exception e) {
+            future.channel().close();
+            throw e;
+        }
+        return future.channel();
     }
 
     /**
@@ -340,29 +355,27 @@ public class NetherNetServer {
             tlsSupplier = certificateManager::currentContext;
             tlsMode = "automatic certificate management";
         }
-        List<PeerConnectionFactory> httpFactories = createFactoryPool();
         this.httpSignaling = new NetherNetHttpSignaling(tlsSupplier, workerGroup);
         try {
             ServerBootstrap httpBootstrap = new ServerBootstrap();
             httpBootstrap.group(bossGroup, workerGroup)
-                    .channelFactory(NetherNetChannelFactory.server(httpFactories, httpSignaling))
+                    .channelFactory(NetherNetChannelFactory.server(NetherNetServer::createFactoryPool, httpSignaling))
                     .option(NetherChannelOption.NETHER_SERVER_ANSWER_DECORATOR, identityDecorator)
                     .childHandler(childHandler);
             InetSocketAddress bindAddress = new InetSocketAddress(
                     geyser.config().bedrock().address(), geyser.config().bedrock().port());
-            this.httpChannel = httpBootstrap.bind(bindAddress).sync().channel();
+            this.httpChannel = bindChannel(httpBootstrap, bindAddress);
             logger.info(LOG_PREFIX + "HTTP signaling on TCP port " + bindAddress.getPort() + " (" + tlsMode + ")");
             if (certificateManager != null) {
                 certificateManager.start();
             }
         } catch (Exception e) {
+            // The factory pool is created only after a successful bind, so a
+            // failed bind leaves no native state behind.
             this.httpSignaling = null;
             if (certificateManager != null) {
                 certificateManager.close();
                 certificateManager = null;
-            }
-            if (httpChannel == null) {
-                disposeFactories(httpFactories);
             }
             throw e;
         }
@@ -437,12 +450,6 @@ public class NetherNetServer {
             pool.add(new PeerConnectionFactory());
         }
         return pool;
-    }
-
-    private static void disposeFactories(List<PeerConnectionFactory> factories) {
-        for (PeerConnectionFactory factory : factories) {
-            try { factory.dispose(); } catch (Exception ignored) {}
-        }
     }
 
     private void closeChannels() {
