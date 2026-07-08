@@ -31,6 +31,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticl
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.DustParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ItemParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.Particle;
+import org.geysermc.mcprotocollib.protocol.data.game.level.particle.TrailParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.VibrationParticleData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsource.BlockPositionSource;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.positionsource.EntityPositionSource;
@@ -199,6 +200,27 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                     particlePacket.setDimensionId(dimensionId);
                     particlePacket.setPosition(position);
                     particlePacket.setMolangVariablesJson(Optional.of("[{ \"name\": \"variable.color\", \"value\": { \"type\": \"member_array\", \"value\": [{\"name\": \".r\", \"value\": { \"type\": \"float\", \"value\": " + red + "}},{\"name\": \".g\", \"value\": {\"type\": \"float\", \"value\": " + green + "}},{\"name\": \".b\", \"value\": {\"type\": \"float\", \"value\": " + blue + "}}]}}]"));
+                    return particlePacket;
+                };
+            }
+            case TRAIL -> {
+                TrailParticleData data = (TrailParticleData) particle.getData();
+                int dimensionId = DimensionUtils.javaToBedrock(session);
+                Vector3f target = data.target().toFloat();
+                int rgbData = data.color();
+                float red = ((rgbData >> 16) & 0xFF) / 255f;
+                float green = ((rgbData >> 8) & 0xFF) / 255f;
+                float blue = (rgbData & 0xFF) / 255f;
+                float lifetime = Math.max(data.duration(), 1) / 20f;
+                return (position) -> {
+                    Vector3f direction = target.sub(position);
+                    float distance = direction.length();
+                    Vector3f normalized = distance > 0 ? direction.div(distance) : Vector3f.ZERO;
+                    SpawnParticleEffectPacket particlePacket = new SpawnParticleEffectPacket();
+                    particlePacket.setIdentifier("minecraft:creaking_heart_trail");
+                    particlePacket.setDimensionId(dimensionId);
+                    particlePacket.setPosition(position);
+                    particlePacket.setMolangVariablesJson(Optional.of("[{ \"name\": \"variable.direction\", \"value\": { \"type\": \"member_array\", \"value\": [{\"name\": \".x\", \"value\": { \"type\": \"float\", \"value\": " + normalized.getX() + "}},{\"name\": \".y\", \"value\": {\"type\": \"float\", \"value\": " + normalized.getY() + "}},{\"name\": \".z\", \"value\": {\"type\": \"float\", \"value\": " + normalized.getZ() + "}}]}},{ \"name\": \"variable.color\", \"value\": { \"type\": \"member_array\", \"value\": [{\"name\": \".r\", \"value\": { \"type\": \"float\", \"value\": " + red + "}},{\"name\": \".g\", \"value\": {\"type\": \"float\", \"value\": " + green + "}},{\"name\": \".b\", \"value\": {\"type\": \"float\", \"value\": " + blue + "}}]}},{ \"name\": \"variable.max_lifetime\", \"value\": { \"type\": \"float\", \"value\": " + lifetime + "}},{ \"name\": \"variable.particle_initial_speed\", \"value\": { \"type\": \"float\", \"value\": " + (distance / lifetime) + "}}]"));
                     return particlePacket;
                 };
             }
