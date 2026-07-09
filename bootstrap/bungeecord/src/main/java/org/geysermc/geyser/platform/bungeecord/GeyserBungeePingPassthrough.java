@@ -73,8 +73,6 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
             return null;
         }
 
-        System.out.println(ComponentSerializer.toString(new BaseComponent[]{ event.getResponse().getDescriptionComponent() }));
-
         ServerPing response = event.getResponse();
         return new GeyserPingInfo(
                 ComponentSerializer.toString(new BaseComponent[]{ response.getDescriptionComponent() }),
