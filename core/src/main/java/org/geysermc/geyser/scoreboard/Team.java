@@ -251,7 +251,7 @@ public final class Team {
         }
         boolean containsSelf = names.contains(playerName());
 
-        for (Entity entity : session().getEntityCache().getEntities().values()) {
+        for (Entity entity : session().getEntityCache().getEntitiesUnsafe().values()) {
             if (names.contains(entity.teamIdentifier())) {
                 managedEntities.add(entity);
                 if (!containsSelf) {
@@ -296,7 +296,7 @@ public final class Team {
     }
 
     private void refreshAllEntities() {
-        for (Entity entity : session().getEntityCache().getEntities().values()) {
+        for (Entity entity : session().getEntityCache().getEntitiesUnsafe().values()) {
             entity.updateNametag(scoreboard.getTeamFor(entity.teamIdentifier()));
             entity.updateBedrockMetadata();
         }

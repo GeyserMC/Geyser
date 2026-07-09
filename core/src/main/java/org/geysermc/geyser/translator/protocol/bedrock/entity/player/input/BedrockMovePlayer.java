@@ -135,7 +135,7 @@ final class BedrockMovePlayer {
             // Extend down by y velocity subtract by 2 so that we are a "little" ahead and can send no clip in time before player hit the entity.
             boundingBox.extend(0, packet.getDelta().getY() - 2, 0);
 
-            for (Entity other : session.getEntityCache().getEntities().values()) {
+            for (Entity other : session.getEntityCache().getEntitiesUnsafe().values()) {
                 if (!other.getFlag(EntityFlag.COLLIDABLE)) {
                     continue;
                 }

@@ -98,11 +98,12 @@ public class EntityCache {
 
     /**
      * Returns the raw, mutable backing entity map. This bypasses the read/write lock that guards the map, so it
-     * <b>must only be accessed on the session's event loop thread</b>, where it is sequential with all mutations.
+     * <b>must only be accessed on the session's event loop thread</b>, where it is sequential with all mutations. You should never
+     * mutate it directly, use {@link #spawnEntity(Entity)} or {@link #removeEntity(Entity)} and related methods instead.
      * Off-thread callers - mainly API users - must instead use {@link #getEntityByGeyserId(long)}, {@link #getEntityByJavaId(int)} or
      * {@link #getEntityByUuid(UUID)}.
      */
-    public Long2ObjectMap<Entity> getEntities() {
+    public Long2ObjectMap<Entity> getEntitiesUnsafe() {
         return entities;
     }
 
