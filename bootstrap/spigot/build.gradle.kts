@@ -26,8 +26,6 @@ dependencies {
     implementation(libs.cloud.paper)
     implementation(libs.commodore)
 
-    implementation(libs.adventure.text.serializer.bungeecord)
-
     compileOnly(libs.folia.api)
 
     compileOnlyApi(libs.viaversion)

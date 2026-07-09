@@ -17,7 +17,8 @@ dependencies {
 }
 
 platformRelocate("it.unimi.dsi.fastutil")
-platformRelocate("net.kyori.adventure.text.serializer.gson.legacyimpl")
+// Relocate net.kyori, FOR NOW - TODO revert when adventure 5.2.0 update is in Velocity
+platformRelocate("net.kyori")
 platformRelocate("org.yaml")
 platformRelocate("org.spongepowered")
 platformRelocate("org.bstats")
@@ -40,7 +41,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         exclude(dependency("org.slf4j:.*"))
         exclude(dependency("org.ow2.asm:.*"))
         // Exclude all Kyori dependencies
-        exclude(dependency("net.kyori:.*:.*"))
+        //exclude(dependency("net.kyori:.*:.*"))
     }
 }
 
