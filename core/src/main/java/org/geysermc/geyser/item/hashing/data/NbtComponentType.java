@@ -41,7 +41,7 @@ public enum NbtComponentType implements EnumMapDispatchHasher<NbtComponentType, 
     STORAGE(StorageNBTComponent.class, builder -> builder
         .accept("storage", MinecraftHasher.KEY, StorageNBTComponent::storage));
 
-    public static final MapBuilder<NBTComponent<?>> NBT_COMPONENT_SOURCE_MAP_BUILDER = EnumMapDispatchHasher.dispatch("source", NbtComponentType::values);
+    public static final MapBuilder<NBTComponent<?>> NBT_COMPONENT_SOURCE_MAP_BUILDER = EnumMapDispatchHasher.dispatchFuzzy(NbtComponentType::values);
 
     private final Class<? extends NBTComponent<?>> clazz;
     private final MapBuilder<? extends NBTComponent<?>> mapBuilder;
