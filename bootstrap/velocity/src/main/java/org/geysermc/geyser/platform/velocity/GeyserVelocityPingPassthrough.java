@@ -34,7 +34,6 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.ServerPing;
 import com.velocitypowered.api.proxy.server.ServerPing.Version;
 import lombok.AllArgsConstructor;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
@@ -50,18 +49,21 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
 
     @Override
     public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
+        // FIXME temporary
+        ServerPing.Builder pingBuilder = ServerPing.builder()
+                .onlinePlayers(server.getPlayerCount())
+                .maximumPlayers(server.getConfiguration().getShowMaxPlayers())
+                .version(new Version(GameProtocol.getJavaProtocolVersion(), GameProtocol.getJavaMinecraftVersion()));
+        TemporaryAdventureConverter.description(pingBuilder, TemporaryAdventureConverter.motd(server.getConfiguration()));
+
         ProxyPingEvent event;
         try {
-            event = server.getEventManager().fire(new ProxyPingEvent(new GeyserInboundConnection(inetSocketAddress), ServerPing.builder()
-                    .description(server.getConfiguration().getMotd()).onlinePlayers(server.getPlayerCount())
-                    .maximumPlayers(server.getConfiguration().getShowMaxPlayers())
-                    .version(new Version(GameProtocol.getJavaProtocolVersion(), GameProtocol.getJavaMinecraftVersion())) 
-                    .build())).get();
+            event = server.getEventManager().fire(new ProxyPingEvent(new GeyserInboundConnection(inetSocketAddress), pingBuilder.build())).get();
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
         return new GeyserPingInfo(
-                GsonComponentSerializer.gson().serialize(event.getPing().getDescriptionComponent()),
+                TemporaryAdventureConverter.toJson(TemporaryAdventureConverter.getDescriptionComponent(event.getPing())),
                 event.getPing().getPlayers().map(ServerPing.Players::getMax).orElse(1),
                 event.getPing().getPlayers().map(ServerPing.Players::getOnline).orElse(0)
         );
