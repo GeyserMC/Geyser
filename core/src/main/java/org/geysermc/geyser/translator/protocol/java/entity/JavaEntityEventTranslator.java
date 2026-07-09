@@ -78,23 +78,23 @@ public class JavaEntityEventTranslator extends PacketTranslator<ClientboundEntit
             case PLAYER_DISABLE_REDUCED_DEBUG:
                 session.setReducedDebugInfo(false);
                 return;
-            case PLAYER_OP_PERMISSION_LEVEL_0:
+            case PLAYER_SET_NO_PERMISSIONS:
                 session.setOpPermissionLevel(0);
                 session.sendAdventureSettings();
                 return;
-            case PLAYER_OP_PERMISSION_LEVEL_1:
+            case PLAYER_SET_MODERATOR:
                 session.setOpPermissionLevel(1);
                 session.sendAdventureSettings();
                 return;
-            case PLAYER_OP_PERMISSION_LEVEL_2:
+            case PLAYER_SET_GAMEMASTER:
                 session.setOpPermissionLevel(2);
                 session.sendAdventureSettings();
                 return;
-            case PLAYER_OP_PERMISSION_LEVEL_3:
+            case PLAYER_SET_ADMIN:
                 session.setOpPermissionLevel(3);
                 session.sendAdventureSettings();
                 return;
-            case PLAYER_OP_PERMISSION_LEVEL_4:
+            case PLAYER_SET_OWNER:
                 session.setOpPermissionLevel(4);
                 session.sendAdventureSettings();
                 return;

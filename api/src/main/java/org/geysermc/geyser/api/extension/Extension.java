@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.extension;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.api.GeyserApiBase;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.event.EventRegistrar;
@@ -62,7 +61,6 @@ public interface Extension extends EventRegistrar {
      *
      * @return the extension's data folder
      */
-    @NonNull
     default Path dataFolder() {
         return this.extensionLoader().dataFolder(this);
     }
@@ -72,7 +70,6 @@ public interface Extension extends EventRegistrar {
      *
      * @return the extension event bus
      */
-    @NonNull
     default ExtensionEventBus eventBus() {
         return this.extensionLoader().eventBus(this);
     }
@@ -82,7 +79,6 @@ public interface Extension extends EventRegistrar {
      *
      * @return the extension manager
      */
-    @NonNull
     default ExtensionManager extensionManager() {
         return this.geyserApi().extensionManager();
     }
@@ -92,7 +88,6 @@ public interface Extension extends EventRegistrar {
      *
      * @return the extension's name
      */
-    @NonNull
     default String name() {
         return this.description().name();
     }
@@ -102,7 +97,6 @@ public interface Extension extends EventRegistrar {
      *
      * @return the extension's description
      */
-    @NonNull
     default ExtensionDescription description() {
         return this.extensionLoader().description(this);
     }
@@ -111,7 +105,6 @@ public interface Extension extends EventRegistrar {
      * @return the root command that all of this extension's commands will stem from.
      *         By default, this is the extension's id.
      */
-    @NonNull
     default String rootCommand() {
         return this.description().id();
     }
@@ -121,7 +114,6 @@ public interface Extension extends EventRegistrar {
      *
      * @return the extension's logger
      */
-    @NonNull
     default ExtensionLogger logger() {
         return this.extensionLoader().logger(this);
     }
@@ -131,7 +123,6 @@ public interface Extension extends EventRegistrar {
      *
      * @return the extension loader
      */
-    @NonNull
     default ExtensionLoader extensionLoader() {
         return Objects.requireNonNull(this.extensionManager().extensionLoader());
     }
@@ -141,7 +132,6 @@ public interface Extension extends EventRegistrar {
      *
      * @return the geyser api instance
      */
-    @NonNull
     default GeyserApi geyserApi() {
         return GeyserApi.api();
     }

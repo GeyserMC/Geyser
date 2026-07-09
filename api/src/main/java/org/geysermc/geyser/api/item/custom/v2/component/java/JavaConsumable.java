@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,6 @@
 package org.geysermc.geyser.api.item.custom.v2.component.java;
 
 import org.checkerframework.checker.index.qual.Positive;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.common.returnsreceiver.qual.This;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.util.GenericBuilder;
@@ -54,7 +53,7 @@ public interface JavaConsumable {
      * @return the animation to play
      * @since 2.9.3
      */
-    @NonNull Animation animation();
+    Animation animation();
 
     /**
      * Creates a builder for the consumable component.
@@ -62,7 +61,7 @@ public interface JavaConsumable {
      * @return a new builder
      * @since 2.9.3
      */
-    static @NonNull Builder builder() {
+    static Builder builder() {
         return GeyserApi.api().provider(JavaConsumable.Builder.class);
     }
 
@@ -74,7 +73,7 @@ public interface JavaConsumable {
      * @return the consumable component
      * @since 2.9.3
      */
-    static @NonNull JavaConsumable of(float consumeSeconds, Animation animation) {
+    static JavaConsumable of(float consumeSeconds, Animation animation) {
         return JavaConsumable.builder().consumeSeconds(consumeSeconds).animation(animation).build();
     }
 
@@ -129,7 +128,7 @@ public interface JavaConsumable {
          * Brush in 1st and 3rd person. Will look weird when not displayed handheld.
          * @since 2.9.3
          */
-        BRUSH;
+        BRUSH
     }
 
     /**
@@ -160,7 +159,7 @@ public interface JavaConsumable {
          * @since 2.9.3
          */
         @This
-        Builder animation(@NonNull Animation animation);
+        Builder animation(Animation animation);
 
         /**
          * Creates the consumable component.

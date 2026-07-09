@@ -42,8 +42,11 @@ import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.ParrotEntity;
+import org.geysermc.geyser.session.cache.waypoint.GeyserWaypoint;
 import org.geysermc.geyser.util.PlayerListUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
+import org.geysermc.mcprotocollib.auth.texture.Texture;
+import org.geysermc.mcprotocollib.auth.texture.TextureType;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
@@ -82,7 +85,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         }
     }
 
-    public PlayerEntity(EntitySpawnContext context, String username, @Nullable Map<GameProfile.TextureType, GameProfile.Texture> textureMap) {
+    public PlayerEntity(EntitySpawnContext context, String username, @Nullable Map<TextureType, Texture> textureMap) {
         super(context, username);
         this.customNameVisible = true;
         this.textures = textureMap;
@@ -94,7 +97,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
 
         // Since 1.20.60, the nametag does not show properly if this is not set :/
         // The nametag does disappear properly when the player is invisible though.
-        dirtyMetadata.put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, (byte) 1);
+        setNametagAlwaysShow(true);
     }
 
     @Override
@@ -110,9 +113,11 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
             packet.setAction(PlayerListPacket.Action.REMOVE);
             session.sendUpstreamPacket(packet);
 
-            // To ensure waypoints still remain, if any were added while the
-            // player had a valid player list entry
-            session.getWaypointCache().unlistPlayer(this);
+            if (!GeyserWaypoint.uses26_10WaypointPacket(session)) {
+                // To ensure waypoints still remain, if any were added while the
+                // player had a valid player list entry
+                session.getWaypointCache().removeEntity(this);
+            }
         }
 
         // Since we re-use player entities: Clear flags, held item, etc

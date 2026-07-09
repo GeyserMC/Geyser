@@ -72,7 +72,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
         SessionPlayerEntity entity = session.getPlayerEntity();
 
         session.setClientTicks(packet.getTick());
-        session.setInClientPredictedVehicle(packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE) && entity.getVehicle() != null && GameProtocol.is1_26_10orHigher(session.protocolVersion()));
+        session.setInClientPredictedVehicle(packet.getInputData().contains(PlayerAuthInputData.IN_CLIENT_PREDICTED_IN_VEHICLE) && entity.getVehicle() != null && GameProtocol.is26_10orHigher(session.protocolVersion()));
 
         boolean wasJumping = session.getInputCache().wasJumping();
         session.getInputCache().processInputs(entity, packet);
@@ -308,7 +308,7 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
 
         if (sendMovement) {
             // We only need to determine onGround status this way for client predicted vehicles.
-            // For other vehicle, Geyser already handle it in VehicleComponent or the Java server handle it.
+            // For other vehicles: see the VehicleComponent class, otherwise the Java server handles it
             Vector3f position = vehicle.position();
             final BoundingBox box = new BoundingBox(
                 position.up(vehicle.getBoundingBoxHeight() / 2f).toDouble(),

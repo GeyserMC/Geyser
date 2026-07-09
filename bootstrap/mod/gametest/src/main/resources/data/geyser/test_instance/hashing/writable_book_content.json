@@ -1,0 +1,31 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:writable_book_content",
+  "value": [
+    {},
+    {
+      "pages": []
+    },
+    {
+      "pages": [
+        "Hello everyone!",
+        "It is time to sit down for a story.",
+        "Once upon a time, I was sat down with my cat, Snapshot",
+        "Laying on the couch",
+        "Story is over!"
+      ]
+    },
+    {
+      "pages": [
+        {
+          "raw": "This is some very bad language",
+          "filtered": "This is **** language"
+        },
+        {
+          "raw": "feature/* branches > feat/* branches",
+          "filtered": "feat/* branches ftw"
+        }
+      ]
+    }
+  ]
+}

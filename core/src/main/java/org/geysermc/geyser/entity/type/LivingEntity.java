@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity.type;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import net.kyori.adventure.text.Component;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3f;
@@ -68,6 +69,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatE
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ObjectEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 import org.geysermc.mcprotocollib.protocol.data.game.level.particle.ColorParticleData;
@@ -205,8 +207,24 @@ public class LivingEntity extends Entity implements Tickable {
 
     @Override
     public void updateNametag(@Nullable Team team) {
+        // Java hides the name tag when a living entity has any passengers
         // if name not visible, don't mark it as visible
-        updateNametag(team, team == null || team.isVisibleFor(session.getPlayerEntity().getUsername()));
+        updateNametag(team, passengers.isEmpty() && (team == null || team.isVisibleFor(session.getPlayerEntity().getUsername())));
+    }
+
+    @Override
+    public void setPassengers(List<Entity> passengers) {
+        super.setPassengers(passengers);
+        updateNametag(session.getWorldCache().getScoreboard().getTeamFor(teamIdentifier()));
+    }
+
+    @Override
+    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        // Update custom name, but reset nametag to be empty when there are passengers
+        super.setCustomName(entityMetadata);
+        if (!passengers.isEmpty()) {
+            setNametag("", false);
+        }
     }
 
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
@@ -216,8 +234,15 @@ public class LivingEntity extends Entity implements Tickable {
         boolean isUsingOffhand = (xd & 0x02) == 0x02;
 
         boolean isUsingShield = hasShield(isUsingOffhand);
+        boolean isUsingEnderEye = hasEnderEye(isUsingOffhand);
+        boolean isChargedProjectilesItem = hasChargedProjectiles();
 
-        setFlag(EntityFlag.USING_ITEM, isUsingItem && !isUsingShield);
+        // We can't check for shield since the player is sneaking and not actually using it on their side.
+        // For ender eye, it's not consider a consumable item on bedrock, so the player never sends release item use so USING_ITEM flags are always true
+        // until you switch item, therefore we ignore it. Resolve https://github.com/GeyserMC/Geyser/issues/6316
+        // For charged projectiles items (like crossbows), Java is okay with the player continuing using a charged crossbow, but Bedrock is not.
+
+        setFlag(EntityFlag.USING_ITEM, isUsingItem && !isUsingShield && !isUsingEnderEye && !isChargedProjectilesItem);
         // Override the blocking
         setFlag(EntityFlag.BLOCKING, isUsingItem && isUsingShield);
 
@@ -312,12 +337,25 @@ public class LivingEntity extends Entity implements Tickable {
         }
     }
 
+    protected boolean hasEnderEye(boolean offhand) {
+        if (offhand) {
+            return getOffHandItem().is(Items.ENDER_EYE);
+        } else {
+            return getMainHandItem().is(Items.ENDER_EYE);
+        }
+    }
+
     protected boolean hasShield(boolean offhand) {
         if (offhand) {
             return getOffHandItem().is(Items.SHIELD);
         } else {
             return getMainHandItem().is(Items.SHIELD);
         }
+    }
+
+    protected boolean hasChargedProjectiles() {
+        List<ItemStack> chargedProjectiles = getMainHandItem().getComponent(DataComponentTypes.CHARGED_PROJECTILES);
+        return chargedProjectiles != null && !chargedProjectiles.isEmpty();
     }
 
     @Override

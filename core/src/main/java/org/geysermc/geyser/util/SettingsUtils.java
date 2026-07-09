@@ -25,22 +25,13 @@
 
 package org.geysermc.geyser.util;
 
-import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.packet.SetDifficultyPacket;
 import org.geysermc.cumulus.component.DropdownComponent;
 import org.geysermc.cumulus.form.CustomForm;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.Permissions;
-import org.geysermc.geyser.level.GameRule;
-import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.mcprotocollib.protocol.data.game.setting.Difficulty;
-import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.ServerboundSetGameRulePacket;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class SettingsUtils {
     /**
@@ -87,22 +78,6 @@ public class SettingsUtils {
             }
         }
 
-        boolean showGamerules = session.getOpPermissionLevel() >= 2 || session.hasPermission(Permissions.SETTINGS_GAMERULES);
-        if (showGamerules) {
-            builder.label("geyser.settings.title.game_rules")
-                    .translator(MinecraftLocale::getLocaleString); // we need translate gamerules next
-
-            WorldManager worldManager = GeyserImpl.getInstance().getWorldManager();
-            for (GameRule gamerule : GameRule.VALUES) {
-                // Add the relevant form item based on the gamerule type
-                if (Boolean.class.equals(gamerule.getType())) {
-                    builder.toggle(gamerule.getTranslation(), worldManager.getGameRuleBool(session, gamerule));
-                } else if (Integer.class.equals(gamerule.getType())) {
-                    builder.input(gamerule.getTranslation(), "", String.valueOf(worldManager.getGameRuleInt(session, gamerule)));
-                }
-            }
-        }
-
         builder.validResultHandler(response -> {
             applyDifficultyFix(session);
             if (showClientSettings) {
@@ -124,29 +99,6 @@ public class SettingsUtils {
                 if (customSkulls) {
                     session.getPreferencesCache().setPrefersCustomSkulls(response.next());
                 }
-            }
-
-            if (showGamerules) {
-                // TODO GameRule fetching via ClientboundGameRuleValuesPacket
-                //Map<Key, String> changedGamerules = new HashMap<>();
-                for (GameRule gamerule : GameRule.VALUES) {
-                    if (Boolean.class.equals(gamerule.getType())) {
-                        boolean value = response.next();
-                        if (value != session.getGeyser().getWorldManager().getGameRuleBool(session, gamerule)) {
-                            //changedGamerules.put(null, String.valueOf(value));
-                            session.getGeyser().getWorldManager().setGameRule(session, gamerule.getJavaID(), value);
-                        }
-                    } else if (Integer.class.equals(gamerule.getType())) {
-                        int value = Integer.parseInt(response.next());
-                        if (value != session.getGeyser().getWorldManager().getGameRuleInt(session, gamerule)) {
-                            //changedGamerules.put(null, String.valueOf(value));
-                            session.getGeyser().getWorldManager().setGameRule(session, gamerule.getJavaID(), value);
-                        }
-                    }
-                }
-                //if (!changedGamerules.isEmpty()) {
-                //    session.sendDownstreamGamePacket(new ServerboundSetGameRulePacket(changedGamerules));
-                //}
             }
         });
 

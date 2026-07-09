@@ -66,6 +66,7 @@ import org.geysermc.geyser.level.block.type.CauldronBlock;
 import org.geysermc.geyser.level.block.type.DoorBlock;
 import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.level.physics.Direction;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.FakeHeadProvider;
@@ -93,7 +94,6 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.Serv
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
 import java.util.List;
-import java.util.Vector;
 
 /**
  * BedrockInventoryTransactionTranslator handles most interactions between the client and the world,
@@ -105,7 +105,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     @Override
     public void translate(GeyserSession session, InventoryTransactionPacket packet) {
         if (packet.getTransactionType() == InventoryTransactionType.NORMAL && packet.getActions().size() == 3) {
-            InventoryActionData containerAction = packet.getActions().get(0);
+            InventoryActionData containerAction = packet.getActions().getFirst();
             if (containerAction.getSource().getType() == InventorySource.Type.CONTAINER &&
                     session.getPlayerInventory().getHeldItemSlot() == containerAction.getSlot() &&
                     containerAction.getFromItem().getDefinition() == session.getItemMappings().getStoredItems().writableBook().getBedrockDefinition()) {
@@ -116,11 +116,19 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         // Send book updates before opening inventories
         session.getBookEditCache().checkForSend();
 
+        // For some reason bedrock decides to send InventoryTransactionPacket before BedrockMobEquipmentTranslator
+        // which means that if the player quickly switch to an item then drop it/use it within a single tick,
+        // we will receive the use item first, causing Geyser to send use item/drop item for the wrong item.
+        // which is pretty important for thing like attribute swapping, so we have to check if the slot has changed.
+        if (packet.getHotbarSlot() != session.getPlayerInventory().getHeldItemSlot()) {
+            session.switchHeldSlot(packet.getHotbarSlot());
+        }
+
         switch (packet.getTransactionType()) {
             case NORMAL:
                 if (packet.getActions().size() == 2) {
-                    InventoryActionData worldAction = packet.getActions().get(0);
-                    InventoryActionData containerAction = packet.getActions().get(1);
+                    InventoryActionData worldAction = GameProtocol.is26_30orHigher(session.protocolVersion()) ? packet.getActions().get(1) : packet.getActions().get(0);
+                    InventoryActionData containerAction = GameProtocol.is26_30orHigher(session.protocolVersion()) ? packet.getActions().get(0) : packet.getActions().get(1);
                     if (worldAction.getSource().getType() == InventorySource.Type.WORLD_INTERACTION
                             && worldAction.getSource().getFlag() == InventorySource.Flag.DROP_ITEM) {
                         boolean dropAll = worldAction.getToItem().getCount() > 1;
@@ -194,9 +202,12 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         // Check to make sure the client isn't spamming interaction
                         // Based on Nukkit 1.0, with changes to ensure holding down still works
                         boolean hasAlreadyClicked = System.currentTimeMillis() - session.getLastInteractionTime() < 110.0 &&
-                                packetBlockPosition.distanceSquared(session.getLastInteractionBlockPosition()) < 0.00001;
+                                packetBlockPosition.distanceSquared(session.getLastInteractionBlockPosition()) < 0.00001 &&
+                                packet.getBlockFace() == session.getLastInteractionBlockFace();
                         session.setLastInteractionBlockPosition(packetBlockPosition);
                         session.setLastInteractionPlayerPosition(session.getPlayerEntity().position());
+                        session.setLastInteractionBlockFace(packet.getBlockFace());
+
                         if (hasAlreadyClicked) {
                             session.getPlayerInventoryHolder().updateSlot(session.getPlayerInventory().getOffsetForHotbar(packet.getHotbarSlot()));
                             break;
@@ -237,9 +248,13 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                             return;
                         }
 
-                        double clickPositionFullX = (double) packetBlockPosition.getX() + (double) packet.getClickPosition().getX();
-                        double clickPositionFullY = (double) packetBlockPosition.getY() + (double) packet.getClickPosition().getY();
-                        double clickPositionFullZ = (double) packetBlockPosition.getZ() + (double) packet.getClickPosition().getZ();
+                        float cursorX = fixCursorValue(packet.getClickPosition().getX());
+                        float cursorY = fixCursorValue(packet.getClickPosition().getY());
+                        float cursorZ = fixCursorValue(packet.getClickPosition().getZ());
+
+                        double clickPositionFullX = (double) packetBlockPosition.getX() + (double) cursorX;
+                        double clickPositionFullY = (double) packetBlockPosition.getY() + (double) cursorY;
+                        double clickPositionFullZ = (double) packetBlockPosition.getZ() + (double) cursorZ;
 
                         Vector3f blockCenter = Vector3f.from(packetBlockPosition.getX() + 0.5f, packetBlockPosition.getY() + 0.5f, packetBlockPosition.getZ() + 0.5f);
 
@@ -282,7 +297,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 packet.getBlockPosition(),
                                 Direction.getUntrusted(packet, InventoryTransactionPacket::getBlockFace).mcpl(),
                                 Hand.MAIN_HAND,
-                                packet.getClickPosition().getX(), packet.getClickPosition().getY(), packet.getClickPosition().getZ(),
+                                cursorX, cursorY, cursorZ,
                                 false,
                                 false,
                                 sequence);
@@ -419,8 +434,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
                         List<LegacySetItemSlotData> legacySlots = packet.getLegacySlots();
                         if (packet.getActions().size() == 1 && !legacySlots.isEmpty()) {
-                            InventoryActionData actionData = packet.getActions().get(0);
-                            LegacySetItemSlotData slotData = legacySlots.get(0);
+                            InventoryActionData actionData = packet.getActions().getFirst();
+                            LegacySetItemSlotData slotData = legacySlots.getFirst();
                             if (slotData.getContainerId() == 6 && !actionData.getFromItem().isNull()) {
                                 // The player is trying to swap out an armor piece that already has an item in it
                                 // 1.19.4 brings this natively, but we need this specific case for custom head rendering to work
@@ -515,28 +530,20 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 hand, Vector3d.from(clickPosition.getX(), clickPosition.getY(), clickPosition.getZ()),
                 session.isSneaking()));
 
-            InteractionResult result;
-            if (isSpectator) {
-                result = InteractionResult.PASS;
-            } else {
-                result = entity.interactAt(hand);
-            }
-
-            if (!result.consumesAction()) {
-                session.sendDownstreamGamePacket(new ServerboundInteractPacket(entity.getEntityId(),
-                    hand, Vector3d.ZERO, session.isSneaking()));
-                if (!isSpectator) {
+            if (!isSpectator) {
+                InteractionResult result = entity.interactAt(hand);
+                if (!result.consumesAction()) {
                     result = entity.interact(hand);
                 }
-            }
 
-            if (result.consumesAction()) {
-                if (result.shouldSwing() && hand == Hand.OFF_HAND) {
-                    // Currently, Bedrock will send us the arm swing packet in most cases. But it won't for offhand.
-                    session.sendDownstreamGamePacket(new ServerboundSwingPacket(hand));
-                    // Note here to look into sending the animation packet back to Bedrock
+                if (result.consumesAction()) {
+                    if (result.shouldSwing() && hand == Hand.OFF_HAND) {
+                        // Currently, Bedrock will send us the arm swing packet in most cases. But it won't for offhand.
+                        session.sendDownstreamGamePacket(new ServerboundSwingPacket(hand));
+                        // Note here to look into sending the animation packet back to Bedrock
+                    }
+                    return;
                 }
-                return;
             }
         }
     }
@@ -614,5 +621,29 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
 
         session.useItem(Hand.MAIN_HAND, useTouchRotation);
         return true;
+    }
+
+    /*
+     * In Bedrock Edition behavior(scaffolding-style bridging), the cursor position (packet.getClickPosition())
+     * is based on the player's foot position.
+     *
+     * When performing speed bridging (running/jumping while placing blocks), if there is a wall ahead,
+     * and the last 1–3 blocks are about to touch or are already touching the wall, the click position
+     * in that direction may become values like -1, -1.5, -2, 2, or 3.
+     *
+     * However, the normal max range should be between -0.5 and 1.5 (in java server that will not cancel place), so a temporary restriction is applied.
+     *
+     * This is a temporary fix, but I don’t have a better idea for now...
+     *
+     * Test with client version: 1.21.5x, 1.21.9x, 26.21.
+     */
+    private float fixCursorValue(float value) {
+        if (value <= -0.5f) {
+            return -0.25f;
+        } else if (value >= 2.0f) {
+            return 1.25f;
+        } else {
+            return value;
+        }
     }
 }

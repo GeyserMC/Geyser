@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.bedrock.entity.player;
 
+import org.cloudburstmc.protocol.bedrock.data.EmoteFlag;
 import org.cloudburstmc.protocol.bedrock.packet.EmotePacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.ClientEmoteEvent;
@@ -57,7 +58,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             if (otherSession != session) {
                 if (otherSession.isClosed()) continue;
 
-                otherSession.ensureInEventLoop(() -> playEmote(otherSession, javaId, xuid, emote));
+                otherSession.ensureInEventLoop(() -> playEmote(otherSession, javaId, xuid, emote, event.silent()));
             }
         }
     }
@@ -70,8 +71,9 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
      * @param emoterJavaId the java id of the emoter
      * @param emoterXuid the xuid of the emoter
      * @param emoteId the emote to play
+     * @param silent whether to suppress the emote chat announcement
      */
-    private static void playEmote(GeyserSession session, int emoterJavaId, String emoterXuid, String emoteId) {
+    private static void playEmote(GeyserSession session, int emoterJavaId, String emoterXuid, String emoteId, boolean silent) {
         Entity emoter = session.getEntityCache().getEntityByJavaId(emoterJavaId); // Must be ran on same thread
         if (emoter instanceof PlayerEntity) {
             EmotePacket packet = new EmotePacket();
@@ -79,6 +81,10 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
             packet.setXuid(emoterXuid);
             packet.setPlatformId(""); // BDS sends empty
             packet.setEmoteId(emoteId);
+            packet.getFlags().add(EmoteFlag.SERVER_SIDE);
+            if (silent) {
+                packet.getFlags().add(EmoteFlag.MUTE_EMOTE_CHAT);
+            }
             session.sendUpstreamPacket(packet);
         }
     }

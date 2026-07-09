@@ -8,8 +8,18 @@ architectury {
 
 afterEvaluate {
     // We don't need these
-    tasks.named("mergeShadowAndJarJar").configure {
-        enabled = false
+    tasks {
+        named("mergeShadowAndJarJar").configure {
+            enabled = false
+        }
+
+        named("renameModrinthJar").configure {
+            enabled = false
+        }
+
+        modrinth.configure {
+            enabled = false
+        }
     }
 }
 

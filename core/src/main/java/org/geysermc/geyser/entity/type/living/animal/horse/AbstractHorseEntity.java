@@ -343,6 +343,6 @@ public class AbstractHorseEntity extends AnimalEntity implements ClientVehicle {
 
     @Override
     public boolean shouldSimulateMovement() {
-        return getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.get(0) == session.getPlayerEntity() && !session.isInClientPredictedVehicle();
+        return getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.getFirst() == session.getPlayerEntity() && !session.isInClientPredictedVehicle();
     }
 }

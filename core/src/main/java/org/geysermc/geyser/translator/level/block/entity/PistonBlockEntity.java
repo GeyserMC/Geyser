@@ -647,11 +647,12 @@ public class PistonBlockEntity {
 
         Vector3i movement = getMovement();
         BoundingBox playerBoundingBox = session.getCollisionManager().getActiveBoundingBox().clone();
-        attachedBlocks.forEach((blockPos, state) -> {
+        attachedBlocks.forEach((blockPos, unused) -> {
             blockPos = blockPos.add(movement);
             // Don't place blocks that collide with the player
             if (!SOLID_BOUNDING_BOX.checkIntersection(blockPos.toDouble(), playerBoundingBox)) {
-                ChunkUtils.updateBlock(session, state, blockPos);
+                // Not using the cached block to ensure we don't override a possibly changed state
+                ChunkUtils.updateBlock(session, session.getGeyser().getWorldManager().blockAt(session, blockPos), blockPos);
             }
         });
         if (action == PistonValueType.PUSHING) {
@@ -695,17 +696,16 @@ public class PistonBlockEntity {
      * @return 0 - Fully retracted, 1 - Extending, 2 - Fully extended, 3 - Retracting
      */
     private byte getState() {
-        switch (action) {
-            case PUSHING:
-                return (byte) (isDone() ? 2 : 1);
-            case PULLING:
-                return (byte) (isDone() ? 0 : 3);
-            default:
+        return switch (action) {
+            case PUSHING -> (byte) (isDone() ? 2 : 1);
+            case PULLING -> (byte) (isDone() ? 0 : 3);
+            default -> {
                 if (progress == 1.0f) {
-                    return 2;
+                    yield 2;
                 }
-                return (byte) (isDone() ? 0 : 2);
-        }
+                yield (byte) (isDone() ? 0 : 2);
+            }
+        };
     }
 
     /**

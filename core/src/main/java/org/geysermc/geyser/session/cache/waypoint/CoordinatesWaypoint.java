@@ -25,24 +25,27 @@
 
 package org.geysermc.geyser.session.cache.waypoint;
 
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import net.kyori.adventure.key.Key;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.Vec3iWaypointData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointData;
 
 import java.awt.Color;
 import java.util.Optional;
+import java.util.UUID;
 
 public class CoordinatesWaypoint extends GeyserWaypoint {
 
-    public CoordinatesWaypoint(GeyserSession session, Optional<PlayerEntity> player, Color color) {
-        super(session, player, color);
+    public CoordinatesWaypoint(GeyserSession session, UUID uuid, Key style, Color color, Optional<Entity> entity) {
+        super(session, uuid, style, color, entity);
     }
 
     @Override
     public void setData(WaypointData data) {
-        if (data instanceof Vec3iWaypointData vec3iData) {
-            position = vec3iData.vector().toFloat();
+        if (data instanceof Vec3iWaypointData(Vector3i vector)) {
+            setPosition(vector.toFloat());
         } else {
             session.getGeyser().getLogger().warning("Received incorrect waypoint data " + data.getClass() + " for coordinates waypoint");
         }

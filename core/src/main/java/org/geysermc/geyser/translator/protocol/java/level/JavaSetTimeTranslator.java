@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.level;
 
 import net.kyori.adventure.key.Key;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.mcprotocollib.protocol.data.game.level.ClockNetworkState;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundSetTimePacket;
 import org.geysermc.geyser.session.GeyserSession;
@@ -35,22 +36,31 @@ import org.geysermc.geyser.translator.protocol.Translator;
 
 @Translator(packet = ClientboundSetTimePacket.class)
 public class JavaSetTimeTranslator extends PacketTranslator<ClientboundSetTimePacket> {
-    private static final Key OVERWORLD_WORLD_CLOCK_ID = Key.key(Key.MINECRAFT_NAMESPACE, "overworld");
 
     @Override
     public void translate(GeyserSession session, ClientboundSetTimePacket packet) {
-        session.setWorldTicks(packet.getGameTime());
+        session.setGameTicks(packet.getGameTime());
 
-        int overworldId = JavaRegistries.WORLD_CLOCK.networkId(session, OVERWORLD_WORLD_CLOCK_ID);
-
-        long time = packet.getGameTime();
-
-        session.sendTimePacket(time);
-
-        if (packet.getClockUpdates().containsKey(overworldId)) {
-            ClockNetworkState state = packet.getClockUpdates().get(overworldId);
+        // We only translate the dimension's default clock right now (or, if only one clock exists, we translate that),
+        // which will work for vanilla, but probably less so for custom dimensions
+        // Nevertheless, this is the best effort we can do right now, and better than just translating the overworld clock
+        ClockNetworkState defaultClockState = packet.getClockUpdates().get(defaultClockId(session));
+        if (defaultClockState != null) {
+            session.setTimeTicks(defaultClockState.totalTicks(), defaultClockState.partialTick());
             // We need to send a gamerule if this changed
-            session.setClockRate(state.rate());
+            session.setClockRate(defaultClockState.rate());
         }
+    }
+
+    private static int defaultClockId(GeyserSession session) {
+        Key defaultClock = session.getDimensionType().defaultClock();
+        if (defaultClock != null) {
+            return JavaRegistries.WORLD_CLOCK.networkId(session, defaultClock);
+        }
+        JavaRegistry<?> clockRegistry = session.getRegistryCache().registry(JavaRegistries.WORLD_CLOCK);
+        if (clockRegistry.entries().size() == 1) {
+            return clockRegistry.entries().getFirst().id();
+        }
+        return -1;
     }
 }

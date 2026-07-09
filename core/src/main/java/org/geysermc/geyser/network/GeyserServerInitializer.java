@@ -38,8 +38,6 @@ import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitiali
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
 
-import java.net.InetSocketAddress;
-
 public class GeyserServerInitializer extends BedrockServerInitializer {
     private final GeyserImpl geyser;
     private final boolean rakCookiesEnabled;
@@ -63,14 +61,7 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
     @Override
     public void initSession(@NonNull BedrockServerSession bedrockServerSession) {
         try {
-            if (this.geyser.getGeyserServer().getProxiedAddresses() != null) {
-                InetSocketAddress address = this.geyser.getGeyserServer().getProxiedAddresses().get((InetSocketAddress) bedrockServerSession.getSocketAddress());
-                if (address != null) {
-                    ((GeyserBedrockPeer) bedrockServerSession.getPeer()).setProxiedAddress(address);
-                }
-            }
-
-            bedrockServerSession.setLogging(true);
+            bedrockServerSession.setLogging(this.geyser.config().debugMode());
             GeyserSession session = new GeyserSession(this.geyser, bedrockServerSession, this.eventLoopGroup.next());
 
             if (!bedrockServerSession.isSubClient()) {

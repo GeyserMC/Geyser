@@ -129,7 +129,7 @@ public class CamelVehicleComponent extends VehicleComponent<CamelEntity> {
      */
     private boolean isStationary() {
         // Java checks if sitting using lastPoseTick
-        return this.lastPoseTick < 0 || vehicle.getSession().getWorldTicks() < this.lastPoseTick + STANDING_TICKS;
+        return this.lastPoseTick < 0 || vehicle.getSession().getGameTicks() < this.lastPoseTick + STANDING_TICKS;
     }
 
     @Override

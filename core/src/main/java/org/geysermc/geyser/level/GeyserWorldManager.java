@@ -25,8 +25,6 @@
 
 package org.geysermc.geyser.level;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.packet.backendbound.BackendboundBatchBlockRequestPacket;
 import org.geysermc.erosion.packet.backendbound.BackendboundBlockRequestPacket;
@@ -38,7 +36,6 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import java.util.concurrent.CompletableFuture;
 
 public class GeyserWorldManager extends WorldManager {
-    private final Object2ObjectMap<String, String> gameruleCache = new Object2ObjectOpenHashMap<>();
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
@@ -87,32 +84,6 @@ public class GeyserWorldManager extends WorldManager {
     public boolean hasOwnChunkCache() {
         // This implementation can only fetch data from the session chunk cache
         return false;
-    }
-
-    @Override
-    public void setGameRule(GeyserSession session, String name, Object value) {
-        super.setGameRule(session, name, value);
-        gameruleCache.put(name, String.valueOf(value));
-    }
-
-    @Override
-    public boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
-        String value = gameruleCache.get(gameRule.getJavaID());
-        if (value != null) {
-            return Boolean.parseBoolean(value);
-        }
-
-        return gameRule.getDefaultBooleanValue();
-    }
-
-    @Override
-    public int getGameRuleInt(GeyserSession session, GameRule gameRule) {
-        String value = gameruleCache.get(gameRule.getJavaID());
-        if (value != null) {
-            return Integer.parseInt(value);
-        }
-
-        return gameRule.getDefaultIntValue();
     }
 
     @Override

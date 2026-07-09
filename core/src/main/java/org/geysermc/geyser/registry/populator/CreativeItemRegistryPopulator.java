@@ -66,7 +66,7 @@ public class CreativeItemRegistryPopulator {
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
         JsonArray creativeItemEntries;
-        try (InputStream stream = bootstrap.getResourceOrThrow(String.format("bedrock/creative_items.%s.json", palette.version()))) {
+        try (InputStream stream = bootstrap.getResourceOrThrow(String.format("bedrock/creative_items.%s.json", palette.creativeVersion()))) {
             creativeItemEntries = JsonUtils.fromJson(stream).getAsJsonArray("groups");
         } catch (Exception e) {
             throw new AssertionError("Unable to load creative item groups", e);
@@ -121,7 +121,7 @@ public class CreativeItemRegistryPopulator {
 
         // Load creative items
         JsonArray creativeItemEntries;
-        try (InputStream stream = bootstrap.getResourceOrThrow(String.format("bedrock/creative_items.%s.json", palette.version()))) {
+        try (InputStream stream = bootstrap.getResourceOrThrow(String.format("bedrock/creative_items.%s.json", palette.creativeVersion()))) {
             creativeItemEntries = JsonUtils.fromJson(stream).getAsJsonArray("items");
         } catch (Exception e) {
             throw new AssertionError("Unable to load creative items", e);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,12 +25,11 @@
 
 package org.geysermc.geyser.api.predicate.context.item;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.predicate.context.MinecraftPredicateContext;
 import org.geysermc.geyser.api.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -93,13 +92,13 @@ public interface ItemPredicateContext extends MinecraftPredicateContext {
      * @return all the charged projectiles in the {@code minecraft:charged_projectiles} component
      * @since 2.9.3
      */
-    @NonNull List<@NonNull ChargedProjectile> chargedProjectiles();
+    List<ChargedProjectile> chargedProjectiles();
 
     /**
      * @return a list of all the components present on the item, including default components
      * @since 2.9.3
      */
-    @NonNull List<@NonNull Identifier> components();
+    List<Identifier> components();
 
     /**
      * @param index the flag index

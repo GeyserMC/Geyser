@@ -73,6 +73,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.MobEffectIns
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SuspiciousStewEffect;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.SwingAnimation;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.TypedEntityData;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Unit;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.level.sound.BuiltinSound;
@@ -137,7 +138,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<CustomSound> CUSTOM_SOUND = MinecraftHasher.mapBuilder(builder -> builder
         .accept("sound_id", KEY, sound -> MinecraftKey.key(sound.getName()))
-        .optional("range", FLOAT, CustomSound::getRange, 16.0F));
+        .optionalTypePredicate("range", FLOAT, CustomSound::getRange, CustomSound::isNewSystem));
 
     MinecraftHasher<Sound> SOUND_EVENT = (sound, encoder) -> {
         if (sound instanceof BuiltinSound builtin) {
@@ -190,9 +191,15 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     RegistryHasher<?> PIG_VARIANT = registry(JavaRegistries.PIG_VARIANT);
 
+    RegistryHasher<?> PIG_SOUND_VARIANT = registry(JavaRegistries.PIG_SOUND_VARIANT);
+
     RegistryHasher<?> COW_VARIANT = registry(JavaRegistries.COW_VARIANT);
 
+    RegistryHasher<?> COW_SOUND_VARIANT = registry(JavaRegistries.COW_SOUND_VARIANT);
+
     RegistryHasher<?> CHICKEN_VARIANT = registry(JavaRegistries.CHICKEN_VARIANT);
+
+    RegistryHasher<?> CHICKEN_SOUND_VARIANT = registry(JavaRegistries.CHICKEN_SOUND_VARIANT);
 
     RegistryHasher<?> ZOMBIE_NAUTILUS_VARIANT = registry(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT);
 
@@ -201,6 +208,8 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
     RegistryHasher<?> PAINTING_VARIANT = registry(JavaRegistries.PAINTING_VARIANT);
 
     RegistryHasher<?> CAT_VARIANT = registry(JavaRegistries.CAT_VARIANT);
+
+    RegistryHasher<?> CAT_SOUND_VARIANT = registry(JavaRegistries.CAT_SOUND_VARIANT);
 
     // Entity variants
     // These are all not registries on Java, meaning they serialise as just literal strings, not namespaced IDs
@@ -231,6 +240,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
     @SuppressWarnings({"unchecked", "rawtypes"}) // Java generics :(
     MinecraftHasher<DataComponent<?, ?>> DATA_COMPONENT_VALUE = (component, encoder) -> {
         if (component.getValue() == null) {
+            // Component removal
             return UNIT.hash(Unit.INSTANCE, encoder);
         }
         MinecraftHasher hasher = DataComponentHashers.hasher(component.getType());
@@ -241,7 +251,7 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<ItemStack> ITEM_STACK = MinecraftHasher.mapBuilder(builder -> builder
         .accept("id", ITEM, ItemStack::getId)
-        .accept("count", INT, ItemStack::getAmount)
+        .optional("count", INT, ItemStack::getAmount, 1)
         .optionalNullable("components", DATA_COMPONENTS, ItemStack::getDataComponentsPatch));
 
     // Encoding of hidden effects is unfortunately not possible
@@ -283,11 +293,11 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
 
     MinecraftHasher<AdventureModePredicate.BlockPredicate> BLOCK_PREDICATE = MinecraftHasher.mapBuilder(builder -> builder
         .optionalNullable("blocks", BLOCK.holderSet(), AdventureModePredicate.BlockPredicate::getBlocks)
-        .optionalNullable("nbt", NBT_MAP, AdventureModePredicate.BlockPredicate::getNbt)); // Property and data component matchers are, unfortunately, too complicated to include here
+        .optionalNullable("nbt", NBT_STRING, AdventureModePredicate.BlockPredicate::getNbt)); // Property and data component matchers are, unfortunately, too complicated to include here
 
     // Encode as a single element if the list only has one element
     MinecraftHasher<AdventureModePredicate> ADVENTURE_MODE_PREDICATE = MinecraftHasher.either(BLOCK_PREDICATE,
-        predicate -> predicate.getPredicates().size() == 1 ? predicate.getPredicates().get(0) : null, BLOCK_PREDICATE.list(), AdventureModePredicate::getPredicates);
+        predicate -> predicate.getPredicates().size() == 1 ? predicate.getPredicates().getFirst() : null, BLOCK_PREDICATE.list(), AdventureModePredicate::getPredicates);
 
     MinecraftHasher<ItemAttributeModifiers.DisplayType> ATTRIBUTE_MODIFIER_DISPLAY_TYPE = MinecraftHasher.fromEnum();
 
@@ -355,8 +365,9 @@ public interface RegistryHasher<DirectType> extends MinecraftHasher<Integer> {
         .optional("has_twinkle", BOOL, Fireworks.FireworkExplosion::isHasTwinkle, false));
 
     MinecraftHasher<BeehiveOccupant> BEEHIVE_OCCUPANT = MinecraftHasher.mapBuilder(builder -> builder
-        .accept("id", RegistryHasher.ENTITY_TYPE_KEY, beehiveOccupant -> beehiveOccupant.getEntityData().type())
-        .accept(beehiveOccupant -> beehiveOccupant.getEntityData().tag(), MapBuilder.inlineNbtMap())
+        .accept("entity_data", BeehiveOccupant::getEntityData, entityDataBuilder -> entityDataBuilder
+            .accept("id", ENTITY_TYPE_KEY, TypedEntityData::type)
+            .accept(TypedEntityData::tag, MapBuilder.inlineNbtMap()))
         .accept("ticks_in_hive", INT, BeehiveOccupant::getTicksInHive)
         .accept("min_ticks_in_hive", INT, BeehiveOccupant::getMinTicksInHive));
 

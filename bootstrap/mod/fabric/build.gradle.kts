@@ -1,6 +1,5 @@
 plugins {
     id("geyser.modded-conventions")
-    id("geyser.modrinth-uploading-conventions")
 }
 
 architectury {
@@ -79,7 +78,6 @@ tasks {
 
 modrinth {
     loaders.add("fabric")
-    uploadFile.set(tasks.getByName("renameModrinthJar"))
     dependencies {
         required.project("fabric-api")
     }

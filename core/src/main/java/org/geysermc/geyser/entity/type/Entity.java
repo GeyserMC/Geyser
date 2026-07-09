@@ -37,7 +37,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.cloudburstmc.protocol.bedrock.data.entity.EntityProperty;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
@@ -55,6 +54,7 @@ import org.geysermc.geyser.entity.properties.type.PropertyType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.MobEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
@@ -105,7 +105,7 @@ public class Entity implements GeyserEntity {
 
     protected Vector3f position;
     protected Vector3f motion;
-    protected float offset;
+    private float offset;
 
     /**
      * x = Yaw, y = Pitch, z = HeadYaw
@@ -251,6 +251,10 @@ public class Entity implements GeyserEntity {
             passenger.setVehicle(null);
             passenger.setFlag(EntityFlag.RIDING, false);
             passenger.updateBedrockMetadata();
+
+            if (passenger instanceof SessionPlayerEntity entity) {
+                entity.setRemovedPlayerVehicleId(this.entityId);
+            }
         }
 
         RemoveEntityPacket removeEntityPacket = new RemoveEntityPacket();
@@ -567,18 +571,16 @@ public class Entity implements GeyserEntity {
     }
 
     protected void updateNametag(@Nullable Team team, boolean visible) {
-        if (team != null) {
-            String newNametag;
+        if (!visible) {
+            // The name is not visible to the session player; clear name
+            setNametag("", false);
+            return;
+        } else if (team != null) {
             // (team) visibility is LivingEntity+, team displayName is Entity+
-            if (visible) {
-                newNametag = team.displayName(getDisplayName(true));
-            } else {
-                // The name is not visible to the session player; clear name
-                newNametag = "";
-            }
-            setNametag(newNametag, false);
+            setNametag(team.displayName(getDisplayName(true)), false);
             return;
         }
+
         // The name might need to be reset: no more team!
         setNametag(getDisplayName(customNameVisible), false);
     }
@@ -704,6 +706,7 @@ public class Entity implements GeyserEntity {
      * Gets the Bedrock edition position with the offset applied
      */
     public Vector3f bedrockPosition() {
+        float offset = getOffset();
         if (offset == 0f) {
             return position;
         }
@@ -729,7 +732,7 @@ public class Entity implements GeyserEntity {
      */
     protected void updateMountOffset() {
         if (vehicle != null) {
-            boolean rider = vehicle.getPassengers().get(0) == this;
+            boolean rider = vehicle.getPassengers().getFirst() == this;
             EntityUtils.updateMountOffset(this, vehicle, rider, true, vehicle.getPassengers().indexOf(this), vehicle.getPassengers().size());
             updateBedrockMetadata();
         }
@@ -862,10 +865,9 @@ public class Entity implements GeyserEntity {
             @Override
             public <T> void update(@NonNull GeyserEntityProperty<T> property, @Nullable T value) {
                 Objects.requireNonNull(property, "property must not be null!");
-                if (!(property instanceof PropertyType)) {
+                if (!(property instanceof PropertyType<T, ?> propertyType)) {
                     throw new IllegalArgumentException("Invalid property implementation! Got: " + property.getClass().getSimpleName());
                 }
-                PropertyType<T, ? extends EntityProperty> propertyType = (PropertyType<T, ?>) property;
                 int index = propertyDefinitions.getPropertyIndex(property.identifier().toString());
                 if (index < 0) {
                     throw new IllegalArgumentException("No property with the name " + property.identifier() + " has been registered.");

@@ -41,7 +41,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.concurrent.CompletableFuture;
 
-public class ItemEntity extends ThrowableEntity {
+public class ItemEntity extends ProjectileEntity {
     protected ItemData item;
 
     private CompletableFuture<Integer> waterLevel = CompletableFuture.completedFuture(-1);

@@ -50,10 +50,10 @@ public class CustomSkullsLoaderTest {
             null);
         GeyserCustomSkullConfiguration skullConfig = FileUtils.loadConfig(skullConfigFile, GeyserCustomSkullConfiguration.class);
 
-        assertEquals("GeyserMC", skullConfig.getPlayerUsernames().get(0));
-        assertEquals("8b8d8e8f-2759-47c6-acb5-5827de8a72b8", skullConfig.getPlayerUUIDs().get(0));
-        assertEquals("ewogICJ0aW1lc3RhbXAiIDogMTY1NzMyMjIzOTgzMywKICAicHJvZmlsZUlkIiA6ICJjZGRiZTUyMGQwNDM0YThiYTFjYzlmYzkyZmRlMmJjZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJBbWJlcmljaHUiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTkwNzkwYzU3ZTE4MWVkMTNhZGVkMTRjNDdlZTJmN2M4ZGUzNTMzZTAxN2JhOTU3YWY3YmRmOWRmMWJkZTk0ZiIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9", skullConfig.getPlayerProfiles().get(0));
-        assertEquals("a90790c57e181ed13aded14c47ee2f7c8de3533e017ba957af7bdf9df1bde94f", skullConfig.getPlayerSkinHashes().get(0));
+        assertEquals("GeyserMC", skullConfig.getPlayerUsernames().getFirst());
+        assertEquals("8b8d8e8f-2759-47c6-acb5-5827de8a72b8", skullConfig.getPlayerUUIDs().getFirst());
+        assertEquals("ewogICJ0aW1lc3RhbXAiIDogMTY1NzMyMjIzOTgzMywKICAicHJvZmlsZUlkIiA6ICJjZGRiZTUyMGQwNDM0YThiYTFjYzlmYzkyZmRlMmJjZiIsCiAgInByb2ZpbGVOYW1lIiA6ICJBbWJlcmljaHUiLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTkwNzkwYzU3ZTE4MWVkMTNhZGVkMTRjNDdlZTJmN2M4ZGUzNTMzZTAxN2JhOTU3YWY3YmRmOWRmMWJkZTk0ZiIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9", skullConfig.getPlayerProfiles().getFirst());
+        assertEquals("a90790c57e181ed13aded14c47ee2f7c8de3533e017ba957af7bdf9df1bde94f", skullConfig.getPlayerSkinHashes().getFirst());
     }
 
     @SneakyThrows
