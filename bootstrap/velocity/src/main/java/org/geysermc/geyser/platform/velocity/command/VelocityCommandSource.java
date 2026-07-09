@@ -29,10 +29,10 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.command.GeyserCommandSource;
+import org.geysermc.geyser.platform.velocity.TemporaryAdventureConverter;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Locale;
@@ -49,7 +49,7 @@ public class VelocityCommandSource implements GeyserCommandSource {
     }
 
     @Override
-    public String name() {
+    public @NonNull String name() {
         if (handle instanceof Player) {
             return ((Player) handle).getUsername();
         } else if (handle instanceof ConsoleCommandSource) {
@@ -60,13 +60,14 @@ public class VelocityCommandSource implements GeyserCommandSource {
 
     @Override
     public void sendMessage(@NonNull String message) {
-        handle.sendMessage(LegacyComponentSerializer.legacySection().deserialize(message));
+        // FIXME - Can't use adventure while natively while waiting for 5.x to be supported
+        TemporaryAdventureConverter.sendMessage(handle, message);
     }
 
     @Override
     public void sendMessage(Component message) {
-        // Be careful that we don't shade in Adventure!!
-        handle.sendMessage(message);
+        // FIXME - Can't use adventure while natively while waiting for 5.x to be supported
+        TemporaryAdventureConverter.sendMessage(handle, message);
     }
 
     @Override
@@ -83,9 +84,9 @@ public class VelocityCommandSource implements GeyserCommandSource {
     }
 
     @Override
-    public String locale() {
-        if (handle instanceof Player) {
-            Locale locale = ((Player) handle).getPlayerSettings().getLocale();
+    public @NonNull String locale() {
+        if (handle instanceof Player player) {
+            Locale locale = player.getPlayerSettings().getLocale();
             return GeyserLocale.formatLocale(locale.getLanguage() + "_" + locale.getCountry());
         }
         return GeyserLocale.getDefaultLocale();
