@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Manages a Minecraft Java session over our LocalChannel implementations.
  */
-public final class LocalSession extends ClientNetworkSession {
+public class LocalSession extends ClientNetworkSession {
     private static EventLoopGroup DEFAULT_EVENT_LOOP_GROUP;
     private static PreferredDirectByteBufAllocator PREFERRED_DIRECT_BYTE_BUF_ALLOCATOR = null;
 

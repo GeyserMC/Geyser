@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.bedrock.SessionDefineNetworkChannelsEvent;
 import org.geysermc.geyser.session.GeyserSession;
 
 public class GeyserServerInitializer extends BedrockServerInitializer {
@@ -68,6 +69,8 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
                 Channel channel = bedrockServerSession.getPeer().getChannel();
                 channel.pipeline().addAfter(BedrockPacketCodec.NAME, InvalidPacketHandler.NAME, new InvalidPacketHandler(session));
             }
+
+            session.getNetwork().defineNetworkChannels(SessionDefineNetworkChannelsEvent.State.CREATED);
 
             bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, session));
         } catch (Throwable e) {

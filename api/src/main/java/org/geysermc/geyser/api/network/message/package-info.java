@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,58 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.scoreboard.network.util;
+@NullMarked
+package org.geysermc.geyser.api.network.message;
 
-import org.geysermc.geyser.GeyserLogger;
-
-public class EmptyGeyserLogger implements GeyserLogger {
-    @Override
-    public void severe(String message) {
-
-    }
-
-    @Override
-    public void severe(String message, Throwable error) {
-
-    }
-
-    @Override
-    public void error(String message) {
-
-    }
-
-    @Override
-    public void error(String message, Throwable error) {
-
-    }
-
-    @Override
-    public void warning(String message) {
-
-    }
-
-    @Override
-    public void info(String message) {
-
-    }
-
-    @Override
-    public void debug(String message) {
-
-    }
-
-    @Override
-    public void debug(String message, Object... arguments) {
-
-    }
-
-    @Override
-    public void setDebug(boolean debug) {
-
-    }
-
-    @Override
-    public boolean isDebug() {
-        return false;
-    }
-}
+import org.jspecify.annotations.NullMarked;

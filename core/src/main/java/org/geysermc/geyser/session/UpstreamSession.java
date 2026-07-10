@@ -32,6 +32,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodecHelper;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.geysermc.geyser.api.network.MessageDirection;
 import org.geysermc.geyser.network.GeyserBedrockPeer;
 
 import java.net.InetSocketAddress;
@@ -40,18 +41,27 @@ import java.util.Queue;
 
 @RequiredArgsConstructor
 public class UpstreamSession {
+    private final GeyserSession geyserSession;
     @Getter private final BedrockServerSession session;
     @Getter @Setter
     private boolean initialized = false;
     private Queue<BedrockPacket> postStartGamePackets = new ArrayDeque<>();
 
     public void sendPacket(@NonNull BedrockPacket packet) {
+        if (!this.geyserSession.getNetwork().handleBedrockPacket(packet, MessageDirection.CLIENTBOUND)) {
+            return;
+        }
+
         if (!isClosed()) {
             session.sendPacket(packet);
         }
     }
 
     public void sendPacketImmediately(@NonNull BedrockPacket packet) {
+        if (!this.geyserSession.getNetwork().handleBedrockPacket(packet, MessageDirection.CLIENTBOUND)) {
+            return;
+        }
+
         if (!isClosed()) {
             session.sendPacketImmediately(packet);
         }
@@ -75,7 +85,7 @@ public class UpstreamSession {
 
         BedrockPacket packet;
         while ((packet = postStartGamePackets.poll()) != null) {
-            session.sendPacket(packet);
+            this.sendPacket(packet);
         }
         postStartGamePackets = null;
     }

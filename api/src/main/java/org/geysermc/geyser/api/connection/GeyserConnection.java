@@ -34,6 +34,7 @@ import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.entity.type.player.GeyserPlayerEntity;
+import org.geysermc.geyser.api.network.Network;
 import org.geysermc.geyser.api.skin.SkinData;
 import org.jspecify.annotations.Nullable;
 
@@ -122,6 +123,15 @@ public interface GeyserConnection extends Connection, CommandSource {
     void sendCommand(String command);
 
     /**
+     * Gets the {@link Network} used for handling
+     * network channels and sending messages.
+     *
+     * @return the network
+     * @since 2.9.2
+     */
+    Network network();
+
+    /**
      * Gets the hostname or ip address the player used to join this Geyser instance.
      * Example:
      * <ul>
@@ -131,7 +141,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * </ul>
      *
      * @throws NoSuchElementException if called before the session is fully initialized
-     * @return the ip address or hostname string the player used to join 
+     * @return the ip address or hostname string the player used to join
      * @since 2.8.3
      */
     String joinAddress();
@@ -145,7 +155,7 @@ public interface GeyserConnection extends Connection, CommandSource {
      * </ul>
      *
      * @throws NoSuchElementException if called before the session is fully initialized
-     * @return the port the player used to join 
+     * @return the port the player used to join
      * @since 2.8.3
      */
     @Positive

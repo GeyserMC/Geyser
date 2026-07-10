@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.erosion.Constants;
 import org.geysermc.floodgate.pluginmessage.PluginMessageChannels;
 import org.geysermc.geyser.api.network.AuthType;
+import org.geysermc.geyser.api.network.NetworkChannel;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
@@ -50,6 +51,8 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.Serverbound
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Translator(packet = ClientboundLoginPacket.class)
 public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket> {
@@ -129,6 +132,20 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(register, PluginMessageChannels.getFloodgateRegisterData()));
         }
         session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(register, Constants.PLUGIN_MESSAGE.getBytes(StandardCharsets.UTF_8)));
+
+        Set<NetworkChannel> registeredChannels = session.getNetwork().registeredChannels();
+        if (!registeredChannels.isEmpty()) {
+            String channels = registeredChannels
+                    .stream()
+                    .filter(channel -> !channel.isPacket())
+                    .map(channel -> channel.identifier().namespace() + ":" + channel.identifier().path())
+                    .distinct()
+                    .collect(Collectors.joining("\0"));
+
+            if (!channels.isEmpty()) {
+                session.sendDownstreamPacket(new ServerboundCustomPayloadPacket(register, channels.getBytes(StandardCharsets.UTF_8)));
+            }
+        }
 
         if (session.getBedrockDimension().bedrockId() != newDimension.bedrockId()) {
             DimensionUtils.switchDimension(session, newDimension);
