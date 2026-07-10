@@ -68,6 +68,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.component.AdventureMod
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ToolData;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundAttackPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundMovePlayerStatusOnlyPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
@@ -308,6 +309,7 @@ public class BlockBreakHandler {
 
     protected void handleStartBreak(@NonNull Vector3i position, @NonNull BlockState state, Direction blockFace, long tick) {
         GeyserItemStack item = session.getPlayerInventory().getItemInHand();
+        sendFlyingBreakGroundState();
 
         // Account for fire - the client likes to hit the block behind.
         Vector3i fireBlockPos = BlockUtils.getBlockPosition(position, blockFace);
@@ -562,6 +564,8 @@ public class BlockBreakHandler {
     }
 
     protected void destroyBlock(BlockState state, Vector3i vector, Direction direction, boolean instamine) {
+        sendFlyingBreakGroundState();
+
         // Send java packet
         session.sendDownstreamGamePacket(new ServerboundPlayerActionPacket(instamine ? PlayerAction.START_DIGGING : PlayerAction.FINISH_DIGGING,
             vector, direction.mcpl(), session.getWorldCache().nextPredictionSequence()));
@@ -578,6 +582,21 @@ public class BlockBreakHandler {
 
     protected float calculateBreakProgress(BlockState state, Vector3i vector, GeyserItemStack stack) {
         return BlockUtils.getBlockMiningProgressPerTick(session, state.block(), stack);
+    }
+
+    public boolean shouldSpoofOnGroundForFlyingBreak() {
+        return currentBlockPos != null && shouldIgnoreAirborneMiningPenalty();
+    }
+
+    public boolean shouldIgnoreAirborneMiningPenalty() {
+        return session.isFlying() && !session.isInstabuild() && session.getGameMode() != GameMode.SPECTATOR;
+    }
+
+    private void sendFlyingBreakGroundState() {
+        if (shouldIgnoreAirborneMiningPenalty() && !session.getPlayerEntity().isOnGround()) {
+            session.sendDownstreamGamePacket(new ServerboundMovePlayerStatusOnlyPacket(
+                true, session.getInputCache().lastHorizontalCollision()));
+        }
     }
 
     /**

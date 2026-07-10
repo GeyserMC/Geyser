@@ -45,6 +45,8 @@ public final class InputCache {
     private ServerboundPlayerInputPacket inputPacket = new ServerboundPlayerInputPacket(false, false, false, false, false, false, false);
     @Setter
     private boolean lastHorizontalCollision;
+    @Setter
+    private boolean lastJavaOnGround;
     private int ticksSinceLastMovePacket;
     @Getter @Setter
     private int jumpingTicks;
@@ -172,6 +174,10 @@ public final class InputCache {
 
     public boolean lastHorizontalCollision() {
         return lastHorizontalCollision;
+    }
+
+    public boolean lastJavaOnGround() {
+        return lastJavaOnGround;
     }
 
     /*
