@@ -25,24 +25,26 @@
 
 package org.geysermc.geyser.item.components.resolvable;
 
-import org.geysermc.geyser.session.GeyserSession;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
 
 /**
- * A resolvable component is a component that was specified in a {@link org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition}, and was supposed to be mapped to its MCPL equivalent before registering
- * the item, but was unable to because it needed registry access. As such, an instance of this interface was created, added to the list of the {@link org.geysermc.geyser.item.type.NonVanillaItem}'s resolvable components,
+ * A resolvable component is a default item component that has to be loaded into its MCPL equivalent when registering
+ * the item, but was unable to because it needed registry access. As such, an instance of this interface was created, added to the list of the {@link org.geysermc.geyser.item.type.Item}'s resolvable components,
  * and will be resolved by {@link org.geysermc.geyser.session.cache.ComponentCache} whenever the session finishes the configuration phase.
- *
- * <p>Resolvable components aren't needed for vanilla-item overrides, because there Geyser receives the component patch in MCPL format from the server as well.</p>
  */
 public interface ResolvableComponent<T> {
 
     DataComponentType<T> type();
 
-    T resolve(GeyserSession session);
+    @Nullable T resolve(JavaRegistryProvider registries);
 
-    default void resolve(GeyserSession session, DataComponents map) {
-        map.put(type(), resolve(session));
+    default void resolve(JavaRegistryProvider registries, DataComponents map) {
+        T value = resolve(registries);
+        if (value != null) {
+            map.put(type(), value);
+        }
     }
 }

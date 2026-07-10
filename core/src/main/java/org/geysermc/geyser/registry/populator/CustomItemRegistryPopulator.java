@@ -61,8 +61,8 @@ import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
-import org.geysermc.geyser.item.type.NonVanillaItem;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
+import org.geysermc.geyser.registry.mappings.MappingsType;
 import org.geysermc.geyser.registry.populator.custom.CustomItemContext;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -110,9 +110,8 @@ public class CustomItemRegistryPopulator {
 
     public static void populate(Map<String, GeyserMappingItem> items, Multimap<Identifier, CustomItemDefinition> customItems,
                                 Multimap<Identifier, NonVanillaCustomItemDefinition> nonVanillaCustomItems) {
-        MappingsConfigReader mappingsConfigReader = new MappingsConfigReader();
         // Load custom items from mappings files
-        mappingsConfigReader.loadItemMappingsFromJson((identifier, item) -> {
+        MappingsConfigReader.loadCustomMappingsFromJson(MappingsType.ITEMS, (identifier, item) -> {
             try {
                 validateVanillaOverride(identifier, item, customItems, items);
                 customItems.get(identifier).add(item);
@@ -175,7 +174,9 @@ public class CustomItemRegistryPopulator {
         String bedrockIdentifier = customItem.bedrockIdentifier().toString();
         NbtMapBuilder bedrockComponents = createComponentNbt(MinecraftKey.identifierToKey(customItem.identifier()), context);
 
-        Item javaItem = new NonVanillaItem(customItem.identifier().toString(), Item.builder().components(context.components()), context.resolvableComponents());
+        Item javaItem = new Item(customItem.identifier().toString(), Item.builder()
+            .components(context.components())
+            .resolvableComponents(context.resolvableComponents()));
         Items.register(javaItem, customItem.javaId());
 
         ItemMapping customMapping = ItemMapping.builder()

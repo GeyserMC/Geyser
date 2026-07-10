@@ -26,10 +26,10 @@
 package org.geysermc.geyser.entity.type.living;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.properties.type.BooleanProperty;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
@@ -44,18 +44,18 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 
 public class CopperGolemEntity extends GolemEntity {
     public static final BooleanProperty HAS_FLOWER_PROPERTY = new BooleanProperty(
-        IdentifierImpl.of("has_flower"),
+        Identifier.of("has_flower"),
         false
     );
 
     public static final EnumProperty<ChestInteractionState> CHEST_INTERACTION_PROPERTY = new EnumProperty<>(
-        IdentifierImpl.of("chest_interaction"),
+        Identifier.of("chest_interaction"),
         ChestInteractionState.class,
         ChestInteractionState.NONE
     );
 
     public static final EnumProperty<OxidationLevelState> OXIDATION_LEVEL_STATE_ENUM_PROPERTY = new EnumProperty<>(
-        IdentifierImpl.of("oxidation_level"),
+        Identifier.of("oxidation_level"),
         OxidationLevelState.class,
         OxidationLevelState.UNOXIDIZED
     );

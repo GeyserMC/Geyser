@@ -84,5 +84,7 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
 
         // Resolve API components from non-vanilla registered items that required registry data to map to MCPL components
         session.getComponentCache().resolveComponents();
+        // This MUST be called after components are resolved. It uses both the collected data-driven registry information and the resolved components
+        session.getTrimRecipes().initializeBedrockTrimRecipes(session);
     }
 }

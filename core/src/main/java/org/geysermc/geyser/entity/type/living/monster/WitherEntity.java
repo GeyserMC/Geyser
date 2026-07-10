@@ -40,7 +40,7 @@ public class WitherEntity extends MonsterEntity {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        dirtyMetadata.put(EntityDataTypes.WITHER_AERIAL_ATTACK, (short) 1);
+        metadata.put(EntityDataTypes.WITHER_AERIAL_ATTACK, (short) 1);
     }
 
     public void setTarget1(IntEntityMetadata entityMetadata) {
@@ -59,21 +59,21 @@ public class WitherEntity extends MonsterEntity {
         int entityId = entityMetadata.getPrimitiveValue();
         Entity entity = session.getEntityCache().getEntityByJavaId(entityId);
         if (entity != null) {
-            dirtyMetadata.put(entityData, entity.geyserId());
+            metadata.put(entityData, entity.geyserId());
         } else {
-            dirtyMetadata.put(entityData, (long) 0);
+            metadata.put(entityData, (long) 0);
         }
     }
 
     public void setInvulnerableTicks(IntEntityMetadata entityMetadata) {
         int value = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityDataTypes.WITHER_INVULNERABLE_TICKS, value);
+        metadata.put(EntityDataTypes.WITHER_INVULNERABLE_TICKS, value);
 
         // Show the shield for the first few seconds of spawning (like Java)
         if (value >= 165) {
-            dirtyMetadata.put(EntityDataTypes.WITHER_AERIAL_ATTACK, (short) 0);
+            metadata.put(EntityDataTypes.WITHER_AERIAL_ATTACK, (short) 0);
         } else {
-            dirtyMetadata.put(EntityDataTypes.WITHER_AERIAL_ATTACK, (short) 1);
+            metadata.put(EntityDataTypes.WITHER_AERIAL_ATTACK, (short) 1);
         }
     }
 }

@@ -43,7 +43,6 @@ import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -83,6 +82,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.PlayerAction;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.HashedStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Instrument;
@@ -90,10 +90,12 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.inventory.S
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundAttackPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundInteractPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundPlayerActionPacket;
+import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSpectatorActionPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundSwingPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.player.ServerboundUseItemOnPacket;
 
 import java.util.List;
+import java.util.OptionalInt;
 
 /**
  * BedrockInventoryTransactionTranslator handles most interactions between the client and the world,
@@ -417,7 +419,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                             session.sendUpstreamPacket(soundPacket);
                                         } else {
                                             PlaySoundPacket playSoundPacket = new PlaySoundPacket();
-                                            playSoundPacket.setPosition(session.getPlayerEntity().position());
+                                            playSoundPacket.setPosition(session.getPlayerEntity().bedrockPosition());
                                             playSoundPacket.setSound(SoundUtils.translatePlaySound(instrument.soundEvent()));
                                             playSoundPacket.setPitch(1.0F);
                                             playSoundPacket.setVolume(instrument.range() / 16.0F);
@@ -480,8 +482,17 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                 }
 
                 Entity entity = session.getEntityCache().getEntityByGeyserId(packet.getRuntimeEntityId());
-                if (entity == null)
+                if (entity == null) {
+                    if (session.getGameMode() == GameMode.SPECTATOR) {
+                        session.sendDownstreamGamePacket(new ServerboundSpectatorActionPacket(OptionalInt.empty()));
+                    }
                     return;
+                }
+
+                if (session.getGameMode() == GameMode.SPECTATOR) {
+                    session.sendDownstreamGamePacket(new ServerboundSpectatorActionPacket(OptionalInt.of(entity.getEntityId())));
+                    return;
+                }
 
                 //https://wiki.vg/Protocol#Interact_Entity
                 switch (packet.getActionType()) {
@@ -493,7 +504,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         }
 
                         int entityId;
-                        if (entity.getDefinition() == EntityDefinitions.ENDER_DRAGON) {
+                        if (entity.getJavaDefinition().is(EntityType.ENDER_DRAGON)) {
                             // Redirects the attack to its body entity, this only happens when
                             // attacking the underbelly of the ender dragon
                             entityId = entity.getEntityId() + 3;

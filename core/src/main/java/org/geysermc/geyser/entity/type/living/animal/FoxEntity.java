@@ -42,7 +42,7 @@ public class FoxEntity extends AnimalEntity {
     }
 
     public void setFoxVariant(IntEntityMetadata entityMetadata) {
-        dirtyMetadata.put(EntityDataTypes.VARIANT, entityMetadata.getPrimitiveValue());
+        metadata.put(EntityDataTypes.VARIANT, entityMetadata.getPrimitiveValue());
     }
 
     public void setFoxFlags(ByteEntityMetadata entityMetadata) {

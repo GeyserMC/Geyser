@@ -30,6 +30,8 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityLinkData;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityLinkPacket;
+import org.geysermc.geyser.api.entity.type.GeyserEntity;
+import org.geysermc.geyser.api.event.java.ServerUpdateEntityPassengersEvent;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
@@ -83,6 +85,18 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
             // Force an update to the passenger metadata
             passenger.updateBedrockMetadata();
             passenger.setMotion(Vector3f.ZERO);
+
+            session.getGeyser().eventBus().fire(new ServerUpdateEntityPassengersEvent.Mount(session) {
+                @Override
+                public @NonNull GeyserEntity addedPassenger() {
+                    return passenger;
+                }
+
+                @Override
+                public @NonNull GeyserEntity vehicle() {
+                    return entity;
+                }
+            });
         }
 
         // Handle passengers that were removed
@@ -123,14 +137,25 @@ public class JavaSetPassengersTranslator extends PacketTranslator<ClientboundSet
                         clientVehicle.getVehicleComponent().onDismount();
                     }
                 }
+
+                session.getGeyser().eventBus().fire(new ServerUpdateEntityPassengersEvent.Dismount(session) {
+                    @Override
+                    public @NonNull GeyserEntity removedPassenger() {
+                        return passenger;
+                    }
+
+                    @Override
+                    public @NonNull GeyserEntity vehicle() {
+                        return entity;
+                    }
+                });
             }
         }
 
         entity.setPassengers(newPassengers);
-
-        switch (entity.getDefinition().entityType()) {
+        switch (entity.getEntityType()) {
             case HORSE, SKELETON_HORSE, DONKEY, MULE, RAVAGER -> {
-                entity.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 181.0f);
+                entity.getMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 181.0f);
                 entity.updateBedrockMetadata();
             }
         }
