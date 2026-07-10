@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 
 import org.cloudburstmc.math.vector.Vector3f;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
@@ -58,7 +59,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
     public void translate(GeyserSession session, ClientboundAddEntityPacket packet) {
         EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(packet.getType());
         if (definition == null) {
-            session.getGeyser().getLogger().debug("Could not find an entity definition with type " + packet.getType());
+            GeyserLogger.get().debug("Could not find an entity definition with type " + packet.getType());
             return;
         }
 
@@ -83,7 +84,7 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
                 entity = session.getEntityCache().getPlayerEntity(packet.getUuid());
                 if (entity == null) {
                     if (SHOW_PLAYER_LIST_LOGS) {
-                        GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
+                        GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.entity.player.failed_list", packet.getUuid()));
                     }
                     return;
                 }

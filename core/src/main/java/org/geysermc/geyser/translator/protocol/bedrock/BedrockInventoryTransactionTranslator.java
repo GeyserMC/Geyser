@@ -43,6 +43,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
@@ -576,8 +577,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         ItemDefinition heldItemId = packet.getItemInHand() == null ? ItemData.AIR.getDefinition() : packet.getItemInHand().getDefinition();
 
         if (!expectedItem.equals(heldItemId)) {
-            session.getGeyser().getLogger().debug(session.bedrockUsername() + "'s held item has desynced! Expected: " + expectedItem + " Received: " + heldItemId);
-            session.getGeyser().getLogger().debug("Packet: " + packet);
+            GeyserLogger.get().debug(session.bedrockUsername() + "'s held item has desynced! Expected: " + expectedItem + " Received: " + heldItemId);
+            GeyserLogger.get().debug("Packet: " + packet);
             return true;
         }
 

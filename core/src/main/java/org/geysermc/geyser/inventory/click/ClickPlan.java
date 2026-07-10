@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.SlotType;
@@ -493,9 +494,7 @@ public final class ClickPlan {
             } else if (action.click.actionType == ContainerActionType.MOVE_TO_HOTBAR_SLOT) {
                 stateIdIncrements = 1;
             } else {
-                if (session.getGeyser().config().debugMode()) {
-                    session.getGeyser().getLogger().debug("Not sure how to handle state ID hack in crafting table: " + plan);
-                }
+                GeyserLogger.get().debug("Not sure how to handle state ID hack in crafting table: " + plan);
                 stateIdIncrements = 1;
             }
             inventory.incrementStateId(stateIdIncrements);

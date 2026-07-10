@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.packet.InventorySlotPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
@@ -109,7 +110,7 @@ public class InventoryUtils {
             // Handled in BedrockContainerCloseTranslator
             // or - client hasn't yet loaded in; wait until inventory is shown
             holder.pending(true);
-            GeyserImpl.getInstance().getLogger().debug(holder.session(), "Inventory (%s) set pending: closing inv? %s, pending inv id? %s",
+            GeyserLogger.get().debug(holder.session(), "Inventory (%s) set pending: closing inv? %s, pending inv id? %s",
                 debugInventory(holder), holder.session().isClosingInventory(), holder.session().getPendingOrCurrentBedrockInventoryId());
             return;
         }
@@ -125,7 +126,7 @@ public class InventoryUtils {
         InventoryHolder<?> holder = session.getInventoryHolder();
         if (holder == null) {
             session.setPendingOrCurrentBedrockInventoryId(-1);
-            GeyserImpl.getInstance().getLogger().debug(session, "No pending inventory, not opening an inventory! Current inventory: %s", debugInventory(holder));
+            GeyserLogger.get().debug(session, "No pending inventory, not opening an inventory! Current inventory: %s", debugInventory(holder));
             return;
         }
 
@@ -133,16 +134,16 @@ public class InventoryUtils {
         if (holder.bedrockId() == session.getPendingOrCurrentBedrockInventoryId()) {
             // Don't re-open an inventory that is already open
             if (!holder.pending() && holder.inventory().isDisplayed()) {
-                GeyserImpl.getInstance().getLogger().debug("Container with id %s is not pending and already displayed!".formatted(holder.bedrockId()));
+                GeyserLogger.get().debug("Container with id %s is not pending and already displayed!".formatted(holder.bedrockId()));
                 return;
             }
 
-            GeyserImpl.getInstance().getLogger().debug(session, "Attempting to open currently delayed inventory with matching bedrock id! " + holder.bedrockId());
+            GeyserLogger.get().debug(session, "Attempting to open currently delayed inventory with matching bedrock id! " + holder.bedrockId());
             openAndUpdateInventory(holder);
             return;
         }
 
-        GeyserImpl.getInstance().getLogger().debug(session, "Opening current pending inventory! " + debugInventory(holder));
+        GeyserLogger.get().debug(session, "Opening current pending inventory! " + debugInventory(holder));
         displayInventory(holder);
         if (holder.inventory() instanceof MerchantContainer merchantContainer && merchantContainer.getPendingOffersPacket() != null) {
             JavaMerchantOffersTranslator.openMerchant(session, merchantContainer.getPendingOffersPacket(), merchantContainer);
@@ -159,7 +160,7 @@ public class InventoryUtils {
             if (holder.requiresOpeningDelay()) {
                 holder.pending(true);
                 scheduleInventoryOpen(holder.session());
-                GeyserImpl.getInstance().getLogger().debug(holder.session(), "Queuing virtual inventory (%s)", debugInventory(holder));
+                GeyserLogger.get().debug(holder.session(), "Queuing virtual inventory (%s)", debugInventory(holder));
             } else {
                 openAndUpdateInventory(holder);
             }
@@ -200,7 +201,7 @@ public class InventoryUtils {
             }
             holder.closeInventory(confirm);
             session.getBundleCache().onInventoryClose(holder.inventory());
-            GeyserImpl.getInstance().getLogger().debug(session, "Closed inventory: (java id: %s/bedrock id: %s), waiting on confirm? %s", holder.javaId(), holder.bedrockId(), session.isClosingInventory());
+            GeyserLogger.get().debug(session, "Closed inventory: (java id: %s/bedrock id: %s), waiting on confirm? %s", holder.javaId(), holder.bedrockId(), session.isClosingInventory());
         }
 
         session.setInventoryHolder(null);
@@ -268,7 +269,7 @@ public class InventoryUtils {
     }
 
     public static boolean canStack(GeyserItemStack item1, GeyserItemStack item2) {
-        if (GeyserImpl.getInstance().config().debugMode())
+        if (GeyserLogger.get().isDebug())
             canStackDebug(item1, item2);
         if (item1.isEmpty() || item2.isEmpty())
             return false;
@@ -280,10 +281,10 @@ public class InventoryUtils {
         DataComponents components2 = item2.getComponents();
         if (components1 != null && components2 != null) {
             if (components1.hashCode() == components2.hashCode() && !components1.equals(components2)) {
-                GeyserImpl.getInstance().getLogger().error("DEBUG: DataComponents hash collision");
-                GeyserImpl.getInstance().getLogger().error("hash: " + components1.hashCode());
-                GeyserImpl.getInstance().getLogger().error("components1: " + components1);
-                GeyserImpl.getInstance().getLogger().error("components2: " + components2);
+                GeyserLogger.get().error("DEBUG: DataComponents hash collision");
+                GeyserLogger.get().error("hash: " + components1.hashCode());
+                GeyserLogger.get().error("components1: " + components1);
+                GeyserLogger.get().error("components2: " + components2);
             }
         }
     }
@@ -324,7 +325,7 @@ public class InventoryUtils {
         ItemDefinition itemDefinition = mappings.getDefinition(unusableSpaceBlock);
 
         if (itemDefinition == null) {
-            GeyserImpl.getInstance().getLogger().error("Invalid value " + unusableSpaceBlock + ". Resorting to barrier block.");
+            GeyserLogger.get().error("Invalid value " + unusableSpaceBlock + ". Resorting to barrier block.");
             return mappings.getStoredItems().barrier().getBedrockDefinition();
         } else {
             return itemDefinition;
@@ -408,7 +409,7 @@ public class InventoryUtils {
             }
             return acceptsAsInput(session, display, itemStack);
         }
-        session.getGeyser().getLogger().warning("Unknown slot display type: " + slotDisplay);
+        GeyserLogger.get().warning("Unknown slot display type: " + slotDisplay);
         return false;
     }
 

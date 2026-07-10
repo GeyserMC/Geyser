@@ -42,6 +42,7 @@ import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
@@ -295,7 +296,7 @@ public class LivingEntity extends Entity implements Tickable {
 
             // If we couldn't map it, skip it
             if (effectType == null) {
-                GeyserImpl.getInstance().getLogger().debug("Could not map particle " + particle.getType() + " to an effect for entity " + this.entityId);
+                GeyserLogger.get().debug("Could not map particle " + particle.getType() + " to an effect for entity " + this.entityId);
                 continue;
             }
 

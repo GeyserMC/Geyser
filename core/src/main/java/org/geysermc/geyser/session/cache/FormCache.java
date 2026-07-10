@@ -37,6 +37,7 @@ import org.geysermc.cumulus.form.Form;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.form.impl.FormDefinitions;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.session.GeyserSession;
 
@@ -127,7 +128,7 @@ public class FormCache {
             formDefinitions.definitionFor(form)
                     .handleFormResponse(form, response.getFormData());
         } catch (Exception e) {
-            GeyserImpl.getInstance().getLogger().error("Error while processing form response!", e);
+            GeyserLogger.get().error("Error while processing form response!", e);
         }
     }
 
@@ -143,7 +144,7 @@ public class FormCache {
                 try {
                     formDefinitions.definitionFor(form).handleFormResponse(form, "");
                 } catch (Exception e) {
-                    GeyserImpl.getInstance().getLogger().error("Error while closing form!", e);
+                    GeyserLogger.get().error("Error while closing form!", e);
                 }
             }
         }

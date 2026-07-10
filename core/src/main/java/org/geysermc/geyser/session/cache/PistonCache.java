@@ -33,6 +33,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
@@ -102,9 +103,9 @@ public class PistonCache {
             pistons.entrySet().removeIf((entry) -> entry.getValue().canBeRemoved());
 
             if (pistons.isEmpty() && !movingBlocksMap.isEmpty()) {
-                session.getGeyser().getLogger().error("The moving block map has de-synced!");
+                GeyserLogger.get().error("The moving block map has de-synced!");
                 for (Map.Entry<Vector3i, PistonBlockEntity> entry : movingBlocksMap.entrySet()) {
-                    session.getGeyser().getLogger().error("Moving Block at " + entry.getKey() + " was previously owned by the piston at " + entry.getValue().getPosition());
+                    GeyserLogger.get().error("Moving Block at " + entry.getKey() + " was previously owned by the piston at " + entry.getValue().getPosition());
                 }
             }
         }

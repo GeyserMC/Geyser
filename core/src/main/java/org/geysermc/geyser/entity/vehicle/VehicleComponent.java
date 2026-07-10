@@ -37,6 +37,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -1005,7 +1006,7 @@ public class VehicleComponent<T extends Entity & ClientVehicle> {
         protected int getBlockId(int x, int y, int z) {
             int index = this.blockIter.getIndex(x, y, z);
             if (index == -1) {
-                vehicle.getSession().getGeyser().getLogger().debug("[client-vehicle] Block cache miss");
+                GeyserLogger.get().debug("[client-vehicle] Block cache miss");
                 return vehicle.getSession().getGeyser().getWorldManager().getBlockAt(vehicle.getSession(), x, y, z);
             }
 

@@ -33,6 +33,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
@@ -115,7 +116,7 @@ public class MappingsReader_v1 extends MappingsReader {
                             CustomItemDefinition customItemData = this.readItemMappingEntry(vanillaItemIdentifier, data);
                             consumer.accept(vanillaItemIdentifier, customItemData);
                         } catch (InvalidCustomMappingsFileException e) {
-                            GeyserImpl.getInstance().getLogger().error("Error in registering items for custom mapping file: " + file.toString(), e);
+                            GeyserLogger.get().error("Error in registering items for custom mapping file: " + file.toString(), e);
                         }
                     });
                 }
@@ -140,8 +141,8 @@ public class MappingsReader_v1 extends MappingsReader {
                         CustomBlockMapping customBlockMapping = this.readBlockMappingEntry(identifier, jsonObject);
                         consumer.accept(identifier, customBlockMapping);
                     } catch (Exception e) {
-                        GeyserImpl.getInstance().getLogger().error("Error in registering blocks for custom mapping file: " + file.toString());
-                        GeyserImpl.getInstance().getLogger().error("due to entry: " + entry, e);
+                        GeyserLogger.get().error("Error in registering blocks for custom mapping file: " + file.toString());
+                        GeyserLogger.get().error("due to entry: " + entry, e);
                     }
                 }
             });
@@ -407,7 +408,7 @@ public class MappingsReader_v1 extends MappingsReader {
         // Deprecated; but we should map it as best we can
         BoxComponent extendedCollisionBox = readBoxComponent(node.get("extended_collision_box"));
         if (extendedCollisionBox != null) {
-            GeyserImpl.getInstance().getLogger().warning("Extended collision boxes are deprecated and will be removed in a future version. Please increase the height using collision boxes instead.");
+            GeyserLogger.get().warning("Extended collision boxes are deprecated and will be removed in a future version. Please increase the height using collision boxes instead.");
 
             // Map extended collision boxes by adding an increased height to the collisions set
             // For that, we increase the height and limit it to extend by 0.5 blocks max

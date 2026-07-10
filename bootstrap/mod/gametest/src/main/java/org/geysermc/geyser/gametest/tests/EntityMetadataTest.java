@@ -42,6 +42,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.GameType;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.gametest.mixin.SynchedEntityDataAccessor;
 import org.geysermc.geyser.gametest.util.SynchedEntityDataDebugger;
@@ -101,7 +102,7 @@ public class EntityMetadataTest extends GeyserTestInstance {
                         + SynchedEntityDataDebugger.findNameOfSerializer(dataItems[i].getAccessor().serializer()) + ")");
                 }
             } catch (GameTestAssertException exception) {
-                GeyserImpl.getInstance().getLogger().warning("Metadata for entity type " + entityType + " are as follows:\n" + SynchedEntityDataDebugger.prettyPrintEntityDataAccessors(javaEntity.getClass(), dataItems));
+                GeyserLogger.get().warning("Metadata for entity type " + entityType + " are as follows:\n" + SynchedEntityDataDebugger.prettyPrintEntityDataAccessors(javaEntity.getClass(), dataItems));
                 throw exception;
             } finally {
                 javaEntity.discard();

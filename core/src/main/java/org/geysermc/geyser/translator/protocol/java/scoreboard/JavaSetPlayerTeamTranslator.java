@@ -39,13 +39,11 @@ import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.
 
 @Translator(packet = ClientboundSetPlayerTeamPacket.class)
 public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSetPlayerTeamPacket> {
-    private final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
+    private final GeyserLogger logger = GeyserLogger.get();
 
     @Override
     public void translate(GeyserSession session, ClientboundSetPlayerTeamPacket packet) {
-        if (logger.isDebug()) {
-            logger.debug("Team packet " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
-        }
+        logger.debug("Team packet " + packet.getTeamName() + " " + packet.getAction() + " " + Arrays.toString(packet.getPlayers()));
 
         if ((packet.getAction() == TeamAction.ADD_PLAYER || packet.getAction() == TeamAction.REMOVE_PLAYER) && packet.getPlayers().length == 0) {
             return;

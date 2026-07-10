@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java.entity;
 
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.EntityDefinition;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -45,10 +46,10 @@ public class JavaSetEntityDataTranslator extends PacketTranslator<ClientboundSet
         EntityDefinition<?> definition = entity.getDefinition();
         for (EntityMetadata<?, ?> metadata : packet.getMetadata()) {
             if (metadata.getId() >= definition.translators().size()) {
-                if (session.getGeyser().config().debugMode()) {
+                if (GeyserLogger.get().isDebug()) {
                     // Minecraft client just ignores these
-                    session.getGeyser().getLogger().warning("Metadata ID " + metadata.getId() + " is out of bounds of known entity metadata size " + definition.translators().size() + " for entity type " + entity.getDefinition().entityType());
-                    session.getGeyser().getLogger().debug(metadata.toString());
+                    GeyserLogger.get().warning("Metadata ID " + metadata.getId() + " is out of bounds of known entity metadata size " + definition.translators().size() + " for entity type " + entity.getDefinition().entityType());
+                    GeyserLogger.get().debug(metadata.toString());
                 }
                 continue;
             }

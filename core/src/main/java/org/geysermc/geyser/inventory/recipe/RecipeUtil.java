@@ -39,6 +39,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeDa
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.DefaultDescriptor;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemDescriptorWithCount;
 import org.cloudburstmc.protocol.bedrock.data.inventory.descriptor.ItemTagDescriptor;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
@@ -193,7 +194,7 @@ public class RecipeUtil {
             }
             return Collections.unmodifiableList(itemDescriptors);
         }
-        session.getGeyser().getLogger().warning("Unimplemented slot display type for input: " + slotDisplay);
+        GeyserLogger.get().warning("Unimplemented slot display type for input: " + slotDisplay);
         return null;
     }
 
@@ -212,7 +213,7 @@ public class RecipeUtil {
             GeyserItemStack stack = GeyserItemStack.from(session, slotDisplay);
             return stack.isEmpty() ? null : Pair.of(stack.asItem(), ItemTranslator.translateToBedrock(session, stack));
         }
-        session.getGeyser().getLogger().warning("Unimplemented slot display type for output: " + slotDisplay);
+        GeyserLogger.get().warning("Unimplemented slot display type for output: " + slotDisplay);
         return null;
     }
 

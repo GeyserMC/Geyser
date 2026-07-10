@@ -28,6 +28,7 @@ package org.geysermc.geyser.network;
 import org.cloudburstmc.protocol.bedrock.packet.*;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
 
 /**
@@ -46,7 +47,7 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     }
 
     PacketSignal defaultHandler(BedrockPacket packet) {
-        geyser.getLogger().debug("Handled packet: " + packet.getClass().getSimpleName());
+        GeyserLogger.get().debug("Handled packet: " + packet.getClass().getSimpleName());
         return PacketSignal.HANDLED;
     }
 

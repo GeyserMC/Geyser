@@ -50,6 +50,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
 import org.cloudburstmc.protocol.bedrock.data.BlockPropertyData;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.nonvanilla.JavaBlockState;
@@ -167,7 +168,7 @@ public final class BlockRegistryPopulator {
                     CustomBlockRegistryPopulator.generateCustomBlockStates(customBlock, customBlockStates, customExtBlockStates);
                 }
                 blockStates.addAll(customBlockStates);
-                GeyserImpl.getInstance().getLogger().debug("Added " + customBlockStates.size() + " custom block states to v" + protocolVersion + " palette.");
+                GeyserLogger.get().debug("Added " + customBlockStates.size() + " custom block states to v" + protocolVersion + " palette.");
 
                 // The palette is sorted by the FNV1 64-bit hash of the name
                 blockStates.sort((a, b) -> Long.compareUnsigned(fnv164(a.getString("name")), fnv164(b.getString("name"))));
@@ -364,7 +365,7 @@ public final class BlockRegistryPopulator {
                 for (Map.Entry<JavaBlockState, CustomBlockState> entry : nonVanillaStateOverrides.entrySet()) {
                     GeyserBedrockBlock bedrockDefinition = customBlockStateDefinitions.get(entry.getValue());
                     if (bedrockDefinition == null) {
-                        GeyserImpl.getInstance().getLogger().warning("Unable to find custom block for " + entry.getValue());
+                        GeyserLogger.get().warning("Unable to find custom block for " + entry.getValue());
                         continue;
                     }
 

@@ -75,6 +75,13 @@ public class GeyserVelocityLogger implements GeyserLogger {
     }
 
     @Override
+    public void debug(String message, Throwable t) {
+        if (debug) {
+            logger.info(message, t);
+        }
+    }
+
+    @Override
     public void debug(String message, Object... arguments) {
         if (debug) {
             logger.info(String.format(message, arguments));

@@ -27,6 +27,7 @@ package org.geysermc.geyser.session.cache.waypoint;
 
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3i;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.Vec3iWaypointData;
@@ -47,7 +48,7 @@ public class CoordinatesWaypoint extends GeyserWaypoint {
         if (data instanceof Vec3iWaypointData(Vector3i vector)) {
             setPosition(vector.toFloat());
         } else {
-            session.getGeyser().getLogger().warning("Received incorrect waypoint data " + data.getClass() + " for coordinates waypoint");
+            GeyserLogger.get().warning("Received incorrect waypoint data " + data.getClass() + " for coordinates waypoint");
         }
     }
 }

@@ -73,7 +73,7 @@ public final class FloodgateSkinUploader {
     @Getter private int subscribersCount;
 
     public FloodgateSkinUploader(GeyserImpl geyser) {
-        this.logger = geyser.getLogger();
+        this.logger = GeyserLogger.get();
         this.client = new WebSocketClient(Constants.GLOBAL_API_WS_URI) {
             @Override
             public void onOpen(ServerHandshake handshake) {

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.inventory;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.CrafterInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
@@ -82,7 +83,7 @@ public class CrafterContainer extends Container {
 
     public void setSlot(int slot, boolean enabled) {
         if (!isCraftingGrid(slot)) {
-            GeyserImpl.getInstance().getLogger().warning("Crafter slot out of bounds: " + slot);
+            GeyserLogger.get().warning("Crafter slot out of bounds: " + slot);
             return;
         }
 

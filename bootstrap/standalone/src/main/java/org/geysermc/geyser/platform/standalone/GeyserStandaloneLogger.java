@@ -122,6 +122,11 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
     }
 
     @Override
+    public void debug(String message, Throwable t) {
+        log.debug(ChatColor.GRAY + "{}", message, t);
+    }
+
+    @Override
     public void debug(String message, Object... arguments) {
         // We can't use the debug call that would format for us as we're using Java's string formatting
         log.debug(ChatColor.GRAY + String.format(message, arguments));
@@ -130,6 +135,8 @@ public class GeyserStandaloneLogger extends SimpleTerminalConsole implements Gey
     @Override
     public void setDebug(boolean debug) {
         Configurator.setLevel(log.getName(), debug ? Level.DEBUG : Level.INFO);
+        // Hacky, yes, does it work? Also yes.
+        ((GeyserStandaloneBootstrap) GeyserImpl.getInstance().getBootstrap()).getLog4jLogger().get().setLevel(debug ? Level.DEBUG : Level.INFO);
     }
 
     @Override

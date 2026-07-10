@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -118,7 +119,7 @@ public class DumpCommand extends GeyserCommand {
             dumpData = gson.toJson(dump);
         } catch (Exception e) {
             source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.dump.collect_error", source.locale()));
-            geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.dump.collect_error_short"), e);
+            GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.commands.dump.collect_error_short"), e);
             return;
         }
 
@@ -133,7 +134,7 @@ public class DumpCommand extends GeyserCommand {
                 outputStream.close();
             } catch (IOException e) {
                 source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.dump.write_error", source.locale()));
-                geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.dump.write_error_short"), e);
+                GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.commands.dump.write_error_short"), e);
                 return;
             }
 
@@ -148,9 +149,9 @@ public class DumpCommand extends GeyserCommand {
                 responseNode = JsonUtils.parseJson(response);
             } catch (Throwable e) {
                 source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.dump.upload_error", source.locale()));
-                geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.dump.upload_error_short"), e);
+                GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.commands.dump.upload_error_short"), e);
                 if (e instanceof JsonParseException && response != null) {
-                    geyser.getLogger().error("Failed to parse dump response! got: " + response);
+                    GeyserLogger.get().error("Failed to parse dump response! got: " + response);
                 }
                 return;
             }
@@ -165,7 +166,7 @@ public class DumpCommand extends GeyserCommand {
 
         source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.dump.message", source.locale()) + " " + ChatColor.DARK_AQUA + uploadedDumpUrl);
         if (!source.isConsole()) {
-            geyser.getLogger().info(GeyserLocale.getLocaleStringLog("geyser.commands.dump.created", source.name(), uploadedDumpUrl));
+            GeyserLogger.get().info(GeyserLocale.getLocaleStringLog("geyser.commands.dump.created", source.name(), uploadedDumpUrl));
         }
     }
 }

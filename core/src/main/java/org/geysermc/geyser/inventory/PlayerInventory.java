@@ -30,6 +30,7 @@ import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.type.Item;
@@ -86,7 +87,7 @@ public class PlayerInventory extends Inventory {
 
     public GeyserItemStack getItemInHand() {
         if (36 + heldItemSlot > this.size) {
-            GeyserImpl.getInstance().getLogger().debug("Held item slot was larger than expected!");
+            GeyserLogger.get().debug("Held item slot was larger than expected!");
             return GeyserItemStack.EMPTY;
         }
         return items[36 + heldItemSlot];
@@ -106,7 +107,7 @@ public class PlayerInventory extends Inventory {
 
     public void setItemInHand(@NonNull GeyserItemStack item) {
         if (36 + heldItemSlot > this.size) {
-            GeyserImpl.getInstance().getLogger().debug("Held item slot was larger than expected!");
+            GeyserLogger.get().debug("Held item slot was larger than expected!");
             return;
         }
         items[36 + heldItemSlot] = item;

@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.RespawnPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TeleportCache;
@@ -114,13 +115,11 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
 
             ChunkUtils.updateChunkPosition(session, entityPosition.toInt());
 
-            if (session.getGeyser().config().debugMode()) {
-                session.getGeyser().getLogger().debug("Spawned player at " + packet.getPosition());
-            }
+            GeyserLogger.get().debug("Spawned player at " + packet.getPosition());
             return;
         }
 
-        session.getGeyser().getLogger().debug("Teleport (" + teleportId + ") from " + entity.position());
+        GeyserLogger.get().debug("Teleport (" + teleportId + ") from " + entity.position());
 
         Vector3f lastPlayerPosition = entity.position();
         float lastPlayerPitch = entity.getPitch();
@@ -158,7 +157,7 @@ public class JavaPlayerPositionTranslator extends PacketTranslator<ClientboundPl
             session.sendUpstreamPacket(entityMotionPacket);
         }
 
-        session.getGeyser().getLogger().debug("to " + entity.position());
+        GeyserLogger.get().debug("to " + entity.position());
     }
 
     private void acceptTeleport(GeyserSession session, Vector3d position, float yaw, float pitch, int id) {

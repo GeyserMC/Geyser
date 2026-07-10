@@ -51,7 +51,7 @@ import java.nio.charset.StandardCharsets;
 
 @Translator(packet = ClientboundCustomPayloadPacket.class)
 public class JavaCustomPayloadTranslator extends PacketTranslator<ClientboundCustomPayloadPacket> {
-    private final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
+    private final GeyserLogger logger = GeyserLogger.get();
 
     @Override
     public void translate(GeyserSession session, ClientboundCustomPayloadPacket packet) {

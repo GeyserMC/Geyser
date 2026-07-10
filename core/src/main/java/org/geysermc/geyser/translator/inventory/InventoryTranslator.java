@@ -55,6 +55,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemS
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponseStatus;
 import org.cloudburstmc.protocol.bedrock.packet.ItemStackResponsePacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.BedrockContainerSlot;
 import org.geysermc.geyser.inventory.CartographyContainer;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -306,8 +307,8 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                 case PLACE: {
                     TransferItemStackRequestAction transferAction = (TransferItemStackRequestAction) action;
                     if (!(checkNetId(session, inventory, transferAction.getSource()) && checkNetId(session, inventory, transferAction.getDestination()))) {
-                        if (session.getGeyser().config().debugMode()) {
-                            session.getGeyser().getLogger().error("DEBUG: About to reject TAKE/PLACE request made by " + session.bedrockUsername());
+                        if (GeyserLogger.get().isDebug()) {
+                            GeyserLogger.get().error("DEBUG: About to reject TAKE/PLACE request made by " + session.bedrockUsername());
                             dumpStackRequestDetails(session, inventory, transferAction.getSource(), transferAction.getDestination());
                         }
                         return rejectRequest(request);
@@ -478,7 +479,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
 
                     if (!(checkNetId(session, inventory, source) && checkNetId(session, inventory, destination))) {
                         if (session.getGeyser().config().debugMode()) {
-                            session.getGeyser().getLogger().error("DEBUG: About to reject SWAP request made by " + session.bedrockUsername());
+                            GeyserLogger.get().error("DEBUG: About to reject SWAP request made by " + session.bedrockUsername());
                             dumpStackRequestDetails(session, inventory, source, destination);
                         }
                         return rejectRequest(request);
@@ -984,7 +985,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
      *                   as bad (false).
      */
     protected static ItemStackResponse rejectRequest(ItemStackRequest request, boolean throwError) {
-        if (throwError && GeyserImpl.getInstance().config().debugMode()) {
+        if (throwError && GeyserLogger.get().isDebug()) {
             new Throwable("DEBUGGING: ItemStackRequest rejected " + request.toString()).printStackTrace();
         }
         return new ItemStackResponse(ItemStackResponseStatus.ERROR, request.getRequestId(), Collections.emptyList());
@@ -994,10 +995,10 @@ public abstract class InventoryTranslator<Type extends Inventory> {
      * Print out the contents of an ItemStackRequest, should the net ID check fail.
      */
     protected void dumpStackRequestDetails(GeyserSession session, Type inventory, ItemStackRequestSlotData source, ItemStackRequestSlotData destination) {
-        session.getGeyser().getLogger().error("Source: " + source.toString() + " Result: " + checkNetId(session, inventory, source));
-        session.getGeyser().getLogger().error("Destination: " + destination.toString() + " Result: " + checkNetId(session, inventory, destination));
-        session.getGeyser().getLogger().error("Geyser's record of source slot: " + inventory.getItem(bedrockSlotToJava(source)));
-        session.getGeyser().getLogger().error("Geyser's record of destination slot: " + inventory.getItem(bedrockSlotToJava(destination)));
+        GeyserLogger.get().error("Source: " + source.toString() + " Result: " + checkNetId(session, inventory, source));
+        GeyserLogger.get().error("Destination: " + destination.toString() + " Result: " + checkNetId(session, inventory, destination));
+        GeyserLogger.get().error("Geyser's record of source slot: " + inventory.getItem(bedrockSlotToJava(source)));
+        GeyserLogger.get().error("Geyser's record of destination slot: " + inventory.getItem(bedrockSlotToJava(destination)));
     }
 
     public boolean checkNetId(GeyserSession session, Type inventory, ItemStackRequestSlotData slotInfoData) {

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.registry;
 
 import org.cloudburstmc.protocol.bedrock.packet.ServerboundDiagnosticsPacket;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundDelimiterPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.ClientboundTabListPacket;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundChunkBatchStartPacket;
@@ -73,9 +74,9 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
             }
             return true;
         } else {
-            if (GeyserImpl.getInstance().config().debugMode()) {
+            if (GeyserLogger.get().isDebug()) {
                 if (!IGNORED_PACKETS.contains(clazz)) {
-                    GeyserImpl.getInstance().getLogger().debug("Could not find packet for " + (packet.toString().length() > 25 ? packet.getClass().getSimpleName() : packet));
+                    GeyserLogger.get().debug("Could not find packet for " + (packet.toString().length() > 25 ? packet.getClass().getSimpleName() : packet));
                 }
             }
 
@@ -91,9 +92,9 @@ public class PacketTranslatorRegistry<T> extends AbstractMappedRegistry<Class<? 
         try {
             translator.translate(session, packet);
         } catch (ErosionCancellationException ex) {
-            GeyserImpl.getInstance().getLogger().debug("Caught ErosionCancellationException");
+            GeyserLogger.get().debug("Caught ErosionCancellationException");
         } catch (Throwable ex) {
-            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.network.translator.packet.failed", packet.getClass().getSimpleName()), ex);
+            GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.network.translator.packet.failed", packet.getClass().getSimpleName()), ex);
             ex.printStackTrace();
         }
     }

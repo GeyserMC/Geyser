@@ -38,6 +38,7 @@ import net.minecraft.server.network.ServerConnectionListener;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.network.netty.GeyserInjector;
 import org.geysermc.geyser.network.netty.LocalServerChannelWrapper;
 import org.geysermc.geyser.platform.mod.platform.GeyserModPlatform;
@@ -125,10 +126,7 @@ public class GeyserModInjector extends GeyserInjector {
                 childHandler = (ChannelInitializer<Channel>) childHandlerField.get(handler);
                 break;
             } catch (Exception e) {
-                if (bootstrap.config().debugMode()) {
-                    bootstrap.getGeyserLogger().debug("The handler " + name + " isn't a ChannelInitializer. THIS ERROR IS SAFE TO IGNORE!");
-                    e.printStackTrace();
-                }
+                bootstrap.getGeyserLogger().debug("The handler " + name + " isn't a ChannelInitializer. THIS ERROR IS SAFE TO IGNORE!", e);
             }
         }
         if (childHandler == null) {
@@ -149,8 +147,7 @@ public class GeyserModInjector extends GeyserInjector {
                 eventLoopGroup.shutdownGracefully().sync();
                 eventLoopGroup = null;
             } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error("Unable to shut down injector! " + e.getMessage());
-                e.printStackTrace();
+                GeyserLogger.get().error("Unable to shut down injector!", e);
             }
         }
 

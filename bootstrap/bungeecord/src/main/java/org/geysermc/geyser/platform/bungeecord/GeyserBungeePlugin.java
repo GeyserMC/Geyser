@@ -310,10 +310,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         try {
             return new BungeeMetrics(this);
         } catch (IOException e) {
-            this.geyserLogger.debug("Integrated bStats support failed to load.");
-            if (this.config().debugMode()) {
-                e.printStackTrace();
-            }
+            this.geyserLogger.debug("Integrated bStats support failed to load.", e);
             return null;
         }
     }

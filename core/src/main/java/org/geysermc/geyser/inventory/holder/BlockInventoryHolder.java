@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ContainerClosePacket;
 import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.Container;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.LecternContainer;
@@ -102,7 +103,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         if (Objects.equals(position, previous.getHolderPosition())) {
             return true;
         } else {
-            GeyserImpl.getInstance().getLogger().debug(session, "Not reusing inventory due to virtual block holder changing (%s -> %s)!",
+            GeyserLogger.get().debug(session, "Not reusing inventory due to virtual block holder changing (%s -> %s)!",
                 previous.getHolderPosition(), position);
             return false;
         }
@@ -196,7 +197,7 @@ public class BlockInventoryHolder extends InventoryHolder {
         containerOpenPacket.setUniqueEntityId(container.getHolderId());
         session.sendUpstreamPacket(containerOpenPacket);
 
-        GeyserImpl.getInstance().getLogger().debug(session, containerOpenPacket.toString());
+        GeyserLogger.get().debug(session, containerOpenPacket.toString());
     }
 
     @Override

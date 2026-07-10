@@ -31,6 +31,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.MinecraftLocale;
@@ -75,7 +76,7 @@ public class GameRuleHandler {
             for (Map.Entry<Key, String> entry : packet.getValues().entrySet()) {
                 GameRule<?> gameRule = Registries.GAME_RULES.get(entry.getKey());
                 if (gameRule == null) {
-                    GeyserImpl.getInstance().getLogger().debug("Unknown gamerule: " + entry.getKey());
+                    GeyserLogger.get().debug("Unknown gamerule: " + entry.getKey());
                     continue;
                 }
                 values.computeIfAbsent(gameRule.category(), (category) -> new Object2ObjectArrayMap<>()).put(gameRule, entry.getValue());
@@ -138,12 +139,12 @@ public class GameRuleHandler {
         try {
             value = gameRule.adapter().parser().apply(newValue);
         } catch (Throwable e) {
-            GeyserImpl.getInstance().getLogger().debug("Failed to parse value for gamerule %s (old value: %s, new value: %s)", gameRule.key(), previous, newValue);
+            GeyserLogger.get().debug("Failed to parse value for gamerule %s (old value: %s, new value: %s)", gameRule.key(), previous, newValue);
             return;
         }
 
         if (!gameRule.validate(value)) {
-            GeyserImpl.getInstance().getLogger().debug("Got invalid value for gamerule %s (old value: %s, new value: %s)", gameRule.key(), previous, newValue);
+            GeyserLogger.get().debug("Got invalid value for gamerule %s (old value: %s, new value: %s)", gameRule.key(), previous, newValue);
             return;
         }
 

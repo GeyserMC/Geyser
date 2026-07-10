@@ -26,6 +26,7 @@
 package org.geysermc.geyser.util.metrics;
 
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 
 public final class ProvidedMetricsPlatform implements MetricsPlatform {
 
@@ -41,16 +42,16 @@ public final class ProvidedMetricsPlatform implements MetricsPlatform {
 
     @Override
     public boolean logFailedRequests() {
-        return GeyserImpl.getInstance().config().debugMode();
+        return GeyserLogger.get().isDebug();
     }
 
     @Override
     public boolean logSentData() {
-        return GeyserImpl.getInstance().config().debugMode();
+        return GeyserLogger.get().isDebug();
     }
 
     @Override
     public boolean logResponseStatusText() {
-        return GeyserImpl.getInstance().config().debugMode();
+        return GeyserLogger.get().isDebug();
     }
 }

@@ -31,6 +31,7 @@ import java.util.Objects;
 import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.pack.GeyserResourcePack;
@@ -112,14 +113,14 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
                     var currentVersion = holder.version().toString();
                     var updatedVersion = updatedPack.manifest().header().version().toString();
                     if (currentVersion.equals(updatedVersion)) {
-                        GeyserImpl.getInstance().getLogger().info("No version or pack change detected: Was the resource pack server down?");
+                        GeyserLogger.get().info("No version or pack change detected: Was the resource pack server down?");
                         return;
                     } else {
-                        GeyserImpl.getInstance().getLogger().info("Detected a new resource pack version (%s, old version %s) for pack at %s!"
+                        GeyserLogger.get().info("Detected a new resource pack version (%s, old version %s) for pack at %s!"
                             .formatted(currentVersion, updatedVersion, url));
                     }
                 } else {
-                    GeyserImpl.getInstance().getLogger().info("Detected a new resource pack at the url %s!".formatted(url));
+                    GeyserLogger.get().info("Detected a new resource pack at the url %s!".formatted(url));
                     Registries.RESOURCE_PACKS.get().remove(holder.uuid());
                 }
 
@@ -131,7 +132,7 @@ public class GeyserUrlPackCodec extends UrlPackCodec {
             })
             .whenComplete((result, throwable) -> {
                 if (throwable != null) {
-                    GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url), throwable);
+                    GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url), throwable);
                     Registries.RESOURCE_PACKS.get().remove(holder.uuid());
                 }
             });

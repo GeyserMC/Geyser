@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrays;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -91,7 +92,7 @@ public class GeyserLocale {
             // The config's locale is valid
             DEFAULT_LOCALE = loadedNewLocale;
         } else if (SYSTEM_LOCALE_INVALID) {
-            geyser.getLogger().warning(Locale.getDefault().toString() + " is not a valid Bedrock language.");
+            GeyserLogger.get().warning(Locale.getDefault().toString() + " is not a valid Bedrock language.");
         }
     }
 

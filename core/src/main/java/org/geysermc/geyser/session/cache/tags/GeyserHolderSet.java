@@ -32,6 +32,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.TagCache;
 import org.geysermc.geyser.session.cache.registry.JavaRegistryKey;
@@ -207,7 +208,7 @@ public final class GeyserHolderSet<T> {
 
         String expected = reader == null ? "either a tag, a string ID, or a list of string IDs"
             : "either a tag, a string ID, an inline registry element, a list of string IDs, or a list of inline registry elements";
-        GeyserImpl.getInstance().getLogger().warning("Failed parsing HolderSet for registry + " + registry + "! Expected " + expected + ", found " + holderSet);
+        GeyserLogger.get().warning("Failed parsing HolderSet for registry + " + registry + "! Expected " + expected + ", found " + holderSet);
         return new GeyserHolderSet<>(registry);
     }
 }

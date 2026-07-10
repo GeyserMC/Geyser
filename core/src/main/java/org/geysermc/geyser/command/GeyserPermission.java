@@ -27,6 +27,7 @@ package org.geysermc.geyser.command;
 
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.geyser.GeyserLogger;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.key.CloudKey;
 import org.incendo.cloud.permission.Permission;

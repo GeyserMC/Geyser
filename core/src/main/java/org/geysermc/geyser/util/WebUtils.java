@@ -142,7 +142,7 @@ public class WebUtils {
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     public static @NonNull Path downloadRemotePack(String url, boolean force) throws IOException {
-        GeyserLogger logger = GeyserImpl.getInstance().getLogger();
+        GeyserLogger logger = GeyserLogger.get();
         try {
             HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
 
@@ -197,7 +197,7 @@ public class WebUtils {
                         Files.deleteIfExists(downloadLocation);
                     }
                 } catch (IOException e) {
-                    GeyserImpl.getInstance().getLogger().error("Failed to read cached pack metadata! " + e);
+                    logger.error("Failed to read cached pack metadata! " + e);
                     packMetadata.toFile().deleteOnExit();
                 }
             }
@@ -377,11 +377,9 @@ public class WebUtils {
             if (attr != null && attr.size() > 0) {
                 return ((String) attr.get(0)).split(" ");
             }
-        } catch (Exception | NoClassDefFoundError ex) { // Check for a NoClassDefFoundError to prevent Android crashes
-            if (geyser.config().debugMode()) {
-                geyser.getLogger().debug("Exception while trying to find an SRV record for the remote host.");
-                ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
-            }
+        } catch (Exception ex) {
+            GeyserLogger.get().debug("Exception while trying to find an SRV record for the remote host.", ex);
+            ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
         }
         return null;
     }
@@ -403,7 +401,7 @@ public class WebUtils {
 
             return connectionToString(con).lines();
         } catch (Exception e) {
-            GeyserImpl.getInstance().getLogger().error("Error while trying to get a stream from " + reqURL, e);
+            GeyserLogger.get().error("Error while trying to get a stream from " + reqURL, e);
             return Stream.empty();
         }
     }

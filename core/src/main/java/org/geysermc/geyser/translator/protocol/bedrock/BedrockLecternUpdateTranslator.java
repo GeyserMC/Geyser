@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.LecternUpdatePacket;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.inventory.InventoryHolder;
 import org.geysermc.geyser.inventory.LecternContainer;
 import org.geysermc.geyser.session.GeyserSession;
@@ -46,7 +47,7 @@ public class BedrockLecternUpdateTranslator extends PacketTranslator<LecternUpda
         // Bedrock wants to either move a page or exit
         InventoryHolder<?> holder = session.getInventoryHolder();
         if (holder == null || !(holder.inventory() instanceof LecternContainer lecternContainer)) {
-            session.getGeyser().getLogger().debug("Expected lectern but it wasn't open!");
+            GeyserLogger.get().debug("Expected lectern but it wasn't open!");
             return;
         }
 

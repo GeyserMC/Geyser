@@ -43,6 +43,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.text.ChatColor;
@@ -277,8 +278,8 @@ public class MessageTranslator {
                 return finalLegacyString;
             }
         } catch (Exception e) {
-            GeyserImpl.getInstance().getLogger().debug(GSON_SERIALIZER.serialize(message));
-            GeyserImpl.getInstance().getLogger().error("Failed to parse message", e);
+            GeyserLogger.get().debug(GSON_SERIALIZER.serialize(message));
+            GeyserLogger.get().error("Failed to parse message", e);
 
             return "";
         }
@@ -449,8 +450,8 @@ public class MessageTranslator {
             withDecoration.arguments(args);
             textPacket.setMessage(MessageTranslator.convertMessage(withDecoration.build(), session.locale()));
         } else {
-            session.getGeyser().getLogger().debug("Likely illegal chat type detection found.");
-            if (session.getGeyser().config().debugMode()) {
+            GeyserLogger.get().debug("Likely illegal chat type detection found.");
+            if (GeyserLogger.get().isDebug()) {
                 Thread.dumpStack();
             }
             textPacket.setMessage(MessageTranslator.convertMessage(message, session.locale()));
@@ -589,7 +590,7 @@ public class MessageTranslator {
             }
         }
 
-        GeyserImpl.getInstance().getLogger().error("Expected tag to be a literal string, a list of components, or a component object with a text/translate key: " + nbtTag);
+        GeyserLogger.get().error("Expected tag to be a literal string, a list of components, or a component object with a text/translate key: " + nbtTag);
         return Component.empty();
     }
 

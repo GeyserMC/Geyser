@@ -31,6 +31,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -63,7 +64,7 @@ public class BlockShapeRegistryLoader implements RegistryLoader<String, List<Bou
         for (int i = 0; i < blockStates.size(); i++) {
             BlockState state = blockStates.get(i);
             if (state == null) {
-                GeyserImpl.getInstance().getLogger().warning("Missing block state for Java block " + i);
+                GeyserLogger.get().warning("Missing block state for Java block " + i);
                 collisions.add(null);
                 continue;
             }

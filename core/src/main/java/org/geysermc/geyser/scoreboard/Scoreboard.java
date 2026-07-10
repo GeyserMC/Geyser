@@ -108,7 +108,7 @@ public final class Scoreboard {
 
     public Scoreboard(GeyserSession session) {
         this.session = session;
-        this.logger = GeyserImpl.getInstance().getLogger();
+        this.logger = GeyserLogger.get();
     }
 
     public void removeScoreboard() {

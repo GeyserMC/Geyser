@@ -30,6 +30,7 @@ import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
@@ -97,7 +98,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             try {
                 Files.createDirectory(directory);
             } catch (IOException e) {
-                GeyserImpl.getInstance().getLogger().error("Could not create packs directory", e);
+                GeyserLogger.get().error("Could not create packs directory", e);
             }
         }
 
@@ -106,7 +107,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             resourcePacks = stream.filter(PACK_MATCHER::matches)
                     .collect(Collectors.toCollection(ArrayList::new)); // toList() does not guarantee mutability
         } catch (Exception e) {
-            GeyserImpl.getInstance().getLogger().error("Could not list packs directory", e);
+            GeyserLogger.get().error("Could not list packs directory", e);
 
             // Ensure the event is fired even if there was an issue reading
             // from our own resource pack directory. External projects may have
@@ -130,7 +131,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             try {
                 defineEvent.register(readPack(path).build());
             } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", path));
+                GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", path));
                 e.printStackTrace();
             }
         }
@@ -167,7 +168,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             Path keyFile = path.resolveSibling(path.getFileName().toString() + ".key");
             contentKey = Files.exists(keyFile) ? Files.readString(keyFile, StandardCharsets.UTF_8) : "";
         } catch (IOException e) {
-            GeyserImpl.getInstance().getLogger().error("Failed to read content key for resource pack " + path.getFileName(), e);
+            GeyserLogger.get().error("Failed to read content key for resource pack " + path.getFileName(), e);
             contentKey = "";
         }
 
@@ -196,7 +197,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             stream.forEach(x -> {
                 String name = x.getName();
                 if (SHOW_RESOURCE_PACK_LENGTH_WARNING && name.length() >= 80) {
-                    GeyserImpl.getInstance().getLogger().warning("The resource pack " + packLocation
+                    GeyserLogger.get().warning("The resource pack " + packLocation
                             + " has a file in it that meets or exceeds 80 characters in its path (" + name
                             + ", " + name.length() + " characters long). This will cause problems on some Bedrock platforms." +
                             " Please rename it to be shorter, or reduce the amount of folders needed to get to the file.");
@@ -233,7 +234,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             try {
                 Files.createDirectories(cachedDirectory);
             } catch (IOException e) {
-                instance.getLogger().error("Could not create remote pack cache directory", e);
+                GeyserLogger.get().error("Could not create remote pack cache directory", e);
                 return;
             }
         }
@@ -243,9 +244,9 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             try {
                 event.register(new GeyserUrlPackCodec(url).create());
             } catch (Throwable e) {
-                instance.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url));
-                instance.getLogger().error(e.getMessage());
-                if (instance.getLogger().isDebug()) {
+                GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url));
+                GeyserLogger.get().error(e.getMessage());
+                if (GeyserLogger.get().isDebug()) {
                     e.printStackTrace();
                 }
             }
@@ -262,13 +263,13 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
     public static void testRemotePack(GeyserSession session, GeyserUrlPackCodec codec, ResourcePackHolder holder) {
         if (CACHED_FAILED_PACKS.getIfPresent(codec.url()) == null) {
             CACHED_FAILED_PACKS.put(codec.url(), codec);
-            GeyserImpl.getInstance().getLogger().warning(
+            GeyserLogger.get().warning(
                 "Bedrock client (%s, playing on %s) was not able to download the resource pack at %s!"
                     .formatted(session.bedrockUsername(), session.getClientData().getDeviceOs().name(), codec.url())
             );
 
             if (!Registries.RESOURCE_PACKS.get().containsKey(holder.uuid())) {
-                GeyserImpl.getInstance().getLogger().warning("Skipping remote resource pack check as pack is not present in global resource pack registry.");
+                GeyserLogger.get().warning("Skipping remote resource pack check as pack is not present in global resource pack registry.");
                 return;
             }
 
@@ -299,8 +300,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
                     // Check if a "manifest.json" or "pack_manifest.json" file is located directly in the zip... does not work otherwise.
                     // (something like MyZip.zip/manifest.json) will not, but will if it's a subfolder (MyPack.zip/MyPack/manifest.json)
                     if (zip.getEntry("manifest.json") != null || zip.getEntry("pack_manifest.json") != null) {
-                        if (GeyserImpl.getInstance().getLogger().isDebug()) {
-                            GeyserImpl.getInstance().getLogger().info("The remote resource pack from " + url + " contains a manifest.json file at the root of the zip file. " +
+                        if (GeyserLogger.get().isDebug()) {
+                            GeyserLogger.get().info("The remote resource pack from " + url + " contains a manifest.json file at the root of the zip file. " +
                                     "This may not work for remote packs, and could cause Bedrock clients to fall back to request the pack from the server. " +
                                     "Please put the pack file in a subfolder, and provide that zip in the URL.");
                         }
@@ -338,7 +339,7 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
         }
 
         if (count > 0) {
-            GeyserImpl.getInstance().getLogger().debug(String.format("Removed %d cached resource pack files as they are no longer in use!", count));
+            GeyserLogger.get().debug(String.format("Removed %d cached resource pack files as they are no longer in use!", count));
         }
     }
 }

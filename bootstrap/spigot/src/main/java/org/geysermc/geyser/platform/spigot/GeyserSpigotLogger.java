@@ -77,6 +77,13 @@ public class GeyserSpigotLogger implements GeyserLogger {
     }
 
     @Override
+    public void debug(String message, Throwable t) {
+        if (debug) {
+            logger.log(Level.INFO, message, t);
+        }
+    }
+
+    @Override
     public void debug(String message, Object... arguments) {
         if (debug) {
             info(String.format(message, arguments));

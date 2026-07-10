@@ -41,6 +41,7 @@ import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.floodgate.util.DeviceOs;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.MinecraftVersion;
@@ -117,10 +118,7 @@ public class DumpInfo {
             configNode.set(geyser.config());
             this.config = toGson(configNode);
         } catch (SerializationException e) {
-            e.printStackTrace();
-            if (geyser.config().debugMode()) {
-                e.printStackTrace();
-            }
+            GeyserLogger.get().error("Error serializing config. Dump will contain null config.", e);
         }
 
         String sha256Hash = "unknown";
@@ -131,9 +129,7 @@ public class DumpInfo {
             //noinspection UnstableApiUsage
             sha256Hash = byteSource.hash(Hashing.sha256()).toString();
         } catch (Exception e) {
-            if (geyser.config().debugMode()) {
-                e.printStackTrace();
-            }
+            GeyserLogger.get().debug("Error obtaining JAR SHA256 hash.", e);
         }
         this.hash = sha256Hash;
 

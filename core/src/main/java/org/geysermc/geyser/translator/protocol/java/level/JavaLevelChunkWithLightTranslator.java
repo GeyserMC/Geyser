@@ -39,6 +39,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.data.definitions.BlockDefinition;
 import org.cloudburstmc.protocol.bedrock.packet.LevelChunkPacket;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.block.type.Block;
@@ -383,7 +384,7 @@ public class JavaLevelChunkWithLightTranslator extends PacketTranslator<Clientbo
             levelChunkPacket.setDimension(session.getBedrockDimension().bedrockId());
             session.sendUpstreamPacket(levelChunkPacket);
         } catch (IOException e) {
-            session.getGeyser().getLogger().error("IO error while encoding chunk", e);
+            GeyserLogger.get().error("IO error while encoding chunk", e);
             return;
         } finally {
             if (byteBuf != null) {

@@ -34,6 +34,7 @@ import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.api.skin.Cape;
 import org.geysermc.geyser.api.skin.Skin;
 import org.geysermc.geyser.api.skin.SkinData;
@@ -113,7 +114,7 @@ public class FakeHeadProvider {
 
         SkinManager.resolveProfile(profile).whenCompleteAsync((resolved, throwable) -> {
             if (throwable != null) {
-                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.uuid()), throwable);
+                GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.uuid()), throwable);
                 return;
             }
             loadHeadFromProfile(session, entity, profile, resolved);
@@ -129,7 +130,7 @@ public class FakeHeadProvider {
                     SkinData mergedSkinData = MERGED_SKINS_LOADING_CACHE.get(new FakeHeadEntry(entity.getSkinId(), skinTexture.getURL(), entity, session));
                     SkinManager.sendSkinPacket(session, entity, mergedSkinData);
                 } catch (ExecutionException e) {
-                    GeyserImpl.getInstance().getLogger().error("Couldn't merge skin of " + entity.getUsername() + " with head skin " + resolved, e);
+                    GeyserLogger.get().error("Couldn't merge skin of " + entity.getUsername() + " with head skin " + resolved, e);
                 }
             });
         }
@@ -146,7 +147,7 @@ public class FakeHeadProvider {
 
         SkinProvider.requestSkinData(entity, session).whenCompleteAsync((skinData, throwable) -> {
             if (throwable != null) {
-                GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.uuid()), throwable);
+                GeyserLogger.get().error(GeyserLocale.getLocaleStringLog("geyser.skin.fail", entity.uuid()), throwable);
                 return;
             }
 

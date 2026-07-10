@@ -33,6 +33,7 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
 import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
 import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
@@ -151,13 +152,13 @@ public final class RegistryCache implements JavaRegistryProvider {
                 try {
                     readRegistry(session, registryKey, registries.get(registryKey), reader, packet.getEntries());
                 } catch (Exception exception) {
-                    GeyserImpl.getInstance().getLogger().error("Failed parsing registry entries for " + registryKey + "!", exception);
+                    GeyserLogger.get().error("Failed parsing registry entries for " + registryKey + "!", exception);
                 }
             } else {
                 throw new IllegalStateException("Expected reader for registry " + registryKey);
             }
         } else {
-            GeyserImpl.getInstance().getLogger().debug("Ignoring registry of type " + packet.getRegistry());
+            GeyserLogger.get().debug("Ignoring registry of type " + packet.getRegistry());
         }
     }
 
