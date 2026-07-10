@@ -62,7 +62,7 @@ public class FireworkEntity extends Entity {
         TooltipOptions tooltip = TooltipOptions.fromComponents(components);
         Items.FIREWORK_ROCKET.translateComponentsToBedrock(session, components, tooltip, builder);
         
-        dirtyMetadata.put(EntityDataTypes.DISPLAY_FIREWORK, builder.build());
+        metadata.put(EntityDataTypes.DISPLAY_FIREWORK, builder.build());
     }
 
     public void setPlayerGliding(EntityMetadata<OptionalInt, ?> entityMetadata) {

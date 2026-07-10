@@ -46,12 +46,12 @@ public class LlamaEntity extends ChestedHorseEntity {
     public LlamaEntity(EntitySpawnContext context) {
         super(context);
 
-        dirtyMetadata.put(EntityDataTypes.CONTAINER_STRENGTH_MODIFIER, 3); // Presumably 3 slots for every 1 strength
+        metadata.put(EntityDataTypes.CONTAINER_STRENGTH_MODIFIER, 3); // Presumably 3 slots for every 1 strength
     }
 
     public void setStrength(IntEntityMetadata entityMetadata) {
         strength = MathUtils.constrain(entityMetadata.getPrimitiveValue(), 1, 5);
-        this.dirtyMetadata.put(EntityDataTypes.STRENGTH, strength);
+        this.metadata.put(EntityDataTypes.STRENGTH, strength);
     }
 
     @Override

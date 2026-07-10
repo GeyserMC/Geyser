@@ -81,6 +81,8 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.property.Properties;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.populator.conversion.ChaosCubedConverter;
+import org.geysermc.geyser.registry.populator.conversion.GoldenDandelionConverter;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
@@ -131,6 +133,10 @@ public class ItemRegistryPopulator {
             this(version, protocolVersion, creativeVersion, Collections.emptyMap(), (item, mapping) -> mapping);
         }
 
+        public PaletteVersion(String version, int protocolVersion, Map<Item, Item> javaOnlyItems, String creativeVersion) {
+            this(version, protocolVersion, creativeVersion, javaOnlyItems, (item, mapping) -> mapping);
+        }
+
         public String creativeVersion() {
             return creativeVersion == null ? version : creativeVersion;
         }
@@ -143,12 +149,10 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
-        Map<Item, Item> dandelion = Map.of(Items.GOLDEN_DANDELION, Items.DANDELION);
-
         List<PaletteVersion> paletteVersions = new ArrayList<>(4);
-        paletteVersions.add(new PaletteVersion("26_0", Bedrock_v924.CODEC.getProtocolVersion(), dandelion));
-        paletteVersions.add(new PaletteVersion("26_10", Bedrock_v944.CODEC.getProtocolVersion()));
-        paletteVersions.add(new PaletteVersion("26_20", Bedrock_v975.CODEC.getProtocolVersion(), "26_10"));
+        paletteVersions.add(new PaletteVersion("26_0", Bedrock_v924.CODEC.getProtocolVersion(), GoldenDandelionConverter.convertItem()));
+        paletteVersions.add(new PaletteVersion("26_10", Bedrock_v944.CODEC.getProtocolVersion(), ChaosCubedConverter.convertItem()));
+        paletteVersions.add(new PaletteVersion("26_20", Bedrock_v975.CODEC.getProtocolVersion(), ChaosCubedConverter.convertItem(), "26_10"));
         paletteVersions.add(new PaletteVersion("26_30", Bedrock_v1001.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();

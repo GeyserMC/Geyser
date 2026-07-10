@@ -38,7 +38,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.UpdateAttributesPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.attribute.GeyserAttributeType;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.BoatEntity;
@@ -66,6 +66,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.Pose;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.FloatEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
@@ -145,7 +146,7 @@ public class SessionPlayerEntity extends PlayerEntity {
     private @Nullable Integer removedPlayerVehicleId = null;
 
     public SessionPlayerEntity(GeyserSession session) {
-        super(new EntitySpawnContext(session, EntityDefinitions.PLAYER, -1, null), null, null);
+        super(new EntitySpawnContext(session, VanillaEntities.PLAYER, -1, null), null, null);
 
         valid = true;
     }
@@ -201,6 +202,17 @@ public class SessionPlayerEntity extends PlayerEntity {
         this.position = position;
     }
 
+    @Override
+    public void updateHeadLookRotation(float headYaw) {
+        // We can't rotate the player head while they're riding a vehicle, since that will cause them to dismount.
+        if (this.vehicle != null) {
+            setHeadYaw(headYaw);
+            return;
+        }
+
+        super.updateHeadLookRotation(headYaw);
+    }
+
     /**
      * Special method used only when updating the session player's rotation.
      * For some reason, Mode#NORMAL ignored rotation. Yay.
@@ -212,6 +224,11 @@ public class SessionPlayerEntity extends PlayerEntity {
         setYaw(yaw);
         setPitch(pitch);
         setHeadYaw(headYaw);
+
+        // We can't rotate the player head while they're riding a vehicle, since that will cause them to dismount.
+        if (this.vehicle != null) {
+            return;
+        }
         
         MovePlayerPacket movePlayerPacket = new MovePlayerPacket();
         movePlayerPacket.setRuntimeEntityId(geyserId);
@@ -285,8 +302,8 @@ public class SessionPlayerEntity extends PlayerEntity {
      * See <a href="https://github.com/GeyserMC/Geyser/issues/3370">issue 3370</a>
      */
     public void updateBoundingBox() {
-        dirtyMetadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
-        dirtyMetadata.put(EntityDataTypes.WIDTH, getBoundingBoxWidth());
+        metadata.put(EntityDataTypes.HEIGHT, getBoundingBoxHeight());
+        metadata.put(EntityDataTypes.WIDTH, getBoundingBoxWidth());
         updateBedrockMetadata();
     }
 
@@ -374,6 +391,13 @@ public class SessionPlayerEntity extends PlayerEntity {
     }
 
     @Override
+    protected boolean hasChargedProjectiles() {
+        // Must be overridden to point to the player's inventory cache
+        List<ItemStack> chargedProjectiles = session.getPlayerInventory().getItemInHand().getComponent(DataComponentTypes.CHARGED_PROJECTILES);
+        return chargedProjectiles != null && !chargedProjectiles.isEmpty();
+    }
+
+    @Override
     protected void updateAttribute(Attribute javaAttribute, List<AttributeData> newAttributes) {
         if (javaAttribute.getType() instanceof AttributeType.Builtin type) {
             switch (type) {
@@ -421,11 +445,11 @@ public class SessionPlayerEntity extends PlayerEntity {
 
     public void setLastDeathPosition(@Nullable GlobalPos pos) {
         if (pos != null) {
-            dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_POS, pos.getPosition());
-            dirtyMetadata.put(EntityDataTypes.PLAYER_LAST_DEATH_DIMENSION, DimensionUtils.javaToBedrock(pos.getDimension().asString()));
-            dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, true);
+            metadata.put(EntityDataTypes.PLAYER_LAST_DEATH_POS, pos.getPosition());
+            metadata.put(EntityDataTypes.PLAYER_LAST_DEATH_DIMENSION, DimensionUtils.javaToBedrock(pos.getDimension().asString()));
+            metadata.put(EntityDataTypes.PLAYER_HAS_DIED, true);
         } else {
-            dirtyMetadata.put(EntityDataTypes.PLAYER_HAS_DIED, false);
+            metadata.put(EntityDataTypes.PLAYER_HAS_DIED, false);
         }
     }
 
@@ -445,6 +469,12 @@ public class SessionPlayerEntity extends PlayerEntity {
     @Override
     public void setLivingEntityFlags(ByteEntityMetadata entityMetadata) {
         super.setLivingEntityFlags(entityMetadata);
+
+        byte xd = entityMetadata.getPrimitiveValue();
+        boolean isUsingOffhand = (xd & 0x02) == 0x02;
+        if (session.getWorldCache().hasCooldown(isUsingOffhand ? getOffHandItem() : getMainHandItem())) {
+            setFlag(EntityFlag.BLOCKING, false);
+        }
 
         // Forcefully update flags since we're not tracking thing like using item properly.
         // For eg: when player start using item client-sided (and the USING_ITEM flag is false on geyser side)
@@ -468,9 +498,9 @@ public class SessionPlayerEntity extends PlayerEntity {
                 GeyserAttributeType.ABSORPTION.getAttribute(0f)));
         session.sendUpstreamPacket(attributesPacket);
 
-        dirtyMetadata.put(EntityDataTypes.EFFECT_AMBIENCE, (byte) 0);
-        dirtyMetadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, 0f);
-        dirtyMetadata.put(EntityDataTypes.VISIBLE_MOB_EFFECTS, 0L);
+        metadata.put(EntityDataTypes.EFFECT_AMBIENCE, (byte) 0);
+        metadata.put(EntityDataTypes.FREEZING_EFFECT_STRENGTH, 0f);
+        metadata.put(EntityDataTypes.VISIBLE_MOB_EFFECTS, 0L);
 
         silent = false;
     }
@@ -516,8 +546,8 @@ public class SessionPlayerEntity extends PlayerEntity {
             entity.setBoundingBoxHeight(0.5625F);
             entity.updateBedrockMetadata();
         } else if (entity == null && this.vehicle instanceof BoatEntity) {
-            this.vehicle.setBoundingBoxWidth(this.vehicle.getDefinition().width());
-            this.vehicle.setBoundingBoxHeight(this.vehicle.getDefinition().height());
+            this.vehicle.setBoundingBoxWidth(this.vehicle.getJavaDefinition().width());
+            this.vehicle.setBoundingBoxHeight(this.vehicle.getJavaDefinition().height());
             this.vehicle.updateBedrockMetadata();
         }
 

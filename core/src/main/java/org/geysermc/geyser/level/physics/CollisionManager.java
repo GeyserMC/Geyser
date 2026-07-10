@@ -36,7 +36,7 @@ import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MovePlayerPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
@@ -61,7 +61,7 @@ public class CollisionManager {
     public static final BlockCollision FLUID_COLLISION = new OtherCollision(new BoundingBox[]{new BoundingBox(0.5, 0.25, 0.5, 1, 0.5, 1)});
     // If you read this, feel free to suggest a more proper way to detect the Bedrock player's own onGround status instead of using a margin
     private static final double POSITION_ADJUSTMENT_MARGIN = 0.05;
-    private static final double PLAYER_OFFSET = Double.parseDouble(Float.toString(EntityDefinitions.PLAYER.offset()));
+    private static final double PLAYER_OFFSET = Double.parseDouble(Float.toString(VanillaEntities.PLAYER.offset()));
 
     private final GeyserSession session;
 

@@ -27,22 +27,24 @@ package org.geysermc.geyser.gametest.tests;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestAssertException;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInstance;
+import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.level.GameType;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.entity.EntityDefinition;
+import org.geysermc.geyser.entity.EntityTypeDefinition;
+import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.gametest.mixin.SynchedEntityDataAccessor;
 import org.geysermc.geyser.gametest.util.SynchedEntityDataDebugger;
 import org.geysermc.geyser.registry.Registries;
@@ -56,27 +58,21 @@ public class EntityMetadataTest extends GeyserTestInstance {
     );
     private final EntityType<?> entityType;
 
-    private EntityMetadataTest(RegistryOps<?> ops, boolean required, EntityType<?> entityType) {
-        super(ops, required);
-        this.entityType = entityType;
-    }
-
-    public EntityMetadataTest(HolderLookup.Provider registries, boolean required, EntityType<?> entityType) {
-        super(registries, required);
+    public EntityMetadataTest(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, boolean required, EntityType<?> entityType) {
+        super(testEnvironments, required);
         this.entityType = entityType;
     }
 
     @Override
     public void run(GameTestHelper helper) {
-        // Nice full qualified name, lovely
-        org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType geyserEntityType = org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType.valueOf(BuiltInRegistries.ENTITY_TYPE.getKey(entityType).getPath().toUpperCase());
-        EntityDefinition<?> definition = Registries.ENTITY_DEFINITIONS.get(geyserEntityType);
+        GeyserEntityType geyserEntityType = GeyserEntityType.of(BuiltInRegistries.ENTITY_TYPE.getId(entityType));
+        EntityTypeDefinition<?> definition = Registries.JAVA_ENTITY_TYPES.get(geyserEntityType);
 
         if (definition == null) {
             helper.fail("No entity definition found for type " + entityType);
         } else {
             Entity javaEntity;
-            if (entityType == EntityType.PLAYER) {
+            if (entityType == EntityTypes.PLAYER) {
                 javaEntity = helper.makeMockPlayer(GameType.SURVIVAL);
             } else {
                 javaEntity = entityType.create(helper.getLevel(), EntitySpawnReason.COMMAND);

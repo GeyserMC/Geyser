@@ -53,7 +53,7 @@ public class ThrowableItemEntity extends ProjectileEntity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Correct sizing
-        dirtyMetadata.put(EntityDataTypes.SCALE, 0.5f);
+        metadata.put(EntityDataTypes.SCALE, 0.5f);
     }
 
     private void checkVisibility() {

@@ -25,20 +25,34 @@
 
 package org.geysermc.geyser.gametest;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricDynamicRegistryProvider;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestInstance;
+import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.item.Item;
 import org.geysermc.geyser.gametest.tests.EntityMetadataTest;
+import org.geysermc.geyser.gametest.tests.ResolvableComponentLoadingTestInstance;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public final  class GeyserGameTests {
-    private static final List<EntityType<?>> UNSUPPORTED_ENTITY_TYPES = List.of(EntityType.BLOCK_DISPLAY, EntityType.ITEM_DISPLAY, EntityType.MARKER);
+    private static final List<EntityType<?>> UNSUPPORTED_ENTITY_TYPES = List.of(EntityTypes.BLOCK_DISPLAY, EntityTypes.ITEM_DISPLAY, EntityTypes.MARKER);
 
     private GeyserGameTests() {}
 
@@ -54,24 +68,57 @@ public final  class GeyserGameTests {
         return createKey(testType.getPath());
     }
 
-    private static void registerSingletonTest(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries, GeyserGameTestTypes.SingletonTestType type, boolean required) {
-        entries.add(createSingletonKey(type.type()), type.constructor().create(registries, required));
+    private static void registerSingletonTest(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, FabricDynamicRegistryProvider.Entries entries, GeyserGameTestTypes.SingletonTestType type, boolean required) {
+        entries.add(createSingletonKey(type.type()), type.constructor().create(testEnvironments, required));
     }
 
-    private static void registerSingletonTest(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries, GeyserGameTestTypes.SingletonTestType type) {
-        registerSingletonTest(registries, entries, type, true);
+    private static void registerSingletonTest(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, FabricDynamicRegistryProvider.Entries entries, GeyserGameTestTypes.SingletonTestType type) {
+        registerSingletonTest(testEnvironments, entries, type, true);
     }
 
-    private static void registerEntityTypeTests(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries) {
+    private static void registerEntityTypeTests(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, FabricDynamicRegistryProvider.Entries entries) {
         for (EntityType<?> entityType : BuiltInRegistries.ENTITY_TYPE) {
             entries.add(createKey(GeyserGameTestTypes.ENTITY_METADATA, BuiltInRegistries.ENTITY_TYPE.getKey(entityType).getPath()),
-                new EntityMetadataTest(registries, !UNSUPPORTED_ENTITY_TYPES.contains(entityType), entityType));
+                new EntityMetadataTest(testEnvironments, !UNSUPPORTED_ENTITY_TYPES.contains(entityType), entityType));
+        }
+    }
+
+    private static void registerResolvableComponentLoadingTests(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, GeyserGameTestPlatform platform, FabricDynamicRegistryProvider.Entries entries) {
+        for (Holder<Item> item : findItemsWithResolvableComponents(platform)) {
+            entries.add(createKey(GeyserGameTestTypes.RESOLVABLE_COMPONENTS, item.unwrapKey().orElseThrow().identifier().getPath()),
+                new ResolvableComponentLoadingTestInstance(testEnvironments, true, item));
         }
     }
 
     public static void bootstrap(HolderLookup.Provider registries, FabricDynamicRegistryProvider.Entries entries) {
-        registerEntityTypeTests(registries, entries);
-        registerSingletonTest(registries, entries, GeyserGameTestTypes.REQUIRED_COMPONENTS_FOR_HASHING);
-        registerSingletonTest(registries, entries, GeyserGameTestTypes.MINECRAFT_VERSION);
+        GeyserGameTestPlatform platform = new GeyserGameTestPlatform();
+        HolderGetter<TestEnvironmentDefinition<?>> testEnvironments = registries.lookupOrThrow(Registries.TEST_ENVIRONMENT);
+
+        registerEntityTypeTests(testEnvironments, entries);
+        registerSingletonTest(testEnvironments, entries, GeyserGameTestTypes.REQUIRED_COMPONENTS_FOR_HASHING);
+        registerSingletonTest(testEnvironments, entries, GeyserGameTestTypes.MINECRAFT_VERSION);
+        registerResolvableComponentLoadingTests(testEnvironments, platform, entries);
+    }
+
+    private static List<Holder<Item>> findItemsWithResolvableComponents(GeyserGameTestPlatform platform) {
+        try (InputStream stream = platform.resolveResource("mappings/resolvable_item_data_components.json")) {
+            assert stream != null;
+            JsonElement rootElement = JsonParser.parseReader(new InputStreamReader(stream));
+            JsonArray items = rootElement.getAsJsonObject().get("value").getAsJsonArray();
+
+            List<Holder<Item>> itemsWithResolvableComponents = new ArrayList<>();
+
+            for (int i = 0; i < items.size(); i++) {
+                JsonElement item = items.get(i);
+                JsonArray itemComponentArray = item.getAsJsonArray();
+                if (!itemComponentArray.isEmpty()) {
+                    itemsWithResolvableComponents.add(Objects.requireNonNull(BuiltInRegistries.ITEM.asHolderIdMap().byId(i)));
+                }
+            }
+
+            return itemsWithResolvableComponents;
+        } catch (IOException exception) {
+            throw new RuntimeException(exception);
+        }
     }
 }
