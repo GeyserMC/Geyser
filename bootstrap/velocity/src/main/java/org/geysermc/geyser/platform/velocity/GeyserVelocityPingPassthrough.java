@@ -50,16 +50,13 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
 
     @Override
     public GeyserPingInfo getPingInformation(InetSocketAddress inetSocketAddress) {
-        // FIXME temporary
-        ServerPing.Builder pingBuilder = ServerPing.builder()
-                .onlinePlayers(server.getPlayerCount())
-                .maximumPlayers(server.getConfiguration().getShowMaxPlayers())
-                .version(new Version(GameProtocol.getJavaProtocolVersion(), GameProtocol.getJavaMinecraftVersion()))
-                .description(server.getConfiguration().getMotd());
-
         ProxyPingEvent event;
         try {
-            event = server.getEventManager().fire(new ProxyPingEvent(new GeyserInboundConnection(inetSocketAddress), pingBuilder.build())).get();
+            event = server.getEventManager().fire(new ProxyPingEvent(new GeyserInboundConnection(inetSocketAddress), ServerPing.builder()
+                .description(server.getConfiguration().getMotd())
+                .onlinePlayers(server.getPlayerCount())
+                .maximumPlayers(server.getConfiguration().getShowMaxPlayers())
+                .version(new Version(GameProtocol.getJavaProtocolVersion(), GameProtocol.getJavaMinecraftVersion())).build())).get();
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         }
