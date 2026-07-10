@@ -31,6 +31,7 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerId;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.MobEquipmentPacket;
 import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.properties.type.StringEnumProperty;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -38,6 +39,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
 import org.geysermc.geyser.translator.item.ItemTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
 
 import java.util.ArrayList;
@@ -82,10 +84,14 @@ public class SulfurCubeEntity extends AbstractCubeEntity {
 
         levelSoundEventPacket.setPosition(bedrockPosition());
         levelSoundEventPacket.setExtraData(-1);
-        levelSoundEventPacket.setIdentifier("minecraft:sulfur_cube");
+        levelSoundEventPacket.setIdentifier(definition().identifier().toString());
         levelSoundEventPacket.setEntityUniqueId(this.geyserId());
 
         session.sendUpstreamPacket(levelSoundEventPacket);
+
+        if (!definition().properties().contains(SULFUR_CUBE_ARCHETYPE_PROPERTY)) {
+            return;
+        }
 
         if (stack.isEmpty()) {
             this.updateProperty(SULFUR_CUBE_ARCHETYPE_PROPERTY, "none");
@@ -109,6 +115,39 @@ public class SulfurCubeEntity extends AbstractCubeEntity {
         // Ignore, sulfur cubes use age and baby tags instead
     }
 
+    /**
+     * Slime geometry is far smaller than the sulfur cube and has no client
+     * side baby scaling, so the slime fallback sizes explicitly: the medium
+     * slime (scale 2.1, the cube family formula 0.10 + java size 2) is the
+     * closest match for the adult's 0.98 block frame, the small slime
+     * (scale 1.1) for babies. The real actor path keeps scale 1 and lets
+     * the client handle sizes.
+     */
+    private boolean isSlimeFallback() {
+        return definition() == VanillaEntities.SLIME.defaultBedrockDefinition();
+    }
+
+    @Override
+    protected float getAdultSize() {
+        return isSlimeFallback() ? 2.1f : 1f;
+    }
+
+    @Override
+    protected float getBabySize() {
+        return isSlimeFallback() ? 1.1f : 1f;
+    }
+
+    @Override
+    public void setBaby(BooleanEntityMetadata entityMetadata) {
+        super.setBaby(entityMetadata);
+        if (isSlimeFallback()) {
+            // The scaled up slime is visual compensation only; the hitbox
+            // stays at the real mob's dimensions, matching the actor path.
+            setBoundingBoxHeight(javaDefinition.height());
+            setBoundingBoxWidth(javaDefinition.width());
+        }
+    }
+
     @Override
     public void tick() {
         super.tick();
@@ -121,11 +160,6 @@ public class SulfurCubeEntity extends AbstractCubeEntity {
             this.updateBedrockMetadata();
             this.previousFuseTickTime = this.fuseTickTime;
         }
-    }
-
-    @Override
-    protected float getBabySize() {
-        return 1f;
     }
 
     public void setMaxFuse(IntEntityMetadata entityMetadata) {

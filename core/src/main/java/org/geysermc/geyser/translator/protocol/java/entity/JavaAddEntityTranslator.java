@@ -28,12 +28,14 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.GeyserEntityType;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.FallingBlockEntity;
 import org.geysermc.geyser.entity.type.FishingHookEntity;
 import org.geysermc.geyser.entity.type.HangingEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
@@ -74,6 +76,11 @@ public class JavaAddEntityTranslator extends PacketTranslator<ClientboundAddEnti
         }
 
         EntitySpawnContext context = EntitySpawnContext.fromPacket(session, definition, packet);
+        if (type.is(EntityType.SULFUR_CUBE) && !GameProtocol.is26_30orHigher(session.protocolVersion())) {
+            // Older clients do not have the sulfur cube actor. Select the fallback before the spawn
+            // event so extensions can still replace it and the entity definition matches the wire.
+            context.bedrockEntityDefinition(VanillaEntities.SLIME.defaultBedrockDefinition());
+        }
         if (type.is(EntityType.PLAYER)) {
             PlayerEntity entity;
             if (packet.getUuid().equals(session.getPlayerEntity().uuid())) {
