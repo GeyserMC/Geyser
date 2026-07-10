@@ -516,6 +516,7 @@ public class CustomItemRegistryPopulator {
     }
 
     private static void computeRepairableProperties(NbtMapBuilder componentBuilder) {
+        // TODO: only allow repair by the same Java item (not Bedrock item) and repair materials (needs mapping item tags).
         componentBuilder.putCompound("minecraft:repairable", NbtMap.builder()
             .putList("repair_items", NbtType.COMPOUND, NbtMap.builder()
                 .putList("items", NbtType.COMPOUND, NbtMap.builder()
