@@ -286,10 +286,9 @@ public class ItemRegistryPopulator {
             BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
 
             Set<Item> javaOnlyItems = new ObjectOpenHashSet<>();
-            Collections.addAll(javaOnlyItems, Items.SPECTRAL_ARROW, Items.DEBUG_STICK,
-                    Items.KNOWLEDGE_BOOK, Items.TIPPED_ARROW);
+            Collections.addAll(javaOnlyItems, Items.SPECTRAL_ARROW, Items.TIPPED_ARROW, Items.KNOWLEDGE_BOOK, Items.DEBUG_STICK);
             if (!GeyserImpl.getInstance().config().gameplay().enableCustomContent()) {
-                javaOnlyItems.add(Items.FURNACE_MINECART);
+                Collections.addAll(javaOnlyItems, Items.FURNACE_MINECART, Items.TEST_BLOCK, Items.TEST_INSTANCE_BLOCK);
             }
             // Java-only items for this version
             javaOnlyItems.addAll(palette.javaOnlyItems().keySet());
