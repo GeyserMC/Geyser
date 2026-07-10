@@ -102,7 +102,7 @@ public abstract class AvatarEntity extends LivingEntity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // For the OptionalPack, set all bits as invisible by default as this matches Java Edition behavior
-        dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, 0xff);
+        metadata.put(EntityDataTypes.MARK_VARIANT, 0xff);
     }
 
     @Override
@@ -123,7 +123,7 @@ public abstract class AvatarEntity extends LivingEntity {
         addPlayerPacket.setGameType(GameType.SURVIVAL); //TODO
         addPlayerPacket.setAbilityLayers(BASE_ABILITY_LAYER); // Recommended to be added since 1.19.10, but only needed here for permissions viewing
         addPlayerPacket.getMetadata().putFlags(flags);
-        dirtyMetadata.apply(addPlayerPacket.getMetadata());
+        metadata.apply(addPlayerPacket.getMetadata());
 
         setFlagsDirty(false);
 
@@ -194,10 +194,10 @@ public abstract class AvatarEntity extends LivingEntity {
             // Indicate that the player should enter the sleep cycle
             // Has to be a byte or it does not work
             // (Bed position is what actually triggers sleep - "pose" is only optional)
-            dirtyMetadata.put(EntityDataTypes.PLAYER_FLAGS, (byte) 2);
+            metadata.put(EntityDataTypes.PLAYER_FLAGS, (byte) 2);
         } else {
             // Player is no longer sleeping
-            dirtyMetadata.put(EntityDataTypes.PLAYER_FLAGS, (byte) 0);
+            metadata.put(EntityDataTypes.PLAYER_FLAGS, (byte) 0);
             return null;
         }
         return bedPosition;
@@ -232,7 +232,7 @@ public abstract class AvatarEntity extends LivingEntity {
         // In Java Edition, a bit being set means that part should be enabled
         // However, to ensure that the pack still works on other servers, we invert the bit so all values by default
         // are true (0).
-        dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, ~entityMetadata.getPrimitiveValue() & 0xff);
+        metadata.put(EntityDataTypes.MARK_VARIANT, ~entityMetadata.getPrimitiveValue() & 0xff);
     }
 
     @Override
@@ -267,14 +267,14 @@ public abstract class AvatarEntity extends LivingEntity {
         boolean changed = !Objects.equals(cachedScore, text);
         cachedScore = text;
         if (scoreVisible && changed) {
-            dirtyMetadata.put(EntityDataTypes.SCORE, text);
+            metadata.put(EntityDataTypes.SCORE, text);
         }
     }
 
     /**
      * Whether this entity is listed on the player list.
      * Since player entities are used for e.g. custom skulls too, we need to hack around
-     * limitations introduced in 1.21.130 to ensure skins are correctly applied. 
+     * limitations introduced in 1.21.130 to ensure skins are correctly applied.
      * @see SkinManager#sendSkinPacket(GeyserSession, AvatarEntity, SkinData)
      * @return whether this player entity is listed
      */
@@ -292,7 +292,7 @@ public abstract class AvatarEntity extends LivingEntity {
         if (cachedScore.isEmpty()) {
             return;
         }
-        dirtyMetadata.put(EntityDataTypes.SCORE, show ? cachedScore : "");
+        metadata.put(EntityDataTypes.SCORE, show ? cachedScore : "");
     }
 
     @Override
@@ -329,11 +329,11 @@ public abstract class AvatarEntity extends LivingEntity {
         switch (pose) {
             case SNEAKING -> {
                 height = SNEAKING_POSE_HEIGHT;
-                width = definition.width();
+                width = javaDefinition.width();
             }
             case FALL_FLYING, SPIN_ATTACK, SWIMMING -> {
                 height = 0.6f;
-                width = definition.width();
+                width = javaDefinition.width();
             }
             case DYING -> {
                 height = 0.2f;

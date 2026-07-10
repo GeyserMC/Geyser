@@ -26,21 +26,24 @@
 package org.geysermc.geyser.gametest;
 
 import com.mojang.serialization.MapCodec;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTestInstance;
+import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.resources.Identifier;
 import org.geysermc.geyser.gametest.tests.ComponentHashTestInstance;
 import org.geysermc.geyser.gametest.tests.EntityMetadataTest;
 import org.geysermc.geyser.gametest.tests.MinecraftVersionTestInstance;
 import org.geysermc.geyser.gametest.tests.RequiredComponentsForHashingTestInstance;
+import org.geysermc.geyser.gametest.tests.ResolvableComponentLoadingTestInstance;
 
 public interface GeyserGameTestTypes {
     Identifier COMPONENT_HASH = createKey("component_hash");
     SingletonTestType REQUIRED_COMPONENTS_FOR_HASHING = createSingleton("required_components_for_hashing", RequiredComponentsForHashingTestInstance::new);
     Identifier ENTITY_METADATA = createKey("entity_metadata");
     SingletonTestType MINECRAFT_VERSION = createSingleton("minecraft_version", MinecraftVersionTestInstance::new);
+    Identifier RESOLVABLE_COMPONENTS = createKey("resolvable_components");
 
     private static Identifier createKey(String name) {
         return Identifier.fromNamespaceAndPath("geyser", name);
@@ -63,6 +66,7 @@ public interface GeyserGameTestTypes {
         register(REQUIRED_COMPONENTS_FOR_HASHING, RequiredComponentsForHashingTestInstance.MAP_CODEC);
         register(ENTITY_METADATA, EntityMetadataTest.MAP_CODEC);
         register(MINECRAFT_VERSION, MinecraftVersionTestInstance.MAP_CODEC);
+        register(RESOLVABLE_COMPONENTS, ResolvableComponentLoadingTestInstance.MAP_CODEC);
     }
 
     record SingletonTestType(Identifier type, Constructor constructor) {
@@ -70,7 +74,7 @@ public interface GeyserGameTestTypes {
         @FunctionalInterface
         interface Constructor {
 
-            GameTestInstance create(HolderLookup.Provider registries, boolean required);
+            GameTestInstance create(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, boolean required);
         }
     }
 }

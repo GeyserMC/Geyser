@@ -32,7 +32,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -150,8 +150,8 @@ public class ArmorStandEntity extends LivingEntity {
                 setBoundingBoxWidth(0.0f);
                 setBoundingBoxHeight(0.0f);
             } else {
-                setBoundingBoxWidth(definition.width());
-                setBoundingBoxHeight(definition.height());
+                setBoundingBoxWidth(javaDefinition.width());
+                setBoundingBoxHeight(javaDefinition.height());
             }
 
             updateMountOffset();
@@ -220,7 +220,7 @@ public class ArmorStandEntity extends LivingEntity {
         // We don't do this for the negative values out of concerns of the number being too big
         int topBit = (Math.abs(rotationX) >= 100 ? 4 : 0) + (Math.abs(rotationY) >= 100 ? 2 : 0) + (Math.abs(rotationZ) >= 100 ? 1 : 0);
         int value = (topBit * 1000000) + ((Math.abs(rotationX) % 100) * 10000) + ((Math.abs(rotationY) % 100) * 100) + (Math.abs(rotationZ) % 100);
-        dirtyMetadata.put(dataLeech, value);
+        metadata.put(dataLeech, value);
         // Set the entity flags if a value is negative
         setFlag(negativeXToggle, rotationX < 0);
         setFlag(negativeYToggle, rotationY < 0);
@@ -335,23 +335,23 @@ public class ArmorStandEntity extends LivingEntity {
             if (secondEntity == null) {
                 // Create the second entity. It doesn't need to worry about the items, but it does need to worry about
                 // the metadata as it will hold the name tag.
-                secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, position));
+                secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, VanillaEntities.ARMOR_STAND, this, position()));
                 secondEntity.primaryEntity = false;
             }
             // Copy metadata
             secondEntity.isSmall = isSmall;
             secondEntity.isMarker = isMarker;
             secondEntity.positionRequiresOffset = true; // Offset should always be applied
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, customNameVisible ? (byte) 1 : (byte) 0);
+            secondEntity.getMetadata().put(EntityDataTypes.NAME, nametag);
+            secondEntity.getMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, customNameVisible ? (byte) 1 : (byte) 0);
             secondEntity.flags.putAll(this.flags);
             // Guarantee this copy is NOT invisible
             secondEntity.setFlag(EntityFlag.INVISIBLE, false);
             // Scale to 0 to show nametag
             secondEntity.setScale(0f);
             // No bounding box as we don't want to interact with this entity
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
+            secondEntity.getMetadata().put(EntityDataTypes.WIDTH, 0.0f);
+            secondEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
             if (!secondEntity.valid) { // Spawn the entity once
                 secondEntity.spawnEntity();
             }
@@ -412,13 +412,13 @@ public class ArmorStandEntity extends LivingEntity {
         if (!positionRequiresOffset || isMarker || secondEntity != null) {
             return 0;
         }
-        return definition.height() * getScale();
+        return javaDefinition.height() * getScale();
     }
 
     /**
      * @return the scale according to Java
      */
-    private float getScale() {
+    public float getScale() {
         return isSmall ? 0.5f : 1f;
     }
 

@@ -119,7 +119,7 @@ public class ProjectileEntity extends Entity implements Tickable {
      */
     protected float getGravity() {
         if (getFlag(EntityFlag.HAS_GRAVITY)) {
-            switch (definition.entityType()) {
+            switch (getEntityType()) {
                 case LINGERING_POTION, SPLASH_POTION:
                     return 0.05f;
                 case EXPERIENCE_BOTTLE:
@@ -145,7 +145,7 @@ public class ProjectileEntity extends Entity implements Tickable {
         if (isInWater()) {
             return 0.8f;
         } else {
-            switch (definition.entityType()) {
+            switch (getEntityType()) {
                 case LINGERING_POTION, SPLASH_POTION:
                 case EXPERIENCE_BOTTLE:
                 case SNOWBALL:
@@ -174,7 +174,7 @@ public class ProjectileEntity extends Entity implements Tickable {
 
     @Override
     public void despawnEntity() {
-        if (definition.entityType() == EntityType.ENDER_PEARL) {
+        if (javaDefinition.is(EntityType.ENDER_PEARL)) {
             LevelEventPacket particlePacket = new LevelEventPacket();
             particlePacket.setType(LevelEvent.PARTICLE_TELEPORT);
             particlePacket.setPosition(bedrockPosition());

@@ -26,7 +26,8 @@
 package org.geysermc.geyser.platform.spigot.command;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
+import net.md_5.bungee.chat.ComponentSerializer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.RemoteConsoleCommandSender;
@@ -67,7 +68,7 @@ public class SpigotCommandSource implements GeyserCommandSource {
         }
 
         // CommandSender#sendMessage(BaseComponent[]) is Paper-only
-        handle.spigot().sendMessage(BungeeComponentSerializer.get().serialize(message));
+        handle.spigot().sendMessage(ComponentSerializer.parse(GsonComponentSerializer.gson().serialize(message)));
     }
 
     @Override

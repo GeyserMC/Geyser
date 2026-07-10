@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.translator.protocol.java.scoreboard;
 
-import java.util.Arrays;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.scoreboard.Scoreboard;
@@ -36,6 +35,8 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.TeamAction;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.scoreboard.ClientboundSetPlayerTeamPacket;
+
+import java.util.Arrays;
 
 @Translator(packet = ClientboundSetPlayerTeamPacket.class)
 public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSetPlayerTeamPacket> {
@@ -60,8 +61,8 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
                 packet.getTeamName(),
                 packet.getPlayers(),
                 packet.getDisplayName(),
-                packet.getPrefix(),
-                packet.getSuffix(),
+                packet.getPlayerPrefix(),
+                packet.getPlayerSuffix(),
                 packet.getNameTagVisibility(),
                 packet.getColor()
             );
@@ -80,8 +81,8 @@ public class JavaSetPlayerTeamTranslator extends PacketTranslator<ClientboundSet
                 case UPDATE -> {
                     team.updateProperties(
                         packet.getDisplayName(),
-                        packet.getPrefix(),
-                        packet.getSuffix(),
+                        packet.getPlayerPrefix(),
+                        packet.getPlayerSuffix(),
                         packet.getNameTagVisibility(),
                         packet.getColor()
                     );

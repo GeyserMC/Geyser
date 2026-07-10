@@ -67,7 +67,7 @@ public class FishingHookEntity extends ProjectileEntity {
         setBoundingBoxHeight(128);
 
         this.bedrockOwnerId = owner.geyserId();
-        this.dirtyMetadata.put(EntityDataTypes.OWNER_EID, this.bedrockOwnerId);
+        this.metadata.put(EntityDataTypes.OWNER_EID, this.bedrockOwnerId);
 
         if (owner == session.getPlayerEntity()) {
             session.setFishingRodCast(true);
@@ -88,7 +88,7 @@ public class FishingHookEntity extends ProjectileEntity {
         Entity entity = session.getEntityCache().getEntityByJavaId(hookedEntityId);
         if (entity != null) {
             bedrockTargetId = entity.geyserId();
-            dirtyMetadata.put(EntityDataTypes.TARGET_EID, bedrockTargetId);
+            metadata.put(EntityDataTypes.TARGET_EID, bedrockTargetId);
             hooked = true;
         } else {
             hooked = false;

@@ -175,7 +175,7 @@ public final class Scoreboard {
         Component prefix,
         Component suffix,
         NameTagVisibility visibility,
-        TeamColor color
+        @Nullable TeamColor color
     ) {
         Team team = teams.get(teamName);
         if (team != null) {

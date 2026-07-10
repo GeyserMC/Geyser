@@ -47,8 +47,6 @@ public class FlowerPotBlock extends Block implements BedrockChunkWantsBlockEntit
     public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
         super.updateBlock(session, state, position);
 
-        NbtMap tag = createTag(session, position, state);
-        BlockEntityUtils.updateBlockEntity(session, tag, position);
         UpdateBlockPacket updateBlockPacket = new UpdateBlockPacket();
         updateBlockPacket.setDataLayer(0);
         updateBlockPacket.setDefinition(session.getBlockMappings().getBedrockBlock(state));
@@ -57,7 +55,7 @@ public class FlowerPotBlock extends Block implements BedrockChunkWantsBlockEntit
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.NETWORK);
         updateBlockPacket.getFlags().add(UpdateBlockPacket.Flag.PRIORITY);
         session.sendUpstreamPacket(updateBlockPacket);
-        BlockEntityUtils.updateBlockEntity(session, tag, position);
+        BlockEntityUtils.updateBlockEntity(session, createTag(session, position, state), position);
     }
 
     @Override

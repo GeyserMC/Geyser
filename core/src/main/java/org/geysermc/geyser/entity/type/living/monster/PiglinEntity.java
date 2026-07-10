@@ -58,7 +58,7 @@ public class PiglinEntity extends BasePiglinEntity {
     public void setChargingCrossbow(BooleanEntityMetadata entityMetadata) {
         boolean charging = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.CHARGING, charging);
-        dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, charging ? (byte) 64 : (byte) 0); // TODO: gradually increase
+        metadata.put(EntityDataTypes.CHARGE_AMOUNT, charging ? (byte) 64 : (byte) 0); // TODO: gradually increase
     }
 
     public void setDancing(BooleanEntityMetadata entityMetadata) {
@@ -70,8 +70,8 @@ public class PiglinEntity extends BasePiglinEntity {
         boolean toCrossbow = stack != null && stack.is(Items.CROSSBOW);
 
         if (toCrossbow ^ getMainHandItem().is(Items.CROSSBOW)) { // If switching to/from crossbow
-            dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(toCrossbow ? 0 : 1));
-            dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, (byte) 0);
+            metadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(toCrossbow ? 0 : 1));
+            metadata.put(EntityDataTypes.CHARGE_AMOUNT, (byte) 0);
             setFlag(EntityFlag.CHARGED, false);
             setFlag(EntityFlag.USING_ITEM, false);
             updateBedrockMetadata();
@@ -96,12 +96,12 @@ public class PiglinEntity extends BasePiglinEntity {
 
         if (getMainHandItem().is(Items.CROSSBOW)) {
             if (getMainHandItem().getComponent(DataComponentTypes.CHARGED_PROJECTILES) != null) {
-                dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, Byte.MAX_VALUE);
+                metadata.put(EntityDataTypes.CHARGE_AMOUNT, Byte.MAX_VALUE);
                 setFlag(EntityFlag.CHARGING, false);
                 setFlag(EntityFlag.CHARGED, true);
                 setFlag(EntityFlag.USING_ITEM, true);
             } else if (getFlag(EntityFlag.CHARGED)) {
-                dirtyMetadata.put(EntityDataTypes.CHARGE_AMOUNT, (byte) 0);
+                metadata.put(EntityDataTypes.CHARGE_AMOUNT, (byte) 0);
                 setFlag(EntityFlag.CHARGED, false);
                 setFlag(EntityFlag.USING_ITEM, false);
             }

@@ -56,7 +56,7 @@ public class MerchantContainer extends Container {
             setItem(2, GeyserItemStack.from(session, trade.getResult()), session);
 
             tradeExperience += trade.getXp();
-            villager.getDirtyMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, tradeExperience);
+            villager.getMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, tradeExperience);
             villager.updateBedrockMetadata();
         }
     }

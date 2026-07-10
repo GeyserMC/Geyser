@@ -41,7 +41,7 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
     public DefaultBlockMinecartEntity(EntitySpawnContext context) {
         super(context);
 
-        dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) 1);
+        metadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) 1);
     }
 
     @Override
@@ -56,8 +56,8 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
         showCustomBlock = entityMetadata.getPrimitiveValue() != 0;
 
         if (showCustomBlock) {
-            dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(customBlock));
-            dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, customBlockOffset);
+            metadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(customBlock));
+            metadata.put(EntityDataTypes.DISPLAY_OFFSET, customBlockOffset);
         } else {
             updateDefaultBlockMetadata();
         }
@@ -68,7 +68,7 @@ public class DefaultBlockMinecartEntity extends MinecartEntity {
         customBlockOffset = entityMetadata.getPrimitiveValue();
 
         if (showCustomBlock) {
-            dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, customBlockOffset);
+            metadata.put(EntityDataTypes.DISPLAY_OFFSET, customBlockOffset);
         }
     }
 

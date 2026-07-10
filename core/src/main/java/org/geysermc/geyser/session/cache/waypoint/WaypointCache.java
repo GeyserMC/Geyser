@@ -28,8 +28,14 @@ package org.geysermc.geyser.session.cache.waypoint;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerLocationPacket;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.event.connection.SessionDefineCustomWaypointsEvent;
+import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
+import org.geysermc.geyser.api.waypoint.CustomWaypointStyleRegisterException;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.TrackedWaypoint;
@@ -37,18 +43,53 @@ import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.WaypointOper
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundTrackedWaypointPacket;
 
 import java.awt.Color;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 public final class WaypointCache {
     private final GeyserSession session;
+    private final Map<Identifier, CustomWaypointStyle> waypointStyles;
     private final Map<String, GeyserWaypoint> waypoints = new Object2ObjectOpenHashMap<>();
     // TODO: remove when dropping 26.0 and below
     private final Map<UUID, Color> waypointColors = new Object2ObjectOpenHashMap<>();
 
     public WaypointCache(GeyserSession session) {
         this.session = session;
+
+        Map<Identifier, CustomWaypointStyle> styles = new Object2ObjectOpenHashMap<>();
+
+        SessionDefineCustomWaypointsEvent event = new SessionDefineCustomWaypointsEvent(session) {
+            @Override
+            public Map<Identifier, CustomWaypointStyle> customWaypointStyles() {
+                return Collections.unmodifiableMap(styles);
+            }
+
+            @Override
+            public void register(Identifier identifier, CustomWaypointStyle style) {
+                Objects.requireNonNull(identifier, "identifier may not be null");
+                Objects.requireNonNull(style, "style may not be null");
+                if (styles.containsKey(identifier)) {
+                    throw new CustomWaypointStyleRegisterException("Not registering waypoint style with identifier " + identifier + " as it was already registered");
+                } else {
+                    styles.put(identifier, style);
+                }
+            }
+        };
+
+        // First, include the session-agnostic mappings
+        styles.putAll(Registries.WAYPOINT_STYLE_MAPPINGS.get());
+        // Then, fire the event to the API
+        GeyserImpl.getInstance().eventBus().fire(event);
+
+        // Include the vanilla default waypoint style if it was not overridden
+        if (!styles.containsKey(VanillaWaypoint.VANILLA_WAYPOINT_STYLE)) {
+            styles.put(VanillaWaypoint.VANILLA_WAYPOINT_STYLE, VanillaWaypoint.VANILLA_DEFAULT);
+        }
+
+        waypointStyles = Collections.unmodifiableMap(styles);
     }
 
     public void handlePacket(ClientboundTrackedWaypointPacket packet) {
@@ -133,7 +174,7 @@ public final class WaypointCache {
         Optional<UUID> uuid = Optional.ofNullable(waypoint.uuid());
         Optional<Entity> entity = uuid.flatMap(id -> Optional.ofNullable(session.getEntityCache().getEntityByUuid(id)));
 
-        GeyserWaypoint tracked = GeyserWaypoint.create(session, entity, waypoint);
+        GeyserWaypoint tracked = GeyserWaypoint.create(session, entity, waypoint, waypointStyles);
         if (tracked != null) {
             uuid.ifPresent(id -> waypointColors.put(id, tracked.color()));
             // On 26.0 and below, resend player entry with new waypoint colour

@@ -80,11 +80,11 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         setHeadYaw(headYaw + 90);
         this.variant = variant;
 
-        dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
+        metadata.put(EntityDataTypes.VARIANT, variant.ordinal());
 
         // Required to be able to move on land 1.16.200+ or apply gravity not in the water 1.16.100+
-        dirtyMetadata.put(EntityDataTypes.IS_BUOYANT, true);
-        dirtyMetadata.put(EntityDataTypes.BUOYANCY_DATA, BUOYANCY_DATA);;
+        metadata.put(EntityDataTypes.IS_BUOYANT, true);
+        metadata.put(EntityDataTypes.BUOYANCY_DATA, BUOYANCY_DATA);;
     }
 
     @Override
@@ -131,7 +131,7 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         isPaddlingLeft = entityMetadata.getPrimitiveValue();
         if (!isPaddlingLeft) {
             paddleTimeLeft = 0.0f;
-            dirtyMetadata.put(EntityDataTypes.ROW_TIME_LEFT, 0.0f);
+            metadata.put(EntityDataTypes.ROW_TIME_LEFT, 0.0f);
         }
     }
 
@@ -139,14 +139,14 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         isPaddlingRight = entityMetadata.getPrimitiveValue();
         if (!isPaddlingRight) {
             paddleTimeRight = 0.0f;
-            dirtyMetadata.put(EntityDataTypes.ROW_TIME_RIGHT, 0.0f);
+            metadata.put(EntityDataTypes.ROW_TIME_RIGHT, 0.0f);
         }
     }
 
     @Override
     public void setLeashHolderBedrockId(long bedrockId) {
         this.leashHolderBedrockId = bedrockId;
-        dirtyMetadata.put(EntityDataTypes.LEASH_HOLDER, bedrockId);
+        metadata.put(EntityDataTypes.LEASH_HOLDER, bedrockId);
     }
 
     @Override
@@ -204,11 +204,11 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
 
         if (isPaddlingLeft) {
             paddleTimeLeft += ROWING_SPEED;
-            dirtyMetadata.put(EntityDataTypes.ROW_TIME_LEFT, paddleTimeLeft);
+            metadata.put(EntityDataTypes.ROW_TIME_LEFT, paddleTimeLeft);
         }
         if (isPaddlingRight) {
             paddleTimeRight += ROWING_SPEED;
-            dirtyMetadata.put(EntityDataTypes.ROW_TIME_RIGHT, paddleTimeRight);
+            metadata.put(EntityDataTypes.ROW_TIME_RIGHT, paddleTimeRight);
         }
 
         if (isPaddlingLeft || isPaddlingRight) {

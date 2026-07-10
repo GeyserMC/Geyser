@@ -262,6 +262,7 @@ public class DataComponentHashers {
         register(DataComponentTypes.CONTAINER, RegistryHasher.ITEM_CONTAINER_CONTENTS);
         register(DataComponentTypes.BLOCK_STATE, MinecraftHasher.map(MinecraftHasher.STRING, MinecraftHasher.STRING).cast(BlockStateProperties::getProperties));
         register(DataComponentTypes.BEES, RegistryHasher.BEEHIVE_OCCUPANT.list());
+        register(DataComponentTypes.SULFUR_CUBE_CONTENT, RegistryHasher.ITEM_STACK);
 
         register(DataComponentTypes.LOCK, MinecraftHasher.NBT_MAP);
         register(DataComponentTypes.CONTAINER_LOOT, MinecraftHasher.NBT_MAP);

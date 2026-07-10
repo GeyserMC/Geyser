@@ -37,7 +37,7 @@ public class BasePiglinEntity extends MonsterEntity {
     public BasePiglinEntity(EntitySpawnContext context) {
         super(context);
         // Both TARGET_EID and BLOCK are needed for melee attack animation
-        dirtyMetadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(1));
+        metadata.put(EntityDataTypes.BLOCK, session.getBlockMappings().getDefinition(1));
         setFlag(EntityFlag.SHAKING, isShaking());
     }
 
@@ -45,7 +45,7 @@ public class BasePiglinEntity extends MonsterEntity {
     public void setMobFlags(ByteEntityMetadata entityMetadata) {
         super.setMobFlags(entityMetadata);
         byte xd = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityDataTypes.TARGET_EID, (xd & 4) == 4 ? session.getPlayerEntity().geyserId() : 0);
+        metadata.put(EntityDataTypes.TARGET_EID, (xd & 4) == 4 ? session.getPlayerEntity().geyserId() : 0);
     }
 
     public void setImmuneToZombification(BooleanEntityMetadata entityMetadata) {

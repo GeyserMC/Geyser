@@ -26,17 +26,23 @@
 package org.geysermc.geyser.scoreboard.network.util;
 
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
+import org.geysermc.api.Geyser;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -58,8 +64,17 @@ public class GeyserMockContext {
         var logger = context.storeObject(new EmptyGeyserLogger());
         when(geyserImpl.getLogger()).thenReturn(logger);
 
-        try (var geyserImplMock = mockStatic(GeyserImpl.class)) {
+        var eventBus = new GeyserEventBus();
+        when(geyserImpl.eventBus()).thenReturn(eventBus);
+
+        // GeyserEntityDataTypes static fields call Identifier.of(), which goes through GeyserApi.api().provider()
+        doAnswer(InvocationOnMock::callRealMethod).when(geyserImpl).provider(any(Class.class), any(), any());
+
+        try (var geyserImplMock = mockStatic(GeyserImpl.class);
+             var geyserMock = mockStatic(Geyser.class)) {
             geyserImplMock.when(GeyserImpl::getInstance).thenReturn(geyserImpl);
+            // GeyserApi.api() calls Geyser.api(GeyserApi.class); stub it to return our mock
+            geyserMock.when(() -> Geyser.api(GeyserApi.class)).thenReturn(geyserImpl);
 
             geyserContext.accept(context);
         }

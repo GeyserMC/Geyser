@@ -50,7 +50,7 @@ public class WardenEntity extends MonsterEntity implements Tickable {
     @Override
     protected void initializeMetadata() {
         super.initializeMetadata();
-        dirtyMetadata.put(EntityDataTypes.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
+        metadata.put(EntityDataTypes.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class WardenEntity extends MonsterEntity implements Tickable {
     public void setAngerLevel(IntEntityMetadata entityMetadata) {
         float anger = (float) entityMetadata.getPrimitiveValue() / 80f;
         heartBeatDelay = 40 - GenericMath.floor(MathUtils.clamp(anger, 0.0F, 1.0F) * 30F);
-        dirtyMetadata.put(EntityDataTypes.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
+        metadata.put(EntityDataTypes.HEARTBEAT_INTERVAL_TICKS, heartBeatDelay);
     }
 
     @Override

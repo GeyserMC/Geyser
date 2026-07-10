@@ -27,8 +27,7 @@ package org.geysermc.geyser.session.cache.registry;
 
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
-import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
+import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
 import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.entity.type.living.animal.nautilus.ZombieNautilusEntity;
@@ -48,14 +47,13 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
-import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Stores {@link JavaRegistryKey} for Java registries that are used for loading of data-driven objects, tags, or both. Read {@link JavaRegistryKey} for more information on how to use one.
@@ -69,14 +67,7 @@ public class JavaRegistries {
             .findFirst());
     public static final JavaRegistryKey<Item> ITEM = createHardcoded("item", Registries.JAVA_ITEMS,
         Item::javaId, Item::javaKey, key -> Optional.ofNullable(Registries.JAVA_ITEM_IDENTIFIERS.get(key.asString())));
-    public static JavaRegistryKey<EntityType> ENTITY_TYPE = createHardcoded("entity_type", Arrays.asList(EntityType.values()), EntityType::ordinal,
-        type -> MinecraftKey.key(type.name().toLowerCase(Locale.ROOT)), key -> {
-        try {
-            return Optional.of(EntityType.valueOf(key.value().toUpperCase(Locale.ROOT)));
-        } catch (IllegalArgumentException exception) {
-            return Optional.empty(); // Non-existent entity type
-        }
-    });
+    public static JavaRegistryKey<GeyserEntityType> ENTITY_TYPE = create("entity_type", new EntityTypeLookup());
 
     public static final JavaRegistryKey<ChatType> CHAT_TYPE = create("chat_type");
     public static final JavaRegistryKey<JavaDimension> DIMENSION_TYPE = create("dimension_type");
@@ -86,8 +77,8 @@ public class JavaRegistries {
     public static final JavaRegistryKey<GeyserInstrument> INSTRUMENT = create("instrument");
     public static final JavaRegistryKey<JukeboxSong> JUKEBOX_SONG = create("jukebox_song");
     public static final JavaRegistryKey<PaintingType> PAINTING_VARIANT = create("painting_variant");
-    public static final JavaRegistryKey<TrimMaterial> TRIM_MATERIAL = create("trim_material");
-    public static final JavaRegistryKey<TrimPattern> TRIM_PATTERN = create("trim_pattern");
+    public static final JavaRegistryKey<ArmorTrim.TrimMaterial> TRIM_MATERIAL = create("trim_material");
+    public static final JavaRegistryKey<ArmorTrim.TrimPattern> TRIM_PATTERN = create("trim_pattern");
     public static final JavaRegistryKey<RegistryUnit> DAMAGE_TYPE = create("damage_type");
     public static final JavaRegistryKey<Dialog> DIALOG = create("dialog");
     public static final JavaRegistryKey<RegistryUnit> WORLD_CLOCK = create("world_clock");
@@ -174,6 +165,37 @@ public class JavaRegistries {
             int id = networkMapper.get(object);
             return Optional.ofNullable(registry.get(id))
                 .map(value -> new RegistryEntryData<>(id, Objects.requireNonNull(objectIdentifierMapper.get(value)), value));
+        }
+    }
+
+    // Not the neatest solution...
+    private record EntityTypeLookup() implements JavaRegistryKey.RegistryLookup<GeyserEntityType> {
+
+        @Override
+        public Optional<RegistryEntryData<GeyserEntityType>> entry(JavaRegistryProvider registries, JavaRegistryKey<GeyserEntityType> registry, int networkId) {
+            return lookup(GeyserEntityType::of, networkId);
+        }
+
+        @Override
+        public Optional<RegistryEntryData<GeyserEntityType>> entry(JavaRegistryProvider registries, JavaRegistryKey<GeyserEntityType> registry, Key key) {
+            return lookup(GeyserEntityType::of, key);
+        }
+
+        @Override
+        public Optional<RegistryEntryData<GeyserEntityType>> entry(JavaRegistryProvider registries, JavaRegistryKey<GeyserEntityType> registry, GeyserEntityType object) {
+            return lookup(Function.identity(), object);
+        }
+
+        private static <T> Optional<RegistryEntryData<GeyserEntityType>> lookup(Function<T, GeyserEntityType> getter, T value) {
+            GeyserEntityType type = getter.apply(value);
+            if (type == null || type.isUnregistered()) {
+                return Optional.empty();
+            }
+            return Optional.of(wrap(type));
+        }
+
+        private static RegistryEntryData<GeyserEntityType> wrap(GeyserEntityType type) {
+            return new RegistryEntryData<>(type.mcpl().ordinal(), MinecraftKey.identifierToKey(type.identifier()), type);
         }
     }
 

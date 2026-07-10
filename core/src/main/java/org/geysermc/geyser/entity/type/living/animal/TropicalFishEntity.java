@@ -52,10 +52,10 @@ public class TropicalFishEntity extends AbstractFishEntity {
     public void setFishVariant(IntEntityMetadata entityMetadata) {
         int varNumber = entityMetadata.getPrimitiveValue();
 
-        dirtyMetadata.put(EntityDataTypes.VARIANT, getShape(varNumber)); // Shape 0-1
-        dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, getPattern(varNumber)); // Pattern 0-5
-        dirtyMetadata.put(EntityDataTypes.COLOR, getBaseColor(varNumber)); // Base color 0-15
-        dirtyMetadata.put(EntityDataTypes.COLOR_2, getPatternColor(varNumber)); // Pattern color 0-15
+        metadata.put(EntityDataTypes.VARIANT, getShape(varNumber)); // Shape 0-1
+        metadata.put(EntityDataTypes.MARK_VARIANT, getPattern(varNumber)); // Pattern 0-5
+        metadata.put(EntityDataTypes.COLOR, getBaseColor(varNumber)); // Base color 0-15
+        metadata.put(EntityDataTypes.COLOR_2, getPatternColor(varNumber)); // Pattern color 0-15
     }
 
     public static int getPackedVariant(int pattern, int baseColor, int patternColor) {

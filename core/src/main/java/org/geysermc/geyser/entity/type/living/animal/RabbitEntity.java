@@ -54,7 +54,7 @@ public class RabbitEntity extends AnimalEntity {
         // Allow the resource pack to adjust to the killer bunny
         setFlag(EntityFlag.BRIBED, isKillerBunny);
 
-        dirtyMetadata.put(EntityDataTypes.VARIANT, variant);
+        metadata.put(EntityDataTypes.VARIANT, variant);
     }
 
     @Override

@@ -64,7 +64,7 @@ public class ItemEntity extends ProjectileEntity {
         itemPacket.setFromFishing(false);
         itemPacket.setItemInHand(item);
         itemPacket.getMetadata().putFlags(this.flags);
-        dirtyMetadata.apply(itemPacket.getMetadata());
+        metadata.apply(itemPacket.getMetadata());
 
         setFlagsDirty(false);
 
@@ -110,10 +110,10 @@ public class ItemEntity extends ProjectileEntity {
 
     @Override
     protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        float offset = definition.offset();
+        float offset = javaDefinition.offset();
         if (waterLevel.join() == 0) { // Item is in a full block of water
             // Move the item entity down so it doesn't float above the water
-            offset = -definition.offset();
+            offset = -offset;
         }
         setOffset(offset);
         super.moveAbsoluteImmediate(position, 0, 0, 0, isOnGround, teleported);

@@ -27,16 +27,16 @@ package org.geysermc.geyser.gametest.tests;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.TypedDataComponent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.GameTestInstance;
+import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.RegistryOps;
 import org.geysermc.geyser.item.hashing.DataComponentHashers;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 
@@ -48,12 +48,8 @@ public class RequiredComponentsForHashingTestInstance extends GeyserTestInstance
         commonFields(instance).apply(instance, RequiredComponentsForHashingTestInstance::new)
     );
 
-    private RequiredComponentsForHashingTestInstance(RegistryOps<?> ops, boolean required) {
-        super(ops, required);
-    }
-
-    public RequiredComponentsForHashingTestInstance(HolderLookup.Provider registries, boolean required) {
-        super(registries, required);
+    public RequiredComponentsForHashingTestInstance(HolderGetter<TestEnvironmentDefinition<?>> testEnvironments, boolean required) {
+        super(testEnvironments, required);
     }
 
     @Override

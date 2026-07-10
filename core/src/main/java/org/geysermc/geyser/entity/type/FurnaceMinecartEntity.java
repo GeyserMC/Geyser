@@ -50,8 +50,8 @@ public class FurnaceMinecartEntity extends DefaultBlockMinecartEntity {
     @Override
     public void updateDefaultBlockMetadata() {
         BlockState furnace = Blocks.FURNACE.defaultBlockState().withValue(Properties.LIT, hasFuel);
-        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(furnace));
-        dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, 6);
+        metadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(furnace));
+        metadata.put(EntityDataTypes.DISPLAY_OFFSET, 6);
     }
 
     @Override

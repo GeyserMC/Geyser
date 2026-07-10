@@ -78,8 +78,8 @@ public class GeyserGameTestBootstrap extends GeyserModBootstrap implements ModIn
                 ModCommandSource::new
         );
         CommandManager<GeyserCommandSource> cloud = new FabricServerCommandManager<>(
-                ExecutionCoordinator.simpleCoordinator(),
-                sourceConverter
+            ExecutionCoordinator.simpleCoordinator(),
+            sourceConverter
         );
         this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud, false)); // applying root permission would be a breaking change because we can't register permission defaults
 

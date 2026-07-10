@@ -46,31 +46,31 @@ public class AreaEffectCloudEntity extends Entity {
     protected void initializeMetadata() {
         super.initializeMetadata();
         // Without this the cloud doesn't appear,
-        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_DURATION, Integer.MAX_VALUE);
+        metadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_DURATION, Integer.MAX_VALUE);
 
         // This disabled client side shrink of the cloud
-        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_RADIUS, 3.0f);
-        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, Float.MIN_VALUE);
+        metadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_RADIUS, 3.0f);
+        metadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_CHANGE_ON_PICKUP, Float.MIN_VALUE);
 
         //noinspection deprecation - still needed for these to show up
-        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_CHANGE_RATE, Float.MIN_VALUE);
+        metadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_CHANGE_RATE, Float.MIN_VALUE);
         setFlag(EntityFlag.FIRE_IMMUNE, true);
     }
 
     public void setRadius(FloatEntityMetadata entityMetadata) {
         // Anything less than 0.5 will cause the cloud to despawn
         float value = MathUtils.clamp(entityMetadata.getPrimitiveValue(), 0.5f, 32.0f);
-        dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_RADIUS, value);
-        dirtyMetadata.put(EntityDataTypes.WIDTH, 2.0f * value);
+        metadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_RADIUS, value);
+        metadata.put(EntityDataTypes.WIDTH, 2.0f * value);
     }
 
     public void setParticle(EntityMetadata<Particle, ?> entityMetadata) {
         Particle particle = entityMetadata.getValue();
         Registries.PARTICLES.map(particle.getType(), p -> p.levelEventType() instanceof ParticleType particleType ? particleType : null).ifPresent(type ->
-                dirtyMetadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_PARTICLE, type));
+                metadata.put(EntityDataTypes.AREA_EFFECT_CLOUD_PARTICLE, type));
 
         if (particle.getData() instanceof ColorParticleData effectParticleData) {
-            dirtyMetadata.put(EntityDataTypes.EFFECT_COLOR, effectParticleData.getColor());
+            metadata.put(EntityDataTypes.EFFECT_COLOR, effectParticleData.getColor());
         }
     }
 }

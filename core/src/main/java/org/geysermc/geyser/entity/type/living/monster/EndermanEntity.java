@@ -43,7 +43,7 @@ public class EndermanEntity extends MonsterEntity {
     public void setCarriedBlock(IntEntityMetadata entityMetadata) {
         BlockDefinition bedrockBlockId = session.getBlockMappings().getBedrockBlock(entityMetadata.getPrimitiveValue());
 
-        dirtyMetadata.put(EntityDataTypes.CARRY_BLOCK_STATE, bedrockBlockId);
+        metadata.put(EntityDataTypes.CARRY_BLOCK_STATE, bedrockBlockId);
     }
 
     /**

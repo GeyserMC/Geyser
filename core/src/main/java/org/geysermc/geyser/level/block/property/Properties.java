@@ -134,7 +134,7 @@ public final class Properties {
     public static final BasicEnumProperty BAMBOO_LEAVES = BasicEnumProperty.create("leaves", "none", "small", "large");
     public static final BasicEnumProperty TILT = BasicEnumProperty.create("tilt", "none", "unstable", "partial", "full");
     public static final EnumProperty<Direction> VERTICAL_DIRECTION = EnumProperty.create("vertical_direction", Direction.UP, Direction.DOWN);
-    public static final BasicEnumProperty DRIPSTONE_THICKNESS = BasicEnumProperty.create("thickness", "tip_merge", "tip", "frustum", "middle", "base");
+    public static final BasicEnumProperty SPELEOTHEM_THICKNESS = BasicEnumProperty.create("thickness", "tip_merge", "tip", "frustum", "middle", "base");
     public static final BasicEnumProperty SCULK_SENSOR_PHASE = BasicEnumProperty.create("sculk_sensor_phase", "inactive", "active", "cooldown");
     public static final BooleanProperty SLOT_0_OCCUPIED = BooleanProperty.create("slot_0_occupied");
     public static final BooleanProperty SLOT_1_OCCUPIED = BooleanProperty.create("slot_1_occupied");
@@ -152,4 +152,6 @@ public final class Properties {
     public static final BasicEnumProperty TEST_BLOCK_MODE = BasicEnumProperty.create("mode", "start", "log", "fail", "accept");
     public static final BooleanProperty MAP = BooleanProperty.create("map");
     public static final BasicEnumProperty COPPER_GOLEM_POSE = BasicEnumProperty.create("copper_golem_pose", "standing", "sitting", "running", "star");
+    public static final BasicEnumProperty POTENT_SULFUR_STATE = BasicEnumProperty.create("potent_sulfur_state", "dry", "wet", "dormant", "erupting", "continuous");
+
 }

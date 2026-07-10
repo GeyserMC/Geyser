@@ -27,8 +27,8 @@ package org.geysermc.geyser.item.components.resolvable;
 
 import org.geysermc.geyser.api.item.custom.v2.component.java.JavaRepairable;
 import org.geysermc.geyser.impl.HoldersImpl;
-import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
+import org.geysermc.geyser.session.cache.registry.JavaRegistryProvider;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
@@ -41,7 +41,7 @@ public record ResolvableRepairable(JavaRepairable repairable) implements Resolva
     }
 
     @Override
-    public HolderSet resolve(GeyserSession session) {
-        return ((HoldersImpl) repairable.items()).toHolderSet(session, JavaRegistries.ITEM);
+    public HolderSet resolve(JavaRegistryProvider registries) {
+        return ((HoldersImpl) repairable.items()).toHolderSet(registries, JavaRegistries.ITEM);
     }
 }

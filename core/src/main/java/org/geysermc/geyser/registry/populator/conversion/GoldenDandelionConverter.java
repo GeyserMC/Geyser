@@ -26,14 +26,23 @@
 package org.geysermc.geyser.registry.populator.conversion;
 
 import org.cloudburstmc.nbt.NbtMap;
+import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.item.type.Item;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class GoldenDandelionConverter extends ConversionHelper {
-
-    public static NbtMap convert(NbtMap tag) {
+    public static NbtMap convertBlock(NbtMap tag) {
         if (tag.getString("name").equals("minecraft:golden_dandelion")) {
-            return withoutStates("dandelion");
+            return withoutStates("minecraft:dandelion");
         }
-        return tag;
+        return ChaosCubedConverter.convertBlock(tag);
     }
 
+    public static Map<Item, Item> convertItem() {
+        Map<Item, Item> itemMappings = new HashMap<>(ChaosCubedConverter.convertItem());
+        itemMappings.put(Items.GOLDEN_DANDELION, Items.DANDELION);
+        return itemMappings;
+    }
 }

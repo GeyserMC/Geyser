@@ -31,7 +31,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -71,12 +71,12 @@ public class MinecartEntity extends Entity implements Tickable {
     public void setCustomBlock(IntEntityMetadata entityMetadata) {
         // Optional block state -> "0" is air, aka none
         // Sets whether the custom block should be enabled
-        dirtyMetadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) (entityMetadata.getPrimitiveValue() != 0 ? 1 : 0));
-        dirtyMetadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(entityMetadata.getPrimitiveValue()));
+        metadata.put(EntityDataTypes.CUSTOM_DISPLAY, (byte) (entityMetadata.getPrimitiveValue() != 0 ? 1 : 0));
+        metadata.put(EntityDataTypes.DISPLAY_BLOCK_STATE, session.getBlockMappings().getBedrockBlock(entityMetadata.getPrimitiveValue()));
     }
 
     public void setCustomBlockOffset(IntEntityMetadata entityMetadata) {
-        dirtyMetadata.put(EntityDataTypes.DISPLAY_OFFSET, entityMetadata.getPrimitiveValue());
+        metadata.put(EntityDataTypes.DISPLAY_OFFSET, entityMetadata.getPrimitiveValue());
     }
 
     @Override
@@ -120,7 +120,7 @@ public class MinecartEntity extends Entity implements Tickable {
             setHeadYaw(headYaw);
             setOnGround(isOnGround);
 
-            this.lerpPosition = this.position.add(relX, relY, relZ);
+            this.lerpPosition = steps == 0 ? position().add(relX, relY, relZ) : lerpPosition.add(relX, relY, relZ);
             this.steps = 3;
         } else {
             super.moveRelative(relX, relY, relZ, yaw, pitch, headYaw, isOnGround);
@@ -315,10 +315,10 @@ public class MinecartEntity extends Entity implements Tickable {
 
     @Override
     protected InteractiveTag testInteraction(Hand hand) {
-        if (definition == EntityDefinitions.CHEST_MINECART || definition == EntityDefinitions.HOPPER_MINECART) {
+        if (javaDefinition == VanillaEntities.CHEST_MINECART || javaDefinition == VanillaEntities.HOPPER_MINECART) {
             return InteractiveTag.OPEN_CONTAINER;
         } else {
-            if (session.isSneaking() || definition == EntityDefinitions.TNT_MINECART) {
+            if (session.isSneaking() || javaDefinition == VanillaEntities.TNT_MINECART) {
                 return InteractiveTag.NONE;
             } else if (!passengers.isEmpty()) {
                 // Can't enter if someone is inside
@@ -332,7 +332,7 @@ public class MinecartEntity extends Entity implements Tickable {
 
     @Override
     public InteractionResult interact(Hand hand) {
-        if (definition == EntityDefinitions.CHEST_MINECART || definition == EntityDefinitions.HOPPER_MINECART) {
+        if (javaDefinition == VanillaEntities.CHEST_MINECART || javaDefinition == VanillaEntities.HOPPER_MINECART) {
             // Opening the UI of this minecart
             return InteractionResult.SUCCESS;
         } else {

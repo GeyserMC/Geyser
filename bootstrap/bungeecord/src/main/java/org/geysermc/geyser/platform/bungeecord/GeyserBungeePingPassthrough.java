@@ -26,8 +26,6 @@
 package org.geysermc.geyser.platform.bungeecord;
 
 import lombok.AllArgsConstructor;
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.ServerPing;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -36,6 +34,7 @@ import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.connection.PendingConnection;
 import net.md_5.bungee.api.event.ProxyPingEvent;
 import net.md_5.bungee.api.plugin.Listener;
+import net.md_5.bungee.chat.ComponentSerializer;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
@@ -76,7 +75,7 @@ public class GeyserBungeePingPassthrough implements IGeyserPingPassthrough, List
 
         ServerPing response = event.getResponse();
         return new GeyserPingInfo(
-                GsonComponentSerializer.gson().serialize(BungeeComponentSerializer.get().deserialize(new BaseComponent[]{ response.getDescriptionComponent() })),
+                ComponentSerializer.toString(new BaseComponent[]{ response.getDescriptionComponent() }),
                 response.getPlayers().getMax(),
                 response.getPlayers().getOnline()
         );

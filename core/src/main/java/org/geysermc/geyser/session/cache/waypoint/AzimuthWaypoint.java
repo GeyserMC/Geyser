@@ -25,8 +25,9 @@
 
 package org.geysermc.geyser.session.cache.waypoint;
 
-import net.kyori.adventure.key.Key;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.api.waypoint.CustomWaypointStyle;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.waypoint.AzimuthWaypointData;
@@ -40,13 +41,13 @@ public class AzimuthWaypoint extends GeyserWaypoint implements TickingWaypoint {
 
     // In Java, this waypoint always appears really far, so set the distance far here too,
     // This also makes the waypoint more accurate on the bar and less susceptible to the player moving
-    private static final float WAYPOINT_DISTANCE = 1000.0F;
+    private static final float WAYPOINT_DISTANCE = Integer.MAX_VALUE;
 
     // The angle, in radians, where the waypoint should appear on the bar
     private float angle = 0.0F;
 
-    public AzimuthWaypoint(GeyserSession session, UUID uuid, Key style, Color color, Optional<Entity> entity) {
-        super(session, uuid, style, color, entity);
+    public AzimuthWaypoint(GeyserSession session, UUID uuid, CustomWaypointStyle style, Identifier styleIdentifier, Color color, Optional<Entity> entity) {
+        super(session, uuid, style, styleIdentifier, color, entity);
     }
 
     @Override

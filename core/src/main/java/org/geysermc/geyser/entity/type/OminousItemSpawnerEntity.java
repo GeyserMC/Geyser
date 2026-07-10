@@ -42,6 +42,6 @@ public class OminousItemSpawnerEntity extends Entity {
     public void setItem(EntityMetadata<ItemStack, ? extends MetadataType<ItemStack>> itemStackEntityMetadata) {
         NbtMap bedrockItem = BedrockItemBuilder.createItemNbt(ItemTranslator.translateToBedrock(session, itemStackEntityMetadata.getValue())).build();
         // Not a typo: This isn't just for fireworks, but also used to send item stack representations
-        this.dirtyMetadata.put(EntityDataTypes.DISPLAY_FIREWORK, bedrockItem);
+        this.metadata.put(EntityDataTypes.DISPLAY_FIREWORK, bedrockItem);
     }
 }

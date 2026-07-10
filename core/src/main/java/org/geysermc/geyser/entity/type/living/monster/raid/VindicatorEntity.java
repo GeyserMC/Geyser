@@ -34,7 +34,7 @@ public class VindicatorEntity extends AbstractIllagerEntity {
 
     public VindicatorEntity(EntitySpawnContext context) {
         super(context);
-        dirtyMetadata.put(EntityDataTypes.TARGET_EID, session.getPlayerEntity().geyserId());
+        metadata.put(EntityDataTypes.TARGET_EID, session.getPlayerEntity().geyserId());
     }
 
     @Override

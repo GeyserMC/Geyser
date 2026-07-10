@@ -38,8 +38,8 @@ public class HorseEntity extends AbstractHorseEntity {
 
     public void setHorseVariant(IntEntityMetadata entityMetadata) {
         int value = entityMetadata.getPrimitiveValue();
-        dirtyMetadata.put(EntityDataTypes.VARIANT, value & 255);
-        dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, (value >> 8) % 5);
+        metadata.put(EntityDataTypes.VARIANT, value & 255);
+        metadata.put(EntityDataTypes.MARK_VARIANT, (value >> 8) % 5);
     }
 
     @Override

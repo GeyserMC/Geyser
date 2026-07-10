@@ -28,14 +28,16 @@ package org.geysermc.geyser.session.cache.registry;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.NonNull;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
 /**
  * A wrapper for a list, holding Java registry values.
  */
-public interface JavaRegistry<T> {
+public interface JavaRegistry<T> extends Iterable<RegistryEntryData<T>> {
 
     /**
      * Looks up a registry entry by its ID. The object can be null, or not present.
@@ -114,6 +116,11 @@ public interface JavaRegistry<T> {
      */
     default int size() {
         return entries().size();
+    }
+
+    @Override
+    default @NonNull Iterator<RegistryEntryData<T>> iterator() {
+        return entries().iterator();
     }
 
     /**

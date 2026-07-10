@@ -49,18 +49,4 @@ tasks {
     withType(PublishToMavenRepository::class).configureEach {
         enabled = false
     }
-
-    // it'd be processGametestResources if we had a separate source set for tests
-    getByName("processResources", ProcessResources::class) {
-        filesMatching("fabric.mod.json") {
-            expand(
-                "id" to "geyser",
-                "name" to "Geyser",
-                "version" to project.version,
-                "description" to project.description!!,
-                "url" to "https://geysermc.org",
-                "author" to "GeyserMC"
-            )
-        }
-    }
 }

@@ -39,14 +39,14 @@ public class EvokerFangsEntity extends Entity implements Tickable {
         super(context);
         // As of 1.18.2 Bedrock, this line is required for the entity to be visible
         // 22 is the starting number on Java Edition
-        dirtyMetadata.put(EntityDataTypes.DATA_LIFETIME_TICKS, this.limitedLife);
+        metadata.put(EntityDataTypes.DATA_LIFETIME_TICKS, this.limitedLife);
     }
 
     @Override
     public void tick() {
         if (attackStarted) {
             if (--this.limitedLife > 0 && this.limitedLife % 2 == 0) { // Matches Bedrock behavior
-                dirtyMetadata.put(EntityDataTypes.DATA_LIFETIME_TICKS, this.limitedLife);
+                metadata.put(EntityDataTypes.DATA_LIFETIME_TICKS, this.limitedLife);
                 updateBedrockMetadata();
             }
         }

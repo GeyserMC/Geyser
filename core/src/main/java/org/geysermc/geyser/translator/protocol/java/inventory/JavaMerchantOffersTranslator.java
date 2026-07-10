@@ -85,14 +85,14 @@ public class JavaMerchantOffersTranslator extends PacketTranslator<ClientboundMe
 
         Entity villager = merchantInventory.getVillager();
         if (packet.isShowProgress()) {
-            villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, packet.getVillagerLevel() - 1);
-            villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 4);
+            villager.getMetadata().put(EntityDataTypes.TRADE_TIER, packet.getVillagerLevel() - 1);
+            villager.getMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 4);
         } else {
             // Don't show trade level for wandering traders
-            villager.getDirtyMetadata().put(EntityDataTypes.TRADE_TIER, 0);
-            villager.getDirtyMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 0);
+            villager.getMetadata().put(EntityDataTypes.TRADE_TIER, 0);
+            villager.getMetadata().put(EntityDataTypes.MAX_TRADE_TIER, 0);
         }
-        villager.getDirtyMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, packet.getVillagerXp());
+        villager.getMetadata().put(EntityDataTypes.TRADE_EXPERIENCE, packet.getVillagerXp());
         villager.updateBedrockMetadata();
 
         // Construct the packet that opens the trading window

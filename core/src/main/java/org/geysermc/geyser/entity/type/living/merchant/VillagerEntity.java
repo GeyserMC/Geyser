@@ -95,12 +95,12 @@ public class VillagerEntity extends AbstractMerchantEntity {
         // Profession
         int profession = getBedrockProfession(villagerData.getProfession());
         canTradeWith = profession != 14 && profession != 0; // Not a notwit and not professionless
-        dirtyMetadata.put(EntityDataTypes.VARIANT, profession);
+        metadata.put(EntityDataTypes.VARIANT, profession);
         //metadata.put(EntityDataTypes.SKIN_ID, villagerData.getType()); Looks like this is modified but for any reason?
         // Region
-        dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, getBedrockRegion(villagerData.getType()));
+        metadata.put(EntityDataTypes.MARK_VARIANT, getBedrockRegion(villagerData.getType()));
         // Trade tier - different indexing in Bedrock
-        dirtyMetadata.put(EntityDataTypes.TRADE_TIER, villagerData.getLevel() - 1);
+        metadata.put(EntityDataTypes.TRADE_TIER, villagerData.getLevel() - 1);
     }
 
     @Override

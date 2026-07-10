@@ -94,7 +94,7 @@ public final class GameProtocol {
         register(Bedrock_v924.CODEC, "26.0", "26.1", "26.2", "26.3");
         register(Bedrock_v944.CODEC, "26.10");
         register(Bedrock_v975.CODEC, "26.20", "26.21", "26.22", "26.23");
-        register(Bedrock_v1001.CODEC, "26.30", "26.31", "26.32");
+        register(Bedrock_v1001.CODEC, "26.30", "26.31", "26.32", "26.33");
 
         registerEducation(Bedrock_v898.EDUCATION_CODEC);
 
