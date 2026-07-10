@@ -33,7 +33,6 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.command.GeyserCommandSource;
-import org.geysermc.geyser.platform.velocity.TemporaryAdventureConverter;
 import org.geysermc.geyser.text.GeyserLocale;
 
 import java.util.Locale;
