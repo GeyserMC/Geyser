@@ -34,6 +34,7 @@ import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.ServerPing;
 import com.velocitypowered.api.proxy.server.ServerPing.Version;
 import lombok.AllArgsConstructor;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.ping.GeyserPingInfo;
 import org.geysermc.geyser.ping.IGeyserPingPassthrough;
@@ -53,8 +54,8 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
         ServerPing.Builder pingBuilder = ServerPing.builder()
                 .onlinePlayers(server.getPlayerCount())
                 .maximumPlayers(server.getConfiguration().getShowMaxPlayers())
-                .version(new Version(GameProtocol.getJavaProtocolVersion(), GameProtocol.getJavaMinecraftVersion()));
-        TemporaryAdventureConverter.description(pingBuilder, TemporaryAdventureConverter.motd(server.getConfiguration()));
+                .version(new Version(GameProtocol.getJavaProtocolVersion(), GameProtocol.getJavaMinecraftVersion()))
+                .description(server.getConfiguration().getMotd());
 
         ProxyPingEvent event;
         try {
@@ -63,7 +64,7 @@ public class GeyserVelocityPingPassthrough implements IGeyserPingPassthrough {
             throw new RuntimeException(e);
         }
         return new GeyserPingInfo(
-                TemporaryAdventureConverter.toJson(TemporaryAdventureConverter.getDescriptionComponent(event.getPing())),
+                GsonComponentSerializer.gson().serialize(event.getPing().getDescriptionComponent()),
                 event.getPing().getPlayers().map(ServerPing.Players::getMax).orElse(1),
                 event.getPing().getPlayers().map(ServerPing.Players::getOnline).orElse(0)
         );

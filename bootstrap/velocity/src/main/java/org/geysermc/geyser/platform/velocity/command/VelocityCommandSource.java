@@ -29,6 +29,7 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.command.GeyserCommandSource;
@@ -60,14 +61,12 @@ public class VelocityCommandSource implements GeyserCommandSource {
 
     @Override
     public void sendMessage(@NonNull String message) {
-        // FIXME - Can't use adventure while natively while waiting for 5.x to be supported
-        TemporaryAdventureConverter.sendMessage(handle, message);
+        handle.sendMessage(LegacyComponentSerializer.legacySection().deserialize(message));
     }
 
     @Override
     public void sendMessage(Component message) {
-        // FIXME - Can't use adventure while natively while waiting for 5.x to be supported
-        TemporaryAdventureConverter.sendMessage(handle, message);
+        handle.sendMessage(message);
     }
 
     @Override
