@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.java.scoreboard;
 
+import org.geysermc.geyser.debug.ScoreboardPacketType;
+import org.geysermc.geyser.debug.StatsCollector;
 import org.geysermc.geyser.scoreboard.Objective;
 import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
@@ -56,9 +58,14 @@ public class JavaSetObjectiveTranslator extends PacketTranslator<ClientboundSetO
         }
 
         switch (packet.getAction()) {
-            case ADD, UPDATE ->
+            case ADD, UPDATE -> {
+                StatsCollector.addPacketCount(ScoreboardPacketType.OBJECTIVE_CRU);
                 objective.updateProperties(packet.getDisplayName(), packet.getType(), packet.getNumberFormat());
-            case REMOVE -> scoreboard.removeObjective(objective);
+            }
+            case REMOVE -> {
+                StatsCollector.addPacketCount(ScoreboardPacketType.OBJECTIVE_DEL);
+                scoreboard.removeObjective(objective);
+            }
         }
 
         // Scoreboard#removeObjective doesn't touch the display slot(s) that were attached to it.

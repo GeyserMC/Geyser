@@ -46,7 +46,7 @@ public final class Team {
 
     private final Set<String> entities;
     private final Set<Entity> managedEntities;
-    @NonNull private NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
+    private @NonNull NameTagVisibility nameTagVisibility = NameTagVisibility.ALWAYS;
     private TeamColor color;
 
     private String name;
@@ -122,12 +122,9 @@ public final class Team {
     }
 
     public String displayName(String score) {
-        String chatColor = ChatColor.chatColorFor(color);
         // most sidebar plugins will use the reset color, because they don't want color
         // skip the unneeded double reset color in that case
-        if (ChatColor.RESET.equals(chatColor)) {
-            chatColor = "";
-        }
+        String chatColor = color == TeamColor.RESET ? "" : ChatColor.chatColorFor(color);
         // also add reset because setting the color does not reset the formatting, unlike Java
         return chatColor + prefix + ChatColor.RESET + chatColor + score + ChatColor.RESET + chatColor + suffix;
     }

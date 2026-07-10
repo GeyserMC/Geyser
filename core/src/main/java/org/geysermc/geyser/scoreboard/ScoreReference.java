@@ -27,6 +27,7 @@ package org.geysermc.geyser.scoreboard;
 
 import java.util.Objects;
 import net.kyori.adventure.text.Component;
+import org.geysermc.geyser.debug.StatsCollector;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
 
@@ -43,8 +44,7 @@ public final class ScoreReference {
 
     private long lastUpdate;
 
-    public ScoreReference(
-        Scoreboard scoreboard, String name, int score, Component displayName, NumberFormat format) {
+    public ScoreReference(Scoreboard scoreboard, String name, int score, Component displayName, NumberFormat format) {
         this.name = name;
         // hidden is a sidebar exclusive feature
         this.hidden = name.startsWith("#");
@@ -67,7 +67,10 @@ public final class ScoreReference {
 
     public void displayName(Component displayName, Scoreboard scoreboard) {
         if (this.displayName != null && displayName != null) {
-            String convertedDisplayName = MessageTranslator.convertMessage(displayName, scoreboard.session().locale());
+            String convertedDisplayName = MessageTranslator.convertMessageRaw(displayName, scoreboard.session().locale());
+
+            StatsCollector.addAllocStats(displayName, convertedDisplayName);
+
             if (!this.displayName.equals(convertedDisplayName)) {
                 this.displayName = convertedDisplayName;
                 markChanged();
@@ -76,8 +79,11 @@ public final class ScoreReference {
         }
         // simplified from (this.displayName != null && displayName == null) || (this.displayName == null && displayName != null)
         if (this.displayName != null || displayName != null) {
-            this.displayName = MessageTranslator.convertMessage(displayName, scoreboard.session().locale());
+            String convertedDisplayName = MessageTranslator.convertMessageRaw(displayName, scoreboard.session().locale());
+            this.displayName = convertedDisplayName;
             markChanged();
+
+            StatsCollector.addAllocStats(displayName, convertedDisplayName);
         }
     }
 

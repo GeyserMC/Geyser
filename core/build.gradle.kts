@@ -92,6 +92,8 @@ dependencies {
     api(libs.events)
 
     api(libs.bstats)
+
+    implementation(libs.jol)
 }
 
 abstract class CommitMessageValueSource : RepositoryValueSource.Parameterless<String>() {

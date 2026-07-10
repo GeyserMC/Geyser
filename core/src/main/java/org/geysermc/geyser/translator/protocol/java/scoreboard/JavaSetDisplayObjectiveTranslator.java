@@ -25,6 +25,8 @@
 
 package org.geysermc.geyser.translator.protocol.java.scoreboard;
 
+import org.geysermc.geyser.debug.ScoreboardPacketType;
+import org.geysermc.geyser.debug.StatsCollector;
 import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
@@ -42,6 +44,7 @@ public class JavaSetDisplayObjectiveTranslator extends PacketTranslator<Clientbo
         Scoreboard scoreboard = worldCache.getScoreboard();
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
 
+        StatsCollector.addPacketCount(ScoreboardPacketType.OBJECTIVE_DISPLAY);
         scoreboard.displayObjective(packet.getName(), packet.getPosition());
 
         // ScoreboardUpdater will handle it for us if the packets per second

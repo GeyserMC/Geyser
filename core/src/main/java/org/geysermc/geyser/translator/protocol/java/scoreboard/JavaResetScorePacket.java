@@ -27,6 +27,8 @@ package org.geysermc.geyser.translator.protocol.java.scoreboard;
 
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.debug.ScoreboardPacketType;
+import org.geysermc.geyser.debug.StatsCollector;
 import org.geysermc.geyser.scoreboard.Objective;
 import org.geysermc.geyser.scoreboard.Scoreboard;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
@@ -47,6 +49,8 @@ public class JavaResetScorePacket extends PacketTranslator<ClientboundResetScore
         WorldCache worldCache = session.getWorldCache();
         Scoreboard scoreboard = worldCache.getScoreboard();
         int pps = worldCache.increaseAndGetScoreboardPacketsPerSecond();
+
+        StatsCollector.addPacketCount(ScoreboardPacketType.SCORE_RESET);
 
         if (packet.getObjective() == null) {
             // No objective name means all scores are reset for that player (/scoreboard players reset PLAYERNAME)
