@@ -329,6 +329,10 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 } else {
                                     session.setPlacedBucket(true);
                                 }
+
+                                if (blockState.block() instanceof DoorBlock && isWaterContainingBucket(item)) {
+                                    restoreDoorWaterlogging(session, packet.getBlockPosition(), blockState);
+                                }
                             }
 
                             // Fix https://github.com/GeyserMC/Geyser/issues/5295
@@ -593,6 +597,35 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         }
 
         return false;
+    }
+
+    private boolean isWaterContainingBucket(Item item) {
+        return item == Items.WATER_BUCKET
+                || item == Items.COD_BUCKET
+                || item == Items.SALMON_BUCKET
+                || item == Items.TROPICAL_FISH_BUCKET
+                || item == Items.PUFFERFISH_BUCKET
+                || item == Items.AXOLOTL_BUCKET
+                || item == Items.TADPOLE_BUCKET;
+    }
+
+    private void restoreDoorWaterlogging(GeyserSession session, Vector3i position, BlockState blockState) {
+        BlockUtils.restoreCorrectBlock(session, position, blockState);
+
+        String half = blockState.getValue(Properties.DOUBLE_BLOCK_HALF);
+        Vector3i otherDoorPosition;
+        if (half.equals("lower")) {
+            otherDoorPosition = position.up(1);
+        } else if (half.equals("upper")) {
+            otherDoorPosition = position.down(1);
+        } else {
+            return;
+        }
+
+        BlockState otherDoorState = session.getGeyser().getWorldManager().blockAt(session, otherDoorPosition);
+        if (otherDoorState.block() instanceof DoorBlock) {
+            BlockUtils.restoreCorrectBlock(session, otherDoorPosition, otherDoorState);
+        }
     }
 
     private boolean useItem(GeyserSession session, InventoryTransactionPacket packet, int blockState, boolean useTouchRotation) {
