@@ -27,6 +27,7 @@ package org.geysermc.geyser.session.cache.registry;
 
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDamageCause;
 import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
 import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
@@ -79,7 +80,7 @@ public class JavaRegistries {
     public static final JavaRegistryKey<PaintingType> PAINTING_VARIANT = create("painting_variant");
     public static final JavaRegistryKey<ArmorTrim.TrimMaterial> TRIM_MATERIAL = create("trim_material");
     public static final JavaRegistryKey<ArmorTrim.TrimPattern> TRIM_PATTERN = create("trim_pattern");
-    public static final JavaRegistryKey<RegistryUnit> DAMAGE_TYPE = create("damage_type");
+    public static final JavaRegistryKey<EntityDamageCause> DAMAGE_TYPE = create("damage_type");
     public static final JavaRegistryKey<Dialog> DIALOG = create("dialog");
     public static final JavaRegistryKey<RegistryUnit> WORLD_CLOCK = create("world_clock");
 

@@ -58,6 +58,7 @@ import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
+import org.geysermc.geyser.translator.protocol.java.entity.JavaDamageEventTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
@@ -92,7 +93,7 @@ public final class RegistryCache implements JavaRegistryProvider {
         register(JavaRegistries.PAINTING_VARIANT, context -> PaintingType.getByName(context.id()));
         register(JavaRegistries.TRIM_MATERIAL, TrimRecipes::readTrimMaterial);
         register(JavaRegistries.TRIM_PATTERN, TrimRecipes::readTrimPattern);
-        register(JavaRegistries.DAMAGE_TYPE, RegistryReader.UNIT);
+        register(JavaRegistries.DAMAGE_TYPE, JavaDamageEventTranslator::readDamageCause);
         register(JavaRegistries.DIALOG, Dialog::readDialog);
         register(JavaRegistries.WORLD_CLOCK, RegistryReader.UNIT);
 
