@@ -43,6 +43,7 @@ import org.cloudburstmc.protocol.bedrock.packet.ContainerOpenPacket;
 import org.cloudburstmc.protocol.bedrock.packet.InventoryTransactionPacket;
 import org.cloudburstmc.protocol.bedrock.packet.LevelSoundEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlaySoundPacket;
+import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.ItemFrameEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -273,6 +274,8 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                          */
 
                         BlockState blockState = session.getGeyser().getWorldManager().blockAt(session, packet.getBlockPosition());
+                        Item item = session.getPlayerInventory().getItemInHand().asItem();
+                        boolean shouldRestoreDoorWaterlogging = blockState.block() instanceof DoorBlock && isWaterContainingBucket(item);
 
                         // Buttons on Java Edition cannot be interacted with when they are powered
                         if (blockState.block() instanceof ButtonBlock && blockState.getValue(Properties.POWERED)) {
@@ -282,6 +285,10 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                         if (blockState.block() instanceof DoorBlock) {
                             // See DoorBlock#updateBlock: ensure server-side lower-half door updates are translated
                             session.setLastLowerDoorPosition(null);
+
+                            if (shouldRestoreDoorWaterlogging) {
+                                clearDoorWaterlogging(session, packet.getBlockPosition(), blockState);
+                            }
                         }
 
                         if (packet.getItemInHand() != null && session.getItemMappings().getMapping(packet.getItemInHand()).getJavaItem() instanceof SpawnEggItem) {
@@ -305,7 +312,6 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                 sequence);
                         session.sendDownstreamGamePacket(blockPacket);
 
-                        Item item = session.getPlayerInventory().getItemInHand().asItem();
                         if (packet.getItemInHand() != null) {
                             ItemDefinition definition = packet.getItemInHand().getDefinition();
                             // Otherwise boats will not be able to be placed in survival and buckets, lily pads, frogspawn, and glass bottles won't work on mobile
@@ -330,7 +336,7 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                                     session.setPlacedBucket(true);
                                 }
 
-                                if (blockState.block() instanceof DoorBlock && isWaterContainingBucket(item)) {
+                                if (shouldRestoreDoorWaterlogging) {
                                     restoreDoorWaterlogging(session, packet.getBlockPosition(), blockState);
                                 }
                             }
@@ -610,15 +616,11 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
     }
 
     private void restoreDoorWaterlogging(GeyserSession session, Vector3i position, BlockState blockState) {
+        clearDoorWaterlogging(session, position, blockState);
         BlockUtils.restoreCorrectBlock(session, position, blockState);
 
-        String half = blockState.getValue(Properties.DOUBLE_BLOCK_HALF);
-        Vector3i otherDoorPosition;
-        if (half.equals("lower")) {
-            otherDoorPosition = position.up(1);
-        } else if (half.equals("upper")) {
-            otherDoorPosition = position.down(1);
-        } else {
+        Vector3i otherDoorPosition = getOtherDoorHalfPosition(position, blockState);
+        if (otherDoorPosition == null) {
             return;
         }
 
@@ -626,6 +628,40 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
         if (otherDoorState.block() instanceof DoorBlock) {
             BlockUtils.restoreCorrectBlock(session, otherDoorPosition, otherDoorState);
         }
+    }
+
+    private void clearDoorWaterlogging(GeyserSession session, Vector3i position, BlockState blockState) {
+        sendWaterLayerUpdate(session, position);
+
+        Vector3i otherDoorPosition = getOtherDoorHalfPosition(position, blockState);
+        if (otherDoorPosition == null) {
+            return;
+        }
+
+        BlockState otherDoorState = session.getGeyser().getWorldManager().blockAt(session, otherDoorPosition);
+        if (otherDoorState.block() instanceof DoorBlock) {
+            sendWaterLayerUpdate(session, otherDoorPosition);
+        }
+    }
+
+    private Vector3i getOtherDoorHalfPosition(Vector3i position, BlockState blockState) {
+        String half = blockState.getValue(Properties.DOUBLE_BLOCK_HALF);
+        if (half.equals("lower")) {
+            return position.up(1);
+        } else if (half.equals("upper")) {
+            return position.down(1);
+        }
+
+        return null;
+    }
+
+    private void sendWaterLayerUpdate(GeyserSession session, Vector3i position) {
+        UpdateBlockPacket updateWaterPacket = new UpdateBlockPacket();
+        updateWaterPacket.setDataLayer(1);
+        updateWaterPacket.setBlockPosition(position);
+        updateWaterPacket.setDefinition(session.getBlockMappings().getBedrockAir());
+        updateWaterPacket.getFlags().addAll(UpdateBlockPacket.FLAG_ALL_PRIORITY);
+        session.sendUpstreamPacket(updateWaterPacket);
     }
 
     private boolean useItem(GeyserSession session, InventoryTransactionPacket packet, int blockState, boolean useTouchRotation) {
