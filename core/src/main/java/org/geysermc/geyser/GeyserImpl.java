@@ -172,6 +172,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     private ScheduledExecutorService scheduledThread;
 
+    private ScoreboardUpdater scoreboardUpdater;
+
     private GeyserServer geyserServer;
     private final GeyserBootstrap bootstrap;
 
@@ -315,7 +317,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfig config = bootstrap.config();
 
-        ScoreboardUpdater.init();
+        this.scoreboardUpdater = ScoreboardUpdater.init();
 
         SkinProvider.registerCacheImageTask(this);
 
@@ -596,14 +598,16 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.done"));
         }
 
+        runIfNonNull(metrics, MetricsBase::shutdown);
         runIfNonNull(scheduledThread, ScheduledExecutorService::shutdown);
+        runIfNonNull(scoreboardUpdater, ScoreboardUpdater::shutdown);
         runIfNonNull(geyserServer, GeyserServer::shutdown);
         runIfNonNull(skinUploader, FloodgateSkinUploader::close);
         runIfNonNull(newsHandler, NewsHandler::shutdown);
         runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);
 
         if (bootstrap.getGeyserPingPassthrough() instanceof GeyserLegacyPingPassthrough legacyPingPassthrough) {
-            legacyPingPassthrough.interrupt();
+            legacyPingPassthrough.shutdown();
         }
 
         ResourcePackLoader.clear();
