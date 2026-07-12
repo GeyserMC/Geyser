@@ -316,7 +316,8 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
             List<Enchantment> incompatibleEnchantments = enchantment.exclusiveSet().resolve(session);
             for (Enchantment incompatible : incompatibleEnchantments) {
-                if (combinedEnchantments.containsKey(incompatible)) {
+                // An exclusive set contains the enchantment itself, which never conflicts with a higher level of itself
+                if (!incompatible.equals(enchantment) && combinedEnchantments.containsKey(incompatible)) {
                     canApply = false;
                     if (!bedrock) {
                         cost++;
