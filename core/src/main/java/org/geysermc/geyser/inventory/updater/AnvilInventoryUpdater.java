@@ -223,7 +223,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
         if (!material.isEmpty()) {
             totalRepairCost += getRepairCost(material);
             if (isCombining(input, material)) {
-                if (hasDurability(input) && input.isSameItem(material)) {
+                if (input.isDamageable() && input.isSameItem(material)) {
                     cost += calcMergeRepairCost(input, material);
                 }
 
@@ -234,7 +234,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
                     // Can't repair or merge enchantments
                     return -1;
                 }
-            } else if (hasDurability(input) && isRepairing(input, material, session)) {
+            } else if (input.isDamageable() && isRepairing(input, material, session)) {
                 cost = calcRepairLevelCost(input, material);
                 if (cost == -1) {
                     // No damage to repair
@@ -316,7 +316,8 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
             List<Enchantment> incompatibleEnchantments = enchantment.exclusiveSet().resolve(session);
             for (Enchantment incompatible : incompatibleEnchantments) {
-                if (combinedEnchantments.containsKey(incompatible)) {
+                // An exclusive set contains the enchantment itself, which never conflicts with a higher level of itself
+                if (!incompatible.equals(enchantment) && combinedEnchantments.containsKey(incompatible)) {
                     canApply = false;
                     if (!bedrock) {
                         cost++;
@@ -392,7 +393,7 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
     }
 
     private boolean isCombining(GeyserItemStack input, GeyserItemStack material) {
-        return isEnchantedBook(material) || (input.isSameItem(material) && hasDurability(input));
+        return isEnchantedBook(material) || (input.isSameItem(material) && input.isDamageable());
     }
 
     private boolean isRepairing(GeyserItemStack input, GeyserItemStack material, GeyserSession session) {
@@ -421,13 +422,6 @@ public class AnvilInventoryUpdater extends InventoryUpdater {
 
     private int getRepairCost(GeyserItemStack itemStack) {
         return itemStack.getComponentElseGet(DataComponentTypes.REPAIR_COST, () -> 0);
-    }
-
-    private boolean hasDurability(GeyserItemStack itemStack) {
-        if (itemStack.asItem().defaultMaxDamage() > 0) {
-            return itemStack.getComponent(DataComponentTypes.UNBREAKABLE) != null;
-        }
-        return false;
     }
 
     private int getDamage(GeyserItemStack itemStack) {
