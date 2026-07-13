@@ -455,23 +455,25 @@ public class WorldBorder {
         final boolean insideBorderZone = isInsideBorderZone();
         if (!insideBorderZone || isResizing()) {
             if (xCollisionEntity != null) {
-                xCollisionEntity.setFlag(EntityFlag.COLLIDABLE, false);
-                xCollisionEntity.updateBedrockMetadata();
+                removeCollisionX();
             }
             if (zCollisionEntity != null) {
-                zCollisionEntity.setFlag(EntityFlag.COLLIDABLE, false);
-                zCollisionEntity.updateBedrockMetadata();
+                removeCollisionZ();
             }
             return;
         }
 
         if (xCollisionEntity != null && !xCollisionEntity.getFlag(EntityFlag.COLLIDABLE)) {
             xCollisionEntity.setFlag(EntityFlag.COLLIDABLE, true);
+            xCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 25f);
+            xCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 10f);
             xCollisionEntity.updateBedrockMetadata();
         }
 
         if (zCollisionEntity != null && !zCollisionEntity.getFlag(EntityFlag.COLLIDABLE)) {
             zCollisionEntity.setFlag(EntityFlag.COLLIDABLE, true);
+            zCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 25f);
+            zCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 10f);
             zCollisionEntity.updateBedrockMetadata();
         }
 
@@ -501,6 +503,8 @@ public class WorldBorder {
                 }
 
                 xCollisionEntity.moveAbsolute(position, 0, 0, false, true);
+            } else {
+                removeCollisionX();
             }
         }
 
@@ -519,7 +523,27 @@ public class WorldBorder {
                 }
 
                 zCollisionEntity.moveAbsolute(position, 0, 0, false, true);
+            } else {
+                removeCollisionZ();
             }
+        }
+    }
+
+    private void removeCollisionZ() {
+        if (zCollisionEntity != null && zCollisionEntity.getFlag(EntityFlag.COLLIDABLE)) {
+            zCollisionEntity.setFlag(EntityFlag.COLLIDABLE, false);
+            zCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 0f);
+            zCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0f);
+            zCollisionEntity.updateBedrockMetadata();
+        }
+    }
+
+    private void removeCollisionX() {
+        if (xCollisionEntity != null && xCollisionEntity.getFlag(EntityFlag.COLLIDABLE)) {
+            xCollisionEntity.setFlag(EntityFlag.COLLIDABLE, false);
+            xCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 0f);
+            xCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0f);
+            xCollisionEntity.updateBedrockMetadata();
         }
     }
 
