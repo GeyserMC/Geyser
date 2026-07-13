@@ -486,7 +486,7 @@ public class WorldBorder {
     private void moveBorderCollision(Vector3f playerPosition) {
         // We need to account for ULP, also since the bounding box is centered around the entity, it needs to be moved backwards by half the width to be correct.
         // Min Y collision also started at the entity feet, which is why we want to move it downwards, so that the player won't clip through the collision when falling.
-        final float xDistance = 12.5f - Math.ulp(Math.abs(playerPosition.getX())), zDistance = 12.5f - Math.ulp(Math.abs(playerPosition.getZ()));
+        final float xDistance = 5 - Math.ulp(Math.abs(playerPosition.getX())), zDistance = 5 - Math.ulp(Math.abs(playerPosition.getZ()));
 
         if (xCollisionEntity != null) {
             Vector3f position = null;
