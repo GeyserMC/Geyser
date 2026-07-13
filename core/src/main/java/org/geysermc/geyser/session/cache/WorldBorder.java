@@ -465,15 +465,15 @@ public class WorldBorder {
 
         if (xCollisionEntity != null && !xCollisionEntity.getFlag(EntityFlag.COLLIDABLE)) {
             xCollisionEntity.setFlag(EntityFlag.COLLIDABLE, true);
-            xCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 25f);
-            xCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 10f);
+            xCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 25f);
+            xCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 10f);
             xCollisionEntity.updateBedrockMetadata();
         }
 
         if (zCollisionEntity != null && !zCollisionEntity.getFlag(EntityFlag.COLLIDABLE)) {
             zCollisionEntity.setFlag(EntityFlag.COLLIDABLE, true);
-            zCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 25f);
-            zCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 10f);
+            zCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 25f);
+            zCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 10f);
             zCollisionEntity.updateBedrockMetadata();
         }
 
