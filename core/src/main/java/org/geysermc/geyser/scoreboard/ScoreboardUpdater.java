@@ -56,13 +56,22 @@ public final class ScoreboardUpdater extends Thread {
     private long lastUpdate = System.currentTimeMillis();
     private long lastPacketsPerSecondUpdate = System.currentTimeMillis();
 
-    public static void init() {
-        new ScoreboardUpdater().start();
+    private volatile boolean shutdown;
+
+    public static ScoreboardUpdater init() {
+        ScoreboardUpdater updater = new ScoreboardUpdater();
+        updater.start();
+        return updater;
+    }
+
+    public void shutdown() {
+        shutdown = true;
+        this.interrupt();
     }
 
     @Override
     public void run() {
-        while (!geyser.isShuttingDown() && !geyser.isReloading()) {
+        while (!geyser.isShuttingDown() && !shutdown) {
             try {
                 long timeTillAction = getTimeTillNextAction();
                 if (timeTillAction > 0) {
@@ -165,7 +174,7 @@ public final class ScoreboardUpdater extends Thread {
         try {
             Thread.sleep(millis);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            // no-op, the run loop rechecks its exit condition
         }
     }
 

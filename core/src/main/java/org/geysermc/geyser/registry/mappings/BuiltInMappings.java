@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.registry.mappings;
 
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockPermutation;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
@@ -49,6 +50,10 @@ import java.util.function.Function;
 
 public class BuiltInMappings {
     public static void registerBlocks(GeyserDefineCustomBlocksEvent event) {
+        if (!GeyserImpl.getInstance().config().gameplay().enableIntegratedPack()) {
+            return;
+        }
+
         // Obsidian and crying obsidian mining speed differ from Java
         registerBlock(event, CustomBlockData.builder()
             .name("obsidian")

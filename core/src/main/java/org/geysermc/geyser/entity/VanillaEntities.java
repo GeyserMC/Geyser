@@ -391,7 +391,7 @@ public final class VanillaEntities {
                     .bedrockIdentifier("minecraft:fireworks_rocket")
                     .addTranslator(MetadataTypes.ITEM_STACK, FireworkEntity::setFireworkItem)
                     .addTranslator(MetadataTypes.OPTIONAL_UNSIGNED_INT, FireworkEntity::setPlayerGliding)
-                    .addTranslator(null) // Shot at angle
+                    .addTranslator(MetadataTypes.BOOLEAN, FireworkEntity::setShotAtAngle)
                     .build();
             FISHING_BOBBER = VanillaEntityType.<FishingHookEntity>inherited(null, entityBase)
                     .type(EntityType.FISHING_BOBBER)
