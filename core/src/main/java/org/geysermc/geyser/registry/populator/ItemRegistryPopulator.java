@@ -44,7 +44,6 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
@@ -63,8 +62,11 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserBlockPlacer;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponents;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.CreativeCategory;
@@ -681,10 +683,18 @@ public class ItemRegistryPopulator {
                 String identifier = customBlock.identifier();
 
                 // Bedrock only renders the icon of a block item once it has loaded that block, which leaves custom skulls
-                // showing as the vanilla player head until then. Giving them components lets them carry their own icon.
-                final ItemDefinition definition = skullBlocks.contains(customBlock) ?
-                    new SimpleItemDefinition(identifier, customProtocolId, ItemVersion.DATA_DRIVEN, true, skullItemComponents(identifier, customProtocolId)) :
-                    new SimpleItemDefinition(identifier, customProtocolId, ItemVersion.NONE, false, null);
+                // showing as the vanilla player head until then. Registering them as custom items lets them carry their own icon.
+                ItemDefinition definition = null;
+                if (skullBlocks.contains(customBlock)) {
+                    try {
+                        definition = registerSkullItem(identifier, items.get("minecraft:player_head"), customProtocolId, palette.protocolVersion, firstMappingsPass);
+                    } catch (InvalidItemComponentsException exception) {
+                        GeyserImpl.getInstance().getLogger().error("Failed to register the item form of custom skull " + identifier + "!", exception);
+                    }
+                }
+                if (definition == null) {
+                    definition = new SimpleItemDefinition(identifier, customProtocolId, ItemVersion.NONE, false, null);
+                }
                 registry.put(customProtocolId, definition);
                 customBlockItemDefinitions.put(customBlock, definition);
                 customIdMappings.put(customProtocolId, identifier);
@@ -762,45 +772,17 @@ public class ItemRegistryPopulator {
     }
   
     /**
-     * The components for the item form of a custom skull: the icon of the block it places, wearable, and the player head stack size.
+     * Registers the item form of a custom skull as a custom item, giving it the icon of the block it places,
+     * wearability, and the player head stack size. The latter two are inherited from the vanilla player head components.
      */
-    private static NbtMap skullItemComponents(String identifier, int runtimeId) {
-        int stackSize = Items.PLAYER_HEAD.defaultMaxStackSize();
-
-        NbtMapBuilder itemProperties = NbtMap.builder()
-            .putBoolean("allow_off_hand", true)
-            .putBoolean("can_destroy_in_creative", true)
-            .putInt("max_stack_size", stackSize)
-            .putInt("creative_category", CreativeCategory.EQUIPMENT.id());
-
-        NbtMapBuilder componentBuilder = NbtMap.builder()
-            .putCompound("minecraft:can_destroy_in_creative", NbtMap.builder()
-                .putBoolean("value", true)
-                .build())
-            // Must be a byte; without this component minecraft:wearable resets the stack size to one
-            .putCompound("minecraft:max_stack_size", NbtMap.builder()
-                .putByte("value", (byte) stackSize)
-                .build())
-            // Java player heads can be worn
-            .putCompound("minecraft:wearable", NbtMap.builder()
-                .putString("slot", "slot.armor.head")
-                .putInt("protection", 0)
-                .build())
-            // Takes the icon from the block it places, and keeps the skull placeable
-            .putCompound("minecraft:block_placer", NbtMap.builder()
-                .putString("block", identifier)
-                .putBoolean("canUseBlockAsIcon", true)
-                .putList("use_on", NbtType.STRING)
-                .build())
-            .putList("item_tags", NbtType.STRING, "geyser:is_custom");
-
-        componentBuilder.putCompound("item_properties", itemProperties.build());
-
-        return NbtMap.builder()
-            .putString("name", identifier)
-            .putInt("id", runtimeId)
-            .putCompound("components", componentBuilder.build())
+    private static ItemDefinition registerSkullItem(String identifier, GeyserMappingItem playerHeadMapping, int protocolId,
+                                                    int protocolVersion, boolean firstMappingsPass) throws InvalidItemComponentsException {
+        CustomItemDefinition definition = CustomItemDefinition.builder(Identifier.of(identifier), Identifier.of("minecraft", "player_head"))
+            .displayName("item.player_head.name")
+            .bedrockOptions(CustomItemBedrockOptions.builder().creativeCategory(CreativeCategory.EQUIPMENT))
+            .component(GeyserItemDataComponents.BLOCK_PLACER, GeyserBlockPlacer.of(Identifier.of(identifier), true))
             .build();
+        return CustomItemRegistryPopulator.registerCustomItem(Items.PLAYER_HEAD, playerHeadMapping, definition, protocolId, protocolVersion, firstMappingsPass).itemDefinition();
     }
 
     private static NbtMap fromItemDefinitionToDataDriven(ItemDefinition definition, int maxStackSize, String texture, String displayName, boolean swing) {

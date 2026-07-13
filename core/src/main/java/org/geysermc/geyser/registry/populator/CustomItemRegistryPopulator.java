@@ -341,15 +341,19 @@ public class CustomItemRegistryPopulator {
             computeUseCooldownProperties(useCooldown, itemIdentifier, componentBuilder);
         }
 
-        GeyserBlockPlacer blockPlacer = context.vanillaMapping().map(mapping -> {
-            String bedrockIdentifier = mapping.getBedrockIdentifier();
-            if (bedrockIdentifier.equals("minecraft:fire_charge") || bedrockIdentifier.equals("minecraft:flint_and_steel")) {
-                return GeyserBlockPlacer.builder().block(Identifier.of("fire")).build();
-            } else if (mapping.getFirstBlockRuntimeId() != null) {
-                return GeyserBlockPlacer.builder().block(Identifier.of(mapping.getBedrockIdentifier())).build();
-            }
-            return null;
-        }).orElse(context.definition().components().get(GeyserItemDataComponents.BLOCK_PLACER));
+        // A block placer specified on the definition wins over the one derived from the vanilla mapping
+        GeyserBlockPlacer blockPlacer = context.definition().components().get(GeyserItemDataComponents.BLOCK_PLACER);
+        if (blockPlacer == null) {
+            blockPlacer = context.vanillaMapping().map(mapping -> {
+                String bedrockIdentifier = mapping.getBedrockIdentifier();
+                if (bedrockIdentifier.equals("minecraft:fire_charge") || bedrockIdentifier.equals("minecraft:flint_and_steel")) {
+                    return GeyserBlockPlacer.builder().block(Identifier.of("fire")).build();
+                } else if (mapping.getFirstBlockRuntimeId() != null) {
+                    return GeyserBlockPlacer.builder().block(Identifier.of(mapping.getBedrockIdentifier())).build();
+                }
+                return null;
+            }).orElse(null);
+        }
 
         if (blockPlacer != null) {
             computeBlockItemProperties(blockPlacer, componentBuilder);
