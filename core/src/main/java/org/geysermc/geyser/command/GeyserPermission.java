@@ -27,7 +27,6 @@ package org.geysermc.geyser.command;
 
 import lombok.AllArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
-import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.key.CloudKey;
 import org.incendo.cloud.permission.Permission;
 import org.incendo.cloud.permission.PermissionResult;
@@ -53,11 +52,6 @@ public class GeyserPermission implements PredicatePermission<GeyserCommandSource
      */
     private final String permission;
 
-    /**
-     * The command manager to delegate permission checks to
-     */
-    private final CommandManager<GeyserCommandSource> manager;
-
     @Override
     public @NonNull Result testPermission(@NonNull GeyserCommandSource source) {
         if (bedrockOnly) {
@@ -71,7 +65,15 @@ public class GeyserPermission implements PredicatePermission<GeyserCommandSource
             }
         }
 
-        if (permission.isBlank() || manager.hasPermission(source, permission)) {
+        // Check through the GeyserCommandSource rather than cloud's manager:
+        // cloud-velocity reverse-maps the wrapper back to the native Velocity
+        // CommandSource and calls its hasPermission directly, which would
+        // bypass VelocityCommandSource's permission-default fallback. Other
+        // platforms' sources delegate to the same native checks the manager
+        // would reach, so this is behavior-preserving for them, and it keeps
+        // dispatch authorization consistent with the root/help paths, which
+        // already resolve through the source.
+        if (permission.isBlank() || source.hasPermission(permission)) {
             return new Result(Meta.ALLOWED);
         }
         return new Result(Meta.NO_PERMISSION);

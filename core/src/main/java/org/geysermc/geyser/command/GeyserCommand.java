@@ -163,12 +163,13 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
 
     /**
      * Returns a {@link org.incendo.cloud.permission.Permission} that handles {@link #isBedrockOnly()}, {@link #isPlayerOnly()}, and {@link #permission()}.
+     * Permission nodes are checked through the {@link GeyserCommandSource} so
+     * platform sources can apply declared permission defaults.
      *
-     * @param manager the manager to be used for permission node checking
      * @return a permission that will properly restrict usage of this command
      */
-    public final GeyserPermission commandPermission(CommandManager<GeyserCommandSource> manager) {
-        return new GeyserPermission(bedrockOnly, playerOnly, permission, manager);
+    public final GeyserPermission commandPermission() {
+        return new GeyserPermission(bedrockOnly, playerOnly, permission);
     }
 
     /**
@@ -180,7 +181,7 @@ public abstract class GeyserCommand implements org.geysermc.geyser.api.command.C
     public final Command.Builder<GeyserCommandSource> baseBuilder(CommandManager<GeyserCommandSource> manager) {
         return manager.commandBuilder(rootCommand())
             .literal(name, aliases.toArray(new String[0]))
-            .permission(commandPermission(manager))
+            .permission(commandPermission())
             .apply(meta());
     }
 

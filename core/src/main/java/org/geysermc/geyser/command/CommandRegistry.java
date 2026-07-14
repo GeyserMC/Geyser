@@ -27,6 +27,7 @@ package org.geysermc.geyser.command;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumConstraint;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
@@ -126,6 +127,18 @@ public class CommandRegistry implements EventRegistrar {
      * Map containing only permissions that have been registered with a default value
      */
     protected final Map<String, TriState> permissionDefaults = new Object2ObjectOpenHashMap<>(13);
+
+    /**
+     * Returns the declared default value of a permission, for platforms
+     * without a native permission default concept (e.g. Velocity) to consult
+     * when their own permission lookup is undefined.
+     *
+     * @param permission the permission node
+     * @return the registered default, or null if none was declared
+     */
+    public @Nullable TriState getPermissionDefault(String permission) {
+        return permissionDefaults.get(permission);
+    }
 
     /**
      * Creates a new CommandRegistry. Does apply a root permission. If undesired, use the other constructor.

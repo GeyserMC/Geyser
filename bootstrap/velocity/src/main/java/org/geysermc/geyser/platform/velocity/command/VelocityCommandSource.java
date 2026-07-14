@@ -26,6 +26,9 @@
 package org.geysermc.geyser.platform.velocity.command;
 
 import com.velocitypowered.api.command.CommandSource;
+import com.velocitypowered.api.permission.Tristate;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.util.TriState;
 import com.velocitypowered.api.proxy.ConsoleCommandSource;
 import com.velocitypowered.api.proxy.Player;
 import net.kyori.adventure.text.Component;
@@ -93,7 +96,23 @@ public class VelocityCommandSource implements GeyserCommandSource {
     @Override
     public boolean hasPermission(String permission) {
         // Handle blank permissions ourselves, as velocity only handles empty ones
-        return permission.isBlank() || handle.hasPermission(permission);
+        if (permission.isBlank()) {
+            return true;
+        }
+
+        Tristate value = handle.getPermissionValue(permission);
+        if (value != Tristate.UNDEFINED) {
+            return value.asBoolean();
+        }
+
+        // Velocity has no native permission default concept: undefined means
+        // denied unless a permissions plugin says otherwise. Commands like
+        // "geyser ping" declare TriState.TRUE as their default so every other
+        // platform grants them to players out of the box; honor that here too
+        // instead of requiring a permissions plugin for player commands.
+        // An explicit plugin grant or denial above still wins.
+        TriState registered = GeyserImpl.getInstance().commandRegistry().getPermissionDefault(permission);
+        return registered == TriState.TRUE;
     }
 
     @Override
