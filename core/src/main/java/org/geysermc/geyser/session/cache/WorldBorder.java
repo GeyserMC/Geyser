@@ -455,23 +455,25 @@ public class WorldBorder {
         final boolean insideBorderZone = isInsideBorderZone();
         if (!insideBorderZone || isResizing()) {
             if (xCollisionEntity != null) {
-                xCollisionEntity.setFlag(EntityFlag.COLLIDABLE, false);
-                xCollisionEntity.updateBedrockMetadata();
+                removeCollisionX();
             }
             if (zCollisionEntity != null) {
-                zCollisionEntity.setFlag(EntityFlag.COLLIDABLE, false);
-                zCollisionEntity.updateBedrockMetadata();
+                removeCollisionZ();
             }
             return;
         }
 
         if (xCollisionEntity != null && !xCollisionEntity.getFlag(EntityFlag.COLLIDABLE)) {
             xCollisionEntity.setFlag(EntityFlag.COLLIDABLE, true);
+            xCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 25f);
+            xCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 10f);
             xCollisionEntity.updateBedrockMetadata();
         }
 
         if (zCollisionEntity != null && !zCollisionEntity.getFlag(EntityFlag.COLLIDABLE)) {
             zCollisionEntity.setFlag(EntityFlag.COLLIDABLE, true);
+            zCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 25f);
+            zCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 10f);
             zCollisionEntity.updateBedrockMetadata();
         }
 
@@ -489,10 +491,10 @@ public class WorldBorder {
         if (xCollisionEntity != null) {
             Vector3f position = null;
             if (playerPosition.getX() < Math.max(warningMinX, minX + WORLD_BORDER_COLLISION_RANGE)) {
-                position = Vector3f.from(minX - xDistance, playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, playerPosition.getZ());
+                position = Vector3f.from(Math.floor(minX) - xDistance, playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, playerPosition.getZ());
             }
             if (playerPosition.getX() > Math.min(warningMaxX, maxX - WORLD_BORDER_COLLISION_RANGE)) {
-                position = Vector3f.from(maxX + xDistance, playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, playerPosition.getZ());
+                position = Vector3f.from(Math.floor(maxX) + xDistance, playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, playerPosition.getZ());
             }
 
             if (position != null) {
@@ -501,16 +503,18 @@ public class WorldBorder {
                 }
 
                 xCollisionEntity.moveAbsolute(position, 0, 0, false, true);
+            } else {
+                removeCollisionX();
             }
         }
 
         if (zCollisionEntity != null) {
             Vector3f position = null;
             if (playerPosition.getZ() > Math.min(warningMaxZ, maxZ - WORLD_BORDER_COLLISION_RANGE)) {
-                position = Vector3f.from(playerPosition.getX(), playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, maxZ + zDistance);
+                position = Vector3f.from(playerPosition.getX(), playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, Math.floor(maxZ) + zDistance);
             }
             if (playerPosition.getZ() < Math.max(warningMinZ, minZ + WORLD_BORDER_COLLISION_RANGE)) {
-                position = Vector3f.from(playerPosition.getX(), playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, minZ - zDistance);
+                position = Vector3f.from(playerPosition.getX(), playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, Math.floor(minZ) - zDistance);
             }
 
             if (position != null) {
@@ -519,7 +523,27 @@ public class WorldBorder {
                 }
 
                 zCollisionEntity.moveAbsolute(position, 0, 0, false, true);
+            } else {
+                removeCollisionZ();
             }
+        }
+    }
+
+    private void removeCollisionZ() {
+        if (zCollisionEntity != null && zCollisionEntity.getFlag(EntityFlag.COLLIDABLE)) {
+            zCollisionEntity.setFlag(EntityFlag.COLLIDABLE, false);
+            zCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 0f);
+            zCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0f);
+            zCollisionEntity.updateBedrockMetadata();
+        }
+    }
+
+    private void removeCollisionX() {
+        if (xCollisionEntity != null && xCollisionEntity.getFlag(EntityFlag.COLLIDABLE)) {
+            xCollisionEntity.setFlag(EntityFlag.COLLIDABLE, false);
+            xCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 0f);
+            xCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0f);
+            xCollisionEntity.updateBedrockMetadata();
         }
     }
 
