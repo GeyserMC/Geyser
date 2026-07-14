@@ -67,13 +67,10 @@ public interface GeyserItemDataComponents {
     /**
      * Indicates which block the item should place and whether it should replace the original item for that block.
      *
-     * <p>Unlike the other components in this class, this component can also be used on vanilla item definitions,
-     * where it overrides the block placer derived from the vanilla item.</p>
-     *
      * @see GeyserBlockPlacer
      * @since 2.9.3
      */
-    ItemDataComponent<GeyserBlockPlacer> BLOCK_PLACER = createGeyser("block_placer", true);
+    ItemDataComponent<GeyserBlockPlacer> BLOCK_PLACER = createGeyser("block_placer");
 
     /**
      * Marks the item as throwable, meaning it can be thrown continuously by holding down the use button, and also
@@ -101,18 +98,10 @@ public interface GeyserItemDataComponents {
     ItemDataComponent<Unit> ENTITY_PLACER = createGeyser("entity_placer");
 
     private static <T> ItemDataComponent<T> createGeyser(String id) {
-        return createGeyser(id, t -> true, false);
-    }
-
-    private static <T> ItemDataComponent<T> createGeyser(String id, boolean usableOnVanillaItems) {
-        return createGeyser(id, t -> true, usableOnVanillaItems);
+        return createGeyser(id, t -> true);
     }
 
     private static <T> ItemDataComponent<T> createGeyser(String id, Predicate<T> predicate) {
-        return createGeyser(id, predicate, false);
-    }
-
-    private static <T> ItemDataComponent<T> createGeyser(String id, Predicate<T> predicate, boolean usableOnVanillaItems) {
-        return GeyserApi.api().provider(ItemDataComponent.class, Identifier.of("geysermc", id), predicate, usableOnVanillaItems);
+        return GeyserApi.api().provider(ItemDataComponent.class, Identifier.of("geysermc", id), predicate, false);
     }
 }

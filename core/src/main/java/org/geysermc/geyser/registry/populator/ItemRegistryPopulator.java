@@ -777,10 +777,10 @@ public class ItemRegistryPopulator {
      */
     private static ItemDefinition registerSkullItem(String identifier, GeyserMappingItem playerHeadMapping, int protocolId,
                                                     int protocolVersion, boolean firstMappingsPass) throws InvalidItemComponentsException {
-        CustomItemDefinition definition = CustomItemDefinition.builder(Identifier.of(identifier), Identifier.of("minecraft", "player_head"))
+        CustomItemDefinition definition = new GeyserCustomItemDefinition.Builder(Identifier.of(identifier), Identifier.of("minecraft", "player_head"))
+            .geyserComponent(GeyserItemDataComponents.BLOCK_PLACER, GeyserBlockPlacer.of(Identifier.of(identifier), true))
             .displayName("item.player_head.name")
             .bedrockOptions(CustomItemBedrockOptions.builder().creativeCategory(CreativeCategory.EQUIPMENT))
-            .component(GeyserItemDataComponents.BLOCK_PLACER, GeyserBlockPlacer.of(Identifier.of(identifier), true))
             .build();
         return CustomItemRegistryPopulator.registerCustomItem(Items.PLAYER_HEAD, playerHeadMapping, definition, protocolId, protocolVersion, firstMappingsPass).itemDefinition();
     }
