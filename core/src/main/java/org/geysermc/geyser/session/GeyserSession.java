@@ -56,6 +56,7 @@ import org.cloudburstmc.math.vector.Vector2i;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.nbt.NbtMap;
+import dev.kastle.netty.channel.nethernet.NetherNetChannel;
 import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
 import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
@@ -2706,11 +2707,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         }
 
         Channel channel = getUpstream().getSession().getPeer().getChannel();
-        if (!(channel instanceof RakChildChannel rakChannel)) {
-            return 0; // Nethernet channels don't have RakNet-level ping
+        if (channel instanceof RakChildChannel rakChannel) {
+            RakSessionCodec rakSessionCodec = rakChannel.rakPipeline().get(RakSessionCodec.class);
+            return (int) Math.floor(rakSessionCodec.getPing());
         }
-        RakSessionCodec rakSessionCodec = rakChannel.rakPipeline().get(RakSessionCodec.class);
-        return (int) Math.floor(rakSessionCodec.getPing());
+        if (channel instanceof NetherNetChannel netherNetChannel) {
+            // ICE round trip time, sampled from the transport's STUN checks.
+            long rtt = netherNetChannel.rttMillis();
+            return rtt < 0 ? 0 : (int) rtt;
+        }
+        return 0;
     }
 
     @Override

@@ -331,8 +331,9 @@ public interface GeyserConfig {
         boolean enableIntegratedPack();
 
         @Comment("""
-            Whether to forward player ping to the server. While enabling this will allow Bedrock players to have more accurate
-            ping, it may also cause players to time out more easily.""")
+            Whether to report the player's network round trip time to the server, matching how ping
+            is measured for Java players. When disabled, the server reads a near zero ping for Bedrock players.
+            Geyser answers the server's keep alives itself either way, so slow clients are not kicked for timing out.""")
         boolean forwardPlayerPing();
 
         @SuppressWarnings("BooleanMethodIsAlwaysInverted")

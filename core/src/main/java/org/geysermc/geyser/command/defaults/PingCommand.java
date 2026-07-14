@@ -33,8 +33,13 @@ import org.geysermc.geyser.text.GeyserLocale;
 import org.incendo.cloud.context.CommandContext;
 
 import java.util.Objects;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class PingCommand extends GeyserCommand {
+
+    private static final int FULL_STACK_TIMEOUT_SECONDS = 5;
 
     public PingCommand(String name, String description, String permission) {
         super(name, description, permission, TriState.TRUE, true, true);
@@ -43,7 +48,32 @@ public class PingCommand extends GeyserCommand {
     @Override
     public void execute(CommandContext<GeyserCommandSource> context) {
         GeyserSession session = Objects.requireNonNull(context.sender().connection());
+
+        // The localized line carries the transport RTT: the network round
+        // trip between the client and Geyser. A remote Java backend measures
+        // this plus its own hop to Geyser.
         session.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.ping.message", session.locale(), session.ping()));
+
+        // Full stack: send a NetworkStackLatency probe and time the client's
+        // answer, which runs through its processing loop.
+        long start = System.nanoTime();
+        AtomicBoolean answered = new AtomicBoolean();
+        // Hardcoded English: new locale keys would dirty the languages
+        // submodule, which we do not fork (yet); acceptable for a debug
+        // command. Ideally these move to locale keys via a languages fork.
+        ScheduledFuture<?> timeout = session.scheduleInEventLoop(() -> {
+            if (answered.compareAndSet(false, true)) {
+                session.sendMessage("Full stack ping: no response from the client after "
+                        + FULL_STACK_TIMEOUT_SECONDS + " seconds");
+            }
+        }, FULL_STACK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        session.sendNetworkLatencyStackPacket(System.currentTimeMillis(), true, () -> {
+            if (answered.compareAndSet(false, true)) {
+                timeout.cancel(false);
+                long ms = (System.nanoTime() - start) / 1_000_000;
+                session.sendMessage("Full stack ping: " + ms
+                        + "ms (round trip to Geyser plus your client's processing time; useful for debugging)");
+            }
+        });
     }
 }
-

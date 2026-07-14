@@ -26,13 +26,30 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import org.geysermc.geyser.session.GeyserSession;
+import java.util.concurrent.TimeUnit;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundKeepAlivePacket;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundKeepAlivePacket;
 
 /**
- * Used to forward the keep alive packet to the client in order to get back a reliable ping.
+ * Vanilla ships two latency primitives with deliberately different semantics,
+ * enforced by which client thread answers them.
+ * <p>
+ * Keep alive is answered by Java clients on the NETWORK thread, before the
+ * packet ever touches the main thread queue ({@code handleKeepAlive} has no
+ * {@code ensureRunningOnSameThread}). Its round trip feeds the vanilla
+ * latency field, the tab list, and {@code Player#getPing}, and by that design
+ * it means pure network round trip, excluding all client processing.
+ * <p>
+ * Bedrock has no such fast path: bouncing the keep alive off the client via
+ * NetworkStackLatency includes its processing loop, a number no Java client
+ * ever reports, and historically also risked keep alive timeout kicks when
+ * clients stalled. So with forward-player-ping enabled, Geyser answers on the
+ * client's behalf after the measured transport round trip time: the server
+ * measures the same thing it measures for a Java player, and the client can
+ * never be kicked over it. See {@link JavaPingTranslator} for the deliberate
+ * counterpart where the client IS involved.
  */
 @Translator(packet = ClientboundKeepAlivePacket.class)
 public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAlivePacket> {
@@ -40,11 +57,18 @@ public class JavaKeepAliveTranslator extends PacketTranslator<ClientboundKeepAli
     @Override
     public void translate(GeyserSession session, ClientboundKeepAlivePacket packet) {
         if (!session.getGeyser().config().gameplay().forwardPlayerPing()) {
+            // MCProtocolLib answers the keep alive instantly at the network
+            // layer; the server reads a near zero ping. Never fails.
             return;
         }
 
+        // Echo after the transport RTT (see class javadoc). A remote Java
+        // backend adds its own hop to Geyser on top, exactly as it would for
+        // a Java client sitting where the Bedrock client sits.
         final long javaId = packet.getPingId();
-        // ClientboundKeepAlivePacket's are async, hence we won't add additional delay ensuring it's sent in the event loop would add
-        session.sendNetworkLatencyStackPacket(javaId, false, () -> session.sendDownstreamPacket(new ServerboundKeepAlivePacket(javaId)));
+        long delay = Math.max(0, session.ping());
+        session.scheduleInEventLoop(() ->
+                session.sendDownstreamPacket(new ServerboundKeepAlivePacket(javaId)),
+                delay, TimeUnit.MILLISECONDS);
     }
 }

@@ -31,7 +31,22 @@ import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundPingPacket;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundPongPacket;
 
-// This packet is the same as keep alive, except it runs on the client's main thread.
+/**
+ * The deliberate counterpart of {@link JavaKeepAliveTranslator}: vanilla
+ * marshals {@code handlePing} onto the client MAIN thread
+ * ({@code ensureRunningOnSameThread}), unlike keep alive, which is answered
+ * on the network thread. Ping/pong therefore measures network PLUS client
+ * processing by design. It descends from the transaction packet pattern, and
+ * plugins choose it over keep alive precisely when they need "the client has
+ * fully processed everything sent before this point": inventory syncs,
+ * transaction style anticheat checks, client lag detection. A frozen client
+ * must delay the pong, or those plugins are being lied to.
+ * <p>
+ * The Java equivalent behavior is therefore a real round trip through the
+ * Bedrock client: NetworkStackLatency is handled inside its game loop, the
+ * closest analog of the main thread marshal. Unlike keep alive, a late pong
+ * carries no timeout kick, so involving the client here is safe.
+ */
 @Translator(packet = ClientboundPingPacket.class)
 public class JavaPingTranslator extends PacketTranslator<ClientboundPingPacket> {
 
@@ -45,7 +60,9 @@ public class JavaPingTranslator extends PacketTranslator<ClientboundPingPacket> 
             return;
         }
 
-        // ClientboundPingPacket are sent in sync, hence we ensure they're sent in the event loop
+        // Real round trip through the client's processing loop; see the
+        // class javadoc for why this must involve the client while keep
+        // alive must not.
         session.sendNetworkLatencyStackPacket(id, true, () -> session.sendDownstreamPacket(new ServerboundPongPacket(id)));
     }
 }
