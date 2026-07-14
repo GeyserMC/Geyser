@@ -233,6 +233,8 @@ public final class GeyserServer {
             .option(RakChannelOption.RAK_SERVER_COOKIE_MODE, rakSendCookie ? RakServerCookieMode.ACTIVE : RakServerCookieMode.INVALID)
             .option(RakChannelOption.RAK_PROXY_PROTOCOL, this.geyser.config().advanced().bedrock().useHaproxyProtocol())
             .option(RakChannelOption.RAK_THROTTLE, rakRateLimitingDisabled ? null : new DefaultRakServerThrottle(maxConnectionsPerAddress, 4_000, 3))
+            // BedrockPeer controls batching; propagate its flushes to RakNet immediately.
+            .childOption(RakChannelOption.RAK_AUTO_FLUSH, false)
             .childHandler(initializer);
     }
 
