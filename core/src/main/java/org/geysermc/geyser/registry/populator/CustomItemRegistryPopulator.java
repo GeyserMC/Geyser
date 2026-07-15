@@ -61,6 +61,7 @@ import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.registry.mappings.BuiltInMappings;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.mappings.MappingsType;
 import org.geysermc.geyser.registry.populator.custom.CustomItemContext;
@@ -204,7 +205,7 @@ public class CustomItemRegistryPopulator {
         Identifier bedrockIdentifier = item.bedrockIdentifier();
         if (bedrockIdentifier.vanilla()) {
             throw new CustomItemDefinitionRegisterException("custom item bedrock identifier namespace can't be minecraft");
-        } else if (item.model().equals(vanillaIdentifier) && item.predicates().isEmpty()) {
+        } else if (item.model().equals(vanillaIdentifier) && item.predicates().isEmpty() && !BuiltInMappings.isRegistering()) {
             GeyserImpl.getInstance().getLogger().warning("Custom item " + bedrockIdentifier + " overrides the vanilla item model " + vanillaIdentifier + " without additional predicates!");
         }
 
