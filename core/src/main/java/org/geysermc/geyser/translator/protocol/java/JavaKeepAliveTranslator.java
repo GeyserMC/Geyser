@@ -26,11 +26,12 @@
 package org.geysermc.geyser.translator.protocol.java;
 
 import org.geysermc.geyser.session.GeyserSession;
-import java.util.concurrent.TimeUnit;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundKeepAlivePacket;
 import org.geysermc.mcprotocollib.protocol.packet.common.serverbound.ServerboundKeepAlivePacket;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Vanilla ships two latency primitives with deliberately different semantics,
