@@ -32,7 +32,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
-import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
 import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.definitions.SimpleItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemVersion;
@@ -62,6 +61,7 @@ import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
 import org.geysermc.geyser.item.custom.GeyserCustomItemDefinition;
 import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.Item;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.mappings.BuiltInMappings;
 import org.geysermc.geyser.registry.mappings.MappingsConfigReader;
 import org.geysermc.geyser.registry.mappings.MappingsType;
@@ -475,7 +475,7 @@ public class CustomItemRegistryPopulator {
         int stackSize = components.getOrDefault(DataComponentTypes.MAX_STACK_SIZE, 1);
 
         // Before 1.26.30, minecraft:wearable overrides this component, which leaves equippable items unstackable, see MCPE-176931
-        boolean sendStackSizeComponent = context.protocolVersion() >= Bedrock_v1001.CODEC.getProtocolVersion();
+        boolean sendStackSizeComponent = GameProtocol.is26_30orHigher(context.protocolVersion());
 
         // Hack for v1 compat: Allow e.g. carved pumpkins to continue working as a base
         if (!sendStackSizeComponent && stackSize > 1 && definition instanceof GeyserCustomItemDefinition customItemDefinition && customItemDefinition.isOldConvertedItem()) {
