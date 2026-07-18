@@ -67,9 +67,10 @@ public record GeyserShapedRecipe(int id,
         List<List<ItemDescriptorWithCount>> left = bedrockRecipes.left();
         int i = 0;
         for (List<ItemDescriptorWithCount> inputs : left) {
+            // Java matches shaped recipes against the mirrored pattern as well
             recipeData.add(ShapedRecipeData.shaped(id + "_" + i, width, height, inputs,
                     Collections.singletonList(output), UUID.randomUUID(), "crafting_table", 0,
-                    netId + i, false, RecipeUnlockingRequirement.INVALID));
+                    netId + i, true, RecipeUnlockingRequirement.INVALID));
             i++;
         }
         return recipeData;
