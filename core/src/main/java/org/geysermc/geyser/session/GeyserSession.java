@@ -1859,6 +1859,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public boolean sendForm(@NonNull Form form) {
+        // Check if we're in the config stage, if so, prepare the client for forms
+        if (this.downstream != null && this.downstream.getSession().getPacketProtocol().getInboundState().equals(ProtocolState.CONFIGURATION)) {
+            this.prepareForConfigurationForm();
+        }
         // First close any dialogs that are open. This won't execute the dialog's closing action.
         dialogManager.close();
         return doSendForm(form);
