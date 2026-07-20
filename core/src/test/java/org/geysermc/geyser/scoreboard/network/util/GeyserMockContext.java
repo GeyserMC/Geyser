@@ -25,6 +25,16 @@
 
 package org.geysermc.geyser.scoreboard.network.util;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
+
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.api.Geyser;
 import org.geysermc.geyser.GeyserImpl;
@@ -35,16 +45,6 @@ import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Consumer;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
 
 public class GeyserMockContext {
     private final List<Object> mocksAndSpies = new ArrayList<>();
@@ -63,6 +63,8 @@ public class GeyserMockContext {
 
         var logger = context.storeObject(new EmptyGeyserLogger());
         when(geyserImpl.getLogger()).thenReturn(logger);
+        // Copied from standalone bootstrap
+        when(geyserImpl.configDirectory()).thenReturn(Paths.get(System.getProperty("user.dir")));
 
         var eventBus = new GeyserEventBus();
         when(geyserImpl.eventBus()).thenReturn(eventBus);

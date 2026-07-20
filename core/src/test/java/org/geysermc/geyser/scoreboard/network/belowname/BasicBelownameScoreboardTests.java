@@ -27,8 +27,8 @@ package org.geysermc.geyser.scoreboard.network.belowname;
 
 import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNextPacket;
 import static org.geysermc.geyser.scoreboard.network.util.AssertUtils.assertNoNextPacket;
-import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnPlayerSilently;
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.mockContextScoreboard;
+import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnPlayerSilently;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -36,6 +36,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetDisplayObjectiveTranslator;
 import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaSetObjectiveTranslator;
+import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.FixedFormat;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ObjectiveAction;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreType;
 import org.geysermc.mcprotocollib.protocol.data.game.scoreboard.ScoreboardPosition;
@@ -135,6 +136,51 @@ public class BasicBelownameScoreboardTests {
                 var packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(2);
                 packet.getMetadata().put(EntityDataTypes.SCORE, "0 §robjective");
+                return packet;
+            });
+            assertNoNextPacket(context);
+
+            context.translate(
+                setDisplayObjectiveTranslator,
+                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.BELOW_NAME, "")
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(2);
+                packet.getMetadata().put(EntityDataTypes.SCORE, "");
+                return packet;
+            });
+        });
+    }
+
+    @Test
+    void numberFormatFixed() {
+        mockContextScoreboard(context -> {
+            var setObjectiveTranslator = new JavaSetObjectiveTranslator();
+            var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();
+
+            spawnPlayerSilently(context, "player1", 2);
+
+            context.translate(
+                setObjectiveTranslator,
+                new ClientboundSetObjectivePacket(
+                    "objective",
+                    ObjectiveAction.ADD,
+                    Component.text("objective"),
+                    ScoreType.INTEGER,
+                    new FixedFormat(Component.text("yes", NamedTextColor.GREEN))
+                )
+            );
+            assertNoNextPacket(context);
+
+            context.translate(
+                setDisplayObjectiveTranslator,
+                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.BELOW_NAME, "objective")
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(2);
+                packet.getMetadata().put(EntityDataTypes.SCORE, "§ayes §robjective");
                 return packet;
             });
             assertNoNextPacket(context);
