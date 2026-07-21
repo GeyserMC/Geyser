@@ -244,7 +244,10 @@ public class ItemRegistryPopulator {
 
             List<ItemDefinition> buckets = new ObjectArrayList<>();
 
-            List<ItemMapping> mappings = new ObjectArrayList<>();
+            List<ItemMapping> mappings = new ObjectArrayList<>(Registries.JAVA_ITEMS.get().size());
+            while (Registries.JAVA_ITEMS.get().size() >= mappings.size()) {
+                mappings.add(ItemMapping.AIR);
+            }
             // Temporary mapping to create stored items
             Map<Item, ItemMapping> javaItemToMapping = new Object2ObjectOpenHashMap<>();
 
@@ -502,10 +505,6 @@ public class ItemRegistryPopulator {
                         .bedrockBlockDefinition(bedrockBlock)
                         .javaItem(javaItem);
 
-                if (mappingItem.getToolType() != null) {
-                    mappingBuilder = mappingBuilder.toolType(mappingItem.getToolType().intern());
-                }
-
                 if (javaOnlyItems.contains(javaItem)) {
                     // These items don't exist on Bedrock, so set up a variable that indicates they should have custom names
                     mappingBuilder = mappingBuilder.translationString((javaItem instanceof BlockItem ? "block." : "item.") + entry.getKey().replace(":", "."));
@@ -578,7 +577,7 @@ public class ItemRegistryPopulator {
                     buckets.add(definition);
                 }
 
-                mappings.add(mapping);
+                mappings.set(javaItem.javaId(), mapping);
                 javaItemToMapping.put(javaItem, mapping);
             }
 

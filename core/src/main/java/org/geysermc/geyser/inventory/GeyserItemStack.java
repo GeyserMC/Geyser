@@ -71,7 +71,6 @@ import java.util.function.Supplier;
 public class GeyserItemStack {
     public static final GeyserItemStack EMPTY = new GeyserItemStack(null, Items.AIR_ID, 0, null); // session can be null because air is a vanilla item
 
-    @Nullable
     private final ResolvableComponentGetter resolvableComponentGetter;
     private final int javaId;
     private int amount;
@@ -86,10 +85,10 @@ public class GeyserItemStack {
     private Item item;
 
     private GeyserItemStack(@Nullable GeyserSession session, int javaId, int amount, DataComponents components) {
-        this(session == null ? null : session.getComponentCache(), javaId, amount, components, 1, null);
+        this(session == null ? ResolvableComponentGetter.EMPTY : session.getComponentCache(), javaId, amount, components, 1, null);
     }
 
-    private GeyserItemStack(@Nullable ResolvableComponentGetter componentGetter, int javaId, int amount, DataComponents components, int netId, BundleCache.BundleData bundleData) {
+    private GeyserItemStack(@NonNull ResolvableComponentGetter componentGetter, int javaId, int amount, DataComponents components, int netId, BundleCache.BundleData bundleData) {
         this.resolvableComponentGetter = componentGetter;
         this.javaId = javaId;
         this.amount = amount;
