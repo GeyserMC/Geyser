@@ -1027,7 +1027,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public void authenticateWithAuthChain(String authChain) {
         if (loggedIn) {
-            geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().name()));
+            String name = "This account";
+            if (getAuthData() != null) name = getAuthData().name();
+            geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", name));
             return;
         }
 
@@ -1086,7 +1088,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     public void authenticateWithMicrosoftCode(boolean offlineAccess) {
         if (loggedIn) {
-            geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", getAuthData().name()));
+            String name = "This account";
+            if (getAuthData() != null) name = getAuthData().name();
+            geyser.getLogger().severe(GeyserLocale.getLocaleStringLog("geyser.auth.already_loggedin", name));
             return;
         }
 
