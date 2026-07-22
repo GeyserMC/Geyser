@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.java.entity;
 
 import org.cloudburstmc.math.vector.Vector3d;
 import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -49,6 +50,19 @@ public class JavaEntityPositionSyncTranslator extends PacketTranslator<Clientbou
                 return;
             }
             clientVehicle.getVehicleComponent().moveAbsolute(pos.getX(), pos.getY(), pos.getZ());
+            entity.teleport(pos.toFloat(), packet.getYRot(), packet.getXRot(), packet.isOnGround());
+            return;
+        }
+
+        // Send as a relative move so the client interpolates; see Entity#interpolatesTeleports.
+        // Living entities already smooth absolute moves through their movement lerp.
+        if (!(entity instanceof LivingEntity) && entity.interpolatesTeleports()
+                && entity.position().distance(pos.toFloat()) < 4096.0) {
+            Vector3d currentPosition = entity.position().toDouble();
+            entity.moveRelative(pos.getX() - currentPosition.getX(), pos.getY() - currentPosition.getY(),
+                    pos.getZ() - currentPosition.getZ(), packet.getYRot(), packet.getXRot(), packet.getYRot(),
+                    packet.isOnGround());
+            return;
         }
 
         entity.teleport(pos.toFloat(), packet.getYRot(), packet.getXRot(), packet.isOnGround());
