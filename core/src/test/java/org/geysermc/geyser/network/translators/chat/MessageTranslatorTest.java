@@ -27,6 +27,13 @@ package org.geysermc.geyser.network.translators.chat;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.cloudburstmc.nbt.NbtList;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
+import org.geysermc.geyser.session.dialog.DialogButton;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -85,6 +92,51 @@ public class MessageTranslatorTest {
             String bedrockMessage = MessageTranslator.convertJsonMessage(entry.getKey(), "en_US");
             Assertions.assertEquals(entry.getValue(), bedrockMessage, "Translation of messages is incorrect");
         }
+    }
+
+    // https://github.com/GeyserMC/Geyser/issues/6499 - an "object" component (atlas sprite / player head) has no
+    // textual representation on Bedrock, but it must not swallow the text around it.
+    @Test
+    public void objectComponentKeepsSurroundingText() {
+        // Minecraft normalizes the array [<object>, " Hello world"] into the object component with the text in "extra".
+        NbtMap normalized = NbtMap.builder()
+            .putString("type", "object")
+            .putString("atlas", "minecraft:items")
+            .putString("sprite", "item/barrier")
+            .putList("extra", NbtType.STRING, " Hello world")
+            .build();
+        Component normalizedComponent = MessageTranslator.componentFromNbtTag(normalized);
+        Assertions.assertEquals(" Hello world", PlainTextComponentSerializer.plainText().serialize(normalizedComponent),
+            "Object component must not drop the text in its extra");
+
+        // The same content expressed as a plain list of components.
+        NbtMap object = NbtMap.builder()
+            .putString("type", "object")
+            .putString("atlas", "minecraft:items")
+            .putString("sprite", "item/barrier")
+            .build();
+        NbtMap text = NbtMap.builder().putString("text", " Hello world").build();
+        NbtList<NbtMap> list = new NbtList<>(NbtType.COMPOUND, object, text);
+        Component listComponent = MessageTranslator.componentFromNbtTag(list);
+        Assertions.assertEquals(" Hello world", PlainTextComponentSerializer.plainText().serialize(listComponent),
+            "Object component in a list must not drop the sibling text");
+    }
+
+    // https://github.com/GeyserMC/Geyser#6499 - atlas sprites in a button label become the Bedrock button's icon.
+    @Test
+    public void spriteMapsToBedrockTexturePath() {
+        Assertions.assertEquals(Optional.of("textures/items/barrier"),
+            DialogButton.spriteTexturePath("minecraft:items", "item/barrier"));
+        Assertions.assertEquals(Optional.of("textures/blocks/stone"),
+            DialogButton.spriteTexturePath("minecraft:blocks", "block/stone"));
+        // Namespaced sprite ids are accepted too.
+        Assertions.assertEquals(Optional.of("textures/items/apple"),
+            DialogButton.spriteTexturePath("minecraft:items", "minecraft:item/apple"));
+        // Atlases and sprite categories we can't predict resolve to no icon rather than a wrong one.
+        Assertions.assertEquals(Optional.empty(),
+            DialogButton.spriteTexturePath("minecraft:mob_effects", "effect/speed"));
+        Assertions.assertEquals(Optional.empty(),
+            DialogButton.spriteTexturePath("minecraft:items", "barrier"));
     }
 
     @Test
