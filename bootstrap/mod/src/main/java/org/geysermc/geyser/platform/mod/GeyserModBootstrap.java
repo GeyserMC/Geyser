@@ -221,6 +221,11 @@ public abstract class GeyserModBootstrap implements GeyserBootstrap {
         return floodgateKeyPath;
     }
 
+    @Override
+    public boolean isServerControlledHardcore() {
+        return true;
+    }
+
     @Nullable
     @Override
     public InputStream getResourceOrNull(String resource) {
