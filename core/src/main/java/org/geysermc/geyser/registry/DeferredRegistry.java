@@ -123,6 +123,14 @@ class DeferredRegistry<M, R extends IRegistry<M>> implements IRegistry<M> {
         return this.loaded;
     }
 
+    @Override
+    public void clear() {
+        if (!this.loaded) {
+            return;
+        }
+        this.backingRegistry.clear();
+    }
+
     /**
      * A registry initializer.
      *

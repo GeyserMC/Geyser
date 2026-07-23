@@ -28,6 +28,7 @@ package org.geysermc.geyser.registry;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.registry.loader.RegistryLoader;
 
+import java.util.Arrays;
 import java.util.function.Supplier;
 
 /**
@@ -147,5 +148,10 @@ public class ArrayRegistry<M> extends Registry<M[]> {
      */
     public static <I, M> ArrayRegistry<M> create(I input, RegistryLoader<I, M[]> registryLoader) {
         return new ArrayRegistry<>(input, registryLoader);
+    }
+
+    @Override
+    public void clear() {
+        Arrays.fill(this.mappings, null);
     }
 }
