@@ -789,7 +789,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
     }
 
-    private <T> void runIfNonNull(T nullable, Consumer<T> consumer) {
+    private <T> void runIfNonNull(T nullable, Consumer<@NonNull T> consumer) {
         if (nullable != null) {
             consumer.accept(nullable);
         }
