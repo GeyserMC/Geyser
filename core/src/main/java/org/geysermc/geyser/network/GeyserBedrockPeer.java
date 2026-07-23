@@ -26,13 +26,28 @@
 package org.geysermc.geyser.network;
 
 import io.netty.channel.Channel;
+import lombok.Getter;
+import lombok.Setter;
+import org.cloudburstmc.netty.channel.raknet.RakChildChannel;
+import org.cloudburstmc.netty.handler.codec.raknet.common.RakSessionCodec;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockSessionFactory;
 
+import javax.crypto.SecretKey;
 import java.net.SocketAddress;
 
 public class GeyserBedrockPeer extends BedrockPeer {
+    @Getter
+    @Setter
     private SocketAddress proxiedAddress;
+
+    /**
+     * Whether Bedrock encryption can be negotiated. RakNet clients can; transports behind a trusted proxy that
+     * already authenticated the player set this {@code false} to skip the handshake.
+     */
+    @Getter
+    @Setter
+    private boolean encryptionSupported = true;
 
     public GeyserBedrockPeer(Channel channel, BedrockSessionFactory sessionFactory) {
         super(channel, sessionFactory);
@@ -43,7 +58,30 @@ public class GeyserBedrockPeer extends BedrockPeer {
         return proxied == null ? this.getSocketAddress() : proxied;
     }
 
-    public void setProxiedAddress(SocketAddress proxiedAddress) {
-        this.proxiedAddress = proxiedAddress;
+    @Override
+    public void enableEncryption(SecretKey secretKey) {
+        if (!this.encryptionSupported) {
+            // Security is the transport's responsibility on this connection; do not install Bedrock ciphers.
+            return;
+        }
+        super.enableEncryption(secretKey);
+    }
+
+    /**
+     * The round-trip latency to the peer in milliseconds, used for {@code /list}-style ping displays and dumps.
+     * <p>
+     * The default implementation reads RakNet's estimate. Custom transports should override this function
+     * and supply their own measurement.
+     *
+     * @return the latency in milliseconds, or {@code 0} if unavailable
+     */
+    public int getPing() {
+        if (this.getChannel() instanceof RakChildChannel rakChildChannel) {
+            RakSessionCodec rakSessionCodec = rakChildChannel.rakPipeline().get(RakSessionCodec.class);
+            if (rakSessionCodec != null) {
+                return (int) Math.floor(rakSessionCodec.getPing());
+            }
+        }
+        return 0;
     }
 }

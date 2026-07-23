@@ -26,28 +26,25 @@
 package org.geysermc.geyser.network;
 
 import io.netty.channel.Channel;
-import io.netty.channel.DefaultEventLoopGroup;
-import io.netty.util.concurrent.DefaultThreadFactory;
-import lombok.Getter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
-import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.session.GeyserSession;
 
+/**
+ * The per-connection child handler for the built-in RakNet transport. Builds cloudburst's standard Bedrock
+ * pipeline (which is RakNet-aware) and delegates the transport-agnostic session creation to
+ * {@link GeyserSessionInitializer}.
+ */
 public class GeyserServerInitializer extends BedrockServerInitializer {
-    private final GeyserImpl geyser;
     private final boolean rakCookiesEnabled;
-    // There is a constructor that doesn't require inputting threads, but older Netty versions don't have it
-    @Getter
-    private final DefaultEventLoopGroup eventLoopGroup = new DefaultEventLoopGroup(0, new DefaultThreadFactory("Geyser player thread"));
+    private final GeyserSessionInitializer sessionInitializer;
 
-    public GeyserServerInitializer(GeyserImpl geyser, boolean rakCookiesEnabled) {
-        this.geyser = geyser;
+    public GeyserServerInitializer(GeyserImpl geyser, boolean rakCookiesEnabled, GeyserSessionInitializer sessionInitializer) {
         this.rakCookiesEnabled = rakCookiesEnabled;
+        this.sessionInitializer = sessionInitializer;
     }
 
     @Override
@@ -60,21 +57,7 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
 
     @Override
     public void initSession(@NonNull BedrockServerSession bedrockServerSession) {
-        try {
-            bedrockServerSession.setLogging(this.geyser.config().debugMode());
-            GeyserSession session = new GeyserSession(this.geyser, bedrockServerSession, this.eventLoopGroup.next());
-
-            if (!bedrockServerSession.isSubClient()) {
-                Channel channel = bedrockServerSession.getPeer().getChannel();
-                channel.pipeline().addAfter(BedrockPacketCodec.NAME, InvalidPacketHandler.NAME, new InvalidPacketHandler(session));
-            }
-
-            bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, session));
-        } catch (Throwable e) {
-            // Error must be caught or it will be swallowed
-            this.geyser.getLogger().error("Error occurred while initializing player!", e);
-            bedrockServerSession.disconnect(e.getMessage());
-        }
+        this.sessionInitializer.initializeSession(bedrockServerSession);
     }
 
     @Override

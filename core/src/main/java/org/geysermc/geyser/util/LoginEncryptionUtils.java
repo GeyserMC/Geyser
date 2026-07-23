@@ -41,6 +41,7 @@ import org.geysermc.cumulus.response.SimpleFormResponse;
 import org.geysermc.cumulus.response.result.FormResponseResult;
 import org.geysermc.cumulus.response.result.ValidFormResponseResult;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.network.GeyserBedrockPeer;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.auth.AuthData;
 import org.geysermc.geyser.session.auth.BedrockClientData;
@@ -101,9 +102,13 @@ public class LoginEncryptionUtils {
             data.setOriginalString(jwt);
             session.setClientData(data);
 
+            boolean encryptionSupported = !(session.getUpstream().getSession().getPeer() instanceof GeyserBedrockPeer peer)
+                || peer.isEncryptionSupported();
+            boolean proxyForwarding = !encryptionSupported || geyser.config().advanced().bedrock().useWaterdogpeForwarding();
+
             IdentityData extraData = result.identityClaims().extraData;
             String xuid = extraData.xuid;
-            if (geyser.config().advanced().bedrock().useWaterdogpeForwarding()) {
+            if (proxyForwarding) {
                 String waterdogIp = data.getWaterdogIp();
                 String waterdogXuid = data.getWaterdogXuid();
                 if (waterdogXuid != null && !waterdogXuid.isBlank() && waterdogIp != null && !waterdogIp.isBlank()) {
@@ -116,15 +121,17 @@ public class LoginEncryptionUtils {
             }
             session.setAuthData(new AuthData(extraData.displayName, extraData.identity, xuid, issuedAt, extraData.minecraftId));
 
-            try {
-                startEncryptionHandshake(session, identityPublicKey);
-            } catch (Throwable e) {
-                // An error can be thrown on older Java 8 versions about an invalid key
-                if (geyser.config().debugMode()) {
-                    e.printStackTrace();
-                }
+            if (encryptionSupported) {
+                try {
+                    startEncryptionHandshake(session, identityPublicKey);
+                } catch (Throwable e) {
+                    // An error can be thrown on older Java 8 versions about an invalid key
+                    if (geyser.config().debugMode()) {
+                        e.printStackTrace();
+                    }
 
-                sendEncryptionFailedMessage(geyser);
+                    sendEncryptionFailedMessage(geyser);
+                }
             }
         } catch (Exception ex) {
             session.disconnect("disconnectionScreen.internalError.cantConnect");
