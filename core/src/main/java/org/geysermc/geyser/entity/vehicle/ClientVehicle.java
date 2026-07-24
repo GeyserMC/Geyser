@@ -38,7 +38,7 @@ public interface ClientVehicle {
     float getVehicleSpeed();
 
     // MojMap Mob#getControllingPassenger
-    boolean isClientControlled();
+    boolean shouldSimulateMovement();
 
     default boolean canWalkOnLava() {
         return false;

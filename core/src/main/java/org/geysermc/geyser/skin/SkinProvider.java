@@ -33,6 +33,8 @@ import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.bytes.ByteArrays;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.protocol.bedrock.data.skin.ImageData;
+import org.cloudburstmc.protocol.bedrock.data.skin.SerializedSkin;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.SessionSkinApplyEvent;
 import org.geysermc.geyser.api.network.AuthType;
@@ -55,6 +57,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -99,11 +102,19 @@ public class SkinProvider {
     static final SkinGeometry SKULL_GEOMETRY;
     static final SkinGeometry WEARING_CUSTOM_SKULL;
     static final SkinGeometry WEARING_CUSTOM_SKULL_SLIM;
+    public static final SerializedSkin EMPTY_SERIALIZED_SKIN;
+
+    private static final byte[] SKIN_MASK = Base64.getDecoder().decode(
+        "AP//AAAAAAAA//8AAAAAAAD//wAAAAAAAP//AAAAAAAA//8AAAAAAAD//wAAAAAAAP//AAAAAAAA//8AAAAAAP////8AAAAA/////wAAAAD/////AAAAAP////8AAAAA/////wAAAAD/////AAAAAP////8AAAAA/////wAAAADwD/D/D/8AAPAP8P8P/wAA8A/w/w//AADwD/D/D/8AAP///////w8A////////DwD///////8PAP///////w8A////////DwD///////8PAP///////w8A////////DwD///////8PAP///////w8A////////DwD///////8PAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwD/APAAAAAPAP8A8AAAAA8A/wDwAAAADwD/APAAAAAP////8AAAAA/////wAAAAD/////AAAAAP////8AAAAA/////wAAAAD/////AAAAAP////8AAAAA/////wAAAAD/////AAAAAP////8AAAAA/////wAAAAD/////AAA="
+    );
+    private static final byte[] SKIN_MASK_LEGACY = Base64.getDecoder().decode(
+        "AP//AAAAAAAA//8AAAAAAAD//wAAAAAAAP//AAAAAAAA//8AAAAAAAD//wAAAAAAAP//AAAAAAAA//8AAAAAAP////8AAAAA/////wAAAAD/////AAAAAP////8AAAAA/////wAAAAD/////AAAAAP////8AAAAA/////wAAAADwD/D/D/APAPAP8P8P8A8A8A/w/w/wDwDwD/D/D/APAP////////8A/////////wD/////////AP////////8A/////////wD/////////AP////////8A/////////wD/////////AP////////8A/////////wD/////////AA=="
+    );
 
     static {
         // Generate the empty texture to use as an emergency fallback
-        final int pink = -524040;
-        final int black = -16777216;
+        final int pink = 0xFFF800F8;
+        final int black = 0xFF000000;
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream(64 * 4 + 64 * 4);
         for (int y = 0; y < 64; y++) {
             for (int x = 0; x < 64; x++) {
@@ -130,6 +141,17 @@ public class SkinProvider {
         WEARING_CUSTOM_SKULL = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkull\"}}", wearingCustomSkull);
         String wearingCustomSkullSlim = new String(FileUtils.readAllBytes("bedrock/skin/geometry.humanoid.wearingCustomSkullSlim.json"), StandardCharsets.UTF_8);
         WEARING_CUSTOM_SKULL_SLIM = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkullSlim\"}}", wearingCustomSkullSlim);
+
+        /* Used for non-player waypoints... Bedrock requires a skin being sent. Lovely. */
+        EMPTY_SERIALIZED_SKIN = SerializedSkin.builder()
+            .fullSkinId("emptyFullSkinId")
+            .skinId("skinId")
+            .skinData(ImageData.of(EMPTY_SKIN.skinData()))
+            .capeData(ImageData.EMPTY)
+            .geometryName(SkinGeometry.SLIM.geometryName())
+            .geometryData(SkinGeometry.SLIM.geometryData())
+            .premium(true)
+            .build();
     }
 
     public static ExecutorService getExecutorService() {
@@ -182,7 +204,7 @@ public class SkinProvider {
     /**
      * If skin data fails to apply, or there is no skin data to apply, determine what skin we should give as a fallback.
      */
-    static SkinData determineFallbackSkinData(UUID uuid) {
+    public static SkinData determineFallbackSkinData(UUID uuid) {
         Skin skin = null;
         Cape cape = null;
         SkinGeometry geometry = SkinGeometry.WIDE;
@@ -249,7 +271,7 @@ public class SkinProvider {
                     try {
                         Skin skin = skinAndCape.skin();
                         Cape cape = skinAndCape.cape();
-                        SkinGeometry geometry = data.isAlex() ? SkinGeometry.SLIM : SkinGeometry.WIDE;
+                        SkinGeometry geometry = data.isSlim() ? SkinGeometry.SLIM : SkinGeometry.WIDE;
 
                         // Whether we should see if this player has a Bedrock skin we should check for on failure of
                         // any skin property
@@ -263,9 +285,9 @@ public class SkinProvider {
                         boolean isBedrock = GeyserImpl.getInstance().connectionByUuid(entity.uuid()) != null;
                         SkinData skinData = new SkinData(skin, cape, geometry);
                         final EventSkinData eventSkinData = new EventSkinData(skinData);
-                        GeyserImpl.getInstance().eventBus().fire(new SessionSkinApplyEvent(session, entity.getUsername(), entity.uuid(), data.isAlex(), isBedrock, skinData) {
+                        GeyserImpl.getInstance().eventBus().fire(new SessionSkinApplyEvent(session, entity.getUsername(), entity.uuid(), data.isSlim(), isBedrock, skinData) {
                             @Override
-                            public SkinData skinData() {
+                            public @NonNull SkinData skinData() {
                                 return eventSkinData.skinData();
                             }
 
@@ -457,14 +479,21 @@ public class SkinProvider {
                 image = newImage;
             }
         } else {
-            // Very rarely, skins can be larger than Minecraft's default.
-            // Bedrock will not render anything above a width of 128.
-            if (image.getWidth() > 128) {
-                // On Height: Scale by the amount we divided width by, or simply cut down to 128
-                image = scale(image, 128, image.getHeight() >= 256 ? (image.getHeight() / (image.getWidth() / 128)) : 128);
+            int height = image.getHeight();
+            int width = image.getWidth();
+            if (width == 64 && (height == 32 || height == 64)) {
+                boolean isLegacy = height == 32;
+                int[] pixels = image.getRGB(0, 0, width, height, null, 0, width);
+                byte[] mask = isLegacy ? SKIN_MASK_LEGACY : SKIN_MASK;
+                for (int i = 0; i < pixels.length; i++) {
+                    if ((((mask[i >> 3] & 0xFF) >> (i & 0x7)) & 1) != 0) {
+                        pixels[i] |= 0xFF000000;
+                    }
+                }
+                image.setRGB(0, 0, width, height, pixels, 0, width);
+            } else {
+                throw new IllegalStateException("Discarding incorrectly sized (" + width + "x" + height + ") skin texture from " + imageUrl);
             }
-
-            // TODO remove alpha channel
         }
 
         return image;

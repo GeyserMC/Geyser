@@ -25,11 +25,11 @@
 
 package org.geysermc.geyser.item.type;
 
+import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.protocol.bedrock.data.TrimMaterial;
-import org.cloudburstmc.protocol.bedrock.data.TrimPattern;
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.item.TooltipOptions;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
@@ -50,30 +50,32 @@ public class ArmorItem extends Item {
 
         ArmorTrim trim = components.get(DataComponentTypes.TRIM);
         if (trim != null) {
-            TrimMaterial material = session.getRegistryCache().registry(JavaRegistries.TRIM_MATERIAL).byId(trim.material().id());
-            TrimPattern pattern = session.getRegistryCache().registry(JavaRegistries.TRIM_PATTERN).byId(trim.pattern().id());
-
-            // discard custom trim patterns/materials to prevent visual glitches on bedrock
-            if (!getNamespace(material.getMaterialId()).equals("minecraft")
-                    || !getNamespace(pattern.getPatternId()).equals("minecraft")) {
-                // TODO - how is this shown in tooltip? should we add a custom trim tooltip to the lore here
+            Key material;
+            if (trim.material().isId()) {
+                material = JavaRegistries.TRIM_MATERIAL.key(session, trim.material().id());
+            } else {
+                GeyserImpl.getInstance().getLogger().debug("Unable to translate non-id trim material: " + trim);
                 return;
             }
 
-            NbtMapBuilder trimBuilder = NbtMap.builder();
-            // bedrock has an uppercase first letter key, and the value is not namespaced
-            trimBuilder.put("Material", material.getMaterialId());
-            trimBuilder.put("Pattern", pattern.getPatternId());
-            builder.putCompound("Trim", trimBuilder.build());
-        }
-    }
+            Key pattern;
+            if (trim.pattern().isId()) {
+                pattern = JavaRegistries.TRIM_PATTERN.key(session, trim.pattern().id());
+            } else {
+                GeyserImpl.getInstance().getLogger().debug("Unable to translate non-id trim pattern: " + trim);
+                return;
+            }
 
-    // TODO maybe some kind of namespace util?
-    private static String getNamespace(String identifier) {
-        int i = identifier.indexOf(':');
-        if (i >= 0) {
-            return identifier.substring(0, i);
+            if (material != null && pattern != null) {
+                NbtMapBuilder trimBuilder = NbtMap.builder();
+                // Strip namespace from identifiers - Bedrock expects just the path part
+                // e.g., "minecraft:iron" -> "iron", "civilization:frost_trim" -> "frost_trim"
+                trimBuilder.put("Material", material.value());
+                trimBuilder.put("Pattern", pattern.value());
+                builder.putCompound("Trim", trimBuilder.build());
+            } else {
+                GeyserImpl.getInstance().getLogger().debug("Unknown trim material/pattern: ", trim);
+            }
         }
-        return "minecraft";
     }
 }

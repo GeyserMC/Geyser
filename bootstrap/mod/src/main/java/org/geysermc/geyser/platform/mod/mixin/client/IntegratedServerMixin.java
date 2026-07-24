@@ -50,8 +50,8 @@ public class IntegratedServerMixin implements GeyserServerPortGetter {
 
     @Shadow @Final private Minecraft minecraft;
 
-    @Inject(method = "publishServer", at = @At("RETURN"))
-    private void onOpenToLan(GameType gameType, boolean cheatsAllowed, int port, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "publishServer(Lnet/minecraft/server/MinecraftServer$MultiplayerScope;I)Z", at = @At("RETURN"))
+    private void onOpenToLan(MinecraftServer.MultiplayerScope scope, int port, CallbackInfoReturnable<Boolean> cir) {
         if (cir.getReturnValueZ()) {
             // If the LAN is opened, starts Geyser.
             GeyserModBootstrap instance = GeyserModBootstrap.getInstance();
@@ -61,8 +61,8 @@ public class IntegratedServerMixin implements GeyserServerPortGetter {
             GeyserLocale.loadGeyserLocale(this.minecraft.options.languageCode);
             // Give indication that Geyser is loaded
             Objects.requireNonNull(this.minecraft.player);
-            this.minecraft.player.displayClientMessage(Component.literal(GeyserLocale.getPlayerLocaleString("geyser.core.start.ip_suppressed",
-                    this.minecraft.options.languageCode, String.valueOf(GeyserImpl.getInstance().bedrockListener().port()))), false);
+            this.minecraft.player.sendSystemMessage(Component.literal(GeyserLocale.getPlayerLocaleString("geyser.core.start.ip_suppressed",
+                    this.minecraft.options.languageCode, String.valueOf(GeyserImpl.getInstance().bedrockListener().port()))));
         }
     }
 

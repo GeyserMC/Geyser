@@ -1,0 +1,12 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:damage_type",
+  "value": [
+    "minecraft:in_fire",
+    "minecraft:campfire",
+    "minecraft:lightning_bolt",
+    "minecraft:on_fire",
+    "minecraft:cramming",
+    "minecraft:cactus"
+  ]
+}

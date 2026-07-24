@@ -25,65 +25,83 @@
 
 package org.geysermc.geyser.session.cache;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector2d;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.protocol.bedrock.data.LevelEvent;
-import org.cloudburstmc.protocol.bedrock.data.LevelEventType;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
+import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
-import lombok.Getter;
-import lombok.Setter;
-import org.geysermc.geyser.entity.EntityDefinitions;
-import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.entity.VanillaEntities;
+import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.entity.type.Entity;
+import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.session.GeyserSession;
+
+import java.awt.*;
 
 import static org.geysermc.geyser.level.physics.CollisionManager.COLLISION_TOLERANCE;
 
 public class WorldBorder {
     private static final double DEFAULT_WORLD_BORDER_SIZE = 5.9999968E7D;
+    private static final Color DEFAULT_WORLD_BORDER_COLOR = new Color(32, 160, 255);
+    private static final Color SHRINKING_WORLD_BORDER_COLOR = new Color(255, 48, 48);
+    private static final Color GROWING_WORLD_BORDER_COLOR = new Color(64, 255, 128);
+
+    private static final int WORLD_BORDER_COLLISION_RANGE = 30;
+    private static final int BORDER_COLLISION_Y_DISTANCE = 10;
 
     @Setter
     private @NonNull Vector2d center = Vector2d.ZERO;
+
     /**
-     * The diameter in blocks of the world border before it got changed or similar to newDiameter if not changed.
+     * Progress through the current movement
      */
-    @Setter
-    private double oldDiameter = DEFAULT_WORLD_BORDER_SIZE;
+    private long lerpProgress;
+
+    /**
+     * The duration of the current movement
+     */
+    private long lerpDuration;
+
     /**
      * The diameter in blocks of the new world border.
      */
-    @Setter
-    private double newDiameter = DEFAULT_WORLD_BORDER_SIZE;
+    private double size = DEFAULT_WORLD_BORDER_SIZE;
     /**
-     * The speed to apply an expansion/shrinking of the world border.
-     * When a client joins they get the actual border oldDiameter and the time left to reach the newDiameter.
+     * The target diameter
      */
     @Setter
-    private long speed = 0;
+    private double to = DEFAULT_WORLD_BORDER_SIZE;
     /**
-     * The time in seconds before a shrinking world border would hit a not moving player.
-     * Creates the same visual warning effect as warningBlocks.
+     * The diameter the current moving target came from
      */
     @Setter
-    private int warningDelay = 15;
+    private double from = DEFAULT_WORLD_BORDER_SIZE;
     /**
      * Block length before you reach the border to show warning particles.
      */
     @Setter
     private int warningBlocks = 5;
+
+    @Setter
+    private int warningDelay = 15;
     /**
      * The world border cannot go beyond this number, positive or negative, in world coordinates
      */
     @Setter
     private int absoluteMaxSize = 29999984;
 
+    @Setter
     @Getter
     private boolean resizing;
-    private double currentDiameter;
 
     /*
      * Boundaries of the actual world border.
@@ -102,17 +120,21 @@ public class WorldBorder {
     private double warningMinX = 0.0D;
     private double warningMinZ = 0.0D;
 
+    @SuppressWarnings("FieldCanBeLocal") // We will use this at some point down the line for Integrated Pack
+    private Color currentWorldBorderColor = DEFAULT_WORLD_BORDER_COLOR;
+
     /**
      * To track when to send wall particle packets.
      */
     private int currentWallTick;
 
-    /**
-     * If the world border is resizing, this variable saves how many ticks have progressed in the resizing
-     */
-    private long lastUpdatedWorldBorderTime = 0;
 
     private final GeyserSession session;
+
+    /**
+     * To simulate collision with the world border using the COLLIDABLE tag.
+     */
+    private Entity xCollisionEntity, zCollisionEntity;
 
     public WorldBorder(GeyserSession session) {
         this.session = session;
@@ -124,52 +146,52 @@ public class WorldBorder {
      * @return true as long as the player entity is within the world limits.
      */
     public boolean isInsideBorderBoundaries() {
-        return isInsideBorderBoundaries(session.getPlayerEntity().getPosition());
+        return isInsideBorderBoundaries(session.getPlayerEntity().position());
     }
 
     public boolean isInsideBorderBoundaries(Vector3f position) {
         return position.getX() > minX && position.getX() < maxX && position.getZ() > minZ && position.getZ() < maxZ;
     }
 
+    /**
+     * @return the closet distance to the border.
+     */
+    private double getDistanceToBorder(final double x, final double z) {
+        double fromNorth = z - minZ;
+        double fromSouth = maxZ - z;
+        double fromWest = x - minX;
+        double fromEast = maxX - x;
+        double min = Math.min(fromWest, fromEast);
+        min = Math.min(min, fromNorth);
+        return Math.min(min, fromSouth);
+    }
+
+    /**
+     * @return the position is within's bounds of the border within a certain margin.
+     */
+    private boolean isWithinBounds(final double x, final double z, final double margin) {
+        return x >= this.minX - margin && x < maxX + margin && z >= minZ - margin && z < maxZ + margin;
+    }
+
+    /**
+     * @return if the player is inside or close to the border, but not beyond it, use to determine whether the player should be able to collide with the border.
+     */
+    public boolean isInsideBorderZone() {
+        SessionPlayerEntity player = session.getPlayerEntity();
+        double bbMax = Math.max(Math.max(player.getBoundingBoxWidth(), player.getBoundingBoxHeight()), 1.0);
+        return this.getDistanceToBorder(player.position().getX(), player.position().getZ()) < bbMax * 2.0 && this.isWithinBounds(player.position().getX(), player.position().getZ(), bbMax);
+    }
+
     private static final int CLOSE_TO_BORDER = 5;
 
     /**
      * @return if the player is close to the border boundaries. Used to always indicate a border even if there is no
-     * warning blocks set.
+     * warning blocks set and spawn collision entities.
      */
     public boolean isCloseToBorderBoundaries() {
-        Vector3f position = session.getPlayerEntity().getPosition();
+        Vector3f position = session.getPlayerEntity().position();
         return !(position.getX() > minX + CLOSE_TO_BORDER && position.getX() < maxX - CLOSE_TO_BORDER
-                && position.getZ() > minZ + CLOSE_TO_BORDER && position.getZ() < maxZ - CLOSE_TO_BORDER);
-    }
-
-    /**
-     * Confirms that the entity is within world border boundaries when they move.
-     * Otherwise, if {@code adjustPosition} is true, this function will push the player back.
-     *
-     * @return if this player was indeed against the world border. Will return false if no world border was defined for us.
-     */
-    public boolean isPassingIntoBorderBoundaries(Vector3f newPosition, boolean adjustPosition) {
-        boolean isInWorldBorder = isPassingIntoBorderBoundaries(newPosition);
-        if (isInWorldBorder && adjustPosition) {
-            PlayerEntity playerEntity = session.getPlayerEntity();
-            // Move the player back, but allow gravity to take place
-            // Teleported = true makes going back better, but disconnects the player from their mounted entity
-            playerEntity.moveAbsoluteRaw(Vector3f.from(playerEntity.getPosition().getX(), (newPosition.getY() - EntityDefinitions.PLAYER.offset()), playerEntity.getPosition().getZ()),
-                    playerEntity.getYaw(), playerEntity.getPitch(), playerEntity.getHeadYaw(), playerEntity.isOnGround(), playerEntity.getVehicle() == null);
-        }
-        return isInWorldBorder;
-    }
-
-    public boolean isPassingIntoBorderBoundaries(Vector3f newEntityPosition) {
-        int entityX = GenericMath.floor(newEntityPosition.getX());
-        int entityZ = GenericMath.floor(newEntityPosition.getZ());
-        Vector3f currentEntityPosition = session.getPlayerEntity().getPosition();
-        // Make sure we can't move out of the world border, but if we're out of the world border, we can move in
-        return (entityX == (int) minX && currentEntityPosition.getX() > newEntityPosition.getX()) ||
-                (entityX == (int) maxX && currentEntityPosition.getX() < newEntityPosition.getX()) ||
-                (entityZ == (int) minZ && currentEntityPosition.getZ() > newEntityPosition.getZ()) ||
-                (entityZ == (int) maxZ && currentEntityPosition.getZ() < newEntityPosition.getZ());
+            && position.getZ() > minZ + CLOSE_TO_BORDER && position.getZ() < maxZ - CLOSE_TO_BORDER);
     }
 
     /**
@@ -178,8 +200,22 @@ public class WorldBorder {
      * @return true as long the entity is within the world limits and not in the warning zone at the edge to the border.
      */
     public boolean isWithinWarningBoundaries() {
-        Vector3f entityPosition = session.getPlayerEntity().getPosition();
+        Vector3f entityPosition = session.getPlayerEntity().position();
         return entityPosition.getX() > warningMinX && entityPosition.getX() < warningMaxX && entityPosition.getZ() > warningMinZ && entityPosition.getZ() < warningMaxZ;
+    }
+
+    /**
+     * Check if the player is passing into the border, mostly meant for vehicles where the collision hacks don't work.
+     */
+    public boolean isPassingIntoBorderBoundaries(Vector3f newEntityPosition) {
+        int entityX = GenericMath.floor(newEntityPosition.getX());
+        int entityZ = GenericMath.floor(newEntityPosition.getZ());
+        Vector3f currentEntityPosition = session.getPlayerEntity().position();
+        // Make sure we can't move out of the world border, but if we're out of the world border, we can move in
+        return (entityX == (int) minX && currentEntityPosition.getX() > newEntityPosition.getX()) ||
+            (entityX == (int) maxX && currentEntityPosition.getX() < newEntityPosition.getX()) ||
+            (entityZ == (int) minZ && currentEntityPosition.getZ() > newEntityPosition.getZ()) ||
+            (entityZ == (int) maxZ && currentEntityPosition.getZ() < newEntityPosition.getZ());
     }
 
     /**
@@ -236,21 +272,24 @@ public class WorldBorder {
         /*
          * Setting the correct boundary of our world border's square.
          */
-        double radius;
+        double radius = this.size / 2.0D;
         if (resizing) {
-            radius = this.currentDiameter / 2.0D;
+            if (this.size > this.to) {
+                currentWorldBorderColor = SHRINKING_WORLD_BORDER_COLOR;
+            } else {
+                currentWorldBorderColor = GROWING_WORLD_BORDER_COLOR;
+            }
         } else {
-            radius = this.newDiameter / 2.0D;
+            currentWorldBorderColor = DEFAULT_WORLD_BORDER_COLOR;
         }
-        
-        double absoluteMinSize = -this.absoluteMaxSize;
-        double centerX = this.center.getX();
-        double centerZ = this.center.getY(); // Mapping 2D vector to 3D coordinates >> Y becomes Z
 
-        this.minX = GenericMath.clamp(centerX - radius, absoluteMinSize, this.absoluteMaxSize);
-        this.minZ = GenericMath.clamp(centerZ - radius, absoluteMinSize, this.absoluteMaxSize);
-        this.maxX = GenericMath.clamp(centerX + radius, absoluteMinSize, this.absoluteMaxSize);
-        this.maxZ = GenericMath.clamp(centerZ + radius, absoluteMinSize, this.absoluteMaxSize);
+        double absoluteMinSize = -this.absoluteMaxSize;
+
+        // Mapping 2D vector to 3D coordinates >> Y becomes Z
+        this.minX = GenericMath.clamp(this.center.getX() - radius, absoluteMinSize, this.absoluteMaxSize);
+        this.minZ = GenericMath.clamp(this.center.getY() - radius, absoluteMinSize, this.absoluteMaxSize);
+        this.maxX = GenericMath.clamp(this.center.getX() + radius, absoluteMinSize, this.absoluteMaxSize);
+        this.maxZ = GenericMath.clamp(this.center.getY() + radius, absoluteMinSize, this.absoluteMaxSize);
 
         /*
          * Caching the warning boundaries.
@@ -261,26 +300,49 @@ public class WorldBorder {
         this.warningMaxZ = this.maxZ - this.warningBlocks;
     }
 
-    public void resize() {
-        if (this.lastUpdatedWorldBorderTime >= this.speed) {
-            // Diameter has now updated to the new diameter
-            this.resizing = false;
-            this.lastUpdatedWorldBorderTime = 0;
-        } else if (resizing) {
-            this.currentDiameter = this.oldDiameter + ((double) this.lastUpdatedWorldBorderTime / (double) this.speed) * (this.newDiameter - this.oldDiameter);
-            this.lastUpdatedWorldBorderTime += 50;
+    public void tick() {
+        if (!resizing) {
+            return;
+        }
+
+        this.lerpProgress++;
+        this.size = this.calculateSize();
+        if (this.lerpProgress >= this.lerpDuration) {
+            stopResize(to);
+        } else {
+            this.resizing = true;
         }
         update();
     }
 
-    public void setResizing(boolean resizing) {
-        this.resizing = resizing;
-        if (!resizing) {
-            this.lastUpdatedWorldBorderTime = 0;
-        }
+    public void createStatic(double size) {
+        stopResize(size);
+        this.size = size;
+        this.update();
     }
 
-    private static final LevelEventType WORLD_BORDER_PARTICLE = LevelEvent.PARTICLE_DENY_BLOCK;
+    public void stopResize(double newSize) {
+        this.resizing = false;
+        this.lerpProgress = 0;
+        this.lerpDuration = 0;
+        this.from = newSize;
+        this.to = newSize;
+    }
+
+    public void createMoving(double from, double to, long lerpDuration) {
+        this.size = from;
+        this.from = from;
+        this.to = to;
+        this.lerpDuration = lerpDuration;
+        this.lerpProgress = 0;
+        this.resizing = true;
+        this.update();
+    }
+
+    private double calculateSize() {
+        double d0 = (this.lerpDuration - this.lerpProgress) / (double) this.lerpDuration;
+        return d0 < 1.0 ? (this.to + d0 * (this.from - this.to)) : this.to;
+    }
 
     /**
      * Draws a wall of particles where the world border resides
@@ -291,27 +353,27 @@ public class WorldBorder {
             return;
         }
         currentWallTick = 0;
-        Vector3f entityPosition = session.getPlayerEntity().getPosition();
+        Vector3f entityPosition = session.getPlayerEntity().position();
         float particlePosX = entityPosition.getX();
         float particlePosY = entityPosition.getY();
         float particlePosZ = entityPosition.getZ();
 
-        if (entityPosition.getX() > Math.min(warningMaxX, maxX - CLOSE_TO_BORDER)) {
-            drawWall(Vector3f.from(maxX, particlePosY, particlePosZ), true);
+        if (particlePosX > Math.min(warningMaxX, maxX - CLOSE_TO_BORDER)) {
+            drawWall(Vector3f.from(maxX + 0.5f, particlePosY, particlePosZ), true);
         }
-        if (entityPosition.getX() < Math.max(warningMinX, minX + CLOSE_TO_BORDER)) {
-            drawWall(Vector3f.from(minX, particlePosY, particlePosZ), true);
+        if (particlePosX < Math.max(warningMinX, minX + CLOSE_TO_BORDER)) {
+            drawWall(Vector3f.from(minX - 0.5, particlePosY, particlePosZ), true);
         }
-        if (entityPosition.getZ() > Math.min(warningMaxZ, maxZ - CLOSE_TO_BORDER)) {
-            drawWall(Vector3f.from(particlePosX, particlePosY, maxZ), false);
+        if (particlePosZ > Math.min(warningMaxZ, maxZ - CLOSE_TO_BORDER)) {
+            drawWall(Vector3f.from(particlePosX, particlePosY, maxZ + 0.5f), false);
         }
-        if (entityPosition.getZ() < Math.max(warningMinZ, minZ + CLOSE_TO_BORDER)) {
-            drawWall(Vector3f.from(particlePosX, particlePosY, minZ), false);
+        if (particlePosZ < Math.max(warningMinZ, minZ + CLOSE_TO_BORDER)) {
+            drawWall(Vector3f.from(particlePosX, particlePosY, minZ - 0.5f), false);
         }
     }
 
     private void drawWall(Vector3f position, boolean drawWallX) {
-        int initialY = (int) (position.getY() - EntityDefinitions.PLAYER.offset() - 1);
+        int initialY = (int) (position.getY() - 1);
         for (int y = initialY; y < (initialY + 5); y++) {
             if (drawWallX) {
                 float x = position.getX();
@@ -344,7 +406,162 @@ public class WorldBorder {
     private void sendWorldBorderParticle(float x, float y, float z) {
         LevelEventPacket effectPacket = new LevelEventPacket();
         effectPacket.setPosition(Vector3f.from(x, y, z));
-        effectPacket.setType(WORLD_BORDER_PARTICLE);
+        effectPacket.setType(LevelEvent.PARTICLE_DENY_BLOCK);
         session.getUpstream().sendPacket(effectPacket);
+    }
+
+    /**
+     * Removed the X collision and Z collision entity from cache if needed.
+     */
+    public void clearCollision() {
+        this.xCollisionEntity = this.zCollisionEntity = null;
+    }
+
+    /**
+     * Spawn and move the border (entity) according the player position so that the player able to collide with it.
+     */
+    public void spawnOrMoveBorderCollision(Vector3f playerPosition) {
+        boolean canSpawnXCollision = !(playerPosition.getX() > minX + WORLD_BORDER_COLLISION_RANGE && playerPosition.getX() < maxX - WORLD_BORDER_COLLISION_RANGE);
+        boolean canSpawnZCollision = !(playerPosition.getZ() > minZ + WORLD_BORDER_COLLISION_RANGE && playerPosition.getZ() < maxZ - WORLD_BORDER_COLLISION_RANGE);
+
+        // Spawn collision entity in if the player is within the defined range.
+        if (xCollisionEntity == null) {
+            if (canSpawnXCollision) {
+                xCollisionEntity = buildCollisionEntity();
+            }
+        } else {
+            if (!canSpawnXCollision) {
+                xCollisionEntity.despawnEntity();
+                xCollisionEntity = null;
+            }
+        }
+
+        if (zCollisionEntity == null) {
+            if (canSpawnZCollision) {
+                zCollisionEntity = buildCollisionEntity();
+            }
+        } else {
+            if (!canSpawnZCollision) {
+                zCollisionEntity.despawnEntity();
+                zCollisionEntity = null;
+            }
+        }
+
+        if (xCollisionEntity == null && zCollisionEntity == null) { // Nothing to collide with here.
+            return;
+        }
+
+        // The player can't collide with the border if they're already beyond it or if it's resizing.
+        final boolean insideBorderZone = isInsideBorderZone();
+        if (!insideBorderZone || isResizing()) {
+            if (xCollisionEntity != null) {
+                removeCollisionX();
+            }
+            if (zCollisionEntity != null) {
+                removeCollisionZ();
+            }
+            return;
+        }
+
+        if (xCollisionEntity != null && !xCollisionEntity.getFlag(EntityFlag.COLLIDABLE)) {
+            xCollisionEntity.setFlag(EntityFlag.COLLIDABLE, true);
+            xCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 25f);
+            xCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 10f);
+            xCollisionEntity.updateBedrockMetadata();
+        }
+
+        if (zCollisionEntity != null && !zCollisionEntity.getFlag(EntityFlag.COLLIDABLE)) {
+            zCollisionEntity.setFlag(EntityFlag.COLLIDABLE, true);
+            zCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 25f);
+            zCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 10f);
+            zCollisionEntity.updateBedrockMetadata();
+        }
+
+        moveBorderCollision(playerPosition);
+    }
+
+    /**
+     * Move the border (entity) according the player position so that the player able to collide with it.
+     */
+    private void moveBorderCollision(Vector3f playerPosition) {
+        // We need to account for ULP, also since the bounding box is centered around the entity, it needs to be moved backwards by half the width to be correct.
+        // Min Y collision also started at the entity feet, which is why we want to move it downwards, so that the player won't clip through the collision when falling.
+        final float xDistance = 5 - Math.ulp(Math.abs(playerPosition.getX())), zDistance = 5 - Math.ulp(Math.abs(playerPosition.getZ()));
+
+        if (xCollisionEntity != null) {
+            Vector3f position = null;
+            if (playerPosition.getX() < Math.max(warningMinX, minX + WORLD_BORDER_COLLISION_RANGE)) {
+                position = Vector3f.from(Math.floor(minX) - xDistance, playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, playerPosition.getZ());
+            }
+            if (playerPosition.getX() > Math.min(warningMaxX, maxX - WORLD_BORDER_COLLISION_RANGE)) {
+                position = Vector3f.from(Math.floor(maxX) + xDistance, playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, playerPosition.getZ());
+            }
+
+            if (position != null) {
+                if (position.distance(xCollisionEntity.position()) > 500) { // If the distance is far enough, then we need to respawn the entity.
+                    xCollisionEntity = buildCollisionEntity();
+                }
+
+                xCollisionEntity.moveAbsolute(position, 0, 0, false, true);
+            } else {
+                removeCollisionX();
+            }
+        }
+
+        if (zCollisionEntity != null) {
+            Vector3f position = null;
+            if (playerPosition.getZ() > Math.min(warningMaxZ, maxZ - WORLD_BORDER_COLLISION_RANGE)) {
+                position = Vector3f.from(playerPosition.getX(), playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, Math.floor(maxZ) + zDistance);
+            }
+            if (playerPosition.getZ() < Math.max(warningMinZ, minZ + WORLD_BORDER_COLLISION_RANGE)) {
+                position = Vector3f.from(playerPosition.getX(), playerPosition.getY() - BORDER_COLLISION_Y_DISTANCE, Math.floor(minZ) - zDistance);
+            }
+
+            if (position != null) {
+                if (position.distance(zCollisionEntity.position()) > 500) { // If the distance is far enough, then we need to respawn the entity.
+                    zCollisionEntity = buildCollisionEntity();
+                }
+
+                zCollisionEntity.moveAbsolute(position, 0, 0, false, true);
+            } else {
+                removeCollisionZ();
+            }
+        }
+    }
+
+    private void removeCollisionZ() {
+        if (zCollisionEntity != null && zCollisionEntity.getFlag(EntityFlag.COLLIDABLE)) {
+            zCollisionEntity.setFlag(EntityFlag.COLLIDABLE, false);
+            zCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 0f);
+            zCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0f);
+            zCollisionEntity.updateBedrockMetadata();
+        }
+    }
+
+    private void removeCollisionX() {
+        if (xCollisionEntity != null && xCollisionEntity.getFlag(EntityFlag.COLLIDABLE)) {
+            xCollisionEntity.setFlag(EntityFlag.COLLIDABLE, false);
+            xCollisionEntity.getMetadata().put(EntityDataTypes.WIDTH, 0f);
+            xCollisionEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0f);
+            xCollisionEntity.updateBedrockMetadata();
+        }
+    }
+
+    /**
+     * Responsible for spawning the world border collision entity, and setting flags.
+     */
+    private Entity buildCollisionEntity() {
+        Entity entity = new Entity(new EntitySpawnContext(session, VanillaEntities.ARMOR_STAND, 0, null)); // Armor stand is just a placeholder, anything will work here.
+        entity.setPosition(session.getPlayerEntity().getPosition().down(BORDER_COLLISION_Y_DISTANCE)); // Initial position, will change.
+        entity.setFlag(EntityFlag.COLLIDABLE, true);
+        entity.setFlag(EntityFlag.INVISIBLE, true);
+
+        // These values should be safe?
+        entity.getMetadata().put(EntityDataTypes.HEIGHT, 25f);
+        entity.getMetadata().put(EntityDataTypes.WIDTH, 10f);
+        entity.getMetadata().put(EntityDataTypes.HITBOX, NbtMap.EMPTY);
+
+        entity.spawnEntity();
+        return entity;
     }
 }

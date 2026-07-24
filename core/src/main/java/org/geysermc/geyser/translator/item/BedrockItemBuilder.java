@@ -41,6 +41,9 @@ import java.util.OptionalInt;
  * An intermediary class made to allow easy access to work-in-progress NBT, such as lore and display.
  */
 public final class BedrockItemBuilder {
+
+    public static final NbtMap EMPTY_ITEM = BedrockItemBuilder.createItemNbt("", 0, 0).build();
+
     // All Bedrock-style
     @Nullable
     private String customName;

@@ -1,0 +1,36 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:tool",
+  "value": [
+    {
+      "rules": []
+    },
+    {
+      "rules": [
+        {
+          "blocks": "stone",
+          "speed": 5.0,
+          "correct_for_drops": true
+        },
+        {
+          "blocks": "#minecraft:air",
+          "speed": 0.001,
+          "correct_for_drops": false
+        }
+      ]
+    },
+    {
+      "default_mining_speed": 0.12,
+      "damage_per_block": 4,
+      "can_destroy_blocks_in_creative": false,
+      "rules": [
+        {
+          "blocks": [
+            "minecraft:emerald_block",
+            "minecraft:netherite_block"
+          ]
+        }
+      ]
+    }
+  ]
+}

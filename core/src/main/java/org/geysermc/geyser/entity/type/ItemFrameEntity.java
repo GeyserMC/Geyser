@@ -80,7 +80,7 @@ public class ItemFrameEntity extends HangingEntity {
         super(context);
 
         blockDefinition = buildBlockDefinition(Direction.SOUTH); // Default to SOUTH direction, like on Java - entity metadata should correct this when necessary
-        bedrockPosition = Vector3i.from(position.getFloorX(), position.getFloorY(), position.getFloorZ());
+        bedrockPosition = position().toInt();
 
         session.getItemFrameCache().put(bedrockPosition, this);
     }
@@ -173,7 +173,7 @@ public class ItemFrameEntity extends HangingEntity {
         builder.putInt("y", bedrockPosition.getY());
         builder.putInt("z", bedrockPosition.getZ());
         builder.putByte("isMovable", (byte) 1);
-        builder.putString("id", this.definition.entityType() == EntityType.GLOW_ITEM_FRAME ? "GlowItemFrame" : "ItemFrame");
+        builder.putString("id", this.javaDefinition.is(EntityType.GLOW_ITEM_FRAME) ? "GlowItemFrame" : "ItemFrame");
         return builder.build();
     }
 
@@ -219,7 +219,7 @@ public class ItemFrameEntity extends HangingEntity {
 
     private BlockDefinition buildBlockDefinition(Direction direction) {
         NbtMapBuilder blockBuilder = NbtMap.builder()
-            .putString("name", this.definition.entityType() == EntityType.GLOW_ITEM_FRAME ? "minecraft:glow_frame" : "minecraft:frame");
+            .putString("name", this.javaDefinition.is(EntityType.GLOW_ITEM_FRAME) ? "minecraft:glow_frame" : "minecraft:frame");
         NbtMapBuilder statesBuilder = NbtMap.builder()
             .putInt("facing_direction", direction.ordinal())
             .putByte("item_frame_map_bit", (byte) 0)

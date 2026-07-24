@@ -33,6 +33,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.socket.DatagramPacket;
 import lombok.RequiredArgsConstructor;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.cloudburstmc.netty.channel.raknet.RakServerChannel;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.geysermc.geyser.network.netty.GeyserServer;
 
@@ -84,8 +85,10 @@ public class RakConnectionRequestHandler extends ChannelInboundHandlerAdapter {
         ByteBuf magicBuf = ctx.channel().config().getOption(RakChannelOption.RAK_UNCONNECTED_MAGIC);
         long guid = ctx.channel().config().getOption(RakChannelOption.RAK_GUID);
 
-        if (!this.server.onConnectionRequest(packet.sender())) {
-            this.sendConnectionBanned(ctx, packet.sender(), magicBuf, guid);
+        InetSocketAddress address = packet.sender();
+        InetSocketAddress clientAddress = ((RakServerChannel) ctx.channel()).getClientAddress(address);
+        if (!this.server.onConnectionRequest(address, clientAddress)) {
+            this.sendConnectionBanned(ctx, address, magicBuf, guid);
         } else {
             ctx.fireChannelRead(msg);
         }

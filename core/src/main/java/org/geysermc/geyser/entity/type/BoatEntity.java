@@ -31,7 +31,6 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.MoveEntityAbsolutePacket;
-import org.geysermc.geyser.entity.EntityDefinitions;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.vehicle.BoatVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
@@ -81,11 +80,11 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         setHeadYaw(headYaw + 90);
         this.variant = variant;
 
-        dirtyMetadata.put(EntityDataTypes.VARIANT, variant.ordinal());
+        metadata.put(EntityDataTypes.VARIANT, variant.ordinal());
 
         // Required to be able to move on land 1.16.200+ or apply gravity not in the water 1.16.100+
-        dirtyMetadata.put(EntityDataTypes.IS_BUOYANT, true);
-        dirtyMetadata.put(EntityDataTypes.BUOYANCY_DATA, BUOYANCY_DATA);;
+        metadata.put(EntityDataTypes.IS_BUOYANT, true);
+        metadata.put(EntityDataTypes.BUOYANCY_DATA, BUOYANCY_DATA);;
     }
 
     @Override
@@ -98,31 +97,19 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
     @Override
     public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
         // We don't include the rotation (y) as it causes the boat to appear sideways
-        setPosition(position.add(0d, this.definition.offset(), 0d));
+        setPosition(position);
         setYaw(yaw + 90);
         setHeadYaw(yaw + 90);
         setOnGround(isOnGround);
 
         MoveEntityAbsolutePacket moveEntityPacket = new MoveEntityAbsolutePacket();
         moveEntityPacket.setRuntimeEntityId(geyserId);
-        if (session.getPlayerEntity().getVehicle() == this && session.getPlayerEntity().isRidingInFront()) {
-            // Minimal glitching when ClientboundMoveVehiclePacket is sent
-            moveEntityPacket.setPosition(position.up(EntityDefinitions.PLAYER.offset() - this.definition.offset()));
-        } else {
-            moveEntityPacket.setPosition(this.position);
-        }
-        moveEntityPacket.setRotation(getBedrockRotation());
+        moveEntityPacket.setPosition(bedrockPosition());
+        moveEntityPacket.setRotation(bedrockRotation());
         moveEntityPacket.setOnGround(isOnGround);
         moveEntityPacket.setTeleported(teleported);
 
         session.sendUpstreamPacket(moveEntityPacket);
-    }
-
-    /**
-     * Move the boat without making the adjustments needed to translate from Java
-     */
-    public void moveAbsoluteWithoutAdjustments(Vector3f position, float yaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsoluteRaw(position, yaw, 0, yaw, isOnGround, teleported);
     }
 
     @Override
@@ -144,7 +131,7 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         isPaddlingLeft = entityMetadata.getPrimitiveValue();
         if (!isPaddlingLeft) {
             paddleTimeLeft = 0.0f;
-            dirtyMetadata.put(EntityDataTypes.ROW_TIME_LEFT, 0.0f);
+            metadata.put(EntityDataTypes.ROW_TIME_LEFT, 0.0f);
         }
     }
 
@@ -152,14 +139,14 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         isPaddlingRight = entityMetadata.getPrimitiveValue();
         if (!isPaddlingRight) {
             paddleTimeRight = 0.0f;
-            dirtyMetadata.put(EntityDataTypes.ROW_TIME_RIGHT, 0.0f);
+            metadata.put(EntityDataTypes.ROW_TIME_RIGHT, 0.0f);
         }
     }
 
     @Override
     public void setLeashHolderBedrockId(long bedrockId) {
         this.leashHolderBedrockId = bedrockId;
-        dirtyMetadata.put(EntityDataTypes.LEASH_HOLDER, bedrockId);
+        metadata.put(EntityDataTypes.LEASH_HOLDER, bedrockId);
     }
 
     @Override
@@ -210,18 +197,18 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
             return;
         }
 
-        Entity rower = passengers.get(0);
+        Entity rower = passengers.getFirst();
         if (rower == null) {
             return;
         }
 
         if (isPaddlingLeft) {
             paddleTimeLeft += ROWING_SPEED;
-            dirtyMetadata.put(EntityDataTypes.ROW_TIME_LEFT, paddleTimeLeft);
+            metadata.put(EntityDataTypes.ROW_TIME_LEFT, paddleTimeLeft);
         }
         if (isPaddlingRight) {
             paddleTimeRight += ROWING_SPEED;
-            dirtyMetadata.put(EntityDataTypes.ROW_TIME_RIGHT, paddleTimeRight);
+            metadata.put(EntityDataTypes.ROW_TIME_RIGHT, paddleTimeRight);
         }
 
         if (isPaddlingLeft || isPaddlingRight) {
@@ -250,8 +237,8 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
     }
 
     @Override
-    public boolean isClientControlled() {
-        return !session.isInClientPredictedVehicle() && !passengers.isEmpty() && this.session.getPlayerEntity() == passengers.get(0);
+    public boolean shouldSimulateMovement() {
+        return !session.isInClientPredictedVehicle() && !passengers.isEmpty() && this.session.getPlayerEntity() == passengers.getFirst();
     }
 
     /**

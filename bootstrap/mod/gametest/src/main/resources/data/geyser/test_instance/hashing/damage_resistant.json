@@ -1,0 +1,19 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:damage_resistant",
+  "value": [
+    {
+      "types": "#minecraft:always_hurts_ender_dragons"
+    },
+    {
+      "types": [
+        "minecraft:arrow",
+        "minecraft:fireball",
+        "minecraft:trident"
+      ]
+    },
+    {
+      "types": "minecraft:wind_charge"
+    }
+  ]
+}

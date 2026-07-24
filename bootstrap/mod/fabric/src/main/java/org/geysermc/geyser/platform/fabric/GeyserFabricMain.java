@@ -29,7 +29,7 @@ import org.geysermc.geyser.GeyserMain;
 
 public class GeyserFabricMain extends GeyserMain {
 
-    public static void main(String[] args) {
+    static void main() {
         new GeyserFabricMain().displayMessage();
     }
 

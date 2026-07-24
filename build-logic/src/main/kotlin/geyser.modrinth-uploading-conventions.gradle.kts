@@ -2,7 +2,7 @@ plugins {
     id("com.modrinth.minotaur")
 }
 
-// Ensure that the readme is synched
+// Ensure that the readme is synced
 tasks.modrinth.get().dependsOn(tasks.modrinthSyncBody)
 
 modrinth {

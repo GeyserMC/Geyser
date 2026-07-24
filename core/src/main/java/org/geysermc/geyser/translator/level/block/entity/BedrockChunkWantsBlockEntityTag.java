@@ -35,7 +35,7 @@ import org.geysermc.geyser.session.GeyserSession;
  */
 public interface BedrockChunkWantsBlockEntityTag extends RequiresBlockState {
     /**
-     * Get the tag of the Bedrock-only block entity. Used during chunk loading.
+     * Get the tag of the Bedrock-only block entity. Used during chunk loading and block updates.
      * @param position Bedrock position of block.
      * @param blockState Java BlockState of block.
      * @return Bedrock tag

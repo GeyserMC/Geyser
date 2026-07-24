@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.entity.type;
 
-import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
@@ -39,15 +38,10 @@ public class TNTEntity extends Entity implements Tickable {
         super(context);
     }
 
-    @Override
-    public void moveAbsoluteRaw(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        super.moveAbsoluteRaw(position.up(definition.offset()), yaw, pitch, headYaw, isOnGround, teleported);
-    }
-
     public void setFuseLength(IntEntityMetadata entityMetadata) {
         currentTick = entityMetadata.getPrimitiveValue();
         setFlag(EntityFlag.IGNITED, true);
-        dirtyMetadata.put(EntityDataTypes.FUSE_TIME, currentTick);
+        metadata.put(EntityDataTypes.FUSE_TIME, currentTick);
     }
 
     @Override
@@ -58,7 +52,7 @@ public class TNTEntity extends Entity implements Tickable {
         }
 
         if (currentTick % 5 == 0) {
-            dirtyMetadata.put(EntityDataTypes.FUSE_TIME, currentTick);
+            metadata.put(EntityDataTypes.FUSE_TIME, currentTick);
 
             SetEntityDataPacket packet = new SetEntityDataPacket();
             packet.setRuntimeEntityId(geyserId);

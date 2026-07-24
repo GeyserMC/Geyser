@@ -28,6 +28,7 @@ package org.geysermc.geyser.util;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.geysermc.cumulus.form.SimpleForm;
 import org.geysermc.cumulus.util.FormImage;
+import org.geysermc.geyser.entity.GeyserEntityType;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.registry.BlockRegistries;
@@ -35,7 +36,16 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.text.MinecraftLocale;
-import org.geysermc.mcprotocollib.protocol.data.game.statistic.*;
+import org.geysermc.mcprotocollib.protocol.data.game.statistic.BreakBlockStatistic;
+import org.geysermc.mcprotocollib.protocol.data.game.statistic.BreakItemStatistic;
+import org.geysermc.mcprotocollib.protocol.data.game.statistic.CraftItemStatistic;
+import org.geysermc.mcprotocollib.protocol.data.game.statistic.CustomStatistic;
+import org.geysermc.mcprotocollib.protocol.data.game.statistic.DropItemStatistic;
+import org.geysermc.mcprotocollib.protocol.data.game.statistic.KillEntityStatistic;
+import org.geysermc.mcprotocollib.protocol.data.game.statistic.KilledByEntityStatistic;
+import org.geysermc.mcprotocollib.protocol.data.game.statistic.PickupItemStatistic;
+import org.geysermc.mcprotocollib.protocol.data.game.statistic.Statistic;
+import org.geysermc.mcprotocollib.protocol.data.game.statistic.UseItemStatistic;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -157,8 +167,8 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof KillEntityStatistic statistic) {
-                                            String entityName = statistic.getEntity().name().toLowerCase(Locale.ROOT);
-                                            content.add("entity.minecraft." + entityName + ": " + entry.getIntValue());
+                                            GeyserEntityType type = GeyserEntityType.of(statistic.getEntity());
+                                            content.add(EntityUtils.translatedEntityName(type, session) + ": " + entry.getIntValue());
                                         }
                                     }
                                     break;
@@ -167,8 +177,8 @@ public class StatisticsUtils {
 
                                     for (Object2IntMap.Entry<Statistic> entry : session.getStatistics().object2IntEntrySet()) {
                                         if (entry.getKey() instanceof KilledByEntityStatistic statistic) {
-                                            String entityName = statistic.getEntity().name().toLowerCase(Locale.ROOT);
-                                            content.add("entity.minecraft." + entityName + ": " + entry.getIntValue());
+                                            GeyserEntityType type = GeyserEntityType.of(statistic.getEntity());
+                                            content.add(EntityUtils.translatedEntityName(type, session) + ": " + entry.getIntValue());
                                         }
                                     }
                                     break;

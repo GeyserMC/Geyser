@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,8 +25,7 @@
 
 package org.geysermc.geyser.api.extension;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -41,29 +40,27 @@ public abstract class ExtensionManager {
      * @param id the ID of the extension
      * @return an extension with the given ID
      */
-    @Nullable
-    public abstract Extension extension(@NonNull String id);
+    public abstract @Nullable Extension extension(String id);
 
     /**
      * Enables the given {@link Extension}.
      *
      * @param extension the extension to enable
      */
-    public abstract void enable(@NonNull Extension extension);
+    public abstract void enable(Extension extension);
 
     /**
      * Disables the given {@link Extension}.
      *
      * @param extension the extension to disable
      */
-    public abstract void disable(@NonNull Extension extension);
+    public abstract void disable(Extension extension);
 
     /**
      * Gets all the {@link Extension}s currently loaded.
      *
      * @return all the extensions currently loaded
      */
-    @NonNull
     public abstract Collection<Extension> extensions();
 
     /**
@@ -71,20 +68,19 @@ public abstract class ExtensionManager {
      *
      * @return the extension loader
      */
-    @Nullable
-    public abstract ExtensionLoader extensionLoader();
+    public abstract @Nullable ExtensionLoader extensionLoader();
 
     /**
      * Registers an {@link Extension} with the given {@link ExtensionLoader}.
      *
      * @param extension the extension
      */
-    public abstract void register(@NonNull Extension extension);
+    public abstract void register(Extension extension);
 
     /**
      * Loads all extensions from the given {@link ExtensionLoader}.
      */
-    protected final void loadAllExtensions(@NonNull ExtensionLoader extensionLoader) {
+    protected final void loadAllExtensions(ExtensionLoader extensionLoader) {
         extensionLoader.loadAllExtensions(this);
     }
 }

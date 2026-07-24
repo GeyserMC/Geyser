@@ -41,7 +41,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
 
 import java.util.concurrent.CompletableFuture;
 
-public class ItemEntity extends ThrowableEntity {
+public class ItemEntity extends ProjectileEntity {
     protected ItemData item;
 
     private CompletableFuture<Integer> waterLevel = CompletableFuture.completedFuture(-1);
@@ -59,12 +59,12 @@ public class ItemEntity extends ThrowableEntity {
         AddItemEntityPacket itemPacket = new AddItemEntityPacket();
         itemPacket.setRuntimeEntityId(geyserId);
         itemPacket.setUniqueEntityId(geyserId);
-        itemPacket.setPosition(position.add(0d, this.definition.offset(), 0d));
+        itemPacket.setPosition(bedrockPosition());
         itemPacket.setMotion(motion);
         itemPacket.setFromFishing(false);
         itemPacket.setItemInHand(item);
         itemPacket.getMetadata().putFlags(this.flags);
-        dirtyMetadata.apply(itemPacket.getMetadata());
+        metadata.apply(itemPacket.getMetadata());
 
         setFlagsDirty(false);
 
@@ -73,7 +73,7 @@ public class ItemEntity extends ThrowableEntity {
 
     @Override
     public void tick() {
-        if (removedInVoid() || isInWater()) {
+        if (removedInVoid() || vehicle != null || isInWater()) {
             return;
         }
         if (!isOnGround() || (motion.getX() * motion.getX() + motion.getZ() * motion.getZ()) > 0.00001) {
@@ -110,12 +110,13 @@ public class ItemEntity extends ThrowableEntity {
 
     @Override
     protected void moveAbsoluteImmediate(Vector3f position, float yaw, float pitch, float headYaw, boolean isOnGround, boolean teleported) {
-        float offset = definition.offset();
+        float offset = javaDefinition.offset();
         if (waterLevel.join() == 0) { // Item is in a full block of water
             // Move the item entity down so it doesn't float above the water
-            offset = -definition.offset();
+            offset = -offset;
         }
-        super.moveAbsoluteImmediate(position.add(0, offset, 0), 0, 0, 0, isOnGround, teleported);
+        setOffset(offset);
+        super.moveAbsoluteImmediate(position, 0, 0, 0, isOnGround, teleported);
         this.position = position;
 
         waterLevel = session.getGeyser().getWorldManager().getBlockAtAsync(session, position.getFloorX(), position.getFloorY(), position.getFloorZ())

@@ -27,7 +27,7 @@ package org.geysermc.geyser.entity.type.living.monster.raid;
 
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.ByteEntityMetadata;
 
@@ -39,7 +39,7 @@ public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
     public SpellcasterIllagerEntity(EntitySpawnContext context) {
         super(context);
         // OptionalPack usage
-        setFlag(EntityFlag.BRIBED, this.definition == EntityDefinitions.ILLUSIONER);
+        setFlag(EntityFlag.BRIBED, javaDefinition == VanillaEntities.ILLUSIONER);
     }
 
     public void setSpellType(ByteEntityMetadata entityMetadata) {
@@ -53,6 +53,6 @@ public class SpellcasterIllagerEntity extends AbstractIllagerEntity {
             case 3 -> WOLOLO_PARTICLE_COLOR;
             default -> 0;
         };
-        dirtyMetadata.put(EntityDataTypes.EVOKER_SPELL_CASTING_COLOR, rgbData);
+        metadata.put(EntityDataTypes.EVOKER_SPELL_CASTING_COLOR, rgbData);
     }
 }

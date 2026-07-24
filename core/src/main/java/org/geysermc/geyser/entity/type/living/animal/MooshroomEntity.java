@@ -32,7 +32,7 @@ import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.animal.farm.CowEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.session.cache.tags.ItemTag;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.IntEntityMetadata;
@@ -47,7 +47,7 @@ public class MooshroomEntity extends CowEntity {
 
     public void setMooshroomVariant(IntEntityMetadata metadata) {
         isBrown = metadata.getPrimitiveValue() == 1;
-        dirtyMetadata.put(EntityDataTypes.VARIANT, metadata.getPrimitiveValue());
+        this.metadata.put(EntityDataTypes.VARIANT, metadata.getPrimitiveValue());
     }
 
     @Override
@@ -80,8 +80,10 @@ public class MooshroomEntity extends CowEntity {
         } else if (!isBaby && isAlive() && itemInHand.is(Items.SHEARS)) {
             // Shear items
             return InteractionResult.SUCCESS;
-        } else if (isBrown && itemInHand.is(session, ItemTag.SMALL_FLOWERS)) {
-            // ?
+        } else if (isBrown && !isBaby) {
+            if (!Registries.SUSPICIOUS_EFFECT_HOLDERS.get().contains(itemInHand.asItem().javaKey())) {
+                return super.mobInteract(hand, itemInHand);
+            }
             return InteractionResult.SUCCESS;
         }
         return super.mobInteract(hand, itemInHand);

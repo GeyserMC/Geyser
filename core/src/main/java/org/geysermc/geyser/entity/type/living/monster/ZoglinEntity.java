@@ -34,7 +34,7 @@ public class ZoglinEntity extends MonsterEntity {
 
     public ZoglinEntity(EntitySpawnContext context) {
         super(context);
-        dirtyMetadata.put(EntityDataTypes.TARGET_EID, session.getPlayerEntity().geyserId());
+        metadata.put(EntityDataTypes.TARGET_EID, session.getPlayerEntity().geyserId());
     }
 
     public void setBaby(BooleanEntityMetadata entityMetadata) {
@@ -50,7 +50,7 @@ public class ZoglinEntity extends MonsterEntity {
     @Override
     public float getBoundingBoxHeight() {
         float scale = getFlag(EntityFlag.BABY) ? 0.55f : 1f;
-        return scale * definition.height();
+        return scale * javaDefinition.height();
     }
 
     @Override

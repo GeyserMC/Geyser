@@ -1,0 +1,83 @@
+/*
+ * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ * @author GeyserMC
+ * @link https://github.com/GeyserMC/Geyser
+ */
+
+package org.geysermc.geyser.api.entity.custom;
+
+import org.geysermc.geyser.api.GeyserApi;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
+import org.geysermc.geyser.api.event.java.ServerAttachParrotsEvent;
+import org.geysermc.geyser.api.event.java.ServerSpawnEntityEvent;
+import org.geysermc.geyser.api.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
+
+/**
+ * Represents a Bedrock entity definition for a custom entity.
+ * These cannot be in the {@code minecraft} namespace, and have to be manually
+ * spawned using either the {@link ServerSpawnEntityEvent} or {@link ServerAttachParrotsEvent}.
+ *
+ * @since 2.11.0
+ */
+@ApiStatus.Experimental
+public interface CustomEntityDefinition extends GeyserEntityDefinition {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @ApiStatus.Experimental
+    default boolean vanilla() {
+        return false;
+    }
+
+    /**
+     * Creates or retrieves a custom entity definition by the Bedrock entity type identifier.
+     *
+     * @param identifier the Bedrock entity identifier
+     * @return customEntityDefinition
+     * @since 2.11.0
+     */
+    @ApiStatus.Experimental
+    static CustomEntityDefinition of(Identifier identifier) {
+        if (identifier.vanilla()) {
+            throw new IllegalArgumentException(
+                "Custom entity identifiers cannot use the 'minecraft' namespace. "
+                    + "Use a non-vanilla namespace, e.g. 'mymod:my_entity'.");
+        }
+        return GeyserApi.api().provider(CustomEntityDefinition.class, identifier);
+    }
+
+    /**
+     * Creates or retrieves a {@link CustomEntityDefinition} by the Bedrock entity type identifier.
+     * The identifier must not use the {@code minecraft} namespace.
+     *
+     * @param identifier the Bedrock entity identifier, in {@code namespace:path} format
+     * @return the custom entity definition
+     * @since 2.11.0
+     */
+    @ApiStatus.Experimental
+    static CustomEntityDefinition of(String identifier) {
+        return of(Identifier.of(identifier));
+    }
+}

@@ -59,13 +59,13 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
                 onGeyserEnable();
             });
         } else {
-            ClientLifecycleEvents.CLIENT_STOPPING.register(($)-> {
+            ClientLifecycleEvents.CLIENT_STOPPING.register((_)-> {
                 onGeyserShutdown();
             });
         }
 
         // These are only registered once
-        ServerLifecycleEvents.SERVER_STOPPING.register((server) -> {
+        ServerLifecycleEvents.SERVER_STOPPING.register((_) -> {
             if (isServer()) {
                 onGeyserShutdown();
             } else {
@@ -73,7 +73,7 @@ public class GeyserFabricBootstrap extends GeyserModBootstrap implements ModInit
             }
         });
 
-        ServerPlayConnectionEvents.JOIN.register((handler, $, $$) -> GeyserModUpdateListener.onPlayReady(handler.getPlayer()));
+        ServerPlayConnectionEvents.JOIN.register((handler, _, _) -> GeyserModUpdateListener.onPlayReady(handler.getPlayer()));
 
         this.onGeyserInitialize();
 

@@ -114,7 +114,7 @@ public class LoomInventoryTranslator extends AbstractBlockInventoryTranslator<Co
         // Get the patterns compound tag
         List<NbtMap> newBlockEntityTag = craftData.getResultItems()[0].getTag().getList("Patterns", NbtType.COMPOUND);
         // Get the pattern that the Bedrock client requests - the last pattern in the Patterns list
-        NbtMap pattern = newBlockEntityTag.get(newBlockEntityTag.size() - 1);
+        NbtMap pattern = newBlockEntityTag.getLast();
 
         // Java's formula: 4 * row + col
         // And the Java loom window has a fixed row/width of four

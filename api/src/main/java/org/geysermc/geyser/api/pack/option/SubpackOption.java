@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2024-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.pack.option;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 
@@ -43,7 +42,7 @@ public interface SubpackOption extends ResourcePackOption<String> {
      * @return a subpack option specifying that subpack
      * @since 2.6.2
      */
-    static SubpackOption subpack(ResourcePackManifest.@NonNull Subpack subpack) {
+    static SubpackOption subpack(ResourcePackManifest.Subpack subpack) {
         return named(subpack.name());
     }
 
@@ -54,7 +53,7 @@ public interface SubpackOption extends ResourcePackOption<String> {
      * @return a subpack option specifying a subpack with that name
      * @since 2.6.2
      */
-    static SubpackOption named(@NonNull String subpackName) {
+    static SubpackOption named(String subpackName) {
         return GeyserApi.api().provider(SubpackOption.class, subpackName);
     }
 

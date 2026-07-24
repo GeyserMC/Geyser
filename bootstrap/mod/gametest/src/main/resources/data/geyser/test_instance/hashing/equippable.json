@@ -1,0 +1,73 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:equippable",
+  "value": [
+    {
+      "slot": "head"
+    },
+    {
+      "slot": "chest",
+      "equip_sound": "minecraft:block.stone.break"
+    },
+    {
+      "slot": "legs",
+      "asset_id": "geyser:my_cool_trousers"
+    },
+    {
+      "slot": "feet",
+      "allowed_entities": "minecraft:husk"
+    },
+    {
+      "slot": "chest",
+      "allowed_entities": [
+        "minecraft:player",
+        "minecraft:mannequin"
+      ]
+    },
+    {
+      "slot": "feet",
+      "dispensable": false
+    },
+    {
+      "slot": "legs",
+      "swappable": false
+    },
+    {
+      "slot": "feet",
+      "damage_on_hurt": false
+    },
+    {
+      "slot": "mainhand",
+      "equip_on_interact": true
+    },
+    {
+      "slot": "offhand",
+      "camera_overlay": "geyser:my_cool_pumpkin_overlay"
+    },
+    {
+      "slot": "saddle",
+      "can_be_sheared": true
+    },
+    {
+      "slot": "body",
+      "shearing_sound": {
+        "sound_id": "geyser:my_awesome_shearing_sound",
+        "range": 5
+      }
+    },
+    {
+      "slot": "chest",
+      "asset_id": "geyser:the_best_shirt_ever_because_its_red",
+      "camera_overlay": "geyser:none_ha_ha_ha",
+      "allowed_entities": "minecraft:player",
+      "dispensable": false,
+      "damage_on_hurt": false,
+      "equip_on_interact": false,
+      "can_be_sheared": true,
+      "shearing_sound": {
+        "sound_id": "geyser:my_awesome_super_duper_shearing_sound",
+        "range": 0.5
+      }
+    }
+  ]
+}

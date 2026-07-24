@@ -198,7 +198,7 @@ public interface DialogAction {
 
             // Append the remaining segment if there is one
             if (segments.size() > variables.size()) {
-                command.append(segments.get(segments.size() - 1));
+                command.append(segments.getLast());
             }
 
             return command.toString();

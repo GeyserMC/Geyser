@@ -122,7 +122,7 @@ public class SquidEntity extends AgeableWaterEntity implements Tickable {
     }
 
     @Override
-    public Vector3f getBedrockRotation() {
+    public Vector3f bedrockRotation() {
         return Vector3f.from(getPitch(), getYaw(), getYaw());
     }
 

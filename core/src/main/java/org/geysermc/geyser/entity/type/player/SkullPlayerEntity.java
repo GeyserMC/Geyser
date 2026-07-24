@@ -36,6 +36,7 @@ import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.WallSkullBlock;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.session.cache.SkullCache;
+import org.geysermc.geyser.skin.SkullSkinManager;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -53,6 +54,9 @@ public class SkullPlayerEntity extends AvatarEntity {
     @Getter
     private Vector3i skullPosition;
 
+    @Getter
+    private String skinUrl;
+
     public SkullPlayerEntity(EntitySpawnContext context) {
         super(context, "");
     }
@@ -61,9 +65,9 @@ public class SkullPlayerEntity extends AvatarEntity {
     protected void initializeMetadata() {
         // Deliberately do not call super
         // Set bounding box to almost nothing so the skull is able to be broken and not cause entity to cast a shadow
-        dirtyMetadata.put(EntityDataTypes.SCALE, 1.08f);
-        dirtyMetadata.put(EntityDataTypes.HEIGHT, 0.001f);
-        dirtyMetadata.put(EntityDataTypes.WIDTH, 0.001f);
+        metadata.put(EntityDataTypes.SCALE, 1.08f);
+        metadata.put(EntityDataTypes.HEIGHT, 0.001f);
+        metadata.put(EntityDataTypes.WIDTH, 0.001f);
         setFlag(EntityFlag.CAN_SHOW_NAME, false);
         setFlag(EntityFlag.INVISIBLE, true); // Until the skin is loaded
     }
@@ -71,13 +75,14 @@ public class SkullPlayerEntity extends AvatarEntity {
     public void updateSkull(SkullCache.Skull skull) {
         skullPosition = skull.getPosition();
 
-        if (!Objects.equals(skull.getTexturesProperty(), texturesProperty) || !Objects.equals(skullUUID, skull.getUuid())) {
+        if (!Objects.equals(skull.getSkinUrl(), skinUrl) || !Objects.equals(skullUUID, skull.getUuid())) {
             // Make skull invisible as we change skins
             setFlag(EntityFlag.INVISIBLE, true);
             updateBedrockMetadata();
 
+            skinUrl = skull.getSkinUrl();
             skullUUID = skull.getUuid();
-            setSkin(skull.getTexturesProperty(), false, () -> session.scheduleInEventLoop(() -> {
+            SkullSkinManager.requestAndHandleSkin(this, session, (skin) -> session.scheduleInEventLoop(() -> {
                 // Delay to minimize split-second "player" pop-in
                 setFlag(EntityFlag.INVISIBLE, false);
                 updateBedrockMetadata();

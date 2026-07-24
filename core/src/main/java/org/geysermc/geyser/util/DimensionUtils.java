@@ -132,6 +132,8 @@ public class DimensionUtils {
         setBedrockDimension(session, bedrockDimension);
 
         session.getPlayerEntity().setPosition(pos);
+        session.getPlayerEntity().setMotion(Vector3f.ZERO);
+        session.getPlayerEntity().setLastTickEndVelocity(Vector3f.ZERO);
         session.setSpawned(false);
         session.setLastChunkPosition(null);
     }
@@ -156,7 +158,7 @@ public class DimensionUtils {
 
         // TODO - fix this hack of a fix by sending the final dimension switching logic after sections have been sent.
         // The client wants sections sent to it before it can successfully respawn.
-        ChunkUtils.sendEmptyChunks(session, player.getPosition().toInt(), 3, true);
+        ChunkUtils.sendEmptyChunks(session, player.position().toInt(), 3, true);
     }
 
     public static void setBedrockDimension(GeyserSession session, int bedrockDimension) {

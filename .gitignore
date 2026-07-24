@@ -237,6 +237,9 @@ nbdist/
 
 # End of https://www.gitignore.io/api/git,java,maven,eclipse,netbeans,jetbrains+all,visualstudiocode
 
+### macOS ##
+.DS_Store
+
 ### Gradle ###
 .gradle
 

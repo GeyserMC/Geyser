@@ -43,7 +43,7 @@ public class EndermanEntity extends MonsterEntity {
     public void setCarriedBlock(IntEntityMetadata entityMetadata) {
         BlockDefinition bedrockBlockId = session.getBlockMappings().getBedrockBlock(entityMetadata.getPrimitiveValue());
 
-        dirtyMetadata.put(EntityDataTypes.CARRY_BLOCK_STATE, bedrockBlockId);
+        metadata.put(EntityDataTypes.CARRY_BLOCK_STATE, bedrockBlockId);
     }
 
     /**
@@ -55,7 +55,7 @@ public class EndermanEntity extends MonsterEntity {
         if (entityMetadata.getPrimitiveValue()) {
             LevelSoundEventPacket packet = new LevelSoundEventPacket();
             packet.setSound(SoundEvent.STARE);
-            packet.setPosition(this.position);
+            packet.setPosition(bedrockPosition());
             packet.setExtraData(-1);
             packet.setIdentifier("minecraft:enderman");
             session.sendUpstreamPacket(packet);

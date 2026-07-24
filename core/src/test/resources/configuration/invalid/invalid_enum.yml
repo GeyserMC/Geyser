@@ -53,7 +53,7 @@ remote:
   # Authentication type. Can be offline, online, or floodgate (see https://github.com/GeyserMC/Geyser/wiki/Floodgate).
   # For plugin versions, it's recommended to keep the `address` field to "auto" so Floodgate support is automatically configured.
   # If Floodgate is installed and `address:` is set to "auto", then "auth-type: floodgate" will automatically be used.
-  auth-type: online
+  auth-type: invalidEnum
   # Whether to enable PROXY protocol or not while connecting to the server.
   # This is useful only when:
   # 1) Your server supports PROXY protocol (it probably doesn't)
@@ -115,7 +115,7 @@ debug-mode: false
 # https://cdn.discordapp.com/attachments/613170125696270357/957075682230419466/Screenshot_from_2022-03-25_20-35-08.png
 # This can be disabled by going into Bedrock settings under the accessibility tab and setting "Text Background Opacity" to 0
 # This setting can be set to "title", "actionbar" or "false"
-show-cooldown: invalidEnum
+show-cooldown: "title"
 
 # Controls if coordinates are shown to players.
 show-coordinates: true

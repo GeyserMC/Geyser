@@ -50,7 +50,7 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
 
         if (!(entity instanceof LivingEntity livingEntity)) {
             session.getGeyser().getLogger().debug("Attempted to add armor to a non-living entity (" +
-                    entity.getDefinition().identifier() + ").");
+                    entity.definition().identifier() + ").");
             return;
         }
 
@@ -58,7 +58,7 @@ public class JavaSetEquipmentTranslator extends PacketTranslator<ClientboundSetE
         boolean mainHandUpdated = false;
         boolean offHandUpdated = false;
         for (Equipment equipment : packet.getEquipment()) {
-            GeyserItemStack stack = GeyserItemStack.from(equipment.getItem());
+            GeyserItemStack stack = GeyserItemStack.from(session, equipment.getItem());
             switch (equipment.getSlot()) {
                 case HELMET -> {
                     ResolvableProfile profile = stack.getComponent(DataComponentTypes.PROFILE);

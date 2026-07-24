@@ -906,4 +906,9 @@ public class LoggingPacketHandler implements BedrockPacketHandler {
     public PacketSignal handle(PlayerUpdateEntityOverridesPacket packet) {
         return defaultHandler(packet);
     }
+
+    @Override
+    public PacketSignal handle(PartyChangedPacket packet) {
+        return defaultHandler(packet);
+    }
 }

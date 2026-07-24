@@ -32,7 +32,6 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfig;
-import org.geysermc.geyser.util.LoopbackUtil;
 import org.geysermc.geyser.util.WebUtils;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
@@ -153,12 +152,6 @@ public class ConnectionTestCommand extends GeyserCommand {
                     source.sendMessage("Bedrock Edition does not support SRV records. Try connecting to your server using the address " + record[3] + " and the port " + record[2]
                             + ". If that fails, re-run this command with that address and port.");
                     return;
-                }
-
-                // Issue: does Loopback need applying?
-                if (LoopbackUtil.needsLoopback(GeyserImpl.getInstance().getLogger())) {
-                    source.sendMessage("Loopback is not applied on this computer! You will have issues connecting from the same computer. " +
-                            "See here for steps on how to resolve: " + "https://wiki.geysermc.org/geyser/fixing-unable-to-connect-to-world/#using-geyser-on-the-same-computer");
                 }
 
                 // Generate some random, unique bits that another server wouldn't provide

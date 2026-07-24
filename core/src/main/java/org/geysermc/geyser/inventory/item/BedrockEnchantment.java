@@ -75,6 +75,8 @@ public enum BedrockEnchantment {
 
     private static final BedrockEnchantment[] VALUES = values();
 
+    public static final int INVALID = VALUES.length + 1;
+
     private final String javaIdentifier;
 
     BedrockEnchantment() {

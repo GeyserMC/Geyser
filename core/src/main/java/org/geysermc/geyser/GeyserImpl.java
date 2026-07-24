@@ -56,6 +56,8 @@ import org.geysermc.floodgate.core.FloodgatePlatform;
 import org.geysermc.geyser.api.GeyserApi;
 import org.geysermc.geyser.api.command.CommandSource;
 import org.geysermc.geyser.api.event.EventRegistrar;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomBlocksEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomItemsEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostInitializeEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPostReloadEvent;
 import org.geysermc.geyser.api.event.lifecycle.GeyserPreInitializeEvent;
@@ -70,7 +72,7 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
 import org.geysermc.geyser.event.type.SessionDisconnectEventImpl;
@@ -88,6 +90,7 @@ import org.geysermc.geyser.ping.GeyserLegacyPingPassthrough;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.loader.ResourcePackLoader;
+import org.geysermc.geyser.registry.mappings.BuiltInMappings;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.scoreboard.ScoreboardUpdater;
 import org.geysermc.geyser.session.GeyserSession;
@@ -103,6 +106,7 @@ import org.geysermc.geyser.text.MinecraftLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.AssetUtils;
 import org.geysermc.geyser.util.CodeOfConductManager;
+import org.geysermc.geyser.util.InternalPlatformType;
 import org.geysermc.geyser.util.JsonUtils;
 import org.geysermc.geyser.util.VersionCheckUtils;
 import org.geysermc.geyser.util.WebUtils;
@@ -156,7 +160,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     private final SessionManager sessionManager = new SessionManager();
 
-    private final @NotNull FloodgateProvider floodgateProvider;
+    private final @NonNull FloodgateProvider floodgateProvider;
     private BedrockSkinUploader skinUploader;
 
     private UnixSocketClientListener erosionUnixListener;
@@ -165,6 +169,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     private volatile boolean shuttingDown = false;
 
     private ScheduledExecutorService scheduledThread;
+
+    private ScoreboardUpdater scoreboardUpdater;
 
     private GeyserServer geyserServer;
     private final GeyserBootstrap bootstrap;
@@ -235,6 +241,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 EncryptionUtils.getMojangPublicKey();
             } catch (Throwable t) {
                 GeyserImpl.getInstance().getLogger().error("Unable to set up encryption! This can be caused by your internet connection or the Minecraft api being unreachable. ", t);
+                this.disable();
+                return;
             }
         }
 
@@ -252,6 +260,9 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
         logger.info("******************************************");
 
+        eventBus.subscribe(this, GeyserDefineCustomBlocksEvent.class, BuiltInMappings::registerBlocks);
+        eventBus.subscribe(this, GeyserDefineCustomItemsEvent.class, BuiltInMappings::registerItems);
+
         /*
         First load the registries and then populate them.
         Both the block registries and the common registries depend on each other,
@@ -264,7 +275,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         RegistryCache.init();
 
         /* Initialize translators */
-        EntityDefinitions.init();
+        VanillaEntities.init();
         MessageTranslator.init();
 
         // Download the latest asset list and cache it
@@ -273,12 +284,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 return;
             }
 
+            MinecraftLocale.downloadDeprecations();
             MinecraftLocale.ensureEN_US();
-            String locale = GeyserLocale.getDefaultLocale();
-            if (!"en_us".equals(locale)) {
-                // English will be loaded after assets are downloaded, if necessary
-                MinecraftLocale.downloadAndLoadLocale(locale);
-            }
 
             ProvidedSkins.init();
 
@@ -324,11 +331,12 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         GeyserLogger logger = bootstrap.getGeyserLogger();
         GeyserConfig config = bootstrap.config();
 
-        ScoreboardUpdater.init();
+        this.scoreboardUpdater = ScoreboardUpdater.init();
 
         SkinProvider.registerCacheImageTask(this);
 
         Registries.RESOURCE_PACKS.load();
+        Registries.WAYPOINT_STYLE_MAPPINGS.load();
 
         // Warnings to users who enable options that they might not need.
         if (config.advanced().bedrock().useHaproxyProtocol()) {
@@ -345,6 +353,17 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             logger.error("XBOX AUTHENTICATION IS DISABLED ON THIS GEYSER INSTANCE!");
             logger.error("While this allows using Bedrock edition proxies, it also opens up the ability for hackers to connect with any username they choose.");
             logger.error("To change this, set \"disable-xbox-auth\" to \"false\" in Geyser's config file.");
+        }
+
+        pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.pendingAuthenticationTimeout());
+
+        Packets.initGeyser();
+
+        BedrockDimension.changeBedrockNetherId(config.gameplay().netherRoofWorkaround()); // Apply End dimension ID workaround to Nether
+
+        if (platformType() == InternalPlatformType.GAMETEST) {
+            // Note: not firing post reload/init events on gametest platform
+            return;
         }
 
         String geyserUdpPort = System.getProperty("geyserUdpPort", "");
@@ -459,17 +478,11 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             logger.warning("The use-direct-connection config option is deprecated. Please reach out to us on Discord if there's a reason it needs to be disabled.");
         }
 
-        pendingMicrosoftAuthentication = new PendingMicrosoftAuthentication(config.pendingAuthenticationTimeout());
-
-        Packets.initGeyser();
-
         if (Epoll.isAvailable()) {
             this.erosionUnixListener = new UnixSocketClientListener();
         } else {
             logger.debug("Epoll is not available; Erosion's Unix socket handling will not work.");
         }
-
-        BedrockDimension.changeBedrockNetherId(config.gameplay().netherRoofWorkaround()); // Apply End dimension ID workaround to Nether
 
         int bedrockThreadCount = Integer.getInteger("Geyser.BedrockNetworkThreads", -1);
         if (bedrockThreadCount == -1) {
@@ -504,173 +517,16 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 // Note: this is positioned after the bind so the skin uploader doesn't try to run if Geyser fails
                 // to load successfully. Spigot complains about class loader if the plugin is disabled.
                 // TODO not Floodgate exclusive?
+                // TODO should we only set this when we actually validate logins?
                 skinUploader = new BedrockSkinUploader(this).start();
             } catch (Exception exception) {
                 logger.severe("Could not start the skin uploader!", exception);
             }
         }
 
-        MetricsPlatform metricsPlatform = bootstrap.createMetricsPlatform();
-        if (metricsPlatform != null && metricsPlatform.enabled()) {
-            metrics = new MetricsBase(
-                "server-implementation",
-                metricsPlatform.serverUuid(),
-                Constants.BSTATS_ID,
-                true, // Already checked above.
-                builder -> {
-                    // OS specific data
-                    String osName = System.getProperty("os.name");
-                    String osArch = System.getProperty("os.arch");
-                    String osVersion = System.getProperty("os.version");
-                    int coreCount = Runtime.getRuntime().availableProcessors();
+        setupMetrics(config, logger);
 
-                    builder.appendField("osName", osName);
-                    builder.appendField("osArch", osArch);
-                    builder.appendField("osVersion", osVersion);
-                    builder.appendField("coreCount", coreCount);
-                },
-                builder -> {},
-                null,
-                () -> true,
-                logger::error,
-                logger::info,
-                metricsPlatform.logFailedRequests(),
-                metricsPlatform.logSentData(),
-                metricsPlatform.logResponseStatusText(),
-                metricsPlatform.disableRelocateCheck()
-            );
-            metrics.addCustomChart(new SingleLineChart("players", sessionManager::size));
-            // Prevent unwanted words best we can
-            metrics.addCustomChart(new SimplePie("authMode", () -> config.java().authType().toString().toLowerCase(Locale.ROOT)));
-
-            Map<String, Map<String, Integer>> platformTypeMap = new HashMap<>();
-            Map<String, Integer> serverPlatform = new HashMap<>();
-            serverPlatform.put(bootstrap.getServerPlatform(), 1);
-            platformTypeMap.put(platformType().platformName(), serverPlatform);
-
-            metrics.addCustomChart(new DrilldownPie("platform", () -> {
-                // By the end, we should return, for example:
-                // Geyser-Spigot => (Paper, 1)
-                return platformTypeMap;
-            }));
-
-            metrics.addCustomChart(new SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
-            metrics.addCustomChart(new SimplePie("version", () -> GeyserImpl.VERSION));
-            metrics.addCustomChart(new SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.advanced().java().useHaproxyProtocol())));
-            metrics.addCustomChart(new SimplePie("bedrockHaProxyProtocol", () -> String.valueOf(config.advanced().bedrock().useHaproxyProtocol())));
-            metrics.addCustomChart(new AdvancedPie("playerPlatform", () -> {
-                Map<String, Integer> valueMap = new HashMap<>();
-                for (GeyserSession session : sessionManager.getAllSessions()) {
-                    if (session == null) continue;
-                    if (session.getClientData() == null) continue;
-                    String os = session.getClientData().getDeviceOs().toString();
-                    if (!valueMap.containsKey(os)) {
-                        valueMap.put(os, 1);
-                    } else {
-                        valueMap.put(os, valueMap.get(os) + 1);
-                    }
-                }
-                return valueMap;
-            }));
-            metrics.addCustomChart(new AdvancedPie("playerVersion", () -> {
-                Map<String, Integer> valueMap = new HashMap<>();
-                for (GeyserSession session : sessionManager.getAllSessions()) {
-                    if (session == null) continue;
-                    if (session.getClientData() == null) continue;
-                    String version = session.getClientData().getGameVersion();
-                    if (!valueMap.containsKey(version)) {
-                        valueMap.put(version, 1);
-                    } else {
-                        valueMap.put(version, valueMap.get(version) + 1);
-                    }
-                }
-                return valueMap;
-            }));
-
-            String minecraftVersion = bootstrap.getMinecraftServerVersion();
-            if (minecraftVersion != null) {
-                Map<String, Map<String, Integer>> versionMap = new HashMap<>();
-                Map<String, Integer> platformMap = new HashMap<>();
-                platformMap.put(bootstrap.getServerPlatform(), 1);
-                versionMap.put(minecraftVersion, platformMap);
-
-                metrics.addCustomChart(new DrilldownPie("minecraftServerVersion", () -> {
-                    // By the end, we should return, for example:
-                    // 1.16.5 => (Spigot, 1)
-                    return versionMap;
-                }));
-            }
-
-            // The following code can be attributed to the PaperMC project
-            // https://github.com/PaperMC/Paper/blob/master/Spigot-Server-Patches/0005-Paper-Metrics.patch#L614
-            metrics.addCustomChart(new DrilldownPie("javaVersion", () -> {
-                Map<String, Map<String, Integer>> map = new HashMap<>();
-                String javaVersion = System.getProperty("java.version");
-                Map<String, Integer> entry = new HashMap<>();
-                entry.put(javaVersion, 1);
-
-                // http://openjdk.java.net/jeps/223
-                // Java decided to change their versioning scheme and in doing so modified the
-                // java.version system property to return $major[.$minor][.$security][-ea], as opposed to
-                // 1.$major.0_$identifier we can handle pre-9 by checking if the "major" is equal to "1",
-                // otherwise, 9+
-                String majorVersion = javaVersion.split("\\.")[0];
-                String release;
-
-                int indexOf = javaVersion.lastIndexOf('.');
-
-                if (majorVersion.equals("1")) {
-                    release = "Java " + javaVersion.substring(0, indexOf);
-                } else {
-                    // of course, it really wouldn't be all that simple if they didn't add a quirk, now
-                    // would it valid strings for the major may potentially include values such as -ea to
-                    // denote a pre release
-                    Matcher versionMatcher = Pattern.compile("\\d+").matcher(majorVersion);
-                    if (versionMatcher.find()) {
-                        majorVersion = versionMatcher.group(0);
-                    }
-                    release = "Java " + majorVersion;
-                }
-                map.put(release, entry);
-                return map;
-            }));
-        } else {
-            metrics = null;
-        }
-
-        if (config.java().authType() == AuthType.ONLINE) {
-            // May be written/read to on multiple threads from each GeyserSession as well as writing the config
-            savedAuthChains = new ConcurrentHashMap<>();
-            Type type = new TypeToken<Map<String, String>>() { }.getType();
-
-            File authChainsFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_AUTH_CHAINS_FILE).toFile();
-            if (authChainsFile.exists()) {
-                Map<String, String> authChainFile = null;
-                try (FileReader reader = new FileReader(authChainsFile)) {
-                    authChainFile = GSON.fromJson(reader, type);
-                } catch (IOException e) {
-                    logger.error("Cannot load saved user tokens!", e);
-                }
-                if (authChainFile != null) {
-                    List<String> validUsers = config.savedUserLogins();
-                    boolean doWrite = false;
-                    for (Map.Entry<String, String> entry : authChainFile.entrySet()) {
-                        String user = entry.getKey();
-                        if (!validUsers.contains(user)) {
-                            // Perform a write to this file to purge the now-unused name
-                            doWrite = true;
-                            continue;
-                        }
-                        savedAuthChains.put(user, entry.getValue());
-                    }
-                    if (doWrite) {
-                        scheduleAuthChainsWrite();
-                    }
-                }
-            }
-        } else {
-            savedAuthChains = null;
-        }
+        loadSavedAuthChains(config, logger);
 
         if (isReloading) {
             this.eventBus.fire(new GeyserPostReloadEvent(this.extensionManager, this.eventBus));
@@ -748,17 +604,22 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
             bootstrap.getGeyserLogger().info(GeyserLocale.getLocaleStringLog("geyser.core.shutdown.kick.done"));
         }
 
+        runIfNonNull(metrics, MetricsBase::shutdown);
         runIfNonNull(scheduledThread, ScheduledExecutorService::shutdown);
+        runIfNonNull(scoreboardUpdater, ScoreboardUpdater::shutdown);
         runIfNonNull(geyserServer, GeyserServer::shutdown);
         runIfNonNull(skinUploader, BedrockSkinUploader::close);
         runIfNonNull(erosionUnixListener, UnixSocketClientListener::close);
 
         if (bootstrap.getGeyserPingPassthrough() instanceof GeyserLegacyPingPassthrough legacyPingPassthrough) {
-            legacyPingPassthrough.interrupt();
+            legacyPingPassthrough.shutdown();
         }
 
         ResourcePackLoader.clear();
-        CodeOfConductManager.getInstance().save();
+        if (Registries.WAYPOINT_STYLE_MAPPINGS.loaded()) {
+            Registries.WAYPOINT_STYLE_MAPPINGS.get().clear();
+        }
+        CodeOfConductManager.trySave();
 
         this.setEnabled(false);
     }
@@ -950,5 +811,177 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                 getLogger().error("Unable to write saved refresh tokens!", e);
             }
         });
+    }
+
+    /**
+     * Initializes bStats metrics collection with platform, player, and version charts.
+     */
+    private void setupMetrics(GeyserConfig config, GeyserLogger logger) {
+        MetricsPlatform metricsPlatform = bootstrap.createMetricsPlatform();
+        if (metricsPlatform != null && metricsPlatform.enabled()) {
+            metrics = new MetricsBase(
+                "server-implementation",
+                metricsPlatform.serverUuid(),
+                Constants.BSTATS_ID,
+                true, // Already checked above.
+                builder -> {
+                    // OS specific data
+                    String osName = System.getProperty("os.name");
+                    String osArch = System.getProperty("os.arch");
+                    String osVersion = System.getProperty("os.version");
+                    int coreCount = Runtime.getRuntime().availableProcessors();
+
+                    builder.appendField("osName", osName);
+                    builder.appendField("osArch", osArch);
+                    builder.appendField("osVersion", osVersion);
+                    builder.appendField("coreCount", coreCount);
+                },
+                builder -> {},
+                null,
+                () -> true,
+                logger::error,
+                logger::info,
+                metricsPlatform.logFailedRequests(),
+                metricsPlatform.logSentData(),
+                metricsPlatform.logResponseStatusText(),
+                metricsPlatform.disableRelocateCheck()
+            );
+            metrics.addCustomChart(new SingleLineChart("players", sessionManager::size));
+            // Prevent unwanted words best we can
+            metrics.addCustomChart(new SimplePie("authMode", () -> config.java().authType().toString().toLowerCase(Locale.ROOT)));
+
+            Map<String, Map<String, Integer>> platformTypeMap = new HashMap<>();
+            Map<String, Integer> serverPlatform = new HashMap<>();
+            serverPlatform.put(bootstrap.getServerPlatform(), 1);
+            platformTypeMap.put(platformType().platformName(), serverPlatform);
+
+            metrics.addCustomChart(new DrilldownPie("platform", () -> {
+                // By the end, we should return, for example:
+                // Geyser-Spigot => (Paper, 1)
+                return platformTypeMap;
+            }));
+
+            metrics.addCustomChart(new SimplePie("defaultLocale", GeyserLocale::getDefaultLocale));
+            metrics.addCustomChart(new SimplePie("version", () -> GeyserImpl.VERSION));
+            metrics.addCustomChart(new SimplePie("javaHaProxyProtocol", () -> String.valueOf(config.advanced().java().useHaproxyProtocol())));
+            metrics.addCustomChart(new SimplePie("bedrockHaProxyProtocol", () -> String.valueOf(config.advanced().bedrock().useHaproxyProtocol())));
+            metrics.addCustomChart(new AdvancedPie("playerPlatform", () -> {
+                Map<String, Integer> valueMap = new HashMap<>();
+                for (GeyserSession session : sessionManager.getAllSessions()) {
+                    if (session == null) continue;
+                    if (session.getClientData() == null) continue;
+                    String os = session.getClientData().getDeviceOs().toString();
+                    if (!valueMap.containsKey(os)) {
+                        valueMap.put(os, 1);
+                    } else {
+                        valueMap.put(os, valueMap.get(os) + 1);
+                    }
+                }
+                return valueMap;
+            }));
+            metrics.addCustomChart(new AdvancedPie("playerVersion", () -> {
+                Map<String, Integer> valueMap = new HashMap<>();
+                for (GeyserSession session : sessionManager.getAllSessions()) {
+                    if (session == null) continue;
+                    if (session.getClientData() == null) continue;
+                    String version = session.getClientData().getGameVersion();
+                    if (!valueMap.containsKey(version)) {
+                        valueMap.put(version, 1);
+                    } else {
+                        valueMap.put(version, valueMap.get(version) + 1);
+                    }
+                }
+                return valueMap;
+            }));
+
+            String minecraftVersion = bootstrap.getMinecraftServerVersion();
+            if (minecraftVersion != null) {
+                Map<String, Map<String, Integer>> versionMap = new HashMap<>();
+                Map<String, Integer> platformMap = new HashMap<>();
+                platformMap.put(bootstrap.getServerPlatform(), 1);
+                versionMap.put(minecraftVersion, platformMap);
+
+                metrics.addCustomChart(new DrilldownPie("minecraftServerVersion", () -> {
+                    // By the end, we should return, for example:
+                    // 1.16.5 => (Spigot, 1)
+                    return versionMap;
+                }));
+            }
+
+            // The following code can be attributed to the PaperMC project
+            // https://github.com/PaperMC/Paper/blob/master/Spigot-Server-Patches/0005-Paper-Metrics.patch#L614
+            metrics.addCustomChart(new DrilldownPie("javaVersion", () -> {
+                Map<String, Map<String, Integer>> map = new HashMap<>();
+                String javaVersion = System.getProperty("java.version");
+                Map<String, Integer> entry = new HashMap<>();
+                entry.put(javaVersion, 1);
+
+                // http://openjdk.java.net/jeps/223
+                // Java decided to change their versioning scheme and in doing so modified the
+                // java.version system property to return $major[.$minor][.$security][-ea], as opposed to
+                // 1.$major.0_$identifier we can handle pre-9 by checking if the "major" is equal to "1",
+                // otherwise, 9+
+                String majorVersion = javaVersion.split("\\.")[0];
+                String release;
+
+                int indexOf = javaVersion.lastIndexOf('.');
+
+                if (majorVersion.equals("1")) {
+                    release = "Java " + javaVersion.substring(0, indexOf);
+                } else {
+                    // of course, it really wouldn't be all that simple if they didn't add a quirk, now
+                    // would it valid strings for the major may potentially include values such as -ea to
+                    // denote a pre release
+                    Matcher versionMatcher = Pattern.compile("\\d+").matcher(majorVersion);
+                    if (versionMatcher.find()) {
+                        majorVersion = versionMatcher.group(0);
+                    }
+                    release = "Java " + majorVersion;
+                }
+                map.put(release, entry);
+                return map;
+            }));
+        } else {
+            metrics = null;
+        }
+    }
+
+    /**
+     * Loads saved authentication chains from disk for online-mode session resumption.
+     */
+    private void loadSavedAuthChains(GeyserConfig config, GeyserLogger logger) {
+        if (config.java().authType() == AuthType.ONLINE) {
+            // May be written/read to on multiple threads from each GeyserSession as well as writing the config
+            savedAuthChains = new ConcurrentHashMap<>();
+            Type type = new TypeToken<Map<String, String>>() { }.getType();
+
+            File authChainsFile = bootstrap.getSavedUserLoginsFolder().resolve(Constants.SAVED_AUTH_CHAINS_FILE).toFile();
+            if (authChainsFile.exists()) {
+                Map<String, String> authChainFile = null;
+                try (FileReader reader = new FileReader(authChainsFile)) {
+                    authChainFile = GSON.fromJson(reader, type);
+                } catch (IOException e) {
+                    logger.error("Cannot load saved user tokens!", e);
+                }
+                if (authChainFile != null) {
+                    List<String> validUsers = config.savedUserLogins();
+                    boolean doWrite = false;
+                    for (Map.Entry<String, String> entry : authChainFile.entrySet()) {
+                        String user = entry.getKey();
+                        if (!validUsers.contains(user)) {
+                            // Perform a write to this file to purge the now-unused name
+                            doWrite = true;
+                            continue;
+                        }
+                        savedAuthChains.put(user, entry.getValue());
+                    }
+                    if (doWrite) {
+                        scheduleAuthChainsWrite();
+                    }
+                }
+            }
+        } else {
+            savedAuthChains = null;
+        }
     }
 }

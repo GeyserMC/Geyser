@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,6 @@
 
 package org.geysermc.geyser.api.event;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.GeyserApi;
 
 /**
@@ -40,8 +39,7 @@ public interface EventRegistrar {
      * @param object the object to wrap around
      * @return an event registrar instance
      */
-    @NonNull
-    static EventRegistrar of(@NonNull Object object) {
+    static EventRegistrar of(Object object) {
         return GeyserApi.api().provider(EventRegistrar.class, object);
     }
 }

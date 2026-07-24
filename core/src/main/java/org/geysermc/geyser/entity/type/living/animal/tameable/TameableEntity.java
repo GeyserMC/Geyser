@@ -78,7 +78,7 @@ public abstract class TameableEntity extends AnimalEntity {
             // Reset
             ownerBedrockId = 0L;
         }
-        dirtyMetadata.put(EntityDataTypes.OWNER_EID, ownerBedrockId);
+        metadata.put(EntityDataTypes.OWNER_EID, ownerBedrockId);
     }
 
     @Override

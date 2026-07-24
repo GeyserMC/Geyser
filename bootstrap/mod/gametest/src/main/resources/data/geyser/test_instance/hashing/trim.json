@@ -1,0 +1,14 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:trim",
+  "value": [
+    {
+      "pattern": "minecraft:silence",
+      "material": "minecraft:redstone"
+    },
+    {
+      "pattern": "minecraft:bolt",
+      "material": "minecraft:diamond"
+    }
+  ]
+}

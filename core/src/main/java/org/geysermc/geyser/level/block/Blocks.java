@@ -42,7 +42,6 @@ import org.geysermc.geyser.level.block.type.PistonBlock;
 import org.geysermc.geyser.level.block.type.SkullBlock;
 import org.geysermc.geyser.level.block.type.TrapDoorBlock;
 import org.geysermc.geyser.level.block.type.WallSkullBlock;
-import org.geysermc.geyser.level.block.type.WaterBlock;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.Direction;
 import org.geysermc.geyser.level.physics.PistonBehavior;
@@ -104,7 +103,7 @@ public final class Blocks {
         .intState(STAGE)
         .booleanState(WATERLOGGED)));
     public static final Block BEDROCK = register(new Block("bedrock", builder().destroyTime(-1.0f)));
-    public static final Block WATER = register(new WaterBlock("water", builder().destroyTime(100.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block WATER = register(new Block("water", builder().destroyTime(100.0f).pushReaction(PistonBehavior.DESTROY)
         .intState(LEVEL)));
     public static final Block LAVA = register(new Block("lava", builder().destroyTime(100.0f).pushReaction(PistonBehavior.DESTROY)
         .intState(LEVEL)));
@@ -260,67 +259,67 @@ public final class Blocks {
         .enumState(NOTEBLOCK_INSTRUMENT)
         .intState(NOTE)
         .booleanState(POWERED)));
-    public static final Block WHITE_BED = register(new BedBlock("white_bed", 0, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block WHITE_BED = register(new BedBlock("white_bed", 0, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block ORANGE_BED = register(new BedBlock("orange_bed", 1, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block ORANGE_BED = register(new BedBlock("orange_bed", 1, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block MAGENTA_BED = register(new BedBlock("magenta_bed", 2, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block MAGENTA_BED = register(new BedBlock("magenta_bed", 2, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block LIGHT_BLUE_BED = register(new BedBlock("light_blue_bed", 3, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block LIGHT_BLUE_BED = register(new BedBlock("light_blue_bed", 3, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block YELLOW_BED = register(new BedBlock("yellow_bed", 4, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block YELLOW_BED = register(new BedBlock("yellow_bed", 4, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block LIME_BED = register(new BedBlock("lime_bed", 5, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block LIME_BED = register(new BedBlock("lime_bed", 5, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block PINK_BED = register(new BedBlock("pink_bed", 6, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block PINK_BED = register(new BedBlock("pink_bed", 6, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block GRAY_BED = register(new BedBlock("gray_bed", 7, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block GRAY_BED = register(new BedBlock("gray_bed", 7, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block LIGHT_GRAY_BED = register(new BedBlock("light_gray_bed", 8, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block LIGHT_GRAY_BED = register(new BedBlock("light_gray_bed", 8, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block CYAN_BED = register(new BedBlock("cyan_bed", 9, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block CYAN_BED = register(new BedBlock("cyan_bed", 9, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block PURPLE_BED = register(new BedBlock("purple_bed", 10, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block PURPLE_BED = register(new BedBlock("purple_bed", 10, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block BLUE_BED = register(new BedBlock("blue_bed", 11, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block BLUE_BED = register(new BedBlock("blue_bed", 11, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block BROWN_BED = register(new BedBlock("brown_bed", 12, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block BROWN_BED = register(new BedBlock("brown_bed", 12, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block GREEN_BED = register(new BedBlock("green_bed", 13, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block GREEN_BED = register(new BedBlock("green_bed", 13, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block RED_BED = register(new BedBlock("red_bed", 14, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block RED_BED = register(new BedBlock("red_bed", 14, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
-    public static final Block BLACK_BED = register(new BedBlock("black_bed", 15, builder().setBlockEntity(BlockEntityType.BED).destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block BLACK_BED = register(new BedBlock("black_bed", 15, builder().destroyTime(0.2f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .booleanState(OCCUPIED)
         .enumState(BED_PART)));
@@ -372,6 +371,7 @@ public final class Blocks {
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)
         .enumState(PISTON_TYPE)));
     public static final Block DANDELION = register(new Block("dandelion", builder().pushReaction(PistonBehavior.DESTROY)));
+    public static final Block GOLDEN_DANDELION = register(new Block("golden_dandelion", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block TORCHFLOWER = register(new Block("torchflower", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block POPPY = register(new Block("poppy", builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block BLUE_ORCHID = register(new Block("blue_orchid", builder().pushReaction(PistonBehavior.DESTROY)));
@@ -1130,6 +1130,7 @@ public final class Blocks {
     public static final Block POTTED_MANGROVE_PROPAGULE = register(new FlowerPotBlock("potted_mangrove_propagule", MANGROVE_PROPAGULE, builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block POTTED_FERN = register(new FlowerPotBlock("potted_fern", FERN, builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block POTTED_DANDELION = register(new FlowerPotBlock("potted_dandelion", DANDELION, builder().pushReaction(PistonBehavior.DESTROY)));
+    public static final Block POTTED_GOLDEN_DANDELION = register(new FlowerPotBlock("potted_golden_dandelion", GOLDEN_DANDELION, builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block POTTED_POPPY = register(new FlowerPotBlock("potted_poppy", POPPY, builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block POTTED_BLUE_ORCHID = register(new FlowerPotBlock("potted_blue_orchid", BLUE_ORCHID, builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block POTTED_ALLIUM = register(new FlowerPotBlock("potted_allium", ALLIUM, builder().pushReaction(PistonBehavior.DESTROY)));
@@ -2700,6 +2701,106 @@ public final class Blocks {
         .booleanState(WATERLOGGED)
         .enumState(WEST_WALL)));
     public static final Block CHISELED_TUFF_BRICKS = register(new Block("chiseled_tuff_bricks", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
+    public static final Block SULFUR = register(new Block("sulfur", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
+    public static final Block POTENT_SULFUR = register(new Block("potent_sulfur", builder().setBlockEntity(BlockEntityType.POTENT_SULFUR).requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(POTENT_SULFUR_STATE)));
+    public static final Block SULFUR_SLAB = register(new Block("sulfur_slab", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(SLAB_TYPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block SULFUR_STAIRS = register(new Block("sulfur_stairs", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
+        .enumState(HALF)
+        .enumState(STAIRS_SHAPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block SULFUR_WALL = register(new Block("sulfur_wall", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(EAST_WALL)
+        .enumState(NORTH_WALL)
+        .enumState(SOUTH_WALL)
+        .booleanState(UP)
+        .booleanState(WATERLOGGED)
+        .enumState(WEST_WALL)));
+    public static final Block POLISHED_SULFUR = register(new Block("polished_sulfur", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
+    public static final Block POLISHED_SULFUR_SLAB = register(new Block("polished_sulfur_slab", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(SLAB_TYPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block POLISHED_SULFUR_STAIRS = register(new Block("polished_sulfur_stairs", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
+        .enumState(HALF)
+        .enumState(STAIRS_SHAPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block POLISHED_SULFUR_WALL = register(new Block("polished_sulfur_wall", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(EAST_WALL)
+        .enumState(NORTH_WALL)
+        .enumState(SOUTH_WALL)
+        .booleanState(UP)
+        .booleanState(WATERLOGGED)
+        .enumState(WEST_WALL)));
+    public static final Block SULFUR_BRICKS = register(new Block("sulfur_bricks", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
+    public static final Block SULFUR_BRICK_SLAB = register(new Block("sulfur_brick_slab", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(SLAB_TYPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block SULFUR_BRICK_STAIRS = register(new Block("sulfur_brick_stairs", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
+        .enumState(HALF)
+        .enumState(STAIRS_SHAPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block SULFUR_BRICK_WALL = register(new Block("sulfur_brick_wall", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(EAST_WALL)
+        .enumState(NORTH_WALL)
+        .enumState(SOUTH_WALL)
+        .booleanState(UP)
+        .booleanState(WATERLOGGED)
+        .enumState(WEST_WALL)));
+    public static final Block CHISELED_SULFUR = register(new Block("chiseled_sulfur", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
+    public static final Block CINNABAR = register(new Block("cinnabar", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
+    public static final Block CINNABAR_SLAB = register(new Block("cinnabar_slab", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(SLAB_TYPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block CINNABAR_STAIRS = register(new Block("cinnabar_stairs", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
+        .enumState(HALF)
+        .enumState(STAIRS_SHAPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block CINNABAR_WALL = register(new Block("cinnabar_wall", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(EAST_WALL)
+        .enumState(NORTH_WALL)
+        .enumState(SOUTH_WALL)
+        .booleanState(UP)
+        .booleanState(WATERLOGGED)
+        .enumState(WEST_WALL)));
+    public static final Block POLISHED_CINNABAR = register(new Block("polished_cinnabar", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
+    public static final Block POLISHED_CINNABAR_SLAB = register(new Block("polished_cinnabar_slab", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(SLAB_TYPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block POLISHED_CINNABAR_STAIRS = register(new Block("polished_cinnabar_stairs", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
+        .enumState(HALF)
+        .enumState(STAIRS_SHAPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block POLISHED_CINNABAR_WALL = register(new Block("polished_cinnabar_wall", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(EAST_WALL)
+        .enumState(NORTH_WALL)
+        .enumState(SOUTH_WALL)
+        .booleanState(UP)
+        .booleanState(WATERLOGGED)
+        .enumState(WEST_WALL)));
+    public static final Block CINNABAR_BRICKS = register(new Block("cinnabar_bricks", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
+    public static final Block CINNABAR_BRICK_SLAB = register(new Block("cinnabar_brick_slab", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(SLAB_TYPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block CINNABAR_BRICK_STAIRS = register(new Block("cinnabar_brick_stairs", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
+        .enumState(HALF)
+        .enumState(STAIRS_SHAPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block CINNABAR_BRICK_WALL = register(new Block("cinnabar_brick_wall", builder().requiresCorrectToolForDrops().destroyTime(1.5f)
+        .enumState(EAST_WALL)
+        .enumState(NORTH_WALL)
+        .enumState(SOUTH_WALL)
+        .booleanState(UP)
+        .booleanState(WATERLOGGED)
+        .enumState(WEST_WALL)));
+    public static final Block CHISELED_CINNABAR = register(new Block("chiseled_cinnabar", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
     public static final Block CALCITE = register(new Block("calcite", builder().requiresCorrectToolForDrops().destroyTime(0.75f)));
     public static final Block TINTED_GLASS = register(new Block("tinted_glass", builder().destroyTime(0.3f)));
     public static final Block POWDER_SNOW = register(new Block("powder_snow", builder().destroyTime(0.25f)));
@@ -2731,26 +2832,29 @@ public final class Blocks {
     public static final Block EXPOSED_COPPER = register(new Block("exposed_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
     public static final Block WEATHERED_COPPER = register(new Block("weathered_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
     public static final Block OXIDIZED_COPPER = register(new Block("oxidized_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block WAXED_COPPER_BLOCK = register(new Block("waxed_copper_block", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block WAXED_EXPOSED_COPPER = register(new Block("waxed_exposed_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block WAXED_WEATHERED_COPPER = register(new Block("waxed_weathered_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block WAXED_OXIDIZED_COPPER = register(new Block("waxed_oxidized_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
     public static final Block COPPER_ORE = register(new Block("copper_ore", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
     public static final Block DEEPSLATE_COPPER_ORE = register(new Block("deepslate_copper_ore", builder().requiresCorrectToolForDrops().destroyTime(4.5f)));
-    public static final Block OXIDIZED_CUT_COPPER = register(new Block("oxidized_cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block WEATHERED_CUT_COPPER = register(new Block("weathered_cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block EXPOSED_CUT_COPPER = register(new Block("exposed_cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
     public static final Block CUT_COPPER = register(new Block("cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block OXIDIZED_CHISELED_COPPER = register(new Block("oxidized_chiseled_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block WEATHERED_CHISELED_COPPER = register(new Block("weathered_chiseled_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block EXPOSED_CHISELED_COPPER = register(new Block("exposed_chiseled_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block EXPOSED_CUT_COPPER = register(new Block("exposed_cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block WEATHERED_CUT_COPPER = register(new Block("weathered_cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block OXIDIZED_CUT_COPPER = register(new Block("oxidized_cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block WAXED_CUT_COPPER = register(new Block("waxed_cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block WAXED_EXPOSED_CUT_COPPER = register(new Block("waxed_exposed_cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block WAXED_WEATHERED_CUT_COPPER = register(new Block("waxed_weathered_cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block WAXED_OXIDIZED_CUT_COPPER = register(new Block("waxed_oxidized_cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
     public static final Block CHISELED_COPPER = register(new Block("chiseled_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block WAXED_OXIDIZED_CHISELED_COPPER = register(new Block("waxed_oxidized_chiseled_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block WAXED_WEATHERED_CHISELED_COPPER = register(new Block("waxed_weathered_chiseled_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block WAXED_EXPOSED_CHISELED_COPPER = register(new Block("waxed_exposed_chiseled_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block EXPOSED_CHISELED_COPPER = register(new Block("exposed_chiseled_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block WEATHERED_CHISELED_COPPER = register(new Block("weathered_chiseled_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block OXIDIZED_CHISELED_COPPER = register(new Block("oxidized_chiseled_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
     public static final Block WAXED_CHISELED_COPPER = register(new Block("waxed_chiseled_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block OXIDIZED_CUT_COPPER_STAIRS = register(new Block("oxidized_cut_copper_stairs", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
-        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
-        .enumState(HALF)
-        .enumState(STAIRS_SHAPE)
-        .booleanState(WATERLOGGED)));
-    public static final Block WEATHERED_CUT_COPPER_STAIRS = register(new Block("weathered_cut_copper_stairs", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block WAXED_EXPOSED_CHISELED_COPPER = register(new Block("waxed_exposed_chiseled_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block WAXED_WEATHERED_CHISELED_COPPER = register(new Block("waxed_weathered_chiseled_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block WAXED_OXIDIZED_CHISELED_COPPER = register(new Block("waxed_oxidized_chiseled_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
+    public static final Block CUT_COPPER_STAIRS = register(new Block("cut_copper_stairs", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .enumState(HALF)
         .enumState(STAIRS_SHAPE)
@@ -2760,42 +2864,12 @@ public final class Blocks {
         .enumState(HALF)
         .enumState(STAIRS_SHAPE)
         .booleanState(WATERLOGGED)));
-    public static final Block CUT_COPPER_STAIRS = register(new Block("cut_copper_stairs", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block WEATHERED_CUT_COPPER_STAIRS = register(new Block("weathered_cut_copper_stairs", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .enumState(HALF)
         .enumState(STAIRS_SHAPE)
         .booleanState(WATERLOGGED)));
-    public static final Block OXIDIZED_CUT_COPPER_SLAB = register(new Block("oxidized_cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
-        .enumState(SLAB_TYPE)
-        .booleanState(WATERLOGGED)));
-    public static final Block WEATHERED_CUT_COPPER_SLAB = register(new Block("weathered_cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
-        .enumState(SLAB_TYPE)
-        .booleanState(WATERLOGGED)));
-    public static final Block EXPOSED_CUT_COPPER_SLAB = register(new Block("exposed_cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
-        .enumState(SLAB_TYPE)
-        .booleanState(WATERLOGGED)));
-    public static final Block CUT_COPPER_SLAB = register(new Block("cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
-        .enumState(SLAB_TYPE)
-        .booleanState(WATERLOGGED)));
-    public static final Block WAXED_COPPER_BLOCK = register(new Block("waxed_copper_block", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block WAXED_WEATHERED_COPPER = register(new Block("waxed_weathered_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block WAXED_EXPOSED_COPPER = register(new Block("waxed_exposed_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block WAXED_OXIDIZED_COPPER = register(new Block("waxed_oxidized_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block WAXED_OXIDIZED_CUT_COPPER = register(new Block("waxed_oxidized_cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block WAXED_WEATHERED_CUT_COPPER = register(new Block("waxed_weathered_cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block WAXED_EXPOSED_CUT_COPPER = register(new Block("waxed_exposed_cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block WAXED_CUT_COPPER = register(new Block("waxed_cut_copper", builder().requiresCorrectToolForDrops().destroyTime(3.0f)));
-    public static final Block WAXED_OXIDIZED_CUT_COPPER_STAIRS = register(new Block("waxed_oxidized_cut_copper_stairs", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
-        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
-        .enumState(HALF)
-        .enumState(STAIRS_SHAPE)
-        .booleanState(WATERLOGGED)));
-    public static final Block WAXED_WEATHERED_CUT_COPPER_STAIRS = register(new Block("waxed_weathered_cut_copper_stairs", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
-        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
-        .enumState(HALF)
-        .enumState(STAIRS_SHAPE)
-        .booleanState(WATERLOGGED)));
-    public static final Block WAXED_EXPOSED_CUT_COPPER_STAIRS = register(new Block("waxed_exposed_cut_copper_stairs", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block OXIDIZED_CUT_COPPER_STAIRS = register(new Block("oxidized_cut_copper_stairs", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .enumState(HALF)
         .enumState(STAIRS_SHAPE)
@@ -2805,16 +2879,43 @@ public final class Blocks {
         .enumState(HALF)
         .enumState(STAIRS_SHAPE)
         .booleanState(WATERLOGGED)));
-    public static final Block WAXED_OXIDIZED_CUT_COPPER_SLAB = register(new Block("waxed_oxidized_cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block WAXED_EXPOSED_CUT_COPPER_STAIRS = register(new Block("waxed_exposed_cut_copper_stairs", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
+        .enumState(HALF)
+        .enumState(STAIRS_SHAPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block WAXED_WEATHERED_CUT_COPPER_STAIRS = register(new Block("waxed_weathered_cut_copper_stairs", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
+        .enumState(HALF)
+        .enumState(STAIRS_SHAPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block WAXED_OXIDIZED_CUT_COPPER_STAIRS = register(new Block("waxed_oxidized_cut_copper_stairs", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+        .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
+        .enumState(HALF)
+        .enumState(STAIRS_SHAPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block CUT_COPPER_SLAB = register(new Block("cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
         .enumState(SLAB_TYPE)
         .booleanState(WATERLOGGED)));
-    public static final Block WAXED_WEATHERED_CUT_COPPER_SLAB = register(new Block("waxed_weathered_cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block EXPOSED_CUT_COPPER_SLAB = register(new Block("exposed_cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+        .enumState(SLAB_TYPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block WEATHERED_CUT_COPPER_SLAB = register(new Block("weathered_cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+        .enumState(SLAB_TYPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block OXIDIZED_CUT_COPPER_SLAB = register(new Block("oxidized_cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+        .enumState(SLAB_TYPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block WAXED_CUT_COPPER_SLAB = register(new Block("waxed_cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
         .enumState(SLAB_TYPE)
         .booleanState(WATERLOGGED)));
     public static final Block WAXED_EXPOSED_CUT_COPPER_SLAB = register(new Block("waxed_exposed_cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
         .enumState(SLAB_TYPE)
         .booleanState(WATERLOGGED)));
-    public static final Block WAXED_CUT_COPPER_SLAB = register(new Block("waxed_cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block WAXED_WEATHERED_CUT_COPPER_SLAB = register(new Block("waxed_weathered_cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+        .enumState(SLAB_TYPE)
+        .booleanState(WATERLOGGED)));
+    public static final Block WAXED_OXIDIZED_CUT_COPPER_SLAB = register(new Block("waxed_oxidized_cut_copper_slab", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
         .enumState(SLAB_TYPE)
         .booleanState(WATERLOGGED)));
     public static final Block COPPER_DOOR = register(new DoorBlock("copper_door", builder().destroyTime(3.0f).pushReaction(PistonBehavior.DESTROY)
@@ -2829,13 +2930,13 @@ public final class Blocks {
         .enumState(DOOR_HINGE)
         .booleanState(OPEN)
         .booleanState(POWERED)));
-    public static final Block OXIDIZED_COPPER_DOOR = register(new DoorBlock("oxidized_copper_door", builder().destroyTime(3.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block WEATHERED_COPPER_DOOR = register(new DoorBlock("weathered_copper_door", builder().destroyTime(3.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .enumState(DOUBLE_BLOCK_HALF)
         .enumState(DOOR_HINGE)
         .booleanState(OPEN)
         .booleanState(POWERED)));
-    public static final Block WEATHERED_COPPER_DOOR = register(new DoorBlock("weathered_copper_door", builder().destroyTime(3.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block OXIDIZED_COPPER_DOOR = register(new DoorBlock("oxidized_copper_door", builder().destroyTime(3.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .enumState(DOUBLE_BLOCK_HALF)
         .enumState(DOOR_HINGE)
@@ -2853,13 +2954,13 @@ public final class Blocks {
         .enumState(DOOR_HINGE)
         .booleanState(OPEN)
         .booleanState(POWERED)));
-    public static final Block WAXED_OXIDIZED_COPPER_DOOR = register(new DoorBlock("waxed_oxidized_copper_door", builder().destroyTime(3.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block WAXED_WEATHERED_COPPER_DOOR = register(new DoorBlock("waxed_weathered_copper_door", builder().destroyTime(3.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .enumState(DOUBLE_BLOCK_HALF)
         .enumState(DOOR_HINGE)
         .booleanState(OPEN)
         .booleanState(POWERED)));
-    public static final Block WAXED_WEATHERED_COPPER_DOOR = register(new DoorBlock("waxed_weathered_copper_door", builder().destroyTime(3.0f).pushReaction(PistonBehavior.DESTROY)
+    public static final Block WAXED_OXIDIZED_COPPER_DOOR = register(new DoorBlock("waxed_oxidized_copper_door", builder().destroyTime(3.0f).pushReaction(PistonBehavior.DESTROY)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .enumState(DOUBLE_BLOCK_HALF)
         .enumState(DOOR_HINGE)
@@ -2877,13 +2978,13 @@ public final class Blocks {
         .booleanState(OPEN)
         .booleanState(POWERED)
         .booleanState(WATERLOGGED)));
-    public static final Block OXIDIZED_COPPER_TRAPDOOR = register(new TrapDoorBlock("oxidized_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block WEATHERED_COPPER_TRAPDOOR = register(new TrapDoorBlock("weathered_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .enumState(HALF)
         .booleanState(OPEN)
         .booleanState(POWERED)
         .booleanState(WATERLOGGED)));
-    public static final Block WEATHERED_COPPER_TRAPDOOR = register(new TrapDoorBlock("weathered_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block OXIDIZED_COPPER_TRAPDOOR = register(new TrapDoorBlock("oxidized_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .enumState(HALF)
         .booleanState(OPEN)
@@ -2901,13 +3002,13 @@ public final class Blocks {
         .booleanState(OPEN)
         .booleanState(POWERED)
         .booleanState(WATERLOGGED)));
-    public static final Block WAXED_OXIDIZED_COPPER_TRAPDOOR = register(new TrapDoorBlock("waxed_oxidized_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block WAXED_WEATHERED_COPPER_TRAPDOOR = register(new TrapDoorBlock("waxed_weathered_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .enumState(HALF)
         .booleanState(OPEN)
         .booleanState(POWERED)
         .booleanState(WATERLOGGED)));
-    public static final Block WAXED_WEATHERED_COPPER_TRAPDOOR = register(new TrapDoorBlock("waxed_weathered_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
+    public static final Block WAXED_OXIDIZED_COPPER_TRAPDOOR = register(new TrapDoorBlock("waxed_oxidized_copper_trapdoor", builder().requiresCorrectToolForDrops().destroyTime(3.0f)
         .enumState(HORIZONTAL_FACING, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST)
         .enumState(HALF)
         .booleanState(OPEN)
@@ -3049,11 +3150,15 @@ public final class Blocks {
         .enumState(FACING, Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST, Direction.UP, Direction.DOWN)
         .booleanState(POWERED)
         .booleanState(WATERLOGGED)));
+    public static final Block DRIPSTONE_BLOCK = register(new Block("dripstone_block", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
     public static final Block POINTED_DRIPSTONE = register(new Block("pointed_dripstone", builder().destroyTime(1.5f).pushReaction(PistonBehavior.DESTROY)
-        .enumState(DRIPSTONE_THICKNESS)
+        .enumState(SPELEOTHEM_THICKNESS)
         .enumState(VERTICAL_DIRECTION, Direction.UP, Direction.DOWN)
         .booleanState(WATERLOGGED)));
-    public static final Block DRIPSTONE_BLOCK = register(new Block("dripstone_block", builder().requiresCorrectToolForDrops().destroyTime(1.5f)));
+    public static final Block SULFUR_SPIKE = register(new Block("sulfur_spike", builder().destroyTime(1.5f).pushReaction(PistonBehavior.DESTROY)
+        .enumState(SPELEOTHEM_THICKNESS)
+        .enumState(VERTICAL_DIRECTION, Direction.UP, Direction.DOWN)
+        .booleanState(WATERLOGGED)));
     public static final Block CAVE_VINES = register(new Block("cave_vines", builder().pushReaction(PistonBehavior.DESTROY)
         .intState(AGE_25)
         .booleanState(BERRIES)));

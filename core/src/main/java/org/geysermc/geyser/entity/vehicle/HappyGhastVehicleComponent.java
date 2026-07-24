@@ -27,15 +27,10 @@ package org.geysermc.geyser.entity.vehicle;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
-import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
-import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.Fluid;
-import org.geysermc.geyser.level.block.type.BlockState;
-import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.attribute.AttributeType;
 
@@ -65,27 +60,27 @@ public class HappyGhastVehicleComponent extends VehicleComponent<HappyGhastEntit
     public void onMount() {
         super.onMount();
         SessionPlayerEntity playerEntity = vehicle.getSession().getPlayerEntity();
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 181f);
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_THIRD_PERSON_CAMERA_RADIUS, cameraDistance);
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_CAMERA_RELAX_DISTANCE_SMOOTHING, cameraDistance * 0.75f);
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
+        playerEntity.getMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
+        playerEntity.getMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 181f);
+        playerEntity.getMetadata().put(EntityDataTypes.SEAT_THIRD_PERSON_CAMERA_RADIUS, cameraDistance);
+        playerEntity.getMetadata().put(EntityDataTypes.SEAT_CAMERA_RELAX_DISTANCE_SMOOTHING, cameraDistance * 0.75f);
+        playerEntity.getMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
     }
 
     @Override
     public void onDismount() {
         super.onDismount();
         SessionPlayerEntity playerEntity = vehicle.getSession().getPlayerEntity();
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_THIRD_PERSON_CAMERA_RADIUS, (float) AttributeType.Builtin.CAMERA_DISTANCE.getDef());
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.SEAT_CAMERA_RELAX_DISTANCE_SMOOTHING, cameraDistance * 0.75f);
-        playerEntity.getDirtyMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
+        playerEntity.getMetadata().put(EntityDataTypes.SEAT_THIRD_PERSON_CAMERA_RADIUS, (float) AttributeType.Builtin.CAMERA_DISTANCE.getDef());
+        playerEntity.getMetadata().put(EntityDataTypes.SEAT_CAMERA_RELAX_DISTANCE_SMOOTHING, cameraDistance * 0.75f);
+        playerEntity.getMetadata().put(EntityDataTypes.CONTROLLING_RIDER_SEAT_INDEX, (byte) 0);
     }
 
     /**
      * Called every session tick while the player is mounted on the vehicle.
      */
     public void tickVehicle() {
-        if (!vehicle.isClientControlled()) {
+        if (!vehicle.shouldSimulateMovement()) {
             return;
         }
 

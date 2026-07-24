@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.inventory;
 
+import it.unimi.dsi.fastutil.ints.IntSet;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
@@ -32,8 +33,11 @@ import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemSt
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.CraftRecipeAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestActionType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.TransferItemStackRequestAction;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.response.ItemStackResponse;
 import org.geysermc.geyser.inventory.*;
+import org.geysermc.geyser.inventory.click.Click;
+import org.geysermc.geyser.inventory.click.ClickPlan;
 import org.geysermc.geyser.inventory.recipe.GeyserStonecutterData;
 import org.geysermc.geyser.inventory.updater.UIInventoryUpdater;
 import org.geysermc.geyser.level.block.Blocks;
@@ -76,9 +80,51 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
 
         if (container.getItem(1).getJavaId() != javaOutput.getId()) {
             // We don't know there is an output here, so we tell ourselves that there is
-            container.setItem(1, GeyserItemStack.from(javaOutput), session);
+            container.setItem(1, GeyserItemStack.from(session, javaOutput), session);
         }
 
+        // The client might send multiple ItemStackRequests for one shift click,
+        // so check if input is empty, meaning we already sent one
+        GeyserItemStack input = container.getItem(0);
+        if (input.isEmpty()) {
+            return rejectRequest(request, false);
+        }
+
+        // support for quick move on the output.
+        // CRAFT_RECIPE is always at index 0 so we do instanceof checks for obvious reasons
+        if (data.getNumberOfRequestedCrafts() > 1) {
+            for (ItemStackRequestAction action : request.getActions()) {
+                if (action instanceof TransferItemStackRequestAction transfer) {
+                    if (transfer.getSource().getContainerName().getContainer() == ContainerSlotType.CREATED_OUTPUT) {
+                        ContainerSlotType destContainer = transfer.getDestination().getContainerName().getContainer();
+
+                        if (destContainer == ContainerSlotType.HOTBAR
+                            || destContainer == ContainerSlotType.HOTBAR_AND_INVENTORY
+                            || destContainer == ContainerSlotType.INVENTORY) {
+
+                            // shift click of the result into the inventory
+                            ClickPlan plan = new ClickPlan(session, this, container);
+                            plan.add(Click.LEFT_SHIFT, 1);
+                            plan.execute(true);
+
+                            // slot 0 = stonecutter input, special logic here as getGridSize is non existent! yay!
+                            // from my testing, this seems to cause ClickPlan#reduceCraftingGrid to return early which is
+                            // why we have to handle this logic ourselves...
+                            // to do, check in to the mental asylum
+                            container.setItem(0, GeyserItemStack.EMPTY, session); // assume that all input was used. server will resync
+
+                            // we need to ALWAYS update slot 0 as well so that the client knows the new input count
+                            IntSet reportedSlots = plan.getAffectedSlots();
+                            reportedSlots.add(0);
+
+                            return acceptRequest(request, makeContainerEntries(session, container, reportedSlots));
+                        }
+                    }
+                }
+            }
+        }
+        
+        // translate the request normally as it's a plain single craft. no shift-click transfer actions found
         return translateRequest(session, container, request);
     }
 

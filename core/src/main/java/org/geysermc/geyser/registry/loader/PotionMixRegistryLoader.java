@@ -30,7 +30,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.PotionMixData;
 import org.geysermc.geyser.inventory.item.Potion;
 import org.geysermc.geyser.item.Items;
-import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -57,41 +56,41 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Int2Objec
         for (var entry : Registries.ITEMS.get().int2ObjectEntrySet()) {
             ItemMappings mappings = entry.getValue();
             List<ItemMapping> ingredients = new ArrayList<>();
-            ingredients.add(getNonNull(mappings, Items.NETHER_WART));
-            ingredients.add(getNonNull(mappings, Items.REDSTONE));
-            ingredients.add(getNonNull(mappings, Items.GLOWSTONE_DUST));
-            ingredients.add(getNonNull(mappings, Items.FERMENTED_SPIDER_EYE));
-            ingredients.add(getNonNull(mappings, Items.GUNPOWDER));
-            ingredients.add(getNonNull(mappings, Items.DRAGON_BREATH));
-            ingredients.add(getNonNull(mappings, Items.SUGAR));
-            ingredients.add(getNonNull(mappings, Items.RABBIT_FOOT));
-            ingredients.add(getNonNull(mappings, Items.GLISTERING_MELON_SLICE));
-            ingredients.add(getNonNull(mappings, Items.SPIDER_EYE));
-            ingredients.add(getNonNull(mappings, Items.PUFFERFISH));
-            ingredients.add(getNonNull(mappings, Items.MAGMA_CREAM));
-            ingredients.add(getNonNull(mappings, Items.GOLDEN_CARROT));
-            ingredients.add(getNonNull(mappings, Items.BLAZE_POWDER));
-            ingredients.add(getNonNull(mappings, Items.GHAST_TEAR));
-            ingredients.add(getNonNull(mappings, Items.TURTLE_HELMET));
-            ingredients.add(getNonNull(mappings, Items.PHANTOM_MEMBRANE));
+            ingredients.add(mappings.getMapping(Items.NETHER_WART));
+            ingredients.add(mappings.getMapping(Items.REDSTONE));
+            ingredients.add(mappings.getMapping(Items.GLOWSTONE_DUST));
+            ingredients.add(mappings.getMapping(Items.FERMENTED_SPIDER_EYE));
+            ingredients.add(mappings.getMapping(Items.GUNPOWDER));
+            ingredients.add(mappings.getMapping(Items.DRAGON_BREATH));
+            ingredients.add(mappings.getMapping(Items.SUGAR));
+            ingredients.add(mappings.getMapping(Items.RABBIT_FOOT));
+            ingredients.add(mappings.getMapping(Items.GLISTERING_MELON_SLICE));
+            ingredients.add(mappings.getMapping(Items.SPIDER_EYE));
+            ingredients.add(mappings.getMapping(Items.PUFFERFISH));
+            ingredients.add(mappings.getMapping(Items.MAGMA_CREAM));
+            ingredients.add(mappings.getMapping(Items.GOLDEN_CARROT));
+            ingredients.add(mappings.getMapping(Items.BLAZE_POWDER));
+            ingredients.add(mappings.getMapping(Items.GHAST_TEAR));
+            ingredients.add(mappings.getMapping(Items.TURTLE_HELMET));
+            ingredients.add(mappings.getMapping(Items.PHANTOM_MEMBRANE));
             // 1.21
-            ingredients.add(getNonNull(mappings, Items.STONE));
-            ingredients.add(getNonNull(mappings, Items.SLIME_BLOCK));
-            ingredients.add(getNonNull(mappings, Items.COBWEB));
-            ingredients.add(getNonNull(mappings, Items.BREEZE_ROD));
+            ingredients.add(mappings.getMapping(Items.STONE));
+            ingredients.add(mappings.getMapping(Items.SLIME_BLOCK));
+            ingredients.add(mappings.getMapping(Items.COBWEB));
+            ingredients.add(mappings.getMapping(Items.BREEZE_ROD));
 
             List<ItemMapping> inputs = List.of(
-                    getNonNull(mappings, Items.POTION),
-                    getNonNull(mappings, Items.SPLASH_POTION),
-                    getNonNull(mappings, Items.LINGERING_POTION)
+                mappings.getMapping(Items.POTION),
+                mappings.getMapping(Items.SPLASH_POTION),
+                mappings.getMapping(Items.LINGERING_POTION)
             );
 
-            ItemMapping glassBottle = getNonNull(mappings, Items.GLASS_BOTTLE);
+            ItemMapping glassBottle = mappings.getMapping(Items.GLASS_BOTTLE);
 
             Set<PotionMixData> potionMixes = new HashSet<>();
 
             // Add all types of potions as inputs
-            ItemMapping fillerIngredient = ingredients.get(0);
+            ItemMapping fillerIngredient = ingredients.getFirst();
             for (ItemMapping entryInput : inputs) {
                 for (Potion potion : Potion.VALUES) {
                     potionMixes.add(new PotionMixData(
@@ -116,13 +115,5 @@ public class PotionMixRegistryLoader implements RegistryLoader<Object, Int2Objec
         }
         allPotionMixes.trim();
         return allPotionMixes;
-    }
-
-    private static ItemMapping getNonNull(ItemMappings mappings, Item javaItem) {
-        ItemMapping itemMapping = mappings.getMapping(javaItem);
-        if (itemMapping == null)
-            throw new NullPointerException("No item entry exists for java identifier: " + javaItem.javaIdentifier());
-
-        return itemMapping;
     }
 }

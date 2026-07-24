@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry.mappings.util;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
+import org.geysermc.geyser.api.block.custom.CustomBlockState;
 
 import java.util.Map;
 
@@ -40,5 +41,5 @@ import java.util.Map;
  * @param javaIdentifier The java identifier of the block
  * @param overrideItem Whether the custom block should override the java item
  */
-public record CustomBlockMapping(@NonNull CustomBlockData data, @NonNull Map<String, CustomBlockStateMapping> states, @NonNull String javaIdentifier, boolean overrideItem) {
+public record CustomBlockMapping(@NonNull CustomBlockData data, @NonNull Map<String, CustomBlockState> states, @NonNull String javaIdentifier, boolean overrideItem) {
 }

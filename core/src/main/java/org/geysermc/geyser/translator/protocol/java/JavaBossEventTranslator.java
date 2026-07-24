@@ -39,7 +39,7 @@ public class JavaBossEventTranslator extends PacketTranslator<ClientboundBossEve
         BossBar bossBar = session.getEntityCache().getBossBar(packet.getUuid());
         switch (packet.getAction()) {
             case ADD:
-                long entityId = session.getEntityCache().getNextEntityId().incrementAndGet();
+                long entityId = session.getEntityCache().nextEntityId();
                 bossBar = new BossBar(session, entityId, packet.getTitle(), packet.getHealth(), packet.getColor().ordinal(), 1, 0);
                 session.getEntityCache().addBossBar(packet.getUuid(), bossBar);
                 break;

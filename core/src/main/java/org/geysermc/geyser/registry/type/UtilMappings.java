@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -44,7 +45,8 @@ import java.util.function.Function;
  * in {@link org.geysermc.geyser.registry.Registries}. Use {@link org.geysermc.geyser.registry.loader.RegistryLoaders#UTIL_MAPPINGS_KEYS} (or create a new loader if loading something
  * other than keys).
  */
-public record UtilMappings(List<Key> gameMasterBlocks, List<Key> dangerousBlockEntities, List<Key> dangerousEntities) {
+public record UtilMappings(List<Key> gameMasterBlocks, List<Key> dangerousBlockEntities, List<Key> dangerousEntities,
+                           List<Key> suspiciousEffectHolders) {
     private static final String INPUT = "mappings/util.json";
     private static UtilMappings loaded = null;
 
@@ -60,6 +62,7 @@ public record UtilMappings(List<Key> gameMasterBlocks, List<Key> dangerousBlockE
                 List<Key> gameMasterBlocks = new ArrayList<>();
                 List<Key> dangerousBlockEntities = new ArrayList<>();
                 List<Key> dangerousEntities = new ArrayList<>();
+                List<Key> suspiciousEffectHolders = new ArrayList<>();
 
                 utilJson.get("game_master_blocks").getAsJsonArray()
                     .forEach(element -> gameMasterBlocks.add(MinecraftKey.key(element.getAsString())));
@@ -67,8 +70,11 @@ public record UtilMappings(List<Key> gameMasterBlocks, List<Key> dangerousBlockE
                     .forEach(element -> dangerousBlockEntities.add(MinecraftKey.key(element.getAsString())));
                 utilJson.get("dangerous_entities").getAsJsonArray()
                     .forEach(element -> dangerousEntities.add(MinecraftKey.key(element.getAsString())));
+                utilJson.get("suspicious_effect_holders").getAsJsonArray()
+                    .forEach(element -> suspiciousEffectHolders.add(MinecraftKey.key(element.getAsString())));
 
-                loaded = new UtilMappings(List.copyOf(gameMasterBlocks), List.copyOf(dangerousBlockEntities), List.copyOf(dangerousEntities));
+                loaded = new UtilMappings(Collections.unmodifiableList(gameMasterBlocks), Collections.unmodifiableList(dangerousBlockEntities),
+                    Collections.unmodifiableList(dangerousEntities), Collections.unmodifiableList(suspiciousEffectHolders));
             } catch (IOException e) {
                 throw new AssertionError("Failed to load " + INPUT);
             }

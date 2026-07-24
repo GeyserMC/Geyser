@@ -25,11 +25,14 @@
 
 package org.geysermc.geyser.scoreboard.network.util;
 
+import io.netty.channel.EventLoop;
+import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
 import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.entity.type.living.ArmorStandEntity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.entity.type.player.SessionPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
@@ -67,6 +70,12 @@ public class GeyserMockContextScoreboard {
 
         when(session.locale()).thenReturn("en_US");
 
+        // Tests act as if they are running on the session's event loop thread, so
+        // EntityCache's off-thread read guard should take the no-lock fast path.
+        var eventLoop = context.mock(EventLoop.class);
+        when(eventLoop.inEventLoop()).thenReturn(true);
+        when(session.getTickEventLoop()).thenReturn(eventLoop);
+
         doAnswer((Answer<Void>) invocation -> {
             context.addPacket(invocation.getArgument(0, BedrockPacket.class));
             return null;
@@ -84,7 +93,7 @@ public class GeyserMockContextScoreboard {
         var worldCache = context.spy(new WorldCache(session));
         when(session.getWorldCache()).thenReturn(worldCache);
 
-        var waypointCache = context.spy(new WaypointCache(session));
+        var waypointCache = context.mock(WaypointCache.class);
         when(session.getWaypointCache()).thenReturn(waypointCache);
 
         // disable global scoreboard updater
@@ -97,8 +106,21 @@ public class GeyserMockContextScoreboard {
         return player;
     }
 
+    public static ArmorStandEntity spawnArmorStand(GeyserMockContext context, long geyserId) {
+        var entitySpawnContext = EntitySpawnContext.DUMMY_CONTEXT.apply(context.session(), UUID.randomUUID(), VanillaEntities.ARMOR_STAND);
+        entitySpawnContext.geyserId(geyserId);
+        entitySpawnContext.javaId((int) geyserId);
+        var armorStand = spy(new ArmorStandEntity(entitySpawnContext));
+
+        var entityCache = context.mockOrSpy(EntityCache.class);
+        entityCache.spawnEntity(armorStand);
+
+        assertNextPacketType(context, AddEntityPacket.class);
+        return armorStand;
+    }
+
     public static PlayerEntity spawnPlayer(GeyserMockContext context, String username, long geyserId) {
-        EntitySpawnContext entitySpawnContext = EntitySpawnContext.DUMMY_CONTEXT.apply(context.session(), UUID.randomUUID(), EntityDefinitions.PLAYER);
+        EntitySpawnContext entitySpawnContext = EntitySpawnContext.DUMMY_CONTEXT.apply(context.session(), UUID.randomUUID(), VanillaEntities.PLAYER);
         entitySpawnContext.geyserId(geyserId);
         entitySpawnContext.javaId((int) geyserId);
         var playerEntity = spy(new PlayerEntity(entitySpawnContext, username, null));

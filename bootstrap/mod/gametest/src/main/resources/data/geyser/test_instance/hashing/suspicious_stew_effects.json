@@ -1,0 +1,21 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:suspicious_stew_effects",
+  "value": [
+    [],
+    [
+      {
+        "id": "minecraft:nausea"
+      }
+    ],
+    [
+      {
+        "id": "minecraft:speed"
+      },
+      {
+        "id": "minecraft:regeneration",
+        "duration": 100
+      }
+    ]
+  ]
+}

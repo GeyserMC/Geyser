@@ -1,0 +1,40 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:bundle_contents",
+  "value": [
+    [],
+    [
+      {
+        "id": "minecraft:bowl"
+      }
+    ],
+    [
+      {
+        "id": "minecraft:leather",
+        "count": 15
+      },
+      {
+        "id": "minecraft:diamond",
+        "count": 50
+      }
+    ],
+    [
+      {
+        "id": "minecraft:stick"
+      },
+      {
+        "id": "minecraft:oak_log",
+        "count": 30
+      },
+      {
+        "id": "minecraft:porkchop",
+        "count": 15,
+        "components": {
+          "!minecraft:food": {},
+          "!minecraft:consumable": {},
+          "minecraft:max_stack_size": 16
+        }
+      }
+    ]
+  ]
+}

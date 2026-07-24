@@ -47,8 +47,8 @@ public class AgeableEntity extends CreatureEntity {
         setScale(isBaby ? getBabySize() : getAdultSize());
         setFlag(EntityFlag.BABY, isBaby);
 
-        setBoundingBoxHeight(definition.height() * (isBaby ? getBabySize() : getAdultSize()));
-        setBoundingBoxWidth(definition.width() * (isBaby ? getBabySize() : getAdultSize()));
+        setBoundingBoxHeight(javaDefinition.height() * (isBaby ? getBabySize() : getAdultSize()));
+        setBoundingBoxWidth(javaDefinition.width() * (isBaby ? getBabySize() : getAdultSize()));
     }
 
     /**
@@ -62,7 +62,7 @@ public class AgeableEntity extends CreatureEntity {
      * The scale that should be used when this entity is a baby.
      */
     protected float getBabySize() {
-        return 0.55f;
+        return 0.5f;
     }
 
     public boolean isBaby() {

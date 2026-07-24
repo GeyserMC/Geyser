@@ -19,6 +19,7 @@ rootProject.name = "geyser-parent"
 include(":ap")
 include(":api")
 include(":isolation")
+include(":gametest")
 include(":core")
 
 //todo probably needs to be added to the isolated platforms
@@ -30,6 +31,8 @@ project(":standalone").projectDir = file("bootstrap/standalone")
 
 include(":mod")
 project(":mod").projectDir = file("bootstrap/mod")
+project(":gametest").projectDir = file("bootstrap/mod/gametest")
+
 //todo see what's possible with fabric
 include(":fabric")
 project(":fabric").projectDir = file("bootstrap/mod/fabric")
@@ -45,4 +48,9 @@ arrayOf("bungeecord", "spigot", "velocity").forEach { platform ->
         include(id)
         project(id).projectDir = file("bootstrap/$platform/$it")
     }
+}
+
+// Allow to download JVMs for toolchains
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version ("1.0.0")
 }

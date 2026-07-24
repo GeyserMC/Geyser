@@ -17,7 +17,7 @@ indra {
     mitLicense()
 
     javaVersions {
-        target(17)
+        target(21)
     }
 }
 

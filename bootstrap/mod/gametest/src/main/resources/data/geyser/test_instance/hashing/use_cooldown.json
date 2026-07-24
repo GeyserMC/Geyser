@@ -1,0 +1,17 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:use_cooldown",
+  "value": [
+    {
+      "seconds": 5.0
+    },
+    {
+      "seconds": 99.0,
+      "cooldown_group": "minecraft:stone"
+    },
+    {
+      "seconds": 42.1,
+      "cooldown_group": "geyser:the_cool_items"
+    }
+  ]
+}

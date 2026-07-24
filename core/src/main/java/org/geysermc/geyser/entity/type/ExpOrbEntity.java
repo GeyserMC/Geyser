@@ -32,6 +32,6 @@ public class ExpOrbEntity extends Entity {
 
     public ExpOrbEntity(EntitySpawnContext context) {
         super(context);
-        this.dirtyMetadata.put(EntityDataTypes.TRADE_EXPERIENCE, 1);
+        this.metadata.put(EntityDataTypes.TRADE_EXPERIENCE, 1);
     }
 }

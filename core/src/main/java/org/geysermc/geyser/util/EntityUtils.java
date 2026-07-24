@@ -29,10 +29,30 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.math.vector.Vector3f;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
+import org.geysermc.geyser.api.entity.definition.GeyserEntityDefinition;
+import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserFloatEntityProperty;
+import org.geysermc.geyser.api.entity.property.type.GeyserStringEnumProperty;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntitiesEvent;
+import org.geysermc.geyser.api.event.lifecycle.GeyserDefineEntityPropertiesEvent;
+import org.geysermc.geyser.api.util.Identifier;
+import org.geysermc.geyser.entity.BedrockEntityDefinition;
+import org.geysermc.geyser.entity.CustomBedrockEntityDefinition;
+import org.geysermc.geyser.entity.GeyserEntityType;
+import org.geysermc.geyser.entity.VanillaEntities;
+import org.geysermc.geyser.entity.properties.type.BooleanProperty;
+import org.geysermc.geyser.entity.properties.type.EnumProperty;
+import org.geysermc.geyser.entity.properties.type.FloatProperty;
+import org.geysermc.geyser.entity.properties.type.IntProperty;
+import org.geysermc.geyser.entity.properties.type.PropertyType;
+import org.geysermc.geyser.entity.properties.type.StringEnumProperty;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.entity.type.ChestBoatEntity;
 import org.geysermc.geyser.entity.type.Entity;
@@ -43,6 +63,7 @@ import org.geysermc.geyser.entity.type.living.animal.HappyGhastEntity;
 import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
@@ -53,10 +74,19 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.player.Hand;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.type.EntityType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.Equippable;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public final class EntityUtils {
+
+    private static final AtomicInteger RUNTIME_ID_ALLOCATOR = new AtomicInteger(100000);
+
     /**
      * A constant array of the two hands that a player can interact with an entity.
      */
@@ -81,7 +111,7 @@ public final class EntityUtils {
 
         float height = mount.getBoundingBoxHeight();
         float mountedHeightOffset = height * 0.75f;
-        switch (mount.getDefinition().entityType()) {
+        switch (mount.getEntityType()) {
             case CAMEL -> {
                 boolean isBaby = mount.getFlag(EntityFlag.BABY);
                 mountedHeightOffset = height - (isBaby ? 0.35f : 0.6f);
@@ -108,7 +138,7 @@ public final class EntityUtils {
 
     private static float getHeightOffset(Entity passenger) {
         boolean isBaby;
-        switch (passenger.getDefinition().entityType()) {
+        switch (passenger.getEntityType()) {
             case ALLAY, VEX:
                 return 0.4f;
             case SKELETON, STRAY, WITHER_SKELETON:
@@ -133,7 +163,7 @@ public final class EntityUtils {
                 return -0.35f;
             case SHULKER:
                 Entity vehicle = passenger.getVehicle();
-                if (vehicle instanceof BoatEntity || vehicle.getDefinition() == EntityDefinitions.MINECART) {
+                if (vehicle instanceof BoatEntity || vehicle.getJavaDefinition() == VanillaEntities.MINECART) {
                     return 0.1875f - getMountedHeightOffset(vehicle);
                 }
         }
@@ -156,7 +186,7 @@ public final class EntityUtils {
             float xOffset = 0;
             float yOffset = mountedHeightOffset + heightOffset;
             float zOffset = 0;
-            switch (mount.getDefinition().entityType()) {
+            switch (mount.getEntityType()) {
                 case CAMEL -> {
                     zOffset = 0.5f;
                     if (passengers > 1) {
@@ -225,26 +255,26 @@ public final class EntityUtils {
              * Horses are tinier
              * Players, Minecarts, and Boats have different origins
              */
-            if (mount.getDefinition().entityType() == EntityType.PLAYER) {
-                yOffset -= EntityDefinitions.PLAYER.offset();
+            if (mount.getJavaDefinition() == VanillaEntities.PLAYER) {
+                yOffset -= VanillaEntities.PLAYER.offset();
             }
-            if (passenger.getDefinition().entityType() == EntityType.PLAYER) {
-                yOffset += EntityDefinitions.PLAYER.offset();
+            if (passenger.getJavaDefinition() == VanillaEntities.PLAYER) {
+                yOffset += VanillaEntities.PLAYER.offset();
             }
-            switch (mount.getDefinition().entityType()) {
+            switch (mount.getEntityType()) {
                 case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
-                        COMMAND_BLOCK_MINECART -> yOffset -= mount.getDefinition().height() * 0.5f;
+                        COMMAND_BLOCK_MINECART -> yOffset -= mount.getJavaDefinition().height() * 0.5f;
             }
-            switch (passenger.getDefinition().entityType()) {
+            switch (passenger.getEntityType()) {
                 case MINECART, HOPPER_MINECART, TNT_MINECART, CHEST_MINECART, FURNACE_MINECART, SPAWNER_MINECART,
-                     COMMAND_BLOCK_MINECART, SHULKER -> yOffset += passenger.getDefinition().height() * 0.5f;
+                     COMMAND_BLOCK_MINECART, SHULKER -> yOffset += passenger.getJavaDefinition().height() * 0.5f;
                 case FALLING_BLOCK -> yOffset += 0.995f;
             }
             if (mount instanceof BoatEntity) {
-                yOffset -= mount.getDefinition().height() * 0.5f;
+                yOffset -= mount.getJavaDefinition().height() * 0.5f;
             }
             if (passenger instanceof BoatEntity) {
-                yOffset += passenger.getDefinition().height() * 0.5f;
+                yOffset += passenger.getJavaDefinition().height() * 0.5f;
             }
             if (mount instanceof ArmorStandEntity armorStand) {
                 yOffset -= armorStand.getYOffset();
@@ -256,15 +286,15 @@ public final class EntityUtils {
     public static void updateRiderRotationLock(Entity passenger, Entity mount, boolean isRiding) {
         if (isRiding && mount instanceof BoatEntity) {
             // Head rotation is locked while riding in a boat
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, true);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, -90f);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, true);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 90f);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, true);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, -90f);
         } else {
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 0f);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, false);
-            passenger.getDirtyMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 0f);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION, false);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_LOCK_RIDER_ROTATION_DEGREES, 0f);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_HAS_ROTATION, false);
+            passenger.getMetadata().put(EntityDataTypes.SEAT_ROTATION_OFFSET_DEGREES, 0f);
         }
     }
 
@@ -315,25 +345,24 @@ public final class EntityUtils {
         return translatedEntityName(type.namespace(), type.value(), session);
     }
 
-    public static String translatedEntityName(@Nullable EntityType type, @NonNull GeyserSession session) {
-        if (type == EntityType.PLAYER) {
+    public static String translatedEntityName(@Nullable GeyserEntityType type, @NonNull GeyserSession session) {
+        // default fallback value as used in Minecraft Java
+        if (type == null || type.isUnregistered()) {
+            return "entity.unregistered_sadface";
+        } else if (type.is(EntityType.PLAYER)) {
             return "Player"; // the player's name is always shown instead
         }
-        // default fallback value as used in Minecraft Java
-        if (type == null) {
-            return "entity.unregistered_sadface";
-        }
         // this works at least with all 1.20.5 entities, except the killer bunny since that's not an entity type.
-        String typeName = type.name().toLowerCase(Locale.ROOT);
-        return translatedEntityName("minecraft", typeName, session);
+        Identifier typeName = type.identifier();
+        return translatedEntityName(typeName.namespace(), typeName.path(), session);
     }
 
-    public static boolean equipmentUsableByEntity(GeyserSession session, Equippable equippable, EntityType entity) {
+    public static boolean equipmentUsableByEntity(GeyserSession session, Equippable equippable, GeyserEntityType entity) {
         if (equippable.allowedEntities() == null) {
             return true;
         }
 
-        GeyserHolderSet<EntityType> holderSet = GeyserHolderSet.fromHolderSet(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
+        GeyserHolderSet<GeyserEntityType> holderSet = GeyserHolderSet.fromHolderSet(JavaRegistries.ENTITY_TYPE, equippable.allowedEntities());
         return holderSet.contains(session, entity);
     }
 
@@ -345,6 +374,151 @@ public final class EntityUtils {
                 (long) uuid[2] << 32 | ((long) uuid[3] & 0xFFFFFFFFL));
         }
         return null;
+    }
+
+    public static void callEntityEvents() {
+        // entities would be initialized before these events are called
+        List<CustomBedrockEntityDefinition> customEntities = new ArrayList<>();
+        GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntitiesEvent() {
+
+            @Override
+            public @NonNull Collection<GeyserEntityDefinition> entities() {
+                return Collections.unmodifiableCollection(Registries.BEDROCK_ENTITY_DEFINITIONS.get().values());
+            }
+
+            @Override
+            public @NonNull Collection<CustomEntityDefinition> customEntities() {
+                return Collections.unmodifiableCollection(customEntities);
+            }
+
+            @Override
+            public void register(@NonNull CustomEntityDefinition entityDefinition) {
+                Objects.requireNonNull(entityDefinition);
+                if (!(entityDefinition instanceof CustomBedrockEntityDefinition bedrockEntityDefinition)) {
+                    throw new IllegalArgumentException("Only CustomBedrockEntityDefinition instances may be registered. Use CustomEntityDefinition.of() to create one. Found: " + entityDefinition.getClass().getSimpleName());
+                }
+                if (entityDefinition.registered()) {
+                    throw new IllegalStateException("Duplicate custom entity definition: " + entityDefinition.identifier());
+                }
+                Registries.BEDROCK_ENTITY_DEFINITIONS.register(bedrockEntityDefinition.identifier(), bedrockEntityDefinition);
+                customEntities.add(bedrockEntityDefinition);
+            }
+        });
+
+        if (!customEntities.isEmpty()) {
+            NbtMap nbt = Registries.BEDROCK_ENTITY_IDENTIFIERS.get();
+            List<NbtMap> idlist = new ArrayList<>(nbt.getList("idlist", NbtType.COMPOUND));
+
+            for (BedrockEntityDefinition definition : customEntities) {
+                idlist.add(NbtMap.builder()
+                    .putBoolean("hasSpawnEgg", false)
+                    .putString("id", definition.identifier().toString())
+                    .putBoolean("summonable", true)
+                    .putString("bid", "")
+                    .putInt("rid", RUNTIME_ID_ALLOCATOR.getAndIncrement())
+                    .putBoolean("experimental", false)
+                    .build());
+                GeyserImpl.getInstance().getLogger().debug("Registered custom entity " + definition.identifier());
+            }
+
+            NbtMap newIdentifiers = nbt.toBuilder()
+                .putList("idlist", NbtType.COMPOUND, idlist)
+                .build();
+
+            Registries.BEDROCK_ENTITY_IDENTIFIERS.set(newIdentifiers);
+            if (!customEntities.isEmpty()) {
+                GeyserImpl.getInstance().getLogger().info("Registered " + customEntities.size() + " custom entities");
+            }
+        }
+
+        GeyserImpl.getInstance().getEventBus().fire(new GeyserDefineEntityPropertiesEvent() {
+            @Override
+            public @NonNull GeyserFloatEntityProperty registerFloatProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, float min, float max, @Nullable Float defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                FloatProperty property = new FloatProperty(propertyId, max, min, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public @NonNull IntProperty registerIntegerProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, int min, int max, @Nullable Integer defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                IntProperty property = new IntProperty(propertyId, max, min, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public @NonNull BooleanProperty registerBooleanProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, boolean defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                BooleanProperty property = new BooleanProperty(propertyId, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public <E extends Enum<E>> @NonNull EnumProperty<E> registerEnumProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, @NonNull Class<E> enumClass, @Nullable E defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                Objects.requireNonNull(enumClass);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                EnumProperty<E> property = new EnumProperty<>(propertyId, enumClass, defaultValue == null ? enumClass.getEnumConstants()[0] : defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public @NonNull GeyserStringEnumProperty registerEnumProperty(@NonNull Identifier identifier, @NonNull Identifier propertyId, @NonNull List<String> values, @Nullable String defaultValue) {
+                Objects.requireNonNull(identifier);
+                Objects.requireNonNull(propertyId);
+                Objects.requireNonNull(values);
+                if (propertyId.vanilla()) {
+                    throw new IllegalArgumentException("Cannot register custom property in vanilla namespace! " + propertyId);
+                }
+                StringEnumProperty property = new StringEnumProperty(propertyId, values, defaultValue);
+                registerProperty(identifier, property);
+                return property;
+            }
+
+            @Override
+            public @NonNull Collection<GeyserEntityProperty<?>> properties(@NonNull Identifier identifier) {
+                Objects.requireNonNull(identifier);
+                var definition = Registries.BEDROCK_ENTITY_DEFINITIONS.get(identifier);
+                if (definition == null) {
+                    throw new IllegalArgumentException("Unknown entity type: " + identifier);
+                }
+                return List.copyOf(definition.registeredProperties().getProperties());
+            }
+        });
+
+        for (var definition : Registries.BEDROCK_ENTITY_DEFINITIONS.get().values()) {
+            if (!definition.registeredProperties().isEmpty()) {
+                Registries.BEDROCK_ENTITY_PROPERTIES.get().add(definition.registeredProperties().toNbtMap(definition.identifier().toString()));
+            }
+        }
+    }
+
+    private static <T> void registerProperty(Identifier entityType, PropertyType<T, ?> property) {
+        var definition = Registries.BEDROCK_ENTITY_DEFINITIONS.get(entityType);
+        if (definition == null) {
+            throw new IllegalArgumentException("Unknown entity type: " + entityType);
+        }
+
+        definition.registeredProperties().add(entityType.toString(), property);
     }
 
     private EntityUtils() {

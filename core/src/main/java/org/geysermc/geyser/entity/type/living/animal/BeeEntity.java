@@ -30,9 +30,9 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityEventType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.packet.EntityEventPacket;
+import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.properties.type.BooleanProperty;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
-import org.geysermc.geyser.impl.IdentifierImpl;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.session.cache.tags.ItemTag;
 import org.geysermc.geyser.session.cache.tags.Tag;
@@ -42,7 +42,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.LongEn
 public class BeeEntity extends AnimalEntity {
 
     public static final BooleanProperty NECTAR_PROPERTY = new BooleanProperty(
-        IdentifierImpl.of("has_nectar"),
+        Identifier.of("has_nectar"),
         false
     );
 
@@ -61,7 +61,7 @@ public class BeeEntity extends AnimalEntity {
             session.sendUpstreamPacket(packet);
         }
         // If the bee has stung
-        dirtyMetadata.put(EntityDataTypes.MARK_VARIANT, (xd & 0x04) == 0x04 ? 1 : 0);
+        metadata.put(EntityDataTypes.MARK_VARIANT, (xd & 0x04) == 0x04 ? 1 : 0);
         // If the bee has nectar or not
         NECTAR_PROPERTY.apply(propertyManager, (xd & 0x08) == 0x08);
         updateBedrockEntityProperties();
@@ -70,7 +70,7 @@ public class BeeEntity extends AnimalEntity {
     public void setAngerTime(LongEntityMetadata entityMetadata) {
         // Converting "anger time" to a boolean
         long time = entityMetadata.getPrimitiveValue();
-        setFlag(EntityFlag.ANGRY, time > 0 && time - session.getWorldTicks() > 0);
+        setFlag(EntityFlag.ANGRY, time > 0 && time - session.getGameTicks() > 0);
     }
 
     @Override

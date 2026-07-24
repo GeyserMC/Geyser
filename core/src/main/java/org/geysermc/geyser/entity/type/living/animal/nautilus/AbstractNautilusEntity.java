@@ -62,7 +62,7 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
         super(context);
         this.vehicleComponent = new NautilusVehicleComponent(this, 0.0f, defSpeed);
 
-        dirtyMetadata.put(EntityDataTypes.CONTAINER_SIZE, 2);
+        metadata.put(EntityDataTypes.CONTAINER_SIZE, 2);
         setFlag(EntityFlag.WASD_CONTROLLED, true);
     }
 
@@ -167,8 +167,8 @@ public abstract class AbstractNautilusEntity extends TameableEntity implements C
     }
 
     @Override
-    public boolean isClientControlled() {
-        return getFlag(EntityFlag.SADDLED) && !this.passengers.isEmpty() && this.passengers.get(0) == session.getPlayerEntity();
+    public boolean shouldSimulateMovement() {
+        return getFlag(EntityFlag.SADDLED) && !this.passengers.isEmpty() && this.passengers.getFirst() == session.getPlayerEntity();
     }
 
     @Override

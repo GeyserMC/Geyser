@@ -1,0 +1,53 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:container",
+  "value": [
+    [],
+    [
+      {
+        "slot": 0,
+        "item": {
+          "id": "minecraft:charcoal"
+        }
+      }
+    ],
+    [
+      {
+        "slot": 0,
+        "item": {
+          "id": "minecraft:diamond",
+          "count": 56
+        }
+      },
+      {
+        "slot": 1,
+        "item": {
+          "id": "minecraft:emerald",
+          "count": 48
+        }
+      },
+      {
+        "slot": 25,
+        "item": {
+          "id": "minecraft:diamond_pickaxe",
+          "components": {
+            "minecraft:damage": 156
+          }
+        }
+      },
+      {
+        "slot": 15,
+        "item": {
+          "id": "minecraft:poppy",
+          "count": 35,
+          "components": {
+            "minecraft:custom_name": {
+              "text": "Rose",
+              "italic": false
+            }
+          }
+        }
+      }
+    ]
+  ]
+}

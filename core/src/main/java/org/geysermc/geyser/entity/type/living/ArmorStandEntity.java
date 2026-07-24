@@ -32,7 +32,7 @@ import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataType;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
-import org.geysermc.geyser.entity.EntityDefinitions;
+import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.LivingEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
@@ -56,8 +56,6 @@ public class ArmorStandEntity extends LivingEntity {
     private boolean isInvisible = false;
     @Getter
     private boolean isSmall = false;
-
-    private boolean isNameTagVisible = false;
 
     /**
      * On Java Edition, armor stands always show their name. Invisibility hides the name on Bedrock.
@@ -92,11 +90,9 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void spawnEntity() {
-        Vector3f javaPosition = position;
         // Apply the offset if we're the second entity
-        position = position.up(getYOffset());
+        setOffset(getYOffset());
         super.spawnEntity();
-        position = javaPosition;
     }
 
     @Override
@@ -109,7 +105,7 @@ public class ArmorStandEntity extends LivingEntity {
 
     @Override
     public void moveRelativeRaw(double relX, double relY, double relZ, float yaw, float pitch, float headYaw, boolean isOnGround) {
-        moveAbsoluteRaw(position.add(relX, relY, relZ), yaw, pitch, headYaw, onGround, false);
+        moveAbsoluteRaw(position.add(relX, relY, relZ), yaw, pitch, headYaw, isOnGround, false);
     }
 
     @Override
@@ -118,20 +114,19 @@ public class ArmorStandEntity extends LivingEntity {
             secondEntity.moveAbsoluteRaw(position, yaw, pitch, headYaw, isOnGround, teleported);
         }
         // Fake the height to be above where it is so the nametag appears in the right location
-        float yOffset = getYOffset();
-        super.moveAbsoluteRaw(yOffset != 0 ? position.up(yOffset) : position , yaw, yaw, yaw, isOnGround, teleported);
-        this.position = position;
+        setOffset(getYOffset());
+        super.moveAbsoluteRaw(position, yaw, yaw, yaw, isOnGround, teleported);
     }
 
     @Override
     public void updateNametag(@Nullable Team team) {
         // unlike all other LivingEntities, armor stands are not affected by team nametag visibility
-        super.updateNametag(team, true);
+        super.updateNametag(team, passengers.isEmpty());
     }
 
     @Override
-    public void setDisplayName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
-        super.setDisplayName(entityMetadata);
+    public void setCustomName(EntityMetadata<Optional<Component>, ?> entityMetadata) {
+        super.setCustomName(entityMetadata);
         updateSecondEntityStatus(false);
     }
 
@@ -155,8 +150,8 @@ public class ArmorStandEntity extends LivingEntity {
                 setBoundingBoxWidth(0.0f);
                 setBoundingBoxHeight(0.0f);
             } else {
-                setBoundingBoxWidth(definition.width());
-                setBoundingBoxHeight(definition.height());
+                setBoundingBoxWidth(javaDefinition.width());
+                setBoundingBoxHeight(javaDefinition.height());
             }
 
             updateMountOffset();
@@ -225,7 +220,7 @@ public class ArmorStandEntity extends LivingEntity {
         // We don't do this for the negative values out of concerns of the number being too big
         int topBit = (Math.abs(rotationX) >= 100 ? 4 : 0) + (Math.abs(rotationY) >= 100 ? 2 : 0) + (Math.abs(rotationZ) >= 100 ? 1 : 0);
         int value = (topBit * 1000000) + ((Math.abs(rotationX) % 100) * 10000) + ((Math.abs(rotationY) % 100) * 100) + (Math.abs(rotationZ) % 100);
-        dirtyMetadata.put(dataLeech, value);
+        metadata.put(dataLeech, value);
         // Set the entity flags if a value is negative
         setFlag(negativeXToggle, rotationX < 0);
         setFlag(negativeYToggle, rotationY < 0);
@@ -300,9 +295,8 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
-    public void setDisplayNameVisible(BooleanEntityMetadata entityMetadata) {
-        super.setDisplayNameVisible(entityMetadata);
-        isNameTagVisible = entityMetadata.getPrimitiveValue();
+    public void setCustomNameVisible(BooleanEntityMetadata entityMetadata) {
+        super.setCustomNameVisible(entityMetadata);
         updateSecondEntityStatus(false);
     }
 
@@ -341,23 +335,23 @@ public class ArmorStandEntity extends LivingEntity {
             if (secondEntity == null) {
                 // Create the second entity. It doesn't need to worry about the items, but it does need to worry about
                 // the metadata as it will hold the name tag.
-                secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, EntityDefinitions.ARMOR_STAND, this, position));
+                secondEntity = new ArmorStandEntity(EntitySpawnContext.inherited(session, VanillaEntities.ARMOR_STAND, this, position()));
                 secondEntity.primaryEntity = false;
             }
             // Copy metadata
             secondEntity.isSmall = isSmall;
             secondEntity.isMarker = isMarker;
             secondEntity.positionRequiresOffset = true; // Offset should always be applied
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.NAME, nametag);
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, isNameTagVisible ? (byte) 1 : (byte) 0);
+            secondEntity.getMetadata().put(EntityDataTypes.NAME, nametag);
+            secondEntity.getMetadata().put(EntityDataTypes.NAMETAG_ALWAYS_SHOW, customNameVisible ? (byte) 1 : (byte) 0);
             secondEntity.flags.putAll(this.flags);
             // Guarantee this copy is NOT invisible
             secondEntity.setFlag(EntityFlag.INVISIBLE, false);
             // Scale to 0 to show nametag
             secondEntity.setScale(0f);
             // No bounding box as we don't want to interact with this entity
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.WIDTH, 0.0f);
-            secondEntity.getDirtyMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
+            secondEntity.getMetadata().put(EntityDataTypes.WIDTH, 0.0f);
+            secondEntity.getMetadata().put(EntityDataTypes.HEIGHT, 0.0f);
             if (!secondEntity.valid) { // Spawn the entity once
                 secondEntity.spawnEntity();
             }
@@ -418,13 +412,13 @@ public class ArmorStandEntity extends LivingEntity {
         if (!positionRequiresOffset || isMarker || secondEntity != null) {
             return 0;
         }
-        return definition.height() * getScale();
+        return javaDefinition.height() * getScale();
     }
 
     /**
      * @return the scale according to Java
      */
-    private float getScale() {
+    public float getScale() {
         return isSmall ? 0.5f : 1f;
     }
 
@@ -441,7 +435,7 @@ public class ArmorStandEntity extends LivingEntity {
     }
 
     @Override
-    public Vector3f getBedrockRotation() {
+    public Vector3f bedrockRotation() {
         return Vector3f.from(getYaw(), getYaw(), getYaw());
     }
 }

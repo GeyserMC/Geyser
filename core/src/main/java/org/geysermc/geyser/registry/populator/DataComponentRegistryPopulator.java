@@ -35,12 +35,19 @@ import io.netty.buffer.Unpooled;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.item.components.resolvable.ResolvableComponent;
+import org.geysermc.geyser.item.components.resolvable.ResolvableHolderComponent;
+import org.geysermc.geyser.item.components.resolvable.ResolvableHolderReferenceComponent;
+import org.geysermc.geyser.item.components.resolvable.ResolvableHolderSetComponent;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.codec.MinecraftTypes;
+import org.geysermc.mcprotocollib.protocol.data.game.Holder;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponent;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponents;
+import org.geysermc.mcprotocollib.protocol.data.game.item.component.HolderSet;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -54,7 +61,7 @@ import java.util.Map;
  */
 public final class DataComponentRegistryPopulator {
 
-    public static void populate() {
+    public static void load() {
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
         List<DataComponents> defaultComponents;
         try (InputStream stream = bootstrap.getResourceOrThrow("mappings/item_data_components.json")) {
@@ -87,6 +94,41 @@ public final class DataComponentRegistryPopulator {
             throw new AssertionError("Unable to load or parse components", e);
         }
 
+        List<List<ResolvableComponent<?>>> resolvableComponents;
+        try (InputStream stream = bootstrap.getResourceOrThrow("mappings/resolvable_item_data_components.json")) {
+            //noinspection deprecation
+            JsonElement rootElement = new JsonParser().parse(new InputStreamReader(stream));
+            JsonArray items = rootElement.getAsJsonObject().get("value").getAsJsonArray();
+
+            resolvableComponents = new ObjectArrayList<>(items.size());
+
+            for (JsonElement item : items) {
+                JsonArray itemComponentArray = item.getAsJsonArray();
+                List<ResolvableComponent<?>> itemComponents = new ObjectArrayList<>(itemComponentArray.size());
+                for (JsonElement component : itemComponentArray) {
+                    itemComponents.add(parseComponent(component.getAsJsonObject()));
+                }
+                resolvableComponents.add(itemComponents);
+            }
+        } catch (Exception e) {
+            throw new AssertionError("Unable to load or parse resolvable components", e);
+        }
+
         Registries.DEFAULT_DATA_COMPONENTS.set(defaultComponents);
+        Registries.RESOLVABLE_DEFAULT_DATA_COMPONENTS.set(resolvableComponents);
+    }
+
+    private static ResolvableComponent<?> parseComponent(JsonObject object) {
+        String type = object.get("type").getAsString();
+        DataComponentType<?> component = DataComponentTypes.fromKey(MinecraftKey.key(object.get("component").getAsString()));
+        return switch (type) {
+            case "holder" -> {
+                boolean allowsDirectOverNetwork = object.get("allows_direct_over_network").getAsBoolean();
+                yield allowsDirectOverNetwork ? ResolvableHolderComponent.parse((DataComponentType<Holder<?>>) component, object)
+                    : ResolvableHolderReferenceComponent.parse((DataComponentType<Integer>) component, object);
+            }
+            case "holder_set" -> ResolvableHolderSetComponent.parse((DataComponentType<HolderSet>) component, object);
+            default -> throw new IllegalStateException("Don't know how to parse resolvable component of type " + type);
+        };
     }
 }

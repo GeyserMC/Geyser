@@ -1,0 +1,13 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:container_loot",
+  "value": [
+    {
+      "loot_table": "minecraft:blocks/stone"
+    },
+    {
+      "loot_table": "minecraft:blocks/coal_ore",
+      "seed": 15
+    }
+  ]
+}

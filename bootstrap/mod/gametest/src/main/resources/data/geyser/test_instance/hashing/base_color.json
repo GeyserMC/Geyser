@@ -1,0 +1,12 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:base_color",
+  "value": [
+    "red",
+    "orange",
+    "yellow",
+    "green",
+    "blue",
+    "purple"
+  ]
+}

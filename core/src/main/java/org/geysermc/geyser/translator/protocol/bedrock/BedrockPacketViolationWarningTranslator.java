@@ -26,6 +26,7 @@
 package org.geysermc.geyser.translator.protocol.bedrock;
 
 import org.cloudburstmc.protocol.bedrock.packet.PacketViolationWarningPacket;
+import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
@@ -36,6 +37,35 @@ public class BedrockPacketViolationWarningTranslator extends PacketTranslator<Pa
     @Override
     public void translate(GeyserSession session, PacketViolationWarningPacket packet) {
         // Not translated since this is something that the developers need to know
-        session.getGeyser().getLogger().error("Packet violation warning sent from client (%s): %s".formatted(session.bedrockUsername(), packet));
+        GeyserLogger logger = session.getGeyser().getLogger();
+        if (logger.isDebug()) {
+            logger.error("Packet violation warning sent from client (%s): %s".formatted(session.bedrockUsername(), packet));
+            return;
+        }
+
+        String message = packet.getContext();
+        if (message.length() > 100) {
+            message = message.substring(0, 97) + "...";
+        }
+
+        logger.warning("Received packet violation warning (type: %s, severity: %s, packetCauseId: %s) from client (%s): %s! Enable debug mode for the full message.".formatted(packet.getType(),
+            packet.getSeverity(), packet.getPacketCauseId(), session.bedrockUsername(), sanitize(message)));
+        session.disconnect("An error occurred! Please contact an administrator.");
+    }
+
+    private static String sanitize(String message) {
+        char[] input = message.toCharArray();
+        StringBuilder output = new StringBuilder(input.length);
+        for (int i = 0; i < input.length; i++) {
+            char c = input[i];
+            if (c == '§') { // ChatColor.ESCAPE
+                i++;
+                continue;
+            }
+            if (c >= 32 && c <= 126) {
+                output.append(c);
+            }
+        }
+        return output.toString();
     }
 }

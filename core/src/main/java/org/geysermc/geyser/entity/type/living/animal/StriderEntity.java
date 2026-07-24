@@ -176,7 +176,7 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
     }
 
     private @Nullable PlayerEntity getPlayerPassenger() {
-        if (getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.get(0) instanceof PlayerEntity playerEntity) {
+        if (getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.getFirst() instanceof PlayerEntity playerEntity) {
             return playerEntity;
         }
 
@@ -184,7 +184,7 @@ public class StriderEntity extends AnimalEntity implements Tickable, ClientVehic
     }
 
     @Override
-    public boolean isClientControlled() {
+    public boolean shouldSimulateMovement() {
         return getPlayerPassenger() == session.getPlayerEntity() && session.getPlayerInventory().isHolding(Items.WARPED_FUNGUS_ON_A_STICK);
     }
 

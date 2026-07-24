@@ -36,11 +36,12 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.entity.type.living.animal.FrogEntity;
 import org.geysermc.geyser.entity.type.living.animal.VariantHolder;
 import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
+import org.geysermc.geyser.entity.type.living.animal.nautilus.ZombieNautilusEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.CatEntity;
 import org.geysermc.geyser.entity.type.living.animal.tameable.WolfEntity;
 import org.geysermc.geyser.inventory.item.BannerPattern;
 import org.geysermc.geyser.inventory.item.GeyserInstrument;
-import org.geysermc.geyser.inventory.recipe.TrimRecipe;
+import org.geysermc.geyser.inventory.recipe.TrimRecipes;
 import org.geysermc.geyser.item.enchantment.Enchantment;
 import org.geysermc.geyser.level.JavaDimension;
 import org.geysermc.geyser.level.JukeboxSong;
@@ -57,6 +58,7 @@ import org.geysermc.geyser.session.cache.registry.SimpleJavaRegistry;
 import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.text.ChatDecoration;
 import org.geysermc.geyser.translator.level.BiomeTranslator;
+import org.geysermc.geyser.translator.protocol.java.entity.JavaDamageEventTranslator;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.MinecraftProtocol;
 import org.geysermc.mcprotocollib.protocol.data.game.RegistryEntry;
@@ -89,20 +91,25 @@ public final class RegistryCache implements JavaRegistryProvider {
         register(JavaRegistries.INSTRUMENT, GeyserInstrument::read);
         register(JavaRegistries.JUKEBOX_SONG, JukeboxSong::read);
         register(JavaRegistries.PAINTING_VARIANT, context -> PaintingType.getByName(context.id()));
-        register(JavaRegistries.TRIM_MATERIAL, TrimRecipe::readTrimMaterial);
-        register(JavaRegistries.TRIM_PATTERN, TrimRecipe::readTrimPattern);
-        register(JavaRegistries.DAMAGE_TYPE, RegistryReader.UNIT);
+        register(JavaRegistries.TRIM_MATERIAL, TrimRecipes::readTrimMaterial);
+        register(JavaRegistries.TRIM_PATTERN, TrimRecipes::readTrimPattern);
+        register(JavaRegistries.DAMAGE_TYPE, JavaDamageEventTranslator::readDamageCause);
         register(JavaRegistries.DIALOG, Dialog::readDialog);
+        register(JavaRegistries.WORLD_CLOCK, RegistryReader.UNIT);
 
         register(JavaRegistries.CAT_VARIANT, VariantHolder.reader(CatEntity.BuiltInVariant.class, CatEntity.BuiltInVariant.BLACK));
+        register(JavaRegistries.CAT_SOUND_VARIANT, RegistryReader.UNIT);
         register(JavaRegistries.FROG_VARIANT, VariantHolder.reader(FrogEntity.BuiltInVariant.class, FrogEntity.BuiltInVariant.TEMPERATE));
         register(JavaRegistries.WOLF_VARIANT, VariantHolder.reader(WolfEntity.BuiltInVariant.class, WolfEntity.BuiltInVariant.PALE));
         register(JavaRegistries.WOLF_SOUND_VARIANT, RegistryReader.UNIT);
 
         register(JavaRegistries.PIG_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
+        register(JavaRegistries.PIG_SOUND_VARIANT, RegistryReader.UNIT);
         register(JavaRegistries.COW_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
+        register(JavaRegistries.COW_SOUND_VARIANT, RegistryReader.UNIT);
         register(JavaRegistries.CHICKEN_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
-        register(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT, TemperatureVariantAnimal.VARIANT_READER);
+        register(JavaRegistries.CHICKEN_SOUND_VARIANT, RegistryReader.UNIT);
+        register(JavaRegistries.ZOMBIE_NAUTILUS_VARIANT, ZombieNautilusEntity.VARIANT_READER);
 
         // Load from MCProtocolLib's classloader
         NbtMap tag = MinecraftProtocol.loadNetworkCodec();
@@ -187,7 +194,7 @@ public final class RegistryCache implements JavaRegistryProvider {
                 entry = new RegistryEntry(entry.getId(), localRegistry.get(entry.getId()));
             }
 
-            RegistryEntryContext context = new RegistryEntryContext(entry, entryIdMap, Optional.of(session));
+            RegistryEntryContext context = new RegistryEntryContext(entry, key -> entryIdMap.getOrDefault(key, -1), Optional.of(session));
             // This is what Geyser wants to keep as a value for this registry.
             T cacheEntry = reader.read(context);
             if (cacheEntry == null) {

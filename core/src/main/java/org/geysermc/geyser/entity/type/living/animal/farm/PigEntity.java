@@ -136,7 +136,7 @@ public class PigEntity extends TemperatureVariantAnimal implements Tickable, Cli
     }
 
     private @Nullable PlayerEntity getPlayerPassenger() {
-        if (getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.get(0) instanceof PlayerEntity playerEntity) {
+        if (getFlag(EntityFlag.SADDLED) && !passengers.isEmpty() && passengers.getFirst() instanceof PlayerEntity playerEntity) {
             return playerEntity;
         }
 
@@ -144,7 +144,7 @@ public class PigEntity extends TemperatureVariantAnimal implements Tickable, Cli
     }
 
     @Override
-    public boolean isClientControlled() {
+    public boolean shouldSimulateMovement() {
         return getPlayerPassenger() == session.getPlayerEntity() && session.getPlayerInventory().isHolding(Items.CARROT_ON_A_STICK);
     }
 

@@ -1,0 +1,13 @@
+{
+  "type": "geyser:component_hash",
+  "component": "minecraft:provides_banner_patterns",
+  "value": [
+    "minecraft:square_bottom_left",
+    "minecraft:square_bottom_right",
+    "minecraft:cross",
+    "minecraft:curly_border",
+    "minecraft:gradient",
+    "minecraft:skull",
+    "minecraft:mojang"
+  ]
+}

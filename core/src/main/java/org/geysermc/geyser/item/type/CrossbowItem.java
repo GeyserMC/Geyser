@@ -29,7 +29,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.geysermc.geyser.item.TooltipOptions;
-import org.geysermc.geyser.registry.type.ItemMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.BedrockItemBuilder;
 import org.geysermc.geyser.translator.item.ItemTranslator;
@@ -50,7 +49,7 @@ public class CrossbowItem extends Item {
 
         List<ItemStack> chargedProjectiles = components.get(DataComponentTypes.CHARGED_PROJECTILES);
         if (chargedProjectiles != null && !chargedProjectiles.isEmpty()) {
-            ItemStack javaProjectile = chargedProjectiles.get(0);
+            ItemStack javaProjectile = chargedProjectiles.getFirst();
 
             ItemData itemData = ItemTranslator.translateToBedrock(session, javaProjectile);
             NbtMapBuilder newProjectile = BedrockItemBuilder.createItemNbt(itemData);

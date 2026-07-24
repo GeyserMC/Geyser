@@ -25,7 +25,9 @@
 
 package org.geysermc.geyser.impl;
 
+import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.util.MinecraftKey;
 
@@ -38,14 +40,18 @@ public record IdentifierImpl(Key identifier) implements Identifier {
         Objects.requireNonNull(value, "value cannot be null!");
         try {
             return new IdentifierImpl(MinecraftKey.key(namespace, value));
-        } catch (Throwable e) {
-            throw new IllegalArgumentException(e.getMessage());
+        } catch (InvalidKeyException exception) {
+            throw new IllegalArgumentException(exception);
         }
     }
 
-    // FIXME using the identifier interface from the API breaks tests
-    public static IdentifierImpl of(String value) {
-        return of(Identifier.DEFAULT_NAMESPACE, value);
+    public static IdentifierImpl parse(String value) {
+        Objects.requireNonNull(value, "value cannot be null!");
+        try {
+            return new IdentifierImpl(MinecraftKey.key(value));
+        } catch (InvalidKeyException exception) {
+            throw new IllegalArgumentException(exception);
+        }
     }
 
     @Override
@@ -59,7 +65,7 @@ public record IdentifierImpl(Key identifier) implements Identifier {
     }
 
     @Override
-    public String toString() {
+    public @NonNull String toString() {
         return identifier.toString();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 GeyserMC. http://geysermc.org
+ * Copyright (c) 2025-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,9 +25,8 @@
 
 package org.geysermc.geyser.api.event.lifecycle;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.event.Event;
+import org.geysermc.geyser.api.connection.GeyserConnection;
 import org.geysermc.geyser.api.entity.EntityData;
 import org.geysermc.geyser.api.entity.property.GeyserEntityProperty;
 import org.geysermc.geyser.api.entity.property.type.GeyserBooleanEntityProperty;
@@ -37,10 +36,10 @@ import org.geysermc.geyser.api.entity.property.type.GeyserIntEntityProperty;
 import org.geysermc.geyser.api.entity.property.type.GeyserStringEnumProperty;
 import org.geysermc.geyser.api.entity.type.GeyserEntity;
 import org.geysermc.geyser.api.util.Identifier;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Lifecycle event fired during Geyser's startup to allow custom entity properties
@@ -62,10 +61,9 @@ import java.util.function.Consumer;
  * }
  * }</pre>
  *
- * Retrieving entity instances is possible with the {@link EntityData#entityByJavaId(int)} method, or
- * {@link EntityData#playerEntity()} for the connection player entity.
- * To update the value of a property on a specific entity, use {@link GeyserEntity#updateProperty(GeyserEntityProperty, Object)},
- * or {@link GeyserEntity#updatePropertiesBatched(Consumer)} to update multiple properties efficiently at once.
+ * Retrieving entity instances is possible with, for example, the {@link EntityData#byJavaId(int)} method, or
+ * {@link GeyserConnection#playerEntity()} for the connection player entity.
+ * To update the value of a property on a specific entity, use {@link GeyserEntity#updateProperty(GeyserEntityProperty, Object)}.
  *
  * <p><b>Notes:</b>
  * <ul>
@@ -84,17 +82,17 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * so far for the given entity type. This includes entity properties used for vanilla gameplay,
      * such as those used for creaking animations.
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @return an unmodifiable collection of registered properties
      * 
      * @since 2.9.0
      */
-    Collection<GeyserEntityProperty<?>> properties(@NonNull Identifier entityType);
+    Collection<GeyserEntityProperty<?>> properties(Identifier entityType);
 
     /**
      * Registers a {@code float}-backed entity property.
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param min the minimum allowed value (inclusive)
      * @param max the maximum allowed value (inclusive)
@@ -103,13 +101,13 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * 
      * @since 2.9.0
      */
-    GeyserFloatEntityProperty registerFloatProperty(@NonNull Identifier entityType, @NonNull Identifier propertyIdentifier, float min, float max, @Nullable Float defaultValue);
+    GeyserFloatEntityProperty registerFloatProperty(Identifier entityType, Identifier propertyIdentifier, float min, float max, @Nullable Float defaultValue);
 
     /**
      * Registers a {@code float}-backed entity property with a default value set to the minimum value.
      * @see #registerFloatProperty(Identifier, Identifier, float, float, Float)
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param min the minimum allowed value (inclusive)
      * @param max the maximum allowed value (inclusive)
@@ -117,14 +115,14 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * 
      * @since 2.9.0
      */
-    default GeyserFloatEntityProperty registerFloatProperty(@NonNull Identifier entityType, @NonNull Identifier propertyIdentifier, float min, float max) {
+    default GeyserFloatEntityProperty registerFloatProperty(Identifier entityType, Identifier propertyIdentifier, float min, float max) {
         return registerFloatProperty(entityType, propertyIdentifier, min, max, null);
     }
 
     /**
      * Registers an {@code int}-backed entity property.
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param min the minimum allowed value (inclusive)
      * @param max the maximum allowed value (inclusive)
@@ -133,12 +131,12 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * 
      * @since 2.9.0
      */
-    GeyserIntEntityProperty registerIntegerProperty(@NonNull Identifier entityType, @NonNull Identifier propertyIdentifier, int min, int max, @Nullable Integer defaultValue);
+    GeyserIntEntityProperty registerIntegerProperty(Identifier entityType, Identifier propertyIdentifier, int min, int max, @Nullable Integer defaultValue);
 
     /**
      * Registers an {@code int}-backed entity property with a default value set to the minimum value.
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param min the minimum allowed value (inclusive)
      * @param max the maximum allowed value (inclusive)
@@ -146,32 +144,32 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * 
      * @since 2.9.0
      */
-    default GeyserIntEntityProperty registerIntegerProperty(@NonNull Identifier entityType, @NonNull Identifier propertyIdentifier, int min, int max) {
+    default GeyserIntEntityProperty registerIntegerProperty(Identifier entityType, Identifier propertyIdentifier, int min, int max) {
         return registerIntegerProperty(entityType, propertyIdentifier, min, max, null);
     }
 
     /**
      * Registers a {@code boolean}-backed entity property.
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param defaultValue the default boolean value
      * @return the created boolean property handle
      * 
      * @since 2.9.0
      */
-    GeyserBooleanEntityProperty registerBooleanProperty(@NonNull Identifier entityType, @NonNull Identifier propertyIdentifier, boolean defaultValue);
+    GeyserBooleanEntityProperty registerBooleanProperty(Identifier entityType, Identifier propertyIdentifier, boolean defaultValue);
 
     /**
      * Registers a {@code boolean}-backed entity property with a default of {@code false}.
      * @see #registerBooleanProperty(Identifier, Identifier, boolean)
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @return the created boolean property
      * @since 2.9.0
      */
-    default GeyserBooleanEntityProperty registerBooleanProperty(@NonNull Identifier entityType, @NonNull Identifier propertyIdentifier) {
+    default GeyserBooleanEntityProperty registerBooleanProperty(Identifier entityType, Identifier propertyIdentifier) {
         return registerBooleanProperty(entityType, propertyIdentifier, false);
     }
 
@@ -182,7 +180,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * the first enum value is set as the default.
      * @see GeyserEnumEntityProperty for further limitations
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param enumClass the enum class that defines allowed values
      * @param defaultValue the default enum value, or {@code null} for the first enum value to be the default
@@ -191,13 +189,13 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * 
      * @since 2.9.0
      */
-    <E extends Enum<E>> GeyserEnumEntityProperty<E> registerEnumProperty(@NonNull Identifier entityType, @NonNull Identifier propertyIdentifier, @NonNull Class<E> enumClass, @Nullable E defaultValue);
+    <E extends Enum<E>> GeyserEnumEntityProperty<E> registerEnumProperty(Identifier entityType, Identifier propertyIdentifier, Class<E> enumClass, @Nullable E defaultValue);
 
     /**
      * Registers a typed {@linkplain Enum enum}-backed entity property with the first value set as the default.
      * @see #registerEnumProperty(Identifier, Identifier, Class, Enum)
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param enumClass the enum class that defines allowed values
      * @param <E> the enum type
@@ -205,7 +203,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * 
      * @since 2.9.0
      */
-    default <E extends Enum<E>> GeyserEnumEntityProperty<E> registerEnumProperty(@NonNull Identifier entityType, @NonNull Identifier propertyIdentifier, @NonNull Class<E> enumClass) {
+    default <E extends Enum<E>> GeyserEnumEntityProperty<E> registerEnumProperty(Identifier entityType, Identifier propertyIdentifier, Class<E> enumClass) {
         return registerEnumProperty(entityType, propertyIdentifier, enumClass, null);
     }
 
@@ -215,7 +213,7 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * on entity spawn. The default must be one of the values in {@code values}.
      * @see GeyserStringEnumProperty
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param values the allowed string values
      * @param defaultValue the default string value, or {@code null} for the first value to be used
@@ -223,20 +221,20 @@ public interface GeyserDefineEntityPropertiesEvent extends Event {
      * 
      * @since 2.9.0
      */
-    GeyserStringEnumProperty registerEnumProperty(@NonNull Identifier entityType, @NonNull Identifier propertyIdentifier, @NonNull List<String> values, @Nullable String defaultValue);
+    GeyserStringEnumProperty registerEnumProperty(Identifier entityType, Identifier propertyIdentifier, List<String> values, @Nullable String defaultValue);
 
     /**
      * Registers a string-backed "enum-like" entity property with the first value as the default.
      * @see #registerEnumProperty(Identifier, Identifier, List, String)
      *
-     * @param entityType the Java edition entity type identifier
+     * @param entityType the Bedrock edition entity type identifier
      * @param propertyIdentifier the unique property identifier
      * @param values the allowed string values
      * @return the created string-enum property handle
      * 
      * @since 2.9.0
      */
-    default GeyserStringEnumProperty registerEnumProperty(@NonNull Identifier entityType, @NonNull Identifier propertyIdentifier, @NonNull List<String> values) {
+    default GeyserStringEnumProperty registerEnumProperty(Identifier entityType, Identifier propertyIdentifier, List<String> values) {
         return registerEnumProperty(entityType, propertyIdentifier, values, null);
     }
 }

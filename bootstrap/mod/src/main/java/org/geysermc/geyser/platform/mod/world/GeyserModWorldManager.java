@@ -75,7 +75,7 @@ public class GeyserModWorldManager extends GeyserWorldManager {
         }
 
         // Only loads active chunks, and doesn't delegate to main thread
-        ChunkAccess chunk = ((ServerChunkCache) level.getChunkSource()).chunkMap.getChunkToSend(ChunkPos.asLong(x >> 4, z >> 4));
+        ChunkAccess chunk = ((ServerChunkCache) level.getChunkSource()).chunkMap.getChunkToSend(ChunkPos.pack(x >> 4, z >> 4));
         if (chunk == null) {
             return 0;
         }

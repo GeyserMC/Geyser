@@ -31,7 +31,6 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.math.vector.Vector3d;
 import org.cloudburstmc.math.vector.Vector3f;
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.protocol.bedrock.packet.MoveEntityDeltaPacket;
 import org.geysermc.erosion.util.BlockPositionIterator;
 import org.geysermc.geyser.entity.type.BoatEntity;
 import org.geysermc.geyser.level.block.BlockStateValues;
@@ -42,6 +41,7 @@ import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.physics.Axis;
 import org.geysermc.geyser.level.physics.BoundingBox;
+import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.translator.collision.BlockCollision;
 import org.geysermc.geyser.util.BlockUtils;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.serverbound.level.ServerboundMoveVehiclePacket;
@@ -61,7 +61,7 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
 
     @Override
     public void tickVehicle() {
-        if (!vehicle.isClientControlled()) {
+        if (!vehicle.shouldSimulateMovement()) {
             return;
         }
 
@@ -73,7 +73,7 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
 
         floatBoat(context);
 
-        final Vector3f lastRotation = vehicle.getBedrockRotation();
+        final Vector3f lastRotation = vehicle.bedrockRotation();
         controlBoat();
 
         Vector3f motion = vehicle.getMotion();
@@ -137,47 +137,7 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
     }
 
     @Override
-    protected void moveVehicle(Vector3d javaPos, Vector3f lastRotation) {
-        Vector3f bedrockPos = javaPos.toFloat();
-
-        MoveEntityDeltaPacket moveEntityDeltaPacket = new MoveEntityDeltaPacket();
-        moveEntityDeltaPacket.setRuntimeEntityId(vehicle.geyserId());
-
-        if (vehicle.isOnGround()) {
-            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.ON_GROUND);
-        }
-
-        if (vehicle.getPosition().getX() != bedrockPos.getX()) {
-            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_X);
-            moveEntityDeltaPacket.setX(bedrockPos.getX());
-        }
-        if (vehicle.getPosition().getY() != bedrockPos.getY()) {
-            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Y);
-            moveEntityDeltaPacket.setY(bedrockPos.getY() + vehicle.getDefinition().offset());
-        }
-        if (vehicle.getPosition().getZ() != bedrockPos.getZ()) {
-            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_Z);
-            moveEntityDeltaPacket.setZ(bedrockPos.getZ());
-        }
-        vehicle.setPosition(bedrockPos);
-
-        if (vehicle.getPitch() != lastRotation.getX()) {
-            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_PITCH);
-            moveEntityDeltaPacket.setPitch(vehicle.getPitch());
-        }
-        if (vehicle.getYaw() != lastRotation.getY()) {
-            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_YAW);
-            moveEntityDeltaPacket.setYaw(vehicle.getYaw());
-        }
-        if (vehicle.getHeadYaw() != lastRotation.getZ()) {
-            moveEntityDeltaPacket.getFlags().add(MoveEntityDeltaPacket.Flag.HAS_HEAD_YAW);
-            moveEntityDeltaPacket.setHeadYaw(vehicle.getHeadYaw());
-        }
-
-        if (!moveEntityDeltaPacket.getFlags().isEmpty()) {
-            vehicle.getSession().sendUpstreamPacket(moveEntityDeltaPacket);
-        }
-
+    protected void sendServerboundMoveVehiclePacket(Vector3d javaPos) {
         ServerboundMoveVehiclePacket moveVehiclePacket = new ServerboundMoveVehiclePacket(javaPos, vehicle.getYaw() - 90, vehicle.getPitch(), vehicle.isOnGround());
         vehicle.getSession().sendDownstreamPacket(moveVehiclePacket);
     }
@@ -223,7 +183,7 @@ public class BoatVehicleComponent extends VehicleComponent<BoatEntity> {
             box.translate(0, targetY - getBoundingBox().getMin(Axis.Y), 0);
 
             boolean empty = true;
-            for (BlockPositionIterator iter = vehicle.getSession().getCollisionManager().collidableBlocksIterator(box); iter.hasNext(); iter.next()) {
+            for (BlockPositionIterator iter = CollisionManager.collidableBlocksIterator(vehicle.getSession(), box); iter.hasNext(); iter.next()) {
                 final BlockCollision collision = BlockUtils.getCollision(context.getBlockId(iter.getX(), iter.getY(), iter.getZ()));
                 if (collision != null && collision.checkIntersection(Vector3i.from(iter.getX(), iter.getY(), iter.getZ()), box)) {
                     empty = false;

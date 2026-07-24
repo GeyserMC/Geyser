@@ -34,15 +34,12 @@ import org.bukkit.plugin.Plugin;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.geysermc.erosion.bukkit.BukkitUtils;
 import org.geysermc.erosion.bukkit.SchedulerUtils;
-import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.level.GameRule;
 import org.geysermc.geyser.level.WorldManager;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.player.GameMode;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -84,38 +81,6 @@ public class GeyserSpigotWorldManager extends WorldManager {
     @Override
     public boolean hasOwnChunkCache() {
         return true;
-    }
-
-    public boolean getGameRuleBool(GeyserSession session, GameRule gameRule) {
-        org.bukkit.GameRule<?> bukkitGameRule = org.bukkit.GameRule.getByName(gameRule.getJavaID());
-        if (bukkitGameRule == null) {
-            GeyserImpl.getInstance().getLogger().debug("Unknown game rule " + gameRule.getJavaID());
-            return gameRule.getDefaultBooleanValue();
-        }
-
-        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().uuid()));
-        Object value = bukkitPlayer.getWorld().getGameRuleValue(bukkitGameRule);
-        if (value instanceof Boolean booleanValue) {
-            return booleanValue;
-        }
-        GeyserImpl.getInstance().getLogger().debug("Expected a bool for " + gameRule + " but got " + value);
-        return gameRule.getDefaultBooleanValue();
-    }
-
-    @Override
-    public int getGameRuleInt(GeyserSession session, GameRule gameRule) {
-        org.bukkit.GameRule<?> bukkitGameRule = org.bukkit.GameRule.getByName(gameRule.getJavaID());
-        if (bukkitGameRule == null) {
-            GeyserImpl.getInstance().getLogger().debug("Unknown game rule " + gameRule.getJavaID());
-            return gameRule.getDefaultIntValue();
-        }
-        Player bukkitPlayer = Objects.requireNonNull(Bukkit.getPlayer(session.getPlayerEntity().uuid()));
-        Object value = bukkitPlayer.getWorld().getGameRuleValue(bukkitGameRule);
-        if (value instanceof Integer intValue) {
-            return intValue;
-        }
-        GeyserImpl.getInstance().getLogger().debug("Expected an int for " + gameRule + " but got " + value);
-        return gameRule.getDefaultIntValue();
     }
 
     @Override

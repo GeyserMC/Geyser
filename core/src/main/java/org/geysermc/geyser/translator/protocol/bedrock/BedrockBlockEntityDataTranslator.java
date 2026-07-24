@@ -48,7 +48,7 @@ public class BedrockBlockEntityDataTranslator extends PacketTranslator<BlockEnti
             // Hanging signs are narrower
             int widthMax = SignUtils.getSignWidthMax(id.startsWith("Hanging"));
 
-            String text = MessageTranslator.convertToPlainText(
+            String text = MessageTranslator.convertIncomingToPlainText(
                 tag.getCompound(session.getWorldCache().isEditingSignOnFront() ? "FrontText" : "BackText").getString("Text"));
             // Note: as of 1.18.30, only one packet is sent from Bedrock when the sign is finished.
             // Previous versions did not have this behavior.

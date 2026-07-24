@@ -74,7 +74,7 @@ public class GoatEntity extends AnimalEntity {
     @Override
     protected InteractionResult mobInteract(@NonNull Hand hand, @NonNull GeyserItemStack itemInHand) {
         if (!getFlag(EntityFlag.BABY) && itemInHand.is(Items.BUCKET)) {
-            session.playSoundEvent(isScreamer ? SoundEvent.MILK_SCREAMER : SoundEvent.MILK, position);
+            session.playSoundEvent(isScreamer ? SoundEvent.MILK_SCREAMER : SoundEvent.MILK, bedrockPosition());
             return InteractionResult.SUCCESS;
         } else {
             return super.mobInteract(hand, itemInHand);
@@ -92,7 +92,7 @@ public class GoatEntity extends AnimalEntity {
     }
 
     private void setHornCount() {
-        dirtyMetadata.put(EntityDataTypes.GOAT_HORN_COUNT, (hasLeftHorn ? 1 : 0) + (hasRightHorn ? 1 : 0));
+        metadata.put(EntityDataTypes.GOAT_HORN_COUNT, (hasLeftHorn ? 1 : 0) + (hasRightHorn ? 1 : 0));
     }
 
     @Override
