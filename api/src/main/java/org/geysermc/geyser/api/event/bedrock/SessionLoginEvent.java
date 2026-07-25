@@ -89,18 +89,6 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
         this.disconnectReason = disconnectReason;
     }
 
-    @Override
-    @Deprecated
-    public boolean isCancelled() {
-        return cancelled();
-    }
-
-    @Override
-    @Deprecated
-    public void setCancelled(boolean cancelled) {
-        cancelled(cancelled);
-    }
-
     @Deprecated
     public void setCancelled(boolean cancelled, String disconnectReason) {
         cancelled(cancelled, disconnectReason);

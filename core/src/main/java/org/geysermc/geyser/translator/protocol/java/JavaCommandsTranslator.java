@@ -185,12 +185,6 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
             return;
         }
 
-        var oldEvent = new org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent(session, commands.keySet());
-        eventBus.fire(oldEvent);
-        if (oldEvent.cancelled()) {
-            return;
-        }
-
         // The command flags, set to NOT_CHEAT so known commands can be used while achievements are enabled.
         Set<CommandData.Flag> flags = Set.of(CommandData.Flag.NOT_CHEAT);
 
@@ -338,9 +332,7 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
      * Stores the command description and parameter data for best optimizing the Bedrock commands packet.
      */
     private record BedrockCommandInfo(String name, String description, CommandOverloadData[] paramData) implements
-            org.geysermc.geyser.api.event.downstream.ServerDefineCommandsEvent.CommandInfo,
-            ServerDefineCommandsEvent.CommandInfo
-    {
+        ServerDefineCommandsEvent.CommandInfo {
     }
 
     /**

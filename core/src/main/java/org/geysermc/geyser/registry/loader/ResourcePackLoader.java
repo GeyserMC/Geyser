@@ -30,7 +30,6 @@ import com.google.common.cache.CacheBuilder;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.api.event.lifecycle.GeyserLoadResourcePacksEvent;
 import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
@@ -120,13 +119,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
             resourcePacks.add(skullResourcePack);
         }
 
-        //noinspection deprecation - we know
-        GeyserLoadResourcePacksEvent event = new GeyserLoadResourcePacksEvent(resourcePacks);
-        GeyserImpl.getInstance().eventBus().fire(event);
-
         GeyserDefineResourcePacksEventImpl defineEvent = new GeyserDefineResourcePacksEventImpl(packMap);
-
-        for (Path path : event.resourcePacks()) {
+        for (Path path : resourcePacks) {
             try {
                 defineEvent.register(readPack(path).build());
             } catch (Exception e) {

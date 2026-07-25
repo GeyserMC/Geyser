@@ -100,16 +100,4 @@ public final class ClientEmoteEvent extends ConnectionEvent implements Cancellab
     public void cancelled(boolean cancelled) {
         this.cancelled = cancelled;
     }
-
-    @Override
-    @Deprecated
-    public boolean isCancelled() {
-        return cancelled();
-    }
-
-    @Override
-    @Deprecated
-    public void setCancelled(boolean cancelled) {
-        cancelled(cancelled);
-    }
 }

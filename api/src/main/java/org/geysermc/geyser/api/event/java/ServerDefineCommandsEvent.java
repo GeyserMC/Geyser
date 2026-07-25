@@ -65,18 +65,6 @@ public final class ServerDefineCommandsEvent extends ConnectionEvent implements 
         this.cancelled = cancelled;
     }
 
-    @Override
-    @Deprecated
-    public boolean isCancelled() {
-        return cancelled();
-    }
-
-    @Override
-    @Deprecated
-    public void setCancelled(boolean cancelled) {
-        cancelled(cancelled);
-    }
-
     public interface CommandInfo {
         /**
          * Gets the name of the command.

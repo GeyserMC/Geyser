@@ -43,7 +43,7 @@ public class BedrockEmoteTranslator extends PacketTranslator<EmotePacket> {
         // For the future: could have a method that exposes which players will see the emote
         ClientEmoteEvent event = new ClientEmoteEvent(session, packet.getEmoteId());
         if (!GeyserImpl.getInstance().config().gameplay().emotesEnabled()) {
-            event.setCancelled(true);
+            event.cancelled(true);
         }
 
         session.getGeyser().eventBus().fire(event);
