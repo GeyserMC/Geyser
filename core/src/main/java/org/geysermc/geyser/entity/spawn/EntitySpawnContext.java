@@ -118,11 +118,21 @@ public class EntitySpawnContext {
 
             @Override
             public boolean isCancelled() {
-                return cancelled || bedrockEntityDefinition == null;
+                return cancelled();
             }
 
             @Override
             public void setCancelled(boolean cancelled) {
+                cancelled(cancelled);
+            }
+
+            @Override
+            public boolean cancelled() {
+                return cancelled || bedrockEntityDefinition == null;
+            }
+
+            @Override
+            public void cancelled(boolean cancelled) {
                 this.cancelled = cancelled;
             }
 
@@ -177,7 +187,7 @@ public class EntitySpawnContext {
 
         GeyserImpl.getInstance().eventBus().fire(event);
 
-        return bedrockEntityDefinition != null && !event.isCancelled();
+        return bedrockEntityDefinition != null && !event.cancelled();
     }
 
     /**
@@ -226,13 +236,23 @@ public class EntitySpawnContext {
             }
 
             @Override
-            public boolean isCancelled() {
+            public boolean cancelled() {
                 return cancelled || bedrockEntityDefinition == null;
             }
 
             @Override
-            public void setCancelled(boolean cancelled) {
+            public void cancelled(boolean cancelled) {
                 this.cancelled = cancelled;
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return cancelled();
+            }
+
+            @Override
+            public void setCancelled(boolean cancelled) {
+                cancelled(cancelled);
             }
 
             @Override
@@ -246,7 +266,7 @@ public class EntitySpawnContext {
         };
 
         GeyserImpl.getInstance().eventBus().fire(event);
-        return bedrockEntityDefinition != null && !event.isCancelled();
+        return bedrockEntityDefinition != null && !event.cancelled();
     }
 
     // Not assigned by default - preparation for cancellable entity spawning

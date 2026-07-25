@@ -102,7 +102,7 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
     }
 
     @Deprecated
-    public void setCancelled(boolean cancelled, @NonNull String disconnectReason) {
+    public void setCancelled(boolean cancelled, String disconnectReason) {
         cancelled(cancelled, disconnectReason);
     }
 

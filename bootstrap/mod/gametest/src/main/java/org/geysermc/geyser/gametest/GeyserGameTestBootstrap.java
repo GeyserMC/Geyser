@@ -81,7 +81,7 @@ public class GeyserGameTestBootstrap extends GeyserModBootstrap implements ModIn
             ExecutionCoordinator.simpleCoordinator(),
             sourceConverter
         );
-        this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud, false)); // applying root permission would be a breaking change because we can't register permission defaults
+        this.setCommandRegistry(new CommandRegistry(GeyserImpl.getInstance(), cloud));
 
         // Have to manually start Geyser for game test environment
         GeyserImpl.start();
