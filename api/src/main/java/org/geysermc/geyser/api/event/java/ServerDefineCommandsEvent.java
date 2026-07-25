@@ -55,11 +55,23 @@ public final class ServerDefineCommandsEvent extends ConnectionEvent implements 
         return this.commands;
     }
 
+    /**
+     * Whether the event is cancelled.
+     *
+     * @return true if the event is cancelled, false otherwise
+     * @since 3.0.0
+     */
     @Override
     public boolean cancelled() {
         return this.cancelled;
     }
 
+    /**
+     * Sets whether the event is cancelled.
+     *
+     * @param cancelled if the event is cancelled
+     * @since 3.0.0
+     */
     @Override
     public void cancelled(boolean cancelled) {
         this.cancelled = cancelled;

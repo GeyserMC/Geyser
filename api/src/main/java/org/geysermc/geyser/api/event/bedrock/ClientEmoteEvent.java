@@ -83,7 +83,7 @@ public final class ClientEmoteEvent extends ConnectionEvent implements Cancellab
      * even if this event is cancelled, but other Bedrock players will not see.
      *
      * @return the cancel status of this event
-     * @since 2.1.0
+     * @since 3.0.0
      */
     @Override
     public boolean cancelled() {
@@ -94,7 +94,7 @@ public final class ClientEmoteEvent extends ConnectionEvent implements Cancellab
      * Sets the cancel status of this event. If this event is canceled, the emote will not be played to other players.
      *
      * @param cancelled whether this event is cancelled
-     * @since 2.1.0
+     * @since 3.0.0
      */
     @Override
     public void cancelled(boolean cancelled) {

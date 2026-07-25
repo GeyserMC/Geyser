@@ -58,7 +58,8 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
     /**
      * Returns whether the event is cancelled.
      *
-     * @return The cancel status of the event.
+     * @return The cancel status of the event
+     * @since 3.0.0
      */
     @Override
     public boolean cancelled() {
@@ -70,7 +71,8 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
      * If cancelled, the player disconnects without connecting to the remote server.
      * This method will use a default disconnect reason. To specify one, use {@link #setCancelled(boolean, String)}.
      *
-     * @param cancelled If the login event should be cancelled.
+     * @param cancelled If the login event should be cancelled
+     * @since 3.0.0
      */
     @Override
     public void cancelled(boolean cancelled) {
@@ -81,14 +83,20 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
      * Cancels the login event, and disconnects the player with the specified reason.
      * If cancelled, the player disconnects without connecting to the remote server.
      *
-     * @param cancelled If the login event should be cancelled.
-     * @param disconnectReason The reason for the cancellation.
+     * @param cancelled If the login event should be cancelled
+     * @param disconnectReason The reason for the cancellation
+     * @since 3.0.0
      */
     public void cancelled(boolean cancelled, String disconnectReason) {
         this.cancelled = cancelled;
         this.disconnectReason = disconnectReason;
     }
 
+    /**
+     * @deprecated Use {@link #cancelled(boolean, String)} instead.
+     * @param cancelled If the login event should be cancelled
+     * @param disconnectReason The reason for the cancellation
+     */
     @Deprecated
     public void setCancelled(boolean cancelled, String disconnectReason) {
         cancelled(cancelled, disconnectReason);
@@ -106,7 +114,7 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
     /**
      * Gets the {@link RemoteServer} the session will attempt to connect to.
      *
-     * @return the {@link RemoteServer} the session will attempt to connect to.
+     * @return the {@link RemoteServer} the session will attempt to connect to
      */
     public RemoteServer remoteServer() {
         return this.remoteServer;
@@ -117,7 +125,7 @@ public final class SessionLoginEvent extends ConnectionEvent implements Cancella
      * This method will only work as expected on {@link PlatformType#STANDALONE},
      * as on other Geyser platforms, the remote server is not determined by Geyser.
      *
-     * @param remoteServer Sets the {@link RemoteServer} to connect to.
+     * @param remoteServer Sets the {@link RemoteServer} to connect to
      */
     public void remoteServer(RemoteServer remoteServer) {
         this.remoteServer = remoteServer;
