@@ -44,7 +44,6 @@ import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
-import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
@@ -64,8 +63,11 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.block.custom.CustomBlockData;
 import org.geysermc.geyser.api.block.custom.CustomBlockState;
 import org.geysermc.geyser.api.block.custom.NonVanillaCustomBlockData;
+import org.geysermc.geyser.api.item.custom.v2.CustomItemBedrockOptions;
 import org.geysermc.geyser.api.item.custom.v2.CustomItemDefinition;
 import org.geysermc.geyser.api.item.custom.v2.NonVanillaCustomItemDefinition;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserBlockPlacer;
+import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponents;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.util.CreativeCategory;
@@ -85,6 +87,7 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.populator.conversion.ChaosCubedConverter;
 import org.geysermc.geyser.registry.populator.conversion.GoldenDandelionConverter;
 import org.geysermc.geyser.registry.type.BlockMappings;
+import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.registry.type.GeyserMappingItem;
 import org.geysermc.geyser.registry.type.ItemMapping;
@@ -246,7 +249,10 @@ public class ItemRegistryPopulator {
 
             List<ItemDefinition> buckets = new ObjectArrayList<>();
 
-            List<ItemMapping> mappings = new ObjectArrayList<>();
+            List<ItemMapping> mappings = new ObjectArrayList<>(Registries.JAVA_ITEMS.get().size());
+            while (Registries.JAVA_ITEMS.get().size() >= mappings.size()) {
+                mappings.add(ItemMapping.AIR);
+            }
             // Temporary mapping to create stored items
             Map<Item, ItemMapping> javaItemToMapping = new Object2ObjectOpenHashMap<>();
 
@@ -504,10 +510,6 @@ public class ItemRegistryPopulator {
                         .bedrockBlockDefinition(bedrockBlock)
                         .javaItem(javaItem);
 
-                if (mappingItem.getToolType() != null) {
-                    mappingBuilder = mappingBuilder.toolType(mappingItem.getToolType().intern());
-                }
-
                 if (javaOnlyItems.contains(javaItem)) {
                     // These items don't exist on Bedrock, so set up a variable that indicates they should have custom names
                     mappingBuilder = mappingBuilder.translationString((javaItem instanceof BlockItem ? "block." : "item.") + entry.getKey().replace(":", "."));
@@ -580,7 +582,7 @@ public class ItemRegistryPopulator {
                     buckets.add(definition);
                 }
 
-                mappings.add(mapping);
+                mappings.set(javaItem.javaId(), mapping);
                 javaItemToMapping.put(javaItem, mapping);
             }
 
@@ -663,6 +665,11 @@ public class ItemRegistryPopulator {
                 }
             }
 
+            Set<CustomBlockData> skullBlocks = new ObjectOpenHashSet<>();
+            for (CustomSkull skull : BlockRegistries.CUSTOM_SKULLS.get().values()) {
+                skullBlocks.add(skull.getCustomBlockData());
+            }
+
             // Register the item forms of custom blocks
             for (CustomBlockData customBlock : BlockRegistries.CUSTOM_BLOCKS.get()) {
                 // We might've registered it already with the vanilla blocks so check first
@@ -679,7 +686,19 @@ public class ItemRegistryPopulator {
                 int customProtocolId = nextFreeBedrockId++;
                 String identifier = customBlock.identifier();
 
-                final ItemDefinition definition = new SimpleItemDefinition(identifier, customProtocolId, ItemVersion.NONE, false, null);
+                // Bedrock only renders the icon of a block item once it has loaded that block, which leaves custom skulls
+                // showing as the vanilla player head until then. Registering them as custom items lets them carry their own icon.
+                ItemDefinition definition = null;
+                if (skullBlocks.contains(customBlock)) {
+                    try {
+                        definition = registerSkullItem(identifier, items.get("minecraft:player_head"), customProtocolId, palette.protocolVersion, firstMappingsPass);
+                    } catch (InvalidItemComponentsException exception) {
+                        GeyserImpl.getInstance().getLogger().error("Failed to register the item form of custom skull " + identifier + "!", exception);
+                    }
+                }
+                if (definition == null) {
+                    definition = new SimpleItemDefinition(identifier, customProtocolId, ItemVersion.NONE, false, null);
+                }
                 registry.put(customProtocolId, definition);
                 customBlockItemDefinitions.put(customBlock, definition);
                 customIdMappings.put(customProtocolId, identifier);
@@ -756,6 +775,20 @@ public class ItemRegistryPopulator {
         }
     }
   
+    /**
+     * Registers the item form of a custom skull as a custom item, giving it the icon of the block it places,
+     * wearability, and the player head stack size. The latter two are inherited from the vanilla player head components.
+     */
+    private static ItemDefinition registerSkullItem(String identifier, GeyserMappingItem playerHeadMapping, int protocolId,
+                                                    int protocolVersion, boolean firstMappingsPass) throws InvalidItemComponentsException {
+        CustomItemDefinition definition = new GeyserCustomItemDefinition.Builder(Identifier.of(identifier), Identifier.of("minecraft", "player_head"))
+            .geyserComponent(GeyserItemDataComponents.BLOCK_PLACER, GeyserBlockPlacer.of(Identifier.of(identifier), true))
+            .displayName("item.player_head.name")
+            .bedrockOptions(CustomItemBedrockOptions.builder().creativeCategory(CreativeCategory.EQUIPMENT))
+            .build();
+        return CustomItemRegistryPopulator.registerCustomItem(Items.PLAYER_HEAD, playerHeadMapping, definition, protocolId, protocolVersion, firstMappingsPass).itemDefinition();
+    }
+
     private static NbtMap fromItemDefinitionToDataDriven(ItemDefinition definition, int maxStackSize, String texture, String displayName, boolean swing) {
         NbtMapBuilder builder = NbtMap.builder();
         builder.putString("name", definition.getIdentifier()).putInt("id", definition.getRuntimeId());

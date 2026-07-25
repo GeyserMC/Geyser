@@ -663,9 +663,9 @@ public final class ItemTranslator {
         if (customSkull != null) {
             CustomBlockData customBlockData = customSkull.getCustomBlockData();
             ItemDefinition itemDefinition = session.getItemMappings().getCustomBlockItemDefinitions().get(customBlockData);
-            BlockDefinition blockDefinition = session.getBlockMappings().getCustomBlockStateDefinitions().get(customBlockData.defaultBlockState());
+            // The skull item places its block through its block placer component, it is not a block item
             builder.definition(itemDefinition);
-            builder.blockDefinition(blockDefinition);
+            builder.blockDefinition(null);
         }
     }
 }

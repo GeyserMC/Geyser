@@ -51,7 +51,6 @@ public class ItemMapping {
             null, // Air is never sent in full over the network for this to serialize.
             null,
             null,
-            null,
             false,
             Items.AIR
     );
@@ -65,8 +64,6 @@ public class ItemMapping {
      * Required since 1.16.220.
      */
     BlockDefinition bedrockBlockDefinition;
-
-    String toolType;
 
     String translationString;
 
@@ -98,14 +95,5 @@ public class ItemMapping {
      */
     public boolean hasTranslation() {
         return this.translationString != null;
-    }
-
-    /**
-     * Gets if this item is a tool.
-     *
-     * @return if this item is a tool
-     */
-    public boolean isTool() {
-        return this.toolType != null;
     }
 }
