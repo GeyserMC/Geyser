@@ -33,13 +33,16 @@ import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.network.ListenerType;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
-import java.nio.file.Path;
 import org.geysermc.floodgate.isolation.library.LibraryManager;
 import org.geysermc.floodgate.isolation.loader.PlatformHolder;
 import org.geysermc.floodgate.isolation.loader.PlatformLoader;
 
+import java.nio.file.Path;
+
 public final class IsolatedVelocityPlugin {
     private final PlatformHolder holder;
+    // Hack to ensure we don't try to enable the platform multiple times for multiple binds
+    private boolean enabled = false;
 
     @Inject
     public IsolatedVelocityPlugin(Injector guice, @DataDirectory Path dataDirectory) {
@@ -67,13 +70,14 @@ public final class IsolatedVelocityPlugin {
 
     @Subscribe
     public void onShutdown(ProxyShutdownEvent event) {
-        holder.disable();
+        holder.shutdown();
     }
 
     @Subscribe
     public void onProxyBound(ListenerBoundEvent event) {
-        if (event.getListenerType() == ListenerType.MINECRAFT) {
+        if (!enabled && event.getListenerType() == ListenerType.MINECRAFT) {
             // Once listener is bound, do our startup process
+            enabled = true;
             holder.enable();
         }
     }

@@ -28,7 +28,7 @@ package org.geysermc.geyser.platform.velocity;
 import org.geysermc.geyser.GeyserMain;
 
 public class VelocityMain extends GeyserMain {
-    public static void main(String[] args) {
+    static void main() {
         new VelocityMain().displayMessage();
     }
 
