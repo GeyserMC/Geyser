@@ -143,6 +143,8 @@ public class SkinManager {
     }
 
     private static SerializedSkin getSkin(GeyserSession session, String skinId, Skin skin, Cape cape, SkinGeometry geometry) {
+        // Explicit values for everything the protocol's old skin builder used to
+        // null coerce; the Lombok builder from the v2168 groundwork fills nothing.
         return SerializedSkin.builder()
             .skinId(skinId)
             .skinResourcePatch(geometry.geometryName())
@@ -153,6 +155,13 @@ public class SkinManager {
             .capeId(cape.capeId())
             .fullSkinId(skinId)
             .geometryDataEngineVersion(session.getClientData().getGameVersion())
+            .playFabId("")
+            .animations(java.util.Collections.emptyList())
+            .animationData("")
+            .armSize("wide")
+            .skinColor("#0")
+            .personaPieces(java.util.Collections.emptyList())
+            .tintColors(java.util.Collections.emptyList())
             .overridingPlayerAppearance(true)
             .build();
     }
