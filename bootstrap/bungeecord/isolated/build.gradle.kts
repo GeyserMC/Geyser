@@ -5,3 +5,9 @@ plugins {
 application {
     mainClass = "org.geysermc.geyser.platform.bungeecord.BungeeMain"
 }
+
+tasks {
+    jar {
+        archiveBaseName.set("Geyser-BungeeCord")
+    }
+}

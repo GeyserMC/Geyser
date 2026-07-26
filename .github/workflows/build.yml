@@ -14,7 +14,6 @@ on:
       - '.gitignore'
       - 'CONTRIBUTING.md'
       - 'LICENSE'
-      - 'Jenkinsfile '
       - 'README.md'
 
 concurrency:
@@ -49,9 +48,9 @@ jobs:
             bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
             bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
             bootstrap/standalone/build/libs/Geyser-Standalone.jar
-            bootstrap/spigot/build/libs/Geyser-Spigot.jar
-            bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
-            bootstrap/velocity/build/libs/Geyser-Velocity.jar
+            bootstrap/spigot/isolated/build/libs/Geyser-Spigot.jar
+            bootstrap/bungeecord/isolated/build/libs/Geyser-BungeeCord.jar
+            bootstrap/velocity/isolated/build/libs/Geyser-Velocity.jar
             bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
 
       - name: Publish to Maven Repository
@@ -77,12 +76,12 @@ jobs:
           appID: ${{ secrets.RELEASE_APP_ID }}
           appPrivateKey: ${{ secrets.RELEASE_APP_PK }}
           files: |
-            bungeecord:bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
+            bungeecord:bootstrap/bungeecord/isolated/build/libs/Geyser-BungeeCord.jar
             fabric:bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
             neoforge:bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
-            spigot:bootstrap/spigot/build/libs/Geyser-Spigot.jar
+            spigot:bootstrap/spigot/isolated/build/libs/Geyser-Spigot.jar
             standalone:bootstrap/standalone/build/libs/Geyser-Standalone.jar
-            velocity:bootstrap/velocity/build/libs/Geyser-Velocity.jar
+            velocity:bootstrap/velocity/isolated/build/libs/Geyser-Velocity.jar
             viaproxy:bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
           releaseEnabled: false
           saveMetadata: true
@@ -97,12 +96,12 @@ jobs:
           privateKey: ${{ secrets.DOWNLOADS_PRIVATE_KEY }}
           host: ${{ secrets.DOWNLOADS_SERVER_IP }}
           files: |
-            bootstrap/bungeecord/build/libs/Geyser-BungeeCord.jar
+            bootstrap/bungeecord/build/isolated/libs/Geyser-BungeeCord.jar
             bootstrap/mod/fabric/build/libs/Geyser-Fabric.jar
             bootstrap/mod/neoforge/build/libs/Geyser-NeoForge.jar
-            bootstrap/spigot/build/libs/Geyser-Spigot.jar
+            bootstrap/spigot/build/isolated/libs/Geyser-Spigot.jar
             bootstrap/standalone/build/libs/Geyser-Standalone.jar
-            bootstrap/velocity/build/libs/Geyser-Velocity.jar
+            bootstrap/velocity/build/isolated/libs/Geyser-Velocity.jar
             bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
           changelog: ${{ steps.metadata.outputs.body }}
 

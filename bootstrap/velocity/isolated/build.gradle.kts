@@ -9,3 +9,9 @@ dependencies {
 application {
     mainClass = "org.geysermc.geyser.platform.velocity.VelocityMain"
 }
+
+tasks {
+    jar {
+        archiveBaseName.set("Geyser-Velocity")
+    }
+}
