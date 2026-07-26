@@ -22,6 +22,10 @@ dependencies {
     api(libs.fabric.api)
     api(project(":mod"))
     implementation(libs.cloud.fabric)
+
+    // Would be JiJ'd at the mod level - FIXME when modded platforms are properly setup
+    runtimeOnly(projects.api)
+    runtimeOnly(libs.base.api)
 }
 
 relocate("org.cloudburstmc.netty")
