@@ -5,8 +5,9 @@ plugins {
 // TODO isolation
 
 dependencies {
-    api(projects.core)
-    api(libs.erosion.bukkit.common) {
+    implementation(projects.core)
+    implementation(libs.floodgate.spigot)
+    implementation(libs.erosion.bukkit.common) {
         isTransitive = false
     }
 
@@ -26,11 +27,9 @@ dependencies {
     implementation(libs.cloud.paper)
     implementation(libs.commodore)
 
-    compileOnly(libs.folia.api)
-
+    compileOnlyApi(libs.folia.api)
     compileOnlyApi(libs.viaversion)
 
-    implementation(libs.floodgate.spigot)
     compileOnly("com.mojang", "authlib", "1.5.21")
 
     // For 1.16.5/1.17.1
@@ -39,36 +38,35 @@ dependencies {
     }
 }
 
-platformRelocate("it.unimi.dsi.fastutil")
+// TODO: figure these out
 // Relocate net.kyori but exclude the component logger
-platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLogger")
-platformRelocate("org.objectweb.asm")
-platformRelocate("me.lucko.commodore")
-platformRelocate("org.incendo")
-platformRelocate("io.leangen.geantyref") // provided by cloud and Configurate, should also be relocated
-platformRelocate("org.yaml") // Broken as of 1.20
-platformRelocate("marcono1234.gson")
-platformRelocate("org.bstats")
+// platformRelocate("net.kyori", "net.kyori.adventure.text.logger.slf4j.ComponentLogger")
+// platformRelocate("io.leangen.geantyref") // provided by cloud and Configurate, should also be relocated
+// platformRelocate("org.yaml") // Broken as of 1.20
 
 provided(libs.viaversion)
 provided("com.mojang", "authlib")
 
-tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+tasks {
+    shadowJar {
+        // Prevents Paper 1.20.5+ from remapping Geyser
+        manifest {
+            attributes["paperweight-mappings-namespace"] = "mojang"
+        }
 
-    // Prevents Paper 1.20.5+ from remapping Geyser
-    manifest {
-        attributes["paperweight-mappings-namespace"] = "mojang"
-    }
+        archiveBaseName.set("Geyser-Spigot-Base")
 
-    archiveBaseName.set("Geyser-Spigot-Base")
+        dependencies {
+            exclude(dependency("com.google.*:.*"))
 
-    dependencies {
-        exclude(dependency("com.google.*:.*"))
+            // Needed because older Spigot builds do not provide the haproxy module.
+            // Inlined instead of using the Project#exclude helper: that helper calls
+            // tasks.named("shadowJar") while the shadowJar is being created
+            val haproxy = libs.netty.codec.haproxy.get().module.name
+            exclude { it.moduleGroup == "io.netty" && it.moduleName != haproxy }
 
-        // Needed because older Spigot builds do not provide the haproxy module
-        exclude("io.netty", libs.netty.codec.haproxy)
-
-        // Commodore includes Brigadier
-        exclude(dependency("com.mojang:.*"))
+            // Commodore includes Brigadier
+            exclude(dependency("com.mojang:.*"))
+        }
     }
 }

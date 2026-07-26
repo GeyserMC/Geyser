@@ -26,6 +26,9 @@
 package org.geysermc.geyser.platform.spigot;
 
 import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.data.MappingData;
+import com.viaversion.viaversion.api.protocol.ProtocolPathEntry;
+import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.UnsafeValues;
 import org.geysermc.geyser.GeyserLogger;
@@ -35,9 +38,40 @@ import org.geysermc.geyser.text.GeyserLocale;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.List;
 
 public final class GeyserSpigotVersionChecker {
     private static final String VIAVERSION_DOWNLOAD_URL = "https://ci.viaversion.com/job/ViaVersion/";
+
+    /**
+     * @return the server version before ViaVersion finishes initializing
+     */
+    public static ProtocolVersion serverProtocolVersion(String minecraftVersion) {
+        return ProtocolVersion.getClosest(minecraftVersion);
+    }
+
+    /**
+     * This method should not run unless ViaVersion is installed on the server.
+     *
+     * @return true if there is any block mappings difference between the server and client.
+     */
+    public static boolean isViaVersionNeeded(String minecraftVersion) {
+        ProtocolVersion serverVersion = serverProtocolVersion(minecraftVersion);
+        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(GameProtocol.getJavaProtocolVersion(),
+            serverVersion.getVersion());
+        if (protocolList == null) {
+            // No translation needed!
+            return false;
+        }
+        for (int i = protocolList.size() - 1; i >= 0; i--) {
+            MappingData mappingData = protocolList.get(i).protocol().getMappingData();
+            if (mappingData != null) {
+                return true;
+            }
+        }
+        // All mapping data is null, which means client and server block states are the same
+        return false;
+    }
 
     @SuppressWarnings("deprecation")
     public static void checkForSupportedProtocol(GeyserLogger logger, boolean viaversion) {

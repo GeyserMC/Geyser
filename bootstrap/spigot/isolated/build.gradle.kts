@@ -4,6 +4,10 @@ plugins {
     alias(libs.plugins.runpaper)
 }
 
+dependencies {
+    compileOnly(libs.folia.api)
+}
+
 tasks {
     jar {
         manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.spigot.SpigotMain"

@@ -88,4 +88,9 @@ public final class SpigotMetrics implements MetricsPlatform {
     public boolean logResponseStatusText() {
         return config.getBoolean("logResponseStatusText", false);
     }
+
+    @Override
+    public boolean disableRelocateCheck() {
+        return true;
+    }
 }

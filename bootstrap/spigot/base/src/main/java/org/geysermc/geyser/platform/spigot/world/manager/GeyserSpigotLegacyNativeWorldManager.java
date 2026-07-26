@@ -32,8 +32,10 @@ import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.platform.spigot.GeyserSpigotPlugin;
+import org.geysermc.geyser.platform.spigot.GeyserSpigotPlatform;
+import org.geysermc.geyser.platform.spigot.GeyserSpigotVersionChecker;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.List;
@@ -46,11 +48,11 @@ public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorl
 
     private final Int2IntMap oldToNewBlockId;
 
-    public GeyserSpigotLegacyNativeWorldManager(GeyserSpigotPlugin plugin, boolean isPaper) {
+    public GeyserSpigotLegacyNativeWorldManager(JavaPlugin plugin, GeyserSpigotPlatform platform, boolean isPaper) {
         super(plugin, isPaper);
         IntList allBlockStates = adapter.getAllBlockStates();
         oldToNewBlockId = new Int2IntOpenHashMap(allBlockStates.size());
-        ProtocolVersion serverVersion = plugin.getServerProtocolVersion();
+        ProtocolVersion serverVersion = GeyserSpigotVersionChecker.serverProtocolVersion(platform.getMinecraftServerVersion());
         List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(GameProtocol.getJavaProtocolVersion(),
                 serverVersion.getVersion());
         Objects.requireNonNull(protocolList, "protocolList cannot be null");
