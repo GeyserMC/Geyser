@@ -130,7 +130,7 @@ public class GeyserLocale {
         }
         boolean validLocalLanguage = localLanguage != null && localLanguage.exists();
 
-        InputStream localeStream = bootstrap.getResourceOrNull("languages/texts/" + locale + ".properties");
+        InputStream localeStream = bootstrap.getResourceOrNull("translations/texts/" + locale + ".properties");
 
         // Load the locale
         if (localeStream != null) {

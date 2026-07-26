@@ -56,10 +56,10 @@ public class GeyserMain {
     private String createMessage() {
         StringBuilder message = new StringBuilder();
 
-        InputStream helpStream = GeyserMain.class.getClassLoader().getResourceAsStream("languages/run-help/" + Locale.getDefault().toString() + ".txt");
+        InputStream helpStream = GeyserMain.class.getClassLoader().getResourceAsStream("translations/run-help/" + Locale.getDefault().toString() + ".txt");
 
         if (helpStream == null) {
-            helpStream = GeyserMain.class.getClassLoader().getResourceAsStream("languages/run-help/en_US.txt");
+            helpStream = GeyserMain.class.getClassLoader().getResourceAsStream("translations/run-help/en_US.txt");
         }
 
         Scanner help = new Scanner(Objects.requireNonNull(helpStream), StandardCharsets.UTF_8).useDelimiter("\\Z");
