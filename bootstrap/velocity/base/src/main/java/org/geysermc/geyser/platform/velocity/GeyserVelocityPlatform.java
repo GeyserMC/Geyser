@@ -37,7 +37,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.floodgate.core.FloodgatePlatform;
 import org.geysermc.floodgate.isolation.IsolatedPlatform;
 import org.geysermc.floodgate.isolation.library.LibraryManager;
-import org.geysermc.floodgate.velocity.VelocityPlatform;
 import org.geysermc.geyser.FloodgateKeyLoader;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -242,7 +241,7 @@ public class GeyserVelocityPlatform implements GeyserBootstrap, IsolatedPlatform
 
     @Override
     public @Nullable FloodgatePlatform floodgatePlatform() {
-        return guice.getInstance(VelocityPlatform.class);
+        return null; //guice.getInstance(VelocityPlatform.class);
     }
 
     @Override

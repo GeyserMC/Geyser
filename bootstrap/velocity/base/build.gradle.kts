@@ -1,12 +1,10 @@
 plugins {
-    id("geyser.platform-conventions")
-    id("geyser.modrinth-uploading-conventions")
-    alias(libs.plugins.runvelocity)
+    id("geyser.platform-base-conventions")
 }
 
 dependencies {
     implementation(libs.floodgate.velocity)
-    api(projects.core)
+    implementation(projects.core)
 
     compileOnly(libs.velocity.proxy)
     compileOnly(libs.netty.transport.native.io.uring)
@@ -15,37 +13,23 @@ dependencies {
     compileOnlyApi(libs.velocity.api)
     api(libs.cloud.velocity)
 }
-
-platformRelocate("it.unimi.dsi.fastutil")
-platformRelocate("org.yaml")
-platformRelocate("org.spongepowered")
-platformRelocate("org.bstats")
-platformRelocate("org.incendo")
-platformRelocate("io.leangen.geantyref") // provided by cloud and Configurate, should also be relocated
         
 // These dependencies are already present on the platform
 provided(libs.velocity.api)
-
-tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
-    archiveBaseName.set("Geyser-Velocity")
-
-    dependencies {
-        exclude(dependency("com.google.*:.*"))
-        exclude(dependency("io.netty:.*"))
-        exclude(dependency("org.slf4j:.*"))
-        exclude(dependency("org.ow2.asm:.*"))
-        // Exclude all Kyori dependencies
-        exclude(dependency("net.kyori:.*:.*"))
-    }
-}
-
-modrinth {
-    uploadFile.set(tasks.getByPath("shadowJar"))
-    loaders.addAll("velocity")
-}
+provided(libs.geantyref)
 
 tasks {
-    runVelocity {
-        version(libs.versions.runvelocityversion.get())
+    shadowJar {
+        archiveBaseName.set("Geyser-Velocity-Base")
+
+        // TODO look over these
+        dependencies {
+            exclude(dependency("com.google.*:.*"))
+            exclude(dependency("io.netty:.*"))
+            exclude(dependency("org.slf4j:.*"))
+            exclude(dependency("org.ow2.asm:.*"))
+            // Exclude all Kyori dependencies
+            exclude(dependency("net.kyori:.*:.*"))
+        }
     }
 }

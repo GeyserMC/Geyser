@@ -20,9 +20,11 @@ dependencies {
         implementation(libs.raknet) // Ensure protocol does not override the RakNet version
     }
 
-    api(libs.floodgate.core)
+    api(libs.floodgate.core.netty4)
     compileOnlyApi(libs.base.api)
+    // Isolation provides geyser's own api too
     compileOnlyApi(projects.isolation)
+    compileOnlyApi(libs.events)
 
     api(libs.yaml) // Used for extensions
     annotationProcessor(libs.configurate.`interface`.ap)
@@ -56,7 +58,6 @@ dependencies {
         exclude("io.netty", "*")
     }
 
-
     // Network dependencies we are updating ourselves
     api(libs.netty.handler)
     implementation(libs.netty.codec.haproxy)
@@ -74,6 +75,8 @@ dependencies {
     // command library
     api(libs.cloud.core)
 
+    api(libs.bstats)
+
     api(libs.erosion.common) {
         isTransitive = false
     }
@@ -88,12 +91,7 @@ dependencies {
 
     // Annotation Processors
     compileOnly(projects.ap)
-
     annotationProcessor(projects.ap)
-
-    api(libs.events)
-
-    api(libs.bstats)
 }
 
 abstract class CommitMessageValueSource : RepositoryValueSource.Parameterless<String>() {
@@ -137,7 +135,7 @@ val gitVersion = gitBranch.zip(gitCommitAbbrev) { branch, commit ->
 }
 
 val projectVersionProvider = gitRepositoryIsDev.map { isDev ->
-    if (isDev) project.version.toString() else projectVersion(project).toString()
+    if (isDev) project.version.toString() else projectVersion(project)
 }
 
 val finalVersion = projectVersionProvider.zip(gitVersion) { projVer, gitVer ->

@@ -1,8 +1,8 @@
 plugins {
-    id("geyser.platform-conventions")
-    id("geyser.modrinth-uploading-conventions")
-    alias(libs.plugins.runpaper)
+    id("geyser.platform-base-conventions")
 }
+
+// TODO isolation
 
 dependencies {
     api(projects.core)
@@ -47,7 +47,6 @@ platformRelocate("me.lucko.commodore")
 platformRelocate("org.incendo")
 platformRelocate("io.leangen.geantyref") // provided by cloud and Configurate, should also be relocated
 platformRelocate("org.yaml") // Broken as of 1.20
-platformRelocate("org.spongepowered")
 platformRelocate("marcono1234.gson")
 platformRelocate("org.bstats")
 
@@ -61,7 +60,7 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
         attributes["paperweight-mappings-namespace"] = "mojang"
     }
 
-    archiveBaseName.set("Geyser-Spigot")
+    archiveBaseName.set("Geyser-Spigot-Base")
 
     dependencies {
         exclude(dependency("com.google.*:.*"))
@@ -71,19 +70,5 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
         // Commodore includes Brigadier
         exclude(dependency("com.mojang:.*"))
-    }
-}
-
-modrinth {
-    uploadFile.set(tasks.getByPath("shadowJar"))
-    gameVersions.addAll("1.20.5", "1.20.6", "1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4",
-        "1.21.5", "1.21.6", "1.21.7", "1.21.8", "1.21.9", "1.21.10", "1.21.11", "26.1", "26.1.1", "26.1.2")
-    loaders.addAll("spigot", "paper")
-}
-
-tasks {
-    runServer {
-        minecraftVersion(libs.versions.runpaperversion.get())
-        jvmArgs("-Dcom.mojang.eula.agree=true")
     }
 }

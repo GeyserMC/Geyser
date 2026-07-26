@@ -96,4 +96,9 @@ public final class BungeeMetrics implements MetricsPlatform {
             }
         }
     }
+
+    @Override
+    public boolean disableRelocateCheck() {
+        return true;
+    }
 }

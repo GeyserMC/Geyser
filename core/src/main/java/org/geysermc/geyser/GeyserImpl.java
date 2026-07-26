@@ -31,7 +31,6 @@ import io.netty.channel.epoll.Epoll;
 import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import io.netty.util.internal.SystemPropertyUtil;
-import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -206,8 +205,8 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         if (floodgatePlatform != null) {
             floodgatePlatform.load();
             floodgatePlatform.enable();
-//            this.floodgatePlatform = floodgatePlatform.isProxy() ? new ProxyFloodgateProvider(floodgatePlatform) : new IntegratedFloodgateProvider(floodgatePlatform);
-            this.floodgateProvider = new IntegratedFloodgateProvider(floodgatePlatform);
+            this.floodgateProvider = floodgatePlatform.isProxy() ? new ProxyFloodgateProvider(floodgatePlatform) : new IntegratedFloodgateProvider(floodgatePlatform);
+//            this.floodgateProvider = new IntegratedFloodgateProvider(floodgatePlatform);
 //            this.floodgateProvider = new ProxyFloodgateProvider(floodgatePlatform);
         } else {
             if (bootstrap.config().java().authType() == AuthType.FLOODGATE) {

@@ -66,4 +66,9 @@ public final class VelocityMetrics implements MetricsPlatform {
     public boolean logResponseStatusText() {
         return config.isLogResponseStatusTextEnabled();
     }
+
+    @Override
+    public boolean disableRelocateCheck() {
+        return true;
+    }
 }

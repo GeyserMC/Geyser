@@ -29,12 +29,15 @@ import io.netty.channel.Channel;
 import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.Util;
 import net.md_5.bungee.api.CommandSender;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.config.ListenerInfo;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.protocol.ProtocolConstants;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.floodgate.core.skin.SkinApplier;
+import org.geysermc.floodgate.isolation.IsolatedPlatform;
+import org.geysermc.floodgate.isolation.library.LibraryManager;
 import org.geysermc.geyser.FloodgateKeyLoader;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
@@ -66,17 +69,28 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
+public class GeyserBungeePlatform implements GeyserBootstrap, IsolatedPlatform {
+
+    private final ProxyServer proxyServer = ProxyServer.getInstance();
+    private final Plugin plugin;
+    private final GeyserBungeeLogger geyserLogger;
 
     private CommandRegistry commandRegistry;
     private GeyserPluginConfig geyserConfig;
     private GeyserBungeeInjector geyserInjector;
-    private final GeyserBungeeLogger geyserLogger = new GeyserBungeeLogger(getLogger());
     private IGeyserPingPassthrough geyserBungeePingPassthrough;
     private GeyserImpl geyser;
 
+    final LibraryManager manager; // don't remove! We don't need it in Geyser, but in Floodgate
+
+    public GeyserBungeePlatform(LibraryManager manager, Plugin plugin) {
+        this.manager = manager;
+        this.plugin = plugin;
+        this.geyserLogger = new GeyserBungeeLogger(plugin.getLogger());
+    }
+
     @Override
-    public void onLoad() {
+    public void load() {
         onGeyserInitialize();
     }
 
@@ -90,7 +104,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
                 geyserLogger.error("      / \\");
                 geyserLogger.error("     /   \\");
                 geyserLogger.error("    /  |  \\");
-                geyserLogger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", getProxy().getName()));
+                geyserLogger.error("   /   |   \\    " + GeyserLocale.getLocaleStringLog("geyser.bootstrap.unsupported_proxy", proxyServer.getName()));
                 geyserLogger.error("  /         \\   " + GeyserLocale.getLocaleStringLog("geyser.may_not_work_as_intended_all_caps"));
                 geyserLogger.error(" /     o     \\");
                 geyserLogger.error("/_____________\\");
@@ -109,14 +123,14 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             return;
         }
         this.geyser = GeyserImpl.load(this);
-        this.geyserInjector = new GeyserBungeeInjector(this);
+        this.geyserInjector = new GeyserBungeeInjector(plugin);
 
         // Registration of listeners occurs only once
-        this.getProxy().getPluginManager().registerListener(this, new GeyserBungeeUpdateListener());
+        proxyServer.getPluginManager().registerListener(plugin, new GeyserBungeeUpdateListener());
     }
 
     @Override
-    public void onEnable() {
+    public void enable() {
         if (geyser == null) {
             return; // Config did not load properly!
         }
@@ -124,12 +138,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         // After Geyser initialize for parity with other platforms.
         var sourceConverter = new CommandSourceConverter<>(
             CommandSender.class,
-            id -> getProxy().getPlayer(id),
-            () -> getProxy().getConsole(),
+            proxyServer::getPlayer,
+            proxyServer::getConsole,
             BungeeCommandSource::new
         );
         CommandManager<GeyserCommandSource> cloud = new BungeeCommandManager<>(
-            this,
+            plugin,
             ExecutionCoordinator.simpleCoordinator(),
             sourceConverter
         );
@@ -158,7 +172,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
             Collection<Channel> listeners = (Collection<Channel>) listenersField.get(BungeeCord.getInstance());
             if (listeners.isEmpty()) {
-                this.getProxy().getScheduler().schedule(this, this::onGeyserEnable, tries, TimeUnit.SECONDS);
+                proxyServer.getScheduler().schedule(plugin, this::onGeyserEnable, tries, TimeUnit.SECONDS);
             } else {
                 this.awaitStartupCompletion(++tries);
             }
@@ -176,7 +190,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         }
 
         // Force-disable query if enabled, or else Geyser won't enable
-        for (ListenerInfo info : getProxy().getConfig().getListeners()) {
+        for (ListenerInfo info : proxyServer.getConfig().getListeners()) {
             if (info.isQueryEnabled() && info.getQueryPort() == geyserConfig.bedrock().port()) {
                 try {
                     Field queryField = ListenerInfo.class.getDeclaredField("queryEnabled");
@@ -193,12 +207,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
             }
         }
 
-        if (getProxy().getPluginManager().getPlugin("floodgate") != null) {
+        if (proxyServer.getPluginManager().getPlugin("floodgate") != null) {
             geyserLogger.warning("WHY DO YOU HAVE FLOODGATE INSTALLED???1/");
         }
 
         if (geyserConfig.java().authType() == AuthType.FLOODGATE) {
-            getProxy().getPluginManager().registerListener(this, new BungeeHybridListener());
+            proxyServer.getPluginManager().registerListener(plugin, new BungeeHybridListener());
         }
 
         GeyserImpl.start();
@@ -206,7 +220,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
         if (!geyserConfig.motd().integratedPingPassthrough()) {
             this.geyserBungeePingPassthrough = GeyserLegacyPingPassthrough.init(geyser);
         } else {
-            this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(getProxy());
+            this.geyserBungeePingPassthrough = new GeyserBungeePingPassthrough(proxyServer);
         }
 
         // No need to re-register commands or re-init injector when reloading
@@ -235,7 +249,12 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     @Override
-    public void onDisable() {
+    public void disable() {
+        this.onGeyserDisable();
+    }
+
+    @Override
+    public void shutdown() {
         this.onGeyserShutdown();
     }
 
@@ -266,22 +285,22 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public Path getConfigFolder() {
-        return getDataFolder().toPath();
+        return plugin.getDataFolder().toPath();
     }
 
     @Override
     public BootstrapDumpInfo getDumpInfo() {
-        return new GeyserBungeeDumpInfo(getProxy());
+        return new GeyserBungeeDumpInfo(proxyServer);
     }
 
     @Override
     public Path getLogsPath() {
-        return Paths.get(getProxy().getName().equals("BungeeCord") ? "proxy.log.0" : "logs/latest.log");
+        return Paths.get(proxyServer.getName().equals("BungeeCord") ? "proxy.log.0" : "logs/latest.log");
     }
 
     @Override
     public @NonNull String getServerPlatform() {
-        return getProxy().getName();
+        return proxyServer.getName();
     }
 
     @Nullable
@@ -303,13 +322,13 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
 
     @Override
     public boolean testFloodgatePluginPresent() {
-        return getProxy().getPluginManager().getPlugin("floodgate") != null;
+        return proxyServer.getPluginManager().getPlugin("floodgate") != null;
     }
 
     @Override
     public Path getFloodgateKeyPath() {
-        Plugin floodgate = getProxy().getPluginManager().getPlugin("floodgate");
-        Path geyserDataFolder = getDataFolder().toPath();
+        Plugin floodgate = proxyServer.getPluginManager().getPlugin("floodgate");
+        Path geyserDataFolder = plugin.getDataFolder().toPath();
         Path floodgateDataFolder = floodgate != null ? floodgate.getDataFolder().toPath() : null;
 
         return FloodgateKeyLoader.getKeyPath(geyserConfig, floodgateDataFolder, geyserDataFolder, geyserLogger);
@@ -318,7 +337,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     @Override
     public MetricsPlatform createMetricsPlatform() {
         try {
-            return new BungeeMetrics(this);
+            return new BungeeMetrics(plugin);
         } catch (IOException e) {
             this.geyserLogger.debug("Integrated bStats support failed to load.");
             if (this.config().debugMode()) {
@@ -329,7 +348,7 @@ public class GeyserBungeePlugin extends Plugin implements GeyserBootstrap {
     }
 
     private Optional<InetSocketAddress> findCompatibleListener() {
-        var listeners = getProxy().getConfig().getListeners();
+        var listeners = proxyServer.getConfig().getListeners();
         if (listeners.size() == 1) {
             return listeners.stream()
                 .filter(info -> info.getSocketAddress() instanceof InetSocketAddress)

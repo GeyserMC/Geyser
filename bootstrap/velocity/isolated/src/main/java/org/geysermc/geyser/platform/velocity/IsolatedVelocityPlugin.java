@@ -59,7 +59,7 @@ public final class IsolatedVelocityPlugin {
 
             holder.platformInstance(child.getInstance(holder.platformClass()));
         } catch (Exception exception) {
-            throw new RuntimeException("Failed to load Floodgate", exception);
+            throw new RuntimeException("Failed to load Geyser", exception);
         }
     }
 

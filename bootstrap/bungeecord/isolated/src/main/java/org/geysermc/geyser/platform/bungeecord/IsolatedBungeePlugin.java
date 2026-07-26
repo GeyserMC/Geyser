@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,19 +25,41 @@
 
 package org.geysermc.geyser.platform.bungeecord;
 
-import org.geysermc.geyser.GeyserMain;
+import net.md_5.bungee.api.plugin.Plugin;
+import org.geysermc.floodgate.isolation.loader.PlatformHolder;
+import org.geysermc.floodgate.isolation.loader.PlatformLoader;
 
-public class GeyserBungeeMain extends GeyserMain {
+import java.nio.file.Path;
+import java.util.List;
 
-    public static void main(String[] args) {
-        new GeyserBungeeMain().displayMessage();
+public final class IsolatedBungeePlugin extends Plugin {
+    private final PlatformHolder holder;
+
+    public IsolatedBungeePlugin() {
+        super();
+
+        try {
+            Path libsDirectory = getDataFolder().toPath().resolve("libs");
+            holder = PlatformLoader.loadDefault(getClass().getClassLoader(), libsDirectory);
+            // Must match the arguments of the GeyserBungeePlatform constructor exactly
+            holder.init(List.of(Plugin.class), List.of(this));
+        } catch (Exception exception) {
+            throw new RuntimeException("Failed to load Geyser", exception);
+        }
     }
 
-    public String getPluginType() {
-        return "BungeeCord";
+    @Override
+    public void onLoad() {
+        holder.load();
     }
 
-    public String getPluginFolder() {
-        return "plugins";
+    @Override
+    public void onEnable() {
+        holder.enable();
+    }
+
+    @Override
+    public void onDisable() {
+        holder.shutdown();
     }
 }

@@ -19,17 +19,19 @@ platformRelocate("io.leangen.geantyref") // provided by cloud and Configurate, s
 // These dependencies are already present on the platform
 provided(libs.viaproxy)
 
-tasks.withType<Jar> {
-    manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.viaproxy.GeyserViaProxyMain"
-}
+tasks {
+    jar {
+        manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.viaproxy.GeyserViaProxyMain"
+    }
 
-tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
-    archiveBaseName.set("Geyser-ViaProxy")
+    shadowJar {
+        archiveBaseName.set("Geyser-ViaProxy")
 
-    dependencies {
-        exclude(dependency("com.google.*:.*"))
-        exclude(dependency("io.netty:.*"))
-        exclude(dependency("org.slf4j:.*"))
-        exclude(dependency("org.ow2.asm:.*"))
+        dependencies {
+            exclude(dependency("com.google.*:.*"))
+            exclude(dependency("io.netty:.*"))
+            exclude(dependency("org.slf4j:.*"))
+            exclude(dependency("org.ow2.asm:.*"))
+        }
     }
 }
