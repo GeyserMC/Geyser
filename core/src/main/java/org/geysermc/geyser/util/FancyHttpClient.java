@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,64 +25,93 @@
 
 package org.geysermc.geyser.util;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.stream.JsonReader;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.pack.ResourcePackMetadata;
 
 import javax.naming.directory.Attribute;
 import javax.naming.directory.InitialDirContext;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.ConnectException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.net.URL;
+import java.io.UncheckedIOException;
+import java.net.URI;
 import java.net.URLEncoder;
-import java.net.UnknownHostException;
+import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
-import java.util.Arrays;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
-import java.util.zip.ZipFile;
 
-public class WebUtils {
-
+public final class FancyHttpClient implements AutoCloseable {
     private static final Path REMOTE_PACK_CACHE = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
+
+    private final @Nullable ExecutorService executorService;
+    private final HttpClient client;
+    private final String userAgent;
+
+    private FancyHttpClient(@Nullable ExecutorService executorService) {
+        HttpClient.Builder builder = HttpClient.newBuilder()
+            .followRedirects(HttpClient.Redirect.NORMAL);
+        if (executorService != null) {
+            builder.executor(executorService);
+        }
+
+        this.executorService = executorService;
+        this.client = builder.build();
+        this.userAgent = "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION;
+    }
+
+    public static FancyHttpClient open(Supplier<ExecutorService> executorSupplier) {
+        return new FancyHttpClient(executorSupplier.get());
+    }
+
+    public static FancyHttpClient open() {
+        return new FancyHttpClient(null);
+    }
+
+    private <T> CompletableFuture<HttpResponse<T>> fetch(String uri, UnaryOperator<HttpRequest.Builder> builder, HttpResponse.BodyHandler<T> bodyHandler) {
+        return client.sendAsync(builder.apply(HttpRequest.newBuilder(URI.create(uri))
+            .header("User-Agent", userAgent)
+            .timeout(Duration.ofSeconds(10L))).build(), bodyHandler);
+    }
+
+    private <T> CompletableFuture<T> fetchOrThrow(String uri, UnaryOperator<HttpRequest.Builder> builder, HttpResponse.BodyHandler<T> bodyHandler) {
+        return fetch(uri, builder, bodyHandler)
+            .thenApply(response -> {
+                int status = response.statusCode();
+                if (status >= 200 && status < 300) {
+                    return response.body();
+                }
+                throw new RuntimeException("Unable to make HTTP request to URL %s (returned status code %d)".formatted(response.request().uri(), response.statusCode()));
+            });
+    }
 
     /**
      * Makes a web request to the given URL and returns the body as a string
      *
      * @param reqURL URL to fetch
-     * @return body content or
-     * @throws IOException / a wrapped UnknownHostException for nicer errors.
+     * @return body content
+     * @throws RuntimeException in returned future when the request failed
      */
-    public static String getBody(String reqURL) throws IOException {
-        try {
-            URL url = new URL(reqURL);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("GET");
-            con.setRequestProperty("User-Agent", getUserAgent()); // Otherwise Java 8 fails on checking updates
-            con.setConnectTimeout(10000);
-            con.setReadTimeout(10000);
-            checkResponseCode(con);
-            return connectionToString(con);
-        } catch (UnknownHostException e) {
-            throw new IllegalStateException("Unable to resolve requested url (%s)! Are you offline?".formatted(reqURL), e);
-        }
+    public CompletableFuture<String> getBody(String reqURL) {
+        return fetchOrThrow(reqURL, HttpRequest.Builder::GET,
+            HttpResponse.BodyHandlers.ofString());
     }
 
     /**
@@ -90,18 +119,11 @@ public class WebUtils {
      *
      * @param reqURL URL to fetch
      * @return the response as JSON
+     * @throws RuntimeException in returned future when the request failed
      */
-    public static JsonObject getJson(String reqURL) throws IOException {
-        HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
-        con.setRequestProperty("User-Agent", getUserAgent());
-        con.setConnectTimeout(10000);
-        con.setReadTimeout(10000);
-        checkResponseCode(con);
-        try (InputStreamReader isr = new InputStreamReader(con.getInputStream());
-             JsonReader reader = GeyserImpl.GSON.newJsonReader(isr)) {
-            //noinspection deprecation
-            return new JsonParser().parse(reader).getAsJsonObject();
-        }
+    public CompletableFuture<JsonObject> getJson(String reqURL) {
+        //noinspection deprecation
+        return getBody(reqURL).thenApply(string -> new JsonParser().parse(string).getAsJsonObject());
     }
 
     /**
@@ -110,8 +132,9 @@ public class WebUtils {
      * @param reqURL File to fetch
      * @param fileLocation Location to save on disk
      */
-    public static void downloadFile(String reqURL, String fileLocation) {
-        downloadFile(reqURL, Paths.get(fileLocation));
+    @Deprecated
+    public CompletableFuture<?> downloadFile(String reqURL, String fileLocation) {
+        return downloadFile(reqURL, Paths.get(fileLocation));
     }
 
     /**
@@ -120,16 +143,8 @@ public class WebUtils {
      * @param reqURL File to fetch
      * @param path Location to save on disk as a path
      */
-    public static void downloadFile(String reqURL, Path path) {
-        try {
-            HttpURLConnection con = (HttpURLConnection) new URL(reqURL).openConnection();
-            con.setRequestProperty("User-Agent", getUserAgent());
-            checkResponseCode(con);
-            InputStream in = con.getInputStream();
-            Files.copy(in, path, StandardCopyOption.REPLACE_EXISTING);
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to download and save file: " + path.toAbsolutePath() + " (" + reqURL + ")", e);
-        }
+    public CompletableFuture<?> downloadFile(String reqURL, Path path) {
+        return fetchOrThrow(reqURL, HttpRequest.Builder::GET, HttpResponse.BodyHandlers.ofFile(path));
     }
 
     /**
@@ -140,127 +155,88 @@ public class WebUtils {
      * @param force If true, the pack will be downloaded even if it is cached to a separate location.
      * @return Path to the downloaded pack file, or null if it was unable to be loaded
      */
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public static @NonNull Path downloadRemotePack(String url, boolean force) throws IOException {
+    public CompletableFuture<Path> downloadRemotePack(String url, boolean force) {
         GeyserLogger logger = GeyserImpl.getInstance().getLogger();
-        try {
-            HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
 
-            con.setConnectTimeout(10000);
-            con.setReadTimeout(10000);
-            con.setRequestProperty("User-Agent", "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION);
-            con.setInstanceFollowRedirects(true);
+        return fetch(url, HttpRequest.Builder::HEAD, HttpResponse.BodyHandlers.discarding())
+            .thenComposeAsync(headerResponse -> {
+                if (!isSuccess(headerResponse.statusCode())) {
+                    throw new IllegalStateException(String.format("Invalid response code from remote pack at URL: %s (code: %d)", url, headerResponse.statusCode()));
+                }
 
-            int responseCode = con.getResponseCode();
-            if (responseCode >= 400) {
-                throw new IllegalStateException(String.format("Invalid response code from remote pack at URL: %s (code: %d)", url, responseCode));
-            }
+                HttpHeaders headers = headerResponse.headers();
+                ResourcePackMetadata headerMetadata = ResourcePackMetadata.fromHeaders(url, headers);
+                Optional<String> type = headers.firstValue("content-type");
 
-            int size = con.getContentLength();
-            String type = con.getContentType();
+                if (headerMetadata.size() <= 0L) {
+                    throw new IllegalArgumentException(String.format("Invalid content length received from remote pack at URL: %s (size: %d)", url, headerMetadata.size()));
+                }
 
-            if (size <= 0) {
-                throw new IllegalArgumentException(String.format("Invalid content length received from remote pack at URL: %s (size: %d)", url, size));
-            }
+                if (type.isEmpty() || !type.get().equals("application/zip")) {
+                    throw new IllegalArgumentException(String.format("Url %s tries to provide a resource pack using the %s content type, which is not supported by Bedrock edition! " +
+                        "Bedrock Edition only supports the application/zip content type.", url, type.orElse(null)));
+                }
 
-            if (type == null || !type.equals("application/zip")) {
-                throw new IllegalArgumentException(String.format("Url %s tries to provide a resource pack using the %s content type, which is not supported by Bedrock edition! " +
-                    "Bedrock Edition only supports the application/zip content type.", url, type));
-            }
+                if (!force) {
+                    Optional<ResourcePackMetadata> cachedMetadata = ResourcePackMetadata.fromCache(url)
+                        .filter(data -> data.equalsIgnoreLocation(headerMetadata));
+                    if (cachedMetadata.isPresent()) {
+                        logger.debug("Using cached pack (%s) for %s.".formatted(cachedMetadata.get().downloadLocation().getFileName(), url));
+                        cachedMetadata.get().updateAccessTimes();
+                        return CompletableFuture.completedFuture(cachedMetadata.get().downloadLocation());
+                    }
+                }
 
-            // Ensure remote pack cache dir exists
-            Files.createDirectories(REMOTE_PACK_CACHE);
-
-            Path packMetadata = REMOTE_PACK_CACHE.resolve(url.hashCode() + ".metadata");
-            Path downloadLocation;
-
-            // If we downloaded this pack before, reuse it if the ETag matches.
-            if (Files.exists(packMetadata) && !force) {
                 try {
-                    List<String> metadata = Files.readAllLines(packMetadata, StandardCharsets.UTF_8);
-                    int cachedSize = Integer.parseInt(metadata.get(0));
-                    String cachedEtag = metadata.get(1);
-                    long cachedLastModified = Long.parseLong(metadata.get(2));
-                    downloadLocation = REMOTE_PACK_CACHE.resolve(metadata.get(3));
-
-                    if (cachedSize == size &&
-                            cachedEtag.equals(con.getHeaderField("ETag")) &&
-                            cachedLastModified == con.getLastModified() &&
-                            downloadLocation.toFile().exists()) {
-                        logger.debug("Using cached pack (%s) for %s.".formatted(downloadLocation.getFileName(), url));
-                        downloadLocation.toFile().setLastModified(System.currentTimeMillis());
-                        packMetadata.toFile().setLastModified(System.currentTimeMillis());
-                        return downloadLocation;
-                    } else {
-                        logger.debug("Deleting cached pack/metadata (%s) as it appears to have changed!".formatted(url));
-                        Files.deleteIfExists(packMetadata);
-                        Files.deleteIfExists(downloadLocation);
-                    }
-                } catch (IOException e) {
-                    GeyserImpl.getInstance().getLogger().error("Failed to read cached pack metadata! " + e);
-                    packMetadata.toFile().deleteOnExit();
+                    // Ensure remote pack cache dir exists
+                    Files.createDirectories(REMOTE_PACK_CACHE);
+                } catch (IOException exception) {
+                    throw new UncheckedIOException("Failed to create remote pack cache directory!", exception);
                 }
-            }
 
-            downloadLocation = REMOTE_PACK_CACHE.resolve(url.hashCode() + "_" + System.currentTimeMillis() + ".zip");
-            Files.copy(con.getInputStream(), downloadLocation, StandardCopyOption.REPLACE_EXISTING);
+                return actuallyDownloadRemotePack(headerMetadata);
+            });
+    }
 
-            // This needs to match as the client fails to download the pack otherwise
-            long downloadSize = Files.size(downloadLocation);
-            if (downloadSize != size) {
-                Files.delete(downloadLocation);
-                throw new IllegalStateException("Size mismatch with resource pack at url: %s. Downloaded pack has %s bytes, expected %s bytes!"
-                        .formatted(url, downloadSize, size));
-            }
-
-            try {
-                boolean shouldDeleteEnclosing = false;
-                var originalZip = downloadLocation;
-                try (ZipFile zip = new ZipFile(downloadLocation.toFile())) {
-                    // This can (or should???) contain a zip
-                    if (zip.stream().allMatch(name -> name.getName().endsWith(".zip"))) {
-                        // Unzip the pack, as that's what we're after
-                        downloadLocation = REMOTE_PACK_CACHE.resolve(url.hashCode() + "_" + System.currentTimeMillis() + "_unzipped.zip");
-                        Files.copy(zip.getInputStream(zip.entries().nextElement()), downloadLocation, StandardCopyOption.REPLACE_EXISTING);
-                        shouldDeleteEnclosing = true;
+    private CompletableFuture<Path> actuallyDownloadRemotePack(ResourcePackMetadata metadata) {
+        return fetchOrThrow(metadata.url(), HttpRequest.Builder::GET, HttpResponse.BodyHandlers.ofFile(metadata.downloadLocation()))
+            .thenApplyAsync(downloadLocation -> {
+                try {
+                    // This needs to match as the client fails to download the pack otherwise
+                    long downloadSize = Files.size(downloadLocation);
+                    if (downloadSize != metadata.size()) {
+                        Files.delete(downloadLocation);
+                        throw new IllegalStateException("Size mismatch with resource pack at url: %s. Downloaded pack has %s bytes, expected %s bytes!".formatted(metadata.url(), downloadSize, metadata.size()));
                     }
-                } finally {
-                    if (shouldDeleteEnclosing) {
-                        // We don't need the original zip anymore
-                        Files.delete(originalZip);
+
+                    boolean shouldDeleteEnclosing = false;
+                    ResourcePackMetadata finalMetadata = metadata;
+
+                    try (FileSystem openedPack = FileSystems.newFileSystem(downloadLocation)) {
+                        try (Stream<Path> zipStream = Files.list(openedPack.getPath("/"))
+                            .filter(path -> path.endsWith(".zip"))) {
+                            List<Path> zipsInZip = zipStream.toList();
+                            if (zipsInZip.size() == 1) {
+                                finalMetadata = metadata.withDownloadLocation(original -> original.getParent().resolve(metadata.url().hashCode() + "_" + System.currentTimeMillis() + "_unzipped.zip"));
+                                Files.copy(zipsInZip.getFirst(), finalMetadata.downloadLocation());
+                                shouldDeleteEnclosing = true;
+                            }
+                        }
+                    } finally {
+                        if (shouldDeleteEnclosing) {
+                            // We don't need the original zip anymore
+                            Files.delete(downloadLocation);
+                        }
                     }
+
+                    // From here on, use finalMetadata#downloadLocation instead
+                    finalMetadata.save();
+                    GeyserImpl.getInstance().getLogger().debug("Successfully downloaded remote pack! URL: %s (to: %s )".formatted(finalMetadata.url(), finalMetadata.downloadLocation()));
+                    return finalMetadata.downloadLocation();
+                } catch (IOException exception) {
+                    throw new UncheckedIOException("Encountered exception while reading downloaded resource pack at url: %s".formatted(metadata.url()), exception);
                 }
-            } catch (IOException e) {
-                throw new IllegalArgumentException("Encountered exception while reading downloaded resource pack at url: %s".formatted(url), e);
-            }
-
-            try {
-                Files.write(
-                        packMetadata,
-                        Arrays.asList(
-                                String.valueOf(size),
-                                con.getHeaderField("ETag"),
-                                String.valueOf(con.getLastModified()),
-                                downloadLocation.getFileName().toString()
-                        ),
-                        StandardOpenOption.CREATE,
-                        StandardOpenOption.TRUNCATE_EXISTING);
-                packMetadata.toFile().setLastModified(System.currentTimeMillis());
-            } catch (IOException e) {
-                Files.delete(packMetadata);
-                Files.delete(downloadLocation);
-                throw new IllegalStateException("Failed to write cached pack metadata: " + e.getMessage());
-            }
-
-            downloadLocation.toFile().setLastModified(System.currentTimeMillis());
-            logger.debug("Successfully downloaded remote pack! URL: %s (to: %s )".formatted(url, downloadLocation));
-            return downloadLocation;
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Unable to download resource pack from malformed URL %s".formatted(url));
-        } catch (SocketTimeoutException | ConnectException e) {
-            logger.debug(e);
-            throw new IllegalArgumentException("Unable to download pack from url %s due to network error ( %s )".formatted(url, e.toString()));
-        }
+            });
     }
 
 
@@ -272,67 +248,8 @@ public class WebUtils {
      * @return String returned by the server
      * @throws IOException If the request fails
      */
-    public static String post(String reqURL, String postContent) throws IOException {
-        URL url = new URL(reqURL);
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "text/plain");
-        con.setRequestProperty("User-Agent", getUserAgent());
-        con.setDoOutput(true);
-
-        OutputStream out = con.getOutputStream();
-        out.write(postContent.getBytes(StandardCharsets.UTF_8));
-        out.close();
-
-        return connectionToString(con);
-    }
-
-    /**
-     * Gets the string output from the passed {@link HttpURLConnection},
-     * or logs the error message.
-     */
-    private static String connectionToString(HttpURLConnection con) throws IOException {
-        checkResponseCode(con);
-        return inputStreamToString(con.getInputStream(), con::disconnect);
-    }
-
-    /**
-     * Throws an exception if there is an error stream to avoid further issues
-     */
-    private static void checkResponseCode(HttpURLConnection con) throws IOException {
-        // Send the request (we dont use this but its required for getErrorStream() to work)
-        con.getResponseCode();
-
-        // Read the error message if there is one if not just read normally
-        InputStream errorStream = con.getErrorStream();
-        if (errorStream != null) {
-            throw new IOException(inputStreamToString(errorStream, null));
-        }
-    }
-
-    /**
-     * Get the string output from the passed {@link InputStream}
-     *
-     * @param stream The input stream to get the string from
-     * @return The body of the returned page
-     * @throws IOException If the request fails
-     */
-    private static String inputStreamToString(InputStream stream, @Nullable Runnable onFinish) throws IOException {
-        StringBuilder content = new StringBuilder();
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(stream))) {
-            String inputLine;
-
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine);
-                content.append("\n");
-            }
-
-            if (onFinish != null) {
-                onFinish.run();
-            }
-        }
-
-        return content.toString();
+    public CompletableFuture<String> post(String reqURL, String postContent) throws IOException {
+        return fetchOrThrow(reqURL, builder -> builder.POST(HttpRequest.BodyPublishers.ofString(postContent)), HttpResponse.BodyHandlers.ofString());
     }
 
     /**
@@ -343,22 +260,12 @@ public class WebUtils {
      * @return String returned by the server
      * @throws IOException If the request fails
      */
-    public static String postForm(String reqURL, Map<String, String> fields) throws IOException {
-        URL url = new URL(reqURL);
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        con.setRequestProperty("User-Agent", getUserAgent());
-        con.setDoOutput(true);
-
-        try (OutputStream out = con.getOutputStream()) {
-            // Write the form data to the output
-            for (Map.Entry<String, String> field : fields.entrySet()) {
-                out.write((field.getKey() + "=" + URLEncoder.encode(field.getValue(), StandardCharsets.UTF_8) + "&").getBytes(StandardCharsets.UTF_8));
-            }
+    public CompletableFuture<String> postForm(String reqURL, Map<String, String> fields) throws IOException {
+        StringBuilder formString = new StringBuilder();
+        for (Map.Entry<String, String> field : fields.entrySet()) {
+            formString.append(field.getKey()).append("=").append(URLEncoder.encode(field.getValue(), StandardCharsets.UTF_8)).append("&");
         }
-
-        return connectionToString(con);
+        return fetchOrThrow(reqURL, builder -> builder.POST(HttpRequest.BodyPublishers.ofString(formString.toString())), HttpResponse.BodyHandlers.ofString());
     }
 
     /**
@@ -392,24 +299,8 @@ public class WebUtils {
      * @param reqURL URL to fetch
      * @return Stream of lines from the URL or an empty stream if the request fails
      */
-    public static Stream<String> getLineStream(String reqURL) {
-        try {
-            URL url = new URL(reqURL);
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("GET");
-            con.setRequestProperty("User-Agent", getUserAgent()); // Otherwise Java 8 fails on checking updates
-            con.setConnectTimeout(10000);
-            con.setReadTimeout(10000);
-
-            return connectionToString(con).lines();
-        } catch (Exception e) {
-            GeyserImpl.getInstance().getLogger().error("Error while trying to get a stream from " + reqURL, e);
-            return Stream.empty();
-        }
-    }
-
-    public static String getUserAgent() {
-        return "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION;
+    public CompletableFuture<Stream<String>> getLineStream(String reqURL) {
+        return getBody(reqURL).thenApply(String::lines);
     }
 
     public static String toHttps(String url) {
@@ -417,5 +308,17 @@ public class WebUtils {
             return "https://" + url.substring(7);
         }
         return url;
+    }
+
+    @Override
+    public void close() throws Exception {
+        client.close();
+        if (executorService != null) {
+            executorService.close();
+        }
+    }
+
+    private static boolean isSuccess(int statusCode) {
+        return statusCode >= 200 && statusCode < 300;
     }
 }
