@@ -269,31 +269,6 @@ public final class FancyHttpClient implements AutoCloseable {
     }
 
     /**
-     * Find a SRV record for the given address
-     *
-     * @param geyser Geyser instance
-     * @param remoteAddress Address to find the SRV record for
-     * @return The SRV record or null if not found
-     */
-    public static String @Nullable [] findSrvRecord(GeyserImpl geyser, String remoteAddress) {
-        try {
-            // Searches for a server address and a port from a SRV record of the specified host name
-            InitialDirContext ctx = new InitialDirContext();
-            Attribute attr = ctx.getAttributes("dns:///_minecraft._tcp." + remoteAddress, new String[]{"SRV"}).get("SRV");
-            // size > 0 = SRV entry found
-            if (attr != null && attr.size() > 0) {
-                return ((String) attr.get(0)).split(" ");
-            }
-        } catch (Exception | NoClassDefFoundError ex) { // Check for a NoClassDefFoundError to prevent Android crashes
-            if (geyser.config().debugMode()) {
-                geyser.getLogger().debug("Exception while trying to find an SRV record for the remote host.");
-                ex.printStackTrace(); // Otherwise we can get a stack trace for any domain that doesn't have an SRV record
-            }
-        }
-        return null;
-    }
-
-    /**
      * Get a stream of lines from the given URL
      *
      * @param reqURL URL to fetch
@@ -301,13 +276,6 @@ public final class FancyHttpClient implements AutoCloseable {
      */
     public CompletableFuture<Stream<String>> getLineStream(String reqURL) {
         return getBody(reqURL).thenApply(String::lines);
-    }
-
-    public static String toHttps(String url) {
-        if (url != null && url.startsWith("http://")) {
-            return "https://" + url.substring(7);
-        }
-        return url;
     }
 
     @Override
