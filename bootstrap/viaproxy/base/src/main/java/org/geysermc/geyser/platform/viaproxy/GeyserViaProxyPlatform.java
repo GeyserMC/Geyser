@@ -33,14 +33,13 @@ import net.raphimc.viaproxy.plugins.PluginManager;
 import net.raphimc.viaproxy.plugins.ViaProxyPlugin;
 import net.raphimc.viaproxy.plugins.events.Client2ProxyChannelInitializeEvent;
 import net.raphimc.viaproxy.plugins.events.ConsoleCommandEvent;
-import net.raphimc.viaproxy.plugins.events.ProxyStartEvent;
-import net.raphimc.viaproxy.plugins.events.ProxyStopEvent;
 import net.raphimc.viaproxy.plugins.events.ShouldVerifyOnlineModeEvent;
-import net.raphimc.viaproxy.plugins.events.ViaProxyLoadedEvent;
 import net.raphimc.viaproxy.plugins.events.types.ITyped;
 import net.raphimc.viaproxy.protocoltranslator.viaproxy.ViaProxyConfig;
 import org.apache.logging.log4j.LogManager;
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.geysermc.floodgate.isolation.IsolatedPlatform;
+import org.geysermc.floodgate.isolation.library.LibraryManager;
 import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
@@ -67,7 +66,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
 
-public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootstrap, EventRegistrar {
+public class GeyserViaProxyPlatform implements GeyserBootstrap, EventRegistrar, IsolatedPlatform {
+
+    private final LibraryManager manager;
+    private final ViaProxyPlugin plugin;
 
     private static final File ROOT_FOLDER = new File(PluginManager.PLUGINS_DIR, "Geyser");
 
@@ -78,21 +80,33 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
     private CommandRegistry commandRegistry;
     private IGeyserPingPassthrough pingPassthrough;
 
-    @Override
-    public void onEnable() {
+    public GeyserViaProxyPlatform(LibraryManager manager, ViaProxyPlugin plugin) {
+        this.manager = manager;
+        this.plugin = plugin;
+
         ROOT_FOLDER.mkdirs();
         ViaProxy.EVENT_MANAGER.register(this);
     }
 
     @Override
-    public void onDisable() {
-        this.onGeyserShutdown();
-    }
-
-    @EventHandler
-    private void onViaProxyLoaded(ViaProxyLoadedEvent event) {
+    public void load() {
         GeyserLocale.init(this);
         this.onGeyserInitialize();
+    }
+
+    @Override
+    public void enable() {
+        this.onGeyserEnable();
+    }
+
+    @Override
+    public void disable() {
+        this.onGeyserDisable();
+    }
+
+    @Override
+    public void shutdown() {
+        this.onGeyserShutdown();
     }
 
     @EventHandler
@@ -138,16 +152,6 @@ public class GeyserViaProxyPlugin extends ViaProxyPlugin implements GeyserBootst
                 RStream.of(AbstractChannel.class, event.getChannel()).fields().by("remoteAddress").set(realAddress);
             }
         }
-    }
-
-    @EventHandler
-    private void onProxyStart(final ProxyStartEvent event) {
-        this.onGeyserEnable();
-    }
-
-    @EventHandler
-    private void onProxyStop(final ProxyStopEvent event) {
-        this.onGeyserDisable();
     }
 
     @Override

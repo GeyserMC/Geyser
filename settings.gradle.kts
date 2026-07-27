@@ -22,10 +22,6 @@ include(":isolation")
 include(":gametest")
 include(":core")
 
-//todo probably needs to be added to the isolated platforms
-include(":viaproxy")
-project(":viaproxy").projectDir = file("bootstrap/viaproxy")
-
 include(":standalone")
 project(":standalone").projectDir = file("bootstrap/standalone")
 
@@ -39,7 +35,7 @@ project(":fabric").projectDir = file("bootstrap/mod/fabric")
 include(":neoforge")
 project(":neoforge").projectDir = file("bootstrap/mod/neoforge")
 
-arrayOf("bungeecord", "spigot", "velocity").forEach { platform ->
+arrayOf("bungeecord", "spigot", "velocity", "viaproxy").forEach { platform ->
     arrayOf("base", "isolated").forEach {
         var id = ":$platform-$it"
         // isolated is the new default
