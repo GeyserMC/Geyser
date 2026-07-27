@@ -44,4 +44,4 @@ jobs:
             bootstrap/spigot/isolated/build/libs/Geyser-Spigot.jar
             bootstrap/bungeecord/isolated/build/libs/Geyser-BungeeCord.jar
             bootstrap/velocity/isolated/build/libs/Geyser-Velocity.jar
-            bootstrap/viaproxy/build/libs/Geyser-ViaProxy.jar
+            bootstrap/viaproxy/isolated/build/libs/Geyser-ViaProxy.jar
