@@ -37,9 +37,12 @@ import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.chrono.ChronoZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.UnaryOperator;
 
 public record ResourcePackMetadata(Path path, String url, long size, String eTag, long lastModified, Path downloadLocation) {
     private static final Path REMOTE_PACK_CACHE = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
@@ -59,7 +62,7 @@ public record ResourcePackMetadata(Path path, String url, long size, String eTag
 
             updateAccessTimes();
         } catch (IOException exception) {
-            throw new UncheckedIOException(exception); // FIXME
+            throw new UncheckedIOException("Failed to write cached pack metadata", exception);
         }
     }
 
@@ -68,13 +71,14 @@ public record ResourcePackMetadata(Path path, String url, long size, String eTag
         try {
             Files.getFileAttributeView(path, BasicFileAttributeView.class).setTimes(null, time, null);
             Files.getFileAttributeView(downloadLocation, BasicFileAttributeView.class).setTimes(null, time, null);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e); // FIXME
+        } catch (IOException exception) {
+            GeyserImpl.getInstance().getLogger().debug("Failed to update access times for resource pack metadata " + this);
         }
     }
 
-    public ResourcePackMetadata withDownloadLocation(UnaryOperator<Path> modifier) {
-        return new ResourcePackMetadata(path, url, size, eTag, lastModified, modifier.apply(downloadLocation));
+    public ResourcePackMetadata withSuffixedDownload(String suffix) {
+        Path newDownloadLocation = REMOTE_PACK_CACHE.resolve(url.hashCode() + "_" + System.currentTimeMillis() + suffix + ".zip");
+        return new ResourcePackMetadata(path, url, size, eTag, lastModified, newDownloadLocation);
     }
 
     public boolean equalsIgnoreLocation(ResourcePackMetadata other) {
@@ -82,8 +86,19 @@ public record ResourcePackMetadata(Path path, String url, long size, String eTag
     }
 
     public static ResourcePackMetadata fromHeaders(String url, HttpHeaders headers) {
+        long lastModified = headers.firstValue("last-modified")
+            .flatMap(string -> {
+                try {
+                    return Optional.of(ZonedDateTime.parse(string, DateTimeFormatter.RFC_1123_DATE_TIME));
+                } catch (DateTimeParseException exception) {
+                    return Optional.empty();
+                }
+            })
+            .map(ChronoZonedDateTime::toInstant)
+            .stream().mapToLong(Instant::toEpochMilli)
+            .findFirst().orElse(0L);
         return new ResourcePackMetadata(url, headers.firstValueAsLong("content-length").orElse(0L),
-            headers.firstValue("etag").orElse(""), headers.firstValueAsLong("last-modified").orElse(0L),
+            headers.firstValue("etag").orElse(""), lastModified,
             REMOTE_PACK_CACHE.resolve(url.hashCode() + "_" + System.currentTimeMillis() + ".zip"));
     }
 
@@ -94,7 +109,10 @@ public record ResourcePackMetadata(Path path, String url, long size, String eTag
             try {
                 metadata = Files.readAllLines(packMetadata, StandardCharsets.UTF_8);
             } catch (IOException exception) {
-                // TODO add log back in
+                GeyserImpl.getInstance().getLogger().error("Failed to read cached pack metadata!", exception);
+                try {
+                    Files.delete(packMetadata);
+                } catch (IOException ignored) {}
                 return Optional.empty();
             }
 

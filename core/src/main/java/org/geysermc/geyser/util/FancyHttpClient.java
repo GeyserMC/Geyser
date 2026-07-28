@@ -283,7 +283,7 @@ public final class FancyHttpClient implements AutoCloseable {
                             .filter(path -> path.endsWith(".zip"))) {
                             List<Path> zipsInZip = zipStream.toList();
                             if (zipsInZip.size() == 1) {
-                                finalMetadata = metadata.withDownloadLocation(original -> original.getParent().resolve(metadata.url().hashCode() + "_" + System.currentTimeMillis() + "_unzipped.zip"));
+                                finalMetadata = metadata.withSuffixedDownload("_unzipped");
                                 Files.copy(zipsInZip.getFirst(), finalMetadata.downloadLocation());
                                 shouldDeleteEnclosing = true;
                             }

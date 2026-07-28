@@ -240,12 +240,8 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
         for (String url : remotePackUrls) {
             try {
                 event.register(new GeyserUrlPackCodec(url).create());
-            } catch (Throwable e) {
-                instance.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url));
-                instance.getLogger().error(e.getMessage());
-                if (instance.getLogger().isDebug()) {
-                    e.printStackTrace();
-                }
+            } catch (Throwable throwable) {
+                instance.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.resource_pack.broken", url), throwable);
             }
         }
     }
