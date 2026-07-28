@@ -90,6 +90,13 @@ public final class BedrockPlayerAuthInputTranslator extends PacketTranslator<Pla
             }
             return;
         }
+        // Block break runs before BedrockMovePlayer. Seed collision/onGround from this packet + solid-under-feet
+        // so dig speed does not apply Java's 5× airborne penalty while the client break circle is normal.
+        entity.setCollidingVertically(packet.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION));
+        if (!session.isNoClip() && entity.getVehicle() == null) {
+            entity.setOnGround(session.getCollisionManager()
+                .resolveStandingOnGround(entity.isCollidingVertically(), packet.getDelta().getY()));
+        }
         session.getBlockBreakHandler().handlePlayerAuthInputPacket(packet);
 
         ServerboundPlayerCommandPacket sprintPacket = null;

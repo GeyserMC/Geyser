@@ -29,6 +29,7 @@ import net.kyori.adventure.text.Component;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.inventory.Inventory;
 import org.geysermc.geyser.inventory.InventoryHolder;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.inventory.OldSmithingTableTranslator;
@@ -54,6 +55,15 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
         InventoryTranslator<? extends Inventory> newTranslator;
         InventoryHolder<? extends Inventory> currentInventory = session.getInventoryHolder();
+
+        // Crafter UI does not exist on Bedrock before 1.21.0 — refuse rather than faking another container.
+        if (packet.getType() == ContainerType.CRAFTER_3x3 && !GameProtocol.is1_21_0orHigher(session.protocolVersion())) {
+            if (currentInventory != null) {
+                InventoryUtils.closeInventory(session, currentInventory, true);
+            }
+            session.sendDownstreamGamePacket(new ServerboundContainerClosePacket(packet.getContainerId()));
+            return;
+        }
 
         // Hack: ViaVersion translates the old (pre 1.20) smithing table to a anvil (does not work for Bedrock). We can detect this and translate it back to a smithing table.
         // (Implementation note: used to be a furnace. Was changed sometime before 1.21.2)

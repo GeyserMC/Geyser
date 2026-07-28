@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.packet.UpdateBlockPacket;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.populator.conversion.LegacyEntityFallbacks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
@@ -102,12 +103,12 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
             bedrockNbt.put("MinSpawnDelay", current);
         }
 
-        translateSpawnData(bedrockNbt, javaNbt.getCompound("SpawnData", null));
+        translateSpawnData(session, bedrockNbt, javaNbt.getCompound("SpawnData", null));
 
         bedrockNbt.put("isMovable", (byte) 1);
     }
 
-    private static void translateSpawnData(@NonNull NbtMapBuilder builder, @Nullable NbtMap spawnData) {
+    private static void translateSpawnData(GeyserSession session, @NonNull NbtMapBuilder builder, @Nullable NbtMap spawnData) {
         if (spawnData == null) {
             return;
         }
@@ -116,7 +117,7 @@ public class SpawnerBlockEntityTranslator extends BlockEntityTranslator {
         String entityId = entityTag.getString("id");
         if (entityId != null) {
             // As of 1.19.3, spawners can be empty
-            builder.put("EntityIdentifier", entityId);
+            builder.put("EntityIdentifier", LegacyEntityFallbacks.remapIdentifier(entityId, session.protocolVersion()));
 
             EntityTypeDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityId);
             if (definition != null) {

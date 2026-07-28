@@ -238,6 +238,7 @@ public class Entity implements GeyserEntity {
         addEntityPacket.getMetadata().putFlags(flags);
         metadata.apply(addEntityPacket.getMetadata());
         if (propertyManager != null) {
+            propertyManager.discardUnsupportedProperties(session.protocolVersion());
             propertyManager.applyIntProperties(addEntityPacket.getProperties().getIntProperties());
             propertyManager.applyFloatProperties(addEntityPacket.getProperties().getFloatProperties());
         }
@@ -458,8 +459,11 @@ public class Entity implements GeyserEntity {
             }
             metadata.apply(entityDataPacket.getMetadata());
             if (propertyManager != null && propertyManager.hasProperties()) {
-                propertyManager.applyIntProperties(entityDataPacket.getProperties().getIntProperties());
-                propertyManager.applyFloatProperties(entityDataPacket.getProperties().getFloatProperties());
+                propertyManager.discardUnsupportedProperties(session.protocolVersion());
+                if (propertyManager.hasProperties()) {
+                    propertyManager.applyIntProperties(entityDataPacket.getProperties().getIntProperties());
+                    propertyManager.applyFloatProperties(entityDataPacket.getProperties().getFloatProperties());
+                }
             }
             session.sendUpstreamPacket(entityDataPacket);
         }
@@ -491,6 +495,10 @@ public class Entity implements GeyserEntity {
         }
 
         if (propertyManager != null && propertyManager.hasProperties()) {
+            propertyManager.discardUnsupportedProperties(session.protocolVersion());
+            if (!propertyManager.hasProperties()) {
+                return;
+            }
             SetEntityDataPacket entityDataPacket = new SetEntityDataPacket();
             entityDataPacket.setRuntimeEntityId(geyserId);
             propertyManager.applyIntProperties(entityDataPacket.getProperties().getIntProperties());
@@ -941,14 +949,17 @@ public class Entity implements GeyserEntity {
             });
 
             if (propertyManager.hasProperties()) {
-                if (immediate) {
-                    SetEntityDataPacket packet = new SetEntityDataPacket();
-                    packet.setRuntimeEntityId(geyserId());
-                    propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
-                    propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
-                    session.sendUpstreamPacketImmediately(packet);
-                } else {
-                    session.getEntityCache().markDirty(this);
+                propertyManager.discardUnsupportedProperties(session.protocolVersion());
+                if (propertyManager.hasProperties()) {
+                    if (immediate) {
+                        SetEntityDataPacket packet = new SetEntityDataPacket();
+                        packet.setRuntimeEntityId(geyserId());
+                        propertyManager.applyFloatProperties(packet.getProperties().getFloatProperties());
+                        propertyManager.applyIntProperties(packet.getProperties().getIntProperties());
+                        session.sendUpstreamPacketImmediately(packet);
+                    } else {
+                        session.getEntityCache().markDirty(this);
+                    }
                 }
             }
         });

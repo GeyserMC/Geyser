@@ -44,6 +44,30 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v589.Bedrock_v589;
+import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
+import org.cloudburstmc.protocol.bedrock.codec.v618.Bedrock_v618;
+import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
+import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
+import org.cloudburstmc.protocol.bedrock.codec.v649.Bedrock_v649;
+import org.cloudburstmc.protocol.bedrock.codec.v662.Bedrock_v662;
+import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
+import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
+import org.cloudburstmc.protocol.bedrock.codec.v686.Bedrock_v686;
+import org.cloudburstmc.protocol.bedrock.codec.v712.Bedrock_v712;
+import org.cloudburstmc.protocol.bedrock.codec.v729.Bedrock_v729;
+import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
+import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766;
+import org.cloudburstmc.protocol.bedrock.codec.v776.Bedrock_v776;
+import org.cloudburstmc.protocol.bedrock.codec.v786.Bedrock_v786;
+import org.cloudburstmc.protocol.bedrock.codec.v800.Bedrock_v800;
+import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
+import org.cloudburstmc.protocol.bedrock.codec.v819.Bedrock_v819;
+import org.cloudburstmc.protocol.bedrock.codec.v827.Bedrock_v827;
+import org.cloudburstmc.protocol.bedrock.codec.v844.Bedrock_v844;
+import org.cloudburstmc.protocol.bedrock.codec.v859.Bedrock_v859;
+import org.cloudburstmc.protocol.bedrock.codec.v860.Bedrock_v860;
+import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
 import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
@@ -61,6 +85,8 @@ import org.geysermc.geyser.level.block.type.FlowerPotBlock;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.populator.conversion.ChaosCubedConverter;
 import org.geysermc.geyser.registry.populator.conversion.GoldenDandelionConverter;
+import org.geysermc.geyser.registry.populator.conversion.Legacy120Fallbacks;
+import org.geysermc.geyser.registry.populator.conversion.Legacy121Fallbacks;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
 import org.geysermc.geyser.util.JsonUtils;
@@ -121,6 +147,31 @@ public final class BlockRegistryPopulator {
 
     private static void registerBedrockBlocks() {
         var blockMappers = ImmutableMap.<ObjectIntPair<String>, Remapper>builder()
+                .put(ObjectIntPair.of("1_20_0", Bedrock_v589.CODEC.getProtocolVersion()), Legacy120Fallbacks::remapBlockPre594)
+                .put(ObjectIntPair.of("1_20_10", Bedrock_v594.CODEC.getProtocolVersion()), Legacy120Fallbacks::remapBlockPre618)
+                .put(ObjectIntPair.of("1_20_30", Bedrock_v618.CODEC.getProtocolVersion()), Legacy120Fallbacks::remapBlockPre622)
+                .put(ObjectIntPair.of("1_20_40", Bedrock_v622.CODEC.getProtocolVersion()), Legacy120Fallbacks::remapBlockPre630)
+                .put(ObjectIntPair.of("1_20_50", Bedrock_v630.CODEC.getProtocolVersion()), Legacy120Fallbacks::remapBlockPre649)
+                .put(ObjectIntPair.of("1_20_60", Bedrock_v649.CODEC.getProtocolVersion()), Legacy120Fallbacks::remapBlockPre662)
+                .put(ObjectIntPair.of("1_20_70", Bedrock_v662.CODEC.getProtocolVersion()), Legacy120Fallbacks::remapBlockPre671)
+                .put(ObjectIntPair.of("1_20_80", Bedrock_v671.CODEC.getProtocolVersion()), Legacy120Fallbacks::remapBlockPre685)
+                .put(ObjectIntPair.of("1_21_0", Bedrock_v685.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre712)
+                .put(ObjectIntPair.of("1_21_0", Bedrock_v686.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre712)
+                .put(ObjectIntPair.of("1_21_20", Bedrock_v712.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre729)
+                .put(ObjectIntPair.of("1_21_30", Bedrock_v729.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre748Stripped)
+                .put(ObjectIntPair.of("1_21_40", Bedrock_v748.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre748)
+                .put(ObjectIntPair.of("1_21_50", Bedrock_v766.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre766)
+                .put(ObjectIntPair.of("1_21_60", Bedrock_v776.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre776)
+                .put(ObjectIntPair.of("1_21_70", Bedrock_v786.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre800)
+                .put(ObjectIntPair.of("1_21_80", Bedrock_v800.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre844)
+                .put(ObjectIntPair.of("1_21_90", Bedrock_v818.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre844)
+                .put(ObjectIntPair.of("1_21_90", Bedrock_v819.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre844)
+                .put(ObjectIntPair.of("1_21_100", Bedrock_v827.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre844)
+                .put(ObjectIntPair.of("1_21_110", Bedrock_v844.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre26)
+                // 1.21.110 → 1.21.12x / 1.21.130: block palette unchanged (upstream)
+                .put(ObjectIntPair.of("1_21_110", Bedrock_v859.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre26)
+                .put(ObjectIntPair.of("1_21_110", Bedrock_v860.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre26)
+                .put(ObjectIntPair.of("1_21_110", Bedrock_v898.CODEC.getProtocolVersion()), Legacy121Fallbacks::remapBlockPre26)
                 .put(ObjectIntPair.of("26_0", Bedrock_v924.CODEC.getProtocolVersion()), GoldenDandelionConverter::convertBlock)
                 .put(ObjectIntPair.of("26_10", Bedrock_v944.CODEC.getProtocolVersion()), ChaosCubedConverter::convertBlock)
                 .put(ObjectIntPair.of("26_20", Bedrock_v975.CODEC.getProtocolVersion()), ChaosCubedConverter::convertBlock)
@@ -241,6 +292,10 @@ public final class BlockRegistryPopulator {
             Set<BlockDefinition> jigsawDefinitions = new ObjectOpenHashSet<>();
             Map<String, BlockDefinition> structureBlockDefinitions = new Object2ObjectOpenHashMap<>();
 
+            List<String> missingMappings = new ArrayList<>();
+            // Placeholder so a missing mapping does not abort the scan of remaining blocks.
+            GeyserBedrockBlock missingPlaceholder = blockStateOrderedMap.values().iterator().next();
+
             BlockMappings.BlockMappingsBuilder builder = BlockMappings.builder();
             while (blocksIterator.hasNext()) {
                 javaRuntimeId++;
@@ -258,11 +313,12 @@ public final class BlockRegistryPopulator {
                 if (blockStateOverride == null) {
                     bedrockDefinition = vanillaBedrockDefinition;
                     if (bedrockDefinition == null) {
-                        throw new RuntimeException("""
-                            Unable to find %s Bedrock runtime ID for %s! Original block tag:
-                            %s
-                            Updated block tag:
-                            %s""".formatted(javaId, palette.key(), originalBedrockTag, bedrockTag));
+                        missingMappings.add("""
+                            Unable to find %s Bedrock runtime ID for %s!
+                            Original: %s
+                            Updated: %s""".formatted(javaId, palette.key(), originalBedrockTag, bedrockTag));
+                        bedrockDefinition = missingPlaceholder;
+                        vanillaBedrockDefinition = missingPlaceholder;
                     }
                 } else {
                     bedrockDefinition = customBlockStateDefinitions.get(blockStateOverride);
@@ -322,6 +378,20 @@ public final class BlockRegistryPopulator {
 
                 javaToVanillaBedrockBlocks[javaRuntimeId] = vanillaBedrockDefinition;
                 javaToBedrockBlocks[javaRuntimeId] = bedrockDefinition;
+            }
+
+            if (!missingMappings.isEmpty()) {
+                // Cap detail so logs stay readable; unique Updated tags matter most for fixing remappers.
+                int limit = Math.min(missingMappings.size(), 80);
+                StringBuilder message = new StringBuilder(missingMappings.size() + " missing Bedrock block mapping(s) for palette "
+                    + palette.key() + " (showing " + limit + "):\n");
+                for (int i = 0; i < limit; i++) {
+                    message.append("---\n").append(missingMappings.get(i)).append('\n');
+                }
+                if (missingMappings.size() > limit) {
+                    message.append("---\n... and ").append(missingMappings.size() - limit).append(" more\n");
+                }
+                throw new RuntimeException(message.toString());
             }
 
             builder.collisionIgnoredBlocks(collisionIgnoredBlocks);

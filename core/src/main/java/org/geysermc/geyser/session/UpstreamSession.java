@@ -69,12 +69,19 @@ public class UpstreamSession {
     }
 
     public void sendPostStartGamePackets() {
+        sendPostStartGamePackets(null);
+    }
+
+    public void sendPostStartGamePackets(java.util.function.Consumer<BedrockPacket> beforeSend) {
         if (isClosed()) {
             return;
         }
 
         BedrockPacket packet;
         while ((packet = postStartGamePackets.poll()) != null) {
+            if (beforeSend != null) {
+                beforeSend.accept(packet);
+            }
             session.sendPacket(packet);
         }
         postStartGamePackets = null;

@@ -40,6 +40,7 @@ import org.cloudburstmc.protocol.bedrock.packet.TextPacket;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.level.JukeboxSong;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.populator.conversion.LegacyParticleFallbacks;
 import org.geysermc.geyser.registry.type.SoundMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
@@ -74,6 +75,9 @@ public class JavaLevelEventTranslator extends PacketTranslator<ClientboundLevelE
     @Override
     public void translate(GeyserSession session, ClientboundLevelEventPacket packet) {
         if (!(packet.getEvent() instanceof LevelEventType levelEvent)) {
+            return;
+        }
+        if (LegacyParticleFallbacks.shouldOmitLevelEvent(levelEvent, session.protocolVersion())) {
             return;
         }
         // Separate case since each RecordEventData in Java is an individual track in Bedrock

@@ -67,7 +67,12 @@ public class CreativeItemRegistryPopulator {
 
         JsonArray creativeItemEntries;
         try (InputStream stream = bootstrap.getResourceOrThrow(String.format("bedrock/creative_items.%s.json", palette.creativeVersion()))) {
-            creativeItemEntries = JsonUtils.fromJson(stream).getAsJsonArray("groups");
+            JsonObject root = JsonUtils.fromJson(stream);
+            // Pre-1.21.60 creative item files only have "items" (no creative groups yet).
+            JsonElement groupsElement = root.get("groups");
+            creativeItemEntries = groupsElement != null && groupsElement.isJsonArray()
+                ? groupsElement.getAsJsonArray()
+                : new JsonArray();
         } catch (Exception e) {
             throw new AssertionError("Unable to load creative item groups", e);
         }

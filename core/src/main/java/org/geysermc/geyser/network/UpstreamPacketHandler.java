@@ -30,6 +30,7 @@ import org.cloudburstmc.math.vector.Vector2f;
 import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.compat.BedrockCompat;
+import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
 import org.cloudburstmc.protocol.bedrock.data.ResourcePackType;
 import org.cloudburstmc.protocol.bedrock.netty.codec.compression.CompressionStrategy;
@@ -286,6 +287,13 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 stackPacket.setForcedToAccept(false); // Leaving this as false allows the player to choose to download or not
                 stackPacket.setGameVersion(session.getClientData().getGameVersion());
                 stackPacket.getResourcePacks().addAll(this.resourcePackLoadEvent.orderedPacks());
+
+                // Do not enable experimental_graphics on pre-1.21.90 — hung 1.21.70/80 join.
+                if (GameProtocol.is1_21_80(session.protocolVersion())) {
+                    // Support happy ghast / harnesses on 1.21.80
+                    stackPacket.getExperiments().add(new ExperimentData("y_2025_drop_2", true));
+                    stackPacket.getExperiments().add(new ExperimentData("locator_bar", true));
+                }
 
                 session.sendUpstreamPacket(stackPacket);
             }

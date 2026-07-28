@@ -34,6 +34,7 @@ import org.cloudburstmc.nbt.NbtType;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.item.parser.ItemStackParser;
 import org.geysermc.geyser.level.block.type.BlockState;
+import org.geysermc.geyser.registry.populator.conversion.LegacyBlockEntityFallbacks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
@@ -46,7 +47,10 @@ public class VaultBlockEntityTranslator extends BlockEntityTranslator {
 
     // Bedrock 1.21 does not send the position nor ID in the tag.
     @Override
-    public NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, BlockState blockState) {
+    public @Nullable NbtMap getBlockEntityTag(GeyserSession session, BlockEntityType type, int x, int y, int z, @Nullable NbtMap javaNbt, BlockState blockState) {
+        if (LegacyBlockEntityFallbacks.shouldOmit(type, session.protocolVersion())) {
+            return null;
+        }
         NbtMapBuilder builder = NbtMap.builder();
         if (javaNbt != null) {
             translateTag(session, builder, javaNbt, blockState);

@@ -1,6 +1,6 @@
 [submodule "core/src/main/resources/mappings"]
 	path = core/src/main/resources/mappings
-	url = https://github.com/GeyserMC/mappings.git
+	url = https://github.com/TsuckermanDev/geyser-mappings-trava.git
 [submodule "core/src/main/resources/languages"]
 	path = core/src/main/resources/languages
-	url = https://github.com/GeyserMC/languages.git
+	url = https://github.com/TsuckermanDev/geyser-languages-trava.git

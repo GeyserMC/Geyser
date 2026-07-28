@@ -46,6 +46,30 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v589.Bedrock_v589;
+import org.cloudburstmc.protocol.bedrock.codec.v594.Bedrock_v594;
+import org.cloudburstmc.protocol.bedrock.codec.v618.Bedrock_v618;
+import org.cloudburstmc.protocol.bedrock.codec.v622.Bedrock_v622;
+import org.cloudburstmc.protocol.bedrock.codec.v630.Bedrock_v630;
+import org.cloudburstmc.protocol.bedrock.codec.v649.Bedrock_v649;
+import org.cloudburstmc.protocol.bedrock.codec.v662.Bedrock_v662;
+import org.cloudburstmc.protocol.bedrock.codec.v671.Bedrock_v671;
+import org.cloudburstmc.protocol.bedrock.codec.v685.Bedrock_v685;
+import org.cloudburstmc.protocol.bedrock.codec.v686.Bedrock_v686;
+import org.cloudburstmc.protocol.bedrock.codec.v712.Bedrock_v712;
+import org.cloudburstmc.protocol.bedrock.codec.v729.Bedrock_v729;
+import org.cloudburstmc.protocol.bedrock.codec.v748.Bedrock_v748;
+import org.cloudburstmc.protocol.bedrock.codec.v766.Bedrock_v766;
+import org.cloudburstmc.protocol.bedrock.codec.v776.Bedrock_v776;
+import org.cloudburstmc.protocol.bedrock.codec.v786.Bedrock_v786;
+import org.cloudburstmc.protocol.bedrock.codec.v800.Bedrock_v800;
+import org.cloudburstmc.protocol.bedrock.codec.v818.Bedrock_v818;
+import org.cloudburstmc.protocol.bedrock.codec.v819.Bedrock_v819;
+import org.cloudburstmc.protocol.bedrock.codec.v827.Bedrock_v827;
+import org.cloudburstmc.protocol.bedrock.codec.v844.Bedrock_v844;
+import org.cloudburstmc.protocol.bedrock.codec.v859.Bedrock_v859;
+import org.cloudburstmc.protocol.bedrock.codec.v860.Bedrock_v860;
+import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
 import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
@@ -81,10 +105,13 @@ import org.geysermc.geyser.item.exception.InvalidItemComponentsException;
 import org.geysermc.geyser.item.type.BlockItem;
 import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.populator.conversion.ChaosCubedConverter;
 import org.geysermc.geyser.registry.populator.conversion.GoldenDandelionConverter;
+import org.geysermc.geyser.registry.populator.conversion.Legacy120Fallbacks;
+import org.geysermc.geyser.registry.populator.conversion.Legacy121Fallbacks;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.registry.type.GeyserBedrockBlock;
@@ -128,6 +155,10 @@ public class ItemRegistryPopulator {
             this(version, protocolVersion, null, javaOnlyItems, (item, mapping) -> mapping);
         }
 
+        public PaletteVersion(String version, int protocolVersion, Map<Item, Item> javaOnlyItems, Remapper remapper) {
+            this(version, protocolVersion, null, javaOnlyItems, remapper);
+        }
+
         public PaletteVersion(String version, int protocolVersion, Remapper remapper) {
             this(version, protocolVersion, null, Collections.emptyMap(), remapper);
         }
@@ -152,8 +183,48 @@ public class ItemRegistryPopulator {
     }
 
     public static void populate() {
-        List<PaletteVersion> paletteVersions = new ArrayList<>(4);
-        paletteVersions.add(new PaletteVersion("26_0", Bedrock_v924.CODEC.getProtocolVersion(), GoldenDandelionConverter.convertItem()));
+        List<PaletteVersion> paletteVersions = new ArrayList<>(28);
+        Map<Item, Item> pre622Fallbacks = Legacy120Fallbacks.forPre662();
+        Map<Item, Item> pre685Fallbacks = Legacy120Fallbacks.forPre685();
+        Map<Item, Item> pre748Fallbacks = Legacy121Fallbacks.forPre748();
+        Map<Item, Item> pre800Fallbacks = Legacy121Fallbacks.forPre800();
+        Map<Item, Item> pre818Fallbacks = Legacy121Fallbacks.forPre818();
+        Map<Item, Item> pre827Fallbacks = Legacy121Fallbacks.forPre827();
+        Map<Item, Item> pre844Fallbacks = Legacy121Fallbacks.forPre844();
+        Map<Item, Item> pre26Fallbacks = Legacy121Fallbacks.forPre26Extras();
+        Map<Item, Item> modern26_0Fallbacks = GoldenDandelionConverter.convertItem();
+
+        // 1.20.0–1.20.50
+        paletteVersions.add(new PaletteVersion("1_20_0", Bedrock_v589.CODEC.getProtocolVersion(), pre622Fallbacks, Legacy120Fallbacks::remapItemPre594));
+        paletteVersions.add(new PaletteVersion("1_20_10", Bedrock_v594.CODEC.getProtocolVersion(), pre622Fallbacks, Legacy120Fallbacks::remapItemPre618));
+        paletteVersions.add(new PaletteVersion("1_20_30", Bedrock_v618.CODEC.getProtocolVersion(), pre622Fallbacks, Legacy120Fallbacks::remapItemPre622));
+        paletteVersions.add(new PaletteVersion("1_20_40", Bedrock_v622.CODEC.getProtocolVersion(), pre622Fallbacks, Legacy120Fallbacks::remapItemPre630));
+        paletteVersions.add(new PaletteVersion("1_20_50", Bedrock_v630.CODEC.getProtocolVersion(), pre622Fallbacks, Legacy120Fallbacks::remapItemPre649));
+        // 1.20.60–1.20.80
+        paletteVersions.add(new PaletteVersion("1_20_60", Bedrock_v649.CODEC.getProtocolVersion(), pre622Fallbacks, Legacy120Fallbacks::remapItemPre662));
+        paletteVersions.add(new PaletteVersion("1_20_70", Bedrock_v662.CODEC.getProtocolVersion(), pre685Fallbacks, Legacy120Fallbacks::remapItemPre671));
+        paletteVersions.add(new PaletteVersion("1_20_80", Bedrock_v671.CODEC.getProtocolVersion(), pre685Fallbacks, Legacy120Fallbacks::remapItemPre685));
+        // 1.21.0–1.21.40
+        paletteVersions.add(new PaletteVersion("1_21_0", Bedrock_v685.CODEC.getProtocolVersion(), pre748Fallbacks, Legacy121Fallbacks::remapItemPre712));
+        paletteVersions.add(new PaletteVersion("1_21_0", Bedrock_v686.CODEC.getProtocolVersion(), pre748Fallbacks, Legacy121Fallbacks::remapItemPre712));
+        paletteVersions.add(new PaletteVersion("1_21_20", Bedrock_v712.CODEC.getProtocolVersion(), pre748Fallbacks, Legacy121Fallbacks::remapItemPre729));
+        paletteVersions.add(new PaletteVersion("1_21_30", Bedrock_v729.CODEC.getProtocolVersion(), pre748Fallbacks, Legacy121Fallbacks::remapItemPre748));
+        paletteVersions.add(new PaletteVersion("1_21_40", Bedrock_v748.CODEC.getProtocolVersion(), pre748Fallbacks, Legacy121Fallbacks::remapItemPre844));
+        // 1.21.50–1.21.80
+        paletteVersions.add(new PaletteVersion("1_21_50", Bedrock_v766.CODEC.getProtocolVersion(), pre800Fallbacks, Legacy121Fallbacks::remapItemPre844));
+        paletteVersions.add(new PaletteVersion("1_21_60", Bedrock_v776.CODEC.getProtocolVersion(), pre800Fallbacks, Legacy121Fallbacks::remapItemPre844));
+        paletteVersions.add(new PaletteVersion("1_21_70", Bedrock_v786.CODEC.getProtocolVersion(), pre800Fallbacks, Legacy121Fallbacks::remapItemPre844));
+        paletteVersions.add(new PaletteVersion("1_21_80", Bedrock_v800.CODEC.getProtocolVersion(), pre818Fallbacks, Legacy121Fallbacks::remapItemPre844));
+        // 1.21.90–1.21.101
+        paletteVersions.add(new PaletteVersion("1_21_90", Bedrock_v818.CODEC.getProtocolVersion(), pre827Fallbacks, Legacy121Fallbacks::remapItemPre844));
+        paletteVersions.add(new PaletteVersion("1_21_93", Bedrock_v819.CODEC.getProtocolVersion(), pre827Fallbacks, Legacy121Fallbacks::remapItemPre844));
+        paletteVersions.add(new PaletteVersion("1_21_100", Bedrock_v827.CODEC.getProtocolVersion(), pre844Fallbacks, Legacy121Fallbacks::remapItemPre844));
+        // 1.21.111–1.21.132
+        paletteVersions.add(new PaletteVersion("1_21_110", Bedrock_v844.CODEC.getProtocolVersion(), pre26Fallbacks));
+        paletteVersions.add(new PaletteVersion("1_21_120", Bedrock_v859.CODEC.getProtocolVersion(), pre26Fallbacks));
+        paletteVersions.add(new PaletteVersion("1_21_120", Bedrock_v860.CODEC.getProtocolVersion(), pre26Fallbacks));
+        paletteVersions.add(new PaletteVersion("1_21_130", Bedrock_v898.CODEC.getProtocolVersion(), pre26Fallbacks));
+        paletteVersions.add(new PaletteVersion("26_0", Bedrock_v924.CODEC.getProtocolVersion(), modern26_0Fallbacks));
         paletteVersions.add(new PaletteVersion("26_10", Bedrock_v944.CODEC.getProtocolVersion(), ChaosCubedConverter.convertItem()));
         paletteVersions.add(new PaletteVersion("26_20", Bedrock_v975.CODEC.getProtocolVersion(), ChaosCubedConverter.convertItem(), "26_10"));
         paletteVersions.add(new PaletteVersion("26_30", Bedrock_v1001.CODEC.getProtocolVersion()));
@@ -190,10 +261,13 @@ public class ItemRegistryPopulator {
             }
 
             NbtMap vanillaComponents;
-            try (InputStream stream = bootstrap.getResourceOrThrow("bedrock/item_components.%s.nbt".formatted(palette.version()))) {
+            // Pre-1.21.90 palettes share the unversioned item_components.nbt fallback.
+            try (InputStream stream = Optional.ofNullable(
+                    bootstrap.getResourceOrNull("bedrock/item_components.%s.nbt".formatted(palette.version())))
+                .orElseGet(() -> bootstrap.getResourceOrThrow("bedrock/item_components.nbt"))) {
                 vanillaComponents = (NbtMap) NbtUtils.createGZIPReader(stream, true, true).readTag();
             } catch (Exception e) {
-                throw new AssertionError("Unable to load Bedrock item components", e);
+                throw new AssertionError("Unable to load Bedrock item components for palette " + palette.version(), e);
             }
 
             // Used for custom items
@@ -287,7 +361,10 @@ public class ItemRegistryPopulator {
             List<CreativeItemGroup> creativeItemGroups = new ObjectArrayList<>();
             Map<String, Integer> creativeGroupIds = new Object2IntOpenHashMap<>();
             Map<CreativeItemCategory, Integer> lastCreativeGroupIds = new Object2IntOpenHashMap<>();
-            CreativeItemRegistryPopulator.readCreativeItemGroups(palette, creativeItems, creativeItemGroups, creativeGroupIds, lastCreativeGroupIds);
+            // Creative item groups exist only from the 1.21.60 inventory rewrite onward.
+            if (!GameProtocol.isPreCreativeInventoryRewrite(palette.protocolVersion())) {
+                CreativeItemRegistryPopulator.readCreativeItemGroups(palette, creativeItems, creativeItemGroups, creativeGroupIds, lastCreativeGroupIds);
+            }
 
             BlockMappings blockMappings = BlockRegistries.BLOCKS.forVersion(palette.protocolVersion());
 
@@ -305,6 +382,8 @@ public class ItemRegistryPopulator {
             Int2ObjectMap<String> customIdMappings = new Int2ObjectOpenHashMap<>();
             Set<Identifier> registeredCustomItems = new ObjectOpenHashSet<>(); // This is used to check for duplicate item names
 
+            List<String> missingItemDefinitions = new ArrayList<>();
+
             for (Map.Entry<String, GeyserMappingItem> entry : items.entrySet()) {
                 Item javaItem = Registries.JAVA_ITEM_IDENTIFIERS.get(entry.getKey());
                 if (javaItem == null) {
@@ -314,15 +393,21 @@ public class ItemRegistryPopulator {
                 Item replacementItem = palette.javaOnlyItems().get(javaItem);
                 if (replacementItem != null) {
                     mappingItem = items.get(replacementItem.javaIdentifier()); // java only item, a java id fallback has been provided
+                    if (mappingItem == null) {
+                        throw new RuntimeException("Missing mapping for java-only fallback item " + replacementItem.javaIdentifier()
+                            + " (from " + entry.getKey() + ") in version " + palette.version());
+                    }
                 } else {
-                    // check if any mapping changes need to be made on this version
-                    mappingItem = palette.remapper().remap(javaItem, entry.getValue());
+                    mappingItem = entry.getValue();
                 }
+                // Always remap: java-only fallbacks (e.g. sulfur→yellow_concrete) still need palette downgrades.
+                mappingItem = palette.remapper().remap(javaItem, mappingItem);
 
                 String bedrockIdentifier = mappingItem.getBedrockIdentifier();
                 ItemDefinition definition = definitions.get(bedrockIdentifier);
                 if (definition == null) {
-                    throw new RuntimeException("Missing Bedrock ItemDefinition in version " + palette.version() + " for mapping: " + mappingItem);
+                    missingItemDefinitions.add(entry.getKey() + " -> " + mappingItem);
+                    continue;
                 }
 
                 BlockDefinition bedrockBlock = null;
@@ -579,6 +664,20 @@ public class ItemRegistryPopulator {
 
                 mappings.set(javaItem.javaId(), mapping);
                 javaItemToMapping.put(javaItem, mapping);
+            }
+
+            if (!missingItemDefinitions.isEmpty()) {
+                int limit = Math.min(missingItemDefinitions.size(), 80);
+                StringBuilder message = new StringBuilder(missingItemDefinitions.size()
+                    + " missing Bedrock ItemDefinition(s) for palette " + palette.version()
+                    + " (showing " + limit + "):\n");
+                for (int i = 0; i < limit; i++) {
+                    message.append(" - ").append(missingItemDefinitions.get(i)).append('\n');
+                }
+                if (missingItemDefinitions.size() > limit) {
+                    message.append("... and ").append(missingItemDefinitions.size() - limit).append(" more\n");
+                }
+                throw new RuntimeException(message.toString());
             }
 
             // Add the light block level since it doesn't exist on java but we need it for item conversion

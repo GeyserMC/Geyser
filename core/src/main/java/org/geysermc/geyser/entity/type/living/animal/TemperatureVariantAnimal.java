@@ -28,6 +28,7 @@ package org.geysermc.geyser.entity.type.living.animal;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.cache.RegistryCache;
 
 public abstract class TemperatureVariantAnimal extends AnimalEntity implements VariantHolder<TemperatureVariantAnimal.BuiltInVariant> {
@@ -46,6 +47,9 @@ public abstract class TemperatureVariantAnimal extends AnimalEntity implements V
 
     @Override
     public void setBedrockVariant(BuiltInVariant variant) {
+        if (!GameProtocol.is1_21_70orHigher(session.protocolVersion())) {
+            return;
+        }
         TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, variant);
         updateBedrockEntityProperties();
     }

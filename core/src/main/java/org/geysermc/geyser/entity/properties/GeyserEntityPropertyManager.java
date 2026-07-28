@@ -32,6 +32,7 @@ import org.cloudburstmc.protocol.bedrock.data.entity.EntityProperty;
 import org.cloudburstmc.protocol.bedrock.data.entity.FloatEntityProperty;
 import org.cloudburstmc.protocol.bedrock.data.entity.IntEntityProperty;
 import org.geysermc.geyser.entity.properties.type.PropertyType;
+import org.geysermc.geyser.registry.populator.conversion.LegacyEntityFallbacks;
 
 import java.util.List;
 
@@ -73,6 +74,14 @@ public class GeyserEntityPropertyManager {
 
     public boolean hasProperties() {
         return hasFloatProperties() || hasIntProperties();
+    }
+
+    /**
+     * Drops pending property updates the client protocol cannot understand.
+     */
+    public void discardUnsupportedProperties(int protocolVersion) {
+        intEntityProperties.keySet().removeIf(name -> !LegacyEntityFallbacks.clientSupportsEntityProperty(name, protocolVersion));
+        floatEntityProperties.keySet().removeIf(name -> !LegacyEntityFallbacks.clientSupportsEntityProperty(name, protocolVersion));
     }
 
     public void applyIntProperties(List<IntEntityProperty> properties) {

@@ -119,7 +119,9 @@ final class BedrockMovePlayer {
             // Also do this if player have no clip ability since they shouldn't be able to collide with anything.
             isOnGround = false;
         } else {
-            isOnGround = entity.isCollidingVertically() && entity.getLastTickEndVelocity().getY() < 0;
+            // Prefer this packet's delta (standing still => y == 0). Solid-under-feet covers omitted VERTICAL_COLLISION.
+            isOnGround = session.getCollisionManager()
+                .resolveStandingOnGround(entity.isCollidingVertically(), packet.getDelta().getY());
         }
 
         // Resolve https://github.com/GeyserMC/Geyser/issues/3521, no void floor on java so player not supposed to collide with anything.

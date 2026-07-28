@@ -31,6 +31,7 @@ import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.type.living.animal.TemperatureVariantAnimal;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.mcprotocollib.protocol.data.game.Holder;
@@ -52,8 +53,10 @@ public class ThrowableEggEntity extends ThrowableItemEntity {
     @Override
     public void setItem(EntityMetadata<ItemStack, ?> entityMetadata) {
         GeyserItemStack stack = GeyserItemStack.from(session, entityMetadata.getValue());
-        TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, getVariantOrFallback(session, stack));
-        updateBedrockEntityProperties();
+        if (GameProtocol.is1_21_70orHigher(session.protocolVersion())) {
+            TemperatureVariantAnimal.TEMPERATE_VARIANT_PROPERTY.apply(propertyManager, getVariantOrFallback(session, stack));
+            updateBedrockEntityProperties();
+        }
         this.itemStack = stack;
     }
 

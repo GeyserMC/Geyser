@@ -35,6 +35,7 @@ import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
 import org.geysermc.geyser.entity.vehicle.BoatVehicleComponent;
 import org.geysermc.geyser.entity.vehicle.ClientVehicle;
 import org.geysermc.geyser.entity.vehicle.VehicleComponent;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.type.BooleanEntityMetadata;
@@ -80,7 +81,12 @@ public class BoatEntity extends Entity implements Tickable, Leashable, ClientVeh
         setHeadYaw(headYaw + 90);
         this.variant = variant;
 
-        metadata.put(EntityDataTypes.VARIANT, variant.ordinal());
+        // Pale oak boat variant exists from Bedrock 1.21.50; older clients treat unknown ordinals badly.
+        BoatVariant bedrockVariant = variant;
+        if (variant == BoatVariant.PALE_OAK && !GameProtocol.is1_21_50orHigher(session.protocolVersion())) {
+            bedrockVariant = BoatVariant.BIRCH;
+        }
+        metadata.put(EntityDataTypes.VARIANT, bedrockVariant.ordinal());
 
         // Required to be able to move on land 1.16.200+ or apply gravity not in the water 1.16.100+
         metadata.put(EntityDataTypes.IS_BUOYANT, true);

@@ -30,6 +30,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.populator.conversion.LegacyEntityFallbacks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
@@ -49,7 +50,8 @@ public class TrialSpawnerBlockEntityTranslator extends BlockEntityTranslator {
         NbtMapBuilder spawnData = NbtMap.builder();
         EntityTypeDefinition<?> definition = Registries.JAVA_ENTITY_IDENTIFIERS.get(entityData.getString("id"));
         if (definition != null && definition.defaultBedrockDefinition() != null) {
-            spawnData.putString("TypeId", definition.defaultBedrockDefinition().identifier().toString());
+            String typeId = LegacyEntityFallbacks.remapIdentifier(entityData.getString("id"), session.protocolVersion());
+            spawnData.putString("TypeId", typeId);
         }
         spawnData.putInt("Weight", entityData.getInt("Size", 1)); // ??? presumably since these are the only other two extra attributes
         bedrockNbt.putCompound("spawn_data", spawnData.build());

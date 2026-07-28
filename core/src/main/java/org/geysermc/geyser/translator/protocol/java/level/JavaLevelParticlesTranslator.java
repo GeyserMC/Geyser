@@ -48,6 +48,7 @@ import org.cloudburstmc.protocol.bedrock.packet.LevelEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SpawnParticleEffectPacket;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.populator.conversion.LegacyParticleFallbacks;
 import org.geysermc.geyser.registry.type.ParticleMapping;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.item.ItemTranslator;
@@ -97,6 +98,10 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
      * with different offsets.
      */
     public static @Nullable Function<Vector3f, BedrockPacket> createParticle(GeyserSession session, Particle particle) {
+        if (LegacyParticleFallbacks.shouldOmitParticle(particle.getType(), session.protocolVersion())) {
+            return null;
+        }
+
         switch (particle.getType()) {
             case BLOCK -> {
                 int blockState = session.getBlockMappings().getBedrockBlockId(((BlockParticleData) particle.getData()).getBlockState());
@@ -288,6 +293,9 @@ public class JavaLevelParticlesTranslator extends PacketTranslator<ClientboundLe
                         return packet;
                     };
                 } else if (particleMapping.identifier() != null) {
+                    if (LegacyParticleFallbacks.shouldOmitParticleIdentifier(particleMapping.identifier(), session.protocolVersion())) {
+                        return null;
+                    }
                     int dimensionId = DimensionUtils.javaToBedrock(session);
                     return (position) -> {
                         SpawnParticleEffectPacket stringPacket = new SpawnParticleEffectPacket();

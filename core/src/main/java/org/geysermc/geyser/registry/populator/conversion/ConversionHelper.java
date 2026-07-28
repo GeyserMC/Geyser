@@ -48,4 +48,20 @@ public class ConversionHelper {
         return tagBuilder.build();
     }
 
+    /**
+     * Remap a block to a chest while keeping facing. Strips properties that chests do not have
+     * ({@code vault_state}, {@code ominous}, etc.). Ensures {@code minecraft:cardinal_direction}
+     * is present so later converters (e.g. {@code Conversion622_618}) can produce
+     * {@code facing_direction} for pre-1.20.40 palettes.
+     */
+    static NbtMap asChest(NbtMap tag) {
+        NbtMap states = tag.getCompound("states");
+        NbtMapBuilder statesBuilder = NbtMap.builder();
+        String cardinal = states.getString("minecraft:cardinal_direction", "north");
+        statesBuilder.putString("minecraft:cardinal_direction", cardinal);
+        return NbtMap.builder()
+            .putString("name", "minecraft:chest")
+            .putCompound("states", statesBuilder.build())
+            .build();
+    }
 }

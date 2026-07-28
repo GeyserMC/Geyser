@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ContainerSlotType;
+import org.cloudburstmc.protocol.bedrock.data.inventory.FullContainerName;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequest;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.ItemStackRequestSlotData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.itemstack.request.action.ItemStackRequestAction;
@@ -323,7 +324,11 @@ public final class BundleInventoryTranslator {
     }
 
     static boolean isBundle(ItemStackRequestSlotData slotData) {
-        return slotData.getContainerName().getContainer() == ContainerSlotType.DYNAMIC_CONTAINER;
+        FullContainerName name = slotData.getContainerName();
+        if (name != null && name.getContainer() != null) {
+            return name.getContainer() == ContainerSlotType.DYNAMIC_CONTAINER;
+        }
+        return slotData.getContainer() == ContainerSlotType.DYNAMIC_CONTAINER;
     }
 
     static boolean isBundle(ClickPlan plan, int slot) {

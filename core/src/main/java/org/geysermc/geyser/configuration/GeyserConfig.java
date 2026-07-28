@@ -474,6 +474,12 @@ public interface GeyserConfig {
         boolean addTeamSuggestions();
 
         @Comment("""
+            Log detailed Bedrock join packet dumps to the console (for diagnosing client disconnects during join).
+            Leave disabled unless debugging a join issue. (Default: false)""")
+        @DefaultBoolean(false)
+        boolean dumpJoinPackets();
+
+        @Comment("""
             A list of remote resource pack urls to send to the Bedrock client for downloading.
             The Bedrock client is very picky about how these are delivered - please see our wiki page for further info: https://geysermc.org/wiki/geyser/packs/
             """)

@@ -115,6 +115,22 @@ public class BlockBreakHandler {
     protected float currentProgress = 0.0F;
 
     /**
+     * Client tick when the current dig last gained progress (dedupe multi-actions per tick).
+     */
+    protected long lastDigProgressTick = -1L;
+
+    /**
+     * After an early client predict/stop we restore the block; legacy clients often follow with
+     * ABORT_BREAK which would wipe dig progress. Ignore ABORT until this client tick.
+     */
+    protected long ignoreAbortUntilTick = -1L;
+
+    /**
+     * Mining speed snapshot (progress per tick) for the current dig.
+     */
+    protected float digSpeedPerTick = 0.0F;
+
+    /**
      * The last known face of the block the client was breaking.
      * Only set when keeping track of custom blocks / custom items breaking blocks.
      */
@@ -166,31 +182,52 @@ public class BlockBreakHandler {
      * @param packet the player auth input packet
      */
     public void handlePlayerAuthInputPacket(PlayerAuthInputPacket packet) {
+        long tick = packet.getTick();
         if (packet.getInputData().contains(PlayerAuthInputData.PERFORM_BLOCK_ACTIONS)) {
             handleBlockBreakActions(packet);
             restoredBlocks.clear();
             this.interactPosition = null;
-        } else {
-            tick(packet.getTick());
         }
+        // Advance dig once per client tick while mining. Legacy clients may rarely send CONTINUE,
+        // and early STOP/ABORT must not be the only progress path.
+        advanceDigForTick(tick);
     }
 
-    protected void tick(long tick) {
-        // We need to manually check if a block should be destroyed, and send the client progress updates, when mining a custom block, or with a custom item
-        // This is because, in CustomItemRegistryPopulator#computeToolProperties, we set a block break speed of 0,
-        // meaning the client will only ever send START_BREAK for breaking blocks, and nothing else (as long as no efficiency is applied, lol)
-        // We also want to tick destroying to ensure that the currently held item did not change
-
-        // Check lastBlockBreakFace, currentBlockPos and currentBlockState, just in case
-        if (currentBlockFace != null && currentBlockPos != null && currentBlockState != null) {
-            handleContinueDestroy(currentBlockPos, getCurrentBlockState(currentBlockPos), currentBlockFace, false, false, session.getClientTicks());
+    /**
+     * Ensures dig progress matches client wall-clock ticks (at most once per tick).
+     */
+    protected void advanceDigForTick(long tick) {
+        if (currentBlockFace == null || currentBlockPos == null || currentBlockState == null) {
+            return;
         }
+        if (tick == lastDigProgressTick) {
+            return;
+        }
+        handleContinueDestroy(currentBlockPos, getCurrentBlockState(currentBlockPos), currentBlockFace, false, false, tick);
     }
 
-    protected void handleBlockBreakActions(PlayerAuthInputPacket packet) {
+    /**
+     * @return true if dig progress was advanced or aborted this tick (skip the fallback tick)
+     */
+    protected boolean handleBlockBreakActions(PlayerAuthInputPacket packet) {
+        boolean progressed = false;
+        long tick = packet.getTick();
         for (int i = 0; i < packet.getPlayerActions().size(); i++) {
             PlayerBlockActionData actionData = packet.getPlayerActions().get(i);
             Vector3i position = actionData.getBlockPosition();
+            // Legacy clients (1.20.x / early 1.21) often omit the block position on STOP_BREAK /
+            // ABORT_BREAK / CONTINUE_BREAK. Falling through with null NPEs WorldManager and aborts
+            // the whole PlayerAuthInputPacket — Java never gets FINISH_DIGGING → ghost blocks.
+            if (position == null) {
+                position = switch (actionData.getAction()) {
+                    case STOP_BREAK, BLOCK_PREDICT_DESTROY, CONTINUE_BREAK, BLOCK_CONTINUE_DESTROY, ABORT_BREAK ->
+                        currentBlockPos != null ? currentBlockPos : lastMinedPosition;
+                    default -> null;
+                };
+                if (position == null) {
+                    continue;
+                }
+            }
             // Worth noting: the bedrock client, as of version  1.21.101, sends weird values for the face, outside the [0;6] range, when sending ABORT_BREAK
             // Not sure why, but, blockFace isn't used for ABORT_BREAK, so it's fine
             // This is why blockFace is individually turned into a Direction in each of the switch statements, except for the ABORT_BREAK one
@@ -219,9 +256,19 @@ public class BlockBreakHandler {
                         continue;
                     }
 
-                    handleStartBreak(position, state, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace), packet.getTick());
+                    Direction face = Direction.getUntrusted(actionData, PlayerBlockActionData::getFace);
+                    // After a rejected predict/stop, legacy clients re-send START_BREAK on the same block
+                    // and would wipe accumulated dig progress — treat that as a continue instead.
+                    if (Objects.equals(currentBlockPos, position) && currentBlockState != null && sameItemStack()) {
+                        handleContinueDestroy(position, state, face, false, true, tick);
+                    } else {
+                        handleStartBreak(position, state, face, tick);
+                    }
+                    progressed = true;
                 }
-                case BLOCK_CONTINUE_DESTROY -> {
+                // Legacy (non-server-auth break) clients — e.g. 1.21.20 with older StartGame profiles —
+                // still send CONTINUE_BREAK / STOP_BREAK instead of BLOCK_CONTINUE_DESTROY / BLOCK_PREDICT_DESTROY.
+                case CONTINUE_BREAK, BLOCK_CONTINUE_DESTROY -> {
                     if (testForItemFrameEntity(position) || testForLastBreakPosOrReset(position) || abortDueToBlockRestoring(position)) {
                         continue;
                     }
@@ -230,7 +277,9 @@ public class BlockBreakHandler {
                     // we can skip handling this action about the current position if the next action is also about it
                     if (Objects.equals(currentBlockPos, position) && i < packet.getPlayerActions().size() - 1) {
                         PlayerBlockActionData nextAction = packet.getPlayerActions().get(i + 1);
-                        if (Objects.equals(nextAction.getBlockPosition(), position)) {
+                        Vector3i nextPos = nextAction.getBlockPosition() != null
+                            ? nextAction.getBlockPosition() : currentBlockPos;
+                        if (Objects.equals(nextPos, position)) {
                             continue;
                         }
                     }
@@ -247,9 +296,10 @@ public class BlockBreakHandler {
                         continue;
                     }
 
-                    handleContinueDestroy(position, state, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace), false, true, packet.getTick());
+                    handleContinueDestroy(position, state, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace), false, true, tick);
+                    progressed = true;
                 }
-                case BLOCK_PREDICT_DESTROY -> {
+                case STOP_BREAK, BLOCK_PREDICT_DESTROY -> {
                     if (testForItemFrameEntity(position)) {
                         continue;
                     }
@@ -258,6 +308,7 @@ public class BlockBreakHandler {
                     // so reset it and return since we've already broken the block
                     if (Objects.equals(lastMinedPosition, position)) {
                         lastMinedPosition = null;
+                        progressed = true;
                         continue;
                     }
 
@@ -265,6 +316,7 @@ public class BlockBreakHandler {
                     // to counteract Bedrock's own client-side prediction
                     if (!restoredBlocks.isEmpty()) {
                         BlockUtils.restoreCorrectBlock(session, position, session.getPlayerInventory().getHeldItemSlot());
+                        progressed = true;
                         continue;
                     }
 
@@ -278,14 +330,23 @@ public class BlockBreakHandler {
                         }
                         BlockUtils.stopBreakAndRestoreBlock(session, position, state);
                         restoredBlocks.add(position);
+                        progressed = true;
                         continue;
                     }
 
-                    handlePredictDestroy(position, state, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace), packet.getTick());
+                    handlePredictDestroy(position, state, Direction.getUntrusted(actionData, PlayerBlockActionData::getFace), tick);
+                    progressed = true;
                 }
                 case ABORT_BREAK -> {
                     // Also handles item frame interactions in adventure mode
                     if (testForItemFrameEntity(position)) {
+                        continue;
+                    }
+
+                    // Early client predict restores the block; legacy then sends ABORT and would
+                    // CANCEL_DIGGING + wipe progress — keep the dig alive for a couple of ticks.
+                    if (tick <= ignoreAbortUntilTick && Objects.equals(position, currentBlockPos)) {
+                        progressed = true;
                         continue;
                     }
 
@@ -295,6 +356,10 @@ public class BlockBreakHandler {
                     }
 
                     handleAbortBreaking(position);
+                    progressed = true;
+                }
+                case GET_UPDATED_BLOCK -> {
+                    // Harmless legacy ping; ignore.
                 }
                 default -> {
                     GeyserImpl.getInstance().getLogger().warning("Unknown block break action (%s) received! (origin: %s)!"
@@ -304,6 +369,7 @@ public class BlockBreakHandler {
                 }
             }
         }
+        return progressed;
     }
 
     protected void handleStartBreak(@NonNull Vector3i position, @NonNull BlockState state, Direction blockFace, long tick) {
@@ -351,6 +417,9 @@ public class BlockBreakHandler {
             this.currentBlockPos = position;
             this.currentBlockState = state;
             this.currentItemStack = item;
+            this.digSpeedPerTick = breakProgress;
+            this.lastDigProgressTick = tick;
+            this.ignoreAbortUntilTick = -1L;
             // The Java client calls MultiPlayerGameMode#startDestroyBlock which would set this to zero,
             // but also #continueDestroyBlock in the same tick to advance the break progress.
             this.currentProgress = breakProgress;
@@ -368,9 +437,16 @@ public class BlockBreakHandler {
         if (currentBlockState != null && Objects.equals(position, currentBlockPos) && sameItemStack()) {
             this.currentBlockFace = blockFace;
 
-            final float newProgress = calculateBreakProgress(state, position, session.getPlayerInventory().getItemInHand());
-            this.currentProgress = this.currentProgress + newProgress;
-            double totalBreakTime = BlockUtils.reciprocal(newProgress);
+            // At most one progress step per client tick (START/CONTINUE/STOP/advanceDig share this).
+            if (tick != lastDigProgressTick) {
+                final float newProgress = calculateBreakProgress(state, position, session.getPlayerInventory().getItemInHand());
+                this.digSpeedPerTick = newProgress;
+                this.currentProgress = this.currentProgress + newProgress;
+                this.lastDigProgressTick = tick;
+            }
+
+            float speed = digSpeedPerTick > 0 ? digSpeedPerTick : calculateBreakProgress(state, position, session.getPlayerInventory().getItemInHand());
+            double totalBreakTime = BlockUtils.reciprocal(Math.max(speed, 1.0E-5F));
 
             if (sendParticles || (serverSideBlockBreaking && currentProgress % 4 == 0)) {
                 BlockUtils.spawnBlockBreakParticles(session, blockFace, position, state);
@@ -385,7 +461,10 @@ public class BlockBreakHandler {
                 }
                 return;
             } else if (bedrockDestroyed) {
+                // Client finished its break circle early — put the block back, but keep dig progress
+                // so we can FINISH_DIGGING when Java dig time is actually met.
                 BlockUtils.restoreCorrectBlock(session, position, state);
+                this.ignoreAbortUntilTick = tick + 3;
             }
 
             // Update the break time in the event that player conditions changed (jumping, effects applied)
@@ -557,8 +636,11 @@ public class BlockBreakHandler {
     }
 
     protected boolean mayBreak(float progress, boolean bedrockDestroyed) {
-        // We're tolerant here to account for e.g. obsidian breaking speeds not matching 1:1 :(
-        return (serverSideBlockBreaking && progress >= 1.0F) || (bedrockDestroyed && progress >= 0.65F);
+        // Finish once Java dig time has elapsed. Also accept client predict/stop with leniency.
+        if (progress >= 1.0F) {
+            return true;
+        }
+        return bedrockDestroyed && progress >= 0.65F;
     }
 
     protected void destroyBlock(BlockState state, Vector3i vector, Direction direction, boolean instamine) {
@@ -608,7 +690,10 @@ public class BlockBreakHandler {
         return Objects.equals(stack.getComponents(), currentItemStack.getComponents());
     }
 
-    private @NonNull BlockState getCurrentBlockState(Vector3i position) {
+    private @NonNull BlockState getCurrentBlockState(@Nullable Vector3i position) {
+        if (position == null) {
+            return Blocks.AIR.defaultBlockState();
+        }
         if (Objects.equals(position, currentBlockPos)) {
             if (updatedServerBlockStateId != null) {
                 BlockState updated = BlockState.of(updatedServerBlockStateId);
@@ -635,6 +720,9 @@ public class BlockBreakHandler {
         this.currentProgress = 0.0F;
         this.currentItemStack = null;
         this.updatedServerBlockStateId = null;
+        this.lastDigProgressTick = -1L;
+        this.ignoreAbortUntilTick = -1L;
+        this.digSpeedPerTick = 0.0F;
     }
 
     /**

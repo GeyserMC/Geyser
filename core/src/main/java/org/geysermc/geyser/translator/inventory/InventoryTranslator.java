@@ -75,6 +75,7 @@ import org.geysermc.geyser.translator.inventory.furnace.BlastFurnaceInventoryTra
 import org.geysermc.geyser.translator.inventory.furnace.FurnaceInventoryTranslator;
 import org.geysermc.geyser.translator.inventory.furnace.SmokerInventoryTranslator;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.geyser.util.ItemStackRequestNormalizer;
 import org.geysermc.geyser.util.ItemUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.inventory.ContainerType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.DataComponentTypes;
@@ -252,6 +253,9 @@ public abstract class InventoryTranslator<Type extends Inventory> {
     }
 
     public final void translateRequests(GeyserSession session, Type inventory, List<ItemStackRequest> requests) {
+        // Pre-v712 clients omit FullContainerName; fill it from the legacy container field.
+        requests = ItemStackRequestNormalizer.normalize(requests);
+
         boolean refresh = false;
         ItemStackResponsePacket responsePacket = new ItemStackResponsePacket();
         for (ItemStackRequest request : requests) {
@@ -1123,7 +1127,11 @@ public abstract class InventoryTranslator<Type extends Inventory> {
     }
 
     protected static boolean isCursor(ItemStackRequestSlotData slotInfoData) {
-        return slotInfoData.getContainerName().getContainer() == ContainerSlotType.CURSOR;
+        FullContainerName name = slotInfoData.getContainerName();
+        if (name != null && name.getContainer() != null) {
+            return name.getContainer() == ContainerSlotType.CURSOR;
+        }
+        return slotInfoData.getContainer() == ContainerSlotType.CURSOR;
     }
 
     /**

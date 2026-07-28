@@ -416,6 +416,55 @@ public class CollisionManager {
     }
 
     /**
+     * Resolve onGround for a standing (non-vehicle) player from this tick's auth-input signals.
+     * Uses VERTICAL_COLLISION + non-positive vertical delta, then solid-under-feet as fallback
+     * when Bedrock omits the collision flag while standing still.
+     */
+    public boolean resolveStandingOnGround(boolean collidingVertically, float deltaY) {
+        if (collidingVertically && deltaY <= 0) {
+            return true;
+        }
+        return isOnGround();
+    }
+
+    /**
+     * Solid-under-feet check used when Bedrock omits VERTICAL_COLLISION / reports delta.y == 0 while standing.
+     * Restored from the pre-1.21.50 onGround fallback (commit 1b4d257e3).
+     */
+    public boolean isOnGround() {
+        Vector3d bottomCenter = playerBoundingBox.getBottomCenter();
+        Vector3i groundPos = Vector3i.from(bottomCenter.getX(), bottomCenter.getY() - 1, bottomCenter.getZ());
+        BlockCollision collision = BlockUtils.getCollisionAt(session, groundPos);
+        if (collision == null) {
+            return false; // Probably air.
+        }
+
+        // Hack to not check below the player
+        playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() - 0.001);
+        playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() + 0.002);
+
+        boolean intersected = collision.checkIntersection(groundPos.getX(), groundPos.getY(), groundPos.getZ(), playerBoundingBox);
+
+        playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() + 0.001);
+        playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() - 0.002);
+
+        boolean result;
+        if (intersected) {
+            result = true;
+        } else {
+            // Hack to check slightly below the player
+            playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() + 0.001);
+            playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() - 0.002);
+
+            result = collision.checkIntersection(groundPos.getX(), groundPos.getY(), groundPos.getZ(), playerBoundingBox);
+
+            playerBoundingBox.setSizeY(playerBoundingBox.getSizeY() - 0.001);
+            playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() + 0.002);
+        }
+        return result;
+    }
+
+    /**
      * @return if the player is currently in a water block
      */
     public boolean isPlayerInWater() {

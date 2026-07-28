@@ -62,6 +62,7 @@ import org.cloudburstmc.protocol.bedrock.BedrockDisconnectReasons;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
 import org.cloudburstmc.protocol.bedrock.data.AbilityLayer;
+import org.cloudburstmc.protocol.bedrock.data.AuthoritativeMovementMode;
 import org.cloudburstmc.protocol.bedrock.data.ChatRestrictionLevel;
 import org.cloudburstmc.protocol.bedrock.data.ExperimentData;
 import org.cloudburstmc.protocol.bedrock.data.GamePublishSetting;
@@ -76,6 +77,7 @@ import org.cloudburstmc.protocol.bedrock.data.command.CommandEnumData;
 import org.cloudburstmc.protocol.bedrock.data.command.CommandPermission;
 import org.cloudburstmc.protocol.bedrock.data.command.SoftEnumUpdateType;
 import org.cloudburstmc.protocol.bedrock.data.definitions.DimensionDefinition;
+import org.cloudburstmc.protocol.bedrock.data.definitions.ItemDefinition;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityFlag;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
 import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.CraftingRecipeData;
@@ -161,6 +163,8 @@ import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.populator.conversion.LegacyBiomeFallbacks;
+import org.geysermc.geyser.registry.populator.conversion.LegacyEntityFallbacks;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMappings;
 import org.geysermc.geyser.session.auth.AuthData;
@@ -200,6 +204,7 @@ import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InventoryUtils;
+import org.geysermc.geyser.util.JoinOutboundPacketDump;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
 import org.geysermc.mcprotocollib.auth.GameProfile;
@@ -436,6 +441,34 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     // Exposed for GeyserConnect usage
     protected boolean sentSpawnPacket;
+    /**
+     * When true, log every outbound Bedrock packet after connect() until the client
+     * sends SetLocalPlayerAsInitialized.
+     */
+    @Getter @Setter
+    private boolean dumpPostConnectPackets;
+    private long joinDumpStartMs;
+    private final JoinOutboundPacketDump joinOutboundDump = new JoinOutboundPacketDump();
+
+    /**
+     * Join-sequence dump tag including client version + protocol + elapsed ms.
+     */
+    public String joinDumpTag() {
+        String ver = clientData != null ? clientData.getGameVersion() : "?";
+        long elapsed = joinDumpStartMs == 0L ? 0L : (System.currentTimeMillis() - joinDumpStartMs);
+        return "[join dump " + ver + "/" + protocolVersion() + " +" + elapsed + "ms]";
+    }
+
+    public void logJoinDump(String step) {
+        if (!geyser.config().advanced().dumpJoinPackets()) {
+            return;
+        }
+        geyser.getLogger().info(joinDumpTag() + " " + step);
+    }
+
+    public boolean isJoinDumpEnabled() {
+        return geyser.config().advanced().dumpJoinPackets();
+    }
 
     // Exposed for 3p server usage
     @Setter
@@ -908,6 +941,16 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         minY = Math.max(minY, -512);
         maxY = Math.min(maxY, 512);
 
+        long joinDumpStart = System.currentTimeMillis();
+        this.joinDumpStartMs = joinDumpStart;
+        java.util.function.Consumer<String> joinDump = this::logJoinDump;
+
+        joinDump.accept("begin connect() protocol=" + protocolVersion()
+            + " itemDefs=" + itemMappings.getItemDefinitions().size()
+            + " creative=" + itemMappings.getCreativeItems().size()
+            + " creativeGroups=" + itemMappings.getCreativeItemGroups().size()
+            + " blockProps=" + blockMappings.getBlockProperties().size());
+
         if (minY < BedrockDimension.OVERWORLD.minY() || maxY > BedrockDimension.OVERWORLD.maxY()) {
             final boolean isInOverworld = this.bedrockDimension == this.bedrockOverworldDimension;
             this.bedrockOverworldDimension = new BedrockDimension(minY, maxY - minY, true, BedrockDimension.OVERWORLD_ID);
@@ -919,58 +962,141 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
             dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5, 3));
             upstream.sendPacket(dimensionDataPacket);
+            joinDump.accept("sent DimensionDataPacket");
         }
 
+        joinDump.accept("sending StartGame...");
         startGame();
         sentSpawnPacket = true;
-        syncEntityProperties();
+        joinDump.accept("StartGame sent; syncing entity properties...");
+        syncEntityProperties(joinDump);
 
-        ItemComponentPacket componentPacket = new ItemComponentPacket();
-        componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values());
-        upstream.sendPacket(componentPacket);
+        // Pre-1.21.60: item registry lives in StartGame. Sending the modern full ItemComponentPacket
+        // (all definitions + current component NBT) crashes clients like 1.20.62 ("broken packet").
+        if (GameProtocol.isPreCreativeInventoryRewrite(protocolVersion())) {
+            joinDump.accept("skipping full ItemComponentPacket (pre-creative-rewrite; items in StartGame)");
+        } else {
+            ItemComponentPacket componentPacket = new ItemComponentPacket();
+            componentPacket.getItems().addAll(itemMappings.getItemDefinitions().values());
+            joinDump.accept("ItemComponentPacket full size=" + componentPacket.getItems().size());
+            upstream.sendPacket(componentPacket);
+            joinDump.accept("ItemComponentPacket flushed");
+        }
 
+        joinDump.accept("sending empty chunks...");
         ChunkUtils.sendEmptyChunks(this, playerEntity.position().toInt(), 0, false);
+        joinDump.accept("empty chunks flushed");
 
-        sendRegistryDefinitions();
-        sendInitialPlayerState();
+        sendRegistryDefinitions(joinDump);
+        sendInitialPlayerState(joinDump);
         sendInitialGameRules();
+        joinDump.accept("sendInitialGameRules done");
         resetTimeParameters();
+        // Dump every Bedrock packet after connect until SetLocalPlayerAsInitialized (or timeout).
+        this.dumpPostConnectPackets = isJoinDumpEnabled();
+        joinDump.accept("connect() complete — waiting for Bedrock client / post-connect packets");
     }
 
     /**
      * Sends biome definitions, entity identifiers, camera presets, and creative content to the client.
      */
     private void sendRegistryDefinitions() {
+        sendRegistryDefinitions(step -> { });
+    }
+
+    private void sendRegistryDefinitions(java.util.function.Consumer<String> joinDump) {
+        // 1.21.80+ uses structured BiomeDefinitions; older codecs expect NBT definitions.
+        // Always using setBiomes() after upstream dropped 1.21.70/80 support crashes pre-1.21.80
+        // clients (e.g. 1.20.62) with "Server sent a broken packet" during/after join.
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setBiomes(Registries.BIOMES.get());
+        if (GameProtocol.is1_21_80orHigher(protocolVersion())) {
+            var biomes = LegacyBiomeFallbacks.filterDefinitions(Registries.BIOMES.get(), protocolVersion());
+            biomeDefinitionListPacket.setBiomes(biomes);
+            if (isJoinDumpEnabled()) {
+                StringBuilder biomeSample = new StringBuilder();
+                int biomeIdx = 0;
+                for (String name : biomes.getDefinitions().keySet()) {
+                    if (biomeIdx++ >= 40) {
+                        biomeSample.append("...+").append(biomes.getDefinitions().size() - 40);
+                        break;
+                    }
+                    biomeSample.append(name).append(',');
+                }
+                joinDump.accept("sending BiomeDefinitionListPacket (structured) biomes="
+                    + biomes.getDefinitions().size() + " sample=[" + biomeSample + "]");
+            }
+        } else {
+            var biomesNbt = LegacyBiomeFallbacks.filterNbtDefinitions(Registries.BIOMES_NBT.get(), protocolVersion());
+            biomeDefinitionListPacket.setDefinitions(biomesNbt);
+            joinDump.accept("sending BiomeDefinitionListPacket (NBT) biomes=" + biomesNbt.size());
+        }
         upstream.sendPacket(biomeDefinitionListPacket);
+        joinDump.accept("BiomeDefinitionListPacket flushed");
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
-        entityPacket.setIdentifiers(Registries.BEDROCK_ENTITY_IDENTIFIERS.get());
+        NbtMap filteredIds = LegacyEntityFallbacks.filterIdentifiers(Registries.BEDROCK_ENTITY_IDENTIFIERS.get(), protocolVersion());
+        entityPacket.setIdentifiers(filteredIds);
+        if (isJoinDumpEnabled()) {
+            var idList = filteredIds.getList("idlist", org.cloudburstmc.nbt.NbtType.COMPOUND);
+            StringBuilder entitySample = new StringBuilder();
+            for (int i = 0; i < Math.min(40, idList.size()); i++) {
+                entitySample.append(idList.get(i).getString("id")).append(',');
+            }
+            if (idList.size() > 40) {
+                entitySample.append("...+").append(idList.size() - 40);
+            }
+            joinDump.accept("sending AvailableEntityIdentifiersPacket idlist="
+                + idList.size() + " sample=[" + entitySample + "]");
+        }
         upstream.sendPacket(entityPacket);
+        joinDump.accept("AvailableEntityIdentifiersPacket flushed");
 
         CameraPresetsPacket cameraPresetsPacket = new CameraPresetsPacket();
-        cameraPresetsPacket.getPresets().addAll(CameraDefinitions.CAMERA_PRESETS);
+        if (GameProtocol.is1_21_90orHigher(protocolVersion())) {
+            cameraPresetsPacket.getPresets().addAll(CameraDefinitions.CAMERA_PRESETS);
+        } else {
+            // Extended geyser presets (listener/playEffect/controlScheme) are safer from 1.21.90+.
+            cameraPresetsPacket.getPresets().addAll(CameraDefinitions.CAMERA_PRESETS.subList(0, 4));
+        }
+        if (isJoinDumpEnabled()) {
+            StringBuilder presetNames = new StringBuilder();
+            for (var preset : cameraPresetsPacket.getPresets()) {
+                presetNames.append(preset.getIdentifier()).append(',');
+            }
+            joinDump.accept("sending CameraPresetsPacket presets="
+                + cameraPresetsPacket.getPresets().size() + " names=[" + presetNames + "]");
+        }
         upstream.sendPacket(cameraPresetsPacket);
+        joinDump.accept("CameraPresetsPacket flushed");
 
         CreativeContentPacket creativePacket = new CreativeContentPacket();
         creativePacket.getContents().addAll(this.itemMappings.getCreativeItems());
         creativePacket.getGroups().addAll(this.itemMappings.getCreativeItemGroups());
+        joinDump.accept("sending CreativeContentPacket contents=" + creativePacket.getContents().size()
+            + " groups=" + creativePacket.getGroups().size());
         upstream.sendPacket(creativePacket);
+        joinDump.accept("CreativeContentPacket flushed");
     }
 
     /**
      * Sends the initial player spawn status, command settings, and default movement attributes.
      */
     private void sendInitialPlayerState() {
+        sendInitialPlayerState(step -> { });
+    }
+
+    private void sendInitialPlayerState(java.util.function.Consumer<String> joinDump) {
+        joinDump.accept("sending PlayStatus PLAYER_SPAWN");
         PlayStatusPacket playStatusPacket = new PlayStatusPacket();
         playStatusPacket.setStatus(PlayStatusPacket.Status.PLAYER_SPAWN);
         upstream.sendPacket(playStatusPacket);
 
+        joinDump.accept("sending SetCommandsEnabled");
         SetCommandsEnabledPacket setCommandsEnabledPacket = new SetCommandsEnabledPacket();
         setCommandsEnabledPacket.setCommandsEnabled(!geyser.config().gameplay().xboxAchievementsEnabled());
         upstream.sendPacket(setCommandsEnabledPacket);
 
+        joinDump.accept("sending UpdateAttributes MOVEMENT_SPEED");
         UpdateAttributesPacket attributesPacket = new UpdateAttributesPacket();
         attributesPacket.setRuntimeEntityId(getPlayerEntity().geyserId());
         // Default move speed
@@ -978,6 +1104,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         attributesPacket.setAttributes(Collections.singletonList(
             GeyserAttributeType.MOVEMENT_SPEED.getAttribute()));
         upstream.sendPacket(attributesPacket);
+        joinDump.accept("sendInitialPlayerState flushed");
     }
 
     /**
@@ -993,17 +1120,20 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         gamerulePacket.getGameRules().add(new GameRuleData<>("keepinventory", true));
         // Ensure client doesn't try and do anything funky; the server handles this for us
         gamerulePacket.getGameRules().add(new GameRuleData<>("spawnradius", 0));
-        // Recipe unlocking
+        // Recipe unlocking (present since ~1.20.30)
         gamerulePacket.getGameRules().add(new GameRuleData<>("recipesunlock", true));
 
-        if (!GeyserWaypoint.uses26_10WaypointPacket(this)) {
-            // We disable the locator bar until we are certain that the server wants us to enable it
-            // See WaypointCache for details
-            gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
-        } else {
-            // On bedrock 26.10 and above, the client only shows the locator bar when there are
-            // waypoints on it, so we're fine doing this
-            gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", true));
+        // locatorBar is a 1.21.80+ gamerule — do not send on older clients.
+        if (GameProtocol.is1_21_80orHigher(protocolVersion())) {
+            if (!GeyserWaypoint.uses26_10WaypointPacket(this)) {
+                // We disable the locator bar until we are certain that the server wants us to enable it
+                // See WaypointCache for details
+                gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", false));
+            } else {
+                // On bedrock 26.10 and above, the client only shows the locator bar when there are
+                // waypoints on it, so we're fine doing this
+                gamerulePacket.getGameRules().add(new GameRuleData<>("locatorBar", true));
+            }
         }
 
         upstream.sendPacket(gamerulePacket);
@@ -1229,6 +1359,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     public void disconnect(Component reason) {
         if (!closed) {
+            if (dumpPostConnectPackets) {
+                logJoinDump("DISCONNECT during join dump outCount=" + joinOutboundDump.outboundCount()
+                    + " reason=" + MessageTranslator.convertMessage(reason));
+                logJoinDump("LAST OUT: " + joinOutboundDump.recentSummary());
+                dumpPostConnectPackets = false;
+            }
             loggedIn = false;
 
             SessionDisconnectEvent disconnectEvent = new SessionDisconnectEventImpl(this, reason);
@@ -1977,6 +2113,39 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setScenarioId("");
         startGamePacket.setOwnerId("");
 
+        if (isJoinDumpEnabled()) {
+            StringBuilder props = new StringBuilder();
+            for (var prop : startGamePacket.getBlockProperties()) {
+                if (props.length() < 800) {
+                    props.append(prop.getName()).append(',');
+                }
+            }
+            StringBuilder experiments = new StringBuilder();
+            for (var experiment : startGamePacket.getExperiments()) {
+                experiments.append(experiment.getName()).append('=')
+                    .append(experiment.isEnabled()).append(',');
+            }
+            StringBuilder itemSample = new StringBuilder();
+            int itemIdx = 0;
+            for (var entry : startGamePacket.getItemDefinitions()) {
+                if (itemIdx++ >= 20) {
+                    break;
+                }
+                itemSample.append(entry.getIdentifier()).append('(')
+                    .append(entry.getRuntimeId()).append("),");
+            }
+            logJoinDump("StartGame items=" + startGamePacket.getItemDefinitions().size()
+                + " blockProperties=" + startGamePacket.getBlockProperties().size()
+                + " names=[" + props + "] experiments=[" + experiments + "]"
+                + " itemSample=[" + itemSample + "]"
+                + " seed=" + startGamePacket.getSeed()
+                + " dim=" + startGamePacket.getDimensionId()
+                + " gamemode=" + startGamePacket.getPlayerGameType()
+                + " blockNetworkIdsHashed=" + startGamePacket.isBlockNetworkIdsHashed()
+                + " authoritativeMovement=" + startGamePacket.getAuthoritativeMovementMode()
+                + " serverAuthBlockBreaking=" + startGamePacket.isServerAuthoritativeBlockBreaking());
+        }
+
         upstream.sendPacket(startGamePacket);
     }
 
@@ -2034,6 +2203,11 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
 
+        // Pre-1.21.60 creative rewrite: Bedrock still expects the item palette in StartGame.
+        if (GameProtocol.isPreCreativeInventoryRewrite(protocolVersion())) {
+            startGamePacket.getItemDefinitions().addAll(this.itemMappings.getItemDefinitions().values());
+        }
+
         // Needed for custom block mappings and custom skulls system
         startGamePacket.getBlockProperties().addAll(this.blockMappings.getBlockProperties());
 
@@ -2050,6 +2224,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         // Server authorative block breaking results in the client always sending
         // positions for block breaking actions, which is easier to validate
         // It does *not* mean we can dictate the break speed server-sided :(
+        //
+        // Pre-1.21.90: AuthoritativeMovementMode.SERVER is required for join on legacy codecs.
+        // Keep server-authoritative block breaking so the client does not remove blocks before
+        // Geyser sends FINISH_DIGGING. CONTINUE_BREAK/STOP_BREAK are still handled for older builds.
+        if (!GameProtocol.is1_21_90orHigher(protocolVersion())) {
+            startGamePacket.setAuthoritativeMovementMode(AuthoritativeMovementMode.SERVER);
+        }
         startGamePacket.setServerAuthoritativeBlockBreaking(true);
 
         return startGamePacket;
@@ -2066,14 +2247,35 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         startGamePacket.getExperiments().add(new ExperimentData("upcoming_creator_features", true));
         // Needed for certain molang queries used in blocks and items
         startGamePacket.getExperiments().add(new ExperimentData("experimental_molang_features", true));
+        // Do not enable experimental_graphics on pre-1.21.90 — it hung 1.21.70/80 join.
+        // Vibrant Visuals is non-experimental from 1.21.90+.
+        // 1.21.80: Spring to Life / happy ghast / harnesses / locator bar still behind experiments
+        if (GameProtocol.is1_21_80(protocolVersion())) {
+            startGamePacket.getExperiments().add(new ExperimentData("y_2025_drop_2", true));
+            startGamePacket.getExperiments().add(new ExperimentData("locator_bar", true));
+            logJoinDump("enabling experiments y_2025_drop_2 + locator_bar (no experimental_graphics)");
+        }
     }
 
-    private void syncEntityProperties() {
+    private void syncEntityProperties(java.util.function.Consumer<String> joinDump) {
+        int synced = 0;
+        int skipped = 0;
+        boolean detailed = isJoinDumpEnabled();
         for (NbtMap nbtMap : Registries.BEDROCK_ENTITY_PROPERTIES.get()) {
+            NbtMap filtered = LegacyEntityFallbacks.filterEntityPropertyDefinitions(nbtMap, protocolVersion());
+            if (filtered == null) {
+                skipped++;
+                continue;
+            }
             SyncEntityPropertyPacket syncEntityPropertyPacket = new SyncEntityPropertyPacket();
-            syncEntityPropertyPacket.setData(nbtMap);
+            syncEntityPropertyPacket.setData(filtered);
             upstream.sendPacket(syncEntityPropertyPacket);
+            synced++;
+            if (detailed) {
+                joinDump.accept("SyncEntityProperty type=" + filtered.getString("type"));
+            }
         }
+        joinDump.accept("entity properties done synced=" + synced + " skipped=" + skipped);
     }
 
     /**
@@ -2116,6 +2318,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * @param packet the bedrock packet from the Cloudburst protocol lib
      */
     public void sendUpstreamPacket(BedrockPacket packet) {
+        if (dumpPostConnectPackets) {
+            logJoinDump("OUT " + joinOutboundDump.describe(packet));
+        }
         upstream.sendPacket(packet);
     }
 
@@ -2125,6 +2330,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      * @param packet the bedrock packet from the Cloudburst protocol lib
      */
     public void sendUpstreamPacketImmediately(BedrockPacket packet) {
+        if (dumpPostConnectPackets) {
+            logJoinDump("OUT-IMM " + joinOutboundDump.describe(packet));
+        }
         upstream.sendPacketImmediately(packet);
     }
 

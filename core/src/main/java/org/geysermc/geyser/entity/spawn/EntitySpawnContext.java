@@ -43,6 +43,7 @@ import org.geysermc.geyser.entity.BedrockEntityDefinition;
 import org.geysermc.geyser.entity.EntityTypeDefinition;
 import org.geysermc.geyser.entity.type.Entity;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
+import org.geysermc.geyser.registry.populator.conversion.LegacyEntityFallbacks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.entity.ClientboundAddEntityPacket;
 
@@ -74,22 +75,24 @@ public class EntitySpawnContext {
     });
 
     public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> type, int javaId, UUID uuid) {
-        this(session, type, javaId, uuid, type.defaultBedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null);
+        this(session, type, javaId, uuid, LegacyEntityFallbacks.remapDefinition(type, session.protocolVersion()), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, null);
     }
 
     public EntitySpawnContext(GeyserSession session, EntityTypeDefinition<?> type, int entityId, long geyserId) {
-        this(session, type, entityId, null, type.defaultBedrockDefinition(), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, geyserId);
+        this(session, type, entityId, null, LegacyEntityFallbacks.remapDefinition(type, session.protocolVersion()), Vector3f.ZERO, Vector3f.ZERO, 0, 0, 0, geyserId);
     }
 
     public static EntitySpawnContext fromPacket(GeyserSession session, EntityTypeDefinition<?> definition, ClientboundAddEntityPacket packet) {
         Vector3f position = Vector3f.from(packet.getX(), packet.getY(), packet.getZ());
         Vector3f motion = packet.getMovement().toFloat();
-        return new EntitySpawnContext(session, definition, packet.getEntityId(), packet.getUuid(), definition.defaultBedrockDefinition(),
+        BedrockEntityDefinition bedrockDefinition = LegacyEntityFallbacks.remapDefinition(definition, session.protocolVersion());
+        return new EntitySpawnContext(session, definition, packet.getEntityId(), packet.getUuid(), bedrockDefinition,
             position, motion, packet.getYaw(), packet.getPitch(), packet.getHeadYaw(), null);
     }
 
     public static EntitySpawnContext inherited(GeyserSession session, EntityTypeDefinition<?> definition, Entity base, Vector3f position) {
-        return new EntitySpawnContext(session, definition, -1, null, definition.defaultBedrockDefinition(), position, base.getMotion(), base.getYaw(),
+        BedrockEntityDefinition bedrockDefinition = LegacyEntityFallbacks.remapDefinition(definition, session.protocolVersion());
+        return new EntitySpawnContext(session, definition, -1, null, bedrockDefinition, position, base.getMotion(), base.getYaw(),
             base.getPitch(), base.getHeadYaw(), null);
     }
 

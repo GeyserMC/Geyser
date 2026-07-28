@@ -35,6 +35,7 @@ import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.entity.properties.type.EnumProperty;
 import org.geysermc.geyser.entity.properties.type.IntProperty;
 import org.geysermc.geyser.entity.spawn.EntitySpawnContext;
+import org.geysermc.geyser.registry.populator.conversion.LegacyParticleFallbacks;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.EntityMetadata;
 import org.geysermc.mcprotocollib.protocol.data.game.entity.metadata.MetadataType;
 
@@ -99,6 +100,9 @@ public class CreakingEntity extends MonsterEntity {
     }
 
     public void createParticleBeam() {
+        if (LegacyParticleFallbacks.shouldOmitCreakingBeam(session.protocolVersion())) {
+            return;
+        }
         if (this.homePosition != null) {
             LevelEventGenericPacket levelEventGenericPacket = new LevelEventGenericPacket();
             levelEventGenericPacket.setType(LevelEvent.PARTICLE_CREAKING_HEART_TRIAL);

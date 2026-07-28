@@ -133,11 +133,25 @@ public final class BlockUtils {
             destroySpeed *= (float) session.getPlayerEntity().getSubmergedMiningSpeed();
         }
 
-        if (!session.getPlayerEntity().isOnGround()) {
+        // Standing Bedrock clients often report delta.y == 0 and omit VERTICAL_COLLISION, so the usual
+        // onGround formula (collision && y < 0) treats them as airborne and applies Java's 5× dig penalty.
+        // Fall back to a solid-under-feet check (same idea as the pre-1.21.50 CollisionManager.isOnGround).
+        if (!isEffectivelyOnGround(session)) {
             destroySpeed /= 5.0F;
         }
 
         return destroySpeed;
+    }
+
+    private static boolean isEffectivelyOnGround(GeyserSession session) {
+        var entity = session.getPlayerEntity();
+        if (entity.isOnGround()) {
+            return true;
+        }
+        if (entity.isCollidingVertically() && entity.getLastTickEndVelocity().getY() <= 0.0F) {
+            return true;
+        }
+        return session.getCollisionManager().isOnGround();
     }
 
     private static int getMiningSpeedAmplification(EntityEffectCache cache) {
@@ -186,6 +200,10 @@ public final class BlockUtils {
 
     public static BlockCollision getCollision(int blockId) {
         return BlockRegistries.COLLISIONS.get(blockId);
+    }
+
+    public static BlockCollision getCollisionAt(GeyserSession session, Vector3i blockPos) {
+        return getCollision(session.getGeyser().getWorldManager().getBlockAt(session, blockPos));
     }
 
     public static void spawnBlockBreakParticles(GeyserSession session, Direction direction, Vector3i position, BlockState blockState) {
