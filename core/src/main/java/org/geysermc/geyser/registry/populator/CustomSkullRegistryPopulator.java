@@ -34,7 +34,7 @@ import org.geysermc.geyser.GeyserBootstrap;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.lifecycle.GeyserDefineCustomSkullsEvent;
 import org.geysermc.geyser.configuration.GeyserCustomSkullConfiguration;
-import org.geysermc.geyser.pack.SkullResourcePackManager;
+import org.geysermc.geyser.pack.bedrock.SkullResourcePackManager;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.type.CustomSkull;
 import org.geysermc.geyser.skin.SkinProvider;

@@ -23,7 +23,7 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.pack;
+package org.geysermc.geyser.pack.bedrock;
 
 import org.geysermc.geyser.GeyserImpl;
 

@@ -30,7 +30,7 @@ import com.google.gson.JsonParser;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
-import org.geysermc.geyser.pack.ResourcePackMetadata;
+import org.geysermc.geyser.pack.bedrock.ResourcePackMetadata;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;

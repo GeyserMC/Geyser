@@ -46,7 +46,7 @@ import org.geysermc.geyser.api.entity.custom.CustomEntityDefinition;
 import org.geysermc.geyser.api.extension.Extension;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.network.GameProtocol;
-import org.geysermc.geyser.pack.ResourcePackHolder;
+import org.geysermc.geyser.pack.bedrock.ResourcePackHolder;
 import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;

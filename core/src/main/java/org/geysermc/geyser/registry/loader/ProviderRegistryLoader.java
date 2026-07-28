@@ -120,11 +120,11 @@ import org.geysermc.geyser.level.block.GeyserGeometryComponent;
 import org.geysermc.geyser.level.block.GeyserJavaBlockState;
 import org.geysermc.geyser.level.block.GeyserMaterialInstance;
 import org.geysermc.geyser.level.block.GeyserNonVanillaCustomBlockData;
-import org.geysermc.geyser.pack.option.GeyserPriorityOption;
-import org.geysermc.geyser.pack.option.GeyserSubpackOption;
-import org.geysermc.geyser.pack.option.GeyserUrlFallbackOption;
-import org.geysermc.geyser.pack.path.GeyserPathPackCodec;
-import org.geysermc.geyser.pack.url.GeyserUrlPackCodec;
+import org.geysermc.geyser.pack.bedrock.option.GeyserPriorityOption;
+import org.geysermc.geyser.pack.bedrock.option.GeyserSubpackOption;
+import org.geysermc.geyser.pack.bedrock.option.GeyserUrlFallbackOption;
+import org.geysermc.geyser.pack.bedrock.path.GeyserPathPackCodec;
+import org.geysermc.geyser.pack.bedrock.url.GeyserUrlPackCodec;
 import org.geysermc.geyser.registry.provider.ProviderSupplier;
 import org.geysermc.geyser.session.cache.waypoint.VanillaWaypoint;
 
