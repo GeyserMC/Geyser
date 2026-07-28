@@ -52,8 +52,8 @@ import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.AsteriskSerializer;
 import org.geysermc.geyser.util.CpuUtils;
+import org.geysermc.geyser.util.FancyHttpClient;
 import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.util.WebUtils;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.ConfigurationOptions;
@@ -74,6 +74,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 @Getter
@@ -302,10 +303,10 @@ public class DumpInfo {
                 Map<String, String> fields = new HashMap<>();
                 fields.put("content", FileUtils.readAllLines(geyser.getBootstrap().getLogsPath()).collect(Collectors.joining("\n")));
 
-                JsonObject logData = new JsonParser().parse(WebUtils.postForm("https://api.mclo.gs/1/log", fields)).getAsJsonObject();
+                JsonObject logData = new JsonParser().parse(FancyHttpClient.oneShot(client -> client.postForm("https://api.mclo.gs/1/log", fields)).join()).getAsJsonObject();
 
                 this.link = logData.get("url").getAsString();
-            } catch (IOException ignored) { }
+            } catch (CompletionException ignored) { }
         }
     }
 

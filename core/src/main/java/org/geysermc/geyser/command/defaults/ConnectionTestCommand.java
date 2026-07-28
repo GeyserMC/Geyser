@@ -32,6 +32,7 @@ import org.geysermc.geyser.api.util.TriState;
 import org.geysermc.geyser.command.GeyserCommand;
 import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.configuration.GeyserConfig;
+import org.geysermc.geyser.util.FancyHttpClient;
 import org.geysermc.geyser.util.WebUtils;
 import org.incendo.cloud.CommandManager;
 import org.incendo.cloud.context.CommandContext;
@@ -168,7 +169,7 @@ public class ConnectionTestCommand extends GeyserCommand {
                 JsonObject output;
                 try {
                     String hostname = URLEncoder.encode(ip, StandardCharsets.UTF_8);
-                    output = WebUtils.getJson("https://checker.geysermc.org/ping?hostname=" + hostname + "&port=" + port);
+                    output = FancyHttpClient.oneShot(client -> client.getJson("https://checker.geysermc.org/ping?hostname=" + hostname + "&port=" + port)).join().getAsJsonObject();
                 } finally {
                     CONNECTION_TEST_MOTD = null;
                 }

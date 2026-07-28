@@ -25,15 +25,15 @@
 
 package org.geysermc.geyser.util;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.pack.ResourcePackMetadata;
 
-import javax.naming.directory.Attribute;
-import javax.naming.directory.InitialDirContext;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
@@ -54,14 +54,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 public final class FancyHttpClient implements AutoCloseable {
     private static final Path REMOTE_PACK_CACHE = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
 
-    private final @Nullable ExecutorService executorService;
     private final HttpClient client;
     private final String userAgent;
 
@@ -72,17 +71,21 @@ public final class FancyHttpClient implements AutoCloseable {
             builder.executor(executorService);
         }
 
-        this.executorService = executorService;
         this.client = builder.build();
         this.userAgent = "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION;
     }
 
-    public static FancyHttpClient open(Supplier<ExecutorService> executorSupplier) {
-        return new FancyHttpClient(executorSupplier.get());
+    public static FancyHttpClient open(ExecutorService executorSupplier) {
+        return new FancyHttpClient(executorSupplier);
     }
 
     public static FancyHttpClient open() {
         return new FancyHttpClient(null);
+    }
+
+    public static <T> CompletableFuture<T> oneShot(Function<FancyHttpClient, CompletableFuture<T>> fetcher) {
+        FancyHttpClient client = FancyHttpClient.open();
+        return fetcher.apply(client).whenComplete(($, $$) -> client.close());
     }
 
     private <T> CompletableFuture<HttpResponse<T>> fetch(String uri, UnaryOperator<HttpRequest.Builder> builder, HttpResponse.BodyHandler<T> bodyHandler) {
@@ -115,15 +118,15 @@ public final class FancyHttpClient implements AutoCloseable {
     }
 
     /**
-     * Makes a web request to the given URL and returns the body as a {@link JsonObject}.
+     * Makes a web request to the given URL and returns the body as a {@link JsonElement}.
      *
      * @param reqURL URL to fetch
      * @return the response as JSON
      * @throws RuntimeException in returned future when the request failed
      */
-    public CompletableFuture<JsonObject> getJson(String reqURL) {
+    public CompletableFuture<JsonElement> getJson(String reqURL) {
         //noinspection deprecation
-        return getBody(reqURL).thenApply(string -> new JsonParser().parse(string).getAsJsonObject());
+        return getBody(reqURL).thenApply(string -> new JsonParser().parse(string));
     }
 
     /**
@@ -239,6 +242,20 @@ public final class FancyHttpClient implements AutoCloseable {
             });
     }
 
+    public CompletableFuture<BufferedImage> downloadImage(String reqURL) {
+        return fetchOrThrow(reqURL, HttpRequest.Builder::GET, HttpResponse.BodyHandlers.ofInputStream())
+            .thenApplyAsync(stream -> {
+                try {
+                    BufferedImage image = ImageIO.read(stream);
+                    if (image == null) {
+                        throw new IllegalArgumentException("Failed to read image from: %s".formatted(reqURL));
+                    }
+                    return image;
+                } catch (IOException exception) {
+                    throw new UncheckedIOException(exception);
+                }
+            });
+    }
 
     /**
      * Post a string to the given URL
@@ -246,9 +263,8 @@ public final class FancyHttpClient implements AutoCloseable {
      * @param reqURL URL to post to
      * @param postContent String data to post
      * @return String returned by the server
-     * @throws IOException If the request fails
      */
-    public CompletableFuture<String> post(String reqURL, String postContent) throws IOException {
+    public CompletableFuture<String> post(String reqURL, String postContent) {
         return fetchOrThrow(reqURL, builder -> builder.POST(HttpRequest.BodyPublishers.ofString(postContent)), HttpResponse.BodyHandlers.ofString());
     }
 
@@ -258,9 +274,8 @@ public final class FancyHttpClient implements AutoCloseable {
      * @param reqURL URL to post to
      * @param fields Form data to post
      * @return String returned by the server
-     * @throws IOException If the request fails
      */
-    public CompletableFuture<String> postForm(String reqURL, Map<String, String> fields) throws IOException {
+    public CompletableFuture<String> postForm(String reqURL, Map<String, String> fields) {
         StringBuilder formString = new StringBuilder();
         for (Map.Entry<String, String> field : fields.entrySet()) {
             formString.append(field.getKey()).append("=").append(URLEncoder.encode(field.getValue(), StandardCharsets.UTF_8)).append("&");
@@ -275,15 +290,12 @@ public final class FancyHttpClient implements AutoCloseable {
      * @return Stream of lines from the URL or an empty stream if the request fails
      */
     public CompletableFuture<Stream<String>> getLineStream(String reqURL) {
-        return getBody(reqURL).thenApply(String::lines);
+        return getBody(reqURL).thenApply(String::lines).exceptionally(ignored -> Stream.empty());
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         client.close();
-        if (executorService != null) {
-            executorService.close();
-        }
     }
 
     private static boolean isSuccess(int statusCode) {
