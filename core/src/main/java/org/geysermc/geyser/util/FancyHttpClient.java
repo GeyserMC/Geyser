@@ -35,6 +35,7 @@ import org.geysermc.geyser.pack.ResourcePackMetadata;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -47,49 +48,83 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
+/**
+ * Wrapper around {@link HttpClient} with helper-methods for making various requests. Adds a {@code User-Agent} header by default, and uses a timeout of 10 seconds.
+ *
+ * <p>Obtain re-usable instances using {@link FancyHttpClient#open(Executor)} or {@link FancyHttpClient#open()}. Instances for one-time use should be obtained using {@link FancyHttpClient#oneShot(Function)}.</p>
+ *
+ * <em>Do not use instances with "try-with-resources" statements. This will often lead to the client being closed before the request future completes.</em>
+ *
+ * @see FancyHttpClient#open(Executor)
+ * @see FancyHttpClient#open()
+ * @see FancyHttpClient#oneShot(Function)
+ */
 public final class FancyHttpClient implements AutoCloseable {
-    private static final Path REMOTE_PACK_CACHE = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache").resolve("remote_packs");
-
     private final HttpClient client;
     private final String userAgent;
 
-    private FancyHttpClient(@Nullable ExecutorService executorService) {
+    private FancyHttpClient(@Nullable Executor executor) {
         HttpClient.Builder builder = HttpClient.newBuilder()
             .followRedirects(HttpClient.Redirect.NORMAL);
-        if (executorService != null) {
-            builder.executor(executorService);
+        if (executor != null) {
+            builder.executor(executor);
         }
 
         this.client = builder.build();
         this.userAgent = "Geyser-" + GeyserImpl.getInstance().platformType().platformName() + "/" + GeyserImpl.VERSION;
     }
 
-    public static FancyHttpClient open(ExecutorService executorSupplier) {
-        return new FancyHttpClient(executorSupplier);
+    /**
+     * Opens a new client using the given {@link Executor} for making requests. The client does not take ownership of the executor: if it is an {@link java.util.concurrent.ExecutorService}, the caller is responsible
+     * for closing it.
+     *
+     * @param executor the {@link Executor} used for making requests
+     * @return the new {@link FancyHttpClient}
+     */
+    public static FancyHttpClient open(Executor executor) {
+        return new FancyHttpClient(executor);
     }
 
+    /**
+     * Opens a new client using the default {@link Executor} for making requests.
+     *
+     * @return the new {@link FancyHttpClient}
+     */
     public static FancyHttpClient open() {
         return new FancyHttpClient(null);
     }
 
+    /**
+     * Opens a new client, and uses the given function for making one or more requests. Once the returned {@link CompletableFuture} completes, the client is automatically closed.
+     *
+     * @param fetcher the function using the client to make one or more requests
+     * @param <T> the type returned at the end of the request pipeline
+     * @return the {@link CompletableFuture} the function returned
+     */
     public static <T> CompletableFuture<T> oneShot(Function<FancyHttpClient, CompletableFuture<T>> fetcher) {
+        // TODO maybe using singleton instance with its own executors?
         FancyHttpClient client = FancyHttpClient.open();
         return fetcher.apply(client).whenComplete(($, $$) -> client.close());
     }
 
     private <T> CompletableFuture<HttpResponse<T>> fetch(String uri, UnaryOperator<HttpRequest.Builder> builder, HttpResponse.BodyHandler<T> bodyHandler) {
-        return client.sendAsync(builder.apply(HttpRequest.newBuilder(URI.create(uri))
+        URI parsedUri;
+        try {
+            parsedUri = URI.create(uri);
+        } catch (RuntimeException exception) {
+            return CompletableFuture.failedFuture(exception);
+        }
+        return client.sendAsync(builder.apply(HttpRequest.newBuilder(parsedUri)
             .header("User-Agent", userAgent)
             .timeout(Duration.ofSeconds(10L))).build(), bodyHandler);
     }
@@ -97,8 +132,7 @@ public final class FancyHttpClient implements AutoCloseable {
     private <T> CompletableFuture<T> fetchOrThrow(String uri, UnaryOperator<HttpRequest.Builder> builder, HttpResponse.BodyHandler<T> bodyHandler) {
         return fetch(uri, builder, bodyHandler)
             .thenApply(response -> {
-                int status = response.statusCode();
-                if (status >= 200 && status < 300) {
+                if (isSuccess(response.statusCode())) {
                     return response.body();
                 }
                 throw new RuntimeException("Unable to make HTTP request to URL %s (returned status code %d)".formatted(response.request().uri(), response.statusCode()));
@@ -106,11 +140,12 @@ public final class FancyHttpClient implements AutoCloseable {
     }
 
     /**
-     * Makes a web request to the given URL and returns the body as a string
+     * Makes a GET request to the given URL and parses the response body as a string.
+     *
+     * <p>If the request failed, the {@link CompletableFuture} completes exceptionally.</p>
      *
      * @param reqURL URL to fetch
-     * @return body content
-     * @throws RuntimeException in returned future when the request failed
+     * @return a {@link CompletableFuture} returning the content of the response body, parsed as a string
      */
     public CompletableFuture<String> getBody(String reqURL) {
         return fetchOrThrow(reqURL, HttpRequest.Builder::GET,
@@ -118,11 +153,24 @@ public final class FancyHttpClient implements AutoCloseable {
     }
 
     /**
-     * Makes a web request to the given URL and returns the body as a {@link JsonElement}.
+     * Makes a GET request to the given URL, parses the response body as a string, and returns a stream of lines.
+     *
+     * <p>If the request failed, an empty stream is returned.</p>
      *
      * @param reqURL URL to fetch
-     * @return the response as JSON
-     * @throws RuntimeException in returned future when the request failed
+     * @return a {@link CompletableFuture} returning the content of the response body, parsed as a string and turned into a stream of lines, or an empty stream if the request fails
+     */
+    public CompletableFuture<Stream<String>> getLineStream(String reqURL) {
+        return getBody(reqURL).thenApply(String::lines).exceptionally(ignored -> Stream.empty());
+    }
+
+    /**
+     * Makes a GET request to the given URL and parses the response body as a {@link JsonElement}.
+     *
+     * <p>If the request failed, the {@link CompletableFuture} completes exceptionally.</p>
+     *
+     * @param reqURL URL to fetch
+     * @return a {@link CompletableFuture} returning the content of the response body, parsed as a {@link JsonElement}
      */
     public CompletableFuture<JsonElement> getJson(String reqURL) {
         //noinspection deprecation
@@ -130,33 +178,49 @@ public final class FancyHttpClient implements AutoCloseable {
     }
 
     /**
-     * Downloads a file from the given URL and saves it to disk
+     * Makes a GET request to the given URL and parses the response body as a {@link BufferedImage} using {@link ImageIO#read(InputStream)}.
      *
-     * @param reqURL File to fetch
-     * @param fileLocation Location to save on disk
+     * <p>If the request failed, the {@link CompletableFuture} completes exceptionally.</p>
+     *
+     * @param reqURL URL to fetch
+     * @return a {@link CompletableFuture} returning the content of the response body, parsed as a {@link BufferedImage}
      */
-    @Deprecated
-    public CompletableFuture<?> downloadFile(String reqURL, String fileLocation) {
-        return downloadFile(reqURL, Paths.get(fileLocation));
+    public CompletableFuture<BufferedImage> downloadImage(String reqURL) {
+        return fetchOrThrow(reqURL, HttpRequest.Builder::GET, HttpResponse.BodyHandlers.ofInputStream())
+            .thenApplyAsync(stream -> {
+                try {
+                    BufferedImage image = ImageIO.read(stream);
+                    if (image == null) {
+                        throw new IllegalArgumentException("Failed to read image from: %s".formatted(reqURL));
+                    }
+                    return image;
+                } catch (IOException exception) {
+                    throw new UncheckedIOException(exception);
+                }
+            });
     }
 
     /**
      * Downloads a file from the given URL and saves it to disk
      *
-     * @param reqURL File to fetch
-     * @param path Location to save on disk as a path
+     * <p>If the request failed, the {@link CompletableFuture} completes exceptionally.</p>
+     *
+     * @param reqURL file to fetch
+     * @param path location to save on disk as a path
+     * @return a {@link CompletableFuture} completing when the file is saved
      */
     public CompletableFuture<?> downloadFile(String reqURL, Path path) {
         return fetchOrThrow(reqURL, HttpRequest.Builder::GET, HttpResponse.BodyHandlers.ofFile(path));
     }
 
     /**
-     * Checks a remote pack URL to see if it is valid
-     * If it is, it will download the pack file and return a path to it
+     * Checks a remote resourcepack URL to see if it is valid. If it is, it will download the pack file and return a path to it.
      *
-     * @param url The URL to check
-     * @param force If true, the pack will be downloaded even if it is cached to a separate location.
-     * @return Path to the downloaded pack file, or null if it was unable to be loaded
+     * <p>If the request failed, the {@link CompletableFuture} completes exceptionally.</p>
+     *
+     * @param url the URL to download from
+     * @param force if true, the pack will be downloaded even if it is cached locally
+     * @return a {@link CompletableFuture} returning the path to the downloaded pack file
      */
     public CompletableFuture<Path> downloadRemotePack(String url, boolean force) {
         GeyserLogger logger = GeyserImpl.getInstance().getLogger();
@@ -191,8 +255,7 @@ public final class FancyHttpClient implements AutoCloseable {
                 }
 
                 try {
-                    // Ensure remote pack cache dir exists
-                    Files.createDirectories(REMOTE_PACK_CACHE);
+                    ResourcePackMetadata.ensureCacheDirectoryExists();
                 } catch (IOException exception) {
                     throw new UncheckedIOException("Failed to create remote pack cache directory!", exception);
                 }
@@ -242,55 +305,36 @@ public final class FancyHttpClient implements AutoCloseable {
             });
     }
 
-    public CompletableFuture<BufferedImage> downloadImage(String reqURL) {
-        return fetchOrThrow(reqURL, HttpRequest.Builder::GET, HttpResponse.BodyHandlers.ofInputStream())
-            .thenApplyAsync(stream -> {
-                try {
-                    BufferedImage image = ImageIO.read(stream);
-                    if (image == null) {
-                        throw new IllegalArgumentException("Failed to read image from: %s".formatted(reqURL));
-                    }
-                    return image;
-                } catch (IOException exception) {
-                    throw new UncheckedIOException(exception);
-                }
-            });
-    }
-
     /**
-     * Post a string to the given URL
+     * Makes a POST request to the given URL, sending the given string. Parses the response body as a string.
      *
-     * @param reqURL URL to post to
-     * @param postContent String data to post
-     * @return String returned by the server
+     * <p>If the request failed, the {@link CompletableFuture} completes exceptionally.</p>
+     *
+     * @param reqURL URL to POST to
+     * @param postContent string data to send
+     * @return a {@link CompletableFuture} returning the content of the response body, parsed as a string
      */
     public CompletableFuture<String> post(String reqURL, String postContent) {
-        return fetchOrThrow(reqURL, builder -> builder.POST(HttpRequest.BodyPublishers.ofString(postContent)), HttpResponse.BodyHandlers.ofString());
+        return fetchOrThrow(reqURL, builder -> builder.POST(HttpRequest.BodyPublishers.ofString(postContent))
+            .header("content-type", "text/plain"), HttpResponse.BodyHandlers.ofString());
     }
 
     /**
-     * Post fields to a URL as a form
+     * Makes a POST request to the given URL, sending the given fields formatted as a form. Parses the response body as a string.
      *
-     * @param reqURL URL to post to
-     * @param fields Form data to post
-     * @return String returned by the server
+     * <p>If the request failed, the {@link CompletableFuture} completes exceptionally.</p>
+     *
+     * @param reqURL URL to POST to
+     * @param fields form data to send
+     * @return a {@link CompletableFuture} returning the content of the response body, parsed as a string
      */
     public CompletableFuture<String> postForm(String reqURL, Map<String, String> fields) {
         StringBuilder formString = new StringBuilder();
         for (Map.Entry<String, String> field : fields.entrySet()) {
             formString.append(field.getKey()).append("=").append(URLEncoder.encode(field.getValue(), StandardCharsets.UTF_8)).append("&");
         }
-        return fetchOrThrow(reqURL, builder -> builder.POST(HttpRequest.BodyPublishers.ofString(formString.toString())), HttpResponse.BodyHandlers.ofString());
-    }
-
-    /**
-     * Get a stream of lines from the given URL
-     *
-     * @param reqURL URL to fetch
-     * @return Stream of lines from the URL or an empty stream if the request fails
-     */
-    public CompletableFuture<Stream<String>> getLineStream(String reqURL) {
-        return getBody(reqURL).thenApply(String::lines).exceptionally(ignored -> Stream.empty());
+        return fetchOrThrow(reqURL, builder -> builder.POST(HttpRequest.BodyPublishers.ofString(formString.toString()))
+            .header("content-type", "application/x-www-form-urlencoded"), HttpResponse.BodyHandlers.ofString());
     }
 
     @Override

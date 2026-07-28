@@ -107,6 +107,10 @@ public record ResourcePackMetadata(Path path, String url, long size, String eTag
         return Optional.empty();
     }
 
+    public static void ensureCacheDirectoryExists() throws IOException {
+        Files.createDirectories(REMOTE_PACK_CACHE);
+    }
+
     private static Path getMetadataPath(String url) {
         return REMOTE_PACK_CACHE.resolve(url.hashCode() + ".metadata");
     }
