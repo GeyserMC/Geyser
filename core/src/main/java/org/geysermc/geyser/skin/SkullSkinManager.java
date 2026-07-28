@@ -39,8 +39,6 @@ public class SkullSkinManager extends SkinManager {
 
     public static SerializedSkin buildSkullEntryManually(GeyserSession session, String skinId, byte[] skinData) {
         skinId = skinId + "_skull";
-        // Explicit values for everything the protocol's old skin builder used to
-        // null coerce; the Lombok builder from the v2168 groundwork fills nothing.
         return SerializedSkin.builder()
             .skinId(skinId)
             .skinResourcePatch(SkinProvider.SKULL_GEOMETRY.geometryName())
@@ -51,13 +49,6 @@ public class SkullSkinManager extends SkinManager {
             .capeId(SkinProvider.EMPTY_CAPE.capeId())
             .fullSkinId(skinId)
             .geometryDataEngineVersion(session.getClientData().getGameVersion())
-            .playFabId("")
-            .animations(java.util.Collections.emptyList())
-            .animationData("")
-            .armSize("wide")
-            .skinColor("#0")
-            .personaPieces(java.util.Collections.emptyList())
-            .tintColors(java.util.Collections.emptyList())
             .build();
     }
 

@@ -143,30 +143,13 @@ public class SkinProvider {
         WEARING_CUSTOM_SKULL_SLIM = new SkinGeometry("{\"geometry\" :{\"default\" :\"geometry.humanoid.wearingCustomSkullSlim\"}}", wearingCustomSkullSlim);
 
         /* Used for non-player waypoints... Bedrock requires a skin being sent. Lovely. */
-        // The protocol's hand rolled skin builder used to null coerce every unset
-        // field (empty strings and lists, wide arm size, #0 skin color, resource
-        // patch derived from the geometry name). The v2168 groundwork replaced it
-        // with a Lombok builder that fills nothing, so every formerly implied
-        // field must be set explicitly or v898 clients receive null bearing
-        // skins, which freezes and kills the client when the pause menu renders
-        // the player list.
         EMPTY_SERIALIZED_SKIN = SerializedSkin.builder()
             .fullSkinId("emptyFullSkinId")
             .skinId("skinId")
             .skinData(ImageData.of(EMPTY_SKIN.skinData()))
             .capeData(ImageData.EMPTY)
-            .capeId("")
             .geometryName(SkinGeometry.SLIM.geometryName())
-            .skinResourcePatch(SkinGeometry.SLIM.geometryName())
             .geometryData(SkinGeometry.SLIM.geometryData())
-            .geometryDataEngineVersion("")
-            .playFabId("")
-            .animations(java.util.Collections.emptyList())
-            .animationData("")
-            .armSize("wide")
-            .skinColor("#0")
-            .personaPieces(java.util.Collections.emptyList())
-            .tintColors(java.util.Collections.emptyList())
             .premium(true)
             .build();
     }
