@@ -89,7 +89,13 @@ public class PlayerListUtils {
 
         // Prefer looking up xuid using the session to catch linked players
         if (playerSession != null) {
-            xuid = playerSession.getAuthData().xuid();
+            // An education client's AuthData xuid holds the Entra oid, not a real
+            // Xbox xuid. A nonempty value makes the profile clickable and the
+            // viewing client crashes trying to resolve it, so education entries
+            // keep the empty xuid and grey out like Java players.
+            if (!playerSession.isEducationClient()) {
+                xuid = playerSession.getAuthData().xuid();
+            }
         } else if (uuid.version() == 0) {
             xuid = Long.toString(uuid.getLeastSignificantBits());
         }
