@@ -151,6 +151,9 @@ public class SkinProvider {
             .geometryName(SkinGeometry.SLIM.geometryName())
             .geometryData(SkinGeometry.SLIM.geometryData())
             .premium(true)
+            .color(new Color(0, true))
+            .trusted(true)
+            .profileHash("")
             .build();
     }
 

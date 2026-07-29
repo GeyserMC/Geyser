@@ -118,13 +118,16 @@ public class PlayerListUtils {
     public static void sendSkinUsingPlayerList(GeyserSession session, PlayerListPacket.Entry entry, AvatarEntity entity, boolean persistent) {
         PlayerListPacket listPacket = new PlayerListPacket();
         listPacket.setAction(PlayerListPacket.Action.ADD);
+        entry.setAction(PlayerListPacket.Action.ADD);
         listPacket.getEntries().add(entry);
         session.sendUpstreamPacket(listPacket);
 
         if (!persistent) {
             PlayerListPacket unlistPacket = new PlayerListPacket();
             unlistPacket.setAction(PlayerListPacket.Action.REMOVE);
-            unlistPacket.getEntries().add(new PlayerListPacket.Entry(entity.uuid()));
+            PlayerListPacket.Entry unlistEntry = new PlayerListPacket.Entry(entity.uuid());
+            unlistEntry.setAction(PlayerListPacket.Action.REMOVE);
+            unlistPacket.getEntries().add(unlistEntry);
             session.sendUpstreamPacket(unlistPacket);
         }
     }

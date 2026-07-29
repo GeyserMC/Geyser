@@ -109,7 +109,9 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         // send the player list entry after fetching the skin sent by the Java server.
         if (PlayerListUtils.shouldLimitPlayerListEntries(session)) {
             PlayerListPacket packet = new PlayerListPacket();
-            packet.getEntries().add(new PlayerListPacket.Entry(getTabListUuid()));
+            PlayerListPacket.Entry entry = new PlayerListPacket.Entry(getTabListUuid());
+            entry.setAction(PlayerListPacket.Action.REMOVE);
+            packet.getEntries().add(entry);
             packet.setAction(PlayerListPacket.Action.REMOVE);
             session.sendUpstreamPacket(packet);
 
