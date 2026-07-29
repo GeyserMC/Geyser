@@ -62,9 +62,25 @@ public interface NethernetManager {
     boolean isRunning();
 
     /**
-     * @return true if the signaling WebSocket to Microsoft is alive
+     * @return true if every signaling connection to Microsoft is alive
      */
     boolean isSignalingAlive();
+
+    /**
+     * Liveness of the Type 3 WebSocket signaling used by 1.21.133 and older
+     * clients, which connect with the plain connection ID format.
+     *
+     * @return true if the Type 3 signaling connection is alive
+     */
+    boolean isLegacySignalingAlive();
+
+    /**
+     * Liveness of the Type 7 JSON-RPC signaling used by 26.30 and newer
+     * clients, which connect with the connection id plus pmid format.
+     *
+     * @return true if the Type 7 signaling connection is alive
+     */
+    boolean isRpcSignalingAlive();
 
     /**
      * Rebuilds the signaling WebSocket with a fresh MCToken, preserving the

@@ -39,13 +39,18 @@ public class NethernetManagerImpl implements NethernetManager {
     private final GeyserImpl geyser;
     private final DefaultEventLoopGroup playerEventLoopGroup;
     private final String connectionId;
+    private final String playfabCustomId;
+    private final String playfabDeviceId;
     private final Object lock = new Object();
     private volatile NetherNetServer server;
 
-    public NethernetManagerImpl(GeyserImpl geyser, DefaultEventLoopGroup playerEventLoopGroup, String connectionId) {
+    public NethernetManagerImpl(GeyserImpl geyser, DefaultEventLoopGroup playerEventLoopGroup,
+                                String connectionId, String playfabCustomId, String playfabDeviceId) {
         this.geyser = geyser;
         this.playerEventLoopGroup = playerEventLoopGroup;
         this.connectionId = connectionId;
+        this.playfabCustomId = playfabCustomId;
+        this.playfabDeviceId = playfabDeviceId;
     }
 
     @Override
@@ -58,7 +63,7 @@ public class NethernetManagerImpl implements NethernetManager {
             if (server != null) {
                 server.shutdown();
             }
-            server = new NetherNetServer(geyser, playerEventLoopGroup, connectionId);
+            server = new NetherNetServer(geyser, playerEventLoopGroup, connectionId, playfabCustomId, playfabDeviceId);
             if (!server.start()) {
                 server = null;
                 return false;
@@ -87,6 +92,18 @@ public class NethernetManagerImpl implements NethernetManager {
     public boolean isSignalingAlive() {
         NetherNetServer s = server;
         return s != null && s.isSignalingAlive();
+    }
+
+    @Override
+    public boolean isLegacySignalingAlive() {
+        NetherNetServer s = server;
+        return s != null && s.isLegacySignalingAlive();
+    }
+
+    @Override
+    public boolean isRpcSignalingAlive() {
+        NetherNetServer s = server;
+        return s != null && s.isRpcSignalingAlive();
     }
 
     @Override

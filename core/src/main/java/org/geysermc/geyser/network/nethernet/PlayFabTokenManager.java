@@ -66,10 +66,16 @@ public class PlayFabTokenManager {
     private volatile @Nullable String mcTokenExpiry;
     private volatile @Nullable String pmsgId;
 
-    public PlayFabTokenManager(GeyserLogger logger) {
+    /**
+     * The customId and deviceId come persisted from connection-id.yml: the pmid
+     * is bound to the anonymous PlayFab account behind the customId, so reusing
+     * the same identity keeps the 26.30 and newer connection ID stable across
+     * restarts.
+     */
+    public PlayFabTokenManager(GeyserLogger logger, String customId, String deviceId) {
         this.logger = logger;
-        this.customId = "MCPF" + UUID.randomUUID().toString().replace("-", "").substring(0, 32).toUpperCase();
-        this.deviceId = UUID.randomUUID().toString().replace("-", "").toLowerCase();
+        this.customId = customId;
+        this.deviceId = deviceId;
     }
 
     /**

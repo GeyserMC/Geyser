@@ -644,13 +644,14 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     private void initializeNethernet() {
         GeyserLogger log = getLogger();
         try {
-            String connectionId = loadOrGenerateConnectionId(log);
-            if (connectionId == null) {
+            NethernetIds ids = loadOrGenerateNethernetIds(log);
+            if (ids == null) {
                 return;
             }
 
             var playerGroup = this.geyserServer.getInitializer().getEventLoopGroup();
-            this.nethernetManagerImpl = new NethernetManagerImpl(this, playerGroup, connectionId);
+            this.nethernetManagerImpl = new NethernetManagerImpl(this, playerGroup,
+                    ids.connectionId(), ids.playfabCustomId(), ids.playfabDeviceId());
             log.debug("[Nethernet] Transport initialized");
         } catch (Throwable t) {
             log.warning("[Nethernet] Transport unavailable: " + t.getMessage());
@@ -661,45 +662,87 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
         }
     }
 
-    private String loadOrGenerateConnectionId(GeyserLogger log) {
+    private record NethernetIds(String connectionId, String playfabCustomId, String playfabDeviceId) {
+    }
+
+    /**
+     * Loads connection-id.yml. The connection id is user configurable and
+     * rejects invalid values loudly; the PlayFab account fields are internal
+     * storage that self validate and silently regenerate when missing or
+     * invalid. The file is rewritten whenever it differs from the canonical
+     * form, so fields can be added or removed over time without migration
+     * handling: missing fields appear, unknown ones drop, corrupted ones heal.
+     */
+    private NethernetIds loadOrGenerateNethernetIds(GeyserLogger log) {
         Path nethernetDir = bootstrap.getConfigFolder().resolve("nethernet");
         Path idFile = nethernetDir.resolve("connection-id.yml");
 
         try {
+            String connectionId = null;
+            String customId = null;
+            String deviceId = null;
+            String existing = null;
+
             if (Files.exists(idFile)) {
+                existing = Files.readString(idFile);
                 var loader = org.spongepowered.configurate.yaml.YamlConfigurationLoader.builder()
                         .path(idFile).build();
                 var node = loader.load();
                 String id = node.node("connection-id").getString();
                 if (id != null) {
                     id = id.trim();
-                    if (id.matches("^[0-9]{10,18}$")) {
-                        return id;
+                    if (!id.matches("^[0-9]{10,18}$")) {
+                        log.error("[Nethernet] Invalid connection ID in " + idFile + ": " + id +
+                                " (must be 10-18 decimal digits). Delete the file to regenerate.");
+                        return null;
                     }
-                    log.error("[Nethernet] Invalid connection ID in " + idFile + ": " + id +
-                            " (must be 10-18 decimal digits). Delete the file to regenerate.");
-                    return null;
+                    connectionId = id;
                 }
+                customId = validOrNull(node.node("playfab-custom-id").getString(), "^MCPF[0-9A-F]{32}$");
+                deviceId = validOrNull(node.node("playfab-device-id").getString(), "^[0-9a-f]{32}$");
             }
 
-            // Generate a new 18-digit connection ID
-            Files.createDirectories(nethernetDir);
-            long value = java.util.concurrent.ThreadLocalRandom.current()
-                    .nextLong(100_000_000_000_000_000L, 1_000_000_000_000_000_000L);
-            String connectionId = String.valueOf(value);
+            if (connectionId == null) {
+                long value = java.util.concurrent.ThreadLocalRandom.current()
+                        .nextLong(100_000_000_000_000_000L, 1_000_000_000_000_000_000L);
+                connectionId = String.valueOf(value);
+                log.debug("[Nethernet] Generated connection ID: " + connectionId);
+            }
+            if (customId == null) {
+                customId = "MCPF" + UUID.randomUUID().toString().replace("-", "").toUpperCase();
+            }
+            if (deviceId == null) {
+                deviceId = UUID.randomUUID().toString().replace("-", "").toLowerCase();
+            }
 
-            Files.writeString(idFile,
+            String canonical =
                     "# Nethernet connection ID. Clients enter this to connect via WebRTC.\n" +
-                    "# Auto-generated. Delete this file to regenerate.\n" +
-                    "# Must be 10-18 decimal digits.\n" +
-                    "connection-id: \"" + connectionId + "\"\n");
+                    "# May be edited (10-18 decimal digits). Deleting this file regenerates\n" +
+                    "# everything, including the account identity below.\n" +
+                    "connection-id: \"" + connectionId + "\"\n" +
+                    "# Internal PlayFab account identity for signaling, storage only, do not\n" +
+                    "# touch. The pmid half of the 26.30 and newer connection ID is bound to\n" +
+                    "# this account; changing or removing these resets that ID.\n" +
+                    "playfab-custom-id: \"" + customId + "\"\n" +
+                    "playfab-device-id: \"" + deviceId + "\"\n";
+            if (!canonical.equals(existing)) {
+                Files.createDirectories(nethernetDir);
+                Files.writeString(idFile, canonical);
+            }
 
-            log.debug("[Nethernet] Generated connection ID: " + connectionId);
-            return connectionId;
+            return new NethernetIds(connectionId, customId, deviceId);
         } catch (Exception e) {
             log.error("[Nethernet] Failed to load/generate connection ID: " + e.getMessage());
             return null;
         }
+    }
+
+    private static String validOrNull(String value, String pattern) {
+        if (value == null) {
+            return null;
+        }
+        value = value.trim();
+        return value.matches(pattern) ? value : null;
     }
 
     public void disable() {

@@ -132,11 +132,12 @@ public class NetherNetServer {
     private long nextReconnectAttemptAt;
     private int consecutiveReconnectFailures;
 
-    public NetherNetServer(GeyserImpl geyser, DefaultEventLoopGroup playerEventLoopGroup, String connectionId) {
+    public NetherNetServer(GeyserImpl geyser, DefaultEventLoopGroup playerEventLoopGroup,
+                           String connectionId, String playfabCustomId, String playfabDeviceId) {
         this.geyser = geyser;
         this.logger = geyser.getLogger();
         this.playerEventLoopGroup = playerEventLoopGroup;
-        this.tokenManager = new PlayFabTokenManager(logger);
+        this.tokenManager = new PlayFabTokenManager(logger, playfabCustomId, playfabDeviceId);
         this.connectionId = connectionId;
     }
 
@@ -167,7 +168,21 @@ public class NetherNetServer {
                 SIGNALING_CHECK_INTERVAL_SECONDS, SIGNALING_CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS);
 
         running = true;
-        logger.info(LOG_PREFIX + "Listening on connection ID: " + connectionId);
+        logger.info(LOG_PREFIX + "Listening on connection ID (1.21.133 and older): " + connectionId);
+
+        // 26.30 and newer clients use a longer connection ID format: the
+        // connection id followed by the 32 hex pmid of the signaling MCToken.
+        // The pmid is bound to the anonymous PlayFab account (verified: a full
+        // re-auth with the same CustomId returns the same pmid), and the
+        // account identity is persisted in connection-id.yml, so this value is
+        // stable across restarts.
+        String pmid = tokenManager.getPmsgId();
+        if (pmid != null) {
+            logger.info(LOG_PREFIX + "Connection ID (26.30 and newer): "
+                    + connectionId + pmid.replace("-", "").toLowerCase());
+        } else {
+            logger.info(LOG_PREFIX + "Connection ID (26.30 and newer): unavailable, no pmid claim in the MCToken");
+        }
         return true;
     }
 
@@ -224,9 +239,17 @@ public class NetherNetServer {
     }
 
     public boolean isSignalingAlive() {
-        boolean legacyAlive = legacySignaling != null && legacySignaling.isChannelAlive();
-        boolean rpcAlive = rpcSignaling != null && rpcSignaling.isChannelAlive();
-        return legacyAlive && rpcAlive;
+        return isLegacySignalingAlive() && isRpcSignalingAlive();
+    }
+
+    public boolean isLegacySignalingAlive() {
+        NetherNetXboxSignaling legacy = legacySignaling;
+        return legacy != null && legacy.isChannelAlive();
+    }
+
+    public boolean isRpcSignalingAlive() {
+        NetherNetXboxRpcSignaling rpc = rpcSignaling;
+        return rpc != null && rpc.isChannelAlive();
     }
 
     public String getConnectionId() {
