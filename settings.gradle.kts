@@ -32,6 +32,26 @@ if (extra.has("localNethernet")) {
     }
 }
 
+// Opt-in local development against the sibling CloudburstProtocol checkout:
+// pass -PlocalProtocol to substitute the JitPack-pinned protocol modules
+// with the local build. Normal and release builds keep using the pinned hash.
+if (extra.has("localProtocol")) {
+    val cloudburstProtocol = file("../CloudburstProtocol")
+    require(cloudburstProtocol.isDirectory) {
+        "-PlocalProtocol was set but ${cloudburstProtocol.absolutePath} does not exist"
+    }
+    includeBuild(cloudburstProtocol) {
+        dependencySubstitution {
+            substitute(module("com.github.SendableMetatype.education-edition-support:common"))
+                .using(project(":common"))
+            substitute(module("com.github.SendableMetatype.education-edition-support:bedrock-codec"))
+                .using(project(":bedrock-codec"))
+            substitute(module("com.github.SendableMetatype.education-edition-support:bedrock-connection"))
+                .using(project(":bedrock-connection"))
+        }
+    }
+}
+
 include(":ap")
 include(":api")
 include(":bungeecord")
