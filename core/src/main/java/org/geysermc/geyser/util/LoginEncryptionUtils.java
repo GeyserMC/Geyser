@@ -54,12 +54,23 @@ import org.jose4j.lang.JoseException;
 
 import javax.crypto.SecretKey;
 import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 
 public class LoginEncryptionUtils {
     private static boolean HAS_SENT_ENCRYPTION_MESSAGE = false;
+
+    /**
+     * The identity ChainValidationResult derives for a chain whose xid claim is
+     * empty: UUID.nameUUIDFromBytes("pocket-auth-1-xuid:" + xid). Education
+     * clients have no Xbox account, so every education login degenerates to
+     * this constant instead of the client's real identity.
+     */
+    private static final UUID EMPTY_XID_IDENTITY =
+            UUID.nameUUIDFromBytes("pocket-auth-1-xuid:".getBytes(StandardCharsets.UTF_8));
 
     public static void encryptPlayerConnection(GeyserSession session, LoginPacket loginPacket) {
         encryptConnectionWithCert(session, loginPacket.getAuthPayload(), loginPacket.getClientJwt());
@@ -143,15 +154,14 @@ public class LoginEncryptionUtils {
                 session.setEducationTenantId(tokenResult.getTenantId());
                 session.setEducationServerToken(serverToken);
 
-                // Swap to the education codec. A swap is structurally unavoidable.
-                // The initial codec is chosen when RequestNetworkSettingsPacket
+                // Swap to the education codec. A swap is structurally unavoidable
+                // for protocol versions shared with standard Bedrock (v898): the
+                // initial codec is chosen when RequestNetworkSettingsPacket
                 // arrives, and at that point only the protocol version is known.
-                // Education clients report the same protocol version as standard
-                // Bedrock, so the pre-auth flow has no way to distinguish them.
                 // The education flag only surfaces when LoginPacket's clientData
-                // is parsed, which is where this code runs. So every education
-                // session starts on the standard codec and swaps to the education
-                // one here.
+                // is parsed, which is where this code runs. At education-only
+                // protocol versions (1002) the version gate already picked the
+                // education codec and this re-set is a no-op.
                 BedrockCodec educationCodec = GameProtocol.getEducationCodec(
                         session.getUpstream().getSession().getCodec().getProtocolVersion());
                 if (educationCodec == null) {
@@ -178,7 +188,24 @@ public class LoginEncryptionUtils {
                 }
             }
 
-            session.setAuthData(new AuthData(extraData.displayName, extraData.identity, xuid, issuedAt, extraData.minecraftId));
+            String displayName = extraData.displayName;
+            if (isEducationClient && (displayName == null || displayName.isEmpty())) {
+                // Education 26.30 logs in with a self-signed chain whose name claims
+                // are all empty; the display name only exists in clientData ThirdPartyName.
+                displayName = data.getUsername();
+            }
+
+            UUID identity = extraData.identity;
+            if (isEducationClient && EMPTY_XID_IDENTITY.equals(identity) && data.getSelfSignedId() != null) {
+                // Same restructure as the display name above: the client's real
+                // identity is no longer in the chain and only survives as clientData
+                // SelfSignedId (equal to the token's leguuid claim). The client looks
+                // itself up in the player list by this value, and receiving the
+                // placeholder instead crashes the 26.30 pause menu.
+                identity = data.getSelfSignedId();
+            }
+
+            session.setAuthData(new AuthData(displayName, identity, xuid, issuedAt, extraData.minecraftId));
 
             try {
                 boolean enableEncryption = !BedrockEncryptionControl.isEncryptionDisabled(

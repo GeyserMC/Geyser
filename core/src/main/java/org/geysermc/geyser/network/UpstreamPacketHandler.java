@@ -122,6 +122,12 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
     private boolean setCorrectCodec(int protocolVersion) {
         BedrockCodec packetCodec = GameProtocol.getBedrockCodec(protocolVersion);
         if (packetCodec == null) {
+            // Education-only protocol numbers (1002) have no standard Bedrock codec;
+            // no retail client sends them, so the number alone identifies an education
+            // client and the session starts on the education codec directly.
+            packetCodec = GameProtocol.getEducationCodec(protocolVersion);
+        }
+        if (packetCodec == null) {
             // None of our Bedrock codecs support this client version, so we can simply compare it to our default protocol.
             String supportedVersions = GameProtocol.getAllSupportedBedrockVersions();
             if (protocolVersion > GameProtocol.DEFAULT_BEDROCK_PROTOCOL) {

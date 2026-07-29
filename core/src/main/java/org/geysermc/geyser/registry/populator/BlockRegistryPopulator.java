@@ -44,6 +44,7 @@ import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtType;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v1002.Bedrock_v1002;
 import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
@@ -130,6 +131,8 @@ public final class BlockRegistryPopulator {
                 .put(ObjectIntPair.of("26_10", Bedrock_v944.CODEC.getProtocolVersion()), ChaosCubedConverter::convertBlock)
                 .put(ObjectIntPair.of("26_20", Bedrock_v975.CODEC.getProtocolVersion()), ChaosCubedConverter::convertBlock)
                 .put(ObjectIntPair.of("26_30", Bedrock_v1001.CODEC.getProtocolVersion()), tag -> tag)
+                // Education 26.30 (protocol 1002) carries the same content as retail 26.30
+                .put(ObjectIntPair.of("26_30", Bedrock_v1002.EDUCATION_CODEC.getProtocolVersion()), tag -> tag)
             .build();
 
         // We can keep this strong as nothing should be garbage collected

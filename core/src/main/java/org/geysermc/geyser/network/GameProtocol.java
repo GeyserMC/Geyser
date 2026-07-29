@@ -34,6 +34,7 @@ import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
 import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v1002.Bedrock_v1002;
 import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.impl.MinecraftVersionImpl;
@@ -97,6 +98,7 @@ public final class GameProtocol {
         register(Bedrock_v1001.CODEC, "26.30", "26.31", "26.32", "26.33");
 
         registerEducation(Bedrock_v898.EDUCATION_CODEC);
+        registerEducation(Bedrock_v1002.EDUCATION_CODEC);
 
         MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.getLast();
         DEFAULT_BEDROCK_VERSION = latestBedrock.versionString();
@@ -133,10 +135,13 @@ public final class GameProtocol {
     }
 
     /**
-     * Registers an Education Edition variant of a Bedrock codec. The corresponding standard codec for
-     * the same protocol version must already have been registered via {@link #register}. The education
-     * variant is put through the same {@link CodecProcessor} pipeline so Geyser-specific serializer
-     * overrides apply identically to both variants.
+     * Registers an Education Edition variant of a Bedrock codec. If the protocol version is shared
+     * with standard Bedrock (v898), the corresponding standard codec must already have been registered
+     * via {@link #register} and the session swaps codecs once the client is identified at login. For
+     * education-only protocol versions (1002), no standard codec exists; the version gate starts the
+     * session on the education codec directly. The education variant is put through the same
+     * {@link CodecProcessor} pipeline so Geyser-specific serializer overrides apply identically to
+     * both variants.
      *
      * @param codec the education codec to register
      */

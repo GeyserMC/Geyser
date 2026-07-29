@@ -46,6 +46,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v1002.Bedrock_v1002;
 import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
@@ -162,6 +163,8 @@ public class ItemRegistryPopulator {
         paletteVersions.add(new PaletteVersion("26_10", Bedrock_v944.CODEC.getProtocolVersion(), ChaosCubedConverter.convertItem()));
         paletteVersions.add(new PaletteVersion("26_20", Bedrock_v975.CODEC.getProtocolVersion(), ChaosCubedConverter.convertItem(), "26_10"));
         paletteVersions.add(new PaletteVersion("26_30", Bedrock_v1001.CODEC.getProtocolVersion()));
+        // Education 26.30 (protocol 1002) carries the same content as retail 26.30
+        paletteVersions.add(new PaletteVersion("26_30", Bedrock_v1002.EDUCATION_CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
