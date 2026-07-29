@@ -285,7 +285,7 @@ public class DumpInfo {
         private final int javaProtocol;
 
         MCInfo() {
-            this.bedrockVersions = GameProtocol.SUPPORTED_BEDROCK_VERSIONS.stream().map(MinecraftVersion::versionString).toList();
+            this.bedrockVersions = GameProtocol.SUPPORTED_BEDROCK_VERSIONS.stream().map(MinecraftVersion::versionString).distinct().toList();
             this.bedrockProtocols = GameProtocol.SUPPORTED_BEDROCK_PROTOCOLS;
             this.defaultBedrockProtocol = GameProtocol.DEFAULT_BEDROCK_PROTOCOL;
             this.javaVersions = GameProtocol.getJavaVersions();

@@ -97,12 +97,12 @@ public final class GameProtocol {
         register(Bedrock_v975.CODEC, "26.20", "26.21", "26.22", "26.23");
         register(Bedrock_v1001.CODEC, "26.30", "26.31", "26.32", "26.33");
 
-        registerEducation(Bedrock_v898.EDUCATION_CODEC);
-        registerEducation(Bedrock_v1002.EDUCATION_CODEC);
-
         MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.getLast();
         DEFAULT_BEDROCK_VERSION = latestBedrock.versionString();
         DEFAULT_BEDROCK_PROTOCOL = latestBedrock.protocolVersion();
+
+        registerEducation(Bedrock_v898.EDUCATION_CODEC);
+        registerEducation(Bedrock_v1002.EDUCATION_CODEC, "26.30");
     }
 
     /**
@@ -144,9 +144,35 @@ public final class GameProtocol {
      * both variants.
      *
      * @param codec the education codec to register
+     * @param minecraftVersions all versions the codec supports that are not already represented by
+     *                          the same protocol number
      */
-    private static void registerEducation(BedrockCodec codec) {
+    private static void registerEducation(BedrockCodec codec, String... minecraftVersions) {
         SUPPORTED_EDUCATION_BEDROCK_CODECS.add(CodecProcessor.processCodec(codec));
+
+        int protocolVersion = codec.getProtocolVersion();
+        int protocolIndex = 0;
+        while (protocolIndex < SUPPORTED_BEDROCK_PROTOCOLS.size()
+                && SUPPORTED_BEDROCK_PROTOCOLS.getInt(protocolIndex) < protocolVersion) {
+            protocolIndex++;
+        }
+        if (protocolIndex == SUPPORTED_BEDROCK_PROTOCOLS.size()
+                || SUPPORTED_BEDROCK_PROTOCOLS.getInt(protocolIndex) != protocolVersion) {
+            SUPPORTED_BEDROCK_PROTOCOLS.add(protocolIndex, protocolVersion);
+        }
+
+        for (String minecraftVersion : minecraftVersions) {
+            int versionIndex = 0;
+            while (versionIndex < SUPPORTED_BEDROCK_VERSIONS.size()
+                    && !SUPPORTED_BEDROCK_VERSIONS.get(versionIndex).versionString().equals(minecraftVersion)) {
+                versionIndex++;
+            }
+            while (versionIndex < SUPPORTED_BEDROCK_VERSIONS.size()
+                    && SUPPORTED_BEDROCK_VERSIONS.get(versionIndex).versionString().equals(minecraftVersion)) {
+                versionIndex++;
+            }
+            SUPPORTED_BEDROCK_VERSIONS.add(versionIndex, new MinecraftVersionImpl(minecraftVersion, protocolVersion));
+        }
     }
 
     /**
@@ -228,6 +254,7 @@ public final class GameProtocol {
     public static String getAllSupportedBedrockVersions() {
         return SUPPORTED_BEDROCK_VERSIONS.stream()
             .map(MinecraftVersion::versionString)
+            .distinct()
             .collect(Collectors.joining(", "));
     }
 

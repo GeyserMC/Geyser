@@ -96,8 +96,8 @@ public class PlayerListUtils {
             if (!playerSession.isEducationClient()) {
                 xuid = playerSession.getAuthData().xuid();
             }
-        } else if (uuid.version() == 0) {
-            xuid = Long.toString(uuid.getLeastSignificantBits());
+        } else {
+            xuid = xuidFromFloodgateUuid(uuid);
         }
 
         PlayerListPacket.Entry entry;
@@ -119,6 +119,12 @@ public class PlayerListUtils {
         entry.setTrustedSkin(true);
         entry.setColor(color);
         return entry;
+    }
+
+    static String xuidFromFloodgateUuid(UUID uuid) {
+        // Unlinked Floodgate UUIDs store the XUID in the LSB and have an MSB of zero.
+        // Education UUIDs also report version zero, but use a distinct nonzero MSB sentinel.
+        return uuid.getMostSignificantBits() == 0 ? Long.toString(uuid.getLeastSignificantBits()) : "";
     }
 
     public static void sendSkinUsingPlayerList(GeyserSession session, PlayerListPacket.Entry entry, AvatarEntity entity, boolean persistent) {
