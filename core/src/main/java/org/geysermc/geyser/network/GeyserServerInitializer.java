@@ -33,7 +33,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.protocol.bedrock.BedrockPeer;
 import org.cloudburstmc.protocol.bedrock.BedrockServerSession;
-import org.cloudburstmc.protocol.bedrock.netty.codec.packet.BedrockPacketCodec;
 import org.cloudburstmc.protocol.bedrock.netty.initializer.BedrockServerInitializer;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.session.GeyserSession;
@@ -66,7 +65,10 @@ public class GeyserServerInitializer extends BedrockServerInitializer {
 
             if (!bedrockServerSession.isSubClient()) {
                 Channel channel = bedrockServerSession.getPeer().getChannel();
-                channel.pipeline().addAfter(BedrockPacketCodec.NAME, InvalidPacketHandler.NAME, new InvalidPacketHandler(session));
+                // Added after BedrockPeer, not BedrockPacketCodec to ensure exceptions thrown while dispatching
+                // to the packet handler also get here if no other handler exists
+                // FIXME not ideal for e.g. UpstreamPacketHandler having a couple of its own packet handlers
+                channel.pipeline().addAfter(BedrockPeer.NAME, InvalidPacketHandler.NAME, new InvalidPacketHandler(session));
             }
 
             bedrockServerSession.setPacketHandler(new UpstreamPacketHandler(this.geyser, session));

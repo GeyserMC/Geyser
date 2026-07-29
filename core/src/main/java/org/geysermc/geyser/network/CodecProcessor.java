@@ -95,6 +95,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SimpleEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubChunkRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
 import org.cloudburstmc.protocol.common.util.VarInts;
+import org.geysermc.geyser.network.netty.IllegalPacketException;
 
 /**
  * Processes the Bedrock codec to remove or modify unused or unsafe packets and fields.
@@ -109,12 +110,12 @@ class CodecProcessor {
     static final BedrockPacketSerializer ILLEGAL_SERIALIZER = new BedrockPacketSerializer<>() {
         @Override
         public void serialize(ByteBuf buffer, BedrockCodecHelper helper, BedrockPacket packet) {
-            throw new IllegalArgumentException("Server tried to send unused packet " + packet.getClass().getSimpleName() + "!");
+            throw new IllegalPacketException("Server tried to send unused packet " + packet.getClass().getSimpleName() + "!");
         }
 
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BedrockPacket packet) {
-            throw new IllegalArgumentException("Client tried to send unused packet " + packet.getClass().getSimpleName() + "!");
+            throw new IllegalPacketException("Client tried to send unused packet " + packet.getClass().getSimpleName() + "!");
         }
     };
 
@@ -139,35 +140,35 @@ class CodecProcessor {
     private static final BedrockPacketSerializer<InventoryContentPacket> INVENTORY_CONTENT_SERIALIZER_V407 = new InventoryContentSerializer_v407() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
-            throw new IllegalArgumentException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
+            throw new IllegalPacketException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
         }
     };
 
     private static final BedrockPacketSerializer<InventoryContentPacket> INVENTORY_CONTENT_SERIALIZER_V712 = new InventoryContentSerializer_v712() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
-            throw new IllegalArgumentException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
+            throw new IllegalPacketException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
         }
     };
 
     private static final BedrockPacketSerializer<InventoryContentPacket> INVENTORY_CONTENT_SERIALIZER_V729 = new InventoryContentSerializer_v729() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
-            throw new IllegalArgumentException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
+            throw new IllegalPacketException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
         }
     };
 
     private static final BedrockPacketSerializer<InventoryContentPacket> INVENTORY_CONTENT_SERIALIZER_V748 = new InventoryContentSerializer_v748() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
-            throw new IllegalArgumentException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
+            throw new IllegalPacketException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
         }
     };
 
     private static final BedrockPacketSerializer<InventoryContentPacket> INVENTORY_CONTENT_SERIALIZER_V1001 = new InventoryContentSerializer_v1001() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
-            throw new IllegalArgumentException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
+            throw new IllegalPacketException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
         }
     };
 
@@ -177,35 +178,35 @@ class CodecProcessor {
     private static final BedrockPacketSerializer<InventorySlotPacket> INVENTORY_SLOT_SERIALIZER_V407 = new InventorySlotSerializer_v407() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
-            throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
+            throw new IllegalPacketException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
         }
     };
 
     private static final BedrockPacketSerializer<InventorySlotPacket> INVENTORY_SLOT_SERIALIZER_V712 = new InventorySlotSerializer_v712() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
-            throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
+            throw new IllegalPacketException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
         }
     };
 
     private static final BedrockPacketSerializer<InventorySlotPacket> INVENTORY_SLOT_SERIALIZER_V729 = new InventorySlotSerializer_v729() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
-            throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
+            throw new IllegalPacketException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
         }
     };
 
     private static final BedrockPacketSerializer<InventorySlotPacket> INVENTORY_SLOT_SERIALIZER_V748 = new InventorySlotSerializer_v748() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
-            throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
+            throw new IllegalPacketException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
         }
     };
 
     private static final BedrockPacketSerializer<InventorySlotPacket> INVENTORY_SLOT_SERIALIZER_V975 = new InventorySlotSerializer_v975() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
-            throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
+            throw new IllegalPacketException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
         }
     };
 
@@ -216,14 +217,14 @@ class CodecProcessor {
     private static final BedrockPacketSerializer<MoveEntityAbsolutePacket> MOVE_ENTITY_SERIALIZER_V291 = new MoveEntityAbsoluteSerializer_v291() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MoveEntityAbsolutePacket packet) {
-            throw new IllegalArgumentException("Client cannot send MoveEntityAbsolutePacket in server-auth movement environment!");
+            throw new IllegalPacketException("Client cannot send MoveEntityAbsolutePacket in server-auth movement environment!");
         }
     };
 
     private static final BedrockPacketSerializer<MoveEntityAbsolutePacket> MOVE_ENTITY_SERIALIZER_V975 = new MoveEntityAbsoluteSerializer_v975() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MoveEntityAbsolutePacket packet) {
-            throw new IllegalArgumentException("Client cannot send MoveEntityAbsolutePacket in server-auth movement environment!");
+            throw new IllegalPacketException("Client cannot send MoveEntityAbsolutePacket in server-auth movement environment!");
         }
     };
 
@@ -502,7 +503,7 @@ class CodecProcessor {
                     VarInts.readInt(buffer); // netId
                     break;
                 default:
-                    throw new IllegalArgumentException("Not oneOf<ItemStackNetId, ItemStackRequestId, ItemStackLegacyRequestId>");
+                    throw new IllegalPacketException("Not oneOf<ItemStackNetId, ItemStackRequestId, ItemStackLegacyRequestId>");
             }
         }
         VarInts.readUnsignedInt(buffer); // block runtime id
