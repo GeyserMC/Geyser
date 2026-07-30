@@ -29,6 +29,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.pack.java.contents.JavaPackComposed;
 import org.geysermc.mcprotocollib.protocol.data.game.ResourcePackStatus;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundResourcePackPopPacket;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundResourcePackPushPacket;
@@ -40,7 +41,7 @@ public final class JavaPackStack {
     private final List<JavaPack> stack = new ObjectArrayList<>();
     @Getter
     @Accessors(fluent = true)
-    private JavaPack.Composed composed = JavaPack.Composed.EMPTY;
+    private JavaPackComposed composed = JavaPackComposed.EMPTY;
 
     public void pushPack(ClientboundResourcePackPushPacket packet, Consumer<ResourcePackStatus> statusConsumer) {
         JavaPackManager.getInstance().loadIfAbsent(packet.getId(), packet.getUrl(), packet.getHash(), statusConsumer)
@@ -65,6 +66,6 @@ public final class JavaPackStack {
 
     private void reload() {
         GeyserImpl.getInstance().getLogger().info("Reloading Java resourcepack stack");
-        composed = JavaPack.Composed.composePacks(stack.stream().map(JavaPack::contents));
+        composed = JavaPackComposed.composePacks(stack.stream().map(JavaPack::contents));
     }
 }

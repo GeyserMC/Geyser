@@ -28,23 +28,21 @@ package org.geysermc.geyser.pack.java;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
+import org.geysermc.geyser.pack.java.contents.JavaPackContents;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 
 // com.google.common.hash
 @SuppressWarnings("UnstableApiUsage")
-public record JavaPack(Id id, Contents contents) {
+public record JavaPack(Id id, JavaPackContents contents) {
     private static final HashFunction HASHER = Hashing.sha1();
 
     static Optional<JavaPack> open(Path path, Id id) {
@@ -63,7 +61,7 @@ public record JavaPack(Id id, Contents contents) {
 
             try (FileSystem zip = FileSystems.newFileSystem(path)) {
                 System.out.println("opening and returning");
-                return Optional.of(new JavaPack(id, Contents.read(zip)));
+                return Optional.of(new JavaPack(id, JavaPackContents.read(zip)));
             }
         } catch (IOException exception) {
             GeyserImpl.getInstance().getLogger().error("Failed to load server resourcepack with UUID " + id.uuid + "!", exception);
@@ -75,24 +73,6 @@ public record JavaPack(Id id, Contents contents) {
 
         Path path(Path cacheDirectory) {
             return cacheDirectory.resolve(uuid.toString());
-        }
-    }
-
-    public record Contents(Map<Key, Map<String, String>> languages) {
-        public static final Contents EMPTY = new Contents(Map.of());
-
-        private static Contents read(FileSystem zip) {
-            // FIXME
-            return EMPTY;
-        }
-    }
-
-    public record Composed(Contents contents, Map<String, String> flattenedTranslations) {
-        public static final Composed EMPTY = new Composed(Contents.EMPTY, Map.of());
-
-        public static Composed composePacks(Stream<JavaPack.Contents> packs) {
-            // FIXME
-            return EMPTY;
         }
     }
 }
