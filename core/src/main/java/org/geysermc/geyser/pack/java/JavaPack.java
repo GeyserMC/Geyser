@@ -71,7 +71,12 @@ public record JavaPack(Id id, Contents contents) {
         }
     }
 
-    public record Id(UUID uuid, @Nullable HashCode hash) {}
+    public record Id(UUID uuid, @Nullable HashCode hash) {
+
+        Path path(Path cacheDirectory) {
+            return cacheDirectory.resolve(uuid.toString());
+        }
+    }
 
     public record Contents(Map<Key, Map<String, String>> languages) {
         public static final Contents EMPTY = new Contents(Map.of());

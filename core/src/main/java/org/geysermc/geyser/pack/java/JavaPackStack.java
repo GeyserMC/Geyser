@@ -43,7 +43,7 @@ public final class JavaPackStack {
     private JavaPack.Composed composed = JavaPack.Composed.EMPTY;
 
     public void pushPack(ClientboundResourcePackPushPacket packet, Consumer<ResourcePackStatus> statusConsumer) {
-        JavaPackManager.getInstance().downloadIfAbsent(packet.getId(), packet.getUrl(), packet.getHash(), statusConsumer)
+        JavaPackManager.getInstance().loadIfAbsent(packet.getId(), packet.getUrl(), packet.getHash(), statusConsumer)
             .thenAccept(result -> result.ifPresent(pack -> {
                 synchronized (this) {
                     stack.add(pack);

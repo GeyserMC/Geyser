@@ -67,8 +67,8 @@ public final class JavaPackManager {
     }
 
     // TODO Implement loading from cache
-    public CompletableFuture<Optional<JavaPack>> downloadIfAbsent(UUID uuid, String url, String hash,
-                                                                  Consumer<ResourcePackStatus> statusConsumer) {
+    public CompletableFuture<Optional<JavaPack>> loadIfAbsent(UUID uuid, String url, String hash,
+                                                              Consumer<ResourcePackStatus> statusConsumer) {
         URI uri;
         try {
             uri = URI.create(url);
@@ -86,7 +86,10 @@ public final class JavaPackManager {
         // If it's not a valid SHA1 hash, then use null and don't verify the download (matches vanilla)
         HashCode parsedHash = hash != null && SHA1.matcher(hash).matches() ? HashCode.fromString(hash.toLowerCase(Locale.ROOT)) : null;
         JavaPack.Id id = new JavaPack.Id(uuid, parsedHash);
+        return loadIfAbsent(id, uri, statusConsumer);
+    }
 
+    private CompletableFuture<Optional<JavaPack>> loadIfAbsent(JavaPack.Id id, URI uri, Consumer<ResourcePackStatus> statusConsumer) {
         synchronized (this) {
             CompletableFuture<Optional<JavaPack>> current = loadedPacks.get(id);
             // If current has completed and is NOT present, the previous download failed, so we try again now
@@ -105,23 +108,45 @@ public final class JavaPackManager {
             }
             GeyserImpl.getInstance().getLogger().info("(Re-)downloading server resourcepack");
 
-            current = FancyHttpClient.oneShot(client -> client.downloadFileSafe(uri, cacheDirectory.resolve(uuid.toString()), MAX_PACK_SIZE_BYTES)
-                .thenApplyAsync(result -> {
-                    if (result.isEmpty()) {
-                        statusConsumer.accept(ResourcePackStatus.FAILED_DOWNLOAD);
-                        return Optional.empty();
-                    }
-                    statusConsumer.accept(ResourcePackStatus.DOWNLOADED);
-                    return result.flatMap(path -> {
-                        Optional<JavaPack> opened = JavaPack.open(path, id);
-                        opened.ifPresentOrElse(pack -> statusConsumer.accept(ResourcePackStatus.SUCCESSFULLY_LOADED),
-                            () -> statusConsumer.accept(ResourcePackStatus.FAILED_RELOAD));
-                        return opened;
+            Path packPath = id.path(cacheDirectory);
+            current = tryLoadCached(id, packPath).thenCompose(cached ->  {
+                if (cached.isEmpty()) {
+                    return download(uri, packPath).thenApplyAsync(result -> {
+                        if (result.isEmpty()) {
+                            statusConsumer.accept(ResourcePackStatus.FAILED_DOWNLOAD);
+                            return Optional.empty();
+                        }
+                        statusConsumer.accept(ResourcePackStatus.DOWNLOADED);
+                        return result.flatMap(path -> {
+                            Optional<JavaPack> opened = JavaPack.open(path, id);
+                            opened.ifPresentOrElse(pack -> statusConsumer.accept(ResourcePackStatus.SUCCESSFULLY_LOADED),
+                                () -> statusConsumer.accept(ResourcePackStatus.FAILED_RELOAD));
+                            return opened;
+                        });
                     });
-                }));
+                }
+
+                GeyserImpl.getInstance().getLogger().info("Loaded server pack successfully from cache");
+                statusConsumer.accept(ResourcePackStatus.DOWNLOADED);
+                statusConsumer.accept(ResourcePackStatus.SUCCESSFULLY_LOADED);
+                return CompletableFuture.completedFuture(cached);
+            });
+
             loadedPacks.put(id, current);
             return current;
         }
+    }
+
+    private static CompletableFuture<Optional<JavaPack>> tryLoadCached(JavaPack.Id id, Path path) {
+        // Never try to load a cached pack without a hash
+        if (id.hash() != null && Files.exists(path)) {
+            return CompletableFuture.supplyAsync(() -> JavaPack.open(path, id));
+        }
+        return CompletableFuture.completedFuture(Optional.empty());
+    }
+
+    private static CompletableFuture<Optional<Path>> download(URI uri, Path path) {
+        return FancyHttpClient.oneShot(client -> client.downloadFileSafe(uri, path, MAX_PACK_SIZE_BYTES));
     }
 
     public static JavaPackManager getInstance() {
