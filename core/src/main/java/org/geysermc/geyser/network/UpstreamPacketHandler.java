@@ -237,7 +237,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().gameplay().forceResourcePacks() ||
             resourcePackLoadEvent.isIntegratedPackActive());
-        resourcePacksInfo.setWorldTemplateId(UUID.randomUUID());
+        resourcePacksInfo.setWorldTemplateId(new UUID(0, 0));
         resourcePacksInfo.setWorldTemplateVersion("");
 
         session.sendUpstreamPacket(resourcePacksInfo);
