@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.translator.protocol.java;
 
+import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundResourcePackPushPacket;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -38,6 +39,9 @@ public class JavaClientboundResourcePackPushTranslator extends PacketTranslator<
     public void translate(GeyserSession session, ClientboundResourcePackPushPacket packet) {
         // For now, we'll always accept all packs
         session.javaPackStack().pushPack(packet,
-            status -> session.sendDownstreamPacket(new ServerboundResourcePackPacket(packet.getId(), status)));
+            status -> {
+                GeyserImpl.getInstance().getLogger().info("Sending resourcepack status update " + status);
+                session.sendDownstreamPacket(new ServerboundResourcePackPacket(packet.getId(), status));
+            });
     }
 }

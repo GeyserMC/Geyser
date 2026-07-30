@@ -30,6 +30,7 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import net.kyori.adventure.key.Key;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.geysermc.geyser.GeyserImpl;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -50,16 +51,22 @@ public record JavaPack(Id id, Contents contents) {
         // TODO Logs
         try {
             if (id.hash != null) {
+                System.out.println("trying to hash downloaded pack");
                 HashCode fileHash = HASHER.hashBytes(Files.readAllBytes(path));
+                System.out.println("computed hash");
                 if (!fileHash.equals(id.hash)) {
+                    GeyserImpl.getInstance().getLogger().error("Failed to load server resourcepack with UUID " + id.uuid + " because the hash did not match " +
+                        "(ours: \"" + fileHash + "\", theirs: \"" + id.hash + "\")");
                     return Optional.empty();
                 }
             }
 
             try (FileSystem zip = FileSystems.newFileSystem(path)) {
+                System.out.println("opening and returning");
                 return Optional.of(new JavaPack(id, Contents.read(zip)));
             }
         } catch (IOException exception) {
+            GeyserImpl.getInstance().getLogger().error("Failed to load server resourcepack with UUID " + id.uuid + "!", exception);
             return Optional.empty();
         }
     }

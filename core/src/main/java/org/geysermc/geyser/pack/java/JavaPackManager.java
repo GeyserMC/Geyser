@@ -31,7 +31,10 @@ import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.util.FancyHttpClient;
 import org.geysermc.mcprotocollib.protocol.data.game.ResourcePackStatus;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
@@ -56,6 +59,11 @@ public final class JavaPackManager {
 
     private JavaPackManager() {
         cacheDirectory = GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("cache/server_packs");
+        try {
+            Files.createDirectories(cacheDirectory);
+        } catch (IOException exception) {
+            throw new UncheckedIOException(exception);
+        }
     }
 
     // TODO Implement loading from cache
@@ -69,6 +77,7 @@ public final class JavaPackManager {
             }
         } catch (IllegalArgumentException exception) {
             statusConsumer.accept(ResourcePackStatus.INVALID_URL);
+            GeyserImpl.getInstance().getLogger().error("Server requested the download of a resourcepack with an invalid URL", exception);
             return CompletableFuture.completedFuture(Optional.empty());
         }
 
@@ -83,6 +92,7 @@ public final class JavaPackManager {
             // If current has completed and is NOT present, the previous download failed, so we try again now
             if (current != null && (!current.isDone() || current.resultNow().isPresent())) {
                 // These futures should never throw as client.downloadFileSafe has an exception handler
+                GeyserImpl.getInstance().getLogger().info("Server resourcepack already loading, returning existing future");
                 return current.whenComplete((pack, ignored) -> {
                     if (pack.isPresent()) {
                         statusConsumer.accept(ResourcePackStatus.DOWNLOADED);
@@ -93,9 +103,14 @@ public final class JavaPackManager {
                     }
                 });
             }
+            GeyserImpl.getInstance().getLogger().info("(Re-)downloading server resourcepack");
 
             current = FancyHttpClient.oneShot(client -> client.downloadFileSafe(uri, cacheDirectory.resolve(uuid.toString()), MAX_PACK_SIZE_BYTES)
                 .thenApplyAsync(result -> {
+                    if (result.isEmpty()) {
+                        statusConsumer.accept(ResourcePackStatus.FAILED_DOWNLOAD);
+                        return Optional.empty();
+                    }
                     statusConsumer.accept(ResourcePackStatus.DOWNLOADED);
                     return result.flatMap(path -> {
                         Optional<JavaPack> opened = JavaPack.open(path, id);

@@ -228,7 +228,10 @@ public final class FancyHttpClient implements AutoCloseable {
                 }
                 return Optional.of(response.body());
             })
-            .exceptionally(ignored -> Optional.empty());
+            .exceptionally(throwable -> {
+                GeyserImpl.getInstance().getLogger().error("Failed to download file \"" + path + "\" from URL \"" + uri + "\" safely", throwable);
+                return Optional.empty();
+            });
     }
 
     /**
