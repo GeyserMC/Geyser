@@ -117,20 +117,20 @@ public final class FancyHttpClient implements AutoCloseable {
         return fetcher.apply(client).whenComplete(($, $$) -> client.close());
     }
 
-    private <T> CompletableFuture<HttpResponse<T>> fetch(String uri, UnaryOperator<HttpRequest.Builder> builder, HttpResponse.BodyHandler<T> bodyHandler) {
+    private <T> CompletableFuture<HttpResponse<T>> fetch(URI uri, UnaryOperator<HttpRequest.Builder> builder, HttpResponse.BodyHandler<T> bodyHandler) {
+        return client.sendAsync(builder.apply(HttpRequest.newBuilder(uri)
+            .header("User-Agent", userAgent)
+            .timeout(Duration.ofSeconds(10L))).build(), bodyHandler);
+    }
+
+    private <T> CompletableFuture<T> fetchOrThrow(String uri, UnaryOperator<HttpRequest.Builder> builder, HttpResponse.BodyHandler<T> bodyHandler) {
         URI parsedUri;
         try {
             parsedUri = URI.create(uri);
         } catch (RuntimeException exception) {
             return CompletableFuture.failedFuture(exception);
         }
-        return client.sendAsync(builder.apply(HttpRequest.newBuilder(parsedUri)
-            .header("User-Agent", userAgent)
-            .timeout(Duration.ofSeconds(10L))).build(), bodyHandler);
-    }
-
-    private <T> CompletableFuture<T> fetchOrThrow(String uri, UnaryOperator<HttpRequest.Builder> builder, HttpResponse.BodyHandler<T> bodyHandler) {
-        return fetch(uri, builder, bodyHandler)
+        return fetch(parsedUri, builder, bodyHandler)
             .thenApply(response -> {
                 if (isSuccess(response.statusCode())) {
                     return response.body();
@@ -209,8 +209,26 @@ public final class FancyHttpClient implements AutoCloseable {
      * @param path location to save on disk as a path
      * @return a {@link CompletableFuture} completing when the file is saved
      */
-    public CompletableFuture<?> downloadFile(String reqURL, Path path) {
+    public CompletableFuture<Path> downloadFile(String reqURL, Path path) {
         return fetchOrThrow(reqURL, HttpRequest.Builder::GET, HttpResponse.BodyHandlers.ofFile(path));
+    }
+
+    public CompletableFuture<Optional<Path>> downloadFileSafe(URI uri, Path path, int maxSize) {
+        HttpResponse.BodyHandler<Path> downloader = HttpResponse.BodyHandlers.ofFile(path);
+        HttpResponse.BodyHandler<Path> handler = response -> {
+            if (response.headers().firstValueAsLong("content-length").stream().anyMatch(length -> length < maxSize)) {
+                return downloader.apply(response);
+            }
+            throw new UncheckedIOException(new IOException("content-length header was missing or exceeded maxSize"));
+        };
+        return fetch(uri, HttpRequest.Builder::GET, handler)
+            .thenApply(response -> {
+                if (!isSuccess(response.statusCode())) {
+                    return Optional.<Path>empty();
+                }
+                return Optional.of(response.body());
+            })
+            .exceptionally(ignored -> Optional.empty());
     }
 
     /**
@@ -225,7 +243,7 @@ public final class FancyHttpClient implements AutoCloseable {
     public CompletableFuture<Path> downloadRemotePack(String url, boolean force) {
         GeyserLogger logger = GeyserImpl.getInstance().getLogger();
 
-        return fetch(url, HttpRequest.Builder::HEAD, HttpResponse.BodyHandlers.discarding())
+        return fetch(URI.create(url), HttpRequest.Builder::HEAD, HttpResponse.BodyHandlers.discarding())
             .thenComposeAsync(headerResponse -> {
                 if (!isSuccess(headerResponse.statusCode())) {
                     throw new IllegalStateException(String.format("Invalid response code from remote pack at URL: %s (code: %d)", url, headerResponse.statusCode()));

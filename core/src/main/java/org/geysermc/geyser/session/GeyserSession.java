@@ -160,6 +160,7 @@ import org.geysermc.geyser.level.gamerule.GameRuleHandler;
 import org.geysermc.geyser.level.physics.CollisionManager;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.network.netty.LocalSession;
+import org.geysermc.geyser.pack.java.JavaPackStack;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.registry.type.BlockMappings;
 import org.geysermc.geyser.registry.type.ItemMappings;
@@ -313,6 +314,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final TagCache tagCache;
     private final WaypointCache waypointCache;
     private final WorldCache worldCache;
+
+    @Accessors(fluent = true)
+    private final JavaPackStack javaPackStack = new JavaPackStack();
 
     /**
      * Handles block breaking and break animation progress caching.
