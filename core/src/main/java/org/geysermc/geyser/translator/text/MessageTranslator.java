@@ -78,6 +78,7 @@ public class MessageTranslator {
     // Reset character
     private static final String RESET = BASE + "r";
     private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
+    private static final int MAX_TRANSLATION_AMPLIFICATION = 4_096;
 
     private static final String ERROR_MESSAGE = "§cReport to Geyser";
 
@@ -175,6 +176,10 @@ public class MessageTranslator {
     private static String convertMessage(Component message, String locale, boolean addLeadingResetFormat) {
         // Converting messages is quite a hot path, so the code is a bit less optimized for reading and more optimized for performance.
         try {
+            if (translationAmplification(message) > MAX_TRANSLATION_AMPLIFICATION) {
+                return "";
+            }
+
             // Translate any components that require it
             message = RENDERER.render(message, locale);
 
