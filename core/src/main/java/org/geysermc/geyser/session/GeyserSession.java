@@ -316,7 +316,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final WorldCache worldCache;
 
     @Accessors(fluent = true)
-    private final JavaPackStack javaPackStack = new JavaPackStack();
+    private final JavaPackStack javaPackStack;
 
     /**
      * Handles block breaking and break animation progress caching.
@@ -875,6 +875,9 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         this.tagCache = new TagCache(this);
         this.waypointCache = new WaypointCache(this);
         this.worldCache = new WorldCache(this);
+
+        this.javaPackStack = new JavaPackStack(this);
+
         this.cameraData = new GeyserCameraData(this);
         this.entityData = new GeyserEntityData(this);
 

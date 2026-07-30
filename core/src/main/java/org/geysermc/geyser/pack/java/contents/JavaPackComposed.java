@@ -25,14 +25,29 @@
 
 package org.geysermc.geyser.pack.java.contents;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import org.geysermc.geyser.pack.java.JavaPack;
+
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 public record JavaPackComposed(Map<String, String> flattenedTranslations) {
     public static final JavaPackComposed EMPTY = new JavaPackComposed(Map.of());
 
-    public static JavaPackComposed composePacks(Stream<JavaPackContents> packs) {
-        // FIXME
-        return EMPTY;
+    private static void appendTranslations(List<JavaPack> stack, Map<String, String> translations, String locale) {
+        stack.forEach(pack -> pack.contents().languages().forEach((key, language) -> {
+            if (key.value().equals(locale)) {
+                translations.putAll(language);
+            }
+        }));
+    }
+
+    public static JavaPackComposed composePacks(List<JavaPack> stack, String locale) {
+        Map<String, String> translations = new Object2ObjectOpenHashMap<>();
+        // Vanilla will always load en_us as a base
+        appendTranslations(stack, translations, "en_us");
+        appendTranslations(stack, translations, locale);
+        return new JavaPackComposed(Collections.unmodifiableMap(translations));
     }
 }
