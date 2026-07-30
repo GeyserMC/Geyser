@@ -284,6 +284,39 @@ public class MessageTranslator {
         }
     }
 
+    private static long translationAmplification(Component component) {
+        long amplification = 1;
+        if (component instanceof TranslatableComponent translatable) {
+            String translated = translatable.fallback() != null ? translatable.fallback() : translatable.key();
+            Matcher matcher = LOCALIZATION_PATTERN.matcher(translated);
+            List<TranslationArgument> args = translatable.arguments();
+            int argPosition = 0;
+            int[] occurrences = new int[args.size()];
+            while (matcher.find()) {
+                try {
+                    String argIdx = matcher.group(1);
+                    int idx = argIdx != null ? Integer.parseInt(argIdx) - 1 : argPosition++;
+                    if (idx >= 0 && idx < args.size()) {
+                        occurrences[idx]++;
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+
+            for (int i = 0; i < occurrences.length; i++) {
+                if (occurrences[i] > 0) {
+                    amplification = Math.max(amplification, Math.min(MAX_TRANSLATION_AMPLIFICATION + 1L,
+                            occurrences[i] * translationAmplification(args.get(i).asComponent())));
+                }
+            }
+        }
+
+        for (Component child : component.children()) {
+            amplification = Math.max(amplification, translationAmplification(child));
+        }
+        return amplification;
+    }
+
     public static String convertJsonMessage(String message, String locale) {
         return convertMessage(GSON_SERIALIZER.deserialize(message), locale);
     }
