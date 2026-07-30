@@ -141,6 +141,29 @@ public class MessageTranslatorTest {
     }
 
     @Test
+    public void rejectExcessiveTranslationExpansion() {
+        Component message = Component.text("x");
+        for (int i = 0; i < 5; i++) {
+            message = Component.translatable("%1$s".repeat(10), message);
+        }
+        Assertions.assertEquals("", MessageTranslator.convertMessage(message, "en_US"));
+
+        message = Component.text("x");
+        for (int i = 0; i < 5; i++) {
+            message = Component.translatable("unknown", "%1$s".repeat(10), message);
+        }
+        Assertions.assertEquals("", MessageTranslator.convertMessage(message, "en_US"));
+    }
+
+    @Test
+    public void allowDetailedTranslation() {
+        String name = "x".repeat(70_000);
+        Component message = Component.translatable("%1$s", Component.text(name));
+
+        Assertions.assertEquals(name, MessageTranslator.convertMessageRaw(message, "en_US"));
+    }
+
+    @Test
     public void convertIncomingToPlainText() {
         Assertions.assertEquals("Many colors here", MessageTranslator.convertToPlainTextLenient("{\"extra\":[{\"color\":\"red\",\"text\":\"M\"},{\"color\":\"gold\",\"text\":\"a\"},{\"color\":\"yellow\",\"text\":\"n\"},{\"color\":\"green\",\"text\":\"y \"},{\"color\":\"aqua\",\"text\":\"c\"},{\"color\":\"dark_purple\",\"text\":\"o\"},{\"color\":\"red\",\"text\":\"l\"},{\"color\":\"gold\",\"text\":\"o\"},{\"color\":\"yellow\",\"text\":\"r\"},{\"color\":\"green\",\"text\":\"s \"},{\"color\":\"aqua\",\"text\":\"h\"},{\"color\":\"dark_purple\",\"text\":\"e\"},{\"color\":\"red\",\"text\":\"r\"},{\"color\":\"gold\",\"text\":\"e\"}],\"text\":\"\"}", "en_US"), "JSON message is not handled properly");
         Assertions.assertEquals("Many colors here", MessageTranslator.convertIncomingToPlainText("§cM§6a§en§ay §bc§5o§cl§6o§er§as §bh§5e§cr§6e"), "Legacy formatted message is not handled properly (Colors)");
