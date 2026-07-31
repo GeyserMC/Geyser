@@ -30,6 +30,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import lombok.RequiredArgsConstructor;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
+import org.geysermc.geyser.network.netty.IllegalPacketException;
 import org.geysermc.geyser.session.GeyserSession;
 
 import java.util.stream.Stream;
@@ -49,7 +50,7 @@ public class InvalidPacketHandler extends ChannelInboundHandlerAdapter {
 
         GeyserLogger logger = GeyserImpl.getInstance().getLogger();
 
-        if (!(rootCause instanceof IllegalArgumentException)) {
+        if (!(rootCause instanceof IllegalPacketException)) {
             // Kick users that cause exceptions
             logger.error("Exception caught in session of " + session.bedrockUsername(), cause);
             session.disconnect("An internal error occurred!");
