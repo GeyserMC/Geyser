@@ -10,7 +10,7 @@ dependencies {
 
 tasks {
     jar {
-        manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.spigot.SpigotMain"
+        manifest.attributes["Main-Class"] = "org.geysermc.geyser.platform.spigot.GeyserSpigotMain"
     }
 
     shadowJar {

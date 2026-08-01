@@ -38,7 +38,7 @@ provided(libs.viaproxy)
 
 tasks {
     shadowJar {
-        archiveBaseName.set("Geyser-ViaProxy")
+        archiveBaseName.set("Geyser-ViaProxy-Base")
 
         dependencies {
             exclude(dependency("com.google.*:.*"))
