@@ -135,11 +135,12 @@ public class CollisionManager {
         // - In Bedrock Edition, the height becomes 1.65 blocks, allowing movement through spaces as small as 1.75 (2 - 1⁄4) blocks high.
         // - In Java Edition, the height becomes 1.5 blocks.
         // Other instances have the player's bounding box become as small as 0.6 or 0.2.
-        double playerHeight = session.getPlayerEntity().getBoundingBoxHeight();
+        double playerHeight = Double.parseDouble(Float.toString(session.getPlayerEntity().getBoundingBoxHeight()));
+        double playerWidth = Double.parseDouble(Float.toString(session.getPlayerEntity().getBoundingBoxWidth()));
         playerBoundingBox.setMiddleY(playerBoundingBox.getMiddleY() - (playerBoundingBox.getSizeY() / 2.0) + (playerHeight / 2.0));
         playerBoundingBox.setSizeY(playerHeight);
-        playerBoundingBox.setSizeX(session.getPlayerEntity().getBoundingBoxWidth());
-        playerBoundingBox.setSizeZ(session.getPlayerEntity().getBoundingBoxWidth());
+        playerBoundingBox.setSizeX(playerWidth);
+        playerBoundingBox.setSizeZ(playerWidth);
 
         // We also need to account for bounding box scaling.
         playerBoundingBox.scale(scale, scale, scale);
@@ -217,11 +218,14 @@ public class CollisionManager {
         }
 
         position = playerBoundingBox.getBottomCenter();
+        System.out.println("Bounding Box position: " + position);
 
         if (!newOnGround) {
             // Trim the position to prevent rounding errors that make Java think we are clipping into a block
             position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
         }
+
+        System.out.println("Final position: " + position);
 
         return new CollisionResult(position, TriState.byBoolean(onGround));
     }
