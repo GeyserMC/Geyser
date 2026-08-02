@@ -249,6 +249,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
             // nametag = null means reset, so reset it back to username
             nametag = username;
         }
+        nametag = educationWhiteNametag(nametag);
         super.setNametag(nametag, applyTeamStyling);
     }
 

@@ -48,6 +48,7 @@ import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.skin.SkinProvider;
+import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.item.ItemTranslator;
 import org.geysermc.mcprotocollib.auth.GameProfile;
 import org.geysermc.mcprotocollib.auth.texture.Texture;
@@ -105,11 +106,26 @@ public abstract class AvatarEntity extends LivingEntity {
         metadata.put(EntityDataTypes.MARK_VARIANT, 0xff);
     }
 
+    /**
+     * Education clients render unstyled nametag text orange instead of white.
+     * Asserts white at the start and after every reset code: any team or
+     * plugin color code comes later in the string and overrides it, so only
+     * text that no color code governs is affected. Non education sessions get
+     * the text back unchanged, as do null and empty values (the empty string
+     * means a hidden nametag and visibility logic keys on emptiness).
+     */
+    protected String educationWhiteNametag(String text) {
+        if (text == null || text.isEmpty() || !session.isEducationClient()) {
+            return text;
+        }
+        return ChatColor.WHITE + text.replace(ChatColor.RESET, ChatColor.RESET + ChatColor.WHITE);
+    }
+
     @Override
     public void spawnEntity() {
         AddPlayerPacket addPlayerPacket = new AddPlayerPacket();
         addPlayerPacket.setUuid(uuid);
-        addPlayerPacket.setUsername(username);
+        addPlayerPacket.setUsername(educationWhiteNametag(username));
         addPlayerPacket.setRuntimeEntityId(geyserId);
         addPlayerPacket.setUniqueEntityId(geyserId);
         addPlayerPacket.setPosition(position()); // No offset sent here, apparently?
