@@ -218,14 +218,11 @@ public class CollisionManager {
         }
 
         position = playerBoundingBox.getBottomCenter();
-        System.out.println("Bounding Box position: " + position);
 
         if (!newOnGround) {
             // Trim the position to prevent rounding errors that make Java think we are clipping into a block
             position = Vector3d.from(position.getX(), Double.parseDouble(DECIMAL_FORMAT.format(position.getY())), position.getZ());
         }
-
-        System.out.println("Final position: " + position);
 
         return new CollisionResult(position, TriState.byBoolean(onGround));
     }
