@@ -141,8 +141,10 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
     }
 
     public void sendPlayer() {
-        if (session.getEntityCache().getPlayerEntity(uuid) == null)
+        if (session.getEntityCache().getPlayerEntity(uuid) == null) {
+            GeyserImpl.getInstance().getLogger().warning("Attempted to spawn player, but player could not be found in entity cache!");
             return;
+        }
 
         session.getEntityCache().spawnEntity(this);
     }

@@ -162,7 +162,14 @@ class CodecProcessor {
         }
     };
 
-    private static final BedrockPacketSerializer<MovePlayerPacket> MOVE_PLAYER_SERIALIZER = new MovePlayerSerializer_v2168() {
+    private static final BedrockPacketSerializer<MovePlayerPacket> MOVE_PLAYER_SERIALIZER_V419 = new MovePlayerSerializer_v419() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MovePlayerPacket packet) {
+            throw new IllegalPacketException("Client cannot send MovePlayerPacket in server-auth movement environment!");
+        }
+    };
+
+    private static final BedrockPacketSerializer<MovePlayerPacket> MOVE_PLAYER_SERIALIZER_V2168 = new MovePlayerSerializer_v2168() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MovePlayerPacket packet) {
             throw new IllegalPacketException("Client cannot send MovePlayerPacket in server-auth movement environment!");
@@ -225,7 +232,13 @@ class CodecProcessor {
     /**
      * Serializer that does nothing when trying to deserialize PlayerSkinPacket since it is not used from the client.
      */
-    private static final BedrockPacketSerializer<PlayerSkinPacket> PLAYER_SKIN_SERIALIZER = new PlayerSkinSerializer_v2168() {
+    private static final BedrockPacketSerializer<PlayerSkinPacket> PLAYER_SKIN_SERIALIZER_V390 = new PlayerSkinSerializer_v390() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, PlayerSkinPacket packet) {
+        }
+    };
+
+    private static final BedrockPacketSerializer<PlayerSkinPacket> PLAYER_SKIN_SERIALIZER_V2168 = new PlayerSkinSerializer_v2168() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, PlayerSkinPacket packet) {
         }
@@ -318,11 +331,8 @@ class CodecProcessor {
             .updateSerializer(SimpleEventPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(EmoteListPacket.class, IGNORED_SERIALIZER)
-            // Illegal when serverbound due to Geyser specific setup
-            .updateSerializer(MovePlayerPacket.class, MOVE_PLAYER_SERIALIZER)
             // Ignored only when serverbound
             .updateSerializer(PlayerHotbarPacket.class, PLAYER_HOTBAR_SERIALIZER)
-            .updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER)
             .updateSerializer(SetEntityDataPacket.class, SET_ENTITY_DATA_SERIALIZER)
             .updateSerializer(SetEntityMotionPacket.class, SET_ENTITY_MOTION_SERIALIZER)
             .updateSerializer(SetEntityLinkPacket.class, SET_ENTITY_LINK_SERIALIZER);
@@ -355,6 +365,15 @@ class CodecProcessor {
             codecBuilder.updateSerializer(MobArmorEquipmentPacket.class, MOB_ARMOR_EQUIPMENT_SERIALIZER_V1001);
             codecBuilder.updateSerializer(InventoryContentPacket.class, INVENTORY_CONTENT_SERIALIZER_V1001);
             codecBuilder.updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER_V1001);
+        }
+
+        if (codec.getProtocolVersion() < 2168) { // 26.40
+            // Illegal when serverbound due to Geyser specific setup
+            codecBuilder.updateSerializer(MovePlayerPacket.class, MOVE_PLAYER_SERIALIZER_V419);
+            codecBuilder.updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER_V390);
+        } else {
+            codecBuilder.updateSerializer(MovePlayerPacket.class, MOVE_PLAYER_SERIALIZER_V2168);
+            codecBuilder.updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER_V2168);
         }
 
         return codecBuilder.build();
