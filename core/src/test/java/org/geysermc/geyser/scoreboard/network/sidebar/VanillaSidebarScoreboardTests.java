@@ -190,7 +190,7 @@ public class VanillaSidebarScoreboardTests {
             assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
-                packet.setInfos(List.of(new ScoreInfo(1, "0", 1, "hi")));
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 0)));
                 return packet;
             });
             assertNextPacket(context, () -> {
@@ -251,7 +251,7 @@ public class VanillaSidebarScoreboardTests {
             assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
-                packet.setInfos(List.of(new ScoreInfo(1, "0", 2, "hi")));
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 0)));
                 return packet;
             });
             assertNextPacket(context, () -> {

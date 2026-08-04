@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.protocol.PacketTranslator;
@@ -49,7 +50,9 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         // Clear the player list, as on Java the player list is cleared after transitioning from config to play phase
         List<PlayerListPacket.Entry> entries = new ArrayList<>();
         session.getEntityCache().forEachPlayerEntity(otherPlayer -> {
-            entries.add(new PlayerListPacket.Entry(otherPlayer.getTabListUuid()));
+            PlayerListPacket.Entry entry = new PlayerListPacket.Entry(otherPlayer.getTabListUuid());
+            entry.setAction(PlayerListPacket.Action.REMOVE);
+            entries.add(entry);
         });
         if (!entries.isEmpty()) {
             PlayerListUtils.batchSendPlayerList(session, entries, PlayerListPacket.Action.REMOVE);
@@ -60,7 +63,11 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         // (Also add it here so recipes get cleared on configuration - 1.21.3)
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
-        craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
+        if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
+            craftingDataPacket.getMultiData().addAll(CARTOGRAPHY_RECIPES);
+        } else {
+            craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
+        }
         craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
         if (session.isSentSpawnPacket()) {
             session.getUpstream().sendPacket(craftingDataPacket);

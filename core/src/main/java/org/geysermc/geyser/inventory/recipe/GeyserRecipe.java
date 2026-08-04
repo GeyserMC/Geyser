@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * A more compact version of {@link org.geysermc.mcprotocollib.protocol.data.game.recipe.display.RecipeDisplay}.
  */
-public interface GeyserRecipe {
+public interface GeyserRecipe<T extends RecipeData> {
     /**
      * Whether the recipe is flexible or not in which items can be placed where.
      */
@@ -42,5 +42,5 @@ public interface GeyserRecipe {
 
     SlotDisplay result();
 
-    List<RecipeData> asRecipeData(GeyserSession session);
+    List<T> asRecipeData(GeyserSession session);
 }
