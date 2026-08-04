@@ -90,7 +90,8 @@ public final class SidebarDisplaySlot extends DisplaySlot {
         // In newDisplayScores we removed the items that were already present from displayScoresCopy,
         // meaning that the items that remain are items that are no longer displayed.
         for (var score : displayScoresCopy) {
-            removeScores.add(score.cachedInfo());
+            ScoreInfo cachedInfo = score.cachedInfo();
+            removeScores.add(new ScoreInfo(cachedInfo.getScoreboardId(), cachedInfo.getObjectiveId(), 0));
         }
 
         // The newDisplayScores have to be copied over to displayScoresCopy for the next render.
