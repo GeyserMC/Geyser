@@ -36,6 +36,7 @@ import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
 import org.geysermc.geyser.event.type.GeyserDefineResourcePacksEventImpl;
+import org.geysermc.geyser.pack.BiomeResourcePackManager;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.GeyserResourcePackManifest;
 import org.geysermc.geyser.pack.ResourcePackHolder;
@@ -118,6 +119,11 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
         Path skullResourcePack = SkullResourcePackManager.createResourcePack();
         if (skullResourcePack != null) {
             resourcePacks.add(skullResourcePack);
+        }
+
+        Path biomeVisualsPack = BiomeResourcePackManager.createResourcePack();
+        if (biomeVisualsPack != null) {
+            resourcePacks.add(biomeVisualsPack);
         }
 
         //noinspection deprecation - we know
