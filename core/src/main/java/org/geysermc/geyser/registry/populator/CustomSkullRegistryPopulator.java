@@ -250,6 +250,14 @@ public class CustomSkullRegistryPopulator {
     }
 
     private static void tryMigrateLegacyConfigToMappingsFile(GeyserCustomSkullConfiguration configuration, File legacyPath) {
+        if (configuration.isEmpty()) {
+            GeyserImpl.getInstance().getLogger().info("Not migrating legacy custom-skulls.yml file because it was empty");
+            if (!legacyPath.delete()) {
+                GeyserImpl.getInstance().getLogger().error("Failed to delete legacy custom-skulls.yml file!");
+            }
+            return;
+        }
+
         JsonObject mappingsFile = new JsonObject();
         mappingsFile.addProperty("format_version", 1);
         JsonObject skulls = new JsonObject();

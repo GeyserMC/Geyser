@@ -58,6 +58,10 @@ public class GeyserCustomSkullConfiguration {
         return Objects.requireNonNullElse(skinHashes, Collections.emptyList());
     }
 
+    public boolean isEmpty() {
+        return getPlayerUsernames().isEmpty() && getPlayerUUIDs().isEmpty() && getPlayerProfiles().isEmpty() && getPlayerSkinHashes().isEmpty();
+    }
+
     @Override
     public String toString() {
         return "GeyserCustomSkullConfiguration{" +
