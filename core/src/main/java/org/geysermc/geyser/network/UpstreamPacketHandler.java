@@ -59,6 +59,7 @@ import org.geysermc.geyser.api.pack.PackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.api.pack.option.ResourcePackOption;
+import org.geysermc.geyser.debug.SessionDebugOption;
 import org.geysermc.geyser.event.type.SessionLoadResourcePacksEventImpl;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.ResourcePackHolder;
@@ -229,14 +230,23 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
             // Can happen if an error occurs in the resource pack event; that'll disconnect the player
             return PacketSignal.HANDLED;
         }
+
+        if (session.getDebugOptions().contains(SessionDebugOption.FORCE_DISABLE_PACKS)) {
+            this.resourcePackLoadEvent.unregisterAll();
+        }
+
         session.integratedPackActive(resourcePackLoadEvent.isIntegratedPackActive());
 
         ResourcePacksInfoPacket resourcePacksInfo = new ResourcePacksInfoPacket();
         resourcePacksInfo.getResourcePackInfos().addAll(this.resourcePackLoadEvent.infoPacketEntries());
-        resourcePacksInfo.setVibrantVisualsForceDisabled(!session.isAllowVibrantVisuals());
+        if (!session.getDebugOptions().contains(SessionDebugOption.FORCE_VIBRANT_VISUALS)) {
+            resourcePacksInfo.setVibrantVisualsForceDisabled(!session.isAllowVibrantVisuals());
+        }
 
-        resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().gameplay().forceResourcePacks() ||
-            resourcePackLoadEvent.isIntegratedPackActive());
+        if (!session.getDebugOptions().contains(SessionDebugOption.FORCE_OPTIONAL_PACKS)) {
+            resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().gameplay().forceResourcePacks() ||
+                resourcePackLoadEvent.isIntegratedPackActive());
+        }
         resourcePacksInfo.setWorldTemplateId(UUID.randomUUID());
         resourcePacksInfo.setWorldTemplateVersion("*");
 

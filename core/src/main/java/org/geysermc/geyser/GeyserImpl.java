@@ -75,6 +75,7 @@ import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
 import org.geysermc.geyser.configuration.GeyserConfig;
 import org.geysermc.geyser.configuration.GeyserPluginConfig;
+import org.geysermc.geyser.debug.GeyserDebugSessionMap;
 import org.geysermc.geyser.entity.VanillaEntities;
 import org.geysermc.geyser.erosion.UnixSocketClientListener;
 import org.geysermc.geyser.event.GeyserEventBus;
@@ -160,6 +161,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     private static final Pattern IP_REGEX = Pattern.compile("\\b\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\b");
 
     private final SessionManager sessionManager = new SessionManager();
+    private final GeyserDebugSessionMap debugSessionMap = new GeyserDebugSessionMap();
 
     private FloodgateCipher cipher;
     private @Nullable FloodgateSkinUploader skinUploader;
