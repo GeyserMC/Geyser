@@ -95,18 +95,6 @@ public class NethernetManagerImpl implements NethernetManager {
     }
 
     @Override
-    public boolean isLegacySignalingAlive() {
-        NetherNetServer s = server;
-        return s != null && s.isLegacySignalingAlive();
-    }
-
-    @Override
-    public boolean isRpcSignalingAlive() {
-        NetherNetServer s = server;
-        return s != null && s.isRpcSignalingAlive();
-    }
-
-    @Override
     public boolean restartSignaling() {
         synchronized (lock) {
             if (server == null) {

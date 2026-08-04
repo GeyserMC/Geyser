@@ -69,7 +69,7 @@ public class PlayFabTokenManager {
     /**
      * The customId and deviceId come persisted from connection-id.yml: the pmid
      * is bound to the anonymous PlayFab account behind the customId, so reusing
-     * the same identity keeps the 26.30 and newer connection ID stable across
+     * the same identity keeps the connection ID clients type stable across
      * restarts.
      */
     public PlayFabTokenManager(GeyserLogger logger, String customId, String deviceId) {

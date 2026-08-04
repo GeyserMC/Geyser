@@ -721,7 +721,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
                     "# everything, including the account identity below.\n" +
                     "connection-id: \"" + connectionId + "\"\n" +
                     "# Internal PlayFab account identity for signaling, storage only, do not\n" +
-                    "# touch. The pmid half of the 26.30 and newer connection ID is bound to\n" +
+                    "# touch. The pmid half of the connection ID clients type is bound to\n" +
                     "# this account; changing or removing these resets that ID.\n" +
                     "playfab-custom-id: \"" + customId + "\"\n" +
                     "playfab-device-id: \"" + deviceId + "\"\n";

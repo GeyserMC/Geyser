@@ -28,10 +28,8 @@ package org.geysermc.geyser.network.nethernet;
 import dev.kastle.netty.channel.nethernet.NetherNetAnswerDecorator;
 import dev.kastle.netty.channel.nethernet.NetherNetChannelFactory;
 import dev.kastle.netty.channel.nethernet.config.NetherChannelOption;
-import dev.kastle.netty.channel.nethernet.signaling.AbstractNetherNetXboxSignaling;
 import dev.kastle.netty.channel.nethernet.signaling.NetherNetHttpSignaling;
 import dev.kastle.netty.channel.nethernet.signaling.NetherNetXboxRpcSignaling;
-import dev.kastle.netty.channel.nethernet.signaling.NetherNetXboxSignaling;
 import dev.kastle.webrtc.PeerConnectionFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -47,7 +45,6 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 
-import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -64,9 +61,11 @@ import java.util.function.Supplier;
  * using a connection ID. Connections pipe directly into Geyser's session
  * handling via the Bedrock protocol pipeline.
  *
- * Maintains two signaling connections:
- * - Type 3 (legacy): per-network-ID endpoint, used by Education Edition
- * - Type 7 (JSON-RPC): messaging endpoint with PmsgId, used by Bedrock 1.26.20+
+ * Maintains one signaling connection to Microsoft, Type 7 (JSON-RPC): the
+ * messaging endpoint with PmsgId, used by Bedrock 26.20+ and Education
+ * 26.30+. (The Type 3 legacy WebSocket for pre-26.x Education died with the
+ * 26.32 auto update.) The HTTP signaling front end for retail direct
+ * connections is separate and served locally.
  *
  * Owns the full lifecycle: PlayFab MCToken acquisition, signaling WebSocket
  * management, periodic health checks, and automatic reconnection.
@@ -74,9 +73,8 @@ import java.util.function.Supplier;
  * A dead signaling WebSocket is reconnected in place with a fresh MCToken:
  * the server channels, WebRTC factories, event loops, and every established
  * peer connection stay untouched, so players never notice a signaling drop.
- * Only new joins are held up until the socket is back. Each socket recovers
- * independently; the watchdog backs off exponentially while the signaling
- * service or PlayFab is unreachable.
+ * Only new joins are held up until the socket is back. The watchdog backs
+ * off exponentially while the signaling service or PlayFab is unreachable.
  */
 public class NetherNetServer {
 
@@ -107,9 +105,6 @@ public class NetherNetServer {
 
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
-
-    private Channel legacyChannel;
-    private NetherNetXboxSignaling legacySignaling;
 
     private Channel rpcChannel;
     private NetherNetXboxRpcSignaling rpcSignaling;
@@ -143,7 +138,7 @@ public class NetherNetServer {
 
     /**
      * Starts the Nethernet server. Acquires an MCToken via PlayFab,
-     * opens both signaling WebSockets, and begins accepting WebRTC connections.
+     * opens the signaling WebSocket, and begins accepting WebRTC connections.
      *
      * @return true if the server started successfully
      */
@@ -168,31 +163,31 @@ public class NetherNetServer {
                 SIGNALING_CHECK_INTERVAL_SECONDS, SIGNALING_CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS);
 
         running = true;
-        logger.info(LOG_PREFIX + "Listening on connection ID (1.21.133 and older): " + connectionId);
 
-        // 26.30 and newer clients use a longer connection ID format: the
-        // connection id followed by the 32 hex pmid of the signaling MCToken.
-        // The pmid is bound to the anonymous PlayFab account (verified: a full
-        // re-auth with the same CustomId returns the same pmid), and the
-        // account identity is persisted in connection-id.yml, so this value is
-        // stable across restarts.
+        // The connection ID clients type is the connection id followed by the
+        // 32 hex pmid of the signaling MCToken. The pmid is bound to the
+        // anonymous PlayFab account (verified: a full re-auth with the same
+        // CustomId returns the same pmid), and the account identity is
+        // persisted in connection-id.yml, so this value is stable across
+        // restarts.
         String pmid = tokenManager.getPmsgId();
         if (pmid != null) {
-            logger.info(LOG_PREFIX + "Connection ID (26.30 and newer): "
+            logger.info(LOG_PREFIX + "Listening on connection ID: "
                     + connectionId + pmid.replace("-", "").toLowerCase());
         } else {
-            logger.info(LOG_PREFIX + "Connection ID (26.30 and newer): unavailable, no pmid claim in the MCToken");
+            logger.warning(LOG_PREFIX + "The MCToken has no pmid claim: there is no connection ID to give out"
+                    + " and Nethernet joins will not work (connection id number: " + connectionId + ")");
         }
         return true;
     }
 
     /**
-     * Reconnects both signaling WebSockets in place with a fresh MCToken,
+     * Reconnects the signaling WebSocket in place with a fresh MCToken,
      * preserving the same connection ID. Existing WebRTC peer connections and
      * player sessions are unaffected. On failure the server keeps running;
      * established players keep playing and the watchdog retries.
      *
-     * @return true if both signaling sockets reconnected successfully
+     * @return true if the signaling socket reconnected successfully
      */
     public boolean restartSignaling() {
         synchronized (reconnectLock) {
@@ -200,16 +195,15 @@ public class NetherNetServer {
                 return start();
             }
 
-            NetherNetXboxSignaling legacy = this.legacySignaling;
             NetherNetXboxRpcSignaling rpc = this.rpcSignaling;
-            if (legacy == null || rpc == null) {
+            if (rpc == null) {
                 return false; // racing a shutdown
             }
 
             // A manual restart is usually a response to something being wrong;
             // don't trust the cached token, get a fresh one.
             tokenManager.invalidate();
-            boolean ok = reconnectSockets(legacy, rpc);
+            boolean ok = reconnectSocket(rpc);
             if (ok) {
                 logger.info(LOG_PREFIX + "Signaling reconnected (players unaffected)");
             } else {
@@ -233,21 +227,10 @@ public class NetherNetServer {
     }
 
     public boolean isRunning() {
-        return running
-                && (legacyChannel != null && legacyChannel.isActive())
-                && (rpcChannel != null && rpcChannel.isActive());
+        return running && rpcChannel != null && rpcChannel.isActive();
     }
 
     public boolean isSignalingAlive() {
-        return isLegacySignalingAlive() && isRpcSignalingAlive();
-    }
-
-    public boolean isLegacySignalingAlive() {
-        NetherNetXboxSignaling legacy = legacySignaling;
-        return legacy != null && legacy.isChannelAlive();
-    }
-
-    public boolean isRpcSignalingAlive() {
         NetherNetXboxRpcSignaling rpc = rpcSignaling;
         return rpc != null && rpc.isChannelAlive();
     }
@@ -261,7 +244,6 @@ public class NetherNetServer {
     }
 
     private boolean bind(String mcToken) {
-        this.legacySignaling = new NetherNetXboxSignaling(connectionId, mcToken);
         this.rpcSignaling = new NetherNetXboxRpcSignaling(connectionId, mcToken);
         this.bossGroup = new NioEventLoopGroup(1);
         this.workerGroup = new NioEventLoopGroup(workerThreads());
@@ -282,12 +264,6 @@ public class NetherNetServer {
         // the pool size caps how many threads the data plane can spread
         // players across.
         try {
-            ServerBootstrap legacyBootstrap = new ServerBootstrap();
-            legacyBootstrap.group(bossGroup, workerGroup)
-                    .channelFactory(NetherNetChannelFactory.server(NetherNetServer::createFactoryPool, legacySignaling))
-                    .childHandler(childHandler);
-            this.legacyChannel = bindChannel(legacyBootstrap, new InetSocketAddress(0));
-
             ServerBootstrap rpcBootstrap = new ServerBootstrap();
             rpcBootstrap.group(bossGroup, workerGroup)
                     .channelFactory(NetherNetChannelFactory.server(NetherNetServer::createFactoryPool, rpcSignaling))
@@ -308,14 +284,9 @@ public class NetherNetServer {
             return true;
         } catch (Exception e) {
             logger.error(LOG_PREFIX + "Failed to bind: " + e.getMessage());
-            this.legacySignaling = null;
             this.rpcSignaling = null;
             // A successfully bound channel disposes its own factory pool on
             // close; a channel whose bind failed never created one.
-            if (legacyChannel != null) {
-                legacyChannel.close();
-                legacyChannel = null;
-            }
             if (rpcChannel != null) {
                 rpcChannel.close();
                 rpcChannel = null;
@@ -487,10 +458,6 @@ public class NetherNetServer {
             playerChannels.close().awaitUninterruptibly(3, TimeUnit.SECONDS);
         }
 
-        if (legacyChannel != null) {
-            legacyChannel.close().syncUninterruptibly();
-            legacyChannel = null;
-        }
         if (rpcChannel != null) {
             rpcChannel.close().syncUninterruptibly();
             rpcChannel = null;
@@ -503,7 +470,6 @@ public class NetherNetServer {
             certificateManager.close();
             certificateManager = null;
         }
-        legacySignaling = null;
         rpcSignaling = null;
         httpSignaling = null;
         if (bossGroup != null) {
@@ -517,20 +483,17 @@ public class NetherNetServer {
     }
 
     /**
-     * Watchdog: checks both signaling sockets for liveness (including silent
-     * half-open TCP, via the silence threshold) and reconnects only the dead
-     * ones, in place. Runs on the scheduler thread.
+     * Watchdog: checks the signaling socket for liveness (including silent
+     * half-open TCP, via the silence threshold) and reconnects it in place
+     * when dead. Runs on the scheduler thread.
      */
     private void checkSignaling() {
         synchronized (reconnectLock) {
             if (!running) return;
-            NetherNetXboxSignaling legacy = this.legacySignaling;
             NetherNetXboxRpcSignaling rpc = this.rpcSignaling;
-            if (legacy == null || rpc == null) return;
+            if (rpc == null) return;
 
-            boolean legacyDead = !legacy.isChannelAlive(SIGNALING_SILENCE_THRESHOLD_MILLIS);
-            boolean rpcDead = !rpc.isChannelAlive(SIGNALING_SILENCE_THRESHOLD_MILLIS);
-            if (!legacyDead && !rpcDead) {
+            if (rpc.isChannelAlive(SIGNALING_SILENCE_THRESHOLD_MILLIS)) {
                 consecutiveReconnectFailures = 0;
                 return;
             }
@@ -540,11 +503,9 @@ public class NetherNetServer {
                 return;
             }
 
-            logger.info(LOG_PREFIX + "Signaling dead ("
-                    + (legacyDead ? (rpcDead ? "legacy + JSON-RPC" : "legacy") : "JSON-RPC")
-                    + "), reconnecting in place...");
+            logger.info(LOG_PREFIX + "Signaling dead, reconnecting in place...");
 
-            if (reconnectSockets(legacyDead ? legacy : null, rpcDead ? rpc : null)) {
+            if (reconnectSocket(rpc)) {
                 consecutiveReconnectFailures = 0;
                 // Small grace period so a socket that dies again immediately after
                 // connecting doesn't get hammered in a tight loop.
@@ -563,41 +524,23 @@ public class NetherNetServer {
     }
 
     /**
-     * Reconnects the given sockets (null means healthy, skip) in place with a
-     * possibly cached MCToken. Established peer connections are never touched.
+     * Reconnects the signaling socket in place with a possibly cached MCToken.
+     * Established peer connections are never touched.
      *
-     * @return true if every requested socket reconnected successfully
+     * @return true if the socket reconnected successfully
      */
-    private boolean reconnectSockets(NetherNetXboxSignaling legacy, NetherNetXboxRpcSignaling rpc) {
-        if (legacy == null && rpc == null) {
-            return true;
-        }
+    private boolean reconnectSocket(NetherNetXboxRpcSignaling rpc) {
         String mcToken = tokenManager.authenticate();
         if (mcToken == null) {
             logger.warning(LOG_PREFIX + "Signaling reconnect failed: could not get MCToken");
             return false;
         }
-
-        boolean ok = true;
-        if (legacy != null) {
-            ok = reconnectOne("legacy", legacy, mcToken);
-        }
-        if (rpc != null) {
-            ok &= reconnectOne("JSON-RPC", rpc, mcToken);
-        }
-        return ok;
-    }
-
-    private boolean reconnectOne(String name, AbstractNetherNetXboxSignaling signaling, String mcToken) {
-        if (signaling == null) {
-            return false;
-        }
         try {
-            signaling.reconnect(mcToken);
-            logger.info(LOG_PREFIX + "Signaling (" + name + ") reconnected");
+            rpc.reconnect(mcToken);
+            logger.info(LOG_PREFIX + "Signaling reconnected");
             return true;
         } catch (Exception e) {
-            logger.warning(LOG_PREFIX + "Signaling (" + name + ") reconnect failed: " + e.getMessage());
+            logger.warning(LOG_PREFIX + "Signaling reconnect failed: " + e.getMessage());
             return false;
         }
     }
