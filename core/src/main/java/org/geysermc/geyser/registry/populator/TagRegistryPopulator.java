@@ -35,6 +35,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenCustomHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v1002.Bedrock_v1002;
+import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
@@ -77,7 +78,8 @@ public final class TagRegistryPopulator {
             ObjectIntPair.of("26_20", Bedrock_v975.CODEC.getProtocolVersion()),
             ObjectIntPair.of("26_30", Bedrock_v1001.CODEC.getProtocolVersion()),
             // Education 26.30 (protocol 1002) carries the same content as retail 26.30
-            ObjectIntPair.of("26_30", Bedrock_v1002.EDUCATION_CODEC.getProtocolVersion())
+            ObjectIntPair.of("26_30", Bedrock_v1002.EDUCATION_CODEC.getProtocolVersion()),
+            ObjectIntPair.of("26_30", Bedrock_v2168.CODEC.getProtocolVersion())
         );
         Type type = new TypeToken<Map<String, List<String>>>() {}.getType();
 

@@ -42,6 +42,11 @@ public class MappingsUtil {
     private static final String PRIMITIVE_ERROR = "key must be a primitive";
     private static final String ARRAY_ERROR = "key must be an array";
 
+    public static <T> T readOrThrowKey(String key, NodeReader<T> converter, String... context) throws InvalidCustomMappingsFileException {
+        // A little funky
+        return converter.read(new JsonPrimitive(key), formatTask(key), context);
+    }
+
     public static <T> T readOrThrow(JsonElement object, String name, NodeReader<T> converter, String... context) throws InvalidCustomMappingsFileException {
         JsonElement element = getRequiredJsonElement(object, name, context);
         if (!element.isJsonPrimitive()) {

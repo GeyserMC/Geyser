@@ -83,7 +83,7 @@ public class RecipeUtil {
     /**
      * Required to use the specified cartography table recipes
      */
-    public static final List<RecipeData> CARTOGRAPHY_RECIPES = List.of(
+    public static final List<MultiRecipeData> CARTOGRAPHY_RECIPES = List.of(
             MultiRecipeData.of(UUID.fromString("8b36268c-1829-483c-a0f1-993b7156a8f2"), ++LAST_RECIPE_NET_ID), // Map extending
             MultiRecipeData.of(UUID.fromString("442d85ed-8272-4543-a6f1-418f90ded05d"), ++LAST_RECIPE_NET_ID), // Map cloning
             MultiRecipeData.of(UUID.fromString("98c84b38-1085-46bd-b1ce-dd38c159e6cc"), ++LAST_RECIPE_NET_ID), // Map upgrading

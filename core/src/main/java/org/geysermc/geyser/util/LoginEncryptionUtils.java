@@ -88,7 +88,10 @@ public class LoginEncryptionUtils {
 
             ChainValidationResult result = EncryptionUtils.validatePayload(authPayload);
 
-            geyser.getLogger().debug(String.format("Is player data signed? %s", result.signed()));
+            geyser.getLogger().debug("Is player data signed? %s", result.signed());
+            // Upstream rejects unsigned logins right here; the fork defers that
+            // check until clientData is parsed, because education chains are
+            // always self signed and only clientData identifies them.
 
             // Should always be present, but hey, why not make it safe :D
             Long rawIssuedAt = (Long) result.rawIdentityClaims().get("iat");

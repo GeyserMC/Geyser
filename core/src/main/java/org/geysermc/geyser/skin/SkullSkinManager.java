@@ -32,6 +32,7 @@ import org.geysermc.geyser.entity.type.player.SkullPlayerEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.util.PlayerListUtils;
 
+import java.awt.Color;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -49,6 +50,9 @@ public class SkullSkinManager extends SkinManager {
             .capeId(SkinProvider.EMPTY_CAPE.capeId())
             .fullSkinId(skinId)
             .geometryDataEngineVersion(session.getClientData().getGameVersion())
+            .color(new Color(0, true))
+            .trusted(true)
+            .profileHash("")
             .build();
     }
 

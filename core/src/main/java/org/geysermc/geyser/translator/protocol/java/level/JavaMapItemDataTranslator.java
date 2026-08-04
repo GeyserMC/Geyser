@@ -26,8 +26,6 @@
 package org.geysermc.geyser.translator.protocol.java.level;
 
 import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongList;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.geysermc.mcprotocollib.protocol.data.game.level.map.MapData;
 import org.geysermc.mcprotocollib.protocol.data.game.level.map.MapIcon;
 import org.geysermc.mcprotocollib.protocol.packet.ingame.clientbound.level.ClientboundMapItemDataPacket;
@@ -41,7 +39,7 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.DimensionUtils;
 
-import java.util.List;
+import java.util.ArrayList;
 
 @Translator(packet = ClientboundMapItemDataPacket.class)
 public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapItemDataPacket> {
@@ -55,12 +53,8 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
         mapItemDataPacket.setLocked(packet.isLocked());
         mapItemDataPacket.setOrigin(Vector3i.ZERO); // Required since 1.19.20
         mapItemDataPacket.setScale(packet.getScale());
-        // Required as of 1.19.50. The v2168 protocol groundwork made the packet's
-        // collections null by default instead of pre allocated, so they are built
-        // locally and set.
-        LongList trackedEntityIds = new LongArrayList(1);
-        trackedEntityIds.add(packet.getMapId());
-        mapItemDataPacket.setTrackedEntityIds(trackedEntityIds);
+        // Required as of 1.19.50
+        mapItemDataPacket.setTrackedEntityIds(new LongArrayList(new long[]{packet.getMapId()}));
 
         MapData data = packet.getData();
         if (data != null) {
@@ -81,18 +75,19 @@ public class JavaMapItemDataTranslator extends PacketTranslator<ClientboundMapIt
         }
 
         // Bedrock needs an entity id to display an icon
-        List<MapTrackedObject> trackedObjects = new ObjectArrayList<>(packet.getIcons().length);
-        List<MapDecoration> decorations = new ObjectArrayList<>(packet.getIcons().length);
-        int id = 0;
-        for (MapIcon icon : packet.getIcons()) {
-            BedrockMapIcon bedrockMapIcon = BedrockMapIcon.fromType(icon.getIconType());
+        if (packet.getIcons().length != 0) {
+            mapItemDataPacket.setTrackedObjects(new ArrayList<>(packet.getIcons().length));
+            mapItemDataPacket.setDecorations(new ArrayList<>(packet.getIcons().length));
 
-            trackedObjects.add(new MapTrackedObject(id));
-            decorations.add(new MapDecoration(bedrockMapIcon.getIconID(), icon.getIconRotation(), icon.getCenterX(), icon.getCenterZ(), "", bedrockMapIcon.toARGB()));
-            id++;
+            int id = 0;
+            for (MapIcon icon : packet.getIcons()) {
+                BedrockMapIcon bedrockMapIcon = BedrockMapIcon.fromType(icon.getIconType());
+
+                mapItemDataPacket.getTrackedObjects().add(new MapTrackedObject(id));
+                mapItemDataPacket.getDecorations().add(new MapDecoration(bedrockMapIcon.getIconID(), icon.getIconRotation(), icon.getCenterX(), icon.getCenterZ(), "", bedrockMapIcon.toARGB()));
+                id++;
+            }
         }
-        mapItemDataPacket.setTrackedObjects(trackedObjects);
-        mapItemDataPacket.setDecorations(decorations);
 
         // Client will ignore if sent too early
         if (session.isSentSpawnPacket()) {
