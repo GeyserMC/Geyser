@@ -80,7 +80,7 @@ public class PlayerEntity extends AvatarEntity implements GeyserPlayerEntity {
         try {
             this.textures = profile.getTextures(true);
         } catch (Exception e) {
-            GeyserImpl.getInstance().getLogger().debug("Error loading textures for player!" + profile, e);
+            GeyserImpl.getInstance().getLogger().debug("Error loading textures for profile %s! Got: %s" + profile, e);
             this.textures = null;
         }
     }
