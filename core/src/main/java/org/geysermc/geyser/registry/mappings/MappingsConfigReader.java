@@ -67,8 +67,8 @@ public final class MappingsConfigReader {
             try {
                 Files.createDirectories(mappingsDirectory);
                 return true;
-            } catch (IOException e) {
-                GeyserImpl.getInstance().getLogger().error("Failed to create mappings directory", e);
+            } catch (IOException exception) {
+                GeyserImpl.getInstance().getLogger().error("Failed to create mappings directory", exception);
                 return false;
             }
         }
@@ -80,7 +80,8 @@ public final class MappingsConfigReader {
             return paths
                 .filter(child -> child.toString().endsWith(".json"))
                 .toArray(Path[]::new);
-        } catch (IOException e) {
+        } catch (IOException exception) {
+            GeyserImpl.getInstance().getLogger().error("Failed to gather custom mappings files in directory " + directory, exception);
             return new Path[0];
         }
     }

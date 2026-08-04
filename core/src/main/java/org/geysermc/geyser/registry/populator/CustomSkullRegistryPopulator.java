@@ -261,12 +261,12 @@ public class CustomSkullRegistryPopulator {
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         MappingsConfigReader.getCustomMappingsDirectoryAndEnsureItExists().ifPresentOrElse(mappingsDirectory -> {
-            Path destination = mappingsDirectory.resolve("migrated-custom-skulls.yml.json");
+            Path destination = mappingsDirectory.resolve("migrated-custom-skulls.json");
             if (Files.exists(destination)) {
-                GeyserImpl.getInstance().getLogger().warning("Not migrating legacy custom-skulls.yml file because the destination (\"custom_mappings/migrated-custom-skulls.yml.json\") already exists!");
+                GeyserImpl.getInstance().getLogger().warning("Not migrating legacy custom-skulls.yml file because the destination (\"custom_mappings/migrated-custom-skulls.json\") already exists!");
                 return;
             } else {
-                GeyserImpl.getInstance().getLogger().info("Migrating legacy custom-skulls.yml file to \"custom_mappings/migrated-custom-skulls.yml.json\"...");
+                GeyserImpl.getInstance().getLogger().info("Migrating legacy custom-skulls.yml file to \"custom_mappings/migrated-custom-skulls.json\"...");
             }
             try {
                 Files.writeString(destination, gson.toJson(mappingsFile));
