@@ -205,7 +205,11 @@ public class LoginEncryptionUtils {
                 // SelfSignedId (equal to the token's leguuid claim). The client looks
                 // itself up in the player list by this value, and receiving the
                 // placeholder instead crashes the 26.30 pause menu.
-                identity = data.getSelfSignedId();
+                try {
+                    identity = UUID.fromString(data.getSelfSignedId());
+                } catch (IllegalArgumentException ignored) {
+                    // A malformed SelfSignedId keeps the derived placeholder
+                }
             }
 
             session.setAuthData(new AuthData(displayName, identity, xuid, issuedAt, extraData.minecraftId));
