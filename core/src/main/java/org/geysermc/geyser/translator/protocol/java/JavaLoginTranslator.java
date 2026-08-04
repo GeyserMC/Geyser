@@ -27,6 +27,7 @@ package org.geysermc.geyser.translator.protocol.java;
 
 import net.kyori.adventure.key.Key;
 import org.cloudburstmc.protocol.bedrock.data.GameRuleData;
+import org.cloudburstmc.protocol.bedrock.packet.DeathInfoPacket;
 import org.cloudburstmc.protocol.bedrock.packet.GameRulesChangedPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.geysermc.erosion.Constants;
@@ -92,12 +93,24 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
         session.setWorldName(spawnInfo.getWorldName());
         session.setLevels(Arrays.stream(packet.getWorldNames()).map(Key::asString).toArray(String[]::new));
         session.setGameMode(spawnInfo.getGameMode());
+        if (session.getGeyser().getBootstrap().isServerControlledHardcore()) {
+            session.setHardcore(packet.isHardcore());
+        } else {
+            session.setHardcore(session.getGeyser().config().gameplay().hardcoreMode());
+        }
 
         boolean needsSpawnPacket = !session.isSentSpawnPacket();
         if (needsSpawnPacket) {
             // The player has yet to spawn so let's do that using some of the information in this Java packet
             DimensionUtils.setBedrockDimension(session, newDimension.bedrockId());
             session.connect();
+
+            // This is to ensure that you don't get stuck without a respawn screen in hardcore, has no effect when hardcore mode is off
+            if (!entity.isAlive()) {
+                DeathInfoPacket deathInfoPacket = new DeathInfoPacket();
+                deathInfoPacket.setCauseAttackName("");
+                session.sendUpstreamPacket(deathInfoPacket);
+            }
 
             // It is now safe to send these packets
             session.getUpstream().sendPostStartGamePackets();
