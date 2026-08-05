@@ -32,6 +32,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.cloudburstmc.protocol.bedrock.PacketDirection;
+import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
 import org.cloudburstmc.protocol.bedrock.data.PacketCompressionAlgorithm;
 import org.cloudburstmc.protocol.bedrock.netty.BedrockPacketWrapper;
 import org.cloudburstmc.protocol.bedrock.netty.codec.batch.BedrockBatchDecoder;
@@ -57,9 +58,11 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 /**
  * Assembles the exact native NetherNet inbound pipeline (framing, compression,
  * batch, packet codec) as built by NetherNetServerInitializer and feeds it the
- * first packet an Education client sends, verifying it decodes end to end.
+ * first packet a Bedrock client sends, verifying it decodes end to end.
  */
 class NetherNetPipelineTest {
+
+    private static final int PROTOCOL_VERSION = Bedrock_v2168.CODEC.getProtocolVersion();
 
     private static ChannelInboundHandlerAdapter tap(List<String> trace, String name) {
         return new ChannelInboundHandlerAdapter() {
@@ -83,7 +86,7 @@ class NetherNetPipelineTest {
 
     private static BedrockPacketCodec packetCodec() {
         BedrockPacketCodec codec = new BedrockPacketCodec_v3();
-        codec.setCodec(org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898.EDUCATION_CODEC);
+        codec.setCodec(Bedrock_v2168.CODEC);
         return codec;
     }
 
@@ -108,7 +111,7 @@ class NetherNetPipelineTest {
                     }
                 });
 
-        // The literal first frame from an Education client, as observed live:
+        // The first frame from a Bedrock client:
         // 8 bytes total. NetherNet framing header 0 (complete single message),
         // then the batch: varuint packet length 6, v3 packet header varuint for
         // packet id 193 (RequestNetworkSettings), then the protocol version as
@@ -118,7 +121,7 @@ class NetherNetPipelineTest {
         frame.writeByte(0x06);           // batch: packet length 6
         frame.writeByte(0xC1);           // v3 header varuint low byte (id 193)
         frame.writeByte(0x01);           // v3 header varuint high byte
-        frame.writeInt(748);             // protocol version, big endian
+        frame.writeInt(PROTOCOL_VERSION); // protocol version, big endian
 
         // Taps between every stage to locate where the message dies.
         List<String> trace = new ArrayList<>();
@@ -133,7 +136,7 @@ class NetherNetPipelineTest {
         assertInstanceOf(BedrockPacketWrapper.class, msg);
         BedrockPacketWrapper wrapper = (BedrockPacketWrapper) msg;
         assertInstanceOf(RequestNetworkSettingsPacket.class, wrapper.getPacket());
-        assertEquals(748, ((RequestNetworkSettingsPacket) wrapper.getPacket()).getProtocolVersion());
+        assertEquals(PROTOCOL_VERSION, ((RequestNetworkSettingsPacket) wrapper.getPacket()).getProtocolVersion());
 
         wrapper.release();
 

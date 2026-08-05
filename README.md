@@ -43,8 +43,8 @@ Special thanks to the DragonProxy project for being a trailblazer in protocol tr
 
 | Edition   | Supported Versions                                                                                                       |
 |-----------|--------------------------------------------------------------------------------------------------------------------------|
-| Education | 1.21.132, 1.21.133 (also 1.21.131.1 Preview and 26.30 Preview)                                                           |
-| Bedrock   | 1.21.130 - 1.21.132, 26.0, 26.1, 26.2, 26.3, 26.10, 26.20, 26.21, 26.22, 26.23, 26.30, 26.31, 26.32, 26.33, 26.34, 26.40 |
+| Education | 26.30 Preview, 26.32                                                                                                  |
+| Bedrock   | 26.0, 26.1, 26.2, 26.3, 26.10, 26.20, 26.21, 26.22, 26.23, 26.30, 26.31, 26.32, 26.33, 26.34, 26.40                     |
 | Java      | 26.2 (For older versions, [see this guide](https://geysermc.org/wiki/geyser/supported-versions/))                        |
 
 ## Setting Up

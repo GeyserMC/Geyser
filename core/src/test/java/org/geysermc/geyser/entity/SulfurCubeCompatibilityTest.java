@@ -26,7 +26,7 @@
 package org.geysermc.geyser.entity;
 
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
-import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
+import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.AddEntityPacket;
@@ -63,7 +63,7 @@ class SulfurCubeCompatibilityTest {
     private static final int JAVA_ID = 2;
 
     private static IntStream protocolsWithoutSulfurCube() {
-        return IntStream.of(Bedrock_v898.CODEC.getProtocolVersion(), Bedrock_v975.CODEC.getProtocolVersion());
+        return IntStream.of(Bedrock_v924.CODEC.getProtocolVersion(), Bedrock_v975.CODEC.getProtocolVersion());
     }
 
     @ParameterizedTest
@@ -92,7 +92,7 @@ class SulfurCubeCompatibilityTest {
     @Test
     void spawnEventCanOverrideOlderClientFallback() {
         mockContextScoreboard(context -> {
-            when(context.session().protocolVersion()).thenReturn(Bedrock_v898.CODEC.getProtocolVersion());
+            when(context.session().protocolVersion()).thenReturn(Bedrock_v924.CODEC.getProtocolVersion());
 
             Identifier customIdentifier = Identifier.of("test", "sulfur_cube");
             CustomBedrockEntityDefinition customDefinition = CustomBedrockEntityDefinition.getOrCreate(customIdentifier);

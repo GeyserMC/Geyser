@@ -29,7 +29,6 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
-import org.cloudburstmc.protocol.bedrock.codec.v898.Bedrock_v898;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
 import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
@@ -57,9 +56,8 @@ public final class GameProtocol {
     static final List<BedrockCodec> SUPPORTED_BEDROCK_CODECS = new ArrayList<>();
 
     /**
-     * Bedrock codec variants used only for Minecraft Education Edition clients. Indexed by protocol
-     * version. Populated in parallel with {@link #SUPPORTED_BEDROCK_CODECS}; a version with no
-     * entry here simply has no known Education Edition variant at the protocol level.
+     * Bedrock codecs used only for Minecraft Education Edition clients. Looked up independently
+     * from {@link #SUPPORTED_BEDROCK_CODECS} by protocol version.
      */
     private static final List<BedrockCodec> SUPPORTED_EDUCATION_BEDROCK_CODECS = new ArrayList<>();
 
@@ -92,7 +90,6 @@ public final class GameProtocol {
 
     static {
         // Strict ordering
-        register(Bedrock_v898.CODEC, "1.21.130", "1.21.131", "1.21.132", "1.21.133");
         register(Bedrock_v924.CODEC, "26.0", "26.1", "26.2", "26.3");
         register(Bedrock_v944.CODEC, "26.10");
         register(Bedrock_v975.CODEC, "26.20", "26.21", "26.22", "26.23");
@@ -103,8 +100,7 @@ public final class GameProtocol {
         DEFAULT_BEDROCK_VERSION = latestBedrock.versionString();
         DEFAULT_BEDROCK_PROTOCOL = latestBedrock.protocolVersion();
 
-        registerEducation(Bedrock_v898.EDUCATION_CODEC);
-        registerEducation(Bedrock_v1002.EDUCATION_CODEC, "26.30");
+        registerEducation(Bedrock_v1002.EDUCATION_CODEC, "26.30 Preview", "26.32");
     }
 
     /**
@@ -137,17 +133,12 @@ public final class GameProtocol {
     }
 
     /**
-     * Registers an Education Edition variant of a Bedrock codec. If the protocol version is shared
-     * with standard Bedrock (v898), the corresponding standard codec must already have been registered
-     * via {@link #register} and the session swaps codecs once the client is identified at login. For
-     * education-only protocol versions (1002), no standard codec exists; the version gate starts the
-     * session on the education codec directly. The education variant is put through the same
-     * {@link CodecProcessor} pipeline so Geyser-specific serializer overrides apply identically to
-     * both variants.
+     * Registers an Education Edition codec. Education-only protocol versions are inserted into the
+     * shared supported protocol and version lists, and the codec is put through the same
+     * {@link CodecProcessor} pipeline so Geyser-specific serializer overrides apply identically.
      *
      * @param codec the education codec to register
-     * @param minecraftVersions all versions the codec supports that are not already represented by
-     *                          the same protocol number
+     * @param minecraftVersions all versions the codec supports
      */
     private static void registerEducation(BedrockCodec codec, String... minecraftVersions) {
         SUPPORTED_EDUCATION_BEDROCK_CODECS.add(CodecProcessor.processCodec(codec));
@@ -169,9 +160,19 @@ public final class GameProtocol {
                     && !SUPPORTED_BEDROCK_VERSIONS.get(versionIndex).versionString().equals(minecraftVersion)) {
                 versionIndex++;
             }
-            while (versionIndex < SUPPORTED_BEDROCK_VERSIONS.size()
-                    && SUPPORTED_BEDROCK_VERSIONS.get(versionIndex).versionString().equals(minecraftVersion)) {
-                versionIndex++;
+            if (versionIndex < SUPPORTED_BEDROCK_VERSIONS.size()) {
+                // Keep codecs for the same displayed version adjacent.
+                while (versionIndex < SUPPORTED_BEDROCK_VERSIONS.size()
+                        && SUPPORTED_BEDROCK_VERSIONS.get(versionIndex).versionString().equals(minecraftVersion)) {
+                    versionIndex++;
+                }
+            } else {
+                // A distinct Education label still belongs before the next higher protocol.
+                versionIndex = 0;
+                while (versionIndex < SUPPORTED_BEDROCK_VERSIONS.size()
+                        && SUPPORTED_BEDROCK_VERSIONS.get(versionIndex).protocolVersion() <= protocolVersion) {
+                    versionIndex++;
+                }
             }
             SUPPORTED_BEDROCK_VERSIONS.add(versionIndex, new MinecraftVersionImpl(minecraftVersion, protocolVersion));
         }
@@ -192,10 +193,7 @@ public final class GameProtocol {
     }
 
     /**
-     * Gets the Education Edition codec variant of the given protocol version, if one is registered.
-     * Education clients advertise the same protocol version on the wire as standard Bedrock but
-     * expect a slightly different {@link org.cloudburstmc.protocol.bedrock.packet.StartGamePacket}
-     * format, so a separate codec is swapped in once the client is identified as an Education client.
+     * Gets the Education Edition codec of the given protocol version, if one is registered.
      *
      * @param protocolVersion The protocol version to attempt to find
      * @return The education codec, or null if no education variant is registered for this version

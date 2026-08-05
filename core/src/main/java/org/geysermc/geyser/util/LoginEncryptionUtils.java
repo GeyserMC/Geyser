@@ -157,14 +157,9 @@ public class LoginEncryptionUtils {
                 session.setEducationTenantId(tokenResult.getTenantId());
                 session.setEducationServerToken(serverToken);
 
-                // Swap to the education codec. A swap is structurally unavoidable
-                // for protocol versions shared with standard Bedrock (v898): the
-                // initial codec is chosen when RequestNetworkSettingsPacket
-                // arrives, and at that point only the protocol version is known.
-                // The education flag only surfaces when LoginPacket's clientData
-                // is parsed, which is where this code runs. At education-only
-                // protocol versions (1002) the version gate already picked the
-                // education codec and this re-set is a no-op.
+                // Resolve the Education codec after the client has been verified.
+                // Education-only protocols are selected during network settings,
+                // so assigning the same codec here is currently a no-op.
                 BedrockCodec educationCodec = GameProtocol.getEducationCodec(
                         session.getUpstream().getSession().getCodec().getProtocolVersion());
                 if (educationCodec == null) {

@@ -26,6 +26,7 @@
 package org.geysermc.geyser.network;
 
 import org.cloudburstmc.protocol.bedrock.codec.v1002.Bedrock_v1002;
+import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.junit.jupiter.api.Test;
 
@@ -41,11 +42,24 @@ class GameProtocolTest {
 
         assertTrue(GameProtocol.SUPPORTED_BEDROCK_PROTOCOLS.contains(educationProtocol));
         assertTrue(GameProtocol.SUPPORTED_BEDROCK_VERSIONS.stream().anyMatch(version ->
-                version.protocolVersion() == educationProtocol && version.versionString().equals("26.30")));
+                version.protocolVersion() == educationProtocol && version.versionString().equals("26.30 Preview")));
+        assertTrue(GameProtocol.SUPPORTED_BEDROCK_VERSIONS.stream().anyMatch(version ->
+                version.protocolVersion() == educationProtocol && version.versionString().equals("26.32")));
         assertNotEquals(educationProtocol, GameProtocol.DEFAULT_BEDROCK_PROTOCOL);
 
         MinecraftVersion latestVersion = GameProtocol.SUPPORTED_BEDROCK_VERSIONS.getLast();
         assertEquals(latestVersion.protocolVersion(), GameProtocol.DEFAULT_BEDROCK_PROTOCOL);
         assertEquals(latestVersion.versionString(), GameProtocol.DEFAULT_BEDROCK_VERSION);
+    }
+
+    @Test
+    void oldestStandardProtocolIs26_0() {
+        assertEquals(Bedrock_v924.CODEC.getProtocolVersion(), GameProtocol.SUPPORTED_BEDROCK_PROTOCOLS.getInt(0));
+        assertEquals(Bedrock_v924.CODEC.getProtocolVersion(),
+                GameProtocol.SUPPORTED_BEDROCK_CODECS.getFirst().getProtocolVersion());
+
+        MinecraftVersion oldestVersion = GameProtocol.SUPPORTED_BEDROCK_VERSIONS.getFirst();
+        assertEquals(Bedrock_v924.CODEC.getProtocolVersion(), oldestVersion.protocolVersion());
+        assertEquals("26.0", oldestVersion.versionString());
     }
 }
