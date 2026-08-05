@@ -64,6 +64,7 @@ import org.geysermc.geyser.entity.type.living.animal.horse.CamelEntity;
 import org.geysermc.geyser.inventory.GeyserItemStack;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.tags.GeyserHolderSet;
@@ -322,12 +323,18 @@ public final class EntityUtils {
      * Convert Java GameMode to Bedrock GameType
      * Needed to account for ordinal differences (spectator is 3 in Java, 6 in Bedrock)
      */
-    @SuppressWarnings("deprecation") // Must use survival_viewer due to limitations on Bedrock's spectator gamemode
-    public static GameType toBedrockGamemode(GameMode gamemode) {
+    @SuppressWarnings("deprecation") // survival_viewer is still what pre-26.40 clients need for spectator
+    public static GameType toBedrockGamemode(GameMode gamemode, GeyserSession session) {
         return switch (gamemode) {
             case CREATIVE -> GameType.CREATIVE;
             case ADVENTURE -> GameType.ADVENTURE;
-            case SPECTATOR -> GameType.SURVIVAL_VIEWER;
+            // 26.40 clients hang up on their own when told to apply survival_viewer:
+            // no packet violation warning, nothing logged server side, the client just
+            // reports error code "Block" and drops. Bedrock has a real spectator
+            // gamemode these days, so use it where the client understands it.
+            case SPECTATOR -> GameProtocol.is26_40orHigher(session.protocolVersion())
+                    ? GameType.SPECTATOR
+                    : GameType.SURVIVAL_VIEWER;
             default -> GameType.SURVIVAL;
         };
     }

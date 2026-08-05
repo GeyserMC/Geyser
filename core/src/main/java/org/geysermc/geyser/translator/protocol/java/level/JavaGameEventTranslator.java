@@ -79,7 +79,7 @@ public class JavaGameEventTranslator extends PacketTranslator<ClientboundGameEve
                 GameMode gameMode = (GameMode) packet.getValue();
 
                 SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-                playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(gameMode).ordinal());
+                playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(gameMode, session).ordinal());
                 session.sendUpstreamPacket(playerGameTypePacket);
                 session.setGameMode(gameMode);
 

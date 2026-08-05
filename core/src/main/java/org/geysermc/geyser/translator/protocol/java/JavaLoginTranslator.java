@@ -103,7 +103,7 @@ public class JavaLoginTranslator extends PacketTranslator<ClientboundLoginPacket
             session.getUpstream().sendPostStartGamePackets();
         } else {
             SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-            playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(spawnInfo.getGameMode()).ordinal());
+            playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(spawnInfo.getGameMode(), session).ordinal());
             session.sendUpstreamPacket(playerGameTypePacket);
         }
 

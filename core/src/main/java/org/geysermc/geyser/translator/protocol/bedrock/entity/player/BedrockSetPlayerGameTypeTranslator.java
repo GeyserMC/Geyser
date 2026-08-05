@@ -47,7 +47,7 @@ public class BedrockSetPlayerGameTypeTranslator extends PacketTranslator<SetPlay
     public void translate(GeyserSession session, SetPlayerGameTypePacket packet) {
         // Revert to current game mode first - gamemode sending will be done server-authorative
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-        playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(session.getGameMode()).ordinal());
+        playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(session.getGameMode(), session).ordinal());
         session.sendUpstreamPacket(playerGameTypePacket);
 
         // We will still inform the server that we want to change gamemodes, granted we have the permission to
