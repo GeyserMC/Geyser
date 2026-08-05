@@ -48,9 +48,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * The server identity assertion attached to every HTTP signaled SDP answer,
- * per the NetherNet onboarding guide (section 5.2) and matching go-nethernet
- * and vanilla BDS behavior.
+ * The server identity assertion attached to every SDP answer, per the
+ * NetherNet onboarding guide (section 5.2) and matching go-nethernet
+ * and vanilla BDS behavior. HTTP signaled clients have always required
+ * it; 26.40 clients require it over Xbox RPC signaling as well.
  *
  * The envelope is an {@code a=identity} session attribute: base64 of a JSON
  * object carrying a self signed ES384 JWT (whose {@code cpk} claim is the

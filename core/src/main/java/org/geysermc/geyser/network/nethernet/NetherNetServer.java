@@ -264,9 +264,24 @@ public class NetherNetServer {
         // the pool size caps how many threads the data plane can spread
         // players across.
         try {
+            // 26.40 clients require the a=identity assertion on every answer
+            // and disconnect with "You're not invited to play on this server"
+            // without it, over Xbox RPC signaling as much as over HTTP. If
+            // the identity cannot be loaded the RPC channel still binds and
+            // sends undecorated answers: older clients keep working, and the
+            // join code flow has no RakNet fallback to fail fast for.
+            NetherNetAnswerDecorator identityDecorator;
+            try {
+                identityDecorator = loadIdentityDecorator();
+            } catch (Exception e) {
+                identityDecorator = null;
+                logger.warning(LOG_PREFIX + e.getMessage() + "; 26.40 and newer clients will fail to join");
+            }
+
             ServerBootstrap rpcBootstrap = new ServerBootstrap();
             rpcBootstrap.group(bossGroup, workerGroup)
                     .channelFactory(NetherNetChannelFactory.server(NetherNetServer::createFactoryPool, rpcSignaling))
+                    .option(NetherChannelOption.NETHER_SERVER_ANSWER_DECORATOR, identityDecorator)
                     .childHandler(childHandler);
             this.rpcChannel = bindChannel(rpcBootstrap, new InetSocketAddress(0));
 
@@ -275,7 +290,7 @@ public class NetherNetServer {
             // attempted; any failure logs a warning and everything else keeps
             // running, since updated clients silently fall back to RakNet.
             try {
-                bindHttpSignaling(childHandler);
+                bindHttpSignaling(childHandler, identityDecorator);
             } catch (Exception e) {
                 logger.warning(LOG_PREFIX + "HTTP signaling unavailable (" + e.getMessage()
                         + "); direct connections will use RakNet");
@@ -320,12 +335,16 @@ public class NetherNetServer {
      * fast negative answer speeds their joins up; a completed exchange joins
      * them over NetherNet without RakNet at all.
      */
-    private void bindHttpSignaling(NetherNetServerInitializer childHandler) throws Exception {
-        // Clients refuse answers without the server identity assertion, so
-        // without it every HTTP join would fail only after full native
-        // negotiation. No identity means no listener: connection refused is
-        // the fastest possible RakNet fallback.
-        NetherNetAnswerDecorator identityDecorator = loadIdentityDecorator();
+    private void bindHttpSignaling(NetherNetServerInitializer childHandler,
+                                   NetherNetAnswerDecorator identityDecorator) throws Exception {
+        // Clients have always refused HTTP signaled answers without the
+        // server identity assertion, so without it every HTTP join would
+        // fail only after full native negotiation. No identity means no
+        // listener: connection refused is the fastest possible RakNet
+        // fallback.
+        if (identityDecorator == null) {
+            throw new IllegalStateException("server identity unavailable");
+        }
 
         // Manual certificate files win and are the ACME opt out; files that
         // are present but unloadable mean plaintext with an accurate warning
@@ -376,12 +395,13 @@ public class NetherNetServer {
     }
 
     /**
-     * Loads (or on first use creates) the server identity that signs every
-     * HTTP signaled answer's a=identity assertion. Clients refuse answers
-     * without it on every HTTP path (HTTPS, plaintext behind a proxy, and
-     * the future TOFU flow all hinge on it), so a failure here aborts the
-     * HTTP listener entirely rather than serving joins doomed to fail after
-     * negotiation.
+     * Loads (or on first use creates) the server identity that signs the
+     * a=identity assertion on every answer. HTTP signaled clients have
+     * always refused answers without it, and since 26.40 clients require
+     * it over Xbox RPC signaling too, so it decorates both paths. A
+     * failure here aborts only the HTTP listener (connection refused is
+     * the fastest RakNet fallback); the RPC channel binds regardless so
+     * older clients can still join.
      */
     private NetherNetAnswerDecorator loadIdentityDecorator() throws Exception {
         try {
