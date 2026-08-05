@@ -1988,7 +1988,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(playerEntity.geyserId());
         startGamePacket.setRuntimeEntityId(playerEntity.geyserId());
-        startGamePacket.setPlayerGameType(EntityUtils.toBedrockGamemode(gameMode));
+        startGamePacket.setPlayerGameType(EntityUtils.toBedrockGamemode(gameMode, this));
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
 

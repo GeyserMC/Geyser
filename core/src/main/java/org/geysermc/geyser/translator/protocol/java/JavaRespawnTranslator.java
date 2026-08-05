@@ -71,7 +71,7 @@ public class JavaRespawnTranslator extends PacketTranslator<ClientboundRespawnPa
         entity.updateBedrockMetadata();
 
         SetPlayerGameTypePacket playerGameTypePacket = new SetPlayerGameTypePacket();
-        playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(spawnInfo.getGameMode()).ordinal());
+        playerGameTypePacket.setGamemode(EntityUtils.toBedrockGamemode(spawnInfo.getGameMode(), session).ordinal());
         session.sendUpstreamPacket(playerGameTypePacket);
         session.setGameMode(spawnInfo.getGameMode());
 
