@@ -139,11 +139,13 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
             trimDataPacket.getMaterials().addAll(session.getRecipeCache().getTrimRecipes().bedrockTrimMaterials());
             session.sendUpstreamPacket(trimDataPacket);
 
-            // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the
-            // approach of using many default-descriptors (which we do for smithing_transform)
-            SmithingTrimRecipeData recipe = SmithingTrimRecipeData.of(TrimRecipes.ID,
-                TrimRecipes.BASE, TrimRecipes.ADDITION, TrimRecipes.TEMPLATE, "smithing_table", netId++);
-            session.getRecipeCache().addRecipeToPacket(craftingDataPacket, recipe);
+            if (!GameProtocol.is26_40orHigher(session.protocolVersion())) {
+                // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the
+                // approach of using many default-descriptors (which we do for smithing_transform)
+                SmithingTrimRecipeData recipe = SmithingTrimRecipeData.of(TrimRecipes.ID,
+                    TrimRecipes.BASE, TrimRecipes.ADDITION, TrimRecipes.TEMPLATE, "smithing_table", netId++);
+                session.getRecipeCache().addRecipeToPacket(craftingDataPacket, recipe);
+            }
         }
         session.getGeyser().getLogger().debug("Using old smithing table workaround? " + oldSmithingTable);
         session.setOldSmithingTable(oldSmithingTable);
