@@ -61,16 +61,14 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
 
     @Override
     public void translate(GeyserSession session, ClientboundRecipeBookAddPacket packet) {
-        int netId = session.getLastRecipeNetId().get();
-        Int2ObjectMap<List<String>> javaToBedrockRecipeIds = session.getJavaToBedrockRecipeIds();
-        Int2ObjectMap<GeyserRecipe> geyserRecipes = session.getCraftingRecipes();
+        int netId = session.getRecipeCache().getLastRecipeNetId().get();
+        Int2ObjectMap<List<String>> javaToBedrockRecipeIds = session.getRecipeCache().getJavaToBedrockRecipeIds();
+        Int2ObjectMap<GeyserRecipe<?>> geyserRecipes = session.getRecipeCache().getCraftingRecipes();
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
 
         UnlockedRecipesPacket recipesPacket = new UnlockedRecipesPacket();
         recipesPacket.setAction(packet.isReplace() ? UnlockedRecipesPacket.ActionType.INITIALLY_UNLOCKED : UnlockedRecipesPacket.ActionType.NEWLY_UNLOCKED);
 
-        // Hacky fix, see below
-        Set<GeyserShapelessRecipe.FurnaceRecipeType> knownFurnaceRecipes = new HashSet<>();
 
         for (ClientboundRecipeBookAddPacket.Entry entry : packet.getEntries()) {
             RecipeDisplayEntry contents = entry.contents();
@@ -84,14 +82,9 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             // TODO rewrite this, but properly
             if (display instanceof FurnaceRecipeDisplay furnaceRecipe && GameProtocol.is26_20orHigher(session.protocolVersion())) {
                 GeyserShapelessRecipe geyserRecipe = new GeyserShapelessRecipe(contents.id(), netId, furnaceRecipe, contents.category());
-                knownFurnaceRecipes.add(GeyserShapelessRecipe.FurnaceRecipeType.fromCategory(contents.category()));
 
                 List<ShapelessRecipeData> recipeData = geyserRecipe.asRecipeData(session);
-                if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                    craftingDataPacket.getShapelessData().addAll(recipeData);
-                } else {
-                    craftingDataPacket.getCraftingData().addAll(recipeData);
-                }
+                session.getRecipeCache().addRecipesToPacket(craftingDataPacket, recipeData);
 
                 List<String> bedrockRecipeIds = new ArrayList<>();
                 for (int i = 0; i < recipeData.size(); i++) {
@@ -109,11 +102,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                     GeyserShapedRecipe geyserRecipe = new GeyserShapedRecipe(contents.id(), netId, shapedRecipe);
 
                     List<ShapedRecipeData> recipeData = geyserRecipe.asRecipeData(session);
-                    if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                        craftingDataPacket.getShapedData().addAll(recipeData);
-                    } else {
-                        craftingDataPacket.getCraftingData().addAll(recipeData);
-                    }
+                    session.getRecipeCache().addRecipesToPacket(craftingDataPacket, recipeData);
 
                     List<String> bedrockRecipeIds = new ArrayList<>();
                     for (int i = 0; i < recipeData.size(); i++) {
@@ -128,11 +117,7 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                     GeyserShapelessRecipe geyserRecipe = new GeyserShapelessRecipe(contents.id(), netId, shapelessRecipe);
 
                     List<ShapelessRecipeData> recipeData = geyserRecipe.asRecipeData(session);
-                    if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                        craftingDataPacket.getShapelessData().addAll(recipeData);
-                    } else {
-                        craftingDataPacket.getCraftingData().addAll(recipeData);
-                    }
+                    session.getRecipeCache().addRecipesToPacket(craftingDataPacket, recipeData);
 
                     List<String> bedrockRecipeIds = new ArrayList<>();
                     for (int i = 0; i < recipeData.size(); i++) {
@@ -150,14 +135,10 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
                     }
 
                     GeyserSmithingRecipe geyserRecipe = new GeyserSmithingRecipe(contents.id(), netId, smithingRecipe);
-                    session.getSmithingRecipes().add(geyserRecipe);
+                    session.getRecipeCache().getSmithingRecipes().add(geyserRecipe);
 
                     List<SmithingTransformRecipeData> recipeData = geyserRecipe.asRecipeData(session);
-                    if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                        craftingDataPacket.getSmithingTransformData().addAll(recipeData);
-                    } else {
-                        craftingDataPacket.getCraftingData().addAll(recipeData);
-                    }
+                    session.getRecipeCache().addRecipesToPacket(craftingDataPacket, recipeData);
 
                     netId += recipeData.size();
                 }
@@ -174,6 +155,6 @@ public class JavaRecipeBookAddTranslator extends PacketTranslator<ClientboundRec
             session.sendUpstreamPacket(craftingDataPacket);
             session.sendUpstreamPacket(recipesPacket);
         }
-        session.getLastRecipeNetId().set(netId);
+        session.getRecipeCache().getLastRecipeNetId().set(netId);
     }
 }

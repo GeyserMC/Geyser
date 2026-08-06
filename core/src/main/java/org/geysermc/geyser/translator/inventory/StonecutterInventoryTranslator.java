@@ -62,7 +62,7 @@ public class StonecutterInventoryTranslator extends AbstractBlockInventoryTransl
         CraftRecipeAction data = (CraftRecipeAction) request.getActions()[0];
 
         // Look up all possible options of cutting from this ID
-        GeyserStonecutterData craftingData = session.getStonecutterRecipes().get(data.getRecipeNetworkId());
+        GeyserStonecutterData craftingData = session.getRecipeCache().getStonecutterRecipes().get(data.getRecipeNetworkId());
         if (craftingData == null) {
             return rejectRequest(request);
         }

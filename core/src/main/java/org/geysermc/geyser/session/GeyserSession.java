@@ -178,6 +178,7 @@ import org.geysermc.geyser.session.cache.InputCache;
 import org.geysermc.geyser.session.cache.LodestoneCache;
 import org.geysermc.geyser.session.cache.PistonCache;
 import org.geysermc.geyser.session.cache.PreferencesCache;
+import org.geysermc.geyser.session.cache.RecipeCache;
 import org.geysermc.geyser.session.cache.RegistryCache;
 import org.geysermc.geyser.session.cache.SkullCache;
 import org.geysermc.geyser.session.cache.StructureBlockCache;
@@ -538,31 +539,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     @Setter
     private Entity mouseoverEntity;
 
-    /**
-     * Stores all Java recipes by ID, and matches them to all possible Bedrock recipe identifiers.
-     */
-    private final Int2ObjectMap<List<String>> javaToBedrockRecipeIds = new Int2ObjectOpenHashMap<>();
-
-    private final Int2ObjectMap<GeyserRecipe> craftingRecipes = new Int2ObjectOpenHashMap<>();
-    @Setter
-    private Pair<CraftingRecipeData, GeyserRecipe> lastCreatedRecipe = null; // TODO try to prevent sending duplicate recipes
-    private final AtomicInteger lastRecipeNetId;
-
-    /**
-     * Used to minimize the amount of recipes sent to the client, as the packet is quite heavy
-     * when sent in rapid succession
-     */
-    @Setter
-    private boolean cleanRecipesRequired = true;
-
-    /**
-     * Saves a list of all stonecutter recipes, for use in a stonecutter inventory.
-     * The key is the Bedrock recipe net ID; the values are their respective output and button ID.
-     */
-    @Setter
-    private Int2ObjectMap<GeyserStonecutterData> stonecutterRecipes = Int2ObjectMaps.emptyMap();
-    private final List<GeyserSmithingRecipe> smithingRecipes = new ArrayList<>();
-    private final TrimRecipes trimRecipes = new TrimRecipes();
+    private final RecipeCache recipeCache;
 
     /**
      * Whether to work around 1.13's different behavior in villager trading menus.
@@ -885,7 +862,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
         this.playerInventoryHolder = new InventoryHolder<>(this, new PlayerInventory(this), InventoryTranslator.PLAYER_INVENTORY_TRANSLATOR);
         this.inventoryHolder = null;
-        this.lastRecipeNetId = new AtomicInteger(InventoryUtils.LAST_RECIPE_NET_ID + 1);
+        this.recipeCache = new RecipeCache(this);
 
         this.spawned = false;
         this.loggedIn = false;

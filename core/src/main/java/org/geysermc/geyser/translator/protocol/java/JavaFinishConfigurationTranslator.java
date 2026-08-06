@@ -63,25 +63,21 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         // (Also add it here so recipes get cleared on configuration - 1.21.3)
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         craftingDataPacket.setCleanRecipes(true);
-        if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-            craftingDataPacket.getMultiData().addAll(CARTOGRAPHY_RECIPES);
-        } else {
-            craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
-        }
+        session.getRecipeCache().addRecipesToPacket(craftingDataPacket, CARTOGRAPHY_RECIPES);
         craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
         if (session.isSentSpawnPacket()) {
             session.getUpstream().sendPacket(craftingDataPacket);
-            session.getLastRecipeNetId().set(InventoryUtils.LAST_RECIPE_NET_ID + 1);
-            session.getCraftingRecipes().clear();
-            session.getJavaToBedrockRecipeIds().clear();
-            session.getSmithingRecipes().clear();
-            session.setStonecutterRecipes(Int2ObjectMaps.emptyMap());
+            session.getRecipeCache().getLastRecipeNetId().set(InventoryUtils.LAST_RECIPE_NET_ID + 1);
+            session.getRecipeCache().getCraftingRecipes().clear();
+            session.getRecipeCache().getJavaToBedrockRecipeIds().clear();
+            session.getRecipeCache().getSmithingRecipes().clear();
+            session.getRecipeCache().setStonecutterRecipes(Int2ObjectMaps.emptyMap());
         } else {
             session.getUpstream().queuePostStartGamePacket(craftingDataPacket);
         }
 
         // We can avoid re-sending potion mixes / crafting recipes again in the JavaUpdateRecipesTranslator
-        session.setCleanRecipesRequired(false);
+        session.getRecipeCache().setCleanRecipesRequired(false);
 
         // while ClientboundLoginPacket holds the level, it doesn't hold the scoreboard.
         // The ClientboundStartConfigurationPacket indirectly removes the old scoreboard,
@@ -92,6 +88,6 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         // Resolve API components from non-vanilla registered items that required registry data to map to MCPL components
         session.getComponentCache().resolveComponents();
         // This MUST be called after components are resolved. It uses both the collected data-driven registry information and the resolved components
-        session.getTrimRecipes().initializeBedrockTrimRecipes(session);
+        session.getRecipeCache().getTrimRecipes().initializeBedrockTrimRecipes(session);
     }
 }

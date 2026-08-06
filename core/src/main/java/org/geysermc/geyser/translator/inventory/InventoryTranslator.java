@@ -779,7 +779,7 @@ public abstract class InventoryTranslator<Type extends Inventory> {
                     craftState = CraftState.RECIPE_ID;
 
                     int recipeId = autoCraftAction.getRecipeNetworkId();
-                    GeyserRecipe recipe = session.getCraftingRecipes().get(recipeId);
+                    GeyserRecipe<?> recipe = session.getRecipeCache().getCraftingRecipes().get(recipeId);
                     if (recipe == null) {
                         return rejectRequest(request);
                     }

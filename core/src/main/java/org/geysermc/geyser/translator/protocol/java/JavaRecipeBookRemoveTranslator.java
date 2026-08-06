@@ -53,8 +53,8 @@ public class JavaRecipeBookRemoveTranslator extends PacketTranslator<Clientbound
     private List<String> getBedrockRecipes(GeyserSession session, int[] javaRecipeIds) {
         List<String> recipes = new ArrayList<>();
         for (int javaIdentifier : javaRecipeIds) {
-            List<String> bedrockRecipes = session.getJavaToBedrockRecipeIds().get(javaIdentifier);
-            // Some recipes are not (un)lockable on Bedrock edition, like furnace or stonecutter recipes.
+            List<String> bedrockRecipes = session.getRecipeCache().getJavaToBedrockRecipeIds().get(javaIdentifier);
+            // Some recipes are not (un)lockable on Bedrock edition, like stonecutter recipes.
             // So we don't store/send these.
             if (bedrockRecipes != null) {
                 recipes.addAll(bedrockRecipes);

@@ -98,41 +98,16 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
 
     @Override
     public void translate(GeyserSession session, ClientboundUpdateRecipesPacket packet) {
-        int netId = session.getLastRecipeNetId().get();
+        int netId = session.getRecipeCache().getLastRecipeNetId().get();
         CraftingDataPacket craftingDataPacket = new CraftingDataPacket();
         // See JavaFinishConfigurationTranslator - avoid re-sending base recipe data in quick succession
-        if (session.isCleanRecipesRequired()) {
-            craftingDataPacket.setCleanRecipes(true);
-            if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                craftingDataPacket.getMultiData().addAll(CARTOGRAPHY_RECIPES);
-            } else {
-                craftingDataPacket.getCraftingData().addAll(CARTOGRAPHY_RECIPES);
-            }
-            craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
-
-            for (GeyserRecipe recipe : session.getCraftingRecipes().values()) {
-                if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                    if (recipe instanceof GeyserShapedRecipe shapedRecipe) {
-                        craftingDataPacket.getShapedData().addAll(shapedRecipe.asRecipeData(session));
-                    } else if (recipe instanceof GeyserShapelessRecipe shapelessRecipe) {
-                        craftingDataPacket.getShapelessData().addAll(shapelessRecipe.asRecipeData(session));
-                    }
-                } else {
-                    craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(session));
-                }
-            }
-            for (GeyserSmithingRecipe recipe : session.getSmithingRecipes()) {
-                if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                    craftingDataPacket.getSmithingTransformData().addAll(recipe.asRecipeData(session));
-                } else {
-                    craftingDataPacket.getCraftingData().addAll(recipe.asRecipeData(session));
-                }
-            }
+        if (session.getRecipeCache().isCleanRecipesRequired()) {
+            session.getRecipeCache().readdAllRecipes(craftingDataPacket);
         }
 
         // As we now populate recipes that can differ,
         // we need to ensure the next crafting packet resets the client's known recipes
-        session.setCleanRecipesRequired(true);
+        session.getRecipeCache().setCleanRecipesRequired(true);
 
         boolean oldSmithingTable;
         int[] smithingBase = packet.getItemSets().get(SMITHING_BASE);
@@ -153,30 +128,22 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                     "smithing_table",
                     netId++);
 
-                if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                    craftingDataPacket.getSmithingTransformData().add(recipe);
-                } else {
-                    craftingDataPacket.getCraftingData().add(recipe);
-                }
+                session.getRecipeCache().addRecipeToPacket(craftingDataPacket, recipe);
             }
         } else {
             oldSmithingTable = false;
             // BDS sends armor trim templates and materials before the CraftingDataPacket
             TrimDataPacket trimDataPacket = new TrimDataPacket();
             // This won't work very well for custom trim patterns and materials
-            trimDataPacket.getPatterns().addAll(session.getTrimRecipes().bedrockTrimPatterns());
-            trimDataPacket.getMaterials().addAll(session.getTrimRecipes().bedrockTrimMaterials());
+            trimDataPacket.getPatterns().addAll(session.getRecipeCache().getTrimRecipes().bedrockTrimPatterns());
+            trimDataPacket.getMaterials().addAll(session.getRecipeCache().getTrimRecipes().bedrockTrimMaterials());
             session.sendUpstreamPacket(trimDataPacket);
 
             // Identical smithing_trim recipe sent by BDS that uses tag-descriptors, as the client seems to ignore the
             // approach of using many default-descriptors (which we do for smithing_transform)
             SmithingTrimRecipeData recipe = SmithingTrimRecipeData.of(TrimRecipes.ID,
                 TrimRecipes.BASE, TrimRecipes.ADDITION, TrimRecipes.TEMPLATE, "smithing_table", netId++);
-            if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                craftingDataPacket.getSmithingTrimData().add(recipe);
-            } else {
-                craftingDataPacket.getCraftingData().add(recipe);
-            }
+            session.getRecipeCache().addRecipeToPacket(craftingDataPacket, recipe);
         }
         session.getGeyser().getLogger().debug("Using old smithing table workaround? " + oldSmithingTable);
         session.setOldSmithingTable(oldSmithingTable);
@@ -227,11 +194,7 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
                 // (Implementation note: recipe ID creates the order which stonecutting recipes are shown in stonecutter)
                 ShapelessRecipeData stonecutterRecipe = ShapelessRecipeData.shapeless("stonecutter_" + javaInput + "_" + buttonId,
                     Collections.singletonList(descriptor), Collections.singletonList(output), uuid, "stonecutter", 0, recipeNetId, RecipeUnlockingRequirement.INVALID);
-                if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
-                    craftingDataPacket.getShapelessData().add(stonecutterRecipe);
-                } else {
-                    craftingDataPacket.getCraftingData().add(stonecutterRecipe);
-                }
+                session.getRecipeCache().addRecipeToPacket(craftingDataPacket, stonecutterRecipe);
 
                 // Save the recipe list for reference when crafting
                 // Add the net ID as the key and the button required + output for the value
@@ -242,8 +205,8 @@ public class JavaUpdateRecipesTranslator extends PacketTranslator<ClientboundUpd
         }
 
         session.sendUpstreamPacket(craftingDataPacket);
-        session.setStonecutterRecipes(stonecutterRecipeMap);
-        session.getLastRecipeNetId().set(netId);
+        session.getRecipeCache().setStonecutterRecipes(stonecutterRecipeMap);
+        session.getRecipeCache().getLastRecipeNetId().set(netId);
     }
 
     private ItemDescriptorWithCount getDescriptorFromId(GeyserSession session, String bedrockId) {

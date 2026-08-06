@@ -430,7 +430,7 @@ public class InventoryUtils {
         }
 
         recipes:
-        for (GeyserRecipe recipe : session.getCraftingRecipes().values()) {
+        for (GeyserRecipe<?> recipe : session.getRecipeCache().getCraftingRecipes().values()) {
             if (recipe.isShaped()) {
                 GeyserShapedRecipe shapedRecipe = (GeyserShapedRecipe) recipe;
                 if (output != null && !acceptsAsInput(session, shapedRecipe.result(), GeyserItemStack.from(session, output))) {

@@ -160,7 +160,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
                 return;
             }
 
-            int newRecipeId = session.getLastRecipeNetId().incrementAndGet();
+            int newRecipeId = session.getRecipeCache().getLastRecipeNetId().incrementAndGet();
 
             ItemData[] ingredients = new ItemData[height * width];
             //construct ingredient list and clear slots on client
@@ -183,7 +183,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
             GeyserShapedRecipe geyserRecipe = new GeyserShapedRecipe(ThreadLocalRandom.current().nextInt(), newRecipeId,
                     width, height, javaIngredients, new ItemStackSlotDisplay(item));
-            session.getCraftingRecipes().put(newRecipeId, geyserRecipe);
+            session.getRecipeCache().getCraftingRecipes().put(newRecipeId, geyserRecipe);
 
             CraftingDataPacket craftPacket = new CraftingDataPacket();
             ShapedRecipeData data = geyserRecipe.asRecipeData(session).getFirst();
@@ -239,7 +239,7 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
             GeyserItemStack material = inventory.getItem(SmithingInventoryTranslator.MATERIAL);
             GeyserItemStack geyserOutput = GeyserItemStack.from(session, output);
 
-            for (GeyserSmithingRecipe recipe : session.getSmithingRecipes()) {
+            for (GeyserSmithingRecipe recipe : session.getRecipeCache().getSmithingRecipes()) {
                 if (InventoryUtils.acceptsAsInput(session, recipe.result(), geyserOutput)
                 && InventoryUtils.acceptsAsInput(session, recipe.base(), input)
                 && InventoryUtils.acceptsAsInput(session, recipe.addition(), material)
@@ -251,13 +251,13 @@ public class JavaContainerSetSlotTranslator extends PacketTranslator<Clientbound
 
             GeyserSmithingRecipe geyserRecipe = new GeyserSmithingRecipe(
                 ThreadLocalRandom.current().nextInt(),
-                session.getLastRecipeNetId().incrementAndGet(),
+                session.getRecipeCache().getLastRecipeNetId().incrementAndGet(),
                 template.asIngredient(),
                 input.asIngredient(),
                 material.asIngredient(),
                 new ItemStackSlotDisplay(output)
             );
-            session.getSmithingRecipes().add(geyserRecipe);
+            session.getRecipeCache().getSmithingRecipes().add(geyserRecipe);
 
             CraftingDataPacket craftPacket = new CraftingDataPacket();
             SmithingTransformRecipeData data = geyserRecipe.asRecipeData(session).getFirst();
