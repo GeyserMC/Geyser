@@ -28,7 +28,7 @@ package org.geysermc.geyser.scoreboard.display.slot;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import java.util.List;
-import org.cloudburstmc.nbt.NbtMapBuilder;
+import net.kyori.adventure.text.Component;
 import org.cloudburstmc.protocol.bedrock.data.ScoreInfo;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.scoreboard.Objective;
@@ -38,7 +38,6 @@ import org.geysermc.geyser.scoreboard.display.score.BelownameDisplayScore;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.mcprotocollib.protocol.codec.NbtComponentSerializer;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.BlankFormat;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.FixedFormat;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
@@ -164,13 +163,12 @@ public class BelownameDisplaySlot extends DisplaySlot {
         if (numberFormat instanceof BlankFormat) {
             numberString = "";
         } else if (numberFormat instanceof FixedFormat fixedFormat) {
-            numberString = MessageTranslator.convertMessage(fixedFormat.getValue(), session.locale());
+            numberString = MessageTranslator.convertMessageRaw(fixedFormat.getValue(), session.locale());
         } else if (numberFormat instanceof StyledFormat styledFormat) {
-            NbtMapBuilder styledAmount = styledFormat.getStyle().toBuilder();
-            styledAmount.putString("text", String.valueOf(score));
-
-            numberString = MessageTranslator.convertJsonMessage(
-                NbtComponentSerializer.tagComponentToJson(styledAmount.build()).toString(), session.locale());
+            numberString = MessageTranslator.convertMessage(
+                Component.text(score, MessageTranslator.getStyleFromNbtMap(styledFormat.getStyle())),
+                session.locale()
+            );
         } else {
             numberString = String.valueOf(score);
         }

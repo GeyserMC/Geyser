@@ -561,7 +561,7 @@ public class Entity implements GeyserEntity {
         // CustomName is ignored for players, and is always their username.
         Optional<Component> name = entityMetadata.getValue();
         if (name.isPresent()) {
-            this.customName = MessageTranslator.convertMessage(name.get(), session.locale());
+            this.customName = MessageTranslator.convertMessageRaw(name.get(), session.locale());
             setNametag(customName, true);
             return;
         }

@@ -124,13 +124,9 @@ public final class Team {
     }
 
     public String displayName(String score) {
-        String chatColor = ChatColor.chatColorFor(color);
-        // most sidebar plugins will use the reset color, because they don't want color
-        // skip the unneeded double reset color in that case
-        if (ChatColor.RESET.equals(chatColor)) {
-            chatColor = "";
-        }
-        // also add reset because setting the color does not reset the formatting, unlike Java
+        // Most sidebar plugins will not have a team color, because they don't want one.
+        String chatColor = color == null ? "" : ChatColor.chatColorFor(color);
+        // We should however add add a reset because setting the color does not reset the formatting, unlike Java
         return chatColor + prefix + ChatColor.RESET + chatColor + score + ChatColor.RESET + chatColor + suffix;
     }
 

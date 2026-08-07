@@ -67,7 +67,7 @@ public final class ScoreReference {
 
     public void displayName(Component displayName, Scoreboard scoreboard) {
         if (this.displayName != null && displayName != null) {
-            String convertedDisplayName = MessageTranslator.convertMessage(displayName, scoreboard.session().locale());
+            String convertedDisplayName = MessageTranslator.convertMessageRaw(displayName, scoreboard.session().locale());
             if (!this.displayName.equals(convertedDisplayName)) {
                 this.displayName = convertedDisplayName;
                 markChanged();
@@ -76,7 +76,7 @@ public final class ScoreReference {
         }
         // simplified from (this.displayName != null && displayName == null) || (this.displayName == null && displayName != null)
         if (this.displayName != null || displayName != null) {
-            this.displayName = MessageTranslator.convertMessage(displayName, scoreboard.session().locale());
+            this.displayName = MessageTranslator.convertMessageRaw(displayName, scoreboard.session().locale());
             markChanged();
         }
     }
