@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,33 +23,18 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.pack.option;
+package org.geysermc.geyser.translator.protocol.java;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.geysermc.geyser.api.pack.ResourcePack;
-import org.geysermc.geyser.api.pack.exception.ResourcePackException;
-import org.geysermc.geyser.api.pack.option.PriorityOption;
+import org.geysermc.geyser.session.GeyserSession;
+import org.geysermc.geyser.translator.protocol.PacketTranslator;
+import org.geysermc.geyser.translator.protocol.Translator;
+import org.geysermc.mcprotocollib.protocol.packet.common.clientbound.ClientboundResourcePackPopPacket;
 
-import java.util.Objects;
-
-public record GeyserPriorityOption(int priority) implements PriorityOption {
-
-    @Override
-    public @NonNull Type type() {
-        return Type.PRIORITY;
-    }
+@Translator(packet = ClientboundResourcePackPopPacket.class)
+public class JavaClientboundResourcePackPopTranslator extends PacketTranslator<ClientboundResourcePackPopPacket> {
 
     @Override
-    public @NonNull Integer value() {
-        return priority;
-    }
-
-    @Override
-    public void validate(@NonNull ResourcePack pack) {
-        Objects.requireNonNull(pack);
-        if (priority < -100 || priority > 100) {
-            throw new ResourcePackException(ResourcePackException.Cause.INVALID_PACK_OPTION,
-                "Priority must be between -100 and 100 inclusive!");
-        }
+    public void translate(GeyserSession session, ClientboundResourcePackPopPacket packet) {
+        session.javaPackStack().popPack(packet);
     }
 }

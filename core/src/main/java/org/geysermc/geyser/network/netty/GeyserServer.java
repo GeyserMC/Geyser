@@ -42,7 +42,6 @@ import org.cloudburstmc.netty.channel.raknet.config.DefaultRakServerThrottle;
 import org.cloudburstmc.netty.channel.raknet.config.RakChannelOption;
 import org.cloudburstmc.netty.channel.raknet.config.RakServerCookieMode;
 import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerOfflineHandler;
-import org.cloudburstmc.netty.handler.codec.raknet.server.RakServerRateLimiter;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.connection.ConnectionRequestEvent;
@@ -59,7 +58,7 @@ import org.geysermc.geyser.ping.IGeyserPingPassthrough;
 import org.geysermc.geyser.skin.SkinProvider;
 import org.geysermc.geyser.text.GeyserLocale;
 import org.geysermc.geyser.translator.text.MessageTranslator;
-import org.geysermc.geyser.util.WebUtils;
+import org.geysermc.geyser.util.FancyHttpClient;
 import org.geysermc.mcprotocollib.network.helper.TransportHelper;
 
 import java.net.InetSocketAddress;
@@ -382,7 +381,7 @@ public final class GeyserServer {
                         continue;
                     }
 
-                    WebUtils.getLineStream(ip).forEach(whitelistedCIDRs::add);
+                    FancyHttpClient.oneShot(client -> client.getLineStream(ip)).join().forEach(whitelistedCIDRs::add);
                 }
 
                 this.whitelistedIPsMatchers = matchers = whitelistedCIDRs.stream()

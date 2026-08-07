@@ -35,11 +35,11 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.text.ChatColor;
 import org.geysermc.geyser.text.GeyserLocale;
-import org.geysermc.geyser.util.WebUtils;
+import org.geysermc.geyser.util.FancyHttpClient;
 import org.incendo.cloud.context.CommandContext;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.CompletionException;
 
 public class VersionCommand extends GeyserCommand {
 
@@ -89,7 +89,7 @@ public class VersionCommand extends GeyserCommand {
         source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.version.checking", source.locale()));
         try {
             int buildNumber = this.geyser.buildNumber();
-            JsonObject response = WebUtils.getJson("https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest");
+            JsonObject response = FancyHttpClient.oneShot(client -> client.getJson("https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest")).join().getAsJsonObject();
             int latestBuildNumber = response.get("build").getAsInt();
 
             if (latestBuildNumber == buildNumber) {
@@ -101,8 +101,8 @@ public class VersionCommand extends GeyserCommand {
                     "geyser.commands.version.outdated",
                     source.locale(), (latestBuildNumber - buildNumber), "https://geysermc.org/download"
             ));
-        } catch (IOException e) {
-            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.version.failed"), e);
+        } catch (CompletionException exception) {
+            GeyserImpl.getInstance().getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.version.failed"), exception);
             source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.version.failed", source.locale()));
         }
     }

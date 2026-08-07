@@ -31,7 +31,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import marcono1234.gson.recordadapter.RecordTypeAdapterFactory;
 import org.geysermc.geyser.GeyserImpl;
-import org.geysermc.geyser.pack.GeyserResourcePackManifest;
+import org.geysermc.geyser.pack.bedrock.GeyserResourcePackManifest;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
