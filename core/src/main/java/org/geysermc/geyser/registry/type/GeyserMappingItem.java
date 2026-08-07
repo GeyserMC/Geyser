@@ -47,9 +47,5 @@ public class GeyserMappingItem {
     @SerializedName("bedrock_data") int bedrockData;
     Integer firstBlockRuntimeId;
     Integer lastBlockRuntimeId;
-    @SerializedName("tool_type") String toolType;
-    @SerializedName("armor_type") String armorType;
-    @SerializedName("protection_value") int protectionValue;
-    @SerializedName("is_edible") boolean edible = false;
     @SerializedName("is_entity_placer") boolean entityPlacer = false;
 }

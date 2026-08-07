@@ -30,6 +30,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.cloudburstmc.protocol.bedrock.codec.BedrockCodec;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
 import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
@@ -85,7 +86,8 @@ public final class GameProtocol {
         register(Bedrock_v924.CODEC, "26.0", "26.1", "26.2", "26.3");
         register(Bedrock_v944.CODEC, "26.10");
         register(Bedrock_v975.CODEC, "26.20", "26.21", "26.22", "26.23");
-        register(Bedrock_v1001.CODEC, "26.30", "26.31", "26.32", "26.33");
+        register(Bedrock_v1001.CODEC, "26.30", "26.31", "26.32", "26.33", "26.34");
+        register(Bedrock_v2168.CODEC, "26.40");
 
         MinecraftVersion latestBedrock = SUPPORTED_BEDROCK_VERSIONS.getLast();
         DEFAULT_BEDROCK_VERSION = latestBedrock.versionString();
@@ -147,6 +149,10 @@ public final class GameProtocol {
 
     public static boolean is26_30orHigher(int protocolVersion) {
         return protocolVersion >= Bedrock_v1001.CODEC.getProtocolVersion();
+    }
+
+    public static boolean is26_40orHigher(int protocolVersion) {
+        return protocolVersion >= Bedrock_v2168.CODEC.getProtocolVersion();
     }
 
     /**

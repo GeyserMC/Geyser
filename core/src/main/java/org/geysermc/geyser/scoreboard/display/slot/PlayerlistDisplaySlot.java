@@ -61,7 +61,8 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
             for (var removedScore : removedScoresCopy) {
                 //todo idk if this if-statement is needed
                 if (removedScore.cachedInfo() != null) {
-                    removeScores.add(removedScore.cachedInfo());
+                    ScoreInfo cachedInfo = removedScore.cachedInfo();
+                    removeScores.add(new ScoreInfo(cachedInfo.getScoreboardId(), cachedInfo.getObjectiveId(), 0));
                 }
             }
             removedScores.removeAll(removedScoresCopy);
@@ -76,7 +77,7 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
                     // cachedInfo can be null here when ScoreboardUpdater is being used and a score is added and
                     // removed before a single update cycle is performed
                     if (cachedInfo != null) {
-                        removeScores.add(cachedInfo);
+                        removeScores.add(new ScoreInfo(cachedInfo.getScoreboardId(), cachedInfo.getObjectiveId(), 0));
                     }
                     continue;
                 }
@@ -98,7 +99,8 @@ public class PlayerlistDisplaySlot extends DisplaySlot {
                 // the checks after 'add' are there to prevent removing scores that
                 // are going to be removed anyway / don't need to be removed
                 if (add && exists && objectiveNothing) {
-                    removeScores.add(score.cachedInfo());
+                    ScoreInfo cachedInfo = score.cachedInfo();
+                    removeScores.add(new ScoreInfo(cachedInfo.getScoreboardId(), cachedInfo.getObjectiveId(), 0));
                 }
             }
         }

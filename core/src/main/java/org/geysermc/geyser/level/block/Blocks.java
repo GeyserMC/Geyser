@@ -3309,6 +3309,7 @@ public final class Blocks {
     public static final Block POTTED_OPEN_EYEBLOSSOM = register(new FlowerPotBlock("potted_open_eyeblossom", OPEN_EYEBLOSSOM, builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block POTTED_CLOSED_EYEBLOSSOM = register(new FlowerPotBlock("potted_closed_eyeblossom", CLOSED_EYEBLOSSOM, builder().pushReaction(PistonBehavior.DESTROY)));
     public static final Block FIREFLY_BUSH = register(new Block("firefly_bush", builder().pushReaction(PistonBehavior.DESTROY)));
+
     private static <T extends Block> T register(T block) {
         block.setJavaId(BlockRegistries.JAVA_BLOCKS.get().size());
         BlockRegistries.JAVA_BLOCKS.get().add(block);

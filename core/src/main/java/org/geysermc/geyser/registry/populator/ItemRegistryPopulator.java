@@ -46,6 +46,7 @@ import org.cloudburstmc.nbt.NbtMap;
 import org.cloudburstmc.nbt.NbtMapBuilder;
 import org.cloudburstmc.nbt.NbtUtils;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.Bedrock_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v2168.Bedrock_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v924.Bedrock_v924;
 import org.cloudburstmc.protocol.bedrock.codec.v944.Bedrock_v944;
 import org.cloudburstmc.protocol.bedrock.codec.v975.Bedrock_v975;
@@ -157,6 +158,7 @@ public class ItemRegistryPopulator {
         paletteVersions.add(new PaletteVersion("26_10", Bedrock_v944.CODEC.getProtocolVersion(), ChaosCubedConverter.convertItem()));
         paletteVersions.add(new PaletteVersion("26_20", Bedrock_v975.CODEC.getProtocolVersion(), ChaosCubedConverter.convertItem(), "26_10"));
         paletteVersions.add(new PaletteVersion("26_30", Bedrock_v1001.CODEC.getProtocolVersion()));
+        paletteVersions.add(new PaletteVersion("26_40", Bedrock_v2168.CODEC.getProtocolVersion()));
 
         GeyserBootstrap bootstrap = GeyserImpl.getInstance().getBootstrap();
 
@@ -244,7 +246,10 @@ public class ItemRegistryPopulator {
 
             List<ItemDefinition> buckets = new ObjectArrayList<>();
 
-            List<ItemMapping> mappings = new ObjectArrayList<>();
+            List<ItemMapping> mappings = new ObjectArrayList<>(Registries.JAVA_ITEMS.get().size());
+            while (Registries.JAVA_ITEMS.get().size() >= mappings.size()) {
+                mappings.add(ItemMapping.AIR);
+            }
             // Temporary mapping to create stored items
             Map<Item, ItemMapping> javaItemToMapping = new Object2ObjectOpenHashMap<>();
 
@@ -502,10 +507,6 @@ public class ItemRegistryPopulator {
                         .bedrockBlockDefinition(bedrockBlock)
                         .javaItem(javaItem);
 
-                if (mappingItem.getToolType() != null) {
-                    mappingBuilder = mappingBuilder.toolType(mappingItem.getToolType().intern());
-                }
-
                 if (javaOnlyItems.contains(javaItem)) {
                     // These items don't exist on Bedrock, so set up a variable that indicates they should have custom names
                     mappingBuilder = mappingBuilder.translationString((javaItem instanceof BlockItem ? "block." : "item.") + entry.getKey().replace(":", "."));
@@ -578,7 +579,7 @@ public class ItemRegistryPopulator {
                     buckets.add(definition);
                 }
 
-                mappings.add(mapping);
+                mappings.set(javaItem.javaId(), mapping);
                 javaItemToMapping.put(javaItem, mapping);
             }
 

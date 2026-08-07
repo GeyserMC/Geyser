@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Objects;
 
 @ConfigSerializable
+@Deprecated
 public class GeyserCustomSkullConfiguration {
     private List<String> playerUsernames;
 
@@ -55,6 +56,10 @@ public class GeyserCustomSkullConfiguration {
 
     public List<String> getPlayerSkinHashes() {
         return Objects.requireNonNullElse(skinHashes, Collections.emptyList());
+    }
+
+    public boolean isEmpty() {
+        return getPlayerUsernames().isEmpty() && getPlayerUUIDs().isEmpty() && getPlayerProfiles().isEmpty() && getPlayerSkinHashes().isEmpty();
     }
 
     @Override

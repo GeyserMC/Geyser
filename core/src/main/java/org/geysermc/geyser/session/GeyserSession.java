@@ -94,6 +94,7 @@ import org.cloudburstmc.protocol.bedrock.packet.NetworkStackLatencyPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayStatusPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetCommandsEnabledPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityMotionPacket;
+import org.cloudburstmc.protocol.bedrock.packet.SetPlayerGameTypePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetTimePacket;
 import org.cloudburstmc.protocol.bedrock.packet.StartGamePacket;
 import org.cloudburstmc.protocol.bedrock.packet.SyncEntityPropertyPacket;
@@ -199,6 +200,7 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.CooldownUtils;
 import org.geysermc.geyser.util.EntityUtils;
+import org.geysermc.geyser.util.GeyserIntegratedPackUtil;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.LoginEncryptionUtils;
 import org.geysermc.geyser.util.MathUtils;
@@ -846,6 +848,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
     private final Set<InputLocksFlag> inputLocksSet = EnumSet.noneOf(InputLocksFlag.class);
     private boolean inputLockDirty;
 
+    private boolean pendingSpectator = false;
+
     public GeyserSession(GeyserImpl geyser, BedrockServerSession bedrockServerSession, EventLoop tickEventLoop) {
         this.geyser = geyser;
         this.upstream = new UpstreamSession(bedrockServerSession);
@@ -917,7 +921,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
             geyser.getLogger().debug("Extending overworld dimension to " + minY + " - " + maxY);
 
             DimensionDataPacket dimensionDataPacket = new DimensionDataPacket();
-            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5, 3));
+            dimensionDataPacket.getDefinitions().add(new DimensionDefinition("minecraft:overworld", maxY, minY, 5, 3, GeyserIntegratedPackUtil.INTEGRATED_PACK_UUID));
             upstream.sendPacket(dimensionDataPacket);
         }
 
@@ -935,6 +939,13 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         sendInitialPlayerState();
         sendInitialGameRules();
         resetTimeParameters();
+
+        if (pendingSpectator) {
+            pendingSpectator = false;
+            SetPlayerGameTypePacket gameTypePacket = new SetPlayerGameTypePacket();
+            gameTypePacket.setGamemode(GameType.SURVIVAL_VIEWER.ordinal());
+            this.upstream.sendPacket(gameTypePacket);
+        }
     }
 
     /**
@@ -1860,6 +1871,10 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public boolean sendForm(@NonNull Form form) {
+        // Check if we're in the config stage, if so, prepare the client for forms
+        if (this.downstream != null && this.downstream.getSession().getPacketProtocol().getInboundState().equals(ProtocolState.CONFIGURATION)) {
+            this.prepareForConfigurationForm();
+        }
         // First close any dialogs that are open. This won't execute the dialog's closing action.
         dialogManager.close();
         return doSendForm(form);
@@ -1983,7 +1998,12 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
         StartGamePacket startGamePacket = new StartGamePacket();
         startGamePacket.setUniqueEntityId(playerEntity.geyserId());
         startGamePacket.setRuntimeEntityId(playerEntity.geyserId());
-        startGamePacket.setPlayerGameType(EntityUtils.toBedrockGamemode(gameMode));
+        GameType gameType = EntityUtils.toBedrockGamemode(gameMode);
+        if (gameType == GameType.SURVIVAL_VIEWER && GameProtocol.is26_40orHigher(this.protocolVersion())) {
+            gameType = GameType.SURVIVAL;
+            pendingSpectator = true;
+        }
+        startGamePacket.setPlayerGameType(gameType);
         startGamePacket.setPlayerPosition(Vector3f.from(0, 69, 0));
         startGamePacket.setRotation(Vector2f.from(1, 1));
 
@@ -2537,7 +2557,7 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
 
     @Override
     public @NonNull String playFabId() {
-        return authData.playFabId();
+        return authData.playFabId() == null ? "" : authData.playFabId();
     }
 
     @Override
