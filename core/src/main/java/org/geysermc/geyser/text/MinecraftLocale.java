@@ -30,9 +30,9 @@ import com.google.gson.JsonObject;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.util.AssetUtils;
+import org.geysermc.geyser.util.FancyHttpClient;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.JsonUtils;
-import org.geysermc.geyser.util.WebUtils;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -155,7 +155,7 @@ public class MinecraftLocale {
         try {
             // Get the hash and download the locale
             String hash = AssetUtils.getAsset("minecraft/lang/" + locale + ".json").getHash();
-            WebUtils.downloadFile("https://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile.toString());
+            FancyHttpClient.oneShot(client -> client.downloadFile("https://resources.download.minecraft.net/" + hash.substring(0, 2) + "/" + hash, localeFile)).join();
         } catch (Exception e) {
             GeyserImpl.getInstance().getLogger().error("Unable to download locale file hash", e);
         }

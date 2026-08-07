@@ -25,6 +25,7 @@
 
 package org.geysermc.geyser.util;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
@@ -39,9 +40,7 @@ import org.geysermc.geyser.command.GeyserCommandSource;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.text.GeyserLocale;
 
-import java.net.UnknownHostException;
 import java.util.OptionalInt;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -91,42 +90,41 @@ public final class VersionCheckUtils {
     }
 
     public static void checkForGeyserUpdate(Supplier<GeyserCommandSource> recipient) {
-        CompletableFuture.runAsync(() -> {
-            try {
-                JsonObject json = WebUtils.getJson("https://api.geysermc.org/v2/versions/geyser");
-                JsonObject bedrock = json.getAsJsonObject("bedrock").getAsJsonObject("protocol");
-                int protocolVersion = bedrock.get("id").getAsInt();
-                if (GameProtocol.getBedrockCodec(protocolVersion) != null) {
-                    LATEST_BEDROCK_RELEASE = OptionalInt.empty();
-                    // We support the latest version! No need to print a message.
-                    return;
-                }
+        FancyHttpClient.oneShot(client -> client.getJson("https://api.geysermc.org/v2/versions/geyser")
+            .thenApply(JsonElement::getAsJsonObject)
+            .thenAccept(json -> {
+                try {
+                    JsonObject bedrock = json.getAsJsonObject("bedrock").getAsJsonObject("protocol");
+                    int protocolVersion = bedrock.get("id").getAsInt();
+                    if (GameProtocol.getBedrockCodec(protocolVersion) != null) {
+                        LATEST_BEDROCK_RELEASE = OptionalInt.empty();
+                        // We support the latest version! No need to print a message.
+                        return;
+                    }
 
-                LATEST_BEDROCK_RELEASE = OptionalInt.of(protocolVersion);
-                final String newBedrockVersion = bedrock.get("name").getAsString();
+                    LATEST_BEDROCK_RELEASE = OptionalInt.of(protocolVersion);
+                    final String newBedrockVersion = bedrock.get("name").getAsString();
 
-                // Delayed for two reasons: save unnecessary processing, and wait to load locale if this is on join.
-                GeyserCommandSource sender = recipient.get();
+                    // Delayed for two reasons: save unnecessary processing, and wait to load locale if this is on join.
+                    GeyserCommandSource sender = recipient.get();
 
-                // Overarching component is green - geyser.version.new component cannot be green or else the link blue is overshadowed
-                Component message = Component.text().color(NamedTextColor.GREEN)
+                    // Overarching component is green - geyser.version.new component cannot be green or else the link blue is overshadowed
+                    Component message = Component.text().color(NamedTextColor.GREEN)
                         .append(Component.text(GeyserLocale.getPlayerLocaleString("geyser.version.new", sender.locale(), newBedrockVersion))
-                                .replaceText(TextReplacementConfig.builder()
-                                        .match("\\{1\\}") // Replace "Download here: {1}" so we can use fancy text component yesyes
-                                        .replacement(Component.text()
-                                                .content(Constants.GEYSER_DOWNLOAD_LOCATION)
-                                                .color(NamedTextColor.BLUE)
-                                                .decoration(TextDecoration.UNDERLINED, TextDecoration.State.TRUE)
-                                                .clickEvent(ClickEvent.openUrl(Constants.GEYSER_DOWNLOAD_LOCATION)))
-                                        .build()))
+                            .replaceText(TextReplacementConfig.builder()
+                                .match("\\{1\\}") // Replace "Download here: {1}" so we can use fancy text component yesyes
+                                .replacement(Component.text()
+                                    .content(Constants.GEYSER_DOWNLOAD_LOCATION)
+                                    .color(NamedTextColor.BLUE)
+                                    .decoration(TextDecoration.UNDERLINED, TextDecoration.State.TRUE)
+                                    .clickEvent(ClickEvent.openUrl(Constants.GEYSER_DOWNLOAD_LOCATION)))
+                                .build()))
                         .build();
-                sender.sendMessage(message);
-            } catch (UnknownHostException e) {
-                GeyserImpl.getInstance().getLogger().error("Unable to resolve Geyser api! Cannot check for Geyser updates.");
-            } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().error("Error whilst checking for Geyser update!", e);
-            }
-        });
+                    sender.sendMessage(message);
+                } catch (Exception e) {
+                    GeyserImpl.getInstance().getLogger().error("Error whilst checking for Geyser update!", e);
+                }
+            }));
     }
 
     public static @NonNull OptionalInt getLatestBedrockRelease() {

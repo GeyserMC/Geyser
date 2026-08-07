@@ -25,10 +25,8 @@
 
 package org.geysermc.geyser.util;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonSyntaxException;
 import org.geysermc.floodgate.news.NewsItem;
 import org.geysermc.floodgate.news.NewsItemAction;
 import org.geysermc.floodgate.news.data.AnnouncementData;
@@ -40,8 +38,12 @@ import org.geysermc.geyser.GeyserLogger;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.ChatColor;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -49,7 +51,6 @@ import java.util.concurrent.TimeUnit;
 public class NewsHandler {
     private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
     private final GeyserLogger logger = GeyserImpl.getInstance().getLogger();
-    private final Gson gson = new Gson();
 
     private final Map<Integer, NewsItem> activeNewsItems = new HashMap<>();
     private final String branch;
@@ -70,11 +71,11 @@ public class NewsHandler {
 
     private void checkNews() {
         try {
-            String body = WebUtils.getBody(Constants.NEWS_OVERVIEW_URL + Constants.NEWS_PROJECT_NAME);
-            JsonArray array = gson.fromJson(body, JsonArray.class);
+            JsonArray news = FancyHttpClient.oneShot(client -> client.getJson(Constants.NEWS_OVERVIEW_URL + Constants.NEWS_PROJECT_NAME)
+                .thenApply(JsonElement::getAsJsonArray)).join();
 
             try {
-                for (JsonElement newsItemElement : array) {
+                for (JsonElement newsItemElement : news) {
                     NewsItem newsItem = NewsItem.readItem(newsItemElement.getAsJsonObject());
                     if (newsItem != null) {
                         addNews(newsItem);
@@ -86,7 +87,7 @@ public class NewsHandler {
                     logger.error("Error while reading news item", e);
                 }
             }
-        } catch (IOException | JsonSyntaxException ignored) {}
+        } catch (CompletionException ignored) {}
     }
 
     public void handleNews(GeyserSession session, NewsItemAction action) {
