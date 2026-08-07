@@ -274,6 +274,16 @@ public final class GeyserServer {
     }
 
     public BedrockPong onQuery(Channel channel, InetSocketAddress inetSocketAddress) {
+        return onQuery(inetSocketAddress, channel.config().getOption(RakChannelOption.RAK_GUID));
+    }
+
+    /**
+     * Builds the pong without a RakNet channel, so the NetherNet HTTP
+     * capability check can answer with the same values (MOTD passthrough,
+     * the ping event, and the fallbacks included) and the two transports
+     * always describe the server identically.
+     */
+    public BedrockPong onQuery(InetSocketAddress inetSocketAddress, long serverId) {
         if (geyser.config().debugMode() && PRINT_DEBUG_PINGS) {
             String ip = geyser.config().logPlayerIpAddresses() ? inetSocketAddress.toString() : "<IP address withheld>";
             geyser.getLogger().debug(GeyserLocale.getLocaleStringLog("geyser.network.pinged", ip));
@@ -297,7 +307,7 @@ public final class GeyserServer {
                 .version(PING_VERSION)
                 .ipv4Port(this.broadcastPort)
                 .ipv6Port(this.broadcastPort)
-                .serverId(channel.config().getOption(RakChannelOption.RAK_GUID));
+                .serverId(serverId);
 
         if (config.motd().passthroughMotd() && pingInfo != null && pingInfo.getDescription() != null) {
             String[] motd = MessageTranslator.convertToPlainTextLenient(pingInfo.getDescription(), GeyserLocale.getDefaultLocale()).split("\n");

@@ -27,6 +27,7 @@ package org.geysermc.geyser.network.nethernet;
 
 import dev.kastle.netty.channel.nethernet.NetherNetAnswerDecorator;
 import dev.kastle.netty.channel.nethernet.NetherNetChannelFactory;
+import dev.kastle.netty.channel.nethernet.NetherNetServerStatus;
 import dev.kastle.netty.channel.nethernet.config.NetherChannelOption;
 import dev.kastle.netty.channel.nethernet.signaling.NetherNetHttpSignaling;
 import dev.kastle.netty.channel.nethernet.signaling.NetherNetXboxRpcSignaling;
@@ -42,6 +43,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 
@@ -88,6 +90,10 @@ public class NetherNetServer {
     private static final long RECONNECT_BASE_DELAY_MILLIS = 10_000;
     private static final long RECONNECT_MAX_DELAY_MILLIS = 120_000;
     private static final String LOG_PREFIX = "[Nethernet] ";
+    /** ServerData schema version vanilla 1.26.50 reports. */
+    private static final int SERVER_DATA_VERSION = 7;
+    /** Vanilla generates the status nonce once per process start. */
+    private static final String STATUS_NONCE = NetherNetServerStatus.randomNonce();
 
     private final GeyserImpl geyser;
     private final GeyserLogger logger;
@@ -369,6 +375,7 @@ public class NetherNetServer {
             tlsMode = "automatic certificate management";
         }
         this.httpSignaling = new NetherNetHttpSignaling(tlsSupplier, workerGroup);
+        this.httpSignaling.setStatusSupplier(this::buildServerStatus);
         try {
             ServerBootstrap httpBootstrap = new ServerBootstrap();
             httpBootstrap.group(bossGroup, workerGroup)
@@ -403,6 +410,52 @@ public class NetherNetServer {
      * the fastest RakNet fallback); the RPC channel binds regardless so
      * older clients can still join.
      */
+    /**
+     * The server status answered on the HTTP capability check: the NetherNet
+     * equivalent of the RakNet unconnected pong, matching vanilla's fourteen
+     * member ServerData document. Built from the same pong the RakNet
+     * listener answers pings with, MOTD passthrough, the ping event, and the
+     * fallbacks included, so the two transports always describe the server
+     * identically. Requester independent like vanilla, which serves one
+     * cached record to every requester; the address only feeds the ping
+     * passthrough and event.
+     *
+     * Both auth bits are true because we accept Microsoft authenticated and
+     * self signed identities alike: client assertions are stripped rather
+     * than validated, RakNet parity being the security bar.
+     */
+    private NetherNetServerStatus buildServerStatus() {
+        BedrockPong pong = geyser.getGeyserServer().onQuery(new InetSocketAddress(
+                geyser.config().bedrock().address(), geyser.config().bedrock().port()), 0L);
+        return NetherNetServerStatus.builder()
+                .dataVersion(SERVER_DATA_VERSION)
+                .name(pong.motd())
+                .protocol(pong.protocolVersion())
+                .version(pong.version())
+                .level(pong.subMotd())
+                .players(pong.playerCount())
+                .maxPlayers(pong.maximumPlayerCount())
+                .gameType(gameTypeId(pong.gameType()))
+                .editor(false)
+                .hardcore(false)
+                .onlineAuth(true)
+                .selfSignedAuth(true)
+                .nonce(STATUS_NONCE)
+                .connection(NetherNetServerStatus.CONNECTION_LAN_WEBRTC_SIGNALING)
+                .build();
+    }
+
+    /** The pong carries the game type as a display string; ServerData wants the numeric GameType. */
+    private static int gameTypeId(String gameType) {
+        if ("Creative".equalsIgnoreCase(gameType)) {
+            return NetherNetServerStatus.GAME_TYPE_CREATIVE;
+        }
+        if ("Adventure".equalsIgnoreCase(gameType)) {
+            return NetherNetServerStatus.GAME_TYPE_ADVENTURE;
+        }
+        return NetherNetServerStatus.GAME_TYPE_SURVIVAL;
+    }
+
     private NetherNetAnswerDecorator loadIdentityDecorator() throws Exception {
         try {
             NetherNetServerIdentity identity = NetherNetServerIdentity.loadOrCreate(
