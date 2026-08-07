@@ -5,11 +5,11 @@ A [Geyser](https://github.com/GeyserMC/Geyser) fork that enables **Minecraft Edu
 ## Features
 
 - Education Edition clients can connect to any Java server running EduGeyser
-- Students from any school or tenant can join without server-side configuration
+- Players from any school or tenant can join without server-side configuration
 - Verified player identity via Microsoft Education Services
 - Education player skins visible to Java players via the [EduGeyser Signing Relay](https://github.com/SendableMetatype/EduGeyser-Signing-Relay)
 - [Floodgate](https://github.com/SendableMetatype/EduFloodgate) integration with education-specific UUIDs and username formatting
-- [Geyser Education Extension](https://github.com/SendableMetatype/Geyser-Education-Extension) providing join codes, connection IDs, and server list broadcasting for student access
+- [Geyser Education Extension](https://github.com/SendableMetatype/Geyser-Education-Extension) providing join codes, connection IDs, and server list broadcasting for player access
 
 ## Downloads
 
@@ -17,7 +17,7 @@ Pre-built jars are available on the [Releases](https://github.com/SendableMetaty
 
 ## Documentation
 
-- **[Setup Guide](https://codeberg.org/SendableMetatype/EduGeyser-Docs/src/branch/master/SETUP-GUIDE.md)** - How to install and get students connected
+- **[Setup Guide](https://codeberg.org/SendableMetatype/EduGeyser-Docs/src/branch/master/SETUP-GUIDE.md)** - How to install and get players connected
 - **[MESS Tooling Reference](https://codeberg.org/SendableMetatype/EduGeyser-Docs/src/branch/master/MESS-Tooling-Notebook-Reference.md)** - Technical reference for the Microsoft Education Server Services API
 - **[Master Documentation](https://codeberg.org/SendableMetatype/EduGeyser-Docs/src/branch/master/edugeyser-master-documentation.md)** - Authentication flow, protocol differences, and MESS API details
 

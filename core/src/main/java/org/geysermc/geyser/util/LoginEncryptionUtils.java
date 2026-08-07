@@ -142,7 +142,7 @@ public class LoginEncryptionUtils {
 
                 if (tokenResult.getStatus() == EducationTokenValidationResult.Status.EXPIRED) {
                     // 10-day tokens commonly expire while the client is still running
-                    // (e.g. a student leaves their Chromebook logged in for 2+ weeks).
+                    // (e.g. a player leaves their Chromebook logged in for 2+ weeks).
                     // Tell them exactly what to do instead of a generic auth-failure.
                     geyser.getLogger().debug("MESS token expired for " + session.bedrockUsername());
                     session.disconnect("Your Education Edition session has expired.\n\nPlease fully restart Minecraft Education Edition and try again.");
