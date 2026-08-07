@@ -29,6 +29,7 @@ import net.kyori.adventure.key.Key;
 import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.cumulus.form.SimpleForm;
+import org.geysermc.cumulus.util.FormImage;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.session.dialog.input.ParsedInputs;
 import org.geysermc.geyser.util.MinecraftKey;
@@ -58,7 +59,13 @@ public class NoticeDialog extends Dialog {
 
     @Override
     protected void addCustomComponents(DialogHolder holder, SimpleForm.Builder builder) {
-        builder.button(button.map(DialogButton::label).orElse("gui.ok"))
-            .validResultHandler(response -> holder.runButton(button, ParsedInputs.EMPTY));
+        String label = button.map(DialogButton::label).orElse("gui.ok");
+        Optional<FormImage> icon = button.flatMap(DialogButton::icon);
+        if (icon.isPresent()) {
+            builder.button(label, icon.get());
+        } else {
+            builder.button(label);
+        }
+        builder.validResultHandler(response -> holder.runButton(button, ParsedInputs.EMPTY));
     }
 }

@@ -556,7 +556,7 @@ public class MessageTranslator {
         } else if (nbtTag instanceof List<?> list) {
             return Component.join(JoinConfiguration.noSeparators(), componentsFromNbtList(list, style));
         } else if (nbtTag instanceof NbtMap map) {
-            Component component = null;
+            Component component;
             String text = map.getString("text", map.getString("", null));
             if (text != null) {
                 component = Component.text(text);
@@ -573,23 +573,31 @@ public class MessageTranslator {
                         args.add(componentFromNbtTag(with, style));
                     }
                     component = Component.translatable(translateKey, fallback, args);
+                } else {
+                    // No renderable text content. This is expected for "object" components (atlas sprites, player
+                    // heads, ...) which Bedrock cannot render inline; anything else is unexpected and still worth
+                    // logging. Either way we fall back to an empty base so styling and any child components in
+                    // "extra" are still rendered, rather than dropping the whole component (and the text around
+                    // it) on the floor. See GeyserMC/Geyser#6499.
+                    if (!"object".equals(map.getString("type", null))) {
+                        GeyserImpl.getInstance().getLogger().error("Expected tag to be a literal string, a list of components, or a component object with a text/translate key: " + nbtTag);
+                    }
+                    component = Component.empty();
                 }
             }
 
-            if (component != null) {
-                Style newStyle = getStyleFromNbtMap(map, style);
-                component = component.style(newStyle);
+            Style newStyle = getStyleFromNbtMap(map, style);
+            component = component.style(newStyle);
 
-                Object extra = map.get("extra");
-                if (extra != null) {
-                    component = component.append(componentFromNbtTag(extra, newStyle));
-                }
-
-                return component;
+            Object extra = map.get("extra");
+            if (extra != null) {
+                component = component.append(componentFromNbtTag(extra, newStyle));
             }
+
+            return component;
         }
 
-        GeyserImpl.getInstance().getLogger().error("Expected tag to be a literal string, a list of components, or a component object with a text/translate key: " + nbtTag);
+        GeyserImpl.getInstance().getLogger().error("Expected tag to be a literal string, a list of components, or a component object: " + nbtTag);
         return Component.empty();
     }
 
