@@ -74,9 +74,13 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.KeyStore;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.ECGenParameterSpec;
@@ -144,6 +148,8 @@ public final class NetherNetCertificateManager implements AutoCloseable {
     private final boolean staging = Boolean.getBoolean("geyser.nethernet.acme.staging");
 
     private final AtomicReference<SslContext> currentContext = new AtomicReference<>();
+    private final AtomicReference<Instant> currentExpiry = new AtomicReference<>();
+    private volatile boolean expiryWarned;
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
         Thread thread = new Thread(runnable, "Nethernet ACME");
         thread.setDaemon(true);
@@ -166,9 +172,89 @@ public final class NetherNetCertificateManager implements AutoCloseable {
         this.acmeDir = nethernetDir.resolve("acme");
     }
 
-    /** The TLS context to serve, or null while no valid certificate exists. */
+    /**
+     * The TLS context to serve, or null while no valid certificate exists.
+     * An expired certificate is withdrawn rather than served: clients treat
+     * an invalid certificate as terminal for signaling and go to RakNet,
+     * while a server that refuses TLS outright sends 26.40 and later
+     * clients to plain HTTP and their TOFU flow, keeping NetherNet alive.
+     * Consulted per connection, so withdrawal needs no rebind and reverses
+     * itself the moment a renewal succeeds.
+     */
     public SslContext currentContext() {
-        return currentContext.get();
+        SslContext context = currentContext.get();
+        if (context == null) {
+            return null;
+        }
+        Instant expiry = currentExpiry.get();
+        if (expiry != null && !Instant.now().isBefore(expiry)) {
+            if (!expiryWarned) {
+                expiryWarned = true;
+                logger.warning(LOG_PREFIX + "HTTP signaling certificate expired " + expiry
+                        + " and renewal has not succeeded; withdrawing TLS so updated clients"
+                        + " fall back to plain HTTP with their trust prompt");
+            }
+            return null;
+        }
+        return context;
+    }
+
+    /**
+     * Publishes a freshly adopted or issued certificate atomically with its
+     * expiry, unless a stock client would reject it, in which case TLS is
+     * withdrawn instead: serving rejected material sends clients to RakNet,
+     * refusing TLS sends 26.40 and later to plain HTTP and their TOFU flow.
+     * For a certificate this manager just obtained from Let's Encrypt a
+     * rejection is pathological (a JVM trust store without the ISRG root),
+     * but the same gate applies to every certificate regardless of origin.
+     */
+    private boolean adoptContext(SslContext context, List<X509Certificate> chain) {
+        String rejection = clientRejectionReason(chain);
+        if (rejection != null) {
+            currentContext.set(null);
+            currentExpiry.set(null);
+            logger.warning(LOG_PREFIX + "Certificate not served: a stock client rejects it ("
+                    + rejection + "). TLS is withdrawn; updated clients fall back to plain HTTP"
+                    + " with their trust prompt");
+            return false;
+        }
+        currentExpiry.set(chain.get(0).getNotAfter().toInstant());
+        currentContext.set(context);
+        expiryWarned = false;
+        return true;
+    }
+
+    /**
+     * Why a stock client would reject this chain, or null if it would not:
+     * temporal validity and a path to the platform trust anchors, checked
+     * the way a client checks them. Deliberately unchecked: SAN matching
+     * (the server cannot know which address clients dial) and privately
+     * trusted certificates (a client with a hand loaded trust store is
+     * rejected here). Source agnostic; the manual certificate path applies
+     * the same gate.
+     */
+    static String clientRejectionReason(List<X509Certificate> chain) {
+        if (chain.isEmpty()) {
+            return "no certificates in the file";
+        }
+        try {
+            TrustManagerFactory factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            factory.init((KeyStore) null);
+            for (TrustManager manager : factory.getTrustManagers()) {
+                if (manager instanceof X509TrustManager trustManager) {
+                    // The authType parameter takes TLS authentication types,
+                    // not key algorithms; UNKNOWN is what JSSE itself passes
+                    // on every TLS 1.3 connection (suites stopped encoding
+                    // the auth type) and the JDK accepts it, while a key
+                    // algorithm like EC is rejected as an unknown authType.
+                    trustManager.checkServerTrusted(chain.toArray(new X509Certificate[0]), "UNKNOWN");
+                    return null;
+                }
+            }
+            return "no platform trust manager available";
+        } catch (Exception e) {
+            return e.getMessage();
+        }
     }
 
     /**
@@ -221,10 +307,11 @@ public final class NetherNetCertificateManager implements AutoCloseable {
         Path domainKeyFile = acmeDir.resolve("domain-key.pem");
 
         if (Files.exists(certFile) && Files.exists(domainKeyFile)) {
-            X509Certificate leaf = readLeafCertificate(certFile);
+            List<X509Certificate> chain = readChain(certFile);
+            X509Certificate leaf = chain.get(0);
             if (!needsRenewal(leaf.getNotBefore().toInstant(), leaf.getNotAfter().toInstant(), Instant.now())) {
-                if (currentContext.get() == null) {
-                    currentContext.set(buildContext(certFile, domainKeyFile));
+                if (currentContext.get() == null
+                        && adoptContext(buildContext(certFile, domainKeyFile), chain)) {
                     logger.info(LOG_PREFIX + "HTTP signaling certificate loaded (valid until "
                             + leaf.getNotAfter().toInstant() + ")");
                 }
@@ -287,10 +374,11 @@ public final class NetherNetCertificateManager implements AutoCloseable {
         certificate.writeCertificate(pem);
         Files.writeString(certFile, pem.toString(), StandardCharsets.UTF_8);
 
-        currentContext.set(buildContext(certFile, domainKeyFile));
-        X509Certificate leaf = readLeafCertificate(certFile);
-        logger.info(LOG_PREFIX + "HTTP signaling certificate issued for " + ip.getHostAddress()
-                + " (valid until " + leaf.getNotAfter().toInstant() + ")");
+        List<X509Certificate> chain = readChain(certFile);
+        if (adoptContext(buildContext(certFile, domainKeyFile), chain)) {
+            logger.info(LOG_PREFIX + "HTTP signaling certificate issued for " + ip.getHostAddress()
+                    + " (valid until " + chain.get(0).getNotAfter().toInstant() + ")");
+        }
     }
 
     /**
@@ -476,9 +564,11 @@ public final class NetherNetCertificateManager implements AutoCloseable {
         return SslContextBuilder.forServer(key, chain.toArray(new X509Certificate[0])).build();
     }
 
-    private static X509Certificate readLeafCertificate(Path certFile) throws Exception {
+    /** The certificate chain from a PEM file, leaf first. */
+    private static List<X509Certificate> readChain(Path certFile) throws Exception {
         try (var in = Files.newInputStream(certFile)) {
-            return (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(in);
+            return CertificateFactory.getInstance("X.509").generateCertificates(in).stream()
+                    .map(X509Certificate.class::cast).toList();
         }
     }
 

@@ -41,7 +41,6 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
@@ -352,22 +351,24 @@ public class NetherNetServer {
             throw new IllegalStateException("server identity unavailable");
         }
 
-        // Manual certificate files win and are the ACME opt out; files that
-        // are present but unloadable mean plaintext with an accurate warning
-        // (never silent ACME enrollment against the operator's intent). Only
-        // when no files exist at all does automatic management run.
-        ManualTls manualTls = loadHttpSignalingTls();
+        // Manual certificate files win and are the ACME opt out (never
+        // silent ACME enrollment against the operator's intent); only when
+        // no files exist at bind does automatic management run. The manual
+        // source re-reads the files whenever they change, so certificates
+        // can be swapped live, and both sources withdraw TLS rather than
+        // serve anything a stock client would reject.
+        Path nethernetDir = geyser.getBootstrap().getConfigFolder().resolve("nethernet");
+        Path manualCert = nethernetDir.resolve("cert.pem");
+        Path manualKey = nethernetDir.resolve("key.pem");
         Supplier<SslContext> tlsSupplier;
         String tlsMode;
-        if (manualTls != null) {
-            if (manualTls.context() != null) {
-                SslContext context = manualTls.context();
-                tlsSupplier = () -> context;
-                tlsMode = "TLS, manual certificate";
-            } else {
-                tlsSupplier = () -> null;
-                tlsMode = "plaintext; manual certificate failed to load: " + manualTls.error();
-            }
+        if (Files.exists(manualCert) && Files.exists(manualKey)) {
+            NetherNetManualTlsSource manualSource = new NetherNetManualTlsSource(manualCert, manualKey, logger);
+            tlsSupplier = manualSource;
+            String problem = manualSource.currentProblem();
+            tlsMode = problem == null
+                    ? "TLS, manual certificate, reloaded on change"
+                    : "plaintext; manual certificate withheld: " + problem;
         } else {
             this.certificateManager = new NetherNetCertificateManager(
                     geyser.getBootstrap().getConfigFolder().resolve("nethernet"), logger);
@@ -463,36 +464,6 @@ public class NetherNetServer {
             return identity::decorate;
         } catch (Exception e) {
             throw new IllegalStateException("server identity unavailable: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * The operator supplied TLS state: both fields null never occurs; a null
-     * context with an error means files exist but could not be loaded.
-     */
-    private record ManualTls(SslContext context, String error) {
-    }
-
-    /**
-     * Loads the operator supplied TLS material for HTTP signaling from
-     * nethernet/cert.pem and nethernet/key.pem in the config folder (PEM
-     * certificate chain and PKCS#8 private key). Null when absent (automatic
-     * management applies); an unloadable pair is reported rather than
-     * silently replaced, since supplying files is the ACME opt out.
-     */
-    private ManualTls loadHttpSignalingTls() {
-        Path nethernetDir = geyser.getBootstrap().getConfigFolder().resolve("nethernet");
-        Path cert = nethernetDir.resolve("cert.pem");
-        Path key = nethernetDir.resolve("key.pem");
-        if (!Files.exists(cert) || !Files.exists(key)) {
-            return null;
-        }
-        try {
-            return new ManualTls(SslContextBuilder.forServer(cert.toFile(), key.toFile()).build(), null);
-        } catch (Exception e) {
-            logger.warning(LOG_PREFIX + "Failed to load nethernet/cert.pem + key.pem (" + e.getMessage()
-                    + "); serving plaintext. Fix or remove the files (removing them enables automatic certificates)");
-            return new ManualTls(null, e.getMessage());
         }
     }
 
