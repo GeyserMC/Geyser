@@ -25,6 +25,9 @@
 
 package org.geysermc.geyser.registry;
 
+import java.util.BitSet;
+import java.util.Collection;
+import java.util.Map;
 import java.util.function.Consumer;
 import org.geysermc.geyser.registry.loader.RegistryLoader;
 
@@ -109,5 +112,21 @@ public abstract class Registry<M> implements IRegistry<M> {
     @Override
     public void register(Consumer<M> consumer) {
         consumer.accept(this.mappings);
+    }
+
+    /**
+     * Clears The Mappings.
+     */
+    @Override
+    public void clear() {
+        if (this.mappings instanceof Collection) {
+            ((Collection<?>) this.mappings).clear();
+        } else if (this.mappings instanceof Map) {
+            ((Map<?, ?>) this.mappings).clear();
+        } else if (this.mappings instanceof BitSet) {
+            ((BitSet) this.mappings).clear();
+        } else {
+            throw new UnsupportedOperationException("Cannot clear registry of type " + (this.mappings == null ? "null" : this.mappings.getClass().getName()));
+        }
     }
 }
