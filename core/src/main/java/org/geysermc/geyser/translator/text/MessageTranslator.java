@@ -80,6 +80,7 @@ public class MessageTranslator {
     private static final String RESET = BASE + "r";
     private static final Pattern RESET_PATTERN = Pattern.compile("(" + RESET + "){2,}");
     private static final Pattern LOCALIZATION_PATTERN = Pattern.compile("%(?:(\\d+)\\$)?s");
+    private static final int MAX_TRANSLATION_AMPLIFICATION = 4_096;
 
     static {
         GSON_SERIALIZER = DefaultComponentSerializer.get()
@@ -206,6 +207,10 @@ public class MessageTranslator {
 
     private static String convertMessage(Component message, String locale, boolean addLeadingResetFormat) {
         try {
+            if (translationAmplification(message) > MAX_TRANSLATION_AMPLIFICATION) {
+                return "";
+            }
+
             // Translate any components that require it
             message = RENDERER.render(message, locale);
 
@@ -282,6 +287,39 @@ public class MessageTranslator {
 
             return "";
         }
+    }
+
+    private static long translationAmplification(Component component) {
+        long amplification = 1;
+        if (component instanceof TranslatableComponent translatable) {
+            String translated = translatable.fallback() != null ? translatable.fallback() : translatable.key();
+            Matcher matcher = LOCALIZATION_PATTERN.matcher(translated);
+            List<TranslationArgument> args = translatable.arguments();
+            int argPosition = 0;
+            int[] occurrences = new int[args.size()];
+            while (matcher.find()) {
+                try {
+                    String argIdx = matcher.group(1);
+                    int idx = argIdx != null ? Integer.parseInt(argIdx) - 1 : argPosition++;
+                    if (idx >= 0 && idx < args.size()) {
+                        occurrences[idx]++;
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+
+            for (int i = 0; i < occurrences.length; i++) {
+                if (occurrences[i] > 0) {
+                    amplification = Math.max(amplification, Math.min(MAX_TRANSLATION_AMPLIFICATION + 1L,
+                            occurrences[i] * translationAmplification(args.get(i).asComponent())));
+                }
+            }
+        }
+
+        for (Component child : component.children()) {
+            amplification = Math.max(amplification, translationAmplification(child));
+        }
+        return amplification;
     }
 
     public static String convertJsonMessage(String message, String locale) {
