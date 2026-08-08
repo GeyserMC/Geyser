@@ -41,9 +41,15 @@ public class JavaBlockDestructionTranslator extends PacketTranslator<Clientbound
     @Override
     public void translate(GeyserSession session, ClientboundBlockDestructionPacket packet) {
         if (packet.getStage() == BlockBreakStage.RESET) {
-            // Invalidate the position now that it's not being broken anymore
-            session.getBlockBreakHandler().getDestructionStageCache().invalidate(packet.getPosition());
-            BlockUtils.sendBedrockStopBlockBreak(session, packet.getPosition().toFloat());
+            if (!session.getBlockBreakHandler().clearDestructionAt(packet.getPosition())) {
+                BlockUtils.sendBedrockStopBlockBreak(session, packet.getPosition().toFloat());
+            }
+            return;
+        }
+
+        // Local mining already has a per-tick speed from BlockBreakHandler.
+        // Translating the server echo as well would make two animations compete.
+        if (packet.getPosition().equals(session.getBlockBreakHandler().getCurrentBlockPos())) {
             return;
         }
 
@@ -52,22 +58,42 @@ public class JavaBlockDestructionTranslator extends PacketTranslator<Clientbound
         levelEventPacket.setPosition(packet.getPosition().toFloat());
 
         // First: Check if we know when the last packet for this position was sent - we'll use that for our estimation
+        long currentTick = session.getTicks();
         Pair<Long, BlockBreakStage> lastUpdate = session.getBlockBreakHandler().getDestructionStageCache().getIfPresent(packet.getPosition());
+        if (lastUpdate != null && packet.getStage().compareTo(lastUpdate.second()) < 0) {
+            // A new mining sequence can start at the same position before a
+            // RESET packet arrives. Stop the old overlay instead of treating
+            // every stage of the new sequence as out-of-order.
+            session.getBlockBreakHandler().clearDestructionAt(packet.getPosition());
+            lastUpdate = null;
+        }
         if (lastUpdate == null) {
             levelEventPacket.setType(LevelEvent.BLOCK_START_BREAK);
             levelEventPacket.setData(65535 / 6000); // just a high value (5 mins), we'll update this once we get a new progress update
         } else {
-            // Ticks since last update
-            int ticksSince = (int) (session.getClientTicks() - lastUpdate.first());
+            int ticksSince = (int) (currentTick - lastUpdate.first());
             int stagesSince = packet.getStage().compareTo(lastUpdate.second());
-            int ticksPerStage = stagesSince == 0 ? ticksSince : ticksSince / stagesSince;
-            int remainingStages = 10 - packet.getStage().ordinal();
+            if (ticksSince <= 0 || stagesSince <= 0) {
+                return;
+            }
+
+            Integer stableSpeed = session.getBlockBreakHandler().getDestructionSpeedCache().getIfPresent(packet.getPosition());
+            if (stableSpeed == null) {
+                // The Bedrock animation started close to zero. Estimate the
+                // server's stage rate once, then choose one stable speed that
+                // catches up and reaches 100% at the same time as Java.
+                float serverProgressPerTick = stagesSince / (10.0f * ticksSince);
+                float serverProgress = Math.clamp(packet.getStage().ordinal() / 10.0f, 0.0f, 0.9f);
+                int remainingTicks = Math.max(1, Math.round((1.0f - serverProgress) / serverProgressPerTick));
+                stableSpeed = Math.clamp(Math.round(65535.0f / remainingTicks), 1, 65535);
+                session.getBlockBreakHandler().getDestructionSpeedCache().put(packet.getPosition(), stableSpeed);
+            }
 
             levelEventPacket.setType(LevelEvent.BLOCK_UPDATE_BREAK);
-            levelEventPacket.setData(65535 / Math.max(remainingStages, 1) * Math.max(ticksPerStage, 1));
+            levelEventPacket.setData(stableSpeed);
         }
 
-        session.getBlockBreakHandler().getDestructionStageCache().put(packet.getPosition(), Pair.of(session.getClientTicks(), packet.getStage()));
+        session.getBlockBreakHandler().getDestructionStageCache().put(packet.getPosition(), Pair.of(currentTick, packet.getStage()));
         session.sendUpstreamPacket(levelEventPacket);
     }
 }
