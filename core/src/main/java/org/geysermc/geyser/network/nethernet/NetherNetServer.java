@@ -46,15 +46,19 @@ import org.cloudburstmc.protocol.bedrock.BedrockPong;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.GeyserLogger;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 /**
@@ -93,6 +97,8 @@ public class NetherNetServer {
     private static final int SERVER_DATA_VERSION = 7;
     /** Vanilla generates the status nonce once per process start. */
     private static final String STATUS_NONCE = NetherNetServerStatus.randomNonce();
+    /** How stale the served status snapshot may grow before a probe triggers a refresh. */
+    private static final long STATUS_MAX_AGE_NANOS = TimeUnit.SECONDS.toNanos(1);
 
     private final GeyserImpl geyser;
     private final GeyserLogger logger;
@@ -118,9 +124,25 @@ public class NetherNetServer {
     private NetherNetHttpSignaling httpSignaling;
     private NetherNetCertificateManager certificateManager;
 
-    private ScheduledExecutorService scheduler;
+    private volatile ScheduledExecutorService scheduler;
+    // Status refreshes get their own thread: the build can block unboundedly
+    // on the Java ping passthrough's plugin event chain, and parking the
+    // maintenance scheduler on it would silence the signaling watchdog, the
+    // exact coupling that moving the build off I/O threads must not recreate.
+    // Volatile: probe I/O threads read it to schedule refreshes.
+    private volatile ExecutorService statusRefreshExecutor;
     private ScheduledFuture<?> signalingCheckTask;
     private volatile boolean running;
+
+    // The served status snapshot; see serveServerStatus. The initial age is
+    // in the past so the first probe (or the startup prime) refreshes.
+    private volatile NetherNetServerStatus cachedStatus;
+    private volatile long statusBuiltNanos = System.nanoTime() - 2 * STATUS_MAX_AGE_NANOS;
+    // Replaced per start() so a refresh left in flight by a previous
+    // generation clears its own gate rather than the new one's, which would
+    // otherwise let two builds run at once and let the older snapshot win.
+    private volatile AtomicBoolean statusRefreshing = new AtomicBoolean();
+    private volatile InetSocketAddress statusPingAddress;
 
     // Reconnects can block for tens of seconds (PlayFab auth plus the connect
     // timeout). They serialize on their own lock so shutdown() and start(),
@@ -164,6 +186,19 @@ public class NetherNetServer {
         }
 
         scheduler = Executors.newSingleThreadScheduledExecutor();
+        statusRefreshExecutor = Executors.newSingleThreadExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "Nethernet Status");
+            thread.setDaemon(true);
+            return thread;
+        });
+        // A previous shutdown's shutdownNow can discard a queued refresh
+        // whose finally never ran, and restartSignaling starts this instance
+        // again. A fresh gate both clears that stuck state and keeps any
+        // still running refresh from the old generation pointed at its own.
+        statusRefreshing = new AtomicBoolean();
+        // Prime the status snapshot so early probes get a document instead
+        // of the empty body reserved for the pre refresh window.
+        scheduleStatusRefresh();
         signalingCheckTask = scheduler.scheduleAtFixedRate(this::checkSignaling,
                 SIGNALING_CHECK_INTERVAL_SECONDS, SIGNALING_CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS);
 
@@ -227,6 +262,14 @@ public class NetherNetServer {
         if (scheduler != null) {
             scheduler.shutdown();
             scheduler = null;
+        }
+        if (statusRefreshExecutor != null) {
+            // shutdownNow: a refresh can sit blocked on the ping event chain
+            // and deserves the interrupt. This can discard a queued refresh
+            // whose finally never runs; start() resets the flag, since
+            // restartSignaling can start this same instance again.
+            statusRefreshExecutor.shutdownNow();
+            statusRefreshExecutor = null;
         }
         closeChannels();
     }
@@ -376,7 +419,7 @@ public class NetherNetServer {
             tlsMode = "automatic certificate management";
         }
         this.httpSignaling = new NetherNetHttpSignaling(tlsSupplier, workerGroup);
-        this.httpSignaling.setStatusSupplier(this::buildServerStatus);
+        this.httpSignaling.setStatusSupplier(this::serveServerStatus);
         try {
             ServerBootstrap httpBootstrap = new ServerBootstrap();
             httpBootstrap.group(bossGroup, workerGroup)
@@ -403,31 +446,74 @@ public class NetherNetServer {
     }
 
     /**
-     * Loads (or on first use creates) the server identity that signs the
-     * a=identity assertion on every answer. HTTP signaled clients have
-     * always refused answers without it, and since 26.40 clients require
-     * it over Xbox RPC signaling too, so it decorates both paths. A
-     * failure here aborts only the HTTP listener (connection refused is
-     * the fastest RakNet fallback); the RPC channel binds regardless so
-     * older clients can still join.
+     * Serves the status snapshot answered on the HTTP capability check and
+     * keeps it fresh. The supplier runs per probe on connection I/O threads
+     * shared with player traffic, and building the document can block (the
+     * Java ping passthrough and the ping event's listener chain), so probes
+     * never build inline: a probe finding the snapshot stale schedules one
+     * refresh on the dedicated status thread and serves the previous
+     * snapshot meanwhile. Vanilla behaves the same way, serving one cached record to
+     * every requester. Only probes racing the initial refresh kicked at
+     * startup see no document (an empty 200, the historical answer).
      */
+    private NetherNetServerStatus serveServerStatus() {
+        if (System.nanoTime() - statusBuiltNanos >= STATUS_MAX_AGE_NANOS) {
+            scheduleStatusRefresh();
+        }
+        return cachedStatus;
+    }
+
+    private void scheduleStatusRefresh() {
+        ExecutorService executor = this.statusRefreshExecutor;
+        // Capture the gate so this refresh always clears the one it claimed,
+        // even if start() installs a fresh gate while it is still running.
+        AtomicBoolean gate = this.statusRefreshing;
+        if (executor == null || !gate.compareAndSet(false, true)) {
+            return;
+        }
+        boolean submitted = false;
+        try {
+            executor.execute(() -> {
+                try {
+                    cachedStatus = buildServerStatus();
+                } catch (Exception e) {
+                    logger.debug(LOG_PREFIX + "Server status refresh failed: " + e.getMessage());
+                } finally {
+                    // Advance the age on failure too: the throttle must bound
+                    // the retry rate, or probes against a throwing ping
+                    // passthrough drive the event chain as fast as it runs
+                    // instead of once a second.
+                    statusBuiltNanos = System.nanoTime();
+                    gate.set(false);
+                }
+            });
+            submitted = true;
+        } catch (RejectedExecutionException e) {
+            // Shutdown raced the probe; the stale snapshot serves fine.
+        } finally {
+            if (!submitted) {
+                gate.set(false);
+            }
+        }
+    }
+
     /**
-     * The server status answered on the HTTP capability check: the NetherNet
-     * equivalent of the RakNet unconnected pong, matching vanilla's fourteen
-     * member ServerData document. Built from the same pong the RakNet
-     * listener answers pings with, MOTD passthrough, the ping event, and the
-     * fallbacks included, so the two transports always describe the server
-     * identically. Requester independent like vanilla, which serves one
-     * cached record to every requester; the address only feeds the ping
-     * passthrough and event.
+     * Builds the status document: the NetherNet equivalent of the RakNet
+     * unconnected pong, matching vanilla's fourteen member ServerData
+     * document. Built from the same pong the RakNet listener answers pings
+     * with, MOTD passthrough, the ping event, and the fallbacks included, so
+     * the two transports always describe the server identically.
      *
      * Both auth bits are true because we accept Microsoft authenticated and
      * self signed identities alike: client assertions are stripped rather
      * than validated, RakNet parity being the security bar.
+     *
+     * Runs only on the dedicated status thread, never on I/O threads and
+     * never on the maintenance scheduler, whose watchdog must not sit
+     * behind a blocking ping passthrough.
      */
     private NetherNetServerStatus buildServerStatus() {
-        BedrockPong pong = geyser.getGeyserServer().onQuery(new InetSocketAddress(
-                geyser.config().bedrock().address(), geyser.config().bedrock().port()), 0L);
+        BedrockPong pong = geyser.getGeyserServer().onQuery(statusPingAddress(), 0L);
         return NetherNetServerStatus.builder()
                 .dataVersion(SERVER_DATA_VERSION)
                 .name(pong.motd())
@@ -457,6 +543,42 @@ public class NetherNetServer {
         return NetherNetServerStatus.GAME_TYPE_SURVIVAL;
     }
 
+    /**
+     * The address handed to the ping passthrough and the ping event,
+     * resolved once and cached on success: a configured hostname would do a
+     * blocking DNS lookup per build, and an unresolved address would hand
+     * listeners an object whose getAddress() is null. Falls back to
+     * loopback when resolution fails. Runs on the dedicated status thread.
+     */
+    private InetSocketAddress statusPingAddress() {
+        InetSocketAddress address = this.statusPingAddress;
+        if (address != null) {
+            return address;
+        }
+        int port = geyser.config().bedrock().port();
+        try {
+            InetSocketAddress resolved = new InetSocketAddress(geyser.config().bedrock().address(), port);
+            if (resolved.getAddress() != null) {
+                this.statusPingAddress = resolved;
+                return resolved;
+            }
+        } catch (Exception ignored) {
+        }
+        // Not cached: resolution can fail once at boot before DNS is up, and
+        // pinning loopback for the process lifetime would quietly feed the
+        // ping passthrough and its event the wrong address forever.
+        return new InetSocketAddress(InetAddress.getLoopbackAddress(), port);
+    }
+
+    /**
+     * Loads (or on first use creates) the server identity that signs the
+     * a=identity assertion on every answer. HTTP signaled clients have
+     * always refused answers without it, and since 26.40 clients require
+     * it over Xbox RPC signaling too, it decorates both paths. A failure
+     * here aborts only the HTTP listener (connection refused is the
+     * fastest RakNet fallback); the RPC channel binds regardless so older
+     * clients can still join.
+     */
     private NetherNetAnswerDecorator loadIdentityDecorator() throws Exception {
         try {
             NetherNetServerIdentity identity = NetherNetServerIdentity.loadOrCreate(
