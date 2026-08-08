@@ -18,9 +18,6 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- *
- * @author GeyserMC
- * @link https://github.com/GeyserMC/Geyser
  */
 
 package org.geysermc.geyser.platform.spigot.world.manager;
@@ -32,6 +29,8 @@ import com.viaversion.viaversion.api.protocol.version.ProtocolVersion;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
+import org.bukkit.entity.Player;
+import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.platform.spigot.GeyserSpigotPlugin;
 import org.geysermc.geyser.session.GeyserSession;
@@ -39,11 +38,8 @@ import org.geysermc.geyser.session.GeyserSession;
 import java.util.List;
 import java.util.Objects;
 
-/**
- * Used when block IDs need to be translated to the latest version
- */
+/** Used when block IDs need to be translated to the latest Java protocol version. */
 public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorldManager {
-
     private final Int2IntMap oldToNewBlockId;
 
     public GeyserSpigotLegacyNativeWorldManager(GeyserSpigotPlugin plugin, boolean isPaper) {
@@ -51,12 +47,12 @@ public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorl
         IntList allBlockStates = adapter.getAllBlockStates();
         oldToNewBlockId = new Int2IntOpenHashMap(allBlockStates.size());
         ProtocolVersion serverVersion = plugin.getServerProtocolVersion();
-        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(GameProtocol.getJavaProtocolVersion(),
-                serverVersion.getVersion());
+        List<ProtocolPathEntry> protocolList = Via.getManager().getProtocolManager().getProtocolPath(
+                GameProtocol.getJavaProtocolVersion(), serverVersion.getVersion());
         Objects.requireNonNull(protocolList, "protocolList cannot be null");
+
         for (int oldBlockId : allBlockStates) {
             int newBlockId = oldBlockId;
-            // protocolList should *not* be null; we checked for that before initializing this class
             for (int i = protocolList.size() - 1; i >= 0; i--) {
                 MappingData mappingData = protocolList.get(i).protocol().getMappingData();
                 if (mappingData != null) {
@@ -69,7 +65,19 @@ public class GeyserSpigotLegacyNativeWorldManager extends GeyserSpigotNativeWorl
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        int nativeBlockId = super.getBlockAt(session, x, y, z);
+        Player player = resolvePlayer(session);
+        if (player == null) {
+            return Block.JAVA_AIR_ID;
+        }
+
+        // Provider results are already in current protocol space and must not
+        // be translated through the legacy native-id mapping table.
+        Integer customState = resolveCustomBlockStateId(session, x, y, z);
+        if (customState != null) {
+            return customState;
+        }
+
+        int nativeBlockId = adapter.getBlockAt(player.getWorld(), x, y, z);
         return oldToNewBlockId.getOrDefault(nativeBlockId, nativeBlockId);
     }
 

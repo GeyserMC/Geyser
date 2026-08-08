@@ -182,6 +182,11 @@ public final class WorldCache {
     public void updateServerCorrectBlockState(Vector3i position, int blockState) {
         this.unverifiedPredictions.removeInt(position);
 
+        // A Java destruction overlay is independent of the block state itself.
+        // Explicitly clear it before replacing the block so the new state cannot
+        // inherit the previous block's final crack stage.
+        session.getBlockBreakHandler().clearDestructionAt(position);
+
         // Hack to avoid looking up blockstates for the currently broken position each tick
         Vector3i clientBreakPos = session.getBlockBreakHandler().getCurrentBlockPos();
         if (clientBreakPos != null && Objects.equals(clientBreakPos, position)) {

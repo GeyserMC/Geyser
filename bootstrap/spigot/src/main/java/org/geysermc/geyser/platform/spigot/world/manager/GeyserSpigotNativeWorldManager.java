@@ -18,9 +18,6 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
- *
- * @author GeyserMC
- * @link https://github.com/GeyserMC/Geyser
  */
 
 package org.geysermc.geyser.platform.spigot.world.manager;
@@ -41,27 +38,26 @@ public class GeyserSpigotNativeWorldManager extends GeyserSpigotWorldManager {
 
     public GeyserSpigotNativeWorldManager(Plugin plugin, boolean isPaper) {
         super(plugin);
-        if (isPaper) {
-            adapter = PaperAdapters.getWorldAdapter();
-        } else {
-            adapter = SpigotAdapters.getWorldAdapter();
-        }
+        this.adapter = isPaper ? PaperAdapters.getWorldAdapter() : SpigotAdapters.getWorldAdapter();
     }
 
     @Override
     public int getBlockAt(GeyserSession session, int x, int y, int z) {
-        Player player = Bukkit.getPlayer(session.getPlayerEntity().getUsername());
+        Player player = resolvePlayer(session);
         if (player == null) {
             return Block.JAVA_AIR_ID;
         }
-        return adapter.getBlockAt(player.getWorld(), x, y, z);
+
+        Integer customState = resolveCustomBlockStateId(session, x, y, z);
+        return customState != null ? customState : adapter.getBlockAt(player.getWorld(), x, y, z);
     }
 
-    @Nullable
+    protected final @Nullable Player resolvePlayer(GeyserSession session) {
+        return Bukkit.getPlayer(session.getPlayerEntity().getUsername());
+    }
+
     @Override
-    public String[] getBiomeIdentifiers(boolean withTags) {
-        // Biome identifiers will basically always be the same for one server, since you have to re-send the
-        // ClientboundLoginPacket to change the registry. Therefore, don't bother caching for each player.
+    public @Nullable String[] getBiomeIdentifiers(boolean withTags) {
         return adapter.getBiomeSuggestions(withTags);
     }
 }
