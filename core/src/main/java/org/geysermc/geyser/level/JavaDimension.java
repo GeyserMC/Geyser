@@ -66,11 +66,14 @@ public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ul
         // Cache the Bedrock version of this dimension, and base it off the ID - THE ID CAN CHANGE!!!
         // https://github.com/GeyserMC/Geyser/issues/4837
         int bedrockId;
+        // The dimension a custom dimension resembles is also the one whose clock it should follow
+        Key clockId;
         Key id = entry.id();
         if ("minecraft".equals(id.namespace())) {
             String identifier = id.asString();
             bedrockId = DimensionUtils.javaToBedrock(identifier);
             isNetherLike = BedrockDimension.NETHER_IDENTIFIER.equals(identifier);
+            clockId = id;
         } else {
             // Effects should give is a clue on how this (custom) dimension is supposed to look like
             String skybox = dimension.getString("skybox");
@@ -81,6 +84,7 @@ public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ul
             };
             bedrockId = DimensionUtils.javaToBedrock(skyboxId);
             isNetherLike = BedrockDimension.NETHER_IDENTIFIER.equals(skyboxId);
+            clockId = MinecraftKey.key(skyboxId);
         }
 
         Key defaultClock;
@@ -90,7 +94,7 @@ public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ul
             defaultClock = null;
         }
         if (defaultClock == null) {
-            defaultClock = COMMON_CLOCKS.get(entry.id());
+            defaultClock = COMMON_CLOCKS.get(clockId);
         }
 
         if (minY % 16 != 0) {
