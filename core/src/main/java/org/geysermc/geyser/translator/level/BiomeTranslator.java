@@ -26,11 +26,16 @@
 package org.geysermc.geyser.translator.level;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
+import org.cloudburstmc.nbt.NbtMap;
+import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitionData;
+import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
+import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
+import org.geysermc.geyser.session.cache.registry.RegistryEntryData;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.BitStorage;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.DataPalette;
 import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.GlobalPalette;
@@ -39,6 +44,7 @@ import org.geysermc.mcprotocollib.protocol.data.game.chunk.palette.SingletonPale
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntLists;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import org.geysermc.geyser.level.chunk.BlockStorage;
 import org.geysermc.geyser.level.chunk.bitarray.BitArray;
 import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
@@ -46,18 +52,41 @@ import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
 
+import java.awt.Color;
+import java.util.List;
+import java.util.Map;
+
 // Array index formula by https://wiki.vg/Chunk_Format
 public class BiomeTranslator {
 
     /**
      * Marks a Java biome with no direct Bedrock equivalent; a dimension-appropriate fallback
-     * is selected in {@link #bedrockBiomeId(GeyserSession, JavaRegistry, int)} instead.
+     * is selected in {@link #bedrockBiomeId(JavaDimension, JavaRegistry, int)} instead.
      */
     private static final int UNKNOWN_BIOME = -1;
 
-    public static int loadServerBiome(RegistryEntryContext entry) {
-        String javaIdentifier = entry.id().asString();
-        return Registries.BIOME_IDENTIFIERS.get().getOrDefault(javaIdentifier, UNKNOWN_BIOME);
+    public static BiomeMapping loadServerBiome(RegistryEntryContext entry) {
+        int bedrockId = Registries.BIOME_IDENTIFIERS.get().getOrDefault(entry.id().asString(), UNKNOWN_BIOME);
+        return loadServerBiome(entry, bedrockId);
+    }
+
+    private static BiomeMapping loadServerBiome(RegistryEntryContext entry, int bedrockId) {
+        if (bedrockId < BiomeIdentifierRegistryLoader.CUSTOM_BIOME_ID_START) {
+            return new BiomeMapping(bedrockId, null);
+        }
+
+        NbtMap data = entry.data();
+        return new BiomeMapping(bedrockId, new BiomeDefinitionData(
+                bedrockId,
+                data.getFloat("temperature"),
+                data.getFloat("downfall"),
+                0,
+                0,
+                0,
+                new Color(data.getCompound("effects").getInt("water_color")),
+                data.getBoolean("has_precipitation"),
+                List.of(),
+                null));
     }
 
     /**
@@ -66,12 +95,12 @@ public class BiomeTranslator {
      * vanilla biome fitting the session's current dimension so that sky, fog and weather
      * render sensibly instead of always defaulting to ocean.
      */
-    private static int bedrockBiomeId(GeyserSession session, JavaRegistry<Integer> biomeTranslations, int javaId) {
-        Integer bedrockId = javaId < 0 ? null : biomeTranslations.byId(javaId);
-        if (bedrockId == null || bedrockId == UNKNOWN_BIOME) {
-            return fallbackBiomeId(session.getDimensionType());
+    private static int bedrockBiomeId(@Nullable JavaDimension dimension, JavaRegistry<BiomeMapping> biomeTranslations, int javaId) {
+        BiomeMapping mapping = javaId < 0 ? null : biomeTranslations.byId(javaId);
+        if (mapping == null || mapping.bedrockId() == UNKNOWN_BIOME) {
+            return fallbackBiomeId(dimension);
         }
-        return bedrockId;
+        return mapping.bedrockId();
     }
 
     private static int fallbackBiomeId(@Nullable JavaDimension dimension) {
@@ -90,14 +119,35 @@ public class BiomeTranslator {
         return Registries.BIOME_IDENTIFIERS.get().getOrDefault(identifier, 0);
     }
 
+    public static BiomeDefinitions bedrockBiomeDefinitions(JavaRegistry<BiomeMapping> biomes) {
+        return bedrockBiomeDefinitions(Registries.BIOMES.get().getDefinitions(), biomes);
+    }
+
+    private static BiomeDefinitions bedrockBiomeDefinitions(Map<String, BiomeDefinitionData> vanillaDefinitions,
+            JavaRegistry<BiomeMapping> biomes) {
+        Map<String, BiomeDefinitionData> definitions = new Object2ObjectLinkedOpenHashMap<>(vanillaDefinitions);
+        for (RegistryEntryData<BiomeMapping> biome : biomes) {
+            BiomeDefinitionData customDefinition = biome.data().customDefinition();
+            if (customDefinition != null) {
+                definitions.put(biome.key().asString(), customDefinition);
+            }
+        }
+        return new BiomeDefinitions(definitions);
+    }
+
     public static BlockStorage toNewBedrockBiome(GeyserSession session, DataPalette biomeData) {
-        JavaRegistry<Integer> biomeTranslations = session.getRegistryCache().registry(JavaRegistries.BIOME);
+        JavaRegistry<BiomeMapping> biomeTranslations = session.getRegistryCache().registry(JavaRegistries.BIOME);
+        return translateBiomeStorage(session.getDimensionType(), biomeData, biomeTranslations);
+    }
+
+    private static BlockStorage translateBiomeStorage(@Nullable JavaDimension dimension, DataPalette biomeData,
+            JavaRegistry<BiomeMapping> biomeTranslations) {
         // As of 1.17.10: the client expects the same format as a chunk but filled with biomes
         // As of 1.18 this is the same as Java Edition
 
         Palette palette = biomeData.getPalette();
         if (palette instanceof SingletonPalette) {
-            int biomeId = bedrockBiomeId(session, biomeTranslations, palette.idToState(0));
+            int biomeId = bedrockBiomeId(dimension, biomeTranslations, palette.idToState(0));
             return new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(biomeId));
         } else {
             BlockStorage storage;
@@ -117,7 +167,7 @@ public class BiomeTranslator {
                 }
 
                 if (allSame) {
-                    int biomeId = bedrockBiomeId(session, biomeTranslations, palette.idToState(firstIdx));
+                    int biomeId = bedrockBiomeId(dimension, biomeTranslations, palette.idToState(firstIdx));
                     storage = new BlockStorage(SingletonBitArray.INSTANCE, IntLists.singleton(biomeId));
                 } else {
                     // Prevent resizing by allocating what we can ahead of time
@@ -128,7 +178,7 @@ public class BiomeTranslator {
 
                     for (int i = 0; i < size; i++) {
                         int javaId = palette.idToState(i);
-                        bedrockPalette.add(bedrockBiomeId(session, biomeTranslations, javaId));
+                        bedrockPalette.add(bedrockBiomeId(dimension, biomeTranslations, javaId));
                     }
 
                     // Each section of biome corresponding to a chunk section contains 4 * 4 * 4 entries
@@ -154,7 +204,7 @@ public class BiomeTranslator {
                     int y = (i >> 4) & 3;
                     int z = (i >> 2) & 3;
                     // Get the Bedrock biome ID override
-                    int biomeId = bedrockBiomeId(session, biomeTranslations, javaId);
+                    int biomeId = bedrockBiomeId(dimension, biomeTranslations, javaId);
                     int idx = storage.idFor(biomeId);
                     // Convert biome coordinates into block coordinates
                     // Bedrock expects a full 4096 blocks
@@ -175,5 +225,11 @@ public class BiomeTranslator {
                 }
             }
         }
+    }
+
+    /**
+     * @param customDefinition the definition to send to Bedrock, or null when using a built-in biome
+     */
+    public record BiomeMapping(int bedrockId, @Nullable BiomeDefinitionData customDefinition) {
     }
 }

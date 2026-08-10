@@ -46,6 +46,7 @@ import org.geysermc.geyser.registry.BlockRegistries;
 import org.geysermc.geyser.registry.ListRegistry;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.dialog.Dialog;
+import org.geysermc.geyser.translator.level.BiomeTranslator.BiomeMapping;
 import org.geysermc.geyser.util.MinecraftKey;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.ChatType;
 import org.geysermc.mcprotocollib.protocol.data.game.item.component.ArmorTrim;
@@ -72,7 +73,7 @@ public class JavaRegistries {
 
     public static final JavaRegistryKey<ChatType> CHAT_TYPE = create("chat_type");
     public static final JavaRegistryKey<JavaDimension> DIMENSION_TYPE = create("dimension_type");
-    public static final JavaRegistryKey<Integer> BIOME = create("worldgen/biome");
+    public static final JavaRegistryKey<BiomeMapping> BIOME = create("worldgen/biome");
     public static final JavaRegistryKey<Enchantment> ENCHANTMENT = create("enchantment");
     public static final JavaRegistryKey<BannerPattern> BANNER_PATTERN = create("banner_pattern");
     public static final JavaRegistryKey<GeyserInstrument> INSTRUMENT = create("instrument");

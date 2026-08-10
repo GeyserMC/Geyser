@@ -195,6 +195,7 @@ import org.geysermc.geyser.session.dialog.Dialog;
 import org.geysermc.geyser.session.dialog.DialogManager;
 import org.geysermc.geyser.skin.SkinManager;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.translator.level.BiomeTranslator;
 import org.geysermc.geyser.translator.inventory.InventoryTranslator;
 import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.geyser.util.ChunkUtils;
@@ -953,7 +954,8 @@ public class GeyserSession implements GeyserConnection, GeyserCommandSource {
      */
     private void sendRegistryDefinitions() {
         BiomeDefinitionListPacket biomeDefinitionListPacket = new BiomeDefinitionListPacket();
-        biomeDefinitionListPacket.setBiomes(Registries.BIOMES.get());
+        biomeDefinitionListPacket.setBiomes(BiomeTranslator.bedrockBiomeDefinitions(
+                registryCache.registry(JavaRegistries.BIOME)));
         upstream.sendPacket(biomeDefinitionListPacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();

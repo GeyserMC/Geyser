@@ -28,11 +28,16 @@ package org.geysermc.geyser.pack;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import net.kyori.adventure.key.InvalidKeyException;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.Registries;
+import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.util.FileUtils;
+import org.geysermc.geyser.util.MinecraftKey;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +47,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -65,7 +71,7 @@ public final class BiomeResourcePackManager {
         try {
             Set<String> bedrockIdentifiers = Registries.BIOMES.get().getDefinitions().keySet();
             Files.createDirectories(output.getParent());
-            int biomeCount = createResourcePack(input, output, bedrockIdentifiers);
+            int biomeCount = createResourcePack(input, output, bedrockIdentifiers, Registries.BIOME_IDENTIFIERS.get());
             geyser.getLogger()
                     .info("Generated Bedrock biome visuals resource pack with " + biomeCount + " biome appearance(s).");
             return output;
@@ -75,13 +81,16 @@ public final class BiomeResourcePackManager {
         }
     }
 
-    static int createResourcePack(Path input, Path output, Set<String> bedrockIdentifiers) throws IOException {
-        Map<String, BiomeVisuals> biomes = load(input, bedrockIdentifiers);
+    private static int createResourcePack(Path input, Path output, Set<String> bedrockIdentifiers,
+            Object2IntMap<String> biomeIdentifiers) throws IOException {
+        Map<String, BiomeVisuals> biomes = load(input);
+        Object2IntMap<String> customMappings = customMappings(biomes.keySet(), bedrockIdentifiers);
         write(output, biomes);
+        biomeIdentifiers.putAll(customMappings);
         return biomes.size();
     }
 
-    private static Map<String, BiomeVisuals> load(Path input, Set<String> bedrockIdentifiers) throws IOException {
+    private static Map<String, BiomeVisuals> load(Path input) throws IOException {
         BiomeConfig config;
         try (InputStream stream = Files.newInputStream(input)) {
             config = FileUtils.loadJson(stream, BiomeConfig.class);
@@ -94,22 +103,18 @@ public final class BiomeResourcePackManager {
             throw new IllegalArgumentException("No biome visuals were defined");
         }
 
-        return resolve(config.biomes(), bedrockIdentifiers);
+        return resolve(config.biomes());
     }
 
-    private static Map<String, BiomeVisuals> resolve(Map<String, BiomeDefinition> definitions,
-            Set<String> bedrockIdentifiers) {
+    private static Map<String, BiomeVisuals> resolve(Map<String, BiomeDefinition> definitions) {
         Map<String, BiomeVisuals> resolved = new Object2ObjectOpenHashMap<>();
         for (Map.Entry<String, BiomeDefinition> biome : definitions.entrySet()) {
             String javaIdentifier = biome.getKey();
             BiomeDefinition definition = biome.getValue();
-            String bedrockIdentifier = definition.bedrockIdentifier() != null
-                    ? definition.bedrockIdentifier()
-                    : javaIdentifier;
-
-            if (!bedrockIdentifiers.contains(bedrockIdentifier)) {
-                throw new IllegalArgumentException("Unknown Bedrock biome identifier " + bedrockIdentifier);
+            if (definition == null) {
+                throw new IllegalArgumentException("No biome visuals were defined for " + javaIdentifier);
             }
+            validateIdentifier(javaIdentifier);
 
             BiomeVisuals visuals = new BiomeVisuals(
                     color(definition.waterColor()),
@@ -118,13 +123,30 @@ public final class BiomeResourcePackManager {
                     optionalColor(definition.skyColor()),
                     optionalColor(definition.grassColor()),
                     optionalColor(definition.foliageColor()));
-            BiomeVisuals previous = resolved.putIfAbsent(bedrockIdentifier, visuals);
-            if (previous != null && !previous.equals(visuals)) {
-                throw new IllegalArgumentException("Multiple Java biomes resolve to " + bedrockIdentifier
-                        + " with different appearances");
-            }
+            resolved.put(javaIdentifier, visuals);
         }
         return resolved;
+    }
+
+    private static Object2IntMap<String> customMappings(Set<String> configuredIdentifiers, Set<String> bedrockIdentifiers) {
+        Object2IntMap<String> customMappings = new Object2IntOpenHashMap<>();
+        int customId = BiomeIdentifierRegistryLoader.CUSTOM_BIOME_ID_START;
+        for (String identifier : new TreeSet<>(configuredIdentifiers)) {
+            if (!bedrockIdentifiers.contains(identifier)) {
+                customMappings.put(identifier, customId++);
+            }
+        }
+        return customMappings;
+    }
+
+    private static void validateIdentifier(String identifier) {
+        try {
+            if (!MinecraftKey.key(identifier).asString().equals(identifier)) {
+                throw new IllegalArgumentException("Invalid biome identifier " + identifier);
+            }
+        } catch (InvalidKeyException e) {
+            throw new IllegalArgumentException("Invalid biome identifier " + identifier, e);
+        }
     }
 
     private static void write(Path output, Map<String, BiomeVisuals> biomes) throws IOException {
@@ -215,8 +237,7 @@ public final class BiomeResourcePackManager {
             @SerializedName("fog_color") String fogColor,
             @SerializedName("sky_color") @Nullable String skyColor,
             @SerializedName("grass_color") @Nullable String grassColor,
-            @SerializedName("foliage_color") @Nullable String foliageColor,
-            @SerializedName("bedrock_identifier") @Nullable String bedrockIdentifier) {
+            @SerializedName("foliage_color") @Nullable String foliageColor) {
     }
 
     private record BiomeVisuals(
@@ -227,7 +248,7 @@ public final class BiomeResourcePackManager {
             @Nullable Integer grassColor,
             @Nullable Integer foliageColor) {
 
-        JsonObject clientBiome(String biomeIdentifier, String fogIdentifier) {
+        private JsonObject clientBiome(String biomeIdentifier, String fogIdentifier) {
             JsonObject components = new JsonObject();
 
             JsonObject water = new JsonObject();
@@ -269,7 +290,7 @@ public final class BiomeResourcePackManager {
             return root;
         }
 
-        JsonObject fog(String fogIdentifier) {
+        private JsonObject fog(String fogIdentifier) {
             JsonObject distance = new JsonObject();
             distance.add("air", fogDistance(fogColor));
             distance.add("water", fogDistance(waterFogColor));

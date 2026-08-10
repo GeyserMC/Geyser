@@ -38,6 +38,7 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 public class BiomeIdentifierRegistryLoader implements RegistryLoader<String, Object2IntMap<String>> {
+    public static final int CUSTOM_BIOME_ID_START = 10_000;
 
     @Override
     public Object2IntMap<String> load(String input) {
