@@ -93,6 +93,7 @@ public class GeyserSessionAdapter extends SessionAdapter {
                     // Use the tenant ID extracted from EduTokenChain, NOT clientData.getTenantId() (always null for edu)
                     String tenantId = isEdu && session.getEducationTenantId() != null ? session.getEducationTenantId() : "";
                     int adRole = isEdu ? clientData.getAdRole() : -1;
+                    boolean shouldSkinConnect = skinUploader != null && skinUploader.isAllowSubscribers();
 
                     encryptedData = cipher.encryptFromString(BedrockData.of(
                         clientData.getGameVersion(),
@@ -103,8 +104,8 @@ public class GeyserSessionAdapter extends SessionAdapter {
                         clientData.getUiProfile().ordinal(),
                         clientData.getCurrentInputMode().ordinal(),
                         bedrockAddress,
-                        skinUploader == null ? 0 : skinUploader.getId(),
-                        skinUploader == null ? null : skinUploader.getVerifyCode(),
+                        shouldSkinConnect ? skinUploader.getId() : -1,
+                        shouldSkinConnect ? skinUploader.getVerifyCode() : null,
                         isEdu, tenantId, adRole
                     ).toString());
                 } catch (Exception e) {
