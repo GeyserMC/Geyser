@@ -459,7 +459,11 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                             values.put(paramNode.getName(), Set.of());
 
                             // Re-create the command using the updated values
-                            CommandEnumData enumData = new CommandEnumData(enumParamInfo.getParamData().getEnumData().getName(), values, false);
+                            boolean soft = enumParamInfo.getParamData().getEnumData().isSoft() || needsSoftEnum(paramNode.getName());
+                            String enumName = soft
+                                ? softEnumName(enumParamInfo.getParamData().getName(), values)
+                                : enumParamInfo.getParamData().getEnumData().getName();
+                            CommandEnumData enumData = new CommandEnumData(enumName, values, soft);
                             CommandParamData commandParamData = new CommandParamData();
                             commandParamData.setName(enumParamInfo.getParamData().getName());
                             commandParamData.setOptional(this.paramNode.isExecutable());
@@ -474,7 +478,9 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
                         // Create a new subcommand with this exact type
                         LinkedHashMap<String, Set<CommandEnumConstraint>> map = new LinkedHashMap<>();
                         map.put(paramNode.getName(), Set.of());
-                        CommandEnumData enumData = new CommandEnumData(paramNode.getName(), map, false);
+                        boolean soft = needsSoftEnum(paramNode.getName());
+                        CommandEnumData enumData = new CommandEnumData(
+                            soft ? softEnumName(paramNode.getName(), map) : paramNode.getName(), map, soft);
 
                         // On setting optional:
                         // isExecutable is defined as a node "constitutes a valid command."
@@ -532,6 +538,25 @@ public class JavaCommandsTranslator extends PacketTranslator<ClientboundCommands
         /**
          * Mitigates <a href="https://github.com/GeyserMC/Geyser/issues/3411">issue 3411</a>. Not a perfect solution.
          */
+        /**
+         * Bedrock rejects fixed enum values that are not lowercase ("Keywords in commands need to be
+         * lower case"), while soft enum values keep their case. Brigadier literals are case-sensitive,
+         * so the exact spelling has to survive the round trip. Vanilla BDS uses the same split.
+         */
+        private static boolean needsSoftEnum(String literal) {
+            return !literal.equals(literal.toLowerCase(Locale.ROOT));
+        }
+
+        /**
+         * Soft enums are registered globally by name on the client, while hard enum groups elsewhere
+         * may reuse the same first-literal name. Deriving the name from the values keeps it unique
+         * per distinct group and identical across command aliases, so they still deduplicate. The
+         * client only displays the values.
+         */
+        private static String softEnumName(String literal, Map<String, Set<CommandEnumConstraint>> values) {
+            return literal + "_" + Integer.toHexString(values.keySet().hashCode());
+        }
+
         private static String getEnumDataName(CommandNode node) {
             if (node.getProperties() instanceof ResourceProperties properties) {
                 Key registryKey = properties.getRegistryKey();
