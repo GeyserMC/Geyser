@@ -31,7 +31,6 @@ import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitionData;
 import org.cloudburstmc.protocol.bedrock.data.biome.BiomeDefinitions;
 import org.geysermc.geyser.level.BedrockDimension;
 import org.geysermc.geyser.level.JavaDimension;
-import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.session.cache.registry.JavaRegistries;
 import org.geysermc.geyser.session.cache.registry.JavaRegistry;
 import org.geysermc.geyser.session.cache.registry.RegistryEntryContext;
@@ -66,15 +65,17 @@ public class BiomeTranslator {
     private static final int UNKNOWN_BIOME = -1;
 
     public static BiomeMapping loadServerBiome(RegistryEntryContext entry) {
-        int bedrockId = Registries.BIOME_IDENTIFIERS.get().getOrDefault(entry.id().asString(), UNKNOWN_BIOME);
-        return loadServerBiome(entry, bedrockId);
-    }
-
-    private static BiomeMapping loadServerBiome(RegistryEntryContext entry, int bedrockId) {
-        if (bedrockId < BiomeIdentifierRegistryLoader.CUSTOM_BIOME_ID_START) {
-            return new BiomeMapping(bedrockId, null);
+        String identifier = entry.id().asString();
+        int customId = Registries.CUSTOM_BIOME_IDENTIFIERS.get().getOrDefault(identifier, UNKNOWN_BIOME);
+        if (customId != UNKNOWN_BIOME) {
+            return customBiome(entry, customId);
         }
 
+        int bedrockId = Registries.BIOME_IDENTIFIERS.get().getOrDefault(identifier, UNKNOWN_BIOME);
+        return new BiomeMapping(bedrockId, null);
+    }
+
+    private static BiomeMapping customBiome(RegistryEntryContext entry, int bedrockId) {
         NbtMap data = entry.data();
         return new BiomeMapping(bedrockId, new BiomeDefinitionData(
                 bedrockId,

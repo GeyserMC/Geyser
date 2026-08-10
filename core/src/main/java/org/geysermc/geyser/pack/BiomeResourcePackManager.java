@@ -35,7 +35,6 @@ import net.kyori.adventure.key.InvalidKeyException;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.registry.Registries;
-import org.geysermc.geyser.registry.loader.BiomeIdentifierRegistryLoader;
 import org.geysermc.geyser.util.FileUtils;
 import org.geysermc.geyser.util.MinecraftKey;
 
@@ -47,7 +46,6 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -56,11 +54,14 @@ public final class BiomeResourcePackManager {
     private static final String INPUT_FILE = "biome-visuals.json";
     private static final int FORMAT_VERSION = 1;
     private static final int RESOURCE_PACK_VERSION = 1;
+    private static final int CUSTOM_BIOME_ID_START = 30_000;
 
     private BiomeResourcePackManager() {
     }
 
     public static @Nullable Path createResourcePack() {
+        Registries.CUSTOM_BIOME_IDENTIFIERS.get().clear();
+
         GeyserImpl geyser = GeyserImpl.getInstance();
         Path input = geyser.getBootstrap().getConfigFolder().resolve(INPUT_FILE);
         if (!Files.isRegularFile(input)) {
@@ -71,7 +72,7 @@ public final class BiomeResourcePackManager {
         try {
             Set<String> bedrockIdentifiers = Registries.BIOMES.get().getDefinitions().keySet();
             Files.createDirectories(output.getParent());
-            int biomeCount = createResourcePack(input, output, bedrockIdentifiers, Registries.BIOME_IDENTIFIERS.get());
+            int biomeCount = createResourcePack(input, output, bedrockIdentifiers);
             geyser.getLogger()
                     .info("Generated Bedrock biome visuals resource pack with " + biomeCount + " biome appearance(s).");
             return output;
@@ -81,12 +82,11 @@ public final class BiomeResourcePackManager {
         }
     }
 
-    private static int createResourcePack(Path input, Path output, Set<String> bedrockIdentifiers,
-            Object2IntMap<String> biomeIdentifiers) throws IOException {
+    private static int createResourcePack(Path input, Path output, Set<String> bedrockIdentifiers) throws IOException {
         Map<String, BiomeVisuals> biomes = load(input);
         Object2IntMap<String> customMappings = customMappings(biomes.keySet(), bedrockIdentifiers);
         write(output, biomes);
-        biomeIdentifiers.putAll(customMappings);
+        Registries.CUSTOM_BIOME_IDENTIFIERS.set(customMappings);
         return biomes.size();
     }
 
@@ -130,8 +130,8 @@ public final class BiomeResourcePackManager {
 
     private static Object2IntMap<String> customMappings(Set<String> configuredIdentifiers, Set<String> bedrockIdentifiers) {
         Object2IntMap<String> customMappings = new Object2IntOpenHashMap<>();
-        int customId = BiomeIdentifierRegistryLoader.CUSTOM_BIOME_ID_START;
-        for (String identifier : new TreeSet<>(configuredIdentifiers)) {
+        int customId = CUSTOM_BIOME_ID_START;
+        for (String identifier : configuredIdentifiers) {
             if (!bedrockIdentifiers.contains(identifier)) {
                 customMappings.put(identifier, customId++);
             }

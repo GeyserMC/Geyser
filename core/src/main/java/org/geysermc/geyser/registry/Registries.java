@@ -27,6 +27,7 @@ package org.geysermc.geyser.registry;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
@@ -122,6 +123,11 @@ public final class Registries {
      * A mapped registry which stores Java biome identifiers and their Bedrock biome identifier.
      */
     public static final SimpleDeferredRegistry<Object2IntMap<String>> BIOME_IDENTIFIERS = SimpleDeferredRegistry.create("mappings/biomes.json", BiomeIdentifierRegistryLoader::new);
+
+    /**
+     * A mapped registry which stores configured Java biome identifiers and their generated Bedrock biome IDs.
+     */
+    public static final SimpleRegistry<Object2IntMap<String>> CUSTOM_BIOME_IDENTIFIERS = SimpleRegistry.create(RegistryLoaders.empty(Object2IntOpenHashMap::new));
 
     /**
      * A mapped registry which stores a block entity identifier to its {@link BlockEntityTranslator}.
