@@ -84,6 +84,13 @@ public class BedrockBookEditTranslator extends PacketTranslator<BookEditPacket> 
                 // Called whenever a page is modified
                 case REPLACE_PAGE: {
                     if (page < pages.size()) {
+                        if (pages.get(page).length() > WrittenBookItem.MAXIMUM_BEDROCK_PAGE_LENGTH) {
+                            // The client only ever saw this page's truncated projection, so applying
+                            // its edit would silently drop the rest of the page. Resync the held
+                            // item instead; raw length is a close proxy for the converted length.
+                            session.getPlayerInventoryHolder().updateSlot(36 + session.getPlayerInventory().getHeldItemSlot());
+                            return;
+                        }
                         pages.set(page, MessageTranslator.convertIncomingToPlainText(packet.getText()));
                     } else {
                         // Add empty pages in between
