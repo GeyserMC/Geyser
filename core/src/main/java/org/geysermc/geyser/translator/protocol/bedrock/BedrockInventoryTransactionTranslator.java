@@ -58,6 +58,7 @@ import org.geysermc.geyser.item.type.Item;
 import org.geysermc.geyser.item.type.SpawnEggItem;
 import org.geysermc.geyser.level.block.Blocks;
 import org.geysermc.geyser.level.block.property.Properties;
+import org.geysermc.geyser.level.block.type.BedBlock;
 import org.geysermc.geyser.level.block.type.Block;
 import org.geysermc.geyser.level.block.type.BlockState;
 import org.geysermc.geyser.level.block.type.ButtonBlock;
@@ -273,6 +274,12 @@ public class BedrockInventoryTransactionTranslator extends PacketTranslator<Inve
                          */
 
                         BlockState blockState = session.getGeyser().getWorldManager().blockAt(session, packet.getBlockPosition());
+
+                        if (blockState.block() instanceof BedBlock) {
+                            // The server will move us onto the bed before it tells us we are asleep;
+                            // hold back movement until then. See GeyserSession#startEnteringBed.
+                            session.startEnteringBed();
+                        }
 
                         // Buttons on Java Edition cannot be interacted with when they are powered
                         if (blockState.block() instanceof ButtonBlock && blockState.getValue(Properties.POWERED)) {
