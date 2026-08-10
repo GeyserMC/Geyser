@@ -267,8 +267,13 @@ public class MessageTranslator {
                 appliedFormatting = setFormattingFlag(appliedFormatting, next);
             }
 
-            if (endsWith(finalLegacy, RESET)) {
-                return finalLegacy.substring(0, finalLegacy.length() - RESET.length());
+            // Remove dangling tail paragraph sign just like Java Edition does, and remove tail reset
+            int tailRemove = 0;
+            if (endsWith(finalLegacy, BASE)) tailRemove += BASE.length();
+            if (endsWith(finalLegacy, RESET)) tailRemove += RESET.length();
+
+            if (tailRemove > 0) {
+                return finalLegacy.substring(0, finalLegacy.length() - tailRemove);
             }
 
             return finalLegacy.toString();
@@ -664,7 +669,7 @@ public class MessageTranslator {
         if (builder.length() < suffix.length()) {
             return false;
         }
-        return builder.indexOf(suffix, builder.length() - suffix.length() - 1) != -1;
+        return builder.indexOf(suffix, builder.length() - suffix.length()) != -1;
     }
 
     public static void init() {

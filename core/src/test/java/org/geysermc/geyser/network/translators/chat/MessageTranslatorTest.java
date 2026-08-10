@@ -94,10 +94,21 @@ public class MessageTranslatorTest {
         messages.put("{\"translate\":\"tt{''{tt\"}", "§rtt{''{tt");
         messages.put("{\"translate\":\"tt{{''}}tt\"}", "§rtt{{''}}tt");
 
+        // Remove duplicated resets, tail resets and dangling paragraph sign
         messages.put("""
-                {"text":"","extra":[{"text":"Testing end of string
-                 formatting character§","color":"yellow"}]}""",
-            "§r§eTesting end of string\n§e formatting character§");
+            {"text":"abc§r","color":"yellow"}""", "§r§eabc");
+        messages.put("""
+            {"text":"abc§r§r","color":"yellow"}""", "§r§eabc");
+        messages.put("""
+            {"text":"abc§rd","color":"yellow"}""", "§r§eabc§rd");
+        messages.put("""
+            {"text":"abc§r§rd","color":"yellow"}""", "§r§eabc§rd");
+        messages.put("""
+            {"text":"abc§rde","color":"yellow"}""", "§r§eabc§rde");
+        messages.put("""
+            {"text":"abc§r§rde","color":"yellow"}""", "§r§eabc§rde");
+        messages.put("""
+            {"text":"abc§","color":"yellow"}""", "§r§eabc");
 
         MessageTranslator.init();
     }
