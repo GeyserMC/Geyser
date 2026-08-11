@@ -120,6 +120,7 @@ public final class BiomeResourcePackManager {
                     color(definition.waterColor()),
                     color(definition.waterFogColor()),
                     color(definition.fogColor()),
+                    optionalColor(definition.weatherFogColor()),
                     optionalColor(definition.skyColor()),
                     optionalColor(definition.grassColor()),
                     optionalColor(definition.foliageColor()));
@@ -235,6 +236,7 @@ public final class BiomeResourcePackManager {
             @SerializedName("water_color") String waterColor,
             @SerializedName("water_fog_color") String waterFogColor,
             @SerializedName("fog_color") String fogColor,
+            @SerializedName("weather_fog_color") @Nullable String weatherFogColor,
             @SerializedName("sky_color") @Nullable String skyColor,
             @SerializedName("grass_color") @Nullable String grassColor,
             @SerializedName("foliage_color") @Nullable String foliageColor) {
@@ -244,6 +246,7 @@ public final class BiomeResourcePackManager {
             int waterColor,
             int waterFogColor,
             int fogColor,
+            @Nullable Integer weatherFogColor,
             @Nullable Integer skyColor,
             @Nullable Integer grassColor,
             @Nullable Integer foliageColor) {
@@ -292,8 +295,11 @@ public final class BiomeResourcePackManager {
 
         private JsonObject fog(String fogIdentifier) {
             JsonObject distance = new JsonObject();
-            distance.add("air", fogDistance(fogColor));
-            distance.add("water", fogDistance(waterFogColor));
+            distance.add("air", fogDistance(fogColor, 0.92F, 1.0F, "render"));
+            if (weatherFogColor != null) {
+                distance.add("weather", fogDistance(weatherFogColor, 0.23F, 0.7F, "render"));
+            }
+            distance.add("water", fogDistance(waterFogColor, 0, 60, "fixed"));
 
             JsonObject description = new JsonObject();
             description.addProperty("identifier", fogIdentifier);
@@ -308,12 +314,12 @@ public final class BiomeResourcePackManager {
             return root;
         }
 
-        private static JsonObject fogDistance(int color) {
+        private static JsonObject fogDistance(int color, float start, float end, String distanceType) {
             JsonObject distance = new JsonObject();
-            distance.addProperty("fog_start", 0);
-            distance.addProperty("fog_end", 1);
+            distance.addProperty("fog_start", start);
+            distance.addProperty("fog_end", end);
             distance.addProperty("fog_color", rgb(color));
-            distance.addProperty("render_distance_type", "render");
+            distance.addProperty("render_distance_type", distanceType);
             return distance;
         }
 

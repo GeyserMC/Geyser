@@ -66,6 +66,7 @@ public class BiomeResourcePackManagerTest {
               "water_color": "#123456",
               "water_fog_color": "#234567",
               "fog_color": "#345678",
+              "weather_fog_color": "#89ABCD",
               "sky_color": "#456789",
               "grass_color": "#56789A",
               "foliage_color": "#6789AB"
