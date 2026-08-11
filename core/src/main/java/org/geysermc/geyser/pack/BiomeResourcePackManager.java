@@ -52,8 +52,14 @@ import java.util.zip.ZipOutputStream;
 
 public final class BiomeResourcePackManager {
     private static final String INPUT_FILE = "biome-visuals.json";
+
     private static final int FORMAT_VERSION = 1;
+
     private static final int RESOURCE_PACK_VERSION = 1;
+
+    // Bedrock’s custom-biome runtime ID range begins at 30_000. Any value below
+    // that will serialize just fine, but the client will not treat it as a custom
+    // biome and the definition won't bind properly to the biome ID used by chunks.
     private static final int CUSTOM_BIOME_ID_START = 30_000;
 
     public static @Nullable Path createResourcePack() {
@@ -129,6 +135,17 @@ public final class BiomeResourcePackManager {
         return resolved;
     }
 
+    private static int color(@Nullable String color) {
+        if (color == null || !color.matches("#[0-9a-fA-F]{6}")) {
+            throw new IllegalArgumentException("Biome colors must use the #RRGGBB format");
+        }
+        return Integer.parseInt(color.substring(1), 16);
+    }
+
+    private static @Nullable Integer optionalColor(@Nullable String color) {
+        return color == null ? null : color(color);
+    }
+
     private static Object2IntMap<String> customMappings(Set<String> configuredIdentifiers,
             Set<String> bedrockIdentifiers) {
         Object2IntMap<String> customMappings = new Object2IntOpenHashMap<>();
@@ -152,6 +169,9 @@ public final class BiomeResourcePackManager {
     }
 
     private static void write(Path output, Map<String, BiomeVisuals> biomes) throws IOException {
+        // We sort the biomes to make sure the resource pack is deterministic, and the
+        // UUID is always the same when the visuals remain unchanged to avoid
+        // invalidating the cache.
         Map<String, BiomeVisuals> sortedBiomes = new TreeMap<>(biomes);
         UUID packUuid = UUID.nameUUIDFromBytes(
                 (RESOURCE_PACK_VERSION + sortedBiomes.toString()).getBytes(StandardCharsets.UTF_8));
@@ -171,11 +191,10 @@ public final class BiomeResourcePackManager {
         }
     }
 
-    private static int color(@Nullable String color) {
-        if (color == null || !color.matches("#[0-9a-fA-F]{6}")) {
-            throw new IllegalArgumentException("Biome colors must use the #RRGGBB format");
-        }
-        return Integer.parseInt(color.substring(1), 16);
+    private static void write(ZipOutputStream zip, String name, JsonObject json) throws IOException {
+        zip.putNextEntry(new ZipEntry(name));
+        zip.write(GeyserImpl.GSON.toJson(json).getBytes(StandardCharsets.UTF_8));
+        zip.closeEntry();
     }
 
     private static String fileIdentifier(String identifier) {
@@ -183,10 +202,6 @@ public final class BiomeResourcePackManager {
                 ? identifier.substring("minecraft:".length())
                 : identifier;
         return fileIdentifier.replace(':', '_').replace('/', '_');
-    }
-
-    private static @Nullable Integer optionalColor(@Nullable String color) {
-        return color == null ? null : color(color);
     }
 
     private static JsonObject manifest(UUID packUuid, UUID moduleUuid) {
@@ -220,12 +235,6 @@ public final class BiomeResourcePackManager {
         version.add(minor);
         version.add(patch);
         return version;
-    }
-
-    private static void write(ZipOutputStream zip, String name, JsonObject json) throws IOException {
-        zip.putNextEntry(new ZipEntry(name));
-        zip.write(GeyserImpl.GSON.toJson(json).getBytes(StandardCharsets.UTF_8));
-        zip.closeEntry();
     }
 
     private record BiomeConfig(
@@ -294,6 +303,9 @@ public final class BiomeResourcePackManager {
             return root;
         }
 
+        // The used fog distances are based on the default values used by Bedrock's
+        // default_fog_setting.json, might be worth making it configurable at some
+        // point.
         private JsonObject fog(String fogIdentifier) {
             JsonObject distance = new JsonObject();
             distance.add("air", fogDistance(fogColor, 0.92F, 1.0F, "render"));

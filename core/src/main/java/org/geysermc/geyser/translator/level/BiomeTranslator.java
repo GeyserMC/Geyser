@@ -66,6 +66,7 @@ public class BiomeTranslator {
 
     public static BiomeMapping loadServerBiome(RegistryEntryContext entry) {
         String identifier = entry.id().asString();
+        
         int customId = Registries.CUSTOM_BIOME_IDENTIFIERS.get().getOrDefault(identifier, UNKNOWN_BIOME);
         if (customId != UNKNOWN_BIOME) {
             return customBiome(entry, customId);
