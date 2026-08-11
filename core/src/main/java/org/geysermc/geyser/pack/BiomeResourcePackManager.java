@@ -56,9 +56,6 @@ public final class BiomeResourcePackManager {
     private static final int RESOURCE_PACK_VERSION = 1;
     private static final int CUSTOM_BIOME_ID_START = 30_000;
 
-    private BiomeResourcePackManager() {
-    }
-
     public static @Nullable Path createResourcePack() {
         Registries.CUSTOM_BIOME_IDENTIFIERS.get().clear();
 
@@ -99,8 +96,9 @@ public final class BiomeResourcePackManager {
         if (config == null || config.formatVersion() != FORMAT_VERSION) {
             throw new IllegalArgumentException("Unsupported biome visuals format version");
         }
+
         if (config.biomes() == null) {
-            throw new IllegalArgumentException("No biome visuals were defined");
+            return resolve(Map.of());
         }
 
         return resolve(config.biomes());
@@ -108,9 +106,11 @@ public final class BiomeResourcePackManager {
 
     private static Map<String, BiomeVisuals> resolve(Map<String, BiomeDefinition> definitions) {
         Map<String, BiomeVisuals> resolved = new Object2ObjectOpenHashMap<>();
+
         for (Map.Entry<String, BiomeDefinition> biome : definitions.entrySet()) {
             String javaIdentifier = biome.getKey();
             BiomeDefinition definition = biome.getValue();
+
             if (definition == null) {
                 throw new IllegalArgumentException("No biome visuals were defined for " + javaIdentifier);
             }
@@ -129,7 +129,8 @@ public final class BiomeResourcePackManager {
         return resolved;
     }
 
-    private static Object2IntMap<String> customMappings(Set<String> configuredIdentifiers, Set<String> bedrockIdentifiers) {
+    private static Object2IntMap<String> customMappings(Set<String> configuredIdentifiers,
+            Set<String> bedrockIdentifiers) {
         Object2IntMap<String> customMappings = new Object2IntOpenHashMap<>();
         int customId = CUSTOM_BIOME_ID_START;
         for (String identifier : configuredIdentifiers) {
