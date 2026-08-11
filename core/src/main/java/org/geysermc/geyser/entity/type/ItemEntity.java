@@ -59,7 +59,7 @@ public class ItemEntity extends ProjectileEntity {
         AddItemEntityPacket itemPacket = new AddItemEntityPacket();
         itemPacket.setRuntimeEntityId(geyserId);
         itemPacket.setUniqueEntityId(geyserId);
-        itemPacket.setPosition(bedrockPosition());
+        itemPacket.setPosition(spawnPosition(bedrockPosition()));
         itemPacket.setMotion(motion);
         itemPacket.setFromFishing(false);
         itemPacket.setItemInHand(item);
