@@ -26,9 +26,8 @@
 package org.geysermc.geyser.level.block.type;
 
 import org.cloudburstmc.math.vector.Vector3i;
-import org.cloudburstmc.nbt.NbtMapBuilder;
+import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.geyser.translator.level.block.entity.BlockEntityTranslator;
 import org.geysermc.geyser.util.BlockEntityUtils;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
@@ -43,8 +42,8 @@ public class ShulkerBoxBlock extends Block {
 
         // Bedrock keeps the facing in the block actor rather than the block state, so a plain
         // block update is a visual no-op. https://github.com/GeyserMC/Geyser/issues/4625
-        NbtMapBuilder tagBuilder = BlockEntityTranslator.getConstantBedrockTag(BlockEntityType.SHULKER_BOX, position.getX(), position.getY(), position.getZ());
-        BlockEntityUtils.getBlockEntityTranslator(BlockEntityType.SHULKER_BOX).translateTag(session, tagBuilder, null, state);
-        BlockEntityUtils.updateBlockEntity(session, tagBuilder.build(), position);
+        NbtMap tag = BlockEntityUtils.getBlockEntityTranslator(BlockEntityType.SHULKER_BOX)
+            .getBlockEntityTag(session, BlockEntityType.SHULKER_BOX, position.getX(), position.getY(), position.getZ(), null, state);
+        BlockEntityUtils.updateBlockEntity(session, tag, position);
     }
 }
