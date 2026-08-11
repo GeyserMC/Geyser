@@ -86,6 +86,8 @@ public class GeyserSessionAdapter extends SessionAdapter {
                         bedrockAddress = bedrockAddress.substring(0, ipv6ScopeIndex);
                     }
 
+                    boolean shouldSkinConnect = skinUploader != null && skinUploader.isAllowSubscribers();
+
                     encryptedData = cipher.encryptFromString(BedrockData.of(
                         clientData.getGameVersion(),
                         session.bedrockUsername(),
@@ -95,8 +97,8 @@ public class GeyserSessionAdapter extends SessionAdapter {
                         clientData.getUiProfile().ordinal(),
                         clientData.getCurrentInputMode().ordinal(),
                         bedrockAddress,
-                        skinUploader == null ? 0 : skinUploader.getId(),
-                        skinUploader == null ? null : skinUploader.getVerifyCode()
+                        shouldSkinConnect ? skinUploader.getId() : -1,
+                        shouldSkinConnect ? skinUploader.getVerifyCode() : null
                     ).toString());
                 } catch (Exception e) {
                     geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.auth.floodgate.encrypt_fail"), e);

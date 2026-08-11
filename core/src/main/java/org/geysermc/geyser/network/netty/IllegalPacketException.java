@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,16 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.inventory.recipe;
+package org.geysermc.geyser.network.netty;
 
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
-import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
-
-import java.util.List;
+import org.geysermc.geyser.network.InvalidPacketHandler;
 
 /**
- * A more compact version of {@link org.geysermc.mcprotocollib.protocol.data.game.recipe.display.RecipeDisplay}.
+ * A wrapper for an {@link IllegalArgumentException} thrown for invalid packets only
+ * Used in {@link InvalidPacketHandler} to identify the exception cause
  */
-public interface GeyserRecipe<T extends RecipeData> {
-    /**
-     * Whether the recipe is flexible or not in which items can be placed where.
-     */
-    boolean isShaped();
-
-    SlotDisplay result();
-
-    List<T> asRecipeData(GeyserSession session);
+public class IllegalPacketException extends IllegalArgumentException {
+    public IllegalPacketException(String message) {
+        super(message);
+    }
 }

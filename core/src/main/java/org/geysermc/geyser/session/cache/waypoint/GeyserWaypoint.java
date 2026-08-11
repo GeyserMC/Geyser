@@ -226,6 +226,7 @@ public abstract class GeyserWaypoint {
             entry.setXuid("");
             entry.setPlatformChatId("");
             entry.setTrustedSkin(true);
+            entry.setAction(add ? PlayerListPacket.Action.ADD : PlayerListPacket.Action.REMOVE);
             packet.getEntries().add(entry);
 
             session.sendUpstreamPacket(packet);

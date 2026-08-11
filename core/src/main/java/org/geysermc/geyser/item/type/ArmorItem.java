@@ -74,7 +74,7 @@ public class ArmorItem extends Item {
                 trimBuilder.put("Pattern", pattern.value());
                 builder.putCompound("Trim", trimBuilder.build());
             } else {
-                GeyserImpl.getInstance().getLogger().debug("Unknown trim material/pattern: ", trim);
+                GeyserImpl.getInstance().getLogger().debug("Unknown trim material/pattern: %s", trim);
             }
         }
     }

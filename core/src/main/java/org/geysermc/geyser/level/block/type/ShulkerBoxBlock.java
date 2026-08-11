@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022 GeyserMC. http://geysermc.org
+ * Copyright (c) 2019-2026 GeyserMC. http://geysermc.org
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,24 +23,27 @@
  * @link https://github.com/GeyserMC/Geyser
  */
 
-package org.geysermc.geyser.inventory.recipe;
+package org.geysermc.geyser.level.block.type;
 
-import org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.RecipeData;
+import org.cloudburstmc.math.vector.Vector3i;
+import org.cloudburstmc.nbt.NbtMap;
 import org.geysermc.geyser.session.GeyserSession;
-import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
+import org.geysermc.geyser.util.BlockEntityUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityType;
 
-import java.util.List;
+public class ShulkerBoxBlock extends Block {
+    public ShulkerBoxBlock(String javaIdentifier, Builder builder) {
+        super(javaIdentifier, builder);
+    }
 
-/**
- * A more compact version of {@link org.geysermc.mcprotocollib.protocol.data.game.recipe.display.RecipeDisplay}.
- */
-public interface GeyserRecipe<T extends RecipeData> {
-    /**
-     * Whether the recipe is flexible or not in which items can be placed where.
-     */
-    boolean isShaped();
+    @Override
+    public void updateBlock(GeyserSession session, BlockState state, Vector3i position) {
+        super.updateBlock(session, state, position);
 
-    SlotDisplay result();
-
-    List<T> asRecipeData(GeyserSession session);
+        // Bedrock keeps the facing in the block actor rather than the block state, so a plain
+        // block update is a visual no-op. https://github.com/GeyserMC/Geyser/issues/4625
+        NbtMap tag = BlockEntityUtils.getBlockEntityTranslator(BlockEntityType.SHULKER_BOX)
+            .getBlockEntityTag(session, BlockEntityType.SHULKER_BOX, position.getX(), position.getY(), position.getZ(), null, state);
+        BlockEntityUtils.updateBlockEntity(session, tag, position);
+    }
 }

@@ -43,7 +43,7 @@ public record GeyserSmithingRecipe(int id,
                                    SlotDisplay template,
                                    SlotDisplay base,
                                    SlotDisplay addition,
-                                   SlotDisplay result) implements GeyserRecipe {
+                                   SlotDisplay result) implements GeyserRecipe<SmithingTransformRecipeData> {
     public GeyserSmithingRecipe(int id, int netId, SmithingRecipeDisplay display) {
         this(id, netId, display.template(), display.base(), display.addition(), display.result());
     }
@@ -54,7 +54,7 @@ public record GeyserSmithingRecipe(int id,
     }
 
     @Override
-    public List<RecipeData> asRecipeData(GeyserSession session) {
+    public List<SmithingTransformRecipeData> asRecipeData(GeyserSession session) {
         Pair<Item, ItemData> output = RecipeUtil.translateToOutput(session, result);
         if (output == null) {
             return List.of();
@@ -67,7 +67,7 @@ public record GeyserSmithingRecipe(int id,
             return List.of();
         }
 
-        List<RecipeData> recipeData = new ArrayList<>();
+        List<SmithingTransformRecipeData> recipeData = new ArrayList<>();
         int i = 0;
         for (ItemDescriptorWithCount template : templates) {
             for (ItemDescriptorWithCount base : bases) {

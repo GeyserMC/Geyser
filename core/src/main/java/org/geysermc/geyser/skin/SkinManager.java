@@ -154,6 +154,9 @@ public class SkinManager {
             .fullSkinId(skinId)
             .geometryDataEngineVersion(session.getClientData().getGameVersion())
             .overridingPlayerAppearance(true)
+            .color(new Color(0, true))
+            .trusted(true)
+            .profileHash("") // TODO Look into this, the session sends it, so it's probably important for skins to work correctly
             .build();
     }
 

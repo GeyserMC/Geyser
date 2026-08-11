@@ -228,12 +228,16 @@ public final class WaypointCache {
 
         PlayerListPacket removePacket = new PlayerListPacket();
         removePacket.setAction(PlayerListPacket.Action.REMOVE);
-        removePacket.getEntries().add(new PlayerListPacket.Entry(player.uuid()));
+        PlayerListPacket.Entry removeEntry = new PlayerListPacket.Entry(player.uuid());
+        removeEntry.setAction(PlayerListPacket.Action.REMOVE);
+        removePacket.getEntries().add(removeEntry);
         session.sendUpstreamPacket(removePacket);
 
         PlayerListPacket addPacket = new PlayerListPacket();
         addPacket.setAction(PlayerListPacket.Action.ADD);
-        addPacket.getEntries().add(SkinManager.buildEntryFromCachedSkin(session, player));
+        PlayerListPacket.Entry addEntry = SkinManager.buildEntryFromCachedSkin(session, player);
+        addEntry.setAction(PlayerListPacket.Action.ADD);
+        addPacket.getEntries().add(addEntry);
         session.sendUpstreamPacket(addPacket);
     }
 

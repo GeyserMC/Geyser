@@ -128,6 +128,7 @@ public final class EntityUtils {
             }
             case PIGLIN -> mountedHeightOffset = height * 0.92f;
             case PHANTOM -> mountedHeightOffset = height * 0.35f;
+            case PLAYER, MANNEQUIN -> mountedHeightOffset = height;
             case RAVAGER -> mountedHeightOffset = 2.1f;
             case SKELETON_HORSE -> mountedHeightOffset -= 0.1875f;
             case SNIFFER -> mountedHeightOffset = 1.8f;

@@ -51,7 +51,6 @@ import org.cloudburstmc.protocol.bedrock.packet.ResourcePacksInfoPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetTitlePacket;
 import org.cloudburstmc.protocol.common.PacketSignal;
 import org.cloudburstmc.protocol.common.util.Zlib;
-import org.geysermc.api.util.BedrockPlatform;
 import org.geysermc.geyser.Constants;
 import org.geysermc.geyser.GeyserImpl;
 import org.geysermc.geyser.api.event.bedrock.SessionInitializeEvent;
@@ -168,10 +167,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
         }
 
         // New since 1.19.30 - sent before login packet
-        PacketCompressionAlgorithm algorithm = PacketCompressionAlgorithm.ZLIB;
-
         NetworkSettingsPacket responsePacket = new NetworkSettingsPacket();
-        responsePacket.setCompressionAlgorithm(algorithm);
+        responsePacket.setCompressionAlgorithm(PacketCompressionAlgorithm.ZLIB);
         responsePacket.setCompressionThreshold(512);
         session.sendUpstreamPacketImmediately(responsePacket);
         session.getUpstream().getSession().getPeer().setCompression(compressionStrategy);
@@ -240,8 +237,8 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
 
         resourcePacksInfo.setForcedToAccept(GeyserImpl.getInstance().config().gameplay().forceResourcePacks() ||
             resourcePackLoadEvent.isIntegratedPackActive());
-        resourcePacksInfo.setWorldTemplateId(UUID.randomUUID());
-        resourcePacksInfo.setWorldTemplateVersion("*");
+        resourcePacksInfo.setWorldTemplateId(new UUID(0, 0));
+        resourcePacksInfo.setWorldTemplateVersion("");
 
         session.sendUpstreamPacket(resourcePacksInfo);
 
@@ -284,7 +281,7 @@ public class UpstreamPacketHandler extends LoggingPacketHandler {
                 ResourcePackStackPacket stackPacket = new ResourcePackStackPacket();
                 stackPacket.setExperimentsPreviouslyToggled(false);
                 stackPacket.setForcedToAccept(false); // Leaving this as false allows the player to choose to download or not
-                stackPacket.setGameVersion(session.getClientData().getGameVersion());
+                stackPacket.setGameVersion("*");
                 stackPacket.getResourcePacks().addAll(this.resourcePackLoadEvent.orderedPacks());
 
                 session.sendUpstreamPacket(stackPacket);

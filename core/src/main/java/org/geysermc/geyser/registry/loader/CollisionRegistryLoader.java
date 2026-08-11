@@ -75,7 +75,7 @@ public class CollisionRegistryLoader extends MultiResourceRegistryLoader<String,
             NbtMap collisionData = (NbtMap) NbtUtils.createGZIPReader(stream).readTag();
             indices = collisionData.getIntArray("indices");
             //SuppressWarnings unchecked
-            collisionList = loadBoundingBoxes(collisionData.getList("collisions", NbtType.LIST));
+            collisionList = loadBoundingBoxes(collisionData.getList("shapes", NbtType.LIST));
         } catch (Exception e) {
             throw new AssertionError("Unable to load collision data", e);
         }

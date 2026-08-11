@@ -45,8 +45,6 @@ import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserBlockPlacer
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserChargeable;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserItemDataComponents;
 import org.geysermc.geyser.api.item.custom.v2.component.geyser.GeyserThrowableComponent;
-import org.geysermc.geyser.api.item.custom.v2.component.java.JavaItemDataComponents;
-import org.geysermc.geyser.api.item.custom.v2.component.java.JavaRepairable;
 import org.geysermc.geyser.api.predicate.MinecraftPredicate;
 import org.geysermc.geyser.api.predicate.context.item.ItemPredicateContext;
 import org.geysermc.geyser.api.predicate.item.ItemConditionPredicate;
@@ -54,7 +52,6 @@ import org.geysermc.geyser.api.util.CreativeCategory;
 import org.geysermc.geyser.api.util.Identifier;
 import org.geysermc.geyser.api.util.Unit;
 import org.geysermc.geyser.event.type.GeyserDefineCustomItemsEventImpl;
-import org.geysermc.geyser.impl.HoldersImpl;
 import org.geysermc.geyser.item.GeyserCustomMappingData;
 import org.geysermc.geyser.item.Items;
 import org.geysermc.geyser.item.custom.GeyserCustomItemBedrockOptions;
@@ -391,12 +388,10 @@ public class CustomItemRegistryPopulator {
                 consumableComponent.map(Consumable::consumeSeconds));
         }
 
-        Unit entityPlacer = context.vanillaMapping().map(mapping -> {
-            if (mapping.isEntityPlacer()) {
-                return Unit.INSTANCE;
-            }
-            return null;
-        }).orElse(context.definition().components().get(GeyserItemDataComponents.ENTITY_PLACER));
+        Unit entityPlacer = context.vanillaMapping()
+            .filter(GeyserMappingItem::isEntityPlacer)
+            .map(mapping -> Unit.INSTANCE)
+            .orElse(context.definition().components().get(GeyserItemDataComponents.ENTITY_PLACER));
 
         if (entityPlacer != null) {
             computeEntityPlacerProperties(componentBuilder);

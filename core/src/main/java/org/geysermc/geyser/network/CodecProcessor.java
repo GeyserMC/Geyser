@@ -32,6 +32,8 @@ import org.cloudburstmc.protocol.bedrock.codec.BedrockPacketSerializer;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.BossEventSerializer_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.InventoryContentSerializer_v1001;
 import org.cloudburstmc.protocol.bedrock.codec.v1001.serializer.MobArmorEquipmentSerializer_v1001;
+import org.cloudburstmc.protocol.bedrock.codec.v2168.serializer.MovePlayerSerializer_v2168;
+import org.cloudburstmc.protocol.bedrock.codec.v2168.serializer.PlayerSkinSerializer_v2168;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MobEquipmentSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.MoveEntityAbsoluteSerializer_v291;
 import org.cloudburstmc.protocol.bedrock.codec.v291.serializer.PlayerHotbarSerializer_v291;
@@ -89,6 +91,7 @@ import org.cloudburstmc.protocol.bedrock.packet.SimpleEventPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubChunkRequestPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SubClientLoginPacket;
 import org.cloudburstmc.protocol.common.util.VarInts;
+import org.geysermc.geyser.network.netty.IllegalPacketException;
 
 /**
  * Processes the Bedrock codec to remove or modify unused or unsafe packets and fields.
@@ -103,12 +106,12 @@ class CodecProcessor {
     static final BedrockPacketSerializer ILLEGAL_SERIALIZER = new BedrockPacketSerializer<>() {
         @Override
         public void serialize(ByteBuf buffer, BedrockCodecHelper helper, BedrockPacket packet) {
-            throw new IllegalArgumentException("Server tried to send unused packet " + packet.getClass().getSimpleName() + "!");
+            throw new IllegalPacketException("Server tried to send unused packet " + packet.getClass().getSimpleName() + "!");
         }
 
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, BedrockPacket packet) {
-            throw new IllegalArgumentException("Client tried to send unused packet " + packet.getClass().getSimpleName() + "!");
+            throw new IllegalPacketException("Client tried to send unused packet " + packet.getClass().getSimpleName() + "!");
         }
     };
 
@@ -131,14 +134,14 @@ class CodecProcessor {
     private static final BedrockPacketSerializer<InventoryContentPacket> INVENTORY_CONTENT_SERIALIZER_V748 = new InventoryContentSerializer_v748() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
-            throw new IllegalArgumentException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
+            throw new IllegalPacketException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
         }
     };
 
     private static final BedrockPacketSerializer<InventoryContentPacket> INVENTORY_CONTENT_SERIALIZER_V1001 = new InventoryContentSerializer_v1001() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventoryContentPacket packet) {
-            throw new IllegalArgumentException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
+            throw new IllegalPacketException("Client cannot send InventoryContentPacket in server-auth inventory environment!");
         }
     };
 
@@ -148,35 +151,42 @@ class CodecProcessor {
     private static final BedrockPacketSerializer<InventorySlotPacket> INVENTORY_SLOT_SERIALIZER_V748 = new InventorySlotSerializer_v748() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
-            throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
+            throw new IllegalPacketException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
         }
     };
 
     private static final BedrockPacketSerializer<InventorySlotPacket> INVENTORY_SLOT_SERIALIZER_V975 = new InventorySlotSerializer_v975() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, InventorySlotPacket packet) {
-            throw new IllegalArgumentException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
+            throw new IllegalPacketException("Client cannot send InventorySlotPacket in server-auth inventory environment!");
         }
     };
 
-    private static final BedrockPacketSerializer<MovePlayerPacket> MOVE_PLAYER_SERIALIZER = new MovePlayerSerializer_v419() {
+    private static final BedrockPacketSerializer<MovePlayerPacket> MOVE_PLAYER_SERIALIZER_V419 = new MovePlayerSerializer_v419() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MovePlayerPacket packet) {
-            throw new IllegalArgumentException("Client cannot send MovePlayerPacket in server-auth movement environment!");
+            throw new IllegalPacketException("Client cannot send MovePlayerPacket in server-auth movement environment!");
+        }
+    };
+
+    private static final BedrockPacketSerializer<MovePlayerPacket> MOVE_PLAYER_SERIALIZER_V2168 = new MovePlayerSerializer_v2168() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MovePlayerPacket packet) {
+            throw new IllegalPacketException("Client cannot send MovePlayerPacket in server-auth movement environment!");
         }
     };
 
     private static final BedrockPacketSerializer<MoveEntityAbsolutePacket> MOVE_ENTITY_SERIALIZER_V291 = new MoveEntityAbsoluteSerializer_v291() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MoveEntityAbsolutePacket packet) {
-            throw new IllegalArgumentException("Client cannot send MoveEntityAbsolutePacket in server-auth movement environment!");
+            throw new IllegalPacketException("Client cannot send MoveEntityAbsolutePacket in server-auth movement environment!");
         }
     };
 
     private static final BedrockPacketSerializer<MoveEntityAbsolutePacket> MOVE_ENTITY_SERIALIZER_V975 = new MoveEntityAbsoluteSerializer_v975() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, MoveEntityAbsolutePacket packet) {
-            throw new IllegalArgumentException("Client cannot send MoveEntityAbsolutePacket in server-auth movement environment!");
+            throw new IllegalPacketException("Client cannot send MoveEntityAbsolutePacket in server-auth movement environment!");
         }
     };
 
@@ -222,7 +232,13 @@ class CodecProcessor {
     /**
      * Serializer that does nothing when trying to deserialize PlayerSkinPacket since it is not used from the client.
      */
-    private static final BedrockPacketSerializer<PlayerSkinPacket> PLAYER_SKIN_SERIALIZER = new PlayerSkinSerializer_v390() {
+    private static final BedrockPacketSerializer<PlayerSkinPacket> PLAYER_SKIN_SERIALIZER_V390 = new PlayerSkinSerializer_v390() {
+        @Override
+        public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, PlayerSkinPacket packet) {
+        }
+    };
+
+    private static final BedrockPacketSerializer<PlayerSkinPacket> PLAYER_SKIN_SERIALIZER_V2168 = new PlayerSkinSerializer_v2168() {
         @Override
         public void deserialize(ByteBuf buffer, BedrockCodecHelper helper, PlayerSkinPacket packet) {
         }
@@ -315,11 +331,8 @@ class CodecProcessor {
             .updateSerializer(SimpleEventPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(MultiplayerSettingsPacket.class, IGNORED_SERIALIZER)
             .updateSerializer(EmoteListPacket.class, IGNORED_SERIALIZER)
-            // Illegal when serverbound due to Geyser specific setup
-            .updateSerializer(MovePlayerPacket.class, MOVE_PLAYER_SERIALIZER)
             // Ignored only when serverbound
             .updateSerializer(PlayerHotbarPacket.class, PLAYER_HOTBAR_SERIALIZER)
-            .updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER)
             .updateSerializer(SetEntityDataPacket.class, SET_ENTITY_DATA_SERIALIZER)
             .updateSerializer(SetEntityMotionPacket.class, SET_ENTITY_MOTION_SERIALIZER)
             .updateSerializer(SetEntityLinkPacket.class, SET_ENTITY_LINK_SERIALIZER);
@@ -352,6 +365,15 @@ class CodecProcessor {
             codecBuilder.updateSerializer(MobArmorEquipmentPacket.class, MOB_ARMOR_EQUIPMENT_SERIALIZER_V1001);
             codecBuilder.updateSerializer(InventoryContentPacket.class, INVENTORY_CONTENT_SERIALIZER_V1001);
             codecBuilder.updateSerializer(BossEventPacket.class, BOSS_EVENT_SERIALIZER_V1001);
+        }
+
+        if (codec.getProtocolVersion() < 2168) { // 26.40
+            // Illegal when serverbound due to Geyser specific setup
+            codecBuilder.updateSerializer(MovePlayerPacket.class, MOVE_PLAYER_SERIALIZER_V419);
+            codecBuilder.updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER_V390);
+        } else {
+            codecBuilder.updateSerializer(MovePlayerPacket.class, MOVE_PLAYER_SERIALIZER_V2168);
+            codecBuilder.updateSerializer(PlayerSkinPacket.class, PLAYER_SKIN_SERIALIZER_V2168);
         }
 
         return codecBuilder.build();
@@ -396,7 +418,7 @@ class CodecProcessor {
                     VarInts.readInt(buffer); // netId
                     break;
                 default:
-                    throw new IllegalArgumentException("Not oneOf<ItemStackNetId, ItemStackRequestId, ItemStackLegacyRequestId>");
+                    throw new IllegalPacketException("Not oneOf<ItemStackNetId, ItemStackRequestId, ItemStackLegacyRequestId>");
             }
         }
         VarInts.readUnsignedInt(buffer); // block runtime id

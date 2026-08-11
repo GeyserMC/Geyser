@@ -423,7 +423,8 @@ public class CustomBlockRegistryPopulator {
             for (Map.Entry<String, MaterialInstance> entry : components.materialInstances().entrySet()) {
                 MaterialInstance materialInstance = entry.getValue();
                 NbtMapBuilder materialBuilder = NbtMap.builder()
-                        .putBoolean("ambient_occlusion", materialInstance.ambientOcclusion())
+                        // Bedrock stopped accepting a byte here in 1.26.20; it must be a float
+                        .putFloat("ambient_occlusion", materialInstance.ambientOcclusion() ? 1.0F : 0.0F)
                         .putBoolean("isotropic", materialInstance.isotropic());
 
                 // todo this is actually an bitset, we should add the other properties some day

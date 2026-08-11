@@ -90,7 +90,8 @@ public final class SidebarDisplaySlot extends DisplaySlot {
         // In newDisplayScores we removed the items that were already present from displayScoresCopy,
         // meaning that the items that remain are items that are no longer displayed.
         for (var score : displayScoresCopy) {
-            removeScores.add(score.cachedInfo());
+            ScoreInfo cachedInfo = score.cachedInfo();
+            removeScores.add(new ScoreInfo(cachedInfo.getScoreboardId(), cachedInfo.getObjectiveId(), 0));
         }
 
         // The newDisplayScores have to be copied over to displayScoresCopy for the next render.
@@ -162,7 +163,8 @@ public final class SidebarDisplaySlot extends DisplaySlot {
             // the checks after 'add' are there to prevent removing scores that
             // are going to be removed anyway / don't need to be removed
             if (add && exists && !(objectiveUpdate || objectiveAdd) && !score.onlyScoreValueChanged()) {
-                removeScores.add(score.cachedInfo());
+                ScoreInfo cachedInfo = score.cachedInfo();
+                removeScores.add(new ScoreInfo(cachedInfo.getScoreboardId(), cachedInfo.getObjectiveId(), 0));
             }
         }
 

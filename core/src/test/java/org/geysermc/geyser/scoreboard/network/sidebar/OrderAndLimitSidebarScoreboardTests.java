@@ -139,7 +139,7 @@ public class OrderAndLimitSidebarScoreboardTests {
             assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
-                packet.setInfos(List.of(new ScoreInfo(5, "0", 13, "m")));
+                packet.setInfos(List.of(new ScoreInfo(5, "0", 0)));
                 return packet;
             });
             assertNextPacket(context, () -> {
@@ -157,7 +157,7 @@ public class OrderAndLimitSidebarScoreboardTests {
             assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
-                packet.setInfos(List.of(new ScoreInfo(16, "0", 2, "b")));
+                packet.setInfos(List.of(new ScoreInfo(16, "0", 0)));
                 return packet;
             });
             assertNextPacket(context, () -> {
@@ -176,8 +176,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
-                    new ScoreInfo(15, "0", 3, "c"),
-                    new ScoreInfo(9, "0", 9, "§0§rg")
+                    new ScoreInfo(15, "0", 0),
+                    new ScoreInfo(9, "0", 0)
                 ));
                 return packet;
             });
@@ -200,9 +200,9 @@ public class OrderAndLimitSidebarScoreboardTests {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
-                    new ScoreInfo(14, "0", 4, "e"),
-                    new ScoreInfo(9, "0", 9, "§1§rg"),
-                    new ScoreInfo(18, "0", 9, "§2§rga")
+                    new ScoreInfo(14, "0", 0),
+                    new ScoreInfo(9, "0", 0),
+                    new ScoreInfo(18, "0", 0)
                 ));
                 return packet;
             });
@@ -226,8 +226,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
-                    new ScoreInfo(9, "0", 9, "§1§rg"),
-                    new ScoreInfo(18, "0", 9, "§1§rga")
+                    new ScoreInfo(9, "0", 0),
+                    new ScoreInfo(18, "0", 0)
                 ));
                 return packet;
             });
@@ -250,8 +250,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
-                    new ScoreInfo(18, "0", 9, "§1§rga"),
-                    new ScoreInfo(19, "0", 9, "ag")
+                    new ScoreInfo(18, "0", 0),
+                    new ScoreInfo(19, "0", 0)
                 ));
                 return packet;
             });
@@ -368,7 +368,7 @@ public class OrderAndLimitSidebarScoreboardTests {
             assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
-                packet.setInfos(List.of(new ScoreInfo(5, "0", 13, "m")));
+                packet.setInfos(List.of(new ScoreInfo(5, "0", 0)));
                 return packet;
             });
             assertNextPacket(context, () -> {
@@ -386,7 +386,7 @@ public class OrderAndLimitSidebarScoreboardTests {
             assertNextPacket(context, () -> {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
-                packet.setInfos(List.of(new ScoreInfo(16, "0", 2, "b")));
+                packet.setInfos(List.of(new ScoreInfo(16, "0", 0)));
                 return packet;
             });
             assertNextPacket(context, () -> {
@@ -439,8 +439,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
-                    new ScoreInfo(15, "0", 3, "c"),
-                    new ScoreInfo(7, "0", 11, "§0§r§4prefix§r§4o§r§4suffix")
+                    new ScoreInfo(15, "0", 0),
+                    new ScoreInfo(7, "0", 0)
                 ));
                 return packet;
             });
@@ -464,9 +464,9 @@ public class OrderAndLimitSidebarScoreboardTests {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
-                    new ScoreInfo(14, "0", 4, "e"),
-                    new ScoreInfo(7, "0", 11, "§1§r§4prefix§r§4o§r§4suffix"),
-                    new ScoreInfo(18, "0", 11, "§2§r§3prefix§r§3oa§r§3suffix")
+                    new ScoreInfo(14, "0", 0),
+                    new ScoreInfo(7, "0", 0),
+                    new ScoreInfo(18, "0", 0)
                 ));
                 return packet;
             });
@@ -490,8 +490,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
-                    new ScoreInfo(7, "0", 11, "§1§r§4prefix§r§4o§r§4suffix"),
-                    new ScoreInfo(18, "0", 11, "§1§r§3prefix§r§3oa§r§3suffix")
+                    new ScoreInfo(7, "0", 0),
+                    new ScoreInfo(18, "0", 0)
                 ));
                 return packet;
             });
@@ -514,8 +514,8 @@ public class OrderAndLimitSidebarScoreboardTests {
                 var packet = new SetScorePacket();
                 packet.setAction(SetScorePacket.Action.REMOVE);
                 packet.setInfos(List.of(
-                    new ScoreInfo(18, "0", 11, "§1§r§3prefix§r§3oa§r§3suffix"),
-                    new ScoreInfo(19, "0", 11, "§5prefix§r§5ao§r§5suffix")
+                    new ScoreInfo(18, "0", 0),
+                    new ScoreInfo(19, "0", 0)
                 ));
                 return packet;
             });
