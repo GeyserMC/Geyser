@@ -125,7 +125,7 @@ public final class Registries {
     public static final SimpleDeferredRegistry<Object2IntMap<String>> BIOME_IDENTIFIERS = SimpleDeferredRegistry.create("mappings/biomes.json", BiomeIdentifierRegistryLoader::new);
 
     /**
-     * A mapped registry which stores configured Java biome identifiers and their generated Bedrock biome IDs.
+     * A mapped registry which stores custom Java biome identifiers that have been configured and their generated Bedrock biome IDs.
      */
     public static final SimpleRegistry<Object2IntMap<String>> CUSTOM_BIOME_IDENTIFIERS = SimpleRegistry.create(RegistryLoaders.empty(Object2IntOpenHashMap::new));
 

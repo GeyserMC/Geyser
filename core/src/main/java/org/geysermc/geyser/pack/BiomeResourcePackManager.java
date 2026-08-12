@@ -308,11 +308,18 @@ public final class BiomeResourcePackManager {
         // point.
         private JsonObject fog(String fogIdentifier) {
             JsonObject distance = new JsonObject();
+
             distance.add("air", fogDistance(fogColor, 0.92F, 1.0F, "render"));
-            if (weatherFogColor != null) {
-                distance.add("weather", fogDistance(weatherFogColor, 0.23F, 0.7F, "render"));
-            }
             distance.add("water", fogDistance(waterFogColor, 0, 60, "fixed"));
+
+            // Weather fog color falls back to default fog color if not specified. In Java
+            // both of these settings are combined into one setting, but Bedrock separates
+            // the two. One thing to keep in mind is that the weather fog color in Bedrock
+            // does not apply the same darkening effect as in Java. Having the same color
+            // will result in different results (Might also be fixable by playing with the
+            // fog distance values).
+            distance.add("weather",
+                    fogDistance(weatherFogColor != null ? weatherFogColor : fogColor, 0.23F, 0.7F, "render"));
 
             JsonObject description = new JsonObject();
             description.addProperty("identifier", fogIdentifier);
@@ -327,6 +334,10 @@ public final class BiomeResourcePackManager {
             return root;
         }
 
+        private static String rgb(int color) {
+            return "#%06X".formatted(color & 0xFFFFFF);
+        }
+
         private static JsonObject fogDistance(int color, float start, float end, String distanceType) {
             JsonObject distance = new JsonObject();
             distance.addProperty("fog_start", start);
@@ -334,10 +345,6 @@ public final class BiomeResourcePackManager {
             distance.addProperty("fog_color", rgb(color));
             distance.addProperty("render_distance_type", distanceType);
             return distance;
-        }
-
-        private static String rgb(int color) {
-            return "#%06X".formatted(color & 0xFFFFFF);
         }
     }
 }
