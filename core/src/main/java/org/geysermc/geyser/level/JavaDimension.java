@@ -92,6 +92,12 @@ public record JavaDimension(int minY, int height, boolean piglinSafe, boolean ul
         if (defaultClock == null) {
             defaultClock = COMMON_CLOCKS.get(entry.id());
         }
+        // ViaVersion may strip or rename the dimension key, so COMMON_CLOCKS might not match.
+        // This is a heuristic fallback, not a strict mapping: any non-nether dimension without
+        // a known clock defaults to overworld to avoid a frozen sky for Bedrock players.
+        if (defaultClock == null && !isNetherLike) {
+            defaultClock = MinecraftKey.key("overworld");
+        }
 
         if (minY % 16 != 0) {
             throw new RuntimeException("Minimum Y must be a multiple of 16!");
