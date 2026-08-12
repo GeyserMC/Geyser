@@ -89,6 +89,9 @@ public final class ColorUtils {
     // "Inspired by" Mojang's DyedItemColor class:
     // https://mcsrc.dev/1/26.1.2/net/minecraft/world/item/component/DyedItemColor
     public static int mixDyes(@Nullable Integer current, List<DyeColor> dyes) {
+        if (current == null && dyes.isEmpty()) {
+            return 0;
+        }
         int totalRed = 0;
         int totalGreen = 0;
         int totalBlue = 0;

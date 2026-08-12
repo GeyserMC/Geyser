@@ -127,10 +127,8 @@ public class DumpCommand extends GeyserCommand {
         if (offlineDump) {
             source.sendMessage(GeyserLocale.getPlayerLocaleString("geyser.commands.dump.writing", source.locale()));
 
-            try {
-                FileOutputStream outputStream = new FileOutputStream(GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("dump.json").toFile());
+            try (FileOutputStream outputStream = new FileOutputStream(GeyserImpl.getInstance().getBootstrap().getConfigFolder().resolve("dump.json").toFile())) {
                 outputStream.write(dumpData.getBytes());
-                outputStream.close();
             } catch (IOException e) {
                 source.sendMessage(ChatColor.RED + GeyserLocale.getPlayerLocaleString("geyser.commands.dump.write_error", source.locale()));
                 geyser.getLogger().error(GeyserLocale.getLocaleStringLog("geyser.commands.dump.write_error_short"), e);

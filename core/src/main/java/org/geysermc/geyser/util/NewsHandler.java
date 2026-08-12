@@ -113,7 +113,7 @@ public class NewsHandler {
             case BROADCAST_TO_OPERATORS:
                 for (GeyserSession player : GeyserImpl.getInstance().getSessionManager().getSessions().values()) {
                     if (player.getOpPermissionLevel() >= 2) {
-                        session.sendMessage(ChatColor.GREEN + news.getMessage());
+                        player.sendMessage(ChatColor.GREEN + news.getMessage());
                     }
                 }
                 break;

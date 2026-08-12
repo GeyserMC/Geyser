@@ -100,7 +100,7 @@ public class ConnectionTestCommand extends GeyserCommand {
         }
 
         // Issue: port out of bounds
-        if (port <= 0 || port >= 65535) {
+        if (port <= 0 || port > 65535) {
             source.sendMessage("The port you specified is invalid! Please specify a valid port.");
             return;
         }
