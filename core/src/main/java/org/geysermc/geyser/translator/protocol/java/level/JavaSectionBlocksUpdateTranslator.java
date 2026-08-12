@@ -92,7 +92,7 @@ public class JavaSectionBlocksUpdateTranslator extends PacketTranslator<Clientbo
             if (blockState.is(Blocks.AIR)) {
                 ItemFrameEntity itemFrameEntity = ItemFrameEntity.getItemFrameEntity(session, entry.getPosition());
                 if (itemFrameEntity != null) { // Item frame is still present and no block overrides that; refresh it
-                    itemFrameEntity.updateBlock(true);
+                    itemFrameEntity.updateBlock(blockState, true);
                     continue;
                 }
             }
