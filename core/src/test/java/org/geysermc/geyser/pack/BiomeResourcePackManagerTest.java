@@ -43,38 +43,40 @@ import java.nio.file.Path;
 import java.util.Objects;
 import java.util.zip.ZipFile;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class BiomeResourcePackManagerTest {
     private static final String PLAINS = """
-            "minecraft:plains": {
-              "water_color": "#3F76E4",
-              "water_fog_color": "#050533",
-              "fog_color": "#C0D8FF"
+        "minecraft:plains": {
+            "effects": {
+                "water_color": "#3F76E4"
             }
-            """;
+        }
+        """;
     private static final String CRYSTAL_CAVERNS = """
-            "custom:crystal_caverns": {
-              "water_color": "#123456",
-              "water_fog_color": "#234567",
-              "fog_color": "#345678",
-              "weather_fog_color": "#89ABCD",
-              "sky_color": "#456789",
-              "grass_color": "#56789A",
-              "foliage_color": "#6789AB"
+        "custom:crystal_caverns": {
+            "attributes": {
+                "minecraft:visual/sky_color": "#456789",
+                "minecraft:visual/fog_color": "#345678",
+                "minecraft:visual/water_fog_color": "#234567"
+            },
+            "effects": {
+                "water_color": "#123456",
+                "foliage_color": "#6789AB",
+                "dry_foliage_color": "#6789AB",
+                "grass_color": "#56789A"
             }
-            """;
+        }
+        """;
 
     @TempDir
     Path tempDirectory;
+
+    private static InputStream resource(String name) {
+        return BiomeResourcePackManagerTest.class.getClassLoader().getResourceAsStream(name);
+    }
 
     @AfterEach
     public void removeCustomMappings() {
@@ -99,19 +101,21 @@ public class BiomeResourcePackManagerTest {
     @Test
     public void rejectsInvalidBiomeIdentifiers() throws IOException {
         assertInvalid("""
-                {"format_version": 1, "biomes": {"Custom:invalid": {
-                  "water_color": "#123456", "water_fog_color": "#234567", "fog_color": "#345678"
-                }}}
-                """);
+            {
+                "format_version": 1,
+                "biomes": { "Custom:invalid": { "effects": { "water_color": "#123456" } } }
+            }
+            """);
         assertInvalid("""
-                {"format_version": 1, "biomes": {"plains": {
-                  "water_color": "#123456", "water_fog_color": "#234567", "fog_color": "#345678"
-                }}}
-                """);
+            {
+                "format_version": 1,
+                "biomes": {"plains": { "effects": { "water_color": "#123456" } } }
+            }
+            """);
     }
 
     @Test
-    public void clearsMappingsWhenConfigIsRemoved() throws IOException {
+    public void clearsMappingsWhenConfigIsRemoved() {
         Registries.CUSTOM_BIOME_IDENTIFIERS.get().put("custom:stale", 0);
 
         assertNull(createResourcePack());
@@ -130,8 +134,8 @@ public class BiomeResourcePackManagerTest {
     private void writeConfig(String biomes) throws IOException {
         Path input = tempDirectory.resolve("biome-visuals.json");
         Files.writeString(input, """
-                {"format_version": 1, "biomes": {%s}}
-                """.formatted(biomes));
+            {"format_version": 1, "biomes": {%s}}
+            """.formatted(biomes));
     }
 
     private void assertInvalid(String config) throws IOException {
@@ -162,9 +166,5 @@ public class BiomeResourcePackManagerTest {
 
     private Path generatedPack() {
         return Objects.requireNonNull(createResourcePack());
-    }
-
-    private static InputStream resource(String name) {
-        return BiomeResourcePackManagerTest.class.getClassLoader().getResourceAsStream(name);
     }
 }

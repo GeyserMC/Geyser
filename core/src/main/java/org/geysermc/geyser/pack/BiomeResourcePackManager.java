@@ -77,7 +77,7 @@ public final class BiomeResourcePackManager {
             Files.createDirectories(output.getParent());
             int biomeCount = createResourcePack(input, output, bedrockIdentifiers);
             geyser.getLogger()
-                    .info("Generated Bedrock biome visuals resource pack with " + biomeCount + " biome appearance(s).");
+                .info("Registered " + biomeCount + " biome visual overrides.");
             return output;
         } catch (Exception e) {
             geyser.getLogger().error("Failed to generate Bedrock biome visuals resource pack!", e);
@@ -121,33 +121,49 @@ public final class BiomeResourcePackManager {
                 throw new IllegalArgumentException("No biome visuals were defined for " + javaIdentifier);
             }
             validateIdentifier(javaIdentifier);
-
-            BiomeVisuals visuals = new BiomeVisuals(
-                    color(definition.waterColor()),
-                    color(definition.waterFogColor()),
-                    color(definition.fogColor()),
-                    optionalColor(definition.weatherFogColor()),
-                    optionalColor(definition.skyColor()),
-                    optionalColor(definition.grassColor()),
-                    optionalColor(definition.foliageColor()));
-            resolved.put(javaIdentifier, visuals);
+            resolved.put(javaIdentifier, resolveBiome(definition));
         }
         return resolved;
     }
 
-    private static int color(@Nullable String color) {
-        if (color == null || !color.matches("#[0-9a-fA-F]{6}")) {
-            throw new IllegalArgumentException("Biome colors must use the #RRGGBB format");
-        }
-        return Integer.parseInt(color.substring(1), 16);
+    private static BiomeVisuals resolveBiome(BiomeDefinition definition) {
+        BiomeAttributes attributes = definition.attributes();
+        BiomeEffects effects = definition.effects();
+
+        @Nullable Integer waterFogColor = attributes == null ? null : optionalColor(attributes.waterFogColor());
+        @Nullable Integer fogColor = attributes == null ? null : optionalColor(attributes.fogColor());
+        @Nullable Integer skyColor = attributes == null ? null : optionalColor(attributes.skyColor());
+        @Nullable Integer foliageColor = optionalColor(effects.foliageColor()) != null
+            ? optionalColor(effects.foliageColor())
+            : optionalColor(effects.dryFoliageColor());
+
+        return new BiomeVisuals(
+            color(effects.waterColor()),
+            optionalColor(effects.grassColor()),
+            foliageColor,
+            waterFogColor,
+            fogColor,
+            skyColor);
     }
 
-    private static @Nullable Integer optionalColor(@Nullable String color) {
-        return color == null ? null : color(color);
+    private static int color(@Nullable Object value) {
+        if (value instanceof Number number) {
+            return number.intValue();
+        }
+
+        if (value instanceof String text && text.matches("#[0-9a-fA-F]{6}")) {
+            return Integer.parseInt(text.substring(1), 16);
+        }
+
+        throw new IllegalArgumentException("Biome colors must be either an integer or a string in the #RRGGBB format");
+    }
+
+    private static @Nullable Integer optionalColor(@Nullable Object value) {
+        return value == null ? null : color(value);
     }
 
     private static Object2IntMap<String> customMappings(Set<String> configuredIdentifiers,
-            Set<String> bedrockIdentifiers) {
+                                                        Set<String> bedrockIdentifiers) {
         Object2IntMap<String> customMappings = new Object2IntOpenHashMap<>();
         int customId = CUSTOM_BIOME_ID_START;
         for (String identifier : configuredIdentifiers) {
@@ -174,7 +190,7 @@ public final class BiomeResourcePackManager {
         // invalidating the cache.
         Map<String, BiomeVisuals> sortedBiomes = new TreeMap<>(biomes);
         UUID packUuid = UUID.nameUUIDFromBytes(
-                (RESOURCE_PACK_VERSION + sortedBiomes.toString()).getBytes(StandardCharsets.UTF_8));
+            (RESOURCE_PACK_VERSION + sortedBiomes.toString()).getBytes(StandardCharsets.UTF_8));
         UUID moduleUuid = UUID.nameUUIDFromBytes((packUuid + "/module").getBytes(StandardCharsets.UTF_8));
 
         try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(output))) {
@@ -185,7 +201,7 @@ public final class BiomeResourcePackManager {
                 String fileIdentifier = fileIdentifier(biomeIdentifier);
                 String fogIdentifier = "geyser:fog_" + fileIdentifier;
                 write(zip, "biomes/" + fileIdentifier + ".client_biome.json",
-                        entry.getValue().clientBiome(biomeIdentifier, fogIdentifier));
+                    entry.getValue().clientBiome(biomeIdentifier, fogIdentifier));
                 write(zip, "fogs/" + fileIdentifier + "_fog_setting.json", entry.getValue().fog(fogIdentifier));
             }
         }
@@ -199,8 +215,8 @@ public final class BiomeResourcePackManager {
 
     private static String fileIdentifier(String identifier) {
         String fileIdentifier = identifier.startsWith("minecraft:")
-                ? identifier.substring("minecraft:".length())
-                : identifier;
+            ? identifier.substring("minecraft:".length())
+            : identifier;
         return fileIdentifier.replace(':', '_').replace('/', '_');
     }
 
@@ -238,28 +254,48 @@ public final class BiomeResourcePackManager {
     }
 
     private record BiomeConfig(
-            @SerializedName("format_version") int formatVersion,
-            Map<String, BiomeDefinition> biomes) {
+        @SerializedName("format_version") int formatVersion,
+        Map<String, BiomeDefinition> biomes) {
     }
 
     private record BiomeDefinition(
-            @SerializedName("water_color") String waterColor,
-            @SerializedName("water_fog_color") String waterFogColor,
-            @SerializedName("fog_color") String fogColor,
-            @SerializedName("weather_fog_color") @Nullable String weatherFogColor,
-            @SerializedName("sky_color") @Nullable String skyColor,
-            @SerializedName("grass_color") @Nullable String grassColor,
-            @SerializedName("foliage_color") @Nullable String foliageColor) {
+        @Nullable BiomeAttributes attributes,
+        BiomeEffects effects) {
+    }
+
+    private record BiomeAttributes(
+        @SerializedName("minecraft:visual/fog_color") @Nullable Object fogColor,
+        @SerializedName("minecraft:visual/sky_color") @Nullable Object skyColor,
+        @SerializedName("minecraft:visual/water_fog_color") @Nullable Object waterFogColor) {
+    }
+
+    private record BiomeEffects(
+        @SerializedName("water_color") Object waterColor,
+        @SerializedName("dry_foliage_color") @Nullable Object dryFoliageColor,
+        @SerializedName("foliage_color") @Nullable Object foliageColor,
+        @SerializedName("grass_color") @Nullable Object grassColor) {
     }
 
     private record BiomeVisuals(
-            int waterColor,
-            int waterFogColor,
-            int fogColor,
-            @Nullable Integer weatherFogColor,
-            @Nullable Integer skyColor,
-            @Nullable Integer grassColor,
-            @Nullable Integer foliageColor) {
+        int waterColor,
+        @Nullable Integer grassColor,
+        @Nullable Integer foliageColor,
+        @Nullable Integer waterFogColor,
+        @Nullable Integer fogColor,
+        @Nullable Integer skyColor) {
+
+        private static String rgb(int color) {
+            return "#%06X".formatted(color & 0xFFFFFF);
+        }
+
+        private static JsonObject fogDistance(int color, float start, float end, String distanceType) {
+            JsonObject distance = new JsonObject();
+            distance.addProperty("fog_start", start);
+            distance.addProperty("fog_end", end);
+            distance.addProperty("fog_color", rgb(color));
+            distance.addProperty("render_distance_type", distanceType);
+            return distance;
+        }
 
         private JsonObject clientBiome(String biomeIdentifier, String fogIdentifier) {
             JsonObject components = new JsonObject();
@@ -309,17 +345,20 @@ public final class BiomeResourcePackManager {
         private JsonObject fog(String fogIdentifier) {
             JsonObject distance = new JsonObject();
 
-            distance.add("air", fogDistance(fogColor, 0.92F, 1.0F, "render"));
-            distance.add("water", fogDistance(waterFogColor, 0, 60, "fixed"));
+            if (fogColor != null) {
+                distance.add("air", fogDistance(fogColor, 0.92F, 1.0F, "render"));
 
-            // Weather fog color falls back to default fog color if not specified. In Java
-            // both of these settings are combined into one setting, but Bedrock separates
-            // the two. One thing to keep in mind is that the weather fog color in Bedrock
-            // does not apply the same darkening effect as in Java. Having the same color
-            // will result in different results (Might also be fixable by playing with the
-            // fog distance values).
-            distance.add("weather",
-                    fogDistance(weatherFogColor != null ? weatherFogColor : fogColor, 0.23F, 0.7F, "render"));
+                // In Java, both air and weather settings are combined into one setting, but
+                // Bedrock separates the two. One thing to keep in mind is that the weather fog
+                // color in Bedrock does not apply the same darkening effect as in Java. Having
+                // the same color will most likely result in (slightly) different results.
+                distance.add("weather", fogDistance(fogColor, 0.23F, 0.7F, "render"));
+            }
+
+            if (waterFogColor != null) {
+                distance.add("water", fogDistance(waterFogColor, 0, 60, "fixed"));
+            }
+
 
             JsonObject description = new JsonObject();
             description.addProperty("identifier", fogIdentifier);
@@ -332,19 +371,6 @@ public final class BiomeResourcePackManager {
             root.addProperty("format_version", "1.16.100");
             root.add("minecraft:fog_settings", settings);
             return root;
-        }
-
-        private static String rgb(int color) {
-            return "#%06X".formatted(color & 0xFFFFFF);
-        }
-
-        private static JsonObject fogDistance(int color, float start, float end, String distanceType) {
-            JsonObject distance = new JsonObject();
-            distance.addProperty("fog_start", start);
-            distance.addProperty("fog_end", end);
-            distance.addProperty("fog_color", rgb(color));
-            distance.addProperty("render_distance_type", distanceType);
-            return distance;
         }
     }
 }
