@@ -133,6 +133,8 @@ public final class BiomeResourcePackManager {
         @Nullable Integer waterFogColor = attributes == null ? null : optionalColor(attributes.waterFogColor());
         @Nullable Integer fogColor = attributes == null ? null : optionalColor(attributes.fogColor());
         @Nullable Integer skyColor = attributes == null ? null : optionalColor(attributes.skyColor());
+
+        // Since Bedrock only has a single foliage color, we use foliage_color as the default, and fall back to Java's dry_foliage_color.
         @Nullable Integer foliageColor = optionalColor(effects.foliageColor()) != null
             ? optionalColor(effects.foliageColor())
             : optionalColor(effects.dryFoliageColor());
@@ -162,8 +164,7 @@ public final class BiomeResourcePackManager {
         return value == null ? null : color(value);
     }
 
-    private static Object2IntMap<String> customMappings(Set<String> configuredIdentifiers,
-                                                        Set<String> bedrockIdentifiers) {
+    private static Object2IntMap<String> customMappings(Set<String> configuredIdentifiers, Set<String> bedrockIdentifiers) {
         Object2IntMap<String> customMappings = new Object2IntOpenHashMap<>();
         int customId = CUSTOM_BIOME_ID_START;
         for (String identifier : configuredIdentifiers) {
