@@ -28,6 +28,7 @@ package org.geysermc.geyser.translator.protocol.java;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
 import org.cloudburstmc.protocol.bedrock.packet.CraftingDataPacket;
 import org.cloudburstmc.protocol.bedrock.packet.PlayerListPacket;
+import org.geysermc.geyser.inventory.recipe.GeyserShapedRecipe;
 import org.geysermc.geyser.network.GameProtocol;
 import org.geysermc.geyser.registry.Registries;
 import org.geysermc.geyser.session.GeyserSession;
@@ -35,6 +36,10 @@ import org.geysermc.geyser.translator.protocol.PacketTranslator;
 import org.geysermc.geyser.translator.protocol.Translator;
 import org.geysermc.geyser.util.InventoryUtils;
 import org.geysermc.geyser.util.PlayerListUtils;
+import org.geysermc.mcprotocollib.protocol.data.game.item.ItemStack;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.EmptySlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.ItemStackSlotDisplay;
+import org.geysermc.mcprotocollib.protocol.data.game.recipe.display.slot.SlotDisplay;
 import org.geysermc.mcprotocollib.protocol.packet.configuration.clientbound.ClientboundFinishConfigurationPacket;
 
 import java.util.ArrayList;
@@ -70,12 +75,51 @@ public class JavaFinishConfigurationTranslator extends PacketTranslator<Clientbo
         }
         craftingDataPacket.getPotionMixData().addAll(Registries.POTION_MIXES.forVersion(session.getUpstream().getProtocolVersion()));
         if (session.isSentSpawnPacket()) {
-            session.getUpstream().sendPacket(craftingDataPacket);
             session.getLastRecipeNetId().set(InventoryUtils.LAST_RECIPE_NET_ID + 1);
             session.getCraftingRecipes().clear();
             session.getJavaToBedrockRecipeIds().clear();
             session.getSmithingRecipes().clear();
             session.setStonecutterRecipes(Int2ObjectMaps.emptyMap());
+        }
+
+        // Merge in recipes registered through the API (e.g. by Hydraulic from the server's
+        // RecipeManager). The vanilla declare_recipes/recipe_book_add flow only carries recipe
+        // ids, so without this Bedrock players would see an almost empty recipe book on modded
+        // servers. This must run after the clear above and before the packet is sent below.
+        final int[] mergedCount = {0};
+        final int[] failedCount = {0};
+        session.getGeyser().registeredCraftingRecipes().forEach(recipe -> {
+            int netId = session.getLastRecipeNetId().incrementAndGet();
+            List<SlotDisplay> ingredients = new ArrayList<>(recipe.ingredients().size());
+            for (Integer itemId : recipe.ingredients()) {
+                ingredients.add(itemId == null
+                        ? EmptySlotDisplay.INSTANCE
+                        : new ItemStackSlotDisplay(new ItemStack(itemId, 1)));
+            }
+            GeyserShapedRecipe geyserRecipe = new GeyserShapedRecipe(
+                    recipe.id(), netId, recipe.width(), recipe.height(), ingredients,
+                    new ItemStackSlotDisplay(new ItemStack(recipe.result(), recipe.resultCount())));
+            session.getCraftingRecipes().put(recipe.id(), geyserRecipe);
+            session.getJavaToBedrockRecipeIds().put(recipe.id(), List.of("hydraulic_" + recipe.id()));
+            // cleanRecipesRequired is set to false below, so JavaUpdateRecipesTranslator won't
+            // re-send these; add them to the packet that is about to be sent.
+            List<org.cloudburstmc.protocol.bedrock.data.inventory.crafting.recipe.ShapedRecipeData> recipeData =
+                    geyserRecipe.asRecipeData(session);
+            if (recipeData.isEmpty()) {
+                failedCount[0]++;
+            }
+            if (GameProtocol.is26_40orHigher(session.protocolVersion())) {
+                craftingDataPacket.getShapedData().addAll(recipeData);
+            } else {
+                craftingDataPacket.getCraftingData().addAll(recipeData);
+            }
+            mergedCount[0]++;
+        });
+        session.getGeyser().getLogger().info("RECIPE-DEBUG: merged " + mergedCount[0] + " API recipes into CraftingData ("
+                + failedCount[0] + " failed to convert)");
+
+        if (session.isSentSpawnPacket()) {
+            session.getUpstream().sendPacket(craftingDataPacket);
         } else {
             session.getUpstream().queuePostStartGamePacket(craftingDataPacket);
         }

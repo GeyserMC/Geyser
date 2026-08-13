@@ -70,6 +70,7 @@ import org.geysermc.geyser.api.event.lifecycle.GeyserShutdownEvent;
 import org.geysermc.geyser.api.network.AuthType;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.recipe.CraftingRecipe;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.geysermc.geyser.command.CommandRegistry;
@@ -123,6 +124,7 @@ import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.security.Key;
 import java.text.DecimalFormat;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -179,6 +181,7 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
 
     private final GeyserEventBus eventBus;
     private final GeyserExtensionManager extensionManager;
+    private final Map<String, CraftingRecipe> registeredCraftingRecipes = new ConcurrentHashMap<>();
 
     private MetricsBase metrics;
 
@@ -696,6 +699,16 @@ public class GeyserImpl implements GeyserApi, EventRegistrar {
     @NonNull
     public BedrockListener bedrockListener() {
         return config().bedrock();
+    }
+
+    @Override
+    public void registerCraftingRecipe(CraftingRecipe recipe) {
+        this.registeredCraftingRecipes.put(recipe.id() + ":" + recipe.result() + ":" + recipe.resultCount(), recipe);
+    }
+
+    @Override
+    public Collection<CraftingRecipe> registeredCraftingRecipes() {
+        return List.copyOf(this.registeredCraftingRecipes.values());
     }
 
     @Override

@@ -35,12 +35,14 @@ import org.geysermc.geyser.api.event.EventRegistrar;
 import org.geysermc.geyser.api.extension.ExtensionManager;
 import org.geysermc.geyser.api.network.BedrockListener;
 import org.geysermc.geyser.api.network.RemoteServer;
+import org.geysermc.geyser.api.recipe.CraftingRecipe;
 import org.geysermc.geyser.api.util.MinecraftVersion;
 import org.geysermc.geyser.api.util.PlatformType;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.Nullable;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -102,11 +104,33 @@ public interface GeyserApi extends GeyserApiBase {
 
     /**
      * Gets the {@link BedrockListener} used for listening
-     * for Minecraft: Bedrock Edition client connections.
+     * for Bedrock connections.
      *
-     * @return the listener used for Bedrock client connectins
+     * @return the bedrock listener
      */
     BedrockListener bedrockListener();
+
+    /**
+     * Registers a crafting recipe that is made available to every Bedrock session.
+     * <p>
+     * Modded servers do not send recipe contents to clients; this is the hook for
+     * server-side mods (e.g. Hydraulic) to populate the Bedrock recipe book with the
+     * full server recipe set. Recipes are merged into each session's crafting recipes
+     * when the configuration phase completes.
+     *
+     * @param recipe the crafting recipe to register
+     */
+    default void registerCraftingRecipe(CraftingRecipe recipe) {
+    }
+
+    /**
+     * Gets the crafting recipes registered through {@link #registerCraftingRecipe(CraftingRecipe)}.
+     *
+     * @return the registered crafting recipes
+     */
+    default Collection<CraftingRecipe> registeredCraftingRecipes() {
+        return List.of();
+    }
 
     /**
      * Gets the {@link Path} to the Geyser config directory.
