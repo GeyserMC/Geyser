@@ -57,10 +57,18 @@ public class JavaOpenScreenTranslator extends PacketTranslator<ClientboundOpenSc
 
         // Hack: ViaVersion translates the old (pre 1.20) smithing table to a anvil (does not work for Bedrock). We can detect this and translate it back to a smithing table.
         // (Implementation note: used to be a furnace. Was changed sometime before 1.21.2)
-        if (session.isOldSmithingTable() && packet.getType() == ContainerType.ANVIL && packet.getTitle().equals(SMITHING_TABLE_COMPONENT)) {
+        ContainerType type = packet.getType();
+        if (type == null) {
+            // Modded servers can send menu type ids outside the vanilla range (e.g. Waystones).
+            // Fall back to a generic chest so the menu at least opens and its slots are usable,
+            // instead of silently closing it (the old behaviour).
+            type = ContainerType.GENERIC_9X6;
+            session.getGeyser().getLogger().info("Unknown container type from server (modded menu), falling back to generic chest for " + session.bedrockUsername());
+        }
+        if (session.isOldSmithingTable() && type == ContainerType.ANVIL && packet.getTitle().equals(SMITHING_TABLE_COMPONENT)) {
             newTranslator = OldSmithingTableTranslator.INSTANCE;
         } else {
-            newTranslator = InventoryTranslator.inventoryTranslator(packet.getType());
+            newTranslator = InventoryTranslator.inventoryTranslator(type);
         }
 
         if (session.hasFormOpen()) {
