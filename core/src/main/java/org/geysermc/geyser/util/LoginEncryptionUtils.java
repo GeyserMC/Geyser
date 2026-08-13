@@ -64,8 +64,9 @@ public class LoginEncryptionUtils {
         try {
             GeyserImpl geyser = session.getGeyser();
 
-            // Regardless of auth type, we don't support guest type accounts used for splitscreen
-            if (authPayload.getAuthType() == AuthType.GUEST) {
+            // AuthType.GUEST (id 2) is how offline clients without Xbox auth identify themselves.
+            // In offline auth mode we should allow them through; otherwise reject guest/splitscreen accounts.
+            if (authPayload.getAuthType() == AuthType.GUEST && geyser.config().java().authType() != org.geysermc.geyser.api.network.AuthType.OFFLINE) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
                 return;
             }
@@ -73,7 +74,10 @@ public class LoginEncryptionUtils {
             ChainValidationResult result = EncryptionUtils.validatePayload(authPayload);
 
             geyser.getLogger().debug("Is player data signed? %s", result.signed());
-            if (!result.signed() && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()) {
+            // Skip the signature check entirely in offline auth mode - the client has no Xbox
+            // identity to sign with.
+            if (!result.signed() && session.getGeyser().config().advanced().bedrock().validateBedrockLogin()
+                    && session.getGeyser().config().java().authType() != org.geysermc.geyser.api.network.AuthType.OFFLINE) {
                 session.disconnect(GeyserLocale.getLocaleStringLog("geyser.network.remote.invalid_xbox_account"));
                 return;
             }
