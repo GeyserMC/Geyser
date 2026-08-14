@@ -276,7 +276,7 @@ public class Entity implements GeyserEntity {
         if (session.getClientRenderDistance() > 0) {
             radius = Math.min(radius, session.getClientRenderDistance());
         }
-        if (!session.isSpawned() || radius < 2) {
+        if (radius < 2) {
             return packetPosition;
         }
 
