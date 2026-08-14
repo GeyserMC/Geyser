@@ -262,12 +262,12 @@ public class Entity implements GeyserEntity {
     }
 
     /**
-     * The position to use in the add packet. Bedrock discards an actor added far outside the area
+     * The position to use in the entity spawn packet. Bedrock discards an actor added far outside the area
      * it has loaded and no later movement brings it back, while Java's entity tracker can legitimately
      * pair an entity at an outdated position and correct it right afterwards (e.g. a player
-     * teleporting into view). Pull only the packet position inside the client's loaded area: the
-     * real position stays cached, and since movement packets are built from the cache, the first
-     * correction or movement fixes the actor. An entity that never moves again is corrected by the
+     * teleporting into view). This mainly occurs on Vanilla / Fabric, and can be replicated inconsistently by a 
+     * player teleporting to another player over a large distance. 
+     * The first correction or movement fixes the position, and prevents despawn. An entity that never moves again is corrected by the
      * position sync Java forces once its tracker reaches 400 ticks, except for the few types that
      * are tracked on a very long interval.
      */
