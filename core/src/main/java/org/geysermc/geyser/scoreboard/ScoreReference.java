@@ -31,7 +31,7 @@ import org.geysermc.geyser.translator.text.MessageTranslator;
 import org.geysermc.mcprotocollib.protocol.data.game.chat.numbers.NumberFormat;
 
 public final class ScoreReference {
-    public static final long LAST_UPDATE_DEFAULT = -1;
+    private static final long LAST_UPDATE_DEFAULT = -1;
     private static final long LAST_UPDATE_REMOVE = -2;
 
     private final String name;
@@ -127,6 +127,6 @@ public final class ScoreReference {
     }
 
     public void markDeleted() {
-        lastUpdate = -1;
+        lastUpdate = LAST_UPDATE_REMOVE;
     }
 }

@@ -93,7 +93,7 @@ public final class Team {
                     // Java 1.19.3 Mojmap: Scoreboard#addPlayerToTeam calls #removePlayerFromTeam
                     oldTeam.entities.remove(player);
                     // also remove the managed entity if there is one
-                    removeManagedEntity(player);
+                    oldTeam.removeManagedEntity(player);
                 }
                 return this;
             });
@@ -169,11 +169,8 @@ public final class Team {
         }
         this.color = color;
 
-        if (lastUpdate == LAST_UPDATE_DEFAULT) {
-            // addEntities is called after the initial updateProperties, so no need to do any entity updates here
-            if (this.color != null || !this.prefix.isEmpty() || !this.suffix.isEmpty()) {
-                markChanged();
-            }
+        // We don't have to check and apply changes if there are no tracked entities.
+        if (managedEntities.isEmpty()) {
             return;
         }
 
@@ -193,7 +190,7 @@ public final class Team {
         }
     }
 
-    public boolean shouldRemove() {
+    public boolean isRemoved() {
         return lastUpdate == LAST_UPDATE_REMOVE;
     }
 

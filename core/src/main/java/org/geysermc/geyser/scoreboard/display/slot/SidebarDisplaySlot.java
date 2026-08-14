@@ -144,7 +144,7 @@ public final class SidebarDisplaySlot extends DisplaySlot {
 
             if (team != null) {
                 // entities are mostly removed from teams without notifying the scores.
-                if (team.shouldRemove() || !team.hasEntity(score.name())) {
+                if (team.isRemoved() || !team.hasEntity(score.name())) {
                     score.team(null);
                     add = true;
                 }
