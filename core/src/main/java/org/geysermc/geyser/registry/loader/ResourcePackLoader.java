@@ -35,7 +35,9 @@ import org.geysermc.geyser.api.pack.PathPackCodec;
 import org.geysermc.geyser.api.pack.ResourcePack;
 import org.geysermc.geyser.api.pack.ResourcePackManifest;
 import org.geysermc.geyser.api.pack.UrlPackCodec;
+import org.geysermc.geyser.api.pack.option.PriorityOption;
 import org.geysermc.geyser.event.type.GeyserDefineResourcePacksEventImpl;
+import org.geysermc.geyser.pack.CustomBiomeResourcePackManager;
 import org.geysermc.geyser.pack.GeyserResourcePack;
 import org.geysermc.geyser.pack.GeyserResourcePackManifest;
 import org.geysermc.geyser.pack.ResourcePackHolder;
@@ -125,6 +127,17 @@ public class ResourcePackLoader implements RegistryLoader<Path, Map<UUID, Resour
         GeyserImpl.getInstance().eventBus().fire(event);
 
         GeyserDefineResourcePacksEventImpl defineEvent = new GeyserDefineResourcePacksEventImpl(packMap);
+
+        // The generated biome pack is registered below normal priority, so packs supplied
+        // by the operator override its assets
+        try {
+            Path biomeResourcePack = CustomBiomeResourcePackManager.createResourcePack();
+            if (biomeResourcePack != null) {
+                defineEvent.register(readPack(biomeResourcePack).build(), PriorityOption.LOW);
+            }
+        } catch (Exception e) {
+            GeyserImpl.getInstance().getLogger().error("Unable to register the custom biome resource pack!", e);
+        }
 
         for (Path path : event.resourcePacks()) {
             try {
