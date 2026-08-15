@@ -312,7 +312,7 @@ public interface GeyserConfig {
             Whether to add any items and blocks which normally does not exist in Bedrock Edition.
             This should only need to be disabled if using a proxy that does not use the "transfer packet" style of server switching.
             If this is disabled, furnace minecart items will be mapped to hopper minecart items.
-            Geyser's block, item, and skull mappings systems will also be disabled.
+            Geyser's biome, block, item, and skull mappings systems will also be disabled.
             This option requires a restart of Geyser in order to change its setting.""")
         @DefaultBoolean(true)
         boolean enableCustomContent();

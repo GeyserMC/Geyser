@@ -79,6 +79,7 @@ public final class MappingsConfigReader {
         try (Stream<Path> paths = Files.walk(directory)) {
             return paths
                 .filter(child -> child.toString().endsWith(".json"))
+                .sorted() // Keep order-dependent conflict resolution deterministic
                 .toArray(Path[]::new);
         } catch (IOException exception) {
             GeyserImpl.getInstance().getLogger().error("Failed to gather custom mappings files in directory " + directory, exception);
