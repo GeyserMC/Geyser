@@ -69,8 +69,9 @@ public class GeyserMockContext {
         var eventBus = new GeyserEventBus();
         when(geyserImpl.eventBus()).thenReturn(eventBus);
 
-        // GeyserEntityDataTypes static fields call Identifier.of(), which goes through GeyserApi.api().provider()
-        doAnswer(InvocationOnMock::callRealMethod).when(geyserImpl).provider(any(Class.class), any(), any());
+        // API static factories (Identifier.of(), CustomBiomeDefinition.builder(), ...) go through
+        // GeyserApi.api().provider(), some from static initializers while a class loads
+        doAnswer(InvocationOnMock::callRealMethod).when(geyserImpl).provider(any(Class.class), any(Object[].class));
 
         try (var geyserImplMock = mockStatic(GeyserImpl.class);
              var geyserMock = mockStatic(Geyser.class)) {
