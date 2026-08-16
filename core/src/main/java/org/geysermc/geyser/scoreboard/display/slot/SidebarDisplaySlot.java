@@ -94,14 +94,10 @@ public final class SidebarDisplaySlot extends DisplaySlot {
             removeScores.add(new ScoreInfo(cachedInfo.getScoreboardId(), cachedInfo.getObjectiveId(), 0));
         }
 
-        // The newDisplayScores have to be copied over to displayScoresCopy for the next render.
-        for (int i = 0; i < newDisplayScores.size(); i++) {
-            if (i < displayScoresCopy.size()) {
-                displayScoresCopy.set(i, newDisplayScores.get(i));
-            } else {
-                displayScoresCopy.add(newDisplayScores.get(i));
-            }
-        }
+        // Copied over for the next render. This has to replace the whole list: anything left from a
+        // longer previous render was just removed from Bedrock, and reusing it would skip re-sending it.
+        displayScoresCopy.clear();
+        displayScoresCopy.addAll(newDisplayScores);
 
         // fixes ordering issues with multiple entries with same score
         if (!displayScores.isEmpty()) {

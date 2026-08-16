@@ -67,6 +67,7 @@ import org.geysermc.geyser.level.physics.BoundingBox;
 import org.geysermc.geyser.scoreboard.Team;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.translator.text.MessageTranslator;
+import org.geysermc.geyser.util.ChunkUtils;
 import org.geysermc.geyser.util.EntityUtils;
 import org.geysermc.geyser.util.InteractionResult;
 import org.geysermc.geyser.util.InteractiveTag;
@@ -230,7 +231,7 @@ public class Entity implements GeyserEntity {
         addEntityPacket.setIdentifier(bedrockDefinition.identifier().toString());
         addEntityPacket.setRuntimeEntityId(geyserId);
         addEntityPacket.setUniqueEntityId(geyserId);
-        addEntityPacket.setPosition(bedrockPosition());
+        addEntityPacket.setPosition(spawnPosition(bedrockPosition()));
         addEntityPacket.setMotion(motion);
         addEntityPacket.setRotation(Vector2f.from(pitch, yaw));
         addEntityPacket.setHeadRotation(headYaw);
@@ -258,6 +259,39 @@ public class Entity implements GeyserEntity {
      * To be overridden in other entity classes, if additional things need to be done to the spawn entity packet.
      */
     public void addAdditionalSpawnData(AddEntityPacket addEntityPacket) {
+    }
+
+    /**
+     * The position to use in the entity spawn packet. Bedrock discards an actor added far outside the area
+     * it has loaded and no later movement brings it back, while Java's entity tracker can legitimately
+     * pair an entity at an outdated position and correct it right afterwards (e.g. a player
+     * teleporting into view). This mainly occurs on Vanilla / Fabric, and can be replicated inconsistently by a 
+     * player teleporting to another player over a large distance. 
+     * The first correction or movement fixes the position, and prevents despawn. An entity that never moves again is corrected by the
+     * position sync Java forces once its tracker reaches 400 ticks, except for the few types that
+     * are tracked on a very long interval.
+     */
+    protected Vector3f spawnPosition(Vector3f packetPosition) {
+        int radius = ChunkUtils.squareToCircle(session.getServerRenderDistance());
+        if (session.getClientRenderDistance() > 0) {
+            radius = Math.min(radius, session.getClientRenderDistance());
+        }
+        if (!session.isSpawned() || radius < 2) {
+            return packetPosition;
+        }
+
+        Vector3f playerPosition = session.getPlayerEntity().position();
+        float dx = packetPosition.getX() - playerPosition.getX();
+        float dz = packetPosition.getZ() - playerPosition.getZ();
+        float limit = radius << 4;
+        float distanceSquared = dx * dx + dz * dz;
+        if (distanceSquared <= limit * limit) {
+            return packetPosition;
+        }
+
+        // A chunk inside the edge, along the real direction, so it lands in terrain the client has
+        float scale = (limit - 16) / (float) Math.sqrt(distanceSquared);
+        return Vector3f.from(playerPosition.getX() + dx * scale, packetPosition.getY(), playerPosition.getZ() + dz * scale);
     }
 
     /**
@@ -561,7 +595,7 @@ public class Entity implements GeyserEntity {
         // CustomName is ignored for players, and is always their username.
         Optional<Component> name = entityMetadata.getValue();
         if (name.isPresent()) {
-            this.customName = MessageTranslator.convertMessage(name.get(), session.locale());
+            this.customName = MessageTranslator.convertMessageRaw(name.get(), session.locale());
             setNametag(customName, true);
             return;
         }

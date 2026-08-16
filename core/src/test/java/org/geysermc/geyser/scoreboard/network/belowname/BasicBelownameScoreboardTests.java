@@ -35,14 +35,11 @@ import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScore
 import static org.geysermc.geyser.scoreboard.network.util.GeyserMockContextScoreboard.spawnPlayerSilently;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import java.util.List;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.cloudburstmc.protocol.bedrock.data.entity.EntityDataTypes;
 import org.cloudburstmc.protocol.bedrock.packet.AddPlayerPacket;
-import org.cloudburstmc.protocol.bedrock.packet.BedrockPacket;
 import org.cloudburstmc.protocol.bedrock.packet.SetEntityDataPacket;
 import org.geysermc.geyser.entity.type.player.PlayerEntity;
 import org.geysermc.geyser.translator.protocol.java.scoreboard.JavaResetScorePacket;
@@ -151,6 +148,51 @@ public class BasicBelownameScoreboardTests {
                 var packet = new SetEntityDataPacket();
                 packet.setRuntimeEntityId(2);
                 packet.getMetadata().put(EntityDataTypes.SCORE, "0 §robjective");
+                return packet;
+            });
+            assertNoNextPacket(context);
+
+            context.translate(
+                setDisplayObjectiveTranslator,
+                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.BELOW_NAME, "")
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(2);
+                packet.getMetadata().put(EntityDataTypes.SCORE, "");
+                return packet;
+            });
+        });
+    }
+
+    @Test
+    void numberFormatFixed() {
+        mockContextScoreboard(context -> {
+            var setObjectiveTranslator = new JavaSetObjectiveTranslator();
+            var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();
+
+            spawnPlayerSilently(context, "player1", 2);
+
+            context.translate(
+                setObjectiveTranslator,
+                new ClientboundSetObjectivePacket(
+                    "objective",
+                    ObjectiveAction.ADD,
+                    Component.text("objective"),
+                    ScoreType.INTEGER,
+                    new FixedFormat(Component.text("yes", NamedTextColor.GREEN))
+                )
+            );
+            assertNoNextPacket(context);
+
+            context.translate(
+                setDisplayObjectiveTranslator,
+                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.BELOW_NAME, "objective")
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetEntityDataPacket();
+                packet.setRuntimeEntityId(2);
+                packet.getMetadata().put(EntityDataTypes.SCORE, "§ayes §robjective");
                 return packet;
             });
             assertNoNextPacket(context);

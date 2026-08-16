@@ -74,21 +74,21 @@ public class BasicSidebarScoreboardTests {
 
             context.translate(
                 setDisplayObjectiveTranslator,
-                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.PLAYER_LIST, "objective")
+                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.SIDEBAR, "objective")
             );
             assertNextPacket(context, () -> {
                 var packet = new SetDisplayObjectivePacket();
                 packet.setObjectiveId("0");
                 packet.setDisplayName("objective");
                 packet.setCriteria("dummy");
-                packet.setDisplaySlot("list");
+                packet.setDisplaySlot("sidebar");
                 packet.setSortOrder(1);
                 return packet;
             });
 
             context.translate(
                 setDisplayObjectiveTranslator,
-                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.PLAYER_LIST, "")
+                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.SIDEBAR, "")
             );
             assertNextPacket(context, () -> {
                 var packet = new RemoveObjectivePacket();
@@ -133,6 +133,49 @@ public class BasicSidebarScoreboardTests {
     }
 
     @Test
+    void numberFormatFixed() {
+        mockContextScoreboard(context -> {
+            var setObjectiveTranslator = new JavaSetObjectiveTranslator();
+            var setDisplayObjectiveTranslator = new JavaSetDisplayObjectiveTranslator();
+            var setScoreTranslator = new JavaSetScoreTranslator();
+
+            context.translate(
+                setObjectiveTranslator,
+                new ClientboundSetObjectivePacket(
+                    "objective",
+                    ObjectiveAction.ADD,
+                    Component.text("objective", NamedTextColor.AQUA, TextDecoration.BOLD),
+                    ScoreType.INTEGER,
+                    new FixedFormat(Component.text("format", NamedTextColor.AQUA))
+                )
+            );
+            assertNoNextPacket(context);
+
+            context.translate(
+                setDisplayObjectiveTranslator,
+                new ClientboundSetDisplayObjectivePacket(ScoreboardPosition.SIDEBAR, "objective")
+            );
+            assertNextPacket(context, () -> {
+                var packet = new SetDisplayObjectivePacket();
+                packet.setObjectiveId("0");
+                packet.setDisplayName("§b§lobjective");
+                packet.setCriteria("dummy");
+                packet.setDisplaySlot("sidebar");
+                packet.setSortOrder(1);
+                return packet;
+            });
+
+            context.translate(setScoreTranslator, new ClientboundSetScorePacket("Tim203", "objective", 3));
+            assertNextPacket(context, () -> {
+                var packet = new SetScorePacket();
+                packet.setAction(SetScorePacket.Action.SET);
+                packet.setInfos(List.of(new ScoreInfo(1, "0", 3, "Tim203 §r§bformat")));
+                return packet;
+            });
+        });
+    }
+
+    @Test
     void override() {
         mockContextScoreboard(context -> {
             var setObjectiveTranslator = new JavaSetObjectiveTranslator();
@@ -162,7 +205,7 @@ public class BasicSidebarScoreboardTests {
             );
 
             context.translate(setScoreTranslator, new ClientboundSetScorePacket("Tim203", "objective1", 1));
-            context.translate(setScoreTranslator, new ClientboundSetScorePacket("Tim203", "objective2", 2)); 
+            context.translate(setScoreTranslator, new ClientboundSetScorePacket("Tim203", "objective2", 2));
             assertNoNextPacket(context);
 
 
