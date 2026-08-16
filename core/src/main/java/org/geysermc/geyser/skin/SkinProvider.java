@@ -29,7 +29,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import it.unimi.dsi.fastutil.bytes.ByteArrays;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -45,23 +44,24 @@ import org.geysermc.geyser.api.skin.SkinGeometry;
 import org.geysermc.geyser.entity.type.player.AvatarEntity;
 import org.geysermc.geyser.session.GeyserSession;
 import org.geysermc.geyser.text.GeyserLocale;
+import org.geysermc.geyser.util.FancyHttpClient;
 import org.geysermc.geyser.util.FileUtils;
-import org.geysermc.geyser.util.WebUtils;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,6 +70,7 @@ import java.util.function.Predicate;
 
 public class SkinProvider {
     private static ExecutorService EXECUTOR_SERVICE;
+    private static FancyHttpClient HTTP_CLIENT;
 
     static final Skin EMPTY_SKIN;
     static final Cape EMPTY_CAPE = new Cape("", "no-cape", ByteArrays.EMPTY_ARRAY, true);
@@ -164,7 +165,18 @@ public class SkinProvider {
         return EXECUTOR_SERVICE;
     }
 
+    private static FancyHttpClient getHttpClient() {
+        if (HTTP_CLIENT == null) {
+            HTTP_CLIENT = FancyHttpClient.open(getExecutorService());
+        }
+        return HTTP_CLIENT;
+    }
+
     public static void shutdown() {
+        if (HTTP_CLIENT != null) {
+            HTTP_CLIENT.close();
+            HTTP_CLIENT = null;
+        }
         if (EXECUTOR_SERVICE != null) {
             EXECUTOR_SERVICE.shutdown();
             EXECUTOR_SERVICE = null;
@@ -447,7 +459,12 @@ public class SkinProvider {
 
         // If no image we download it
         if (image == null) {
-            image = downloadImage(imageUrl);
+            // TODO properly handle the async
+            try {
+                image = getHttpClient().downloadImage(imageUrl).join();
+            } catch (CompletionException exception) {
+                throw new IOException(exception);
+            }
             GeyserImpl.getInstance().getLogger().debug("Downloaded " + imageUrl);
 
             // Write to cache if we are allowed
@@ -534,22 +551,23 @@ public class SkinProvider {
      * @return a completable username of the player
      */
     public static CompletableFuture<@Nullable String> requestUsernameFromUUID(UUID uuid) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                JsonObject node = WebUtils.getJson("https://api.minecraftservices.com/minecraft/profile/lookup/" + shorthandUUID(uuid));
-                JsonElement name = node.get("name");
-                if (name == null) {
-                    GeyserImpl.getInstance().getLogger().debug("No username found in Mojang response for " + uuid);
+        return getHttpClient().getJson("https://api.minecraftservices.com/minecraft/profile/lookup/" + shorthandUUID(uuid))
+            .thenApply(JsonElement::getAsJsonObject)
+            .thenApply(node -> {
+                try {
+                    JsonElement name = node.get("name");
+                    if (name == null) {
+                        GeyserImpl.getInstance().getLogger().debug("No username found in Mojang response for " + uuid);
+                        return null;
+                    }
+                    return name.getAsString();
+                } catch (Exception e) {
+                    if (GeyserImpl.getInstance().config().debugMode()) {
+                        e.printStackTrace();
+                    }
                     return null;
                 }
-                return name.getAsString();
-            } catch (Exception e) {
-                if (GeyserImpl.getInstance().config().debugMode()) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        }, getExecutorService());
+            });
     }
 
     /**
@@ -559,22 +577,23 @@ public class SkinProvider {
      * @return a completable UUID of the player
      */
     public static CompletableFuture<@Nullable UUID> requestUUIDFromUsername(String username) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                JsonObject node = WebUtils.getJson("https://api.mojang.com/users/profiles/minecraft/" + username);
-                JsonElement id = node.get("id");
-                if (id == null) {
-                    GeyserImpl.getInstance().getLogger().debug("No UUID found in Mojang response for " + username);
+        return getHttpClient().getJson("https://api.mojang.com/users/profiles/minecraft/" + username)
+            .thenApply(JsonElement::getAsJsonObject)
+            .thenApply(node -> {
+                try {
+                    JsonElement id = node.get("id");
+                    if (id == null) {
+                        GeyserImpl.getInstance().getLogger().debug("No UUID found in Mojang response for " + username);
+                        return null;
+                    }
+                    return expandUUID(id.getAsString());
+                } catch (Exception e) {
+                    if (GeyserImpl.getInstance().config().debugMode()) {
+                        e.printStackTrace();
+                    }
                     return null;
                 }
-                return expandUUID(id.getAsString());
-            } catch (Exception e) {
-                if (GeyserImpl.getInstance().config().debugMode()) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        }, getExecutorService());
+            });
     }
 
     /**
@@ -584,23 +603,24 @@ public class SkinProvider {
      * @return a completable GameProfile with textures included
      */
     public static CompletableFuture<@Nullable String> requestTexturesFromUUID(UUID uuid) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                JsonObject node = WebUtils.getJson("https://sessionserver.mojang.com/session/minecraft/profile/" + shorthandUUID(uuid));
-                JsonArray properties = node.getAsJsonArray("properties");
-                if (properties == null) {
-                    GeyserImpl.getInstance().getLogger().debug("No properties found in Mojang response for " + uuid);
+        return getHttpClient().getJson("https://sessionserver.mojang.com/session/minecraft/profile/" + shorthandUUID(uuid))
+            .thenApply(JsonElement::getAsJsonObject)
+            .thenApply(node -> {
+                try {
+                    JsonArray properties = node.getAsJsonArray("properties");
+                    if (properties == null) {
+                        GeyserImpl.getInstance().getLogger().debug("No properties found in Mojang response for " + uuid);
+                        return null;
+                    }
+                    return properties.get(0).getAsJsonObject().get("value").getAsString();
+                } catch (Exception e) {
+                    GeyserImpl.getInstance().getLogger().debug("Unable to request textures for " + uuid);
+                    if (GeyserImpl.getInstance().config().debugMode()) {
+                        e.printStackTrace();
+                    }
                     return null;
                 }
-                return properties.get(0).getAsJsonObject().get("value").getAsString();
-            } catch (Exception e) {
-                GeyserImpl.getInstance().getLogger().debug("Unable to request textures for " + uuid);
-                if (GeyserImpl.getInstance().config().debugMode()) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-        }, getExecutorService());
+            });
     }
 
     /**
@@ -617,20 +637,6 @@ public class SkinProvider {
                 }
                 return requestTexturesFromUUID(uuid);
             });
-    }
-
-    private static BufferedImage downloadImage(String imageUrl) throws IOException {
-        HttpURLConnection con = (HttpURLConnection) new URL(imageUrl).openConnection();
-        con.setRequestProperty("User-Agent", WebUtils.getUserAgent());
-        con.setConnectTimeout(10000);
-        con.setReadTimeout(10000);
-
-        BufferedImage image = ImageIO.read(con.getInputStream());
-
-        if (image == null) {
-            throw new IllegalArgumentException("Failed to read image from: %s".formatted(imageUrl));
-        }
-        return image;
     }
 
     public static BufferedImage scale(BufferedImage bufferedImage, int newWidth, int newHeight) {
